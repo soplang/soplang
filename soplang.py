@@ -2326,4 +2326,8 @@ def run(fn, text):
     context.symbol_table = global_symbol_table
     result = interpreter.visit(ast.node, context)
 
-    return result.value, result.error
+    # If there's a return value, use it instead of the value
+    if result.func_return_value:
+        return result.func_return_value, result.error
+    else:
+        return result.value, result.error
