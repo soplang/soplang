@@ -1,0 +1,48 @@
+# Soplang Example Program
+# This demonstrates the basic features of Soplang
+
+# Variables
+keyd name = "World"
+keyd number = 42
+keyd is_true = 1
+
+# Basic output
+PRINT("Hello, " + name + "!")
+PRINT("The answer is " + PRINT_RET(number))
+
+# Conditionals
+haddii number > 40 markaas
+    PRINT("Number is greater than 40")
+kale
+    PRINT("Number is not greater than 40")
+dhamee
+
+# Loops
+PRINT("")
+PRINT("Counting from 1 to 5:")
+ku_celi i = 1 ilaa 6 markaas
+    PRINT(i)
+dhamee
+
+# Functions
+shaqo add(a, b)
+    soo_celi a + b
+dhamee
+
+shaqo multiply(a, b) -> a * b
+
+# Using functions
+PRINT("")
+PRINT("Adding 5 + 7 = " + PRINT_RET(add(5, 7)))
+PRINT("Multiplying 6 * 8 = " + PRINT_RET(multiply(6, 8)))
+
+# Lists
+PRINT("")
+PRINT("Fruits:")
+keyd fruits = ["apple", "banana", "orange"]
+ku_celi i = 0 ilaa LEN(fruits) markaas
+    PRINT("- " + fruits/i)
+dhamee
+
+# Return a value
+soo_celi "Example completed successfully" 
