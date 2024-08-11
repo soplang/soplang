@@ -1,3 +1,8 @@
+# Stopped this version of soplang
+
+This version of Soplang has been discontinued as we have migrated to a new version with updated keywords and syntax. The new version features improved Somali language keywords and a more intuitive syntax structure. Please check our latest repository for the current implementation.
+
+
 # Soplang Programming Language
 
 Soplang is a simple programming language with Somali-based syntax. It's designed for educational purposes and supports variables, functions, loops, conditionals, and basic data structures.
