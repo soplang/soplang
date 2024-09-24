@@ -1,170 +1,117 @@
-# Stopped this version of soplang
+# 📌 Soplang Programming Language  
+Soplang is a programming language designed with a **Somali-based syntax**, inspired by **Python and JavaScript**.  
+This document covers **Soplang's syntax** and a comparison with **Python & JavaScript**.  
 
-This version of Soplang has been discontinued as we have migrated to a new version with updated keywords and syntax. The new version features improved Somali language keywords and a more intuitive syntax structure. Please check our latest repository for the current implementation.
+---
 
+## **🚀 Variable Declaration (`door`)**
+| **Python / JavaScript** | **Soplang** |
+|--------------------------|------------|
+| `let x = 10;` (JS) | `door x = 10` |
+| `x = 10` (Python) | `door x = 10` |
 
-# Soplang Programming Language
+---
 
-Soplang is a simple programming language with Somali-based syntax. It's designed for educational purposes and supports variables, functions, loops, conditionals, and basic data structures.
+## **📌 Print Statement (`qor()`)**
+| **Python / JavaScript** | **Soplang** |
+|--------------------------|------------|
+| `console.log("Hello")` (JS) | `qor("Hello")` |
+| `print("Hello")` (Python) | `qor("Hello")` |
 
-## Features
+---
 
-- Somali-based keywords for better accessibility to Somali speakers
-- Clean, Python-like syntax
-- Support for variables, functions, and data structures
-- Interactive shell with command history
-- File execution support
+## **📌 If Statements (`haddii`)**
+| **Python / JavaScript** | **Soplang** |
+|--------------------------|------------|
+| `if x > 5:` (Python) | `haddii (x > 5) {` |
+| `if (x > 5) {` (JS) | `haddii (x > 5) {` |
+| `elif x == 5:` (Python) | `haddii_kale (x == 5) {` |
+| `else if (x == 5) {` (JS) | `haddii_kale (x == 5) {` |
+| `else:` (Python) | `haddii_kalena {` |
+| `else {` (JS) | `haddii_kalena {` |
 
-## Installation
+---
 
-### Option 1: Install from source
+## **📌 Loops (`ku_celi`)**
+| **Python / JavaScript** | **Soplang** |
+|--------------------------|------------|
+| `for i in range(1, 6):` (Python) | `ku_celi i min 1 ilaa 5 {` |
+| `for (let i = 1; i <= 5; i++)` (JS) | `ku_celi i min 1 ilaa 5 {` |
 
-```bash
-# Clone the repository
-git clone https://github.com/soplang/soplang.git
-cd soplang
+---
 
-# Install the package
-pip install -e .
-```
+## **📌 Functions (`howl`)**
+| **Python / JavaScript** | **Soplang** |
+|--------------------------|------------|
+| `def greet(name):` (Python) | `howl salaam(magac) {` |
+| `function greet(name) {` (JS) | `howl salaam(magac) {` |
 
-### Option 2: Manual usage
+---
 
-```bash
-# Clone the repository
-git clone https://github.com/soplang/soplang.git
-cd soplang
+## **📌 Lists / Arrays (`liis`)**
+| **Python / JavaScript** | **Soplang** |
+|--------------------------|------------|
+| `colors = ["red", "blue"]` (Python) | `liis midabada = ["casaan", "buluug"]` |
+| `let colors = ["red", "blue"];` (JS) | `liis midabada = ["casaan", "buluug"]` |
 
-# Run the interactive shell
-python shell.py
+---
 
-# Run a Soplang file
-python soplang_run.py example.spl
-```
+## **📌 Objects / Dictionaries (`shey`)**
+| **Python / JavaScript** | **Soplang** |
+|--------------------------|------------|
+| `person = {"name": "Ali", "age": 25}` (Python) | `shey qof = { "magac": "Ali", "da'": 25 }` |
+| `let person = { name: "Ali", age: 25 };` (JS) | `shey qof = { "magac": "Ali", "da'": 25 }` |
 
-## Usage
+---
 
-### Interactive Shell
+## **📌 Error Handling (`qabo`)**
+| **Python / JavaScript** | **Soplang** |
+|--------------------------|------------|
+| `try:` (Python) | `isku_day {` |
+| `except:` (Python) | `qabo (k) {` |
+| `try {}` (JS) | `isku_day {` |
+| `catch (error) {}` (JS) | `qabo (k) {` |
 
-Start the interactive shell:
+---
 
-```bash
-soplang
-```
+## **📌 Null / None / Undefined (`waxba`)**
+| **Python / JavaScript** | **Soplang** |
+|--------------------------|------------|
+| `None` (Python) | `waxba` |
+| `null` (JS) | `waxba` |
 
-Or if not installed:
+---
 
-```bash
-python shell.py
-```
+## **📌 Inheritance (`ka_dhaxal`)**
+| **Python / JavaScript** | **Soplang** |
+|--------------------------|------------|
+| `class Dog(Animal):` (Python) | `fasalka Ey ka_dhaxal Xoolo {` |
+| `class Dog extends Animal {` (JS) | `fasalka Ey ka_dhaxal Xoolo {` |
 
-### Running Files
+---
 
-Run a Soplang file:
+## **📌 File Importing (`ka_keen`)**
+| **Python / JavaScript** | **Soplang** |
+|--------------------------|------------|
+| `import math` (Python) | `ka_keen "math"` |
+| `import fs from 'fs'` (JS) | `ka_keen "fs"` |
 
-```bash
-soplang-run myprogram.spl
-```
+---
 
-Or if not installed:
+## **📌 Example Soplang Program**
+```somali
+door x = 10
 
-```bash
-python soplang_run.py myprogram.spl
-```
+haddii (x > 5) {
+    qor("X waa weyn yahay!")
+} haddii_kale (x == 5) {
+    qor("X waa shan!")
+} haddii_kalena {
+    qor("X waa yar yahay!")
+}
 
-## Language Syntax
+howl salaam(magac) {
+    qor("Salaan, " + magac)
+}
 
-### Keywords
-
-Soplang uses Somali-based keywords:
-
-| Keyword       | Meaning              | English Equivalent |
-| ------------- | -------------------- | ------------------ |
-| `keyd`        | Variable declaration | `VAR`              |
-| `iyo`         | Logical AND          | `AND`              |
-| `ama`         | Logical OR           | `OR`               |
-| `ma`          | Logical NOT          | `NOT`              |
-| `haddii`      | If statement         | `IF`               |
-| `haddii_kale` | Else if statement    | `ELIF`             |
-| `kale`        | Else statement       | `ELSE`             |
-| `ku_celi`     | For loop             | `FOR`              |
-| `ilaa`        | To (in for loops)    | `TO`               |
-| `tallaabo`    | Step (in for loops)  | `STEP`             |
-| `inta_ay`     | While loop           | `WHILE`            |
-| `shaqo`       | Function definition  | `FUN`              |
-| `markaas`     | Then                 | `THEN`             |
-| `dhamee`      | End block            | `END`              |
-| `soo_celi`    | Return from function | `RETURN`           |
-| `sii_wad`     | Continue in loop     | `CONTINUE`         |
-| `jooji`       | Break from loop      | `BREAK`            |
-
-### Examples
-
-#### Variables
-
-```
-keyd x = 5
-keyd name = "John"
-keyd list = [1, 2, 3]
-```
-
-#### Conditionals
-
-```
-haddii x < 10 markaas
-    PRINT("x is less than 10")
-haddii_kale x == 10 markaas
-    PRINT("x equals 10")
-kale
-    PRINT("x is greater than 10")
-dhamee
-```
-
-#### Loops
-
-```
-# For loop
-ku_celi i = 0 ilaa 10 markaas
-    PRINT(i)
-dhamee
-
-# While loop
-keyd i = 0
-inta_ay i < 5 markaas
-    PRINT(i)
-    keyd i = i + 1
-dhamee
-```
-
-#### Functions
-
-```
-# Simple function
-shaqo greet(name)
-    PRINT("Hello, " + name + "!")
-dhamee
-
-# Function with return value
-shaqo add(a, b)
-    soo_celi a + b
-dhamee
-
-# One-line function using arrow syntax
-shaqo square(n) -> n * n
-```
-
-## Built-in Functions
-
-- `PRINT(value)` - Print to console
-- `PRINT_RET(value)` - Print and return value
-- `INPUT()` - Get string input
-- `INPUT_INT()` - Get integer input
-- `APPEND(list, value)` - Add to list
-- `POP(list, index)` - Remove from list and return
-- `EXTEND(listA, listB)` - Add all items from listB to listA
-- `LEN(list)` - Get list length
-- `RUN("filename.spl")` - Run another Soplang file
-
-## License
-
-This project is open source and available under the [MIT License](LICENSE).
+salaam("Sharafdin")
