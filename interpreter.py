@@ -172,9 +172,9 @@ class Interpreter:
     #  Import Statement
     # -----------------------------
     def execute_import_statement(self, node):
-        filename = node.value  # e.g. "other.sp"
-        if not filename.endswith(".sp"):
-            raise RuntimeError("Soplang files must end with .sp")
+        filename = node.value  # e.g. "other.so"
+        if not filename.endswith(".so"):
+            raise RuntimeError("Soplang files must end with .so")
 
         if not os.path.isfile(filename):
             raise RuntimeError(f"File not found: {filename}")
