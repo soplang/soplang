@@ -99,7 +99,7 @@ This document covers **Soplang's syntax** and a comparison with **Python & JavaS
 ---
 
 ## **📌 Example Soplang Program**
-```somali
+```soplang
 door x = 10
 
 haddii (x > 5) {
