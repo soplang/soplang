@@ -1,0 +1,44 @@
+name: "✨ Feature or Enhancement"
+description: "Submit a proposal for a new Soplang feature or improvement."
+labels: ["feature"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # 🚀 Proposing a Feature for Soplang?
+
+        If your idea is significant, consider discussing it with the community first.
+
+        Major changes should be discussed in relevant forums or with project maintainers before submitting a formal request.
+
+  - type: textarea
+    attributes:
+      label: "Proposal:"
+      description: >
+        Explain your feature, why it should be added, and how it would be used.
+        Add examples, if applicable.
+        Use triple backticks for code blocks.
+      value: |
+        ```soplang
+        # Example usage (if applicable)
+        ```
+    validations:
+      required: true
+
+  - type: dropdown
+    attributes:
+      label: "Has this feature been discussed before?"
+      options:
+        - "No response given"
+        - "I have discussed this feature with the community"
+        - "This is a minor feature that does not need discussion"
+      multiple: false
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: "Links to previous discussions (if any):"
+      description: "Provide links to related discussions or references."
+    validations:
+      required: false

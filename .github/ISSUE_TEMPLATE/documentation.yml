@@ -1,0 +1,16 @@
+name: "📖 Documentation Improvement"
+description: "Suggest a documentation improvement."
+labels: ["docs"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 📚 Documentation Issue
+        Suggest improvements to the documentation.
+
+  - type: textarea
+    attributes:
+      label: "What Needs Improvement?"
+      description: "Describe what should be updated or fixed."
+    validations:
+      required: true

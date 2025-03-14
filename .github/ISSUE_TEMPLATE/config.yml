@@ -1,0 +1,8 @@
+contact_links:
+  - name: 💬 Discuss Soplang Features & Ideas
+    url: https://github.com/orgs/soplang/discussions
+    about: "For general discussions, questions, and feature brainstorming, use GitHub Discussions."
+
+  - name: 📖 Read the Documentation
+    url: https://www.soplang.org/docs
+    about: "Check the official Soplang documentation before opening an issue."

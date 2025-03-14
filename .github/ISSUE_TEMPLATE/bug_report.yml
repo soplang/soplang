@@ -1,0 +1,57 @@
+name: "🐞 Bug Report"
+description: "Report an issue with the Soplang interpreter or compiler."
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## 🐞 Bug Report
+        Please describe the issue clearly. Provide code examples if applicable.
+
+  - type: textarea
+    attributes:
+      label: "What’s the issue?"
+      description: "Describe the problem clearly."
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: "Expected vs Actual Behavior"
+      description: "What did you expect? What actually happened?"
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: "Code or Logs (if applicable)"
+      description: "Paste any relevant code or error messages."
+      value: |
+        ```soplang
+        # Add a code snippet here, if applicable
+        ```
+    validations:
+      required: false
+
+  - type: dropdown
+    attributes:
+      label: "Soplang Version"
+      multiple: false
+      options:
+        - "Latest Release"
+        - "Development Branch"
+        - "Custom Build"
+    validations:
+      required: true
+
+  - type: dropdown
+    attributes:
+      label: "Operating System"
+      multiple: true
+      options:
+        - Linux
+        - macOS
+        - Windows
+        - Other
+    validations:
+      required: true
