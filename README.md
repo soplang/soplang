@@ -30,11 +30,25 @@ x = "Hello"  // ❌ ERROR: Cannot assign string to a number
 
 ---
 
-## **📌 Print Statement (`qor()`)**
+## **📌 Print and Input**
+
+### **Print (`qor()`)**
 | **Python / JavaScript**     | **Soplang**    |
 | --------------------------- | -------------- |
 | `console.log("Hello")` (JS) | `qor("Hello")` |
 | `print("Hello")` (Python)   | `qor("Hello")` |
+
+### **User Input (`akhri()`)**
+| **Python / JavaScript**    | **Soplang**       |
+| -------------------------- | ----------------- |
+| `input("Prompt")` (Python) | `akhri("Prompt")` |
+| `prompt("Prompt")` (JS)    | `akhri("Prompt")` |
+
+Example:
+```somali
+qoraal magac = akhri("Fadlan magacaaga geli: ")
+qor("Salaam, " + magac)
+```
 
 ---
 
@@ -190,19 +204,4 @@ howl salaam(qof) {
 qor(salaam(name))
 ```
 
-## **📌 File Structure**
-```
-soplang/
-│── src/                 # Source code
-│   │── lexer.py         # Tokenizer
-│   │── parser.py        # AST Parser
-│   │── interpreter.py   # Interpreter
-│   │── builtins.py      # Built-in methods
-│   │── errors.py        # Error messages
-│   │── tokens.py        # Token definitions
-│   │── ast.py           # AST Nodes
-│── examples/            # Example Soplang programs
-│── tests/               # Unit tests (future)
-```
-
-For more examples and advanced usage, check the `examples/` directory.
+For more examples, check the `examples/` directory in the repository.
