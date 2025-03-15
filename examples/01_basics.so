@@ -1,0 +1,90 @@
+// Soplang Basics
+// This file demonstrates the basic features of Soplang
+
+// ===== BASIC OUTPUT =====
+qor("===== BASIC OUTPUT =====")
+qor("Welcome to Soplang!") 
+qor("This is the Somali programming language")
+qor("") // Empty line
+
+// ===== VARIABLE DECLARATIONS =====
+qor("===== VARIABLE DECLARATIONS =====")
+
+// Dynamic typing with 'door'
+door name = "Sharafdin"
+door age = 28
+door isDeveloper = true
+door salary = 5000.50
+
+qor("Sharafdin's information:") 
+qor("Name: " + name)
+qor("Age: " + qoraal(age))
+qor("Is developer: " + qoraal(isDeveloper))
+qor("Salary: $" + qoraal(salary))
+qor("") // Empty line
+
+// ===== STATIC TYPING =====
+qor("===== STATIC TYPING =====")
+
+// Static typing
+qoraal staticName = "Mr. Sharafdin"
+tiro staticAge = 28
+labadaran staticIsDeveloper = true
+tiro staticSalary = 5000.50
+
+qor("Static types information:") 
+qor("Name: " + staticName)
+qor("Age: " + qoraal(staticAge))
+qor("Is developer: " + qoraal(staticIsDeveloper))
+qor("Salary: $" + qoraal(staticSalary))
+qor("") // Empty line
+
+// ===== TYPE CHECKING AND CONVERSION =====
+qor("===== TYPE CHECKING AND CONVERSION =====")
+
+// Type checking with nuuc()
+qor("Type of 'name': " + nuuc(name))
+qor("Type of 'age': " + nuuc(age))
+qor("Type of 'isDeveloper': " + nuuc(isDeveloper))
+qor("Type of 'salary': " + nuuc(salary))
+qor("") // Empty line
+
+// Type conversion
+door strNumber = "42"
+door numberStr = 42
+
+tiro convertedNumber = tiro(strNumber)
+qoraal convertedStr = qoraal(numberStr)
+
+qor("String to number: " + qoraal(convertedNumber) + " (type: " + nuuc(convertedNumber) + ")")
+qor("Number to string: " + convertedStr + " (type: " + nuuc(convertedStr) + ")")
+qor("") // Empty line
+
+// ===== ARITHMETIC OPERATIONS =====
+qor("===== ARITHMETIC OPERATIONS =====")
+
+door a = 10
+door b = 3
+
+qor("a = " + qoraal(a) + ", b = " + qoraal(b))
+qor("a + b = " + qoraal(a + b))
+qor("a - b = " + qoraal(a - b))
+qor("a * b = " + qoraal(a * b))
+qor("a / b = " + qoraal(a / b))
+qor("a % b = " + qoraal(a % b))
+qor("") // Empty line
+
+// ===== TYPE ENFORCEMENT =====
+qor("===== TYPE ENFORCEMENT =====")
+
+tiro number = 42
+
+// The following line would cause an error if uncommented
+// number = "This will cause an error"
+
+qor("Type enforcement ensures the following assignment would fail:")
+qor("  tiro number = 42")
+qor("  number = 'This will cause an error'")
+qor("") // Empty line
+
+qor("===== END OF BASICS EXAMPLE =====") 
