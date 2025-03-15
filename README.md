@@ -1,6 +1,152 @@
 # 📌 Soplang Programming Language  
-Soplang is a programming language designed with a **Somali-based syntax**, inspired by **Python and JavaScript**.  
-This document covers **Soplang's syntax** and a comparison with **Python & JavaScript**.  
+Soplang is a programming language with syntax inspired by Somali language terms. The name "Soplang" combines "Somali" and "Programming Language". It features a Python-like simplicity with JavaScript-like flexibility.  
+
+## **Overview**
+
+Soplang is designed with the following goals:
+
+- **Inclusive Programming**: Making coding more accessible to Somali speakers
+- **Educational Tool**: Serving as a bridge for learning programming concepts
+- **Modern Features**: Supporting both static and dynamic typing, functional programming, and object-oriented concepts
+
+## **Features**
+
+- **Dual Typing System**: Both dynamic typing (`door`) and static typing (`tiro`, `qoraal`, etc.)
+- **Somali-based Syntax**: Keywords are derived from Somali words
+- **Control Flow**: Conditional statements and loops using Somali keywords
+- **Functions**: First-class functions with parameters and return values
+- **Data Structures**: Lists and dictionaries (objects) with methods
+- **Error Handling**: Try-catch blocks for exception handling
+- **Modern OOP**: Class-based object-oriented programming with inheritance
+- **Modular Design**: Import system for code organization
+
+## **Installation**
+
+```bash
+git clone https://github.com/yourusername/soplang.git
+cd soplang
+```
+
+## **Usage**
+
+To run a Soplang program:
+
+```bash
+python main.py examples/01_basics.so
+```
+
+## **Examples**
+
+### **Hello World**
+```
+// Simple hello world program
+qor("Salaan, Adduunka!")  // Prints: Hello, World!
+```
+
+### **Variables**
+```
+// Dynamic typing
+door magac = "Sharafdin"
+door da = 25
+
+// Static typing
+qoraal name = "Sharafdin"
+tiro age = 25
+```
+
+### **Control Flow**
+```
+door points = 85
+
+haddii (points >= 90) {
+    qor("Waxaad heshay A")  // You got an A
+} haddii_kale (points >= 80) {
+    qor("Waxaad heshay B")  // You got a B
+} haddii_kalena {
+    qor("Waxaad heshay C")  // You got a C
+}
+```
+
+### **Loops**
+```
+// For loop
+qor("Tirooyinka 1 ilaa 5:")  // Numbers 1 to 5:
+ku_celi i min 1 ilaa 5 {
+    qor(i)
+}
+
+// While loop
+door i = 0
+inta_ay (i < 5) {
+    qor(i)
+    i = i + 1
+}
+```
+
+### **Functions**
+```
+howl isuGee(a, b) {
+    sooCeli a + b
+}
+
+door natiijo = isuGee(5, 10)
+qor("Isugeynta: " + qoraal(natiijo))  // Sum: 15
+```
+
+### **Data Structures**
+```
+// Lists
+door numbers = [1, 2, 3, 4, 5]
+qor(numbers[2])  // Prints: 3
+
+// Objects
+door person = {
+    "name": "Sharafdin",
+    "age": 25,
+    "isStudent": true
+}
+qor(person.name)  // Prints: Sharafdin
+```
+
+## **Documentation**
+
+For a complete language reference, see the following documentation:
+
+- [Language Grammar](grammar.ebnf) - Formal language specification
+- [Keywords Reference](keywords.md) - Complete list of keywords and their meanings
+- [Examples](examples/) - Example programs to learn from
+
+## **Project Structure**
+
+```
+soplang/
+│── src/                 # Source code
+│   │── lexer.py         # Tokenizer
+│   │── parser.py        # AST Parser
+│   │── interpreter.py   # Interpreter
+│   │── builtins.py      # Built-in methods
+│   │── errors.py        # Custom Somali error messages
+│   │── tokens.py        # Token definitions
+│   │── ast.py           # AST Nodes
+│── examples/            # Example programs
+│── tests/               # Unit tests
+│── grammar.ebnf         # Formal language specification
+│── keywords.md          # Keywords reference
+│── README.md            # This file
+```
+
+## **Contributing**
+
+Contributions are welcome! Whether it's adding new features, fixing bugs, or improving documentation.
+
+## **License**
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## **Acknowledgments**
+
+- Inspired by the Somali language and culture
+- Thanks to all contributors and supporters
 
 ---
 

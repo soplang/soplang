@@ -1,0 +1,164 @@
+/*
+ * Soplang Formal Grammar Specification in Extended Backus-Naur Form (EBNF)
+ * 
+ * Syntax conventions:
+ * - | denotes alternatives
+ * - [ ] denotes optional elements
+ * - { } denotes repetition (zero or more)
+ * - ( ) denotes grouping
+ * - " " denotes literals/terminals
+ * - 'a'..'z' denotes character ranges
+ */
+
+// ===== PROGRAM STRUCTURE =====
+Program ::= Statement {Statement}
+
+// ===== STATEMENTS =====
+Statement ::= VariableDeclaration
+            | FunctionDeclaration
+            | FunctionCall ";"
+            | IfStatement
+            | LoopStatement
+            | WhileStatement
+            | BreakStatement ";"
+            | ContinueStatement ";"
+            | ReturnStatement ";"
+            | TryCatchStatement
+            | ImportStatement ";"
+            | ClassDeclaration
+            | AssignmentStatement ";"
+            | Block
+
+Block ::= "{" {Statement} "}"
+
+// ===== VARIABLE DECLARATIONS =====
+VariableDeclaration ::= DynamicDeclaration | StaticDeclaration
+
+DynamicDeclaration ::= "door" Identifier "=" Expression ";"
+
+StaticDeclaration ::= StaticType Identifier "=" Expression ";"
+
+StaticType ::= "tiro"      // Number
+             | "qoraal"    // String
+             | "labadaran" // Boolean
+             | "liis"      // List/Array
+             | "shey"      // Object
+
+// ===== FUNCTION DECLARATIONS =====
+FunctionDeclaration ::= "howl" Identifier "(" [ParameterList] ")" Block
+
+ParameterList ::= Identifier {"," Identifier}
+
+// ===== FUNCTION CALLS =====
+FunctionCall ::= Identifier "(" [ArgumentList] ")"
+               | ObjectProperty "(" [ArgumentList] ")"
+
+ArgumentList ::= Expression {"," Expression}
+
+// ===== CONTROL FLOW =====
+IfStatement ::= "haddii" "(" Expression ")" Block 
+               {ElseIfClause}
+               [ElseClause]
+
+ElseIfClause ::= "haddii_kale" "(" Expression ")" Block
+
+ElseClause ::= "haddii_kalena" Block
+
+// ===== LOOPS =====
+LoopStatement ::= "ku_celi" Identifier "min" Expression "ilaa" Expression Block
+
+WhileStatement ::= "inta_ay" "(" Expression ")" Block
+
+BreakStatement ::= "jooji"
+
+ContinueStatement ::= "sii_wad"
+
+// ===== RETURN STATEMENT =====
+ReturnStatement ::= "soo_celi" [Expression]
+
+// ===== TRY-CATCH =====
+TryCatchStatement ::= "isku_day" Block "qabo" "(" Identifier ")" Block
+
+// ===== IMPORT =====
+ImportStatement ::= "ka_keen" StringLiteral
+
+// ===== CLASSES =====
+ClassDeclaration ::= "fasalka" Identifier ["ka_dhaxal" Identifier] Block
+
+// ===== OBJECT ORIENTED =====
+ObjectProperty ::= Expression "." Identifier
+
+IndexAccess ::= Expression "[" Expression "]"
+
+// ===== ASSIGNMENT =====
+AssignmentStatement ::= (Identifier | ObjectProperty | IndexAccess) "=" Expression
+
+// ===== EXPRESSIONS =====
+Expression ::= LogicalExpression
+
+LogicalExpression ::= ComparisonExpression {LogicalOperator ComparisonExpression}
+
+ComparisonExpression ::= ArithmeticExpression {ComparisonOperator ArithmeticExpression}
+
+ArithmeticExpression ::= Term {AdditiveOperator Term}
+
+Term ::= Factor {MultiplicativeOperator Factor}
+
+Factor ::= NumberLiteral
+        | StringLiteral
+        | BooleanLiteral
+        | NullLiteral
+        | Identifier
+        | FunctionCall
+        | ObjectProperty
+        | IndexAccess
+        | ListLiteral
+        | ObjectLiteral
+        | "(" Expression ")"
+        | UnaryOperator Factor
+
+// ===== OPERATORS =====
+LogicalOperator ::= "&&" | "||"
+
+ComparisonOperator ::= "==" | "!=" | ">" | "<" | ">=" | "<="
+
+AdditiveOperator ::= "+" | "-"
+
+MultiplicativeOperator ::= "*" | "/" | "%"
+
+UnaryOperator ::= "!" | "-"
+
+// ===== LITERALS =====
+NumberLiteral ::= Digit {Digit} ["." Digit {Digit}]
+
+StringLiteral ::= '"' {Character} '"' | "'" {Character} "'"
+
+BooleanLiteral ::= "true" | "false"
+
+NullLiteral ::= "null"
+
+ListLiteral ::= "[" [Expression {"," Expression}] "]"
+
+ObjectLiteral ::= "{" [PropertyAssignment {"," PropertyAssignment}] "}"
+
+PropertyAssignment ::= (Identifier | StringLiteral) ":" Expression
+
+// ===== BASIC ELEMENTS =====
+Identifier ::= (Letter | "_") {Letter | Digit | "_"}
+
+Letter ::= 'a'..'z' | 'A'..'Z'
+
+Digit ::= '0'..'9'
+
+Character ::= Letter | Digit | Symbol | Whitespace
+
+Symbol ::= '!' | '@' | '#' | '$' | '%' | '^' | '&' | '*' | '(' | ')' | '-' | '+' | '=' | '{' | '}' | '[' | ']' | ':' | ';' | '"' | "'" | '<' | '>' | ',' | '.' | '?' | '/' | '\\' | '|' | '`' | '~'
+
+Whitespace ::= ' ' | '\t' | '\n' | '\r'
+
+// ===== COMMENTS =====
+Comment ::= SingleLineComment | MultiLineComment
+
+SingleLineComment ::= "//" {Character} '\n'
+
+MultiLineComment ::= "/*" {Character} "*/" 
