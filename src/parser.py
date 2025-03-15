@@ -484,7 +484,7 @@ class Parser:
     def parse_term(self):
         left = self.parse_factor()
 
-        while self.current_token.type in (TokenType.STAR, TokenType.SLASH):
+        while self.current_token.type in (TokenType.STAR, TokenType.SLASH, TokenType.MODULO):
             op = self.current_token
             self.advance()
             right = self.parse_factor()
