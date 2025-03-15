@@ -86,7 +86,7 @@ inta_ay (i < 5) {
 ### **Functions**
 ```
 howl isuGee(a, b) {
-    sooCeli a + b
+    soo_celi a + b
 }
 
 door natiijo = isuGee(5, 10)

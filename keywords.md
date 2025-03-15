@@ -36,10 +36,10 @@ This document provides a reference for all keywords in the Soplang programming l
 
 ## Function Keywords
 
-| Keyword   | Meaning              | English Equivalent | Example                               |
-| --------- | -------------------- | ------------------ | ------------------------------------- |
-| `howl`    | Function declaration | `function`         | `howl isuGee(a, b) { sooCeli a + b }` |
-| `sooCeli` | Return statement     | `return`           | `sooCeli x * 2`                       |
+| Keyword    | Meaning              | English Equivalent | Example                                |
+| ---------- | -------------------- | ------------------ | -------------------------------------- |
+| `howl`     | Function declaration | `function`         | `howl isuGee(a, b) { soo_celi a + b }` |
+| `soo_celi` | Return statement     | `return`           | `soo_celi x * 2`                       |
 
 ## Error Handling Keywords
 
@@ -58,10 +58,10 @@ This document provides a reference for all keywords in the Soplang programming l
 
 ## Module Keywords
 
-| Keyword    | Meaning          | English Equivalent | Example                                        |
-| ---------- | ---------------- | ------------------ | ---------------------------------------------- |
-| `keeno`    | Import statement | `import`           | `keeno "math_lib.so"`                          |
-| `siidaayo` | Export statement | `export`           | `siidaayo howl isuGee(a, b) { sooCeli a + b }` |
+| Keyword    | Meaning          | English Equivalent | Example                                         |
+| ---------- | ---------------- | ------------------ | ----------------------------------------------- |
+| `keeno`    | Import statement | `import`           | `keeno "math_lib.so"`                           |
+| `siidaayo` | Export statement | `export`           | `siidaayo howl isuGee(a, b) { soo_celi a + b }` |
 
 ## Operators
 
