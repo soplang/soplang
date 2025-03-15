@@ -168,6 +168,9 @@ class Lexer:
             if self.current_char == "/":
                 self.advance()
                 return Token(TokenType.SLASH, "/")
+            if self.current_char == "%":
+                self.advance()
+                return Token(TokenType.MODULO, "%")
             if self.current_char == "=":
                 self.advance()
                 return Token(TokenType.EQUAL, "=")

@@ -460,6 +460,8 @@ class Interpreter:
             return left * right
         if operator == "/":
             return left / right
+        if operator == "%":
+            return left % right
         if operator == ">":
             return left > right
         if operator == "<":
