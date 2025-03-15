@@ -40,6 +40,8 @@ class Interpreter:
             return self.execute_if_statement(node)
         elif node.type == NodeType.LOOP_STATEMENT:
             return self.execute_loop_statement(node)
+        elif node.type == NodeType.WHILE_STATEMENT:
+            return self.execute_while_statement(node)
         elif node.type == NodeType.BLOCK:
             return self.execute_block(node)
         elif node.type == NodeType.BREAK_STATEMENT:
@@ -278,6 +280,23 @@ class Interpreter:
             i += 1
 
     # -----------------------------
+    #  While Statement
+    # -----------------------------
+    def execute_while_statement(self, node):
+        # node.children[0] = condition
+        # node.children[1..] = body
+
+        while self.evaluate(node.children[0]):
+            # Execute the body
+            try:
+                for stmt_index in range(1, len(node.children)):
+                    self.execute(node.children[stmt_index])
+            except BreakSignal:
+                break  # Exit the loop
+            except ContinueSignal:
+                pass  # Skip to the next iteration
+
+    # -----------------------------
     #  Block
     # -----------------------------
     def execute_block(self, node):
@@ -452,26 +471,40 @@ class Interpreter:
         raise RuntimeError(f"Cannot evaluate node type: {node.type}")
 
     def apply_operator(self, operator, left, right):
+        """Apply an operator to two values."""
         if operator == "+":
+            # Handle string concatenation
+            if isinstance(left, str) or isinstance(right, str):
+                return str(left) + str(right)
             return left + right
-        if operator == "-":
+        elif operator == "-":
             return left - right
-        if operator == "*":
+        elif operator == "*":
             return left * right
-        if operator == "/":
+        elif operator == "/":
+            if right == 0:
+                raise RuntimeError("Ma suurtogali karto qeybinta eber.")
             return left / right
-        if operator == "%":
+        elif operator == "%":
+            if right == 0:
+                raise RuntimeError(
+                    "Ma suurtogali karto modulo eber.")
             return left % right
-        if operator == ">":
-            return left > right
-        if operator == "<":
-            return left < right
-        if operator == ">=":
-            return left >= right
-        if operator == "<=":
-            return left <= right
-        if operator == "==":
+        elif operator == "==":
             return left == right
-        if operator == "!=":
+        elif operator == "!=":
             return left != right
-        raise RuntimeError(f"Unknown operator: {operator}")
+        elif operator == ">":
+            return left > right
+        elif operator == "<":
+            return left < right
+        elif operator == ">=":
+            return left >= right
+        elif operator == "<=":
+            return left <= right
+        elif operator == "&&":
+            return bool(left) and bool(right)
+        elif operator == "||":
+            return bool(left) or bool(right)
+        else:
+            raise RuntimeError(f"Unknown operator: {operator}")
