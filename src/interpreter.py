@@ -2,7 +2,7 @@ import os
 from src.ast import ASTNode, NodeType
 from src.tokens import TokenType
 from src.errors import RuntimeError, TypeError, BreakSignal, ContinueSignal, ReturnSignal, ImportError
-from src.builtins import get_builtin_functions
+from src.builtins import get_builtin_functions, get_list_methods, get_object_methods
 
 
 class Interpreter:
@@ -10,6 +10,8 @@ class Interpreter:
         self.variables = {}             # Global variables
         self.variable_types = {}        # Store static types
         self.functions = get_builtin_functions()  # Built-in functions
+        self.list_methods = get_list_methods()
+        self.object_methods = get_object_methods()
         self.classes = {}               # Store class definitions
         self.call_stack = []            # Track function calls if needed
 
@@ -170,7 +172,31 @@ class Interpreter:
         func_name = node.value
         args = [self.evaluate(arg) for arg in node.children]
 
-        # Built-in or user-defined?
+        # Check if this is a method call on an object (obj.method())
+        if func_name.count('.') == 1:
+            obj_name, method_name = func_name.split('.')
+
+            if obj_name in self.variables:
+                obj = self.variables[obj_name]
+
+                # Handle list methods
+                if isinstance(obj, list) and method_name in self.list_methods:
+                    # Invoke list method with the object as first argument
+                    return self.list_methods[method_name](obj, *args)
+
+                # Handle object methods
+                elif isinstance(obj, dict) and method_name in self.object_methods:
+                    # Invoke object method with the object as first argument
+                    return self.object_methods[method_name](obj, *args)
+
+                # Could be a custom method on user-defined object later
+
+                raise RuntimeError(
+                    f"Method '{method_name}' not found on {obj_name}")
+            else:
+                raise RuntimeError(f"Object '{obj_name}' not defined")
+
+        # Regular function call
         if func_name in self.functions:
             return self.functions[func_name](*args)
         else:
