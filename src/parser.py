@@ -47,6 +47,8 @@ class Parser:
             return self.parse_if_statement()
         elif ttype == TokenType.KU_CELI:
             return self.parse_loop_statement()
+        elif ttype == TokenType.INTA_AY:
+            return self.parse_while_statement()
         elif ttype == TokenType.JOOJI:
             return self.parse_break_statement()
         elif ttype == TokenType.SII_WAD:
@@ -233,7 +235,7 @@ class Parser:
     def parse_if_statement(self):
         self.expect(TokenType.HADDII)
         self.expect(TokenType.LEFT_PAREN)
-        condition = self.parse_comparison_expression()
+        condition = self.parse_logical_expression()
         self.expect(TokenType.RIGHT_PAREN)
         self.expect(TokenType.LEFT_BRACE)
 
@@ -248,7 +250,7 @@ class Parser:
         while self.current_token.type == TokenType.HADDII_KALE:
             self.advance()
             self.expect(TokenType.LEFT_PAREN)
-            elif_condition = self.parse_comparison_expression()
+            elif_condition = self.parse_logical_expression()
             self.expect(TokenType.RIGHT_PAREN)
             self.expect(TokenType.LEFT_BRACE)
             elif_body = []
@@ -293,6 +295,24 @@ class Parser:
 
         children = [start_expr, end_expr] + body
         return ASTNode(NodeType.LOOP_STATEMENT, value=loop_var, children=children)
+
+    # -----------------------------
+    #  While loop: inta_ay (condition) { ... }
+    # -----------------------------
+    def parse_while_statement(self):
+        self.expect(TokenType.INTA_AY)
+        self.expect(TokenType.LEFT_PAREN)
+        condition = self.parse_logical_expression()
+        self.expect(TokenType.RIGHT_PAREN)
+        self.expect(TokenType.LEFT_BRACE)
+
+        body = []
+        while self.current_token.type != TokenType.RIGHT_BRACE:
+            body.append(self.parse_statement())
+        self.expect(TokenType.RIGHT_BRACE)
+
+        children = [condition] + body
+        return ASTNode(NodeType.WHILE_STATEMENT, children=children)
 
     # -----------------------------
     #  Break statement: jooji
@@ -446,6 +466,18 @@ class Parser:
     # -----------------------------
     #  Expression Parsing
     # -----------------------------
+    def parse_logical_expression(self):
+        left = self.parse_comparison_expression()
+
+        while self.current_token.type in (TokenType.AND, TokenType.OR):
+            op_token = self.current_token
+            self.advance()
+            right = self.parse_comparison_expression()
+            left = ASTNode(NodeType.BINARY_OPERATION,
+                           value=op_token.value, children=[left, right])
+
+        return left
+
     def parse_comparison_expression(self):
         left = self.parse_expression()
 

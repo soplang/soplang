@@ -1,0 +1,117 @@
+// Soplang Control Flow
+// This file demonstrates conditionals and loops in Soplang
+
+// ===== CONDITIONAL STATEMENTS =====
+qor("===== CONDITIONAL STATEMENTS =====")
+
+// Simple if statement
+door sharafdin_age = 28
+
+qor("Testing Sharafdin's age:") 
+haddii (sharafdin_age > 30) {
+    qor("Sharafdin is older than 30 years.") 
+} haddii_kale (sharafdin_age == 30) {
+    qor("Sharafdin is exactly 30 years old.") 
+} haddii_kalena {
+    qor("Sharafdin is younger than 30 years.") 
+}
+qor("") // Empty line
+
+// Nested if statements
+door sharafdin_isTeacher = true
+door sharafdin_expYears = 5
+
+qor("Professional testing:") 
+haddii (sharafdin_isTeacher) {
+    qor("Sharafdin is a teacher.")  
+    
+    haddii (sharafdin_expYears > 5) {
+        qor("Sharafdin has extensive experience.") 
+    } haddii_kale (sharafdin_expYears >= 3) {
+        qor("Sharafdin has intermediate experience.") 
+    } haddii_kalena {
+        qor("Sharafdin is a new teacher.") 
+    }
+} haddii_kalena {
+    qor("Sharafdin is not a teacher.") 
+}
+qor("") // Empty line
+
+// Complex conditions
+door sharafdin_salary = 5000
+door sharafdin_gradYear = 2018
+door currentYear = 2024
+
+qor("Financial status check:") 
+haddii (sharafdin_salary > 4000 && (currentYear - sharafdin_gradYear) >= 5) {
+    qor("Sharafdin has both a good salary and good experience.") 
+} haddii_kale (sharafdin_salary > 4000 || (currentYear - sharafdin_gradYear) >= 5) {
+    qor("Sharafdin has either a good salary or good experience.") 
+} haddii_kalena {
+    qor("Sharafdin needs more experience or a higher salary.") 
+}
+qor("") // Empty line
+
+// ===== LOOPS =====
+qor("===== LOOPS =====")
+
+// For loop (ku_celi)
+qor("Counting to 5:") 
+ku_celi i min 1 ilaa 5 {
+    qor("Number: " + qoraal(i))
+}
+qor("") // Empty line
+
+// For loop with step
+qor("Counting to 10 by steps of 2:") 
+ku_celi i min 0 ilaa 10 {
+    haddii (i % 2 == 0) {
+        qor("Number: " + qoraal(i))
+    }
+}
+qor("") // Empty line
+
+// While loop (inta_ay)
+qor("inta_ay loop:") 
+door counter = 1
+inta_ay (counter <= 5) {
+    qor("Counter: " + qoraal(counter))
+    counter = counter + 1
+}
+qor("") // Empty line
+
+// Loop with break (jooji)
+qor("Loop with break:") 
+ku_celi i min 1 ilaa 10 {
+    haddii (i > 5) {
+        qor("Breaking when i = " + qoraal(i)) 
+        jooji
+    }
+    qor("i = " + qoraal(i))
+}
+qor("") // Empty line
+
+// Loop with continue (sii_wad)
+qor("Loop with continue (odd numbers only):") 
+ku_celi i min 1 ilaa 10 {
+    haddii (i % 2 == 0) {
+        sii_wad
+    }
+    qor("Odd number: " + qoraal(i)) 
+}
+qor("") // Empty line
+
+// Nested loops
+qor("Nested loops - multiplication table:")
+ku_celi i min 1 ilaa 3 {
+    door table_row = ""
+    
+    ku_celi j min 1 ilaa 5 {
+        table_row = table_row + qoraal(i * j) + "\t"
+    }
+    
+    qor(table_row)
+}
+qor("") // Empty line
+
+qor("===== END OF CONTROL FLOW EXAMPLE =====") 

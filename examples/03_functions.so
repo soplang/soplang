@@ -1,0 +1,191 @@
+// Soplang Functions
+// This file demonstrates function declarations and usage in Soplang
+
+// ===== BASIC FUNCTIONS =====
+qor("===== BASIC FUNCTIONS =====")
+
+// Simple function with no parameters or return value
+howl sayGreeting() {
+    qor("Hello, welcome to Soplang!") 
+}
+
+sayGreeting()
+qor("") // Empty line
+
+// Function with parameters
+howl greetPerson(name) {
+    qor("Hello, " + name + "!")
+}
+
+greetPerson("Sharafdin")
+qor("") // Empty line
+
+// Function with multiple parameters
+howl fullName(first_name, last_name) {
+    qor("Full name: " + first_name + " " + last_name)
+}
+
+fullName("Sharafdin", "Yusuf")
+qor("") // Empty line
+
+// ===== RETURN VALUES =====
+qor("\n===== RETURN VALUES =====")
+
+// Function that returns a value
+howl add(a, b) {
+    sooCeli a + b
+}
+
+door result = add(10, 15)
+qor("10 + 15 = " + qoraal(result))
+qor("") // Empty line
+
+// Function that returns a computed value
+howl calculateAverage(numbers) {
+    door sum = 0
+    door count = numbers.length()
+    
+    ku_celi i min 0 ilaa count - 1 {
+        sum = sum + numbers[i]
+    }
+    
+    sooCeli sum / count
+}
+
+door grades = [85, 92, 78, 95, 88]
+door average = calculateAverage(grades)
+qor("Sharafdin's grades: " + qoraal(grades))
+qor("Average grade: " + qoraal(average))
+qor("") // Empty line
+
+// Function with conditional return
+howl getLetterGrade(score) {
+    haddii (score >= 90) {
+        sooCeli "A"
+    } haddii_kale (score >= 80) {
+        sooCeli "B"
+    } haddii_kale (score >= 70) {
+        sooCeli "C"
+    } haddii_kale (score >= 60) {
+        sooCeli "D"
+    } haddii_kalena {
+        sooCeli "F"
+    }
+}
+
+door sharafdin_score = 92
+door letter_grade = getLetterGrade(sharafdin_score)
+qor("Sharafdin's score: " + qoraal(sharafdin_score))
+qor("Letter grade: " + letter_grade)
+qor("") // Empty line
+
+// ===== FUNCTIONS WITH COMPLEX DATA =====
+qor("\n===== FUNCTIONS WITH COMPLEX DATA =====")
+
+// Function that takes an object as parameter
+howl displayProfile(person) {
+    qor("Name: " + person.name)
+    qor("Position: " + person.position)
+    qor("Years of experience: " + qoraal(person.years_experience))
+    
+    qor("Skills:")
+    ku_celi i min 0 ilaa person.skills.length() - 1 {
+        qor("- " + person.skills[i])
+    }
+}
+
+door sharafdin_profile = {
+    "name": "Sharafdin Yusuf",
+    "position": "Software Engineer",
+    "years_experience": 6,
+    "skills": ["Python", "JavaScript", "TypeScript", "Soplang"]
+}
+
+displayProfile(sharafdin_profile)
+qor("") // Empty line
+
+// Function that returns an object
+howl createPerson(name, age, position) {
+    door person = {
+        "name": name,
+        "age": age,
+        "position": position,
+        "created_date": "2024-03-15"
+    }
+    
+    sooCeli person
+}
+
+door new_person = createPerson("Sharafdin Mohamed", 30, "Tech Lead")
+qor("New person created:")
+qor(qoraal(new_person))
+qor("") // Empty line
+
+// ===== NESTED FUNCTIONS =====
+qor("\n===== NESTED FUNCTIONS =====")
+
+// Function that contains another function
+howl calculateTax(income) {
+    // Nested helper function
+    howl calculateTaxPercent(amount, percent) {
+        sooCeli amount * percent / 100
+    }
+    
+    door tax = 0
+    
+    haddii (income <= 30000) {
+        tax = calculateTaxPercent(income, 5)
+    } haddii_kale (income <= 60000) {
+        tax = calculateTaxPercent(30000, 5) + 
+                     calculateTaxPercent(income - 30000, 10)
+    } haddii_kalena {
+        tax = calculateTaxPercent(30000, 5) + 
+                     calculateTaxPercent(30000, 10) +
+                     calculateTaxPercent(income - 60000, 15)
+    }
+    
+    sooCeli tax
+}
+
+door sharafdin_income = 75000
+door tax_amount = calculateTax(sharafdin_income)
+
+qor("Sharafdin's income: $" + qoraal(sharafdin_income))
+qor("Tax amount: $" + qoraal(tax_amount))
+qor("Income after tax: $" + qoraal(sharafdin_income - tax_amount))
+qor("") // Empty line
+
+// ===== RECURSIVE FUNCTIONS =====
+qor("\n===== RECURSIVE FUNCTIONS =====")
+
+// Simple recursive function to calculate factorial
+howl calculateFactorial(n) {
+    haddii (n <= 1) {
+        sooCeli 1
+    } haddii_kalena {
+        sooCeli n * calculateFactorial(n - 1)
+    }
+}
+
+door number = 5
+qor(qoraal(number) + " factorial = " + qoraal(calculateFactorial(number)))
+qor("") // Empty line
+
+// Recursive function to calculate Fibonacci numbers
+howl calculateFibonacci(n) {
+    haddii (n <= 0) {
+        sooCeli 0
+    } haddii_kale (n == 1) {
+        sooCeli 1
+    } haddii_kalena {
+        sooCeli calculateFibonacci(n - 1) + calculateFibonacci(n - 2)
+    }
+}
+
+qor("Fibonacci numbers:")
+ku_celi i min 0 ilaa 10 {
+    qor("Fibonacci(" + qoraal(i) + ") = " + qoraal(calculateFibonacci(i)))
+}
+qor("") // Empty line
+
+qor("===== END OF FUNCTIONS EXAMPLE =====") 
