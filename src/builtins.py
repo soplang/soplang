@@ -52,6 +52,24 @@ class SoplangBuiltins:
         """
         Convert a value to a string
         """
+        if isinstance(value, dict):
+            try:
+                # Simple JSON-like stringification for dictionaries
+                pairs = []
+                for k, v in value.items():
+                    pairs.append(f'"{k}": {SoplangBuiltins.qoraal(v)}')
+                return "{" + ", ".join(pairs) + "}"
+            except Exception:
+                # Fallback for circular references
+                return "{...}"
+        elif isinstance(value, list):
+            try:
+                # Simple JSON-like stringification for lists
+                items = [SoplangBuiltins.qoraal(item) for item in value]
+                return "[" + ", ".join(items) + "]"
+            except Exception:
+                # Fallback for circular references
+                return "[...]"
         return str(value)
 
     @staticmethod

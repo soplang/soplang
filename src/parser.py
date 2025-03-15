@@ -57,6 +57,82 @@ class Parser:
             return self.parse_import_statement()
         elif ttype == TokenType.FASALKA:
             return self.parse_class_definition()
+        elif ttype == TokenType.IDENTIFIER:
+            # Check if this is an object method call (obj.method(...))
+            # or a variable assignment (obj.prop = value) or (obj[idx] = value)
+            if self.tokens[self.current_token_index + 1].type == TokenType.DOT or self.tokens[self.current_token_index + 1].type == TokenType.LEFT_BRACKET:
+                token_value = self.current_token.value
+                self.advance()  # consume the identifier
+
+                # Handle method call or property access
+                if self.current_token.type == TokenType.DOT:
+                    self.advance()  # consume the dot
+
+                    # Get the property or method name
+                    property_name = self.current_token.value
+                    self.advance()  # consume property name
+
+                    # Handle method call (obj.method(...))
+                    if self.current_token.type == TokenType.LEFT_PAREN:
+                        # Parse arguments
+                        args = []
+                        self.advance()  # consume left paren
+
+                        if self.current_token.type != TokenType.RIGHT_PAREN:
+                            args.append(self.parse_expression())
+                            while self.current_token.type == TokenType.COMMA:
+                                self.advance()
+                                args.append(self.parse_expression())
+
+                        self.expect(TokenType.RIGHT_PAREN)
+
+                        # Create function call node with obj.method as function name
+                        return ASTNode(NodeType.FUNCTION_CALL, value=f"{token_value}.{property_name}", children=args)
+
+                    # Handle property assignment (obj.prop = value)
+                    elif self.current_token.type == TokenType.EQUAL:
+                        self.advance()  # consume equals
+                        value_expr = self.parse_expression()
+
+                        # Create an object to represent the target
+                        target = ASTNode(NodeType.PROPERTY_ACCESS, value=property_name,
+                                         children=[ASTNode(NodeType.IDENTIFIER, value=token_value)])
+
+                        # Create an assignment node
+                        return ASTNode(NodeType.ASSIGNMENT, children=[target, value_expr])
+
+                # Handle index access and assignment (obj[idx])
+                elif self.current_token.type == TokenType.LEFT_BRACKET:
+                    self.advance()  # consume left bracket
+                    index_expr = self.parse_expression()
+                    self.expect(TokenType.RIGHT_BRACKET)
+
+                    # Handle assignment (obj[idx] = value)
+                    if self.current_token.type == TokenType.EQUAL:
+                        self.advance()  # consume equals
+                        value_expr = self.parse_expression()
+
+                        # Create an object to represent the target
+                        target = ASTNode(NodeType.INDEX_ACCESS,
+                                         children=[ASTNode(NodeType.IDENTIFIER, value=token_value), index_expr])
+
+                        # Create an assignment node
+                        return ASTNode(NodeType.ASSIGNMENT, children=[target, value_expr])
+
+                # If we get here, something is wrong
+                raise ParserError(
+                    f"Expected '(' or '=' after property access", self.current_token)
+
+            # Handle regular variable assignment (var = value)
+            elif self.tokens[self.current_token_index + 1].type == TokenType.EQUAL:
+                var_name = self.current_token.value
+                self.advance()  # consume identifier
+                self.advance()  # consume equals
+                value_expr = self.parse_expression()
+
+                # Create an assignment node
+                return ASTNode(NodeType.ASSIGNMENT,
+                               children=[ASTNode(NodeType.IDENTIFIER, value=var_name), value_expr])
 
         # Top-level 'haddii_kale', 'haddii_kalena' are invalid
         if ttype in (TokenType.HADDII_KALE, TokenType.HADDII_KALENA):
@@ -124,18 +200,18 @@ class Parser:
     #  Function calls: qor("Hi") or akhri("Enter name:")
     # -----------------------------
     def parse_function_call(self):
+        """Parse a function call like 'qor("Hello")' """
         func_name = self.current_token.value
-        self.advance()  # consume QOR or AKHRI
-        self.expect(TokenType.LEFT_PAREN)
+        if self.current_token.type != TokenType.IDENTIFIER and self.current_token.type not in (TokenType.QOR, TokenType.AKHRI, TokenType.QORAAL, TokenType.TIRO, TokenType.LABADARAN, TokenType.LIIS, TokenType.SHEY):
+            raise ParserError(
+                f"Expected function name, got {self.current_token.type}")
 
-        args = []
-        while self.current_token.type != TokenType.RIGHT_PAREN:
-            args.append(self.parse_expression())
-            if self.current_token.type == TokenType.COMMA:
-                self.advance()
+        # For non-identifier function names (like type names), get the value from the type
+        if self.current_token.type != TokenType.IDENTIFIER:
+            func_name = self.current_token.type.value
 
-        self.expect(TokenType.RIGHT_PAREN)
-        return ASTNode(NodeType.FUNCTION_CALL, value=func_name, children=args)
+        self.advance()
+        return self.parse_function_call_helper(func_name)
 
     # -----------------------------
     #  Import statement: ka_keen "file.sp"
@@ -435,9 +511,16 @@ class Parser:
         if token.type == TokenType.NULL:
             self.advance()
             return ASTNode(NodeType.LITERAL, value=None)
-        if token.type == TokenType.IDENTIFIER:
+        if token.type == TokenType.IDENTIFIER or token.type in (TokenType.QORAAL, TokenType.TIRO, TokenType.LABADARAN, TokenType.LIIS, TokenType.SHEY):
+            # Allow type names to be used as function names
+            token_value = token.value if token.type == TokenType.IDENTIFIER else token.type.value
             self.advance()
-            node = ASTNode(NodeType.IDENTIFIER, value=token.value)
+
+            # Check if this is a function call (followed by left parenthesis)
+            if self.current_token.type == TokenType.LEFT_PAREN:
+                return self.parse_function_call_helper(token_value)
+
+            node = ASTNode(NodeType.IDENTIFIER, value=token_value)
 
             # Handle property access (obj.prop) and index access (arr[idx])
             while self.current_token.type in (TokenType.DOT, TokenType.LEFT_BRACKET):
@@ -447,6 +530,7 @@ class Parser:
                     node = self.parse_index_access(node)
 
             return node
+
         if token.type == TokenType.LEFT_PAREN:
             self.advance()
             expr = self.parse_expression()
@@ -457,4 +541,19 @@ class Parser:
         if token.type == TokenType.LEFT_BRACE:
             return self.parse_object_literal()
 
-        raise SyntaxError(f"Unexpected token in factor: {token.type}")
+        raise ParserError(f"Unexpected token in factor: {token.type}")
+
+    def parse_function_call_helper(self, func_name):
+        """Helper method to parse a function call once we've identified the function name"""
+        self.expect(TokenType.LEFT_PAREN)
+        args = []
+
+        # Parse arguments
+        if self.current_token.type != TokenType.RIGHT_PAREN:
+            args.append(self.parse_expression())
+            while self.current_token.type == TokenType.COMMA:
+                self.advance()
+                args.append(self.parse_expression())
+
+        self.expect(TokenType.RIGHT_PAREN)
+        return ASTNode(NodeType.FUNCTION_CALL, value=func_name, children=args)
