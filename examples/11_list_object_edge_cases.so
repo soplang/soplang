@@ -1,0 +1,144 @@
+// Soplang Test: List and Object Edge Cases
+// Testing error handling and edge cases for lists and objects
+
+// 1. EMPTY DATA STRUCTURES
+qor("\n--- EMPTY DATA STRUCTURES ---")
+door empty_list = []
+door empty_obj = {}
+qor("Empty list: " + qoraal(empty_list))
+qor("Empty object: " + qoraal(empty_obj))
+
+// Adding to empty structures
+empty_list.push(1)
+empty_obj.first = "value"
+qor("List after adding element: " + qoraal(empty_list))
+qor("Object after adding property: " + qoraal(empty_obj))
+
+// 2. TYPE ENFORCEMENT
+qor("\n--- TYPE ENFORCEMENT ---")
+qor("Static typing with lists:")
+
+// Uncomment to test type errors
+/*
+liis numbers = [1, 2, 3]
+numbers = "not a list"  // This should error
+numbers = [1, "string"] // This should error if liis is meant to be only numbers
+numbers.push("not a number") // This should error
+*/
+
+qor("Static typing with objects:")
+/*
+shey person = {"name": "Omar", "age": 30}
+person = "not an object"  // This should error
+person.age = "thirty"     // This might error if type checking property assignments
+*/
+
+// 3. OUT OF BOUNDS ACCESS
+qor("\n--- OUT OF BOUNDS ACCESS ---")
+door test_list = [1, 2, 3]
+qor("List: " + qoraal(test_list))
+
+// Uncomment to test index out of bounds
+/*
+qor("Accessing index 5 (out of bounds): " + qoraal(test_list[5]))
+*/
+
+// Safer access with conditional
+haddii (5 < test_list.length()) {
+    qor("Element at index 5: " + qoraal(test_list[5]))
+} haddiiKalena {
+    qor("Index 5 is out of bounds (length is " + qoraal(test_list.length()) + ")")
+}
+
+// 4. PROPERTY ACCESS ON NON-OBJECTS
+qor("\n--- PROPERTY ACCESS ON NON-OBJECTS ---")
+door number = 42
+
+// Uncomment to test property access on non-objects
+/*
+qor("Trying to access property on a number: " + qoraal(number.toString))
+*/
+
+// 5. NESTED NULLS AND UNDEFINED
+qor("\n--- NESTED NULLS AND UNDEFINED ---")
+door sparse_data = {
+    "user": {
+        "profile": null,
+        "settings": {
+            "theme": "dark"
+        }
+    }
+}
+
+// Safe access patterns
+haddii (sparse_data.user != null && sparse_data.user.profile != null) {
+    qor("User profile: " + qoraal(sparse_data.user.profile))
+} haddiiKalena {
+    qor("User profile is null or undefined")
+}
+
+// 6. TYPE COERCION IN ARRAY INDEXING
+qor("\n--- TYPE COERCION IN ARRAY INDEXING ---")
+door coercion_list = ["a", "b", "c"]
+door string_index = "1"
+qor("Element at string index '" + string_index + "': " + coercion_list[string_index])
+
+// 7. ARRAY METHODS
+qor("\n--- ARRAY METHODS ---")
+door test_arr = [5, 2, 8, 1]
+qor("Original array: " + qoraal(test_arr))
+
+// Basic array operations
+test_arr.push(10)
+qor("After push(10): " + qoraal(test_arr))
+
+door popped = test_arr.pop()
+qor("Popped value: " + qoraal(popped))
+qor("After pop(): " + qoraal(test_arr))
+
+// 8. OBJECT KEY EDGE CASES
+qor("\n--- OBJECT KEY EDGE CASES ---")
+
+// Object with unusual keys
+door odd_keys = {
+    "": "empty string key",
+    " ": "space key",
+    "123": "numeric key",
+    "key with spaces": "key containing spaces"
+}
+
+qor("Object with unusual keys: " + qoraal(odd_keys))
+qor("Empty string key value: " + odd_keys[""])
+qor("Space key value: " + odd_keys[" "])
+qor("Numeric key value: " + odd_keys["123"])
+qor("Key with spaces value: " + odd_keys["key with spaces"])
+
+// 9. DEEPLY NESTED STRUCTURES
+qor("\n--- DEEPLY NESTED STRUCTURES ---")
+door nested = {
+    "level1": {
+        "level2": {
+            "level3": {
+                "level4": {
+                    "data": [1, 2, [3, 4, {"deep": "value"}]]
+                }
+            }
+        }
+    }
+}
+
+qor("Accessing deeply nested value: " + 
+    nested.level1.level2.level3.level4.data[2][2].deep)
+
+// 10. CIRCULAR REFERENCES (Might cause issues in stringification)
+qor("\n--- CIRCULAR REFERENCES ---")
+door parent = {"name": "Parent"}
+door child = {"name": "Child", "parent": parent}
+parent.child = child
+
+qor("Parent name: " + parent.name)
+qor("Child name: " + parent.child.name)
+qor("Parent of child name: " + child.parent.name)
+
+// Uncommenting might cause infinite recursion in stringification
+// qor("Circular structure: " + qoraal(parent)) 

@@ -16,7 +16,9 @@ class Parser:
 
     def expect(self, token_type):
         if self.current_token.type == token_type:
+            token = self.current_token
             self.advance()
+            return token
         else:
             raise ParserError(
                 f"Expected {token_type}, got {self.current_token.type}", self.current_token)
@@ -289,6 +291,83 @@ class Parser:
         return node
 
     # -----------------------------
+    #  List Literal: [1, 2, 3]
+    # -----------------------------
+    def parse_list_literal(self):
+        self.expect(TokenType.LEFT_BRACKET)
+
+        elements = []
+        while self.current_token.type != TokenType.RIGHT_BRACKET:
+            elements.append(self.parse_expression())
+            if self.current_token.type == TokenType.COMMA:
+                self.advance()
+            else:
+                break
+
+        self.expect(TokenType.RIGHT_BRACKET)
+        return ASTNode(NodeType.LIST_LITERAL, children=elements)
+
+    # -----------------------------
+    #  Object Literal: {name: "value", age: 30}
+    # -----------------------------
+    def parse_object_literal(self):
+        self.expect(TokenType.LEFT_BRACE)
+
+        properties = []
+        while self.current_token.type != TokenType.RIGHT_BRACE:
+            # Property key
+            if self.current_token.type == TokenType.IDENTIFIER or self.current_token.type == TokenType.STRING:
+                key = self.current_token.value
+                self.advance()
+            else:
+                raise ParserError(
+                    "Expected property name as identifier or string", self.current_token)
+
+            # Colon separator
+            self.expect(TokenType.COLON)
+
+            # Property value
+            value = self.parse_expression()
+
+            # Create a property node with key as value and expression as child
+            property_node = ASTNode(
+                NodeType.LITERAL, value=key, children=[value])
+            properties.append(property_node)
+
+            if self.current_token.type == TokenType.COMMA:
+                self.advance()
+            else:
+                break
+
+        self.expect(TokenType.RIGHT_BRACE)
+        return ASTNode(NodeType.OBJECT_LITERAL, children=properties)
+
+    # -----------------------------
+    #  Property Access: obj.property
+    # -----------------------------
+    def parse_property_access(self, left):
+        self.expect(TokenType.DOT)
+
+        if self.current_token.type != TokenType.IDENTIFIER:
+            raise ParserError(
+                "Expected property name after dot", self.current_token)
+
+        property_name = self.current_token.value
+        self.advance()
+
+        return ASTNode(NodeType.PROPERTY_ACCESS, value=property_name, children=[left])
+
+    # -----------------------------
+    #  Index Access: arr[index]
+    # -----------------------------
+    def parse_index_access(self, left):
+        self.expect(TokenType.LEFT_BRACKET)
+        index = self.parse_expression()
+        self.expect(TokenType.RIGHT_BRACKET)
+
+        return ASTNode(NodeType.INDEX_ACCESS, children=[left, index])
+
+    # -----------------------------
     #  Expression Parsing
     # -----------------------------
     def parse_comparison_expression(self):
@@ -347,13 +426,35 @@ class Parser:
         if token.type == TokenType.STRING:
             self.advance()
             return ASTNode(NodeType.LITERAL, value=token.value)
+        if token.type == TokenType.TRUE:
+            self.advance()
+            return ASTNode(NodeType.LITERAL, value=True)
+        if token.type == TokenType.FALSE:
+            self.advance()
+            return ASTNode(NodeType.LITERAL, value=False)
+        if token.type == TokenType.NULL:
+            self.advance()
+            return ASTNode(NodeType.LITERAL, value=None)
         if token.type == TokenType.IDENTIFIER:
             self.advance()
-            return ASTNode(NodeType.IDENTIFIER, value=token.value)
+            node = ASTNode(NodeType.IDENTIFIER, value=token.value)
+
+            # Handle property access (obj.prop) and index access (arr[idx])
+            while self.current_token.type in (TokenType.DOT, TokenType.LEFT_BRACKET):
+                if self.current_token.type == TokenType.DOT:
+                    node = self.parse_property_access(node)
+                elif self.current_token.type == TokenType.LEFT_BRACKET:
+                    node = self.parse_index_access(node)
+
+            return node
         if token.type == TokenType.LEFT_PAREN:
             self.advance()
             expr = self.parse_expression()
             self.expect(TokenType.RIGHT_PAREN)
             return expr
+        if token.type == TokenType.LEFT_BRACKET:
+            return self.parse_list_literal()
+        if token.type == TokenType.LEFT_BRACE:
+            return self.parse_object_literal()
 
         raise SyntaxError(f"Unexpected token in factor: {token.type}")

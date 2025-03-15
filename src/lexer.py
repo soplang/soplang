@@ -45,7 +45,12 @@ class Lexer:
             "qoraal": TokenType.QORAAL,
             "labadaran": TokenType.LABADARAN,
             "liis": TokenType.LIIS,
-            "shey": TokenType.SHEY
+            "shey": TokenType.SHEY,
+
+            # Boolean literals
+            "true": TokenType.TRUE,
+            "false": TokenType.FALSE,
+            "null": TokenType.NULL
         }
 
     def advance(self):
@@ -196,6 +201,26 @@ class Lexer:
                     self.advance()
                     return Token(TokenType.NOT_EQUAL, "!=")
                 return Token(TokenType.NOT, "!")
+            if self.current_char == ",":
+                self.advance()
+                return Token(TokenType.COMMA, ",")
+            if self.current_char == ":":
+                self.advance()
+                return Token(TokenType.COLON, ":")
+            if self.current_char == ";":
+                self.advance()
+                return Token(TokenType.SEMICOLON, ";")
+
+            # New tokens for lists and objects
+            if self.current_char == "[":
+                self.advance()
+                return Token(TokenType.LEFT_BRACKET, "[")
+            if self.current_char == "]":
+                self.advance()
+                return Token(TokenType.RIGHT_BRACKET, "]")
+            if self.current_char == ".":
+                self.advance()
+                return Token(TokenType.DOT, ".")
 
             raise LexerError(
                 f"Unexpected character: {self.current_char}", self.position)

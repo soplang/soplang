@@ -1,0 +1,83 @@
+// Soplang Test: Objects
+// Testing objects (dictionaries) functionality
+
+// Dynamic object declaration
+door person = {"name": "Ahmed", "age": 30, "isStudent": true}
+qor("Dynamic object: " + qoraal(person))
+
+// Static object declaration 
+shey user = {"name": "Ali", "age": 25, "isStudent": true}
+qor("Static typed object: " + qoraal(user))
+
+// Empty object
+door empty_obj = {}
+qor("Empty object: " + qoraal(empty_obj))
+
+// Object with mixed value types
+door data = {"id": 1, "description": "Test data", "valid": true, "scores": [85, 90, 78]}
+qor("\nObject with mixed value types: " + qoraal(data))
+
+// Nested objects
+door company = {
+    "name": "TechSom", 
+    "address": {
+        "city": "Mogadishu", 
+        "country": "Somalia"
+    }
+}
+qor("\nNested object: " + qoraal(company))
+
+// Access object properties
+qor("\nAccessing object properties:")
+qor("Person's name: " + qoraal(person["name"]))
+qor("Person's age: " + qoraal(person["age"]))
+
+// Property access using dot notation
+qor("\nDot notation access:")
+qor("Company name: " + company.name)
+qor("Company city: " + company.address.city)
+
+// Changing properties
+person.age = 31
+qor("\nAfter changing person.age to 31:")
+qor("Person: " + qoraal(person))
+
+// Adding new properties
+person.job = "Developer"
+qor("\nAfter adding job property:")
+qor("Person: " + qoraal(person))
+
+// Objects with expressions
+door config = {
+    "maxUsers": 10 * 2,
+    "appName": "Soplang" + " IDE",
+    "debug": 1 == 1
+}
+qor("\nObject with expressions: " + qoraal(config))
+
+// Object with list values
+door student = {
+    "name": "Farah",
+    "grades": [85, 90, 78],
+    "contact": {
+        "email": "farah@example.com",
+        "phone": "123456789"
+    }
+}
+qor("\nObject with list values and nested object:")
+qor("Student: " + qoraal(student))
+qor("First grade: " + qoraal(student.grades[0]))
+qor("Email: " + student.contact.email)
+
+// Type enforcement
+qor("\nType enforcement with static objects:")
+// Uncomment to test type error:
+/* 
+shey settings = {"theme": "dark", "fontSize": 14}
+settings = "Not an object"  // This will cause an error
+*/
+
+// Type checking
+qor("\nType checking:")
+qor("Type of person: " + nuuc(person))
+qor("Type of person.name: " + nuuc(person.name)) 

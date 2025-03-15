@@ -1,0 +1,58 @@
+// Soplang Test: Lists
+// Testing lists functionality
+
+// Dynamic list declaration
+door my_list = [1, 2, 3, 4, 5]
+qor("Dynamic list: " + qoraal(my_list))
+
+// Static list declaration
+liis numbers = [10, 20, 30, 40, 50]
+qor("Static typed list: " + qoraal(numbers))
+
+// List with mixed types (for dynamic lists)
+door mixed_list = [1, "text", true, 4.5]
+qor("Mixed type list: " + qoraal(mixed_list))
+
+// Empty list
+door empty_list = []
+qor("Empty list: " + qoraal(empty_list))
+
+// Nested lists
+door nested_list = [[1, 2], [3, 4], [5, 6]]
+qor("Nested list: " + qoraal(nested_list))
+
+// Access list items
+qor("\nAccessing list items:")
+qor("First item: " + qoraal(my_list[0]))
+qor("Last item: " + qoraal(my_list[4]))
+
+// Access nested list items
+qor("\nAccessing nested list items:")
+qor("nested_list[1][0]: " + qoraal(nested_list[1][0]))  // Should be 3
+
+// List in expressions
+qor("\nUsing lists in expressions:")
+door sum = my_list[0] + my_list[1]
+qor("my_list[0] + my_list[1] = " + qoraal(sum))  // Should be 3
+
+// List assignment (change item)
+my_list[2] = 99
+qor("\nAfter changing my_list[2] to 99:")
+qor("my_list: " + qoraal(my_list))
+
+// Lists with calculated values
+door calculated_list = [1 + 1, 2 * 2, 3 + 3]
+qor("\nList with calculated values: " + qoraal(calculated_list))  // Should be [2, 4, 6]
+
+// Type enforcement
+qor("\nType enforcement with static lists:")
+// Uncomment to test type error:
+/* 
+liis numbers2 = [1, 2, 3]
+numbers2[0] = "text"  // This should cause an error for static typing
+*/
+
+// Type checking on lists
+qor("\nType checking:")
+qor("Type of my_list: " + nuuc(my_list))
+qor("Type of my_list[0]: " + nuuc(my_list[0])) 

@@ -18,6 +18,14 @@ class NodeType(Enum):
     BREAK_STATEMENT = "BREAK_STATEMENT"
     CONTINUE_STATEMENT = "CONTINUE_STATEMENT"
 
+    # New node types for lists and objects
+    LIST_LITERAL = "LIST_LITERAL"          # For list creation [1, 2, 3]
+    OBJECT_LITERAL = "OBJECT_LITERAL"      # For object creation {a: 1, b: 2}
+    PROPERTY_ACCESS = "PROPERTY_ACCESS"    # For object.property
+    INDEX_ACCESS = "INDEX_ACCESS"          # For list[index]
+    # For explicit assignment (separate from declaration)
+    ASSIGNMENT = "ASSIGNMENT"
+
 
 class ASTNode:
     def __init__(self, type_, value=None, children=None):

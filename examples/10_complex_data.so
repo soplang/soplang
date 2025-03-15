@@ -1,0 +1,104 @@
+// Soplang Test: Complex Data Structures
+// Combining lists and objects for complex data modeling
+
+// 1. List of objects
+door students = [
+    {"name": "Ahmed", "age": 20, "grades": [85, 90, 78]},
+    {"name": "Fatima", "age": 22, "grades": [92, 88, 95]},
+    {"name": "Mohamed", "age": 21, "grades": [75, 82, 80]}
+]
+
+qor("List of students:")
+qor(qoraal(students))
+
+// Accessing data in the list of objects
+qor("\nFirst student's name: " + students[0].name)
+qor("Second student's second grade: " + qoraal(students[1].grades[1]))
+
+// Calculating averages
+door averages = []
+kuCeli i min 0 ilaa students.length() - 1 {
+    door student = students[i]
+    door sum = 0
+    kuCeli j min 0 ilaa student.grades.length() - 1 {
+        sum = sum + student.grades[j]
+    }
+    door avg = sum / student.grades.length()
+    averages.push(avg)
+    qor(student.name + " average grade: " + qoraal(avg))
+}
+
+// 2. Objects with nested lists and objects
+door school = {
+    "name": "Somali Technical School",
+    "location": {
+        "city": "Mogadishu",
+        "address": "123 Education St"
+    },
+    "departments": [
+        {"name": "Computer Science", "head": "Dr. Omar"},
+        {"name": "Engineering", "head": "Dr. Amina"}
+    ],
+    "students": students,
+    "stats": {
+        "totalStudents": students.length(),
+        "averageGrades": averages
+    }
+}
+
+qor("\nSchool data:")
+qor("School name: " + school.name)
+qor("School city: " + school.location.city)
+qor("First department: " + school.departments[0].name)
+qor("First department head: " + school.departments[0].head)
+qor("Number of students: " + qoraal(school.stats.totalStudents))
+qor("Average grades: " + qoraal(school.stats.averageGrades))
+
+// 3. Manipulating complex data structures
+// Add a new student
+door newStudent = {
+    "name": "Hodan", 
+    "age": 19, 
+    "grades": [88, 91, 84]
+}
+students.push(newStudent)
+school.stats.totalStudents = students.length()
+
+// Calculate new student's average and add to averages
+door sum = 0
+kuCeli i min 0 ilaa newStudent.grades.length() - 1 {
+    sum = sum + newStudent.grades[i]
+}
+door newAvg = sum / newStudent.grades.length()
+averages.push(newAvg)
+
+qor("\nAfter adding a new student:")
+qor("Number of students now: " + qoraal(school.stats.totalStudents))
+qor("Updated averages: " + qoraal(school.stats.averageGrades))
+
+// 4. Filtering data (simple implementation)
+qor("\nStudents older than 20:")
+door olderStudents = []
+kuCeli i min 0 ilaa students.length() - 1 {
+    haddii (students[i].age > 20) {
+        olderStudents.push(students[i])
+    }
+}
+qor("Count: " + qoraal(olderStudents.length()))
+kuCeli i min 0 ilaa olderStudents.length() - 1 {
+    qor(" - " + olderStudents[i].name + " (age: " + qoraal(olderStudents[i].age) + ")")
+}
+
+// 5. Nested data transformation
+qor("\nStudent names with their department:")
+door departments = school.departments
+kuCeli i min 0 ilaa students.length() - 1 {
+    // Assign students to departments (even index to first department, odd to second)
+    door deptIndex = i % 2
+    door studentInfo = {
+        "name": students[i].name,
+        "department": departments[deptIndex].name,
+        "advisor": "Prof. " + departments[deptIndex].head.split(" ")[1]  // Extract last name
+    }
+    qor(qoraal(studentInfo))
+} 

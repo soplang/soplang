@@ -52,6 +52,8 @@ class Interpreter:
             return self.execute_try_catch(node)
         elif node.type == NodeType.CLASS_DEFINITION:
             return self.execute_class_definition(node)
+        elif node.type == NodeType.ASSIGNMENT:
+            return self.execute_assignment(node)
         else:
             raise RuntimeError(f"Unknown statement type: {node.type}")
 
@@ -118,6 +120,48 @@ class Interpreter:
 
         self.variables[var_name] = value
         return value
+
+    # -----------------------------
+    #  Assignment Statement
+    # -----------------------------
+    def execute_assignment(self, node):
+        """Execute an assignment node (identifier = expression)"""
+        target = node.children[0]  # Target of assignment
+        value = self.evaluate(node.children[1])  # Expression to assign
+
+        # Simple variable assignment
+        if target.type == NodeType.IDENTIFIER:
+            return self.assign_variable(target.value, value)
+
+        # Property assignment (obj.prop = value)
+        elif target.type == NodeType.PROPERTY_ACCESS:
+            obj = self.evaluate(target.children[0])
+            if not isinstance(obj, dict):
+                raise TypeError("Cannot set property of non-object value")
+
+            prop_name = target.value
+            obj[prop_name] = value
+            return value
+
+        # Index assignment (arr[idx] = value)
+        elif target.type == NodeType.INDEX_ACCESS:
+            arr = self.evaluate(target.children[0])
+            if not isinstance(arr, list):
+                raise TypeError("Cannot set index of non-list value")
+
+            idx = self.evaluate(target.children[1])
+            if not isinstance(idx, (int, float)) or int(idx) != idx:
+                raise TypeError("List index must be an integer")
+
+            idx = int(idx)
+            if idx < 0 or idx >= len(arr):
+                raise RuntimeError(f"List index out of range: {idx}")
+
+            arr[idx] = value
+            return value
+
+        else:
+            raise RuntimeError(f"Invalid assignment target: {target.type}")
 
     # -----------------------------
     #  Function Call
@@ -315,6 +359,51 @@ class Interpreter:
             left_val = self.evaluate(node.children[0])
             right_val = self.evaluate(node.children[1])
             return self.apply_operator(node.value, left_val, right_val)
+        if node.type == NodeType.LIST_LITERAL:
+            # Evaluate each element in the list
+            return [self.evaluate(element) for element in node.children]
+        if node.type == NodeType.OBJECT_LITERAL:
+            # Create a dictionary from key-value pairs
+            obj = {}
+            for prop in node.children:
+                key = prop.value
+                value = self.evaluate(prop.children[0])
+                obj[key] = value
+            return obj
+        if node.type == NodeType.PROPERTY_ACCESS:
+            # Evaluate the object expression
+            obj = self.evaluate(node.children[0])
+            if not isinstance(obj, dict):
+                raise TypeError(
+                    f"Cannot access property '{node.value}' of non-object value")
+
+            # Get the property name and return the value
+            prop_name = node.value
+            if prop_name not in obj:
+                raise RuntimeError(
+                    f"Property '{prop_name}' does not exist on object")
+
+            return obj[prop_name]
+        if node.type == NodeType.INDEX_ACCESS:
+            # Evaluate the array expression
+            arr = self.evaluate(node.children[0])
+            if not isinstance(arr, list):
+                raise TypeError("Cannot access index of non-list value")
+
+            # Evaluate the index expression
+            idx = self.evaluate(node.children[1])
+            if not isinstance(idx, (int, float)) or int(idx) != idx:
+                raise TypeError("List index must be an integer")
+
+            idx = int(idx)
+            if idx < 0 or idx >= len(arr):
+                raise RuntimeError(f"List index out of range: {idx}")
+
+            return arr[idx]
+        if node.type == NodeType.FUNCTION_CALL:
+            # Already handled in execute_function_call, but we need to support it here
+            # for expressions that include function calls
+            return self.execute_function_call(node)
 
         # Constructing new objects: e.g. 'cusub MyClass()'
         if node.type == NodeType.FUNCTION_CALL and node.value == "cusub":
