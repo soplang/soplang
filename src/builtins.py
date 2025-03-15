@@ -77,6 +77,138 @@ class SoplangBuiltins:
         """
         return kwargs
 
+    @staticmethod
+    def list_push(lst, item):
+        """
+        Add an item to the end of a list
+        """
+        if not isinstance(lst, list):
+            raise TypeError("Qiimahu ma ahan liis (Value is not a list)")
+        lst.append(item)
+        return lst
+
+    @staticmethod
+    def list_pop(lst):
+        """
+        Remove and return the last item from a list
+        """
+        if not isinstance(lst, list):
+            raise TypeError("Qiimahu ma ahan liis (Value is not a list)")
+        if len(lst) == 0:
+            raise ValueError(
+                "Ma saari kartid liis madhan (Cannot pop from an empty list)")
+        return lst.pop()
+
+    @staticmethod
+    def list_length(lst):
+        """
+        Return the length of a list
+        """
+        if not isinstance(lst, list):
+            raise TypeError("Qiimahu ma ahan liis (Value is not a list)")
+        return len(lst)
+
+    @staticmethod
+    def list_get(lst, index):
+        """
+        Get an item from a list at the specified index
+        """
+        if not isinstance(lst, list):
+            raise TypeError("Qiimahu ma ahan liis (Value is not a list)")
+
+        # Convert index to integer if it's a string
+        if isinstance(index, str):
+            try:
+                index = int(index)
+            except ValueError:
+                raise TypeError(
+                    "Index waa inuu noqdaa tiro (Index must be a number)")
+
+        if not isinstance(index, (int, float)):
+            raise TypeError(
+                "Index waa inuu noqdaa tiro (Index must be a number)")
+
+        index = int(index)  # Convert float to int if needed
+
+        if index < 0 or index >= len(lst):
+            raise ValueError(
+                f"Index {index} waa ka baxsan xadka liiska (Index out of range)")
+
+        return lst[index]
+
+    @staticmethod
+    def list_set(lst, index, value):
+        """
+        Set an item in a list at the specified index
+        """
+        if not isinstance(lst, list):
+            raise TypeError("Qiimahu ma ahan liis (Value is not a list)")
+
+        # Convert index to integer if it's a string
+        if isinstance(index, str):
+            try:
+                index = int(index)
+            except ValueError:
+                raise TypeError(
+                    "Index waa inuu noqdaa tiro (Index must be a number)")
+
+        if not isinstance(index, (int, float)):
+            raise TypeError(
+                "Index waa inuu noqdaa tiro (Index must be a number)")
+
+        index = int(index)  # Convert float to int if needed
+
+        if index < 0 or index >= len(lst):
+            raise ValueError(
+                f"Index {index} waa ka baxsan xadka liiska (Index out of range)")
+
+        lst[index] = value
+        return value
+
+    @staticmethod
+    def object_get(obj, key):
+        """
+        Get a property from an object
+        """
+        if not isinstance(obj, dict):
+            raise TypeError("Qiimahu ma ahan shey (Value is not an object)")
+
+        if key not in obj:
+            return None
+
+        return obj[key]
+
+    @staticmethod
+    def object_set(obj, key, value):
+        """
+        Set a property on an object
+        """
+        if not isinstance(obj, dict):
+            raise TypeError("Qiimahu ma ahan shey (Value is not an object)")
+
+        obj[key] = value
+        return value
+
+    @staticmethod
+    def object_keys(obj):
+        """
+        Get all keys from an object as a list
+        """
+        if not isinstance(obj, dict):
+            raise TypeError("Qiimahu ma ahan shey (Value is not an object)")
+
+        return list(obj.keys())
+
+    @staticmethod
+    def object_has(obj, key):
+        """
+        Check if an object has a specific property
+        """
+        if not isinstance(obj, dict):
+            raise TypeError("Qiimahu ma ahan shey (Value is not an object)")
+
+        return key in obj
+
 
 def get_builtin_functions():
     """
@@ -94,3 +226,28 @@ def get_builtin_functions():
     }
 
     return builtins
+
+
+def get_object_methods():
+    """
+    Returns a dictionary of object methods
+    """
+    methods = {
+        "keys": SoplangBuiltins.object_keys,
+        "has": SoplangBuiltins.object_has
+    }
+
+    return methods
+
+
+def get_list_methods():
+    """
+    Returns a dictionary of list methods
+    """
+    methods = {
+        "push": SoplangBuiltins.list_push,
+        "pop": SoplangBuiltins.list_pop,
+        "length": SoplangBuiltins.list_length
+    }
+
+    return methods
