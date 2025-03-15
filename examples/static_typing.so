@@ -1,0 +1,59 @@
+// Soplang Static Typing Example
+// This example shows how static typing works in Soplang
+
+// ----- Static Type Declarations -----
+tiro number = 100
+qoraal text = "This is a text variable"
+labadaran is_valid = 1  // Will be converted to true (boolean)
+liis numbers = [1, 2, 3, 4, 5]
+shey person = {"name": "Ali", "age": 30}
+
+// Print the types of variables
+qor("number waa: " + nuuc(number))
+qor("text waa: " + nuuc(text))
+qor("is_valid waa: " + nuuc(is_valid))
+qor("numbers waa: " + nuuc(numbers))
+qor("person waa: " + nuuc(person))
+
+// ----- Type Conversion Examples -----
+tiro string_to_number = tiro("42.5")
+qor("string_to_number = " + qoraal(string_to_number))
+
+qoraal number_to_string = qoraal(123)
+qor("number_to_string = " + number_to_string)
+
+// ----- Type Enforcement Examples -----
+// Uncomment these lines to see type errors:
+
+/* Static type enforcement
+
+tiro num = 10
+num = "This will cause an error"
+
+qoraal str = "Hello"
+str = 42  // This will cause an error
+
+*/
+
+// The following works because we use dynamic typing with 'door'
+door dynamic_var = 50
+qor("dynamic_var initial: " + qoraal(dynamic_var))
+dynamic_var = "Now it's a string"
+qor("dynamic_var changed: " + dynamic_var)
+
+// ----- Type Safety in Functions -----
+howl process_number(n) {
+    // We can check the type at runtime
+    haddii (nuuc(n) != "tiro") {
+        qor("Error: Expected a number but got " + nuuc(n))
+        soo_celi "ERROR"
+    }
+    
+    soo_celi n * 2
+}
+
+door result1 = process_number(5)
+qor("Result1: " + qoraal(result1))
+
+door result2 = process_number("not a number")
+qor("Result2: " + qoraal(result2)) 

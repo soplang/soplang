@@ -1,0 +1,94 @@
+// Soplang Functions and Classes Example
+// This example demonstrates functions and classes in Soplang
+
+// ----- Basic Functions -----
+howl salaam(magac) {
+    qor("Salaam, " + magac + "!")
+    soo_celi "Waa ku salaamay " + magac
+}
+
+// Call the function
+door message = salaam("Sharafdin")
+qor("Function returned: " + message)
+
+// ----- Function with Multiple Parameters -----
+howl isuGee(kow, labo, sadex) {
+    door total = kow + labo + sadex
+    qor("Sum of " + qoraal(kow) + " + " + qoraal(labo) + " + " + qoraal(sadex) + " = " + qoraal(total))
+    soo_celi total
+}
+
+door sum = isuGee(10, 20, 30)
+qor("Total sum: " + qoraal(sum))
+
+// ----- Functions with Type Checking -----
+howl qaybSO(a, b) {
+    // Check if b is zero to avoid division by zero
+    haddii (b == 0) {
+        qor("Error: Cannot divide by zero")
+        soo_celi "ERROR"
+    }
+    
+    // Check if both parameters are numbers
+    haddii (nuuc(a) != "tiro" || nuuc(b) != "tiro") {
+        qor("Error: Both parameters must be numbers")
+        soo_celi "ERROR"
+    }
+    
+    soo_celi a / b
+}
+
+// Test the function
+door result1 = qaybSO(20, 4)
+qor("20 / 4 = " + qoraal(result1))
+
+door result2 = qaybSO(10, 0)
+qor("10 / 0 = " + qoraal(result2))
+
+door result3 = qaybSO("not a number", 5)
+qor("'not a number' / 5 = " + qoraal(result3))
+
+// ----- Basic Class Definition -----
+fasalka Xisaabiye {
+    // Constructor-like function
+    howl bilow(magac) {
+        door.this.magac = magac
+        door.this.natiijooyinka = []
+        qor("Created calculator: " + magac)
+    }
+    
+    // Methods
+    howl kuDar(a, b) {
+        door natiijo = a + b
+        door.this.natiijooyinka.append(natiijo)
+        soo_celi natiijo
+    }
+    
+    howl kalaJar(a, b) {
+        door natiijo = a - b
+        door.this.natiijooyinka.append(natiijo)
+        soo_celi natiijo
+    }
+    
+    howl sooJeedi() {
+        qor(door.this.magac + " results: " + qoraal(door.this.natiijooyinka))
+    }
+}
+
+// ----- Class Inheritance -----
+fasalka XisaabiyeHoreMaray ka_dhaxal Xisaabiye {
+    // Override a method
+    howl sooJeedi() {
+        qor("Advanced " + door.this.magac + " results: " + qoraal(door.this.natiijooyinka))
+    }
+    
+    // Add a new method
+    howl multiply(a, b) {
+        door natiijo = a * b
+        door.this.natiijooyinka.append(natiijo)
+        soo_celi natiijo
+    }
+}
+
+// Note: This code demonstrates the syntax, but full OOP functionality 
+// would need to be implemented in the interpreter 
