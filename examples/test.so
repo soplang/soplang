@@ -1,0 +1,17 @@
+// This is a test file for import functionality
+
+// Static typed variable
+tiro imported_num = 42
+qoraal imported_msg = "This was imported from test.so file"
+
+// Function definition
+howl imported_function() {
+    qor(imported_msg)
+    qor("Imported number: " + qoraal(imported_num))
+}
+
+// Call the function
+imported_function()
+
+// You can also access this from the importing file
+qor("Import completed successfully!") 

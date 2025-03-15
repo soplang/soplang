@@ -3,56 +3,81 @@ from src.parser import Parser
 from src.interpreter import Interpreter
 
 code = r"""
-# Dynamic typing
+// This is a Soplang program showcasing its features
+
+// ---------- Dynamic typing example ----------
 door x = 10
-qor(x + 5)
+qor("Dynamic x = " + qoraal(x))
+x = "Now x is a string"  // Valid in dynamic typing
+qor("Now x = " + x)
 
-# Static typing
+// ---------- Static typing examples ---------- 
 tiro y = 20
+qor("Static y = " + qoraal(y))
+
+// Error will occur if uncommented - Type mismatch
+/* 
+y = "Cannot assign string to tiro"
+*/
+
 qoraal naam = "Sharafdin"
-qor(naam + " " + qoraal(y))
+qor("Static naam = " + naam)
 
-haddii (x > 5) {
-    qor("X waa weyn!")
-} haddii_kale (x == 5) {
-    qor("X waa shan!")
+// Example of type conversion
+tiro z = tiro("42")  // Convert string to number
+qor("z = " + qoraal(z))
+
+// ---------- Conditional examples ----------
+haddii (x == "Now x is a string") {
+    qor("Conditional: x is a string now!")
+} haddii_kale (x == 10) {
+    qor("Conditional: x is 10!")
 } haddii_kalena {
-    qor("X waa yar yahay!")
+    qor("Conditional: x is something else!")
 }
 
-# Try-catch example
+// ---------- Try-catch error handling ----------
 isku_day {
-    door z = 5 / 0
-    qor("Never see this!")
+    tiro err_var = tiro("not a number")  // This will cause an error
+    qor("This won't be printed!")
 } qabo (err) {
-    qor("Khalad baa dhacay: " + err)
+    qor("Error caught: " + err)
 }
 
-# Loop example
+// ---------- Loop example ----------
+qor("Loop example:")
 ku_celi i min 1 ilaa 5 {
-    qor("i="+ i)
+    qor("i = " + qoraal(i))
     haddii (i == 3) {
+        qor("Found 3, breaking loop")
         jooji
     }
 }
 
-# Function example
-howl showDouble(num) {
-    qor(num * 2)
+// ---------- Function example ----------
+howl labo_jibbaar(num) {
+    qor("Doubling: " + qoraal(num))
+    soo_celi num * 2
 }
-showDouble(12)
 
-# Class examples
+door result = labo_jibbaar(12)
+qor("Result: " + qoraal(result))
+
+// ---------- Class examples ----------
 fasalka Xayawaan {
-    # In a real language, we'd define methods or fields
-    qor("Xayawaan fasal")
+    howl dhawaaq() {
+        qor("Generic animal sound")
+    }
 }
 
 fasalka Ey ka_dhaxal Xayawaan {
-    qor("Ey fasal")
+    howl dhawaaq() {
+        qor("Woof woof!")
+    }
 }
 
-ka_keen "another.sp"
+// Import example - uncomment to test
+// ka_keen "examples/test.so"
 """
 
 # 1) Tokenize
@@ -72,4 +97,8 @@ print(ast)
 # 3) Interpret
 inter = Interpreter()
 print("\n🔹 Running the Soplang Interpreter:")
-inter.interpret(ast)
+try:
+    inter.interpret(ast)
+except Exception as e:
+    print(f"\n❌ Error: {e}")
+    print("Program execution failed.")
