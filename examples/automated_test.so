@@ -1,0 +1,57 @@
+// Soplang Automated Test
+// This example is used for automated testing without user input
+
+// Testing static typing
+tiro number = 42
+qoraal text = "This is a test"
+labadaran truth = 1  // Should be converted to true
+liis my_list = [1, 2, 3, 4, 5]
+shey my_object = {"name": "Test", "value": 100}
+
+// Testing variable display
+qor("Number: " + qoraal(number))
+qor("Text: " + text)
+qor("Boolean: " + qoraal(truth))
+qor("List: " + qoraal(my_list))
+qor("Object: " + qoraal(my_object))
+
+// Testing conditionals
+haddii (number > 40) {
+    qor("Number is greater than 40")
+} haddii_kale (number == 40) {
+    qor("Number is exactly 40")
+} haddii_kalena {
+    qor("Number is less than 40")
+}
+
+// Testing loops
+qor("\nTesting loop:")
+ku_celi i min 1 ilaa 5 {
+    qor("Iteration: " + qoraal(i))
+}
+
+// Testing type conversion
+tiro str_to_num = tiro("123.45")
+qoraal num_to_str = qoraal(987)
+
+qor("\nConverted string to number: " + qoraal(str_to_num))
+qor("Converted number to string: " + num_to_str)
+
+// Testing function definition and call
+howl multiply(a, b) {
+    soo_celi a * b
+}
+
+tiro result = multiply(6, 7)
+qor("\nMultiply result: " + qoraal(result))
+
+// Testing error handling
+isku_day {
+    qor("Attempting division by zero...")
+    door div_result = 10 / 0
+    qor("This should not be printed")
+} qabo (error) {
+    qor("Caught error: " + error)
+}
+
+qor("\nTest completed successfully!") 
