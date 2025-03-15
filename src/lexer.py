@@ -55,6 +55,50 @@ class Lexer:
         else:
             self.current_char = None
 
+    def skip_whitespace(self):
+        while self.current_char and self.current_char.isspace():
+            self.advance()
+
+    def skip_comment(self):
+        # Single-line comments (//)
+        if self.current_char == '/' and self.peek() == '/':
+            self.advance()  # Skip first '/'
+            self.advance()  # Skip second '/'
+
+            # Skip until end of line or end of file
+            while self.current_char and self.current_char != '\n':
+                self.advance()
+
+            # Skip the newline character if present
+            if self.current_char == '\n':
+                self.advance()
+
+            return True
+
+        # Multi-line comments (/* ... */)
+        elif self.current_char == '/' and self.peek() == '*':
+            self.advance()  # Skip '/'
+            self.advance()  # Skip '*'
+
+            while self.current_char:
+                if self.current_char == '*' and self.peek() == '/':
+                    self.advance()  # Skip '*'
+                    self.advance()  # Skip '/'
+                    return True
+                self.advance()
+
+            # If we reach here, the comment was not properly closed
+            raise LexerError("Unterminated multi-line comment")
+
+        return False
+
+    def peek(self):
+        """Look at the next character without advancing"""
+        peek_pos = self.position + 1
+        if peek_pos >= len(self.source):
+            return None
+        return self.source[peek_pos]
+
     def tokenize_identifier(self):
         identifier = ""
         while self.current_char and (self.current_char.isalnum() or self.current_char == "_"):
@@ -84,13 +128,19 @@ class Lexer:
         if self.current_char == quote_char:
             self.advance()
             return Token(TokenType.STRING, string_value)
-        raise Exception("Unterminated string literal")
+        raise LexerError("Unterminated string literal")
 
     def next_token(self):
         while self.current_char:
+            # Skip whitespace
             if self.current_char.isspace():
-                self.advance()
+                self.skip_whitespace()
                 continue
+
+            # Handle comments
+            if self.current_char == '/':
+                if self.skip_comment():
+                    continue
 
             if self.current_char.isalpha():
                 return self.tokenize_identifier()
@@ -147,7 +197,8 @@ class Lexer:
                     return Token(TokenType.NOT_EQUAL, "!=")
                 return Token(TokenType.NOT, "!")
 
-            raise Exception(f"Unexpected character: {self.current_char}")
+            raise LexerError(
+                f"Unexpected character: {self.current_char}", self.position)
 
         return Token(TokenType.EOF, None)
 
