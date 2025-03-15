@@ -32,8 +32,13 @@ class Interpreter:
     #  Execute Statement
     # -----------------------------
     def execute(self, node):
-        if node.type == NodeType.VARIABLE_DECLARATION:
-            return self.execute_var_declaration(node)
+        if node.type == NodeType.PROGRAM:
+            for child in node.children:
+                self.execute(child)
+        elif node.type == NodeType.VARIABLE_DECLARATION:
+            self.execute_var_declaration(node)
+        elif node.type == NodeType.FUNCTION_DEFINITION:
+            self.define_function(node)
         elif node.type == NodeType.FUNCTION_CALL:
             return self.execute_function_call(node)
         elif node.type == NodeType.IF_STATEMENT:
@@ -42,14 +47,20 @@ class Interpreter:
             return self.execute_loop_statement(node)
         elif node.type == NodeType.WHILE_STATEMENT:
             return self.execute_while_statement(node)
-        elif node.type == NodeType.BLOCK:
-            return self.execute_block(node)
         elif node.type == NodeType.BREAK_STATEMENT:
-            # Signal the loop to break
             raise BreakSignal()
         elif node.type == NodeType.CONTINUE_STATEMENT:
-            # Signal the loop to continue
             raise ContinueSignal()
+        elif node.type == NodeType.RETURN_STATEMENT:
+            if node.children:
+                # Return the evaluated expression
+                return_value = self.evaluate(node.children[0])
+                raise ReturnSignal(return_value)
+            else:
+                # Return with no value
+                raise ReturnSignal(None)
+        elif node.type == NodeType.BLOCK:
+            return self.execute_block(node)
         elif node.type == NodeType.IMPORT_STATEMENT:
             return self.execute_import_statement(node)
         elif node.type == NodeType.TRY_CATCH:
@@ -174,36 +185,60 @@ class Interpreter:
         func_name = node.value
         args = [self.evaluate(arg) for arg in node.children]
 
-        # Check if this is a method call on an object (obj.method())
-        if func_name.count('.') == 1:
-            obj_name, method_name = func_name.split('.')
-
-            if obj_name in self.variables:
-                obj = self.variables[obj_name]
-
-                # Handle list methods
-                if isinstance(obj, list) and method_name in self.list_methods:
-                    # Invoke list method with the object as first argument
-                    return self.list_methods[method_name](obj, *args)
-
-                # Handle object methods
-                elif isinstance(obj, dict) and method_name in self.object_methods:
-                    # Invoke object method with the object as first argument
-                    return self.object_methods[method_name](obj, *args)
-
-                # Could be a custom method on user-defined object later
-
-                raise RuntimeError(
-                    f"Method '{method_name}' not found on {obj_name}")
-            else:
-                raise RuntimeError(f"Object '{obj_name}' not defined")
-
-        # Regular function call
+        # Check if it's a built-in function
         if func_name in self.functions:
-            return self.functions[func_name](*args)
+            if callable(self.functions[func_name]):
+                # Built-in function (Python function)
+                return self.functions[func_name](*args)
+            else:
+                # User-defined function (Soplang function)
+                user_func = self.functions[func_name]
+                params = user_func['params']
+                body = user_func['body']
+
+                # Create a new scope for function execution
+                old_vars = self.variables.copy()
+
+                # Bind arguments to parameters
+                for i, param in enumerate(params):
+                    if i < len(args):
+                        self.variables[param] = args[i]
+                    else:
+                        # Default to None if not enough arguments
+                        self.variables[param] = None
+
+                # Execute function body
+                result = None
+                try:
+                    for statement in body:
+                        result = self.execute(statement)
+                except ReturnSignal as ret:
+                    result = ret.value
+
+                # Restore the previous scope
+                self.variables = old_vars
+
+                return result
+
+        # Check if it's a method call on an object or list
+        elif "." in func_name:
+            obj_name, method_name = func_name.split(".", 1)
+            obj = self.variables.get(obj_name)
+
+            if obj is None:
+                raise RuntimeError(f"Object '{obj_name}' is not defined")
+
+            if isinstance(obj, list) and method_name in self.list_methods:
+                # Call list method
+                return self.list_methods[method_name](obj, *args)
+            elif isinstance(obj, dict) and method_name in self.object_methods:
+                # Call object method
+                return self.object_methods[method_name](obj, *args)
+            else:
+                raise RuntimeError(
+                    f"Method '{method_name}' not found on {type(obj).__name__}")
         else:
-            # Could be user-defined if you store functions in self.variables
-            raise RuntimeError(f"Howsha '{func_name}' ma jirto")
+            raise RuntimeError(f"Function '{func_name}' is not defined")
 
     # -----------------------------
     #  If Statement
@@ -508,3 +543,26 @@ class Interpreter:
             return bool(left) or bool(right)
         else:
             raise RuntimeError(f"Unknown operator: {operator}")
+
+    # Define a function and store it in the functions dictionary
+    def define_function(self, node):
+        if node.type != NodeType.FUNCTION_DEFINITION:
+            raise RuntimeError("Expected function definition node.")
+
+        # Extract function name and parameters
+        func_name = node.value
+        param_nodes = []
+        body_nodes = []
+
+        # Separate parameter nodes from body nodes
+        for child in node.children:
+            if child.type == NodeType.IDENTIFIER:
+                param_nodes.append(child)
+            else:
+                body_nodes.append(child)
+
+        # Store the function definition
+        self.functions[func_name] = {
+            'params': [param.value for param in param_nodes],
+            'body': body_nodes
+        }

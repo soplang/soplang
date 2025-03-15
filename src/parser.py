@@ -53,6 +53,8 @@ class Parser:
             return self.parse_break_statement()
         elif ttype == TokenType.SII_WAD:
             return self.parse_continue_statement()
+        elif ttype == TokenType.SOO_CELI:
+            return self.parse_return_statement()
         elif ttype == TokenType.ISKU_DAY:
             return self.parse_try_catch()
         elif ttype == TokenType.KA_KEEN:
@@ -589,3 +591,12 @@ class Parser:
 
         self.expect(TokenType.RIGHT_PAREN)
         return ASTNode(NodeType.FUNCTION_CALL, value=func_name, children=args)
+
+    def parse_return_statement(self):
+        self.expect(TokenType.SOO_CELI)
+        # If there is an expression after sooCeli, parse it
+        if self.current_token.type != TokenType.SEMICOLON:
+            expr = self.parse_expression()
+            return ASTNode(NodeType.RETURN_STATEMENT, children=[expr])
+        # Otherwise, it's a return with no value
+        return ASTNode(NodeType.RETURN_STATEMENT)

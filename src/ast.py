@@ -18,6 +18,7 @@ class NodeType(Enum):
     TRY_CATCH = "TRY_CATCH"
     BREAK_STATEMENT = "BREAK_STATEMENT"
     CONTINUE_STATEMENT = "CONTINUE_STATEMENT"
+    RETURN_STATEMENT = "RETURN_STATEMENT"
 
     # New node types for lists and objects
     LIST_LITERAL = "LIST_LITERAL"          # For list creation [1, 2, 3]
