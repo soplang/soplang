@@ -1,45 +1,59 @@
-// Hello World example in Soplang
+// Hello World example in Soplang // Simple print statement
 
-// Simple print statement
-qor("Salaan, Adduunka!")  // Hello, World!
+qor("Salaan, Adduunka!")
+// Hello, World! // Variables
 
-// Variables
-door magac = "Sharafdin"  // Dynamic variable
-qoraal cinwaan = "Soplang Developer"  // Static string variable
-tiro da = 25  // Static integer variable
+door magac = 'Sharafdin'
+// Dynamic variable
 
-// Using variables in a print statement
+qoraal cinwaan = "Soplang Developer"
+// Static string variable
+
+tiro da = 10
+tiro da2 = 12
+
+// Static integer variable // Using variables in a print statement
+
 qor("Magaca: " + magac)
 qor("Cinwaanka: " + cinwaan)
 qor("Da'da: " + qoraal(da))
-
 // Simple function definition
+
 howl salaanta(qofka) {
     soo_celi "Salaan, " + qofka + "!"
 }
-
 // Function call
+
 qor(salaanta(magac))
-
 // Simple if statement
-haddii (da > 18) {
-    qor("Waa qof weyn")  // Is an adult
-} haddii_kalena {
-    qor("Waa qof yar")  // Is a child
-}
+// qog
 
+haddii (da > 18) {
+    qor("Waa qof weyn")
+    // Is an adult
+
+} haddii_kalena {
+    qor("Waa qof yar")
+    // Is a child
+
+}
 // Simple for loop
-qor("Tirooyinka 1 ilaa 5:")  // Numbers 1 to 5:
+
+qor("Tirooyinka 1 ilaa 5:")
+// Numbers 1 to 5:
+
 ku_celi i min 1 ilaa 5 {
     qor(i)
 }
-
 // Simple while loop
-qor("Tirooyinka 5 ilaa 1:")  // Numbers 5 to 1:
-door j = 5
+
+qor("Tirooyinka 5 ilaa 1:")
+// Numbers 5 to 1:
+tiro j = 5
 inta_ay (j > 0) {
     qor(j)
     j = j - 1
 }
 
-qor("Dhammaad!")  // End! 
+qor("Dhammaad!")
+// End!
