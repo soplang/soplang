@@ -3,6 +3,14 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# C extensions and compiled files
+*.o
+*.out
+bin/
+obj/
+csrc/bin/
+py_compiled/
+
 # Distribution / packaging
 .Python
 build/
@@ -21,34 +29,23 @@ wheels/
 .installed.cfg
 *.egg
 
-# PyInstaller
-*.manifest
-*.spec
+# Logs and debugging
+*.log
+debug_output*
 
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
+# Generated files
+soplang_c
+soplang_c.c
+test_compilation.c
 
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-.hypothesis/
-.pytest_cache/
+# IDE specific files
+.vscode/
+.idea/
 
-# Environments
-.env
-.venv
-env/
+# Virtual environments
 venv/
-ENV/
-env.bak/
-venv.bak/
+env/
+.env/
 
 # IDE specific files
 .idea/
