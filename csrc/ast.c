@@ -8250,7 +8250,5 @@ static CYTHON_INLINE PyObject * __Pyx_PyInt_FromSize_t(size_t ival) {
 #pragma warning( pop )
 #endif
 
-
-
 /* #### Code section: end ### */
 #endif /* Py_PYTHON_H */
