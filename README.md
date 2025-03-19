@@ -38,13 +38,13 @@ python main.py examples/01_basics.so
 ## **Examples**
 
 ### **Hello World**
-```
+```js
 // Simple hello world program
 qor("Salaan, Adduunka!")  // Prints: Hello, World!
 ```
 
 ### **Variables**
-```
+```js
 // Dynamic typing
 door magac = "Sharafdin"
 door da = 25
@@ -55,7 +55,7 @@ tiro age = 25
 ```
 
 ### **Control Flow**
-```
+```js
 door points = 85
 
 haddii (points >= 90) {
@@ -68,7 +68,7 @@ haddii (points >= 90) {
 ```
 
 ### **Loops**
-```
+```js
 // For loop
 qor("Tirooyinka 1 ilaa 5:")  // Numbers 1 to 5:
 ku_celi i min 1 ilaa 5 {
@@ -84,7 +84,7 @@ inta_ay (i < 5) {
 ```
 
 ### **Functions**
-```
+```js
 howl isuGee(a, b) {
     soo_celi a + b
 }
@@ -94,7 +94,7 @@ qor("Isugeynta: " + qoraal(natiijo))  // Sum: 15
 ```
 
 ### **Data Structures**
-```
+```js
 // Lists
 door numbers = [1, 2, 3, 4, 5]
 qor(numbers[2])  // Prints: 3
@@ -169,7 +169,7 @@ Soplang supports both dynamic and static typing:
 | Object/Dict | `shey x = {"a": 1}`  | Declares an object variable |
 
 Static typing enforces type checking at runtime:
-```somali
+```js
 tiro x = 5
 x = "Hello"  // ❌ ERROR: Cannot assign string to a number
 ```
@@ -191,7 +191,7 @@ x = "Hello"  // ❌ ERROR: Cannot assign string to a number
 | `prompt("Prompt")` (JS)    | `akhri("Prompt")` |
 
 Example:
-```somali
+```js
 qoraal magac = akhri("Fadlan magacaaga geli: ")
 qor("Salaam, " + magac)
 ```
@@ -217,7 +217,7 @@ qor("Salaam, " + magac)
 | `for (let i = 1; i <= 5; i++)` (JS) | `ku_celi i min 1 ilaa 5 {` |
 
 ### **While Loops (`inta_ay`)**
-```somali
+```js
 inta_ay (x < 10) {
     qor(x)
     x = x + 1
@@ -228,7 +228,7 @@ inta_ay (x < 10) {
 - **Break**: `jooji`
 - **Continue**: `sii_wad`
 
-```somali
+```js
 ku_celi i min 1 ilaa 5 {
     haddii (i == 3) {
         jooji  // Exit the loop
@@ -245,7 +245,7 @@ ku_celi i min 1 ilaa 5 {
 | `function greet(name) {` (JS) | `howl salaam(magac) {` |
 
 ### **Return Values (`soo_celi`)**
-```somali
+```js
 howl laboJibbaar(n) {
     soo_celi n * 2
 }
@@ -261,7 +261,7 @@ howl laboJibbaar(n) {
 | `try {}` (JS)           | `isku_day {` |
 | `catch (error) {}` (JS) | `qabo (k) {` |
 
-```somali
+```js
 isku_day {
     door result = 10 / 0
 } qabo (err) {
@@ -275,12 +275,12 @@ isku_day {
 Soplang provides built-in type checking and conversion functions:
 
 ### **Type Checking**
-```somali
+```js
 nuuc(value)  // Returns type as a string: "tiro", "qoraal", etc.
 ```
 
 ### **Type Conversion**
-```somali
+```js
 tiro("123")     // Converts to number
 qoraal(456)     // Converts to string
 labadaran(1)    // Converts to boolean
@@ -289,7 +289,7 @@ labadaran(1)    // Converts to boolean
 ---
 
 ## **📌 Classes and Inheritance**
-```somali
+```js
 fasalka Xayawaan {
     howl dhawaaq() {
         qor("Generic animal sound")
@@ -306,7 +306,7 @@ fasalka Ey ka_dhaxal Xayawaan {
 ---
 
 ## **📌 Importing Files (`ka_keen`)**
-```somali
+```js
 ka_keen "myfile.so"
 ```
 
@@ -315,7 +315,7 @@ ka_keen "myfile.so"
 ## **📌 Comments**
 Soplang supports both single-line and multi-line comments:
 
-```somali
+```js
 // This is a single-line comment
 
 /* This is a 
@@ -325,7 +325,7 @@ Soplang supports both single-line and multi-line comments:
 ---
 
 ## **📌 Example Soplang Program**
-```somali
+```js
 // Basic Soplang program
 tiro age = 25
 qoraal name = "Sharafdin"
