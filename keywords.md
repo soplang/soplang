@@ -4,35 +4,34 @@ This document provides a reference for all keywords in the Soplang programming l
 
 ## Variable Declaration Keywords
 
-| Keyword  | Meaning                      | English Equivalent | Example                                 |
-| -------- | ---------------------------- | ------------------ | --------------------------------------- |
-| `door`   | Dynamic variable declaration | `var`/`let`        | `door magac = "Sharafdin"`              |
-| `tiro`   | Integer type                 | `int`              | `tiro da = 25`                          |
-| `qoraal` | String type                  | `string`           | `qoraal magac = "Sharafdin"`            |
-| `boole`  | Boolean type                 | `bool`             | `boole waaRun = true`                   |
-| `waxa`   | Object type                  | `object`           | `waxa person = { "name": "Sharafdin" }` |
-| `liis`   | List/array type              | `array`            | `liis numbers = [1, 2, 3]`              |
-| `fadhi`  | Float type                   | `float`            | `fadhi qiimo = 3.14`                    |
-| `waxaba` | Null value                   | `null`             | `door a = waxaba`                       |
+| Keyword     | Meaning                      | English Equivalent | Example                                 |
+| ----------- | ---------------------------- | ------------------ | --------------------------------------- |
+| `door`      | Dynamic variable declaration | `var`/`let`        | `door magac = "Sharafdin"`              |
+| `tiro`      | Integer type                 | `int`              | `tiro da = 25`                          |
+| `qoraal`    | String type                  | `string`           | `qoraal magac = "Sharafdin"`            |
+| `labadaran` | Boolean type                 | `bool`             | `labadaran waaRun = true`               |
+| `shey`      | Object type                  | `object`           | `shey person = { "name": "Sharafdin" }` |
+| `liis`      | List/array type              | `array`            | `liis numbers = [1, 2, 3]`              |
+| `null`      | Null value                   | `null`             | `door a = null`                         |
 
 ## Control Flow Keywords
 
-| Keyword        | Meaning           | English Equivalent | Example                                 |
-| -------------- | ----------------- | ------------------ | --------------------------------------- |
-| `haddii`       | If statement      | `if`               | `haddii (x > 10) { qor("Weyn") }`       |
-| `haddiiKale`   | Else if statement | `else if`          | `haddiiKale (x == 10) { qor("Dhexe") }` |
-| `haddiiKalena` | Else statement    | `else`             | `haddiiKalena { qor("Yar") }`           |
+| Keyword         | Meaning           | English Equivalent | Example                                  |
+| --------------- | ----------------- | ------------------ | ---------------------------------------- |
+| `haddii`        | If statement      | `if`               | `haddii (x > 10) { qor("Weyn") }`        |
+| `haddii_kale`   | Else if statement | `else if`          | `haddii_kale (x == 10) { qor("Dhexe") }` |
+| `haddii_kalena` | Else statement    | `else`             | `haddii_kalena { qor("Yar") }`           |
 
 ## Loop Keywords
 
-| Keyword  | Meaning             | English Equivalent | Example                                |
-| -------- | ------------------- | ------------------ | -------------------------------------- |
-| `kuCeli` | For loop            | `for`              | `kuCeli i min 1 ilaa 5 { qor(i) }`     |
-| `intaAy` | While loop          | `while`            | `intaAy (x < 5) { qor(x); x = x + 1 }` |
-| `jooji`  | Break statement     | `break`            | `haddii (x == 3) { jooji }`            |
-| `siiWad` | Continue statement  | `continue`         | `haddii (x == 3) { siiWad }`           |
-| `min`    | From (in for loops) | `from`             | `kuCeli i min 1 ilaa 5 { qor(i) }`     |
-| `ilaa`   | To (in for loops)   | `to`               | `kuCeli i min 1 ilaa 5 { qor(i) }`     |
+| Keyword   | Meaning             | English Equivalent | Example                                 |
+| --------- | ------------------- | ------------------ | --------------------------------------- |
+| `ku_celi` | For loop            | `for`              | `ku_celi i min 1 ilaa 5 { qor(i) }`     |
+| `inta_ay` | While loop          | `while`            | `inta_ay (x < 5) { qor(x); x = x + 1 }` |
+| `jooji`   | Break statement     | `break`            | `haddii (x == 3) { jooji }`             |
+| `sii_wad` | Continue statement  | `continue`         | `haddii (x == 3) { sii_wad }`           |
+| `min`     | From (in for loops) | `from`             | `ku_celi i min 1 ilaa 5 { qor(i) }`     |
+| `ilaa`    | To (in for loops)   | `to`               | `ku_celi i min 1 ilaa 5 { qor(i) }`     |
 
 ## Function Keywords
 
@@ -50,18 +49,18 @@ This document provides a reference for all keywords in the Soplang programming l
 
 ## Object-Oriented Programming Keywords
 
-| Keyword  | Meaning                       | English Equivalent | Example                                         |
-| -------- | ----------------------------- | ------------------ | ----------------------------------------------- |
-| `fasal`  | Class declaration             | `class`            | `fasal Qof { /* properties and methods */ }`    |
-| `this`   | Reference to current instance | `this`             | `this.magac = magac`                            |
-| `dhaxal` | Inheritance                   | `extends`          | `fasal Ardayga dhaxal Qof { /* class body */ }` |
+| Keyword     | Meaning                       | English Equivalent | Example                                              |
+| ----------- | ----------------------------- | ------------------ | ---------------------------------------------------- |
+| `fasalka`   | Class declaration             | `class`            | `fasalka Qof { /* properties and methods */ }`       |
+| `nafta`     | Reference to current instance | `this`             | `nafta.magac = magac`                                |
+| `ka_dhaxal` | Inheritance                   | `extends`          | `fasalka Ardayga ka_dhaxal Qof { /* class body */ }` |
+| `cusub`     | New object instantiation      | `new`              | `door ardayga = cusub Ardayga()`                     |
 
 ## Module Keywords
 
-| Keyword    | Meaning          | English Equivalent | Example                                         |
-| ---------- | ---------------- | ------------------ | ----------------------------------------------- |
-| `keeno`    | Import statement | `import`           | `keeno "math_lib.so"`                           |
-| `siidaayo` | Export statement | `export`           | `siidaayo howl isuGee(a, b) { soo_celi a + b }` |
+| Keyword   | Meaning          | English Equivalent | Example                 |
+| --------- | ---------------- | ------------------ | ----------------------- |
+| `ka_keen` | Import statement | `import`           | `ka_keen "math_lib.so"` |
 
 ## Operators
 
@@ -84,15 +83,14 @@ This document provides a reference for all keywords in the Soplang programming l
 
 ## Built-in Functions
 
-| Function | Meaning                   | English Equivalent | Example                                  |
-| -------- | ------------------------- | ------------------ | ---------------------------------------- |
-| `qor`    | Print to console          | `print`            | `qor("Salaan, Adduunka!")`               |
-| `akhri`  | Read input from user      | `input`            | `door magac = akhri("Magacaaga geli: ")` |
-| `nuuc`   | Get type of variable      | `typeof`           | `qor(nuuc(magac))`                       |
-| `dherer` | Get length of string/list | `len`/`length`     | `qor(dherer(magacayga))`                 |
-| `tiro`   | Convert to number         | `int`/`float`      | `door n = tiro("5")`                     |
-| `qoraal` | Convert to string         | `str`              | `door s = qoraal(25)`                    |
-| `boole`  | Convert to boolean        | `bool`             | `door b = boole(1)`                      |
+| Function    | Meaning              | English Equivalent | Example                                  |
+| ----------- | -------------------- | ------------------ | ---------------------------------------- |
+| `qor`       | Print to console     | `print`            | `qor("Salaan, Adduunka!")`               |
+| `akhri`     | Read input from user | `input`            | `door magac = akhri("Magacaaga geli: ")` |
+| `nuuc`      | Get type of variable | `typeof`           | `qor(nuuc(magac))`                       |
+| `tiro`      | Convert to number    | `int`/`float`      | `door n = tiro("5")`                     |
+| `qoraal`    | Convert to string    | `str`              | `door s = qoraal(25)`                    |
+| `labadaran` | Convert to boolean   | `bool`             | `door b = labadaran(1)`                  |
 
 ## Special Syntax
 
