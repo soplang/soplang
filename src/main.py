@@ -37,6 +37,10 @@ def run_soplang_file(filename):
         with open(filename, 'r') as file:
             code = file.read()
 
+        # Ensure code ends with a newline to avoid parsing issues
+        if not code.endswith('\n'):
+            code += '\n'
+
         # 1) Tokenize the source code
         lexer = Lexer(code)
         tokens = lexer.tokenize()
