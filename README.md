@@ -23,9 +23,30 @@ Soplang is designed with the following goals:
 ## **Installation**
 
 ```bash
-git clone https://github.com/yourusername/soplang.git
+git clone https://github.com/sharafdin/soplang.git
 cd soplang
 ```
+
+## **Docker Setup**
+
+Soplang can be run in a Docker container for a consistent development environment:
+
+```bash
+# Build and start Docker container
+docker-compose build
+docker-compose up -d
+
+# Run the shell inside the container
+docker-compose exec soplang python main.py
+
+# Run a Soplang file inside the container
+docker-compose exec soplang python main.py examples/hello_world.so
+
+# Stop the container when done
+docker-compose down
+```
+
+For more details, see the [Contributing Guide](docs/CONTRIBUTING.md).
 
 ## **Usage**
 
@@ -33,6 +54,12 @@ To run a Soplang program:
 
 ```bash
 python main.py examples/01_basics.so
+```
+
+To start the interactive shell:
+
+```bash
+python main.py
 ```
 
 ## **Examples**
@@ -110,34 +137,44 @@ qor(person.name)  // Prints: Sharafdin
 
 ## **Documentation**
 
-For a complete language reference, see the following documentation:
+For a complete language reference, see the documentation in the `docs` folder:
 
-- [Language Grammar](grammar.ebnf) - Formal language specification
-- [Keywords Reference](keywords.md) - Complete list of keywords and their meanings
+- [Documentation Home](docs/index.md) - Start here for all documentation
+- [Language Reference](docs/language/keywords.md) - Complete list of keywords and their meanings
+- [Grammar Specification](docs/language/grammar.md) - Formal language specification
 - [Examples](examples/) - Example programs to learn from
+- [Contributing Guide](docs/CONTRIBUTING.md) - How to contribute to Soplang
 
 ## **Project Structure**
 
 ```
 soplang/
-│── src/                 # Source code
-│   │── lexer.py         # Tokenizer
-│   │── parser.py        # AST Parser
-│   │── interpreter.py   # Interpreter
-│   │── builtins.py      # Built-in methods
-│   │── errors.py        # Custom Somali error messages
-│   │── tokens.py        # Token definitions
-│   │── ast.py           # AST Nodes
-│── examples/            # Example programs
-│── tests/               # Unit tests
-│── grammar.ebnf         # Formal language specification
-│── keywords.md          # Keywords reference
-│── README.md            # This file
+│── src/                    # Source code
+│   │── lexer.py            # Tokenizer
+│   │── parser.py           # AST Parser
+│   │── interpreter.py      # Interpreter
+│   │── builtins.py         # Built-in methods
+│   │── errors.py           # Custom Somali error messages
+│   │── tokens.py           # Token definitions
+│   │── ast.py              # AST Nodes
+│   └── shell.py            # Interactive shell
+│── examples/               # Example programs
+│── tests/                  # Unit tests
+│── docs/                   # Documentation
+│   │── index.md            # Documentation home
+│   │── CONTRIBUTING.md     # Contributing guide
+│   │── language/           # Language reference
+│   │── build/              # Build documentation
+│   │── testing/            # Testing documentation
+│   └── examples/           # Example documentation
+│── main.py                 # Main entry point
+│── soplang_shell.sh        # Shell launcher script
+└── README.md               # This file
 ```
 
 ## **Contributing**
 
-Contributions are welcome! Whether it's adding new features, fixing bugs, or improving documentation.
+Contributions are welcome! Whether it's adding new features, fixing bugs, or improving documentation. See [Contributing Guide](docs/CONTRIBUTING.md) for details.
 
 ## **License**
 
@@ -147,6 +184,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 - Inspired by the Somali language and culture
 - Thanks to all contributors and supporters
+- Website: [https://www.soplang.org/](https://www.soplang.org/)
 
 ---
 
