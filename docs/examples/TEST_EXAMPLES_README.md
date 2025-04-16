@@ -87,7 +87,7 @@ python main.py examples/01_basic_output.so
 Or run all tests in sequence using the provided script:
 
 ```bash
-./run_all_tests.sh
+./scripts/test/run_all_tests.sh
 ```
 
 ## Notes on Test Examples

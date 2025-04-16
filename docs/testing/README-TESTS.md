@@ -43,19 +43,19 @@ This document serves as an index to all testing-related documentation for the So
 ### Compare performance
 
 ```bash
-./compare_performance.sh examples/hello_world.so 15
+./scripts/benchmark/compare_performance.sh examples/hello_world.so 15
 ```
 
 ### Run all examples
 
 ```bash
-./run_examples.sh
+./scripts/test/run_examples.sh
 ```
 
 ### Run all tests
 
 ```bash
-./run_all_tests.sh
+./scripts/test/run_all_tests.sh
 ```
 
 ## Test Results Summary

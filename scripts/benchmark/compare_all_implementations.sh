@@ -37,7 +37,7 @@ fi
 
 if [ ! -f "./csrc/bin/main.out" ]; then
     echo "Compiled C implementation not found!"
-    echo "Run ./compile_c_version.sh first"
+    echo "Run ./scripts/build/compile_c_version.sh first"
     exit 1
 fi
 
