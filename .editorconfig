@@ -1,0 +1,26 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+[*.{json,yml,yaml,md,toml}]
+indent_size = 2
+
+[*.{sh,bash}]
+indent_size = 2
+shell_variant = bash
+binary_next_line = true
+switch_case_indent = true
+space_redirects = true
+
+[Makefile]
+indent_style = tab
+
+[*.{so,sop}]
+# Soplang files
+indent_size = 2

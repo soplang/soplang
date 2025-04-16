@@ -1,0 +1,21 @@
+# Include all main dependencies
+-r requirements.txt
+
+# Testing
+pytest>=7.0.0
+pytest-cov>=4.0.0
+
+# Linting and Formatting
+flake8>=6.0.0
+black>=23.0.0
+pylint>=2.17.0
+mypy>=1.3.0
+
+# Documentation
+sphinx>=7.0.0
+sphinx_rtd_theme>=1.2.0
+
+# Build tools
+setuptools>=68.0.0
+wheel>=0.40.0
+build>=0.10.0
