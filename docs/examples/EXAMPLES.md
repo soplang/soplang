@@ -133,7 +133,7 @@ Demonstrates object operations and features.
 You can run all examples in sequence using:
 
 ```bash
-./run_examples.sh
+./scripts/test/run_examples.sh
 ```
 
 ## Performance Testing
@@ -141,7 +141,7 @@ You can run all examples in sequence using:
 To compare the performance of different implementations on each example:
 
 ```bash
-./compare_performance.sh examples/01_basics.so 15
+./scripts/benchmark/compare_performance.sh examples/01_basics.so 15
 ```
 
 This will run the specified example 15 times with both Python and C implementations and display timing results. 

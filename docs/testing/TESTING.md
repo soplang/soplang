@@ -32,7 +32,7 @@ To run a Soplang program using the C implementation:
 To run all available example programs:
 
 ```bash
-./run_examples.sh
+./scripts/test/run_examples.sh
 ```
 
 ### Running All Tests
@@ -40,7 +40,7 @@ To run all available example programs:
 To run all automated tests:
 
 ```bash
-./run_all_tests.sh
+./scripts/test/run_all_tests.sh
 ```
 
 ## Example Programs
@@ -90,7 +90,7 @@ To run a specific example:
 To compare the performance of Python and C implementations:
 
 ```bash
-./compare_performance.sh examples/hello_world.so 15
+./scripts/benchmark/compare_performance.sh examples/hello_world.so 15
 ```
 
 This will run the specified program 15 times with each implementation and display timing results.
@@ -100,7 +100,7 @@ This will run the specified program 15 times with each implementation and displa
 For more detailed benchmarking with multiple runs and iterations:
 
 ```bash
-./benchmark.sh examples/hello_world.so 5 10
+./scripts/benchmark/benchmark.sh examples/hello_world.so 5 10
 ```
 
 This runs the program 5 times, with 10 iterations per run for both Python and C implementations.
@@ -146,7 +146,7 @@ Useful for diagnosing issues or understanding the internal working of each imple
 If you have a development environment with a working GCC compiler, you can compile the C implementation:
 
 ```bash
-./compile_c_version.sh
+./scripts/build/compile_c_version.sh
 ```
 
 This script will:
