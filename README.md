@@ -56,6 +56,10 @@ qor(salaam(magac))        // Prints: Salaan, Sharafdin!
 
 Contributions are welcome! See our [Contributing Guide](docs/CONTRIBUTING.md) for details on how to get started.
 
+## Code of Conduct
+
+We are committed to providing a welcoming and inclusive experience for everyone. Please read our [Code of Conduct](CODE_OF_CONDUCT.md) to understand the community standards we uphold.
+
 ## License
 
 This project is licensed under the [MIT License](https://opensource.org/licenses/MIT) - see the [LICENSE](LICENSE) file for details.
