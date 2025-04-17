@@ -4,10 +4,13 @@
 # Main entry point for both shell and file execution
 # ======================================================
 
-from src.shell import SoplangShell
+from src.runtime.shell import SoplangShell
 import sys
 import argparse
 import os
+from src.core.lexer import Lexer
+from src.core.parser import Parser
+from src.runtime.interpreter import Interpreter
 
 
 def main():

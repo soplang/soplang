@@ -1,4 +1,4 @@
-from src.errors import TypeError, ValueError
+from src.utils.errors import TypeError, ValueError
 
 
 class SoplangBuiltins:
