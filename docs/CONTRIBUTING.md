@@ -30,10 +30,10 @@ Using Docker provides a consistent development environment for all contributors 
    ```bash
    # Run the shell
    docker-compose exec soplang python main.py
-   
+
    # Run a Soplang file
    docker-compose exec soplang python main.py examples/hello_world.so
-   
+
    # Run tests
    docker-compose exec soplang python -m unittest discover tests
    ```
@@ -83,11 +83,11 @@ If you prefer working on your local machine:
   - `errors.py` - Error handling and messages
   - `builtins.py` - Built-in functions
   - `shell.py` - Interactive shell implementation
-  
+
 - `examples/` - Example Soplang programs
-  
+
 - `tests/` - Unit and integration tests
-  
+
 - `docs/` - Documentation
   - `language/` - Language reference documentation
   - `build/` - Build and compilation documentation
@@ -126,6 +126,35 @@ If you prefer working on your local machine:
 - Maintain consistent error messages in Somali language
 - Add appropriate tests for new features and bug fixes
 
+### Pre-commit Hooks
+
+We use pre-commit hooks to ensure code quality and consistency. To set up pre-commit in your development environment:
+
+1. **Install pre-commit**:
+   ```bash
+   pip install pre-commit
+   ```
+
+   Note: This is already included if you installed `requirements-dev.txt`.
+
+2. **Install the git hooks**:
+   ```bash
+   pre-commit install
+   ```
+
+3. **Run the hooks manually** (optional):
+   ```bash
+   pre-commit run --all-files
+   ```
+
+The pre-commit configuration includes:
+- Black for code formatting
+- Flake8 for linting
+- isort for import sorting
+- Various file checks (trailing whitespace, file endings, etc.)
+
+Pre-commit will run automatically on `git commit`, but you can also run it manually as shown above.
+
 ## Testing
 
 - Write unit tests for all new functionality
@@ -154,4 +183,4 @@ python -m unittest discover tests
 
 ## Code of Conduct
 
-Please be respectful and inclusive in your interactions with other contributors. We aim to foster an open and welcoming community. 
+Please be respectful and inclusive in your interactions with other contributors. We aim to foster an open and welcoming community.

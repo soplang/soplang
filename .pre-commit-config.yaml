@@ -1,0 +1,47 @@
+---
+# pre-commit configuration for Soplang - configured for 2025
+# See https://pre-commit.com for more information
+repos:
+  # Standard pre-commit hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0 # Version likely stable in 2025
+    hooks:
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+      - id: check-json
+      - id: detect-private-key
+
+  # Black - Python code formatter
+  - repo: https://github.com/psf/black
+    rev: 24.3.0 # Version likely stable in 2025
+    hooks:
+      - id: black
+        language_version: python3
+        args: [--line-length=88]
+
+  # isort - Import sorter
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2 # Version likely stable in 2025
+    hooks:
+      - id: isort
+        args: ["--profile", "black", "--filter-files"]
+
+  # flake8 - Python linter
+  - repo: https://github.com/pycqa/flake8
+    rev: 7.0.0 # Version likely stable in 2025
+    hooks:
+      - id: flake8
+        additional_dependencies:
+          - flake8-docstrings==1.7.0
+          - flake8-bugbear==24.12.12
+        args:
+          - --max-line-length=88
+          - --extend-ignore=E203
+          - --per-file-ignores=__init__.py:F401
+
+# Configuration for specific hooks
+default_language_version:
+  python: python3
