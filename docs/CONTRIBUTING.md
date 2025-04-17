@@ -72,28 +72,6 @@ If you prefer working on your local machine:
    pip install -r requirements-dev.txt  # If available
    ```
 
-## Project Structure
-
-- `src/` - Core implementation files
-  - `lexer.py` - Tokenizer for Soplang code
-  - `parser.py` - Parser that builds an AST
-  - `interpreter.py` - Interpreter that executes the AST
-  - `ast.py` - Abstract Syntax Tree definitions
-  - `tokens.py` - Token type definitions
-  - `errors.py` - Error handling and messages
-  - `builtins.py` - Built-in functions
-  - `shell.py` - Interactive shell implementation
-
-- `examples/` - Example Soplang programs
-
-- `tests/` - Unit and integration tests
-
-- `docs/` - Documentation
-  - `language/` - Language reference documentation
-  - `build/` - Build and compilation documentation
-  - `testing/` - Testing documentation
-  - `examples/` - Example documentation
-
 ## Development Workflow
 
 1. **Choose an issue or feature** to work on, or create a new issue describing the problem or enhancement.
@@ -183,4 +161,4 @@ python -m unittest discover tests
 
 ## Code of Conduct
 
-Please be respectful and inclusive in your interactions with other contributors. We aim to foster an open and welcoming community.
+Please be respectful and inclusive in your interactions with other contributors. We aim to foster an open and welcoming community. For detailed guidelines, please read our [Code of Conduct](../CODE_OF_CONDUCT.md).
