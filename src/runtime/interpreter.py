@@ -1,8 +1,8 @@
 import os
-from src.ast import ASTNode, NodeType
-from src.tokens import TokenType
-from src.errors import RuntimeError, TypeError, BreakSignal, ContinueSignal, ReturnSignal, ImportError
-from src.builtins import get_builtin_functions, get_list_methods, get_object_methods
+from src.core.ast import ASTNode, NodeType
+from src.core.tokens import TokenType
+from src.utils.errors import RuntimeError, TypeError, BreakSignal, ContinueSignal, ReturnSignal, ImportError
+from src.stdlib.builtins import get_builtin_functions, get_list_methods, get_object_methods
 
 
 class Interpreter:
@@ -366,8 +366,8 @@ class Interpreter:
                 code = f.read()
 
             # Import the modules only when needed
-            from src.lexer import Lexer
-            from src.parser import Parser
+            from src.core.lexer import Lexer
+            from src.core.parser import Parser
 
             lexer = Lexer(code)
             tokens = lexer.tokenize()

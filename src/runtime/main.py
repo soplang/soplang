@@ -8,9 +8,9 @@ This module contains the core functions for running Soplang code:
 - Main entry point for direct file execution
 """
 
-from src.lexer import Lexer
-from src.parser import Parser
-from src.interpreter import Interpreter
+from src.core.lexer import Lexer
+from src.core.parser import Parser
+from src.runtime.interpreter import Interpreter
 import os
 import sys
 

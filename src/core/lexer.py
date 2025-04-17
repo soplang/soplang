@@ -1,6 +1,6 @@
 import re
-from src.tokens import TokenType
-from src.errors import LexerError
+from src.core.tokens import TokenType
+from src.utils.errors import LexerError
 
 
 class Token:

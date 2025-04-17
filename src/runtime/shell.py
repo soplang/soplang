@@ -12,12 +12,16 @@ import traceback
 import re
 import argparse
 from pathlib import Path
+import cmd
+import platform
+import glob
+from colorama import Fore, Style, init
 
-from src.lexer import Lexer, Token
-from src.parser import Parser
-from src.interpreter import Interpreter
-from src.errors import SoplangError
-from src.tokens import TokenType
+from src.core.lexer import Lexer, Token
+from src.core.parser import Parser
+from src.runtime.interpreter import Interpreter
+from src.utils.errors import LexerError, ParserError, RuntimeError, ImportError, SoplangError
+from src.core.tokens import TokenType
 
 
 class SoplangShell:
@@ -476,8 +480,8 @@ class SoplangShell:
             return
 
         try:
-            # Use the run_soplang_file function from src/main.py
-            from src.main import run_soplang_file
+            # Use the run_soplang_file function from src/runtime/main.py
+            from src.runtime.main import run_soplang_file
 
             print(f"\n\033[1mRunning: {filename}\033[0m")
             print("=" * 40)
