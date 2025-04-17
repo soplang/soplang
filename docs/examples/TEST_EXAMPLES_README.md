@@ -16,16 +16,16 @@ This directory contains various test examples for the Soplang programming langua
 
 3. **03_conditionals.so** - Tests conditional statements.
    * Basic if statements (`haddii`)
-   * If-else statements (`haddii`, `haddiiKale`)
-   * If-elseif-else statements (`haddii`, `haddiiKale`, `haddiiKalena`)
+   * If-else statements (`haddii`, `haddii_kale`)
+   * If-elseif-else statements (`haddii`, `haddii_kale`, `haddii_kalena`)
    * Nested conditionals
 
 4. **04_loops.so** - Tests loop constructs.
-   * Basic for loops (`kuCeli`)
+   * Basic for loops (`ku_celi`)
    * Loops with break statements (`jooji`)
-   * Loops with continue statements (`siiWad`)
+   * Loops with continue statements (`sii_wad`)
    * Nested loops
-   * While loops simulation (`intaAy`)
+   * While loops simulation (`inta_ay`)
 
 5. **05_dynamic_typing.so** - Tests dynamic typing using the `door` keyword.
    * Variable initialization with different types
@@ -43,7 +43,7 @@ This directory contains various test examples for the Soplang programming langua
 7. **07_functions.so** - Tests function definitions and calls.
    * Functions with no parameters
    * Functions with parameters
-   * Functions with return values (`sooCeli`)
+   * Functions with return values (`soo_celi`)
    * Conditional returns
    * Nested function calls
 
@@ -95,4 +95,4 @@ Or run all tests in sequence using the provided script:
 - Some features like lists and objects currently use placeholders until those features are fully implemented.
 - Error handling examples are commented out to prevent actual errors during testing. Uncomment specific sections to test error handling.
 - All error messages should be displayed in Somali.
-- The test examples can be expanded as more features are added to the language. 
+- The test examples can be expanded as more features are added to the language.

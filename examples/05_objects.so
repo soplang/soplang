@@ -1,141 +1,121 @@
-// Soplang Objects
-// This file demonstrates object operations in Soplang
+// Soplang Objects // This file demonstrates object operations in Soplang // ==  == = OBJECT CREATION ==  == = qor(" ==  == = OBJECT CREATION ==  == = ") // Dynamic object declaration
 
-// ===== OBJECT CREATION =====
-qor("===== OBJECT CREATION =====")
-
-// Dynamic object declaration
 door sharafdin_profile = {
-    "name": "Sharafdin",
-    "age": 28,
-    "isStudent": false,
-    "salary": 5000
+    "name": "Sharafdin", "age": 28, "isStudent": false, "salary": 5000
 }
+
 qor("Sharafdin's profile: " + qoraal(sharafdin_profile))
-
 // Static object declaration with shey type
+
 shey developer = {
-    "name": "Sharafdin",
-    "title": "Senior Developer",
-    "experience": 8,
-    "remote": true
+    "name": "Sharafdin", "title": "Senior Developer", "experience": 8, "remote": true
 }
+
 qor("Developer info: " + qoraal(developer))
-
 // Empty object
-door empty_object = {}
+
+door empty_object = { }
+
 qor("Empty object: " + qoraal(empty_object))
-
 // Object with mixed value types
-door university = {
-    "name": "Somalia National University",
-    "founded": 1954,
-    "departments": ["Computer Science", "Medicine", "Engineering"],
-    "active": true
-}
-qor("University info: " + qoraal(university))
 
+door university = {
+    "name": "Somalia National University", "founded": 1954, "departments": ["Computer Science", "Medicine", "Engineering"], "active": true
+}
+
+qor("University info: " + qoraal(university))
 // Nested object
+
 door address = {
-    "street": "Main Street",
-    "city": "Mogadishu",
-    "country": "Somalia",
-    "coordinates": {
-        "lat": 2.0469,
-        "lng": 45.3182
+    "street": "Main Street", "city": "Mogadishu", "country": "Somalia", "coordinates": {
+        "lat": 2.0469, "lng": 45.3182
     }
 }
+
 qor("Address: " + qoraal(address))
-qor("") // Empty line
+qor("")
+// Empty line // ==  == = ACCESSING PROPERTIES ==  == = qor("\n ==  == = ACCESSING PROPERTIES ==  == = ") // Dot notation
 
-// ===== ACCESSING PROPERTIES =====
-qor("\n===== ACCESSING PROPERTIES =====")
-
-// Dot notation
 qor("Sharafdin's name (dot notation): " + sharafdin_profile.name)
 qor("Sharafdin's age (dot notation): " + qoraal(sharafdin_profile.age))
-
 // Bracket notation
+
 qor("\nSharafdin's student status (bracket notation): " + qoraal(sharafdin_profile["isStudent"]))
 qor("Sharafdin's salary (bracket notation): " + qoraal(sharafdin_profile["salary"]))
-
 // Accessing nested properties
+
 qor("\nAddress country: " + address.country)
 qor("Address coordinates - latitude: " + qoraal(address.coordinates.lat))
 qor("Address coordinates - longitude: " + qoraal(address.coordinates.lng))
+// Accessing non - existent properties
 
-// Accessing non-existent properties
-qor("\nAccessing non-existent property:")
+qor("\nAccessing non - existent property:")
 door height = sharafdin_profile.height
 qor("Sharafdin's height (undefined): " + qoraal(height))
-qor("") // Empty line
+qor("")
+// Empty line // ==  == = MODIFYING OBJECTS ==  == = qor("\n ==  == = MODIFYING OBJECTS ==  == = ") // Changing property values
 
-// ===== MODIFYING OBJECTS =====
-qor("\n===== MODIFYING OBJECTS =====")
-
-// Changing property values
 sharafdin_profile.age = 29
 qor("After changing age: " + qoraal(sharafdin_profile))
-
 // Adding new properties
+
 sharafdin_profile.height = 175
 qor("\nAfter adding height: " + qoraal(sharafdin_profile))
-
 // Removing properties
+
 door removed = sharafdin_profile.remove("salary")
 qor("\nRemoved salary: " + qoraal(removed))
 qor("After removing salary: " + qoraal(sharafdin_profile))
-
 // Empty check
+
 qor("\nIs empty_object empty? " + qoraal(empty_object.isEmpty()))
 qor("Is sharafdin_profile empty? " + qoraal(sharafdin_profile.isEmpty()))
-qor("") // Empty line
-
-// ===== OBJECT WITH LISTS =====
-qor("\n===== OBJECT WITH LISTS =====")
+qor("")
+// Empty line // ==  == = OBJECT WITH LISTS ==  == = qor("\n ==  == = OBJECT WITH LISTS ==  == = ")
 
 door student = {
-    "name": "Sharafdin",
-    "grades": [92, 88, 95, 85, 90],
-    "courses": ["Math", "Physics", "Programming", "Database", "Networks"]
+    "name": "Sharafdin", "grades": [92, 88, 95, 85, 90], "courses": ["Math", "Physics", "Programming", "Database", "Networks"]
 }
 
 qor("Student: " + qoraal(student))
 qor("\nStudent's grades: " + qoraal(student.grades))
 qor("First grade: " + qoraal(student.grades[0]))
 qor("Last course: " + student.courses[student.courses.length() - 1])
-
 // Adding to a list in an object
+
 student.grades.push(97)
 qor("\nAfter adding a new grade: " + qoraal(student.grades))
-
 // Calculating average grade
+
 door total = 0
 ku_celi i min 0 ilaa student.grades.length() - 1 {
     total = total + student.grades[i]
 }
+
 door average = total / student.grades.length()
 qor("Average grade: " + qoraal(average))
-qor("") // Empty line
-
-// ===== OBJECT WITH METHODS =====
-qor("\n===== OBJECT WITH METHODS =====")
+qor("")
+// Empty line // ==  == = OBJECT WITH METHODS ==  == = qor("\n ==  == = OBJECT WITH METHODS ==  == = ")
 
 door calculator = {
     "add": howl(a, b) {
-        sooCeli a + b
-    },
-    "subtract": howl(a, b) {
-        sooCeli a - b
-    },
-    "multiply": howl(a, b) {
-        sooCeli a * b
-    },
-    "divide": howl(a, b) {
+        soo_celi a + b
+    }
+
+    , "subtract": howl(a, b) {
+        soo_celi a - b
+    }
+
+    , "multiply": howl(a, b) {
+        soo_celi a * b
+    }
+
+    , "divide": howl(a, b) {
         haddii (b == 0) {
-            sooCeli "Cannot divide by zero"
+            soo_celi "Cannot divide by zero"
         }
-        sooCeli a / b
+
+        soo_celi a / b
     }
 }
 
@@ -145,39 +125,32 @@ qor("Subtraction (10 - 4): " + qoraal(calculator.subtract(10, 4)))
 qor("Multiplication (6 * 7): " + qoraal(calculator.multiply(6, 7)))
 qor("Division (20 / 4): " + qoraal(calculator.divide(20, 4)))
 qor("Division by zero: " + calculator.divide(10, 0))
-qor("") // Empty line
-
-// ===== ADVANCED OBJECT WITH METHODS =====
-qor("\n===== ADVANCED OBJECT WITH METHODS =====")
+qor("")
+// Empty line // ==  == = ADVANCED OBJECT WITH METHODS ==  == = qor("\n ==  == = ADVANCED OBJECT WITH METHODS ==  == = ")
 
 door person = {
-    "firstName": "Sharafdin",
-    "lastName": "Mohamed",
-    "age": 28,
-    "skills": ["Programming", "Teaching", "Writing"],
-    
-    "fullName": howl() {
-        sooCeli this.firstName + " " + this.lastName
-    },
-    
-    "isAdult": howl() {
-        sooCeli this.age >= 18
-    },
-    
-    "addSkill": howl(skill) {
+    "firstName": "Sharafdin", "lastName": "Mohamed", "age": 28, "skills": ["Programming", "Teaching", "Writing"], "fullName": howl() {
+        soo_celi this.firstName + " " + this.lastName
+    }
+
+    , "isAdult": howl() {
+        soo_celi this.age >= 18
+    }
+
+    , "addSkill": howl(skill) {
         this.skills.push(skill)
-        sooCeli this.skills
-    },
-    
-    "introduce": howl() {
+        soo_celi this.skills
+    }
+
+    , "introduce": howl() {
         door intro = "Hello, I'm " + this.fullName() + ". "
         intro = intro + "I am " + qoraal(this.age) + " years old. "
-        
+
         haddii (this.skills.length() > 0) {
             intro = intro + "My skills include: " + this.skills.join(", ") + "."
         }
-        
-        sooCeli intro
+
+        soo_celi intro
     }
 }
 
@@ -190,20 +163,17 @@ qor("Updated skills: " + qoraal(person.addSkill("Public Speaking")))
 
 qor("\nIntroduction:")
 qor(person.introduce())
-qor("") // Empty line
+qor("")
+// Empty line // ==  == = OBJECT TRAVERSAL ==  == = qor("\n ==  == = OBJECT TRAVERSAL ==  == = ") // Getting all keys
 
-// ===== OBJECT TRAVERSAL =====
-qor("\n===== OBJECT TRAVERSAL =====")
-
-// Getting all keys
 door profile_keys = sharafdin_profile.keys()
 qor("Sharafdin profile keys: " + qoraal(profile_keys))
-
 // Getting all values
+
 door profile_values = sharafdin_profile.values()
 qor("Sharafdin profile values: " + qoraal(profile_values))
-
 // Looping through keys
+
 qor("\nSharafdin profile details:")
 door keys = sharafdin_profile.keys()
 ku_celi i min 0 ilaa keys.length() - 1 {
@@ -211,23 +181,20 @@ ku_celi i min 0 ilaa keys.length() - 1 {
     door value = sharafdin_profile[key]
     qor(key + ": " + qoraal(value))
 }
-qor("") // Empty line
 
-// ===== TYPE ENFORCEMENT =====
-qor("\n===== TYPE ENFORCEMENT =====")
+qor("")
+// Empty line // ==  == = TYPE ENFORCEMENT ==  == = qor("\n ==  == = TYPE ENFORCEMENT ==  == = ") // Static object can only contain properties of specified types
 
-// Static object can only contain properties of specified types
 shey employee = {
-    "name": "Sharafdin",
-    "department": "Engineering",
-    "yearsOfService": 5,
-    "isManager": false
+    "name": "Sharafdin", "department": "Engineering", "yearsOfService": 5, "isManager": false
 }
-qor("Employee: " + qoraal(employee))
 
-// The following would cause a type error if uncommented
-// employee.yearsOfService = "Five" // Error: Type mismatch
+qor("Employee: " + qoraal(employee))
+// The following would cause a type error if uncommented // employee.yearsOfService = "Five" // Error: Type mismatch
+
 qor("A static object property must maintain its type")
 
-qor("") // Empty line
-qor("===== END OF OBJECTS EXAMPLE =====") 
+qor("")
+// Empty line
+
+qor(" ==  == = END OF OBJECTS EXAMPLE ==  == = ")

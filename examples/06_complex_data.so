@@ -87,7 +87,7 @@ door university = {
             ku_celi p min 0 ilaa faculty.professors.length() - 1 {
                 door professor = faculty.professors[p]
                 haddii (professor.name.includes(name)) {
-                    sooCeli {
+                    soo_celi {
                         "found": true,
                         "professor": professor,
                         "faculty": faculty.name
@@ -95,7 +95,7 @@ door university = {
                 }
             }
         }
-        sooCeli {
+        soo_celi {
             "found": false,
             "message": "Professor not found"
         }
@@ -111,7 +111,7 @@ door university = {
                 }
             }
         }
-        sooCeli totalCourses
+        soo_celi totalCourses
     }
 }
 
@@ -151,8 +151,8 @@ qor("Office: " + first_professor.contactInfo.office)
 qor("\nCourses taught by " + first_professor.name + ":")
 ku_celi i min 0 ilaa first_professor.courses.length() - 1 {
     door course = first_professor.courses[i]
-    qor((i + 1) + ". " + course.code + ": " + course.title + 
-        " (" + qoraal(course.credits) + " credits, " + 
+    qor((i + 1) + ". " + course.code + ": " + course.title +
+        " (" + qoraal(course.credits) + " credits, " +
         qoraal(course.students) + " students)")
 }
 
@@ -247,37 +247,37 @@ howl safeGetCourseInfo(university, facultyIndex, professorIndex, courseIndex) {
     isku_day {
         // Check if the faculty exists
         haddii (facultyIndex >= university.faculties.length()) {
-            sooCeli { "error": "Faculty index out of bounds" }
+            soo_celi { "error": "Faculty index out of bounds" }
         }
-        
+
         door faculty = university.faculties[facultyIndex]
-        
+
         // Check if the professor exists
         haddii (professorIndex >= faculty.professors.length()) {
-            sooCeli { "error": "Professor index out of bounds" }
+            soo_celi { "error": "Professor index out of bounds" }
         }
-        
+
         door professor = faculty.professors[professorIndex]
-        
+
         // Check if the professor has courses
         haddii (!professor.courses) {
-            sooCeli { "error": "Professor has no courses" }
+            soo_celi { "error": "Professor has no courses" }
         }
-        
+
         // Check if the course exists
         haddii (courseIndex >= professor.courses.length()) {
-            sooCeli { "error": "Course index out of bounds" }
+            soo_celi { "error": "Course index out of bounds" }
         }
-        
+
         door course = professor.courses[courseIndex]
-        sooCeli {
+        soo_celi {
             "success": true,
             "course": course,
             "professor": professor.name,
             "faculty": faculty.name
         }
     } qabo error {
-        sooCeli { "error": "Unexpected error: " + error }
+        soo_celi { "error": "Unexpected error: " + error }
     }
 }
 
@@ -302,4 +302,4 @@ haddii (course_info.success) {
 }
 
 qor("") // Empty line
-qor("===== END OF COMPLEX DATA EXAMPLE =====") 
+qor("===== END OF COMPLEX DATA EXAMPLE =====")
