@@ -1,0 +1,19 @@
+// Function with a loop test
+
+// Function that returns a computed value
+howl calculateAverage(numbers) {
+    door sum = 0
+    door count = numbers.length()
+
+    ku_celi i min 0 ilaa count - 1 {
+        sum = sum + numbers[i]
+    }
+
+    sooCeli sum / count
+}
+
+door grades = [85, 92, 78, 95, 88]
+door average = calculateAverage(grades)
+qor("Grades: " + qoraal(grades))
+qor("Average grade: " + qoraal(average))
+qor("")

@@ -24,6 +24,7 @@ class NodeType(Enum):
     LIST_LITERAL = "LIST_LITERAL"          # For list creation [1, 2, 3]
     OBJECT_LITERAL = "OBJECT_LITERAL"      # For object creation {a: 1, b: 2}
     PROPERTY_ACCESS = "PROPERTY_ACCESS"    # For object.property
+    METHOD_CALL = "METHOD_CALL"            # For object.method()
     INDEX_ACCESS = "INDEX_ACCESS"          # For list[index]
     # For explicit assignment (separate from declaration)
     ASSIGNMENT = "ASSIGNMENT"

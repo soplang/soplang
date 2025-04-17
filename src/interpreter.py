@@ -464,6 +464,32 @@ class Interpreter:
                     f"Property '{prop_name}' does not exist on object")
 
             return obj[prop_name]
+        if node.type == NodeType.METHOD_CALL:
+            # Evaluate the object expression (first child)
+            obj = self.evaluate(node.children[0])
+            method_name = node.value
+
+            # For built-in list methods
+            if isinstance(obj, list) and method_name in self.list_methods:
+                # Arguments start from the second child
+                args = [self.evaluate(arg) for arg in node.children[1:]]
+                return self.list_methods[method_name](obj, *args)
+
+            # For built-in object methods
+            elif isinstance(obj, dict) and method_name in self.object_methods:
+                # Arguments start from the second child
+                args = [self.evaluate(arg) for arg in node.children[1:]]
+                return self.object_methods[method_name](obj, *args)
+
+            # For user-defined object methods
+            elif isinstance(obj, dict) and method_name in obj:
+                if callable(obj[method_name]):
+                    # Arguments start from the second child
+                    args = [self.evaluate(arg) for arg in node.children[1:]]
+                    return obj[method_name](*args)
+
+            raise RuntimeError(
+                f"Method '{method_name}' does not exist on {type(obj).__name__}")
         if node.type == NodeType.INDEX_ACCESS:
             # Evaluate the array expression
             arr = self.evaluate(node.children[0])

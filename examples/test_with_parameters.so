@@ -1,0 +1,26 @@
+// Functions with parameters test
+
+// Function with one parameter
+howl greetPerson(name) {
+    qor("Hello, " + name + "!")
+}
+
+greetPerson("Sharafdin")
+qor("")
+
+// Function with multiple parameters
+howl fullName(first_name, last_name) {
+    qor("Full name: " + first_name + " " + last_name)
+}
+
+fullName("Sharafdin", "Yusuf")
+qor("")
+
+// Function that returns a value
+howl add(a, b) {
+    sooCeli a + b
+}
+
+door result = add(10, 15)
+qor("10 + 15 = " + qoraal(result))
+qor("")

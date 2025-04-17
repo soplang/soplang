@@ -62,9 +62,16 @@ class Parser:
         elif ttype == TokenType.FASALKA:
             return self.parse_class_definition()
         elif ttype == TokenType.IDENTIFIER:
+            # Check if this is a function call (identifier followed by parentheses)
+            if (self.current_token_index + 1 < len(self.tokens) and
+                    self.tokens[self.current_token_index + 1].type == TokenType.LEFT_PAREN):
+                return self.parse_function_call()
+
             # Check if this is an object method call (obj.method(...))
             # or a variable assignment (obj.prop = value) or (obj[idx] = value)
-            if self.tokens[self.current_token_index + 1].type == TokenType.DOT or self.tokens[self.current_token_index + 1].type == TokenType.LEFT_BRACKET:
+            if (self.current_token_index + 1 < len(self.tokens) and
+                (self.tokens[self.current_token_index + 1].type == TokenType.DOT or
+                 self.tokens[self.current_token_index + 1].type == TokenType.LEFT_BRACKET)):
                 token_value = self.current_token.value
                 self.advance()  # consume the identifier
 
@@ -128,7 +135,8 @@ class Parser:
                     f"Expected '(' or '=' after property access", self.current_token)
 
             # Handle regular variable assignment (var = value)
-            elif self.tokens[self.current_token_index + 1].type == TokenType.EQUAL:
+            elif (self.current_token_index + 1 < len(self.tokens) and
+                  self.tokens[self.current_token_index + 1].type == TokenType.EQUAL):
                 var_name = self.current_token.value
                 self.advance()  # consume identifier
                 self.advance()  # consume equals
@@ -215,7 +223,14 @@ class Parser:
             func_name = self.current_token.type.value
 
         self.advance()
-        return self.parse_function_call_helper(func_name)
+        func_call = self.parse_function_call_helper(func_name)
+
+        # If this is a function call as a statement (not part of an expression),
+        # consume the semicolon if present, but don't require it
+        if self.current_token.type == TokenType.SEMICOLON:
+            self.advance()  # consume semicolon
+
+        return func_call
 
     # -----------------------------
     #  Import statement: ka_keen "file.sp"
@@ -453,6 +468,21 @@ class Parser:
         property_name = self.current_token.value
         self.advance()
 
+        # Special handling for method calls
+        if self.current_token.type == TokenType.LEFT_PAREN:
+            # This is a method call like object.method()
+            args = []
+            self.advance()  # consume left paren
+
+            if self.current_token.type != TokenType.RIGHT_PAREN:
+                args.append(self.parse_expression())
+                while self.current_token.type == TokenType.COMMA:
+                    self.advance()
+                    args.append(self.parse_expression())
+
+            self.expect(TokenType.RIGHT_PAREN)
+            return ASTNode(NodeType.METHOD_CALL, value=property_name, children=[left] + args)
+
         return ASTNode(NodeType.PROPERTY_ACCESS, value=property_name, children=[left])
 
     # -----------------------------
@@ -468,42 +498,8 @@ class Parser:
     # -----------------------------
     #  Expression Parsing
     # -----------------------------
-    def parse_logical_expression(self):
-        left = self.parse_comparison_expression()
-
-        while self.current_token.type in (TokenType.AND, TokenType.OR):
-            op_token = self.current_token
-            self.advance()
-            right = self.parse_comparison_expression()
-            left = ASTNode(NodeType.BINARY_OPERATION,
-                           value=op_token.value, children=[left, right])
-
-        return left
-
-    def parse_comparison_expression(self):
-        left = self.parse_expression()
-
-        while self.current_token.type in (
-            TokenType.GREATER, TokenType.LESS,
-            TokenType.GREATER_EQUAL, TokenType.LESS_EQUAL,
-            TokenType.EQUAL, TokenType.NOT_EQUAL
-        ):
-            op_token = self.current_token
-            self.advance()
-
-            if op_token.type == TokenType.EQUAL and self.current_token.type == TokenType.EQUAL:
-                operator_value = "=="
-                self.advance()
-            else:
-                operator_value = op_token.value
-
-            right = self.parse_expression()
-            left = ASTNode(NodeType.BINARY_OPERATION,
-                           value=operator_value, children=[left, right])
-
-        return left
-
     def parse_expression(self):
+        """Parse an arithmetic expression"""
         left = self.parse_term()
 
         while self.current_token.type in (TokenType.PLUS, TokenType.MINUS):
@@ -590,7 +586,52 @@ class Parser:
                 args.append(self.parse_expression())
 
         self.expect(TokenType.RIGHT_PAREN)
-        return ASTNode(NodeType.FUNCTION_CALL, value=func_name, children=args)
+
+        # Create function call node
+        function_call = ASTNode(NodeType.FUNCTION_CALL, value=func_name, children=args)
+
+        # If this is a function call as a statement (not part of an expression),
+        # consume the semicolon if present, but don't require it
+        if self.current_token.type == TokenType.SEMICOLON:
+            self.advance()  # consume semicolon
+
+        return function_call
+
+    def parse_logical_expression(self):
+        """Parse a logical expression like 'a > 5 && b < 10'"""
+        left = self.parse_comparison_expression()
+
+        while self.current_token.type in (TokenType.AND, TokenType.OR):
+            op_token = self.current_token
+            self.advance()
+            right = self.parse_comparison_expression()
+            left = ASTNode(NodeType.BINARY_OPERATION,
+                           value=op_token.value, children=[left, right])
+
+        return left
+
+    def parse_comparison_expression(self):
+        left = self.parse_expression()
+
+        while self.current_token.type in (
+            TokenType.GREATER, TokenType.LESS,
+            TokenType.GREATER_EQUAL, TokenType.LESS_EQUAL,
+            TokenType.EQUAL, TokenType.NOT_EQUAL
+        ):
+            op_token = self.current_token
+            self.advance()
+
+            if op_token.type == TokenType.EQUAL and self.current_token.type == TokenType.EQUAL:
+                operator_value = "=="
+                self.advance()
+            else:
+                operator_value = op_token.value
+
+            right = self.parse_expression()
+            left = ASTNode(NodeType.BINARY_OPERATION,
+                           value=operator_value, children=[left, right])
+
+        return left
 
     def parse_return_statement(self):
         self.expect(TokenType.SOO_CELI)
