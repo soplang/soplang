@@ -635,7 +635,7 @@ class Parser:
 
     def parse_return_statement(self):
         self.expect(TokenType.SOO_CELI)
-        # If there is an expression after sooCeli, parse it
+        # If there is an expression after soo_celi, parse it
         if self.current_token.type != TokenType.SEMICOLON:
             expr = self.parse_expression()
             return ASTNode(NodeType.RETURN_STATEMENT, children=[expr])

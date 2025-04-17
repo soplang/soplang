@@ -1,6 +1,6 @@
 /*
  * Soplang Formal Grammar Specification in Extended Backus-Naur Form (EBNF)
- * 
+ *
  * Syntax conventions:
  * - | denotes alternatives
  * - [ ] denotes optional elements
@@ -56,7 +56,7 @@ FunctionCall ::= Identifier "(" [ArgumentList] ")"
 ArgumentList ::= Expression {"," Expression}
 
 // ===== CONTROL FLOW =====
-IfStatement ::= "haddii" "(" Expression ")" Block 
+IfStatement ::= "haddii" "(" Expression ")" Block
                {ElseIfClause}
                [ElseClause]
 
@@ -161,4 +161,4 @@ Comment ::= SingleLineComment | MultiLineComment
 
 SingleLineComment ::= "//" {Character} '\n'
 
-MultiLineComment ::= "/*" {Character} "*/" 
+MultiLineComment ::= "/*" {Character} "*/"

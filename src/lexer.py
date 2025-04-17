@@ -23,29 +23,20 @@ class Lexer:
             "door": TokenType.DOOR,
             "howl": TokenType.HOWL,
             "soo_celi": TokenType.SOO_CELI,
-            "sooCeli": TokenType.SOO_CELI,  # Camel case version
             "qor": TokenType.QOR,
             "akhri": TokenType.AKHRI,
             "haddii": TokenType.HADDII,
             "haddii_kale": TokenType.HADDII_KALE,
-            "haddiiKale": TokenType.HADDII_KALE,  # Camel case version
             "haddii_kalena": TokenType.HADDII_KALENA,
-            "haddiiKalena": TokenType.HADDII_KALENA,  # Camel case version
             "ku_celi": TokenType.KU_CELI,
-            "kuCeli": TokenType.KU_CELI,  # Camel case version
             "inta_ay": TokenType.INTA_AY,
-            "intaAy": TokenType.INTA_AY,  # Camel case version
             "jooji": TokenType.JOOJI,
             "sii_wad": TokenType.SII_WAD,
-            "siiWad": TokenType.SII_WAD,  # Camel case version
             "isku_day": TokenType.ISKU_DAY,
-            "iskuDay": TokenType.ISKU_DAY,  # Camel case version
             "qabo": TokenType.QABO,
             "ka_keen": TokenType.KA_KEEN,
-            "kaKeen": TokenType.KA_KEEN,  # Camel case version
             "fasalka": TokenType.FASALKA,
             "ka_dhaxal": TokenType.KA_DHAXAL,
-            "kaDhaxal": TokenType.KA_DHAXAL,  # Camel case version
             "cusub": TokenType.CUSUB,
             "nafta": TokenType.NAFTA,
 
