@@ -72,6 +72,42 @@ If you prefer working on your local machine:
    pip install -r requirements-dev.txt  # If available
    ```
 
+### Using the Makefile
+
+We provide a Makefile to simplify common development tasks. To use it, you need:
+
+#### Prerequisites
+
+- GNU Make (comes pre-installed on most Linux distributions and macOS)
+  - On Windows, you can install it via [Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/install), [Chocolatey](https://chocolatey.org/packages/make), or [MSYS2](https://www.msys2.org/)
+
+#### Common Commands
+
+```bash
+# Install all dependencies
+make install
+
+# Run tests
+make test
+
+# Format code
+make format
+
+# Run linting
+make lint
+
+# Run pre-commit hooks on all files
+make precommit
+
+# Build Docker container
+make docker-build
+
+# See all available commands
+make help
+```
+
+Use `make help` to see all available commands and their descriptions.
+
 ## Development Workflow
 
 1. **Choose an issue or feature** to work on, or create a new issue describing the problem or enhancement.
@@ -85,6 +121,8 @@ If you prefer working on your local machine:
 
 4. **Write or update tests** for your changes. Ensure all tests pass:
    ```bash
+   make test
+   # or the traditional way
    python -m unittest discover tests
    ```
 
@@ -111,6 +149,8 @@ We use pre-commit hooks to ensure code quality and consistency. To set up pre-co
 1. **Install pre-commit**:
    ```bash
    pip install pre-commit
+   # or using Make
+   make install-dev
    ```
 
    Note: This is already included if you installed `requirements-dev.txt`.
@@ -118,11 +158,15 @@ We use pre-commit hooks to ensure code quality and consistency. To set up pre-co
 2. **Install the git hooks**:
    ```bash
    pre-commit install
+   # or using Make
+   make install
    ```
 
 3. **Run the hooks manually** (optional):
    ```bash
    pre-commit run --all-files
+   # or using Make
+   make precommit
    ```
 
 The pre-commit configuration includes:
@@ -141,6 +185,8 @@ Pre-commit will run automatically on `git commit`, but you can also run it manua
 
 Run tests using:
 ```bash
+make test
+# or
 python -m unittest discover tests
 ```
 

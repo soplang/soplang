@@ -39,6 +39,10 @@ install:
 	$(PIP) install -r requirements-dev.txt
 	pre-commit install
 
+install-dev:
+	$(PIP) install -r requirements-dev.txt
+	pre-commit install
+
 # Testing target
 .PHONY: test
 test:

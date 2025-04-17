@@ -52,6 +52,27 @@ qor(salaam(magac))        // Prints: Salaan, Sharafdin!
 - [Examples](examples/)
 - [Contributing Guide](docs/CONTRIBUTING.md)
 
+## Development
+
+We provide a Makefile to simplify common development tasks:
+
+```bash
+# Setup your development environment
+make install
+
+# Run the interactive shell
+make shell
+
+# Run tests
+make test
+
+# Format code
+make format
+
+# See all commands
+make help
+```
+
 ## Contributing
 
 Contributions are welcome! See our [Contributing Guide](docs/CONTRIBUTING.md) for details on how to get started.
