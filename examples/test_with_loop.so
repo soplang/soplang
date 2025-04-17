@@ -1,6 +1,5 @@
-// Function with a loop test
+// Function with a loop test // Function that returns a computed value
 
-// Function that returns a computed value
 howl calculateAverage(numbers) {
     door sum = 0
     door count = numbers.length()
@@ -9,7 +8,7 @@ howl calculateAverage(numbers) {
         sum = sum + numbers[i]
     }
 
-    sooCeli sum / count
+    soo_celi sum / count
 }
 
 door grades = [85, 92, 78, 95, 88]
