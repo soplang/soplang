@@ -3677,7 +3677,7 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
 /* #### Code section: module_code ### */
 
 /* "src/parser.py":7
- * 
+ *
  * class Parser:
  *     def __init__(self, tokens):             # <<<<<<<<<<<<<<
  *         self.tokens = tokens
@@ -3685,7 +3685,7 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_3src_6parser_6Parser_1__init__(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_6parser_6Parser_1__init__(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -3693,7 +3693,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
 #endif
 ); /*proto*/
 static PyMethodDef __pyx_mdef_3src_6parser_6Parser_1__init__ = {"__init__", (PyCFunction)(void*)(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_3src_6parser_6Parser_1__init__, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_3src_6parser_6Parser_1__init__(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_6parser_6Parser_1__init__(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -3820,7 +3820,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser___init__(CYTHON_UNUSED PyObject *
  *         self.tokens = tokens
  *         self.current_token_index = 0             # <<<<<<<<<<<<<<
  *         self.current_token = self.tokens[self.current_token_index]
- * 
+ *
  */
   if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_current_token_index, __pyx_int_0) < 0) __PYX_ERR(0, 9, __pyx_L1_error)
 
@@ -3828,7 +3828,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser___init__(CYTHON_UNUSED PyObject *
  *         self.tokens = tokens
  *         self.current_token_index = 0
  *         self.current_token = self.tokens[self.current_token_index]             # <<<<<<<<<<<<<<
- * 
+ *
  *     def advance(self):
  */
   __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_tokens); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 10, __pyx_L1_error)
@@ -3843,7 +3843,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser___init__(CYTHON_UNUSED PyObject *
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
   /* "src/parser.py":7
- * 
+ *
  * class Parser:
  *     def __init__(self, tokens):             # <<<<<<<<<<<<<<
  *         self.tokens = tokens
@@ -3867,14 +3867,14 @@ static PyObject *__pyx_pf_3src_6parser_6Parser___init__(CYTHON_UNUSED PyObject *
 
 /* "src/parser.py":12
  *         self.current_token = self.tokens[self.current_token_index]
- * 
+ *
  *     def advance(self):             # <<<<<<<<<<<<<<
  *         self.current_token_index += 1
  *         if self.current_token_index < len(self.tokens):
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_3src_6parser_6Parser_3advance(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_6parser_6Parser_3advance(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -3882,7 +3882,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
 #endif
 ); /*proto*/
 static PyMethodDef __pyx_mdef_3src_6parser_6Parser_3advance = {"advance", (PyCFunction)(void*)(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_3src_6parser_6Parser_3advance, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_3src_6parser_6Parser_3advance(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_6parser_6Parser_3advance(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -3983,7 +3983,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_2advance(CYTHON_UNUSED PyObject *
   __Pyx_RefNannySetupContext("advance", 1);
 
   /* "src/parser.py":13
- * 
+ *
  *     def advance(self):
  *         self.current_token_index += 1             # <<<<<<<<<<<<<<
  *         if self.current_token_index < len(self.tokens):
@@ -4002,7 +4002,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_2advance(CYTHON_UNUSED PyObject *
  *         self.current_token_index += 1
  *         if self.current_token_index < len(self.tokens):             # <<<<<<<<<<<<<<
  *             self.current_token = self.tokens[self.current_token_index]
- * 
+ *
  */
   __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_current_token_index); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 14, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
@@ -4023,7 +4023,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_2advance(CYTHON_UNUSED PyObject *
  *         self.current_token_index += 1
  *         if self.current_token_index < len(self.tokens):
  *             self.current_token = self.tokens[self.current_token_index]             # <<<<<<<<<<<<<<
- * 
+ *
  *     def expect(self, token_type):
  */
     __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_tokens); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 15, __pyx_L1_error)
@@ -4042,13 +4042,13 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_2advance(CYTHON_UNUSED PyObject *
  *         self.current_token_index += 1
  *         if self.current_token_index < len(self.tokens):             # <<<<<<<<<<<<<<
  *             self.current_token = self.tokens[self.current_token_index]
- * 
+ *
  */
   }
 
   /* "src/parser.py":12
  *         self.current_token = self.tokens[self.current_token_index]
- * 
+ *
  *     def advance(self):             # <<<<<<<<<<<<<<
  *         self.current_token_index += 1
  *         if self.current_token_index < len(self.tokens):
@@ -4071,14 +4071,14 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_2advance(CYTHON_UNUSED PyObject *
 
 /* "src/parser.py":17
  *             self.current_token = self.tokens[self.current_token_index]
- * 
+ *
  *     def expect(self, token_type):             # <<<<<<<<<<<<<<
  *         if self.current_token.type == token_type:
  *             token = self.current_token
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_3src_6parser_6Parser_5expect(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_6parser_6Parser_5expect(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -4086,7 +4086,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
 #endif
 ); /*proto*/
 static PyMethodDef __pyx_mdef_3src_6parser_6Parser_5expect = {"expect", (PyCFunction)(void*)(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_3src_6parser_6Parser_5expect, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_3src_6parser_6Parser_5expect(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_6parser_6Parser_5expect(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -4207,7 +4207,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_4expect(CYTHON_UNUSED PyObject *_
   __Pyx_RefNannySetupContext("expect", 1);
 
   /* "src/parser.py":18
- * 
+ *
  *     def expect(self, token_type):
  *         if self.current_token.type == token_type:             # <<<<<<<<<<<<<<
  *             token = self.current_token
@@ -4282,7 +4282,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_4expect(CYTHON_UNUSED PyObject *_
     goto __pyx_L0;
 
     /* "src/parser.py":18
- * 
+ *
  *     def expect(self, token_type):
  *         if self.current_token.type == token_type:             # <<<<<<<<<<<<<<
  *             token = self.current_token
@@ -4295,7 +4295,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_4expect(CYTHON_UNUSED PyObject *_
  *         else:
  *             raise ParserError(             # <<<<<<<<<<<<<<
  *                 f"Expected {token_type}, got {self.current_token.type}", self.current_token)
- * 
+ *
  */
   /*else*/ {
     __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_ParserError); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 23, __pyx_L1_error)
@@ -4305,7 +4305,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_4expect(CYTHON_UNUSED PyObject *_
  *         else:
  *             raise ParserError(
  *                 f"Expected {token_type}, got {self.current_token.type}", self.current_token)             # <<<<<<<<<<<<<<
- * 
+ *
  *     def parse(self):
  */
     __pyx_t_4 = PyTuple_New(4); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 24, __pyx_L1_error)
@@ -4376,7 +4376,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_4expect(CYTHON_UNUSED PyObject *_
 
   /* "src/parser.py":17
  *             self.current_token = self.tokens[self.current_token_index]
- * 
+ *
  *     def expect(self, token_type):             # <<<<<<<<<<<<<<
  *         if self.current_token.type == token_type:
  *             token = self.current_token
@@ -4400,14 +4400,14 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_4expect(CYTHON_UNUSED PyObject *_
 
 /* "src/parser.py":26
  *                 f"Expected {token_type}, got {self.current_token.type}", self.current_token)
- * 
+ *
  *     def parse(self):             # <<<<<<<<<<<<<<
  *         statements = []
  *         while self.current_token.type != TokenType.EOF:
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_3src_6parser_6Parser_7parse(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_6parser_6Parser_7parse(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -4415,7 +4415,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
 #endif
 ); /*proto*/
 static PyMethodDef __pyx_mdef_3src_6parser_6Parser_7parse = {"parse", (PyCFunction)(void*)(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_3src_6parser_6Parser_7parse, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_3src_6parser_6Parser_7parse(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_6parser_6Parser_7parse(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -4519,7 +4519,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_6parse(CYTHON_UNUSED PyObject *__
   __Pyx_RefNannySetupContext("parse", 1);
 
   /* "src/parser.py":27
- * 
+ *
  *     def parse(self):
  *         statements = []             # <<<<<<<<<<<<<<
  *         while self.current_token.type != TokenType.EOF:
@@ -4560,7 +4560,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_6parse(CYTHON_UNUSED PyObject *__
  *         while self.current_token.type != TokenType.EOF:
  *             statements.append(self.parse_statement())             # <<<<<<<<<<<<<<
  *         return ASTNode(NodeType.PROGRAM, children=statements)
- * 
+ *
  */
     __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_parse_statement); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 29, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
@@ -4594,7 +4594,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_6parse(CYTHON_UNUSED PyObject *__
  *         while self.current_token.type != TokenType.EOF:
  *             statements.append(self.parse_statement())
  *         return ASTNode(NodeType.PROGRAM, children=statements)             # <<<<<<<<<<<<<<
- * 
+ *
  *     def parse_statement(self):
  */
   __Pyx_XDECREF(__pyx_r);
@@ -4624,7 +4624,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_6parse(CYTHON_UNUSED PyObject *__
 
   /* "src/parser.py":26
  *                 f"Expected {token_type}, got {self.current_token.type}", self.current_token)
- * 
+ *
  *     def parse(self):             # <<<<<<<<<<<<<<
  *         statements = []
  *         while self.current_token.type != TokenType.EOF:
@@ -4647,14 +4647,14 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_6parse(CYTHON_UNUSED PyObject *__
 
 /* "src/parser.py":32
  *         return ASTNode(NodeType.PROGRAM, children=statements)
- * 
+ *
  *     def parse_statement(self):             # <<<<<<<<<<<<<<
  *         ttype = self.current_token.type
- * 
+ *
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_3src_6parser_6Parser_9parse_statement(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_6parser_6Parser_9parse_statement(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -4662,7 +4662,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
 #endif
 ); /*proto*/
 static PyMethodDef __pyx_mdef_3src_6parser_6Parser_9parse_statement = {"parse_statement", (PyCFunction)(void*)(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_3src_6parser_6Parser_9parse_statement, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_3src_6parser_6Parser_9parse_statement(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_6parser_6Parser_9parse_statement(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -4779,10 +4779,10 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
   __Pyx_RefNannySetupContext("parse_statement", 1);
 
   /* "src/parser.py":33
- * 
+ *
  *     def parse_statement(self):
  *         ttype = self.current_token.type             # <<<<<<<<<<<<<<
- * 
+ *
  *         # Handle dynamic typing (door)
  */
   __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_current_token); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 33, __pyx_L1_error)
@@ -4794,7 +4794,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
   __pyx_t_2 = 0;
 
   /* "src/parser.py":36
- * 
+ *
  *         # Handle dynamic typing (door)
  *         if ttype == TokenType.DOOR:             # <<<<<<<<<<<<<<
  *             return self.parse_variable_declaration(is_static=False)
@@ -4833,7 +4833,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
     goto __pyx_L0;
 
     /* "src/parser.py":36
- * 
+ *
  *         # Handle dynamic typing (door)
  *         if ttype == TokenType.DOOR:             # <<<<<<<<<<<<<<
  *             return self.parse_variable_declaration(is_static=False)
@@ -5747,7 +5747,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
  *             if self.tokens[self.current_token_index + 1].type == TokenType.DOT or self.tokens[self.current_token_index + 1].type == TokenType.LEFT_BRACKET:
  *                 token_value = self.current_token.value             # <<<<<<<<<<<<<<
  *                 self.advance()  # consume the identifier
- * 
+ *
  */
       __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_current_token); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 68, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_2);
@@ -5761,7 +5761,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
  *             if self.tokens[self.current_token_index + 1].type == TokenType.DOT or self.tokens[self.current_token_index + 1].type == TokenType.LEFT_BRACKET:
  *                 token_value = self.current_token.value
  *                 self.advance()  # consume the identifier             # <<<<<<<<<<<<<<
- * 
+ *
  *                 # Handle method call or property access
  */
       __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_advance); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 69, __pyx_L1_error)
@@ -5791,11 +5791,11 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
       /* "src/parser.py":72
- * 
+ *
  *                 # Handle method call or property access
  *                 if self.current_token.type == TokenType.DOT:             # <<<<<<<<<<<<<<
  *                     self.advance()  # consume the dot
- * 
+ *
  */
       __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_current_token); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 72, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
@@ -5818,7 +5818,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
  *                 # Handle method call or property access
  *                 if self.current_token.type == TokenType.DOT:
  *                     self.advance()  # consume the dot             # <<<<<<<<<<<<<<
- * 
+ *
  *                     # Get the property or method name
  */
         __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_advance); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 73, __pyx_L1_error)
@@ -5848,11 +5848,11 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
         __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
         /* "src/parser.py":76
- * 
+ *
  *                     # Get the property or method name
  *                     property_name = self.current_token.value             # <<<<<<<<<<<<<<
  *                     self.advance()  # consume property name
- * 
+ *
  */
         __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_current_token); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 76, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_1);
@@ -5866,7 +5866,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
  *                     # Get the property or method name
  *                     property_name = self.current_token.value
  *                     self.advance()  # consume property name             # <<<<<<<<<<<<<<
- * 
+ *
  *                     # Handle method call (obj.method(...))
  */
         __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_advance); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 77, __pyx_L1_error)
@@ -5896,7 +5896,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
         /* "src/parser.py":80
- * 
+ *
  *                     # Handle method call (obj.method(...))
  *                     if self.current_token.type == TokenType.LEFT_PAREN:             # <<<<<<<<<<<<<<
  *                         # Parse arguments
@@ -5924,7 +5924,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
  *                         # Parse arguments
  *                         args = []             # <<<<<<<<<<<<<<
  *                         self.advance()  # consume left paren
- * 
+ *
  */
           __pyx_t_4 = PyList_New(0); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 82, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_4);
@@ -5935,7 +5935,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
  *                         # Parse arguments
  *                         args = []
  *                         self.advance()  # consume left paren             # <<<<<<<<<<<<<<
- * 
+ *
  *                         if self.current_token.type != TokenType.RIGHT_PAREN:
  */
           __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_advance); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 83, __pyx_L1_error)
@@ -5966,7 +5966,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
 
           /* "src/parser.py":85
  *                         self.advance()  # consume left paren
- * 
+ *
  *                         if self.current_token.type != TokenType.RIGHT_PAREN:             # <<<<<<<<<<<<<<
  *                             args.append(self.parse_expression())
  *                             while self.current_token.type == TokenType.COMMA:
@@ -5989,7 +5989,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
           if (__pyx_t_5) {
 
             /* "src/parser.py":86
- * 
+ *
  *                         if self.current_token.type != TokenType.RIGHT_PAREN:
  *                             args.append(self.parse_expression())             # <<<<<<<<<<<<<<
  *                             while self.current_token.type == TokenType.COMMA:
@@ -6052,7 +6052,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
  *                             while self.current_token.type == TokenType.COMMA:
  *                                 self.advance()             # <<<<<<<<<<<<<<
  *                                 args.append(self.parse_expression())
- * 
+ *
  */
               __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_advance); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 88, __pyx_L1_error)
               __Pyx_GOTREF(__pyx_t_2);
@@ -6084,7 +6084,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
  *                             while self.current_token.type == TokenType.COMMA:
  *                                 self.advance()
  *                                 args.append(self.parse_expression())             # <<<<<<<<<<<<<<
- * 
+ *
  *                         self.expect(TokenType.RIGHT_PAREN)
  */
               __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_parse_expression); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 89, __pyx_L1_error)
@@ -6117,7 +6117,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
 
             /* "src/parser.py":85
  *                         self.advance()  # consume left paren
- * 
+ *
  *                         if self.current_token.type != TokenType.RIGHT_PAREN:             # <<<<<<<<<<<<<<
  *                             args.append(self.parse_expression())
  *                             while self.current_token.type == TokenType.COMMA:
@@ -6126,9 +6126,9 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
 
           /* "src/parser.py":91
  *                                 args.append(self.parse_expression())
- * 
+ *
  *                         self.expect(TokenType.RIGHT_PAREN)             # <<<<<<<<<<<<<<
- * 
+ *
  *                         # Create function call node with obj.method as function name
  */
           __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_expect); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 91, __pyx_L1_error)
@@ -6164,10 +6164,10 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
           __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
           /* "src/parser.py":94
- * 
+ *
  *                         # Create function call node with obj.method as function name
  *                         return ASTNode(NodeType.FUNCTION_CALL, value=f"{token_value}.{property_name}", children=args)             # <<<<<<<<<<<<<<
- * 
+ *
  *                     # Handle property assignment (obj.prop = value)
  */
           __Pyx_XDECREF(__pyx_r);
@@ -6223,7 +6223,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
           goto __pyx_L0;
 
           /* "src/parser.py":80
- * 
+ *
  *                     # Handle method call (obj.method(...))
  *                     if self.current_token.type == TokenType.LEFT_PAREN:             # <<<<<<<<<<<<<<
  *                         # Parse arguments
@@ -6232,7 +6232,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
         }
 
         /* "src/parser.py":97
- * 
+ *
  *                     # Handle property assignment (obj.prop = value)
  *                     elif self.current_token.type == TokenType.EQUAL:             # <<<<<<<<<<<<<<
  *                         self.advance()  # consume equals
@@ -6260,7 +6260,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
  *                     elif self.current_token.type == TokenType.EQUAL:
  *                         self.advance()  # consume equals             # <<<<<<<<<<<<<<
  *                         value_expr = self.parse_expression()
- * 
+ *
  */
           __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_advance); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 98, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_2);
@@ -6292,7 +6292,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
  *                     elif self.current_token.type == TokenType.EQUAL:
  *                         self.advance()  # consume equals
  *                         value_expr = self.parse_expression()             # <<<<<<<<<<<<<<
- * 
+ *
  *                         # Create an object to represent the target
  */
           __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_parse_expression); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 99, __pyx_L1_error)
@@ -6323,11 +6323,11 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
           __pyx_t_11 = 0;
 
           /* "src/parser.py":102
- * 
+ *
  *                         # Create an object to represent the target
  *                         target = ASTNode(NodeType.PROPERTY_ACCESS, value=property_name,             # <<<<<<<<<<<<<<
  *                                          children=[ASTNode(NodeType.IDENTIFIER, value=token_value)])
- * 
+ *
  */
           __Pyx_GetModuleGlobalName(__pyx_t_11, __pyx_n_s_ASTNode); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 102, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_11);
@@ -6349,7 +6349,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
  *                         # Create an object to represent the target
  *                         target = ASTNode(NodeType.PROPERTY_ACCESS, value=property_name,
  *                                          children=[ASTNode(NodeType.IDENTIFIER, value=token_value)])             # <<<<<<<<<<<<<<
- * 
+ *
  *                         # Create an assignment node
  */
           __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_ASTNode); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 103, __pyx_L1_error)
@@ -6381,11 +6381,11 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
           __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
 
           /* "src/parser.py":102
- * 
+ *
  *                         # Create an object to represent the target
  *                         target = ASTNode(NodeType.PROPERTY_ACCESS, value=property_name,             # <<<<<<<<<<<<<<
  *                                          children=[ASTNode(NodeType.IDENTIFIER, value=token_value)])
- * 
+ *
  */
           __pyx_t_12 = __Pyx_PyObject_Call(__pyx_t_11, __pyx_t_2, __pyx_t_8); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 102, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_12);
@@ -6396,10 +6396,10 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
           __pyx_t_12 = 0;
 
           /* "src/parser.py":106
- * 
+ *
  *                         # Create an assignment node
  *                         return ASTNode(NodeType.ASSIGNMENT, children=[target, value_expr])             # <<<<<<<<<<<<<<
- * 
+ *
  *                 # Handle index access and assignment (obj[idx])
  */
           __Pyx_XDECREF(__pyx_r);
@@ -6437,7 +6437,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
           goto __pyx_L0;
 
           /* "src/parser.py":97
- * 
+ *
  *                     # Handle property assignment (obj.prop = value)
  *                     elif self.current_token.type == TokenType.EQUAL:             # <<<<<<<<<<<<<<
  *                         self.advance()  # consume equals
@@ -6446,17 +6446,17 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
         }
 
         /* "src/parser.py":72
- * 
+ *
  *                 # Handle method call or property access
  *                 if self.current_token.type == TokenType.DOT:             # <<<<<<<<<<<<<<
  *                     self.advance()  # consume the dot
- * 
+ *
  */
         goto __pyx_L14;
       }
 
       /* "src/parser.py":109
- * 
+ *
  *                 # Handle index access and assignment (obj[idx])
  *                 elif self.current_token.type == TokenType.LEFT_BRACKET:             # <<<<<<<<<<<<<<
  *                     self.advance()  # consume left bracket
@@ -6517,7 +6517,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
  *                     self.advance()  # consume left bracket
  *                     index_expr = self.parse_expression()             # <<<<<<<<<<<<<<
  *                     self.expect(TokenType.RIGHT_BRACKET)
- * 
+ *
  */
         __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_parse_expression); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 111, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_8);
@@ -6550,7 +6550,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
  *                     self.advance()  # consume left bracket
  *                     index_expr = self.parse_expression()
  *                     self.expect(TokenType.RIGHT_BRACKET)             # <<<<<<<<<<<<<<
- * 
+ *
  *                     # Handle assignment (obj[idx] = value)
  */
         __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_expect); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 112, __pyx_L1_error)
@@ -6586,7 +6586,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
         __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
 
         /* "src/parser.py":115
- * 
+ *
  *                     # Handle assignment (obj[idx] = value)
  *                     if self.current_token.type == TokenType.EQUAL:             # <<<<<<<<<<<<<<
  *                         self.advance()  # consume equals
@@ -6614,7 +6614,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
  *                     if self.current_token.type == TokenType.EQUAL:
  *                         self.advance()  # consume equals             # <<<<<<<<<<<<<<
  *                         value_expr = self.parse_expression()
- * 
+ *
  */
           __pyx_t_12 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_advance); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 116, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_12);
@@ -6646,7 +6646,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
  *                     if self.current_token.type == TokenType.EQUAL:
  *                         self.advance()  # consume equals
  *                         value_expr = self.parse_expression()             # <<<<<<<<<<<<<<
- * 
+ *
  *                         # Create an object to represent the target
  */
           __pyx_t_12 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_parse_expression); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 117, __pyx_L1_error)
@@ -6677,11 +6677,11 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
           __pyx_t_11 = 0;
 
           /* "src/parser.py":120
- * 
+ *
  *                         # Create an object to represent the target
  *                         target = ASTNode(NodeType.INDEX_ACCESS,             # <<<<<<<<<<<<<<
  *                                          children=[ASTNode(NodeType.IDENTIFIER, value=token_value), index_expr])
- * 
+ *
  */
           __Pyx_GetModuleGlobalName(__pyx_t_11, __pyx_n_s_ASTNode); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 120, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_11);
@@ -6700,7 +6700,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
  *                         # Create an object to represent the target
  *                         target = ASTNode(NodeType.INDEX_ACCESS,
  *                                          children=[ASTNode(NodeType.IDENTIFIER, value=token_value), index_expr])             # <<<<<<<<<<<<<<
- * 
+ *
  *                         # Create an assignment node
  */
           __pyx_t_8 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 121, __pyx_L1_error)
@@ -6737,11 +6737,11 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
           __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
           /* "src/parser.py":120
- * 
+ *
  *                         # Create an object to represent the target
  *                         target = ASTNode(NodeType.INDEX_ACCESS,             # <<<<<<<<<<<<<<
  *                                          children=[ASTNode(NodeType.IDENTIFIER, value=token_value), index_expr])
- * 
+ *
  */
           __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_11, __pyx_t_12, __pyx_t_8); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 120, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_1);
@@ -6752,10 +6752,10 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
           __pyx_t_1 = 0;
 
           /* "src/parser.py":124
- * 
+ *
  *                         # Create an assignment node
  *                         return ASTNode(NodeType.ASSIGNMENT, children=[target, value_expr])             # <<<<<<<<<<<<<<
- * 
+ *
  *                 # If we get here, something is wrong
  */
           __Pyx_XDECREF(__pyx_r);
@@ -6793,7 +6793,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
           goto __pyx_L0;
 
           /* "src/parser.py":115
- * 
+ *
  *                     # Handle assignment (obj[idx] = value)
  *                     if self.current_token.type == TokenType.EQUAL:             # <<<<<<<<<<<<<<
  *                         self.advance()  # consume equals
@@ -6802,7 +6802,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
         }
 
         /* "src/parser.py":109
- * 
+ *
  *                 # Handle index access and assignment (obj[idx])
  *                 elif self.current_token.type == TokenType.LEFT_BRACKET:             # <<<<<<<<<<<<<<
  *                     self.advance()  # consume left bracket
@@ -6812,11 +6812,11 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
       __pyx_L14:;
 
       /* "src/parser.py":127
- * 
+ *
  *                 # If we get here, something is wrong
  *                 raise ParserError(             # <<<<<<<<<<<<<<
  *                     f"Expected '(' or '=' after property access", self.current_token)
- * 
+ *
  */
       __Pyx_GetModuleGlobalName(__pyx_t_12, __pyx_n_s_ParserError); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 127, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_12);
@@ -6825,7 +6825,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
  *                 # If we get here, something is wrong
  *                 raise ParserError(
  *                     f"Expected '(' or '=' after property access", self.current_token)             # <<<<<<<<<<<<<<
- * 
+ *
  *             # Handle regular variable assignment (var = value)
  */
       __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_current_token); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 128, __pyx_L1_error)
@@ -6867,7 +6867,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
     }
 
     /* "src/parser.py":131
- * 
+ *
  *             # Handle regular variable assignment (var = value)
  *             elif self.tokens[self.current_token_index + 1].type == TokenType.EQUAL:             # <<<<<<<<<<<<<<
  *                 var_name = self.current_token.value
@@ -6952,7 +6952,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
  *                 self.advance()  # consume identifier
  *                 self.advance()  # consume equals             # <<<<<<<<<<<<<<
  *                 value_expr = self.parse_expression()
- * 
+ *
  */
       __pyx_t_12 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_advance); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 134, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_12);
@@ -6984,7 +6984,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
  *                 self.advance()  # consume identifier
  *                 self.advance()  # consume equals
  *                 value_expr = self.parse_expression()             # <<<<<<<<<<<<<<
- * 
+ *
  *                 # Create an assignment node
  */
       __pyx_t_12 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_parse_expression); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 135, __pyx_L1_error)
@@ -7015,11 +7015,11 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
       __pyx_t_11 = 0;
 
       /* "src/parser.py":138
- * 
+ *
  *                 # Create an assignment node
  *                 return ASTNode(NodeType.ASSIGNMENT,             # <<<<<<<<<<<<<<
  *                                children=[ASTNode(NodeType.IDENTIFIER, value=var_name), value_expr])
- * 
+ *
  */
       __Pyx_XDECREF(__pyx_r);
       __Pyx_GetModuleGlobalName(__pyx_t_11, __pyx_n_s_ASTNode); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 138, __pyx_L1_error)
@@ -7039,7 +7039,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
  *                 # Create an assignment node
  *                 return ASTNode(NodeType.ASSIGNMENT,
  *                                children=[ASTNode(NodeType.IDENTIFIER, value=var_name), value_expr])             # <<<<<<<<<<<<<<
- * 
+ *
  *         # Top-level 'haddii_kale', 'haddii_kalena' are invalid
  */
       __pyx_t_8 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 139, __pyx_L1_error)
@@ -7076,11 +7076,11 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
       __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
 
       /* "src/parser.py":138
- * 
+ *
  *                 # Create an assignment node
  *                 return ASTNode(NodeType.ASSIGNMENT,             # <<<<<<<<<<<<<<
  *                                children=[ASTNode(NodeType.IDENTIFIER, value=var_name), value_expr])
- * 
+ *
  */
       __pyx_t_13 = __Pyx_PyObject_Call(__pyx_t_11, __pyx_t_12, __pyx_t_8); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 138, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_13);
@@ -7092,7 +7092,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
       goto __pyx_L0;
 
       /* "src/parser.py":131
- * 
+ *
  *             # Handle regular variable assignment (var = value)
  *             elif self.tokens[self.current_token_index + 1].type == TokenType.EQUAL:             # <<<<<<<<<<<<<<
  *                 var_name = self.current_token.value
@@ -7110,7 +7110,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
   }
 
   /* "src/parser.py":142
- * 
+ *
  *         # Top-level 'haddii_kale', 'haddii_kalena' are invalid
  *         if ttype in (TokenType.HADDII_KALE, TokenType.HADDII_KALENA):             # <<<<<<<<<<<<<<
  *             raise ParserError(
@@ -7152,7 +7152,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
  *         if ttype in (TokenType.HADDII_KALE, TokenType.HADDII_KALENA):
  *             raise ParserError(             # <<<<<<<<<<<<<<
  *                 f"Unexpected token: {ttype} at top-level.", self.current_token)
- * 
+ *
  */
     __Pyx_GetModuleGlobalName(__pyx_t_8, __pyx_n_s_ParserError); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 143, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_8);
@@ -7161,7 +7161,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
  *         if ttype in (TokenType.HADDII_KALE, TokenType.HADDII_KALENA):
  *             raise ParserError(
  *                 f"Unexpected token: {ttype} at top-level.", self.current_token)             # <<<<<<<<<<<<<<
- * 
+ *
  *         raise ParserError(f"Unexpected token: {ttype}", self.current_token)
  */
     __pyx_t_12 = PyTuple_New(3); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 144, __pyx_L1_error)
@@ -7217,7 +7217,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
     __PYX_ERR(0, 143, __pyx_L1_error)
 
     /* "src/parser.py":142
- * 
+ *
  *         # Top-level 'haddii_kale', 'haddii_kalena' are invalid
  *         if ttype in (TokenType.HADDII_KALE, TokenType.HADDII_KALENA):             # <<<<<<<<<<<<<<
  *             raise ParserError(
@@ -7227,9 +7227,9 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
 
   /* "src/parser.py":146
  *                 f"Unexpected token: {ttype} at top-level.", self.current_token)
- * 
+ *
  *         raise ParserError(f"Unexpected token: {ttype}", self.current_token)             # <<<<<<<<<<<<<<
- * 
+ *
  *     # -----------------------------
  */
   __Pyx_GetModuleGlobalName(__pyx_t_8, __pyx_n_s_ParserError); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 146, __pyx_L1_error)
@@ -7271,10 +7271,10 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
 
   /* "src/parser.py":32
  *         return ASTNode(NodeType.PROGRAM, children=statements)
- * 
+ *
  *     def parse_statement(self):             # <<<<<<<<<<<<<<
  *         ttype = self.current_token.type
- * 
+ *
  */
 
   /* function exit code */
@@ -7307,11 +7307,11 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
  *     # -----------------------------
  *     def parse_variable_declaration(self, is_static=False):             # <<<<<<<<<<<<<<
  *         var_type = None
- * 
+ *
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_3src_6parser_6Parser_11parse_variable_declaration(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_6parser_6Parser_11parse_variable_declaration(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -7319,7 +7319,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
 #endif
 ); /*proto*/
 static PyMethodDef __pyx_mdef_3src_6parser_6Parser_11parse_variable_declaration = {"parse_variable_declaration", (PyCFunction)(void*)(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_3src_6parser_6Parser_11parse_variable_declaration, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_3src_6parser_6Parser_11parse_variable_declaration(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_6parser_6Parser_11parse_variable_declaration(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -7444,7 +7444,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_10parse_variable_declaration(CYTH
  *     # -----------------------------
  *     def parse_variable_declaration(self, is_static=False):
  *         var_type = None             # <<<<<<<<<<<<<<
- * 
+ *
  *         if is_static:
  */
   __Pyx_INCREF(Py_None);
@@ -7452,7 +7452,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_10parse_variable_declaration(CYTH
 
   /* "src/parser.py":155
  *         var_type = None
- * 
+ *
  *         if is_static:             # <<<<<<<<<<<<<<
  *             # Store the type information for static typing
  *             var_type = self.current_token.type
@@ -7510,7 +7510,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_10parse_variable_declaration(CYTH
 
     /* "src/parser.py":155
  *         var_type = None
- * 
+ *
  *         if is_static:             # <<<<<<<<<<<<<<
  *             # Store the type information for static typing
  *             var_type = self.current_token.type
@@ -7522,7 +7522,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_10parse_variable_declaration(CYTH
  *         else:
  *             # For dynamic typing (door)
  *             self.expect(TokenType.DOOR)             # <<<<<<<<<<<<<<
- * 
+ *
  *         var_name = self.current_token.value
  */
   /*else*/ {
@@ -7562,7 +7562,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_10parse_variable_declaration(CYTH
 
   /* "src/parser.py":163
  *             self.expect(TokenType.DOOR)
- * 
+ *
  *         var_name = self.current_token.value             # <<<<<<<<<<<<<<
  *         self.expect(TokenType.IDENTIFIER)
  *         self.expect(TokenType.EQUAL)
@@ -7576,7 +7576,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_10parse_variable_declaration(CYTH
   __pyx_t_2 = 0;
 
   /* "src/parser.py":164
- * 
+ *
  *         var_name = self.current_token.value
  *         self.expect(TokenType.IDENTIFIER)             # <<<<<<<<<<<<<<
  *         self.expect(TokenType.EQUAL)
@@ -7619,7 +7619,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_10parse_variable_declaration(CYTH
  *         self.expect(TokenType.IDENTIFIER)
  *         self.expect(TokenType.EQUAL)             # <<<<<<<<<<<<<<
  *         expr = self.parse_expression()
- * 
+ *
  */
   __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_expect); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 165, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
@@ -7657,7 +7657,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_10parse_variable_declaration(CYTH
  *         self.expect(TokenType.IDENTIFIER)
  *         self.expect(TokenType.EQUAL)
  *         expr = self.parse_expression()             # <<<<<<<<<<<<<<
- * 
+ *
  *         # Include type information in the AST node for static typing
  */
   __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_parse_expression); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 166, __pyx_L1_error)
@@ -7688,7 +7688,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_10parse_variable_declaration(CYTH
   __pyx_t_2 = 0;
 
   /* "src/parser.py":169
- * 
+ *
  *         # Include type information in the AST node for static typing
  *         node = ASTNode(NodeType.VARIABLE_DECLARATION,             # <<<<<<<<<<<<<<
  *                        value=var_name, children=[expr])
@@ -7726,7 +7726,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_10parse_variable_declaration(CYTH
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
   /* "src/parser.py":169
- * 
+ *
  *         # Include type information in the AST node for static typing
  *         node = ASTNode(NodeType.VARIABLE_DECLARATION,             # <<<<<<<<<<<<<<
  *                        value=var_name, children=[expr])
@@ -7745,7 +7745,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_10parse_variable_declaration(CYTH
  *                        value=var_name, children=[expr])
  *         if is_static:             # <<<<<<<<<<<<<<
  *             node.var_type = var_type
- * 
+ *
  */
   __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_v_is_static); if (unlikely((__pyx_t_1 < 0))) __PYX_ERR(0, 171, __pyx_L1_error)
   if (__pyx_t_1) {
@@ -7754,7 +7754,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_10parse_variable_declaration(CYTH
  *                        value=var_name, children=[expr])
  *         if is_static:
  *             node.var_type = var_type             # <<<<<<<<<<<<<<
- * 
+ *
  *         return node
  */
     if (__Pyx_PyObject_SetAttrStr(__pyx_v_node, __pyx_n_s_var_type, __pyx_v_var_type) < 0) __PYX_ERR(0, 172, __pyx_L1_error)
@@ -7764,15 +7764,15 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_10parse_variable_declaration(CYTH
  *                        value=var_name, children=[expr])
  *         if is_static:             # <<<<<<<<<<<<<<
  *             node.var_type = var_type
- * 
+ *
  */
   }
 
   /* "src/parser.py":174
  *             node.var_type = var_type
- * 
+ *
  *         return node             # <<<<<<<<<<<<<<
- * 
+ *
  *     # -----------------------------
  */
   __Pyx_XDECREF(__pyx_r);
@@ -7785,7 +7785,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_10parse_variable_declaration(CYTH
  *     # -----------------------------
  *     def parse_variable_declaration(self, is_static=False):             # <<<<<<<<<<<<<<
  *         var_type = None
- * 
+ *
  */
 
   /* function exit code */
@@ -7815,7 +7815,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_10parse_variable_declaration(CYTH
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_3src_6parser_6Parser_13parse_function_definition(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_6parser_6Parser_13parse_function_definition(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -7823,7 +7823,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
 #endif
 ); /*proto*/
 static PyMethodDef __pyx_mdef_3src_6parser_6Parser_13parse_function_definition = {"parse_function_definition", (PyCFunction)(void*)(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_3src_6parser_6Parser_13parse_function_definition, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_3src_6parser_6Parser_13parse_function_definition(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_6parser_6Parser_13parse_function_definition(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -7994,7 +7994,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_12parse_function_definition(CYTHO
  *         func_name = self.current_token.value
  *         self.expect(TokenType.IDENTIFIER)             # <<<<<<<<<<<<<<
  *         self.expect(TokenType.LEFT_PAREN)
- * 
+ *
  */
   __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_expect); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 182, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
@@ -8032,7 +8032,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_12parse_function_definition(CYTHO
  *         func_name = self.current_token.value
  *         self.expect(TokenType.IDENTIFIER)
  *         self.expect(TokenType.LEFT_PAREN)             # <<<<<<<<<<<<<<
- * 
+ *
  *         params = []
  */
   __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_expect); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 183, __pyx_L1_error)
@@ -8069,7 +8069,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_12parse_function_definition(CYTHO
 
   /* "src/parser.py":185
  *         self.expect(TokenType.LEFT_PAREN)
- * 
+ *
  *         params = []             # <<<<<<<<<<<<<<
  *         while self.current_token.type != TokenType.RIGHT_PAREN:
  *             params.append(self.current_token.value)
@@ -8080,7 +8080,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_12parse_function_definition(CYTHO
   __pyx_t_2 = 0;
 
   /* "src/parser.py":186
- * 
+ *
  *         params = []
  *         while self.current_token.type != TokenType.RIGHT_PAREN:             # <<<<<<<<<<<<<<
  *             params.append(self.current_token.value)
@@ -8163,7 +8163,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_12parse_function_definition(CYTHO
  *             self.expect(TokenType.IDENTIFIER)
  *             if self.current_token.type == TokenType.COMMA:             # <<<<<<<<<<<<<<
  *                 self.advance()
- * 
+ *
  */
     __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_current_token); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 189, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
@@ -8186,7 +8186,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_12parse_function_definition(CYTHO
  *             self.expect(TokenType.IDENTIFIER)
  *             if self.current_token.type == TokenType.COMMA:
  *                 self.advance()             # <<<<<<<<<<<<<<
- * 
+ *
  *         self.expect(TokenType.RIGHT_PAREN)
  */
       __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_advance); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 190, __pyx_L1_error)
@@ -8220,17 +8220,17 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_12parse_function_definition(CYTHO
  *             self.expect(TokenType.IDENTIFIER)
  *             if self.current_token.type == TokenType.COMMA:             # <<<<<<<<<<<<<<
  *                 self.advance()
- * 
+ *
  */
     }
   }
 
   /* "src/parser.py":192
  *                 self.advance()
- * 
+ *
  *         self.expect(TokenType.RIGHT_PAREN)             # <<<<<<<<<<<<<<
  *         self.expect(TokenType.LEFT_BRACE)
- * 
+ *
  */
   __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_expect); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 192, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
@@ -8265,10 +8265,10 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_12parse_function_definition(CYTHO
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
   /* "src/parser.py":193
- * 
+ *
  *         self.expect(TokenType.RIGHT_PAREN)
  *         self.expect(TokenType.LEFT_BRACE)             # <<<<<<<<<<<<<<
- * 
+ *
  *         body = []
  */
   __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_expect); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 193, __pyx_L1_error)
@@ -8305,7 +8305,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_12parse_function_definition(CYTHO
 
   /* "src/parser.py":195
  *         self.expect(TokenType.LEFT_BRACE)
- * 
+ *
  *         body = []             # <<<<<<<<<<<<<<
  *         while self.current_token.type != TokenType.RIGHT_BRACE:
  *             body.append(self.parse_statement())
@@ -8316,11 +8316,11 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_12parse_function_definition(CYTHO
   __pyx_t_4 = 0;
 
   /* "src/parser.py":196
- * 
+ *
  *         body = []
  *         while self.current_token.type != TokenType.RIGHT_BRACE:             # <<<<<<<<<<<<<<
  *             body.append(self.parse_statement())
- * 
+ *
  */
   while (1) {
     __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_current_token); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 196, __pyx_L1_error)
@@ -8344,7 +8344,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_12parse_function_definition(CYTHO
  *         body = []
  *         while self.current_token.type != TokenType.RIGHT_BRACE:
  *             body.append(self.parse_statement())             # <<<<<<<<<<<<<<
- * 
+ *
  *         self.expect(TokenType.RIGHT_BRACE)
  */
     __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_parse_statement); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 197, __pyx_L1_error)
@@ -8377,7 +8377,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_12parse_function_definition(CYTHO
 
   /* "src/parser.py":199
  *             body.append(self.parse_statement())
- * 
+ *
  *         self.expect(TokenType.RIGHT_BRACE)             # <<<<<<<<<<<<<<
  *         return ASTNode(NodeType.FUNCTION_DEFINITION, value=func_name,
  *                        children=[ASTNode(NodeType.IDENTIFIER, value=p) for p in params] + body)
@@ -8415,11 +8415,11 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_12parse_function_definition(CYTHO
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
   /* "src/parser.py":200
- * 
+ *
  *         self.expect(TokenType.RIGHT_BRACE)
  *         return ASTNode(NodeType.FUNCTION_DEFINITION, value=func_name,             # <<<<<<<<<<<<<<
  *                        children=[ASTNode(NodeType.IDENTIFIER, value=p) for p in params] + body)
- * 
+ *
  */
   __Pyx_XDECREF(__pyx_r);
   __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_ASTNode); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 200, __pyx_L1_error)
@@ -8443,7 +8443,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_12parse_function_definition(CYTHO
  *         self.expect(TokenType.RIGHT_BRACE)
  *         return ASTNode(NodeType.FUNCTION_DEFINITION, value=func_name,
  *                        children=[ASTNode(NodeType.IDENTIFIER, value=p) for p in params] + body)             # <<<<<<<<<<<<<<
- * 
+ *
  *     # -----------------------------
  */
     __pyx_t_3 = PyList_New(0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 201, __pyx_L10_error)
@@ -8504,11 +8504,11 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_12parse_function_definition(CYTHO
   __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
 
   /* "src/parser.py":200
- * 
+ *
  *         self.expect(TokenType.RIGHT_BRACE)
  *         return ASTNode(NodeType.FUNCTION_DEFINITION, value=func_name,             # <<<<<<<<<<<<<<
  *                        children=[ASTNode(NodeType.IDENTIFIER, value=p) for p in params] + body)
- * 
+ *
  */
   __pyx_t_8 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_2, __pyx_t_1); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 200, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
@@ -8559,7 +8559,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_12parse_function_definition(CYTHO
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_3src_6parser_6Parser_15parse_function_call(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_6parser_6Parser_15parse_function_call(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -8568,7 +8568,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
 ); /*proto*/
 PyDoc_STRVAR(__pyx_doc_3src_6parser_6Parser_14parse_function_call, "Parse a function call like 'qor(\"Hello\")' ");
 static PyMethodDef __pyx_mdef_3src_6parser_6Parser_15parse_function_call = {"parse_function_call", (PyCFunction)(void*)(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_3src_6parser_6Parser_15parse_function_call, __Pyx_METH_FASTCALL|METH_KEYWORDS, __pyx_doc_3src_6parser_6Parser_14parse_function_call};
-static PyObject *__pyx_pw_3src_6parser_6Parser_15parse_function_call(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_6parser_6Parser_15parse_function_call(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -8825,7 +8825,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_14parse_function_call(CYTHON_UNUS
  *         if self.current_token.type != TokenType.IDENTIFIER and self.current_token.type not in (TokenType.QOR, TokenType.AKHRI, TokenType.QORAAL, TokenType.TIRO, TokenType.LABADARAN, TokenType.LIIS, TokenType.SHEY):
  *             raise ParserError(             # <<<<<<<<<<<<<<
  *                 f"Expected function name, got {self.current_token.type}")
- * 
+ *
  */
     __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_ParserError); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 210, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
@@ -8834,7 +8834,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_14parse_function_call(CYTHON_UNUS
  *         if self.current_token.type != TokenType.IDENTIFIER and self.current_token.type not in (TokenType.QOR, TokenType.AKHRI, TokenType.QORAAL, TokenType.TIRO, TokenType.LABADARAN, TokenType.LIIS, TokenType.SHEY):
  *             raise ParserError(
  *                 f"Expected function name, got {self.current_token.type}")             # <<<<<<<<<<<<<<
- * 
+ *
  *         # For non-identifier function names (like type names), get the value from the type
  */
     __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_current_token); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 211, __pyx_L1_error)
@@ -8885,11 +8885,11 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_14parse_function_call(CYTHON_UNUS
   }
 
   /* "src/parser.py":214
- * 
+ *
  *         # For non-identifier function names (like type names), get the value from the type
  *         if self.current_token.type != TokenType.IDENTIFIER:             # <<<<<<<<<<<<<<
  *             func_name = self.current_token.type.value
- * 
+ *
  */
   __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_current_token); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 214, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
@@ -8912,7 +8912,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_14parse_function_call(CYTHON_UNUS
  *         # For non-identifier function names (like type names), get the value from the type
  *         if self.current_token.type != TokenType.IDENTIFIER:
  *             func_name = self.current_token.type.value             # <<<<<<<<<<<<<<
- * 
+ *
  *         self.advance()
  */
     __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_current_token); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 215, __pyx_L1_error)
@@ -8927,20 +8927,20 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_14parse_function_call(CYTHON_UNUS
     __pyx_t_4 = 0;
 
     /* "src/parser.py":214
- * 
+ *
  *         # For non-identifier function names (like type names), get the value from the type
  *         if self.current_token.type != TokenType.IDENTIFIER:             # <<<<<<<<<<<<<<
  *             func_name = self.current_token.type.value
- * 
+ *
  */
   }
 
   /* "src/parser.py":217
  *             func_name = self.current_token.type.value
- * 
+ *
  *         self.advance()             # <<<<<<<<<<<<<<
  *         return self.parse_function_call_helper(func_name)
- * 
+ *
  */
   __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_advance); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 217, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
@@ -8969,10 +8969,10 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_14parse_function_call(CYTHON_UNUS
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
   /* "src/parser.py":218
- * 
+ *
  *         self.advance()
  *         return self.parse_function_call_helper(func_name)             # <<<<<<<<<<<<<<
- * 
+ *
  *     # -----------------------------
  */
   __Pyx_XDECREF(__pyx_r);
@@ -9036,7 +9036,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_14parse_function_call(CYTHON_UNUS
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_3src_6parser_6Parser_17parse_import_statement(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_6parser_6Parser_17parse_import_statement(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -9044,7 +9044,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
 #endif
 ); /*proto*/
 static PyMethodDef __pyx_mdef_3src_6parser_6Parser_17parse_import_statement = {"parse_import_statement", (PyCFunction)(void*)(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_3src_6parser_6Parser_17parse_import_statement, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_3src_6parser_6Parser_17parse_import_statement(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_6parser_6Parser_17parse_import_statement(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -9251,7 +9251,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_16parse_import_statement(CYTHON_U
  *         filename = self.current_token.value
  *         self.advance()  # consume the STRING             # <<<<<<<<<<<<<<
  *         return ASTNode(NodeType.IMPORT_STATEMENT, value=filename)
- * 
+ *
  */
   __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_advance); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 228, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
@@ -9283,7 +9283,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_16parse_import_statement(CYTHON_U
  *         filename = self.current_token.value
  *         self.advance()  # consume the STRING
  *         return ASTNode(NodeType.IMPORT_STATEMENT, value=filename)             # <<<<<<<<<<<<<<
- * 
+ *
  *     # -----------------------------
  */
   __Pyx_XDECREF(__pyx_r);
@@ -9343,7 +9343,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_16parse_import_statement(CYTHON_U
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_3src_6parser_6Parser_19parse_if_statement(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_6parser_6Parser_19parse_if_statement(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -9351,7 +9351,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
 #endif
 ); /*proto*/
 static PyMethodDef __pyx_mdef_3src_6parser_6Parser_19parse_if_statement = {"parse_if_statement", (PyCFunction)(void*)(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_3src_6parser_6Parser_19parse_if_statement, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_3src_6parser_6Parser_19parse_if_statement(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_6parser_6Parser_19parse_if_statement(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -9579,7 +9579,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_18parse_if_statement(CYTHON_UNUSE
  *         condition = self.parse_logical_expression()
  *         self.expect(TokenType.RIGHT_PAREN)             # <<<<<<<<<<<<<<
  *         self.expect(TokenType.LEFT_BRACE)
- * 
+ *
  */
   __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_expect); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 241, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
@@ -9617,7 +9617,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_18parse_if_statement(CYTHON_UNUSE
  *         condition = self.parse_logical_expression()
  *         self.expect(TokenType.RIGHT_PAREN)
  *         self.expect(TokenType.LEFT_BRACE)             # <<<<<<<<<<<<<<
- * 
+ *
  *         if_body = []
  */
   __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_expect); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 242, __pyx_L1_error)
@@ -9654,7 +9654,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_18parse_if_statement(CYTHON_UNUSE
 
   /* "src/parser.py":244
  *         self.expect(TokenType.LEFT_BRACE)
- * 
+ *
  *         if_body = []             # <<<<<<<<<<<<<<
  *         while self.current_token.type != TokenType.RIGHT_BRACE:
  *             if_body.append(self.parse_statement())
@@ -9665,7 +9665,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_18parse_if_statement(CYTHON_UNUSE
   __pyx_t_1 = 0;
 
   /* "src/parser.py":245
- * 
+ *
  *         if_body = []
  *         while self.current_token.type != TokenType.RIGHT_BRACE:             # <<<<<<<<<<<<<<
  *             if_body.append(self.parse_statement())
@@ -9694,7 +9694,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_18parse_if_statement(CYTHON_UNUSE
  *         while self.current_token.type != TokenType.RIGHT_BRACE:
  *             if_body.append(self.parse_statement())             # <<<<<<<<<<<<<<
  *         self.expect(TokenType.RIGHT_BRACE)
- * 
+ *
  */
     __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_parse_statement); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 246, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
@@ -9728,7 +9728,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_18parse_if_statement(CYTHON_UNUSE
  *         while self.current_token.type != TokenType.RIGHT_BRACE:
  *             if_body.append(self.parse_statement())
  *         self.expect(TokenType.RIGHT_BRACE)             # <<<<<<<<<<<<<<
- * 
+ *
  *         children = [condition] + if_body
  */
   __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_expect); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 247, __pyx_L1_error)
@@ -9765,9 +9765,9 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_18parse_if_statement(CYTHON_UNUSE
 
   /* "src/parser.py":249
  *         self.expect(TokenType.RIGHT_BRACE)
- * 
+ *
  *         children = [condition] + if_body             # <<<<<<<<<<<<<<
- * 
+ *
  *         # Parse zero or more 'haddii_kale'
  */
   __pyx_t_1 = PyList_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 249, __pyx_L1_error)
@@ -9782,7 +9782,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_18parse_if_statement(CYTHON_UNUSE
   __pyx_t_3 = 0;
 
   /* "src/parser.py":252
- * 
+ *
  *         # Parse zero or more 'haddii_kale'
  *         while self.current_token.type == TokenType.HADDII_KALE:             # <<<<<<<<<<<<<<
  *             self.advance()
@@ -10128,7 +10128,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_18parse_if_statement(CYTHON_UNUSE
  *             elif_node = ASTNode(NodeType.IF_STATEMENT, children=[
  *                                 elif_condition] + elif_body)             # <<<<<<<<<<<<<<
  *             children.append(elif_node)
- * 
+ *
  */
     __pyx_t_4 = PyList_New(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 262, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
@@ -10160,14 +10160,14 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_18parse_if_statement(CYTHON_UNUSE
  *             elif_node = ASTNode(NodeType.IF_STATEMENT, children=[
  *                                 elif_condition] + elif_body)
  *             children.append(elif_node)             # <<<<<<<<<<<<<<
- * 
+ *
  *         # Optionally parse 'haddii_kalena'
  */
     __pyx_t_7 = __Pyx_PyList_Append(__pyx_v_children, __pyx_v_elif_node); if (unlikely(__pyx_t_7 == ((int)-1))) __PYX_ERR(0, 264, __pyx_L1_error)
   }
 
   /* "src/parser.py":267
- * 
+ *
  *         # Optionally parse 'haddii_kalena'
  *         if self.current_token.type == TokenType.HADDII_KALENA:             # <<<<<<<<<<<<<<
  *             self.advance()
@@ -10378,7 +10378,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_18parse_if_statement(CYTHON_UNUSE
  *             # We'll treat else_body as a BLOCK node
  *             else_block = ASTNode(NodeType.BLOCK, children=else_body)             # <<<<<<<<<<<<<<
  *             children.append(else_block)
- * 
+ *
  */
     __Pyx_GetModuleGlobalName(__pyx_t_8, __pyx_n_s_ASTNode); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 275, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_8);
@@ -10407,13 +10407,13 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_18parse_if_statement(CYTHON_UNUSE
  *             # We'll treat else_body as a BLOCK node
  *             else_block = ASTNode(NodeType.BLOCK, children=else_body)
  *             children.append(else_block)             # <<<<<<<<<<<<<<
- * 
+ *
  *         return ASTNode(NodeType.IF_STATEMENT, children=children)
  */
     __pyx_t_7 = __Pyx_PyList_Append(__pyx_v_children, __pyx_v_else_block); if (unlikely(__pyx_t_7 == ((int)-1))) __PYX_ERR(0, 276, __pyx_L1_error)
 
     /* "src/parser.py":267
- * 
+ *
  *         # Optionally parse 'haddii_kalena'
  *         if self.current_token.type == TokenType.HADDII_KALENA:             # <<<<<<<<<<<<<<
  *             self.advance()
@@ -10423,9 +10423,9 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_18parse_if_statement(CYTHON_UNUSE
 
   /* "src/parser.py":278
  *             children.append(else_block)
- * 
+ *
  *         return ASTNode(NodeType.IF_STATEMENT, children=children)             # <<<<<<<<<<<<<<
- * 
+ *
  *     # -----------------------------
  */
   __Pyx_XDECREF(__pyx_r);
@@ -10493,7 +10493,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_18parse_if_statement(CYTHON_UNUSE
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_3src_6parser_6Parser_21parse_loop_statement(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_6parser_6Parser_21parse_loop_statement(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -10501,7 +10501,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
 #endif
 ); /*proto*/
 static PyMethodDef __pyx_mdef_3src_6parser_6Parser_21parse_loop_statement = {"parse_loop_statement", (PyCFunction)(void*)(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_3src_6parser_6Parser_21parse_loop_statement, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_3src_6parser_6Parser_21parse_loop_statement(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_6parser_6Parser_21parse_loop_statement(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -10818,7 +10818,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_20parse_loop_statement(CYTHON_UNU
  *         self.expect(TokenType.IDENTIFIER)  # "ilaa"
  *         end_expr = self.parse_expression()             # <<<<<<<<<<<<<<
  *         self.expect(TokenType.LEFT_BRACE)
- * 
+ *
  */
   __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_parse_expression); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 290, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
@@ -10851,7 +10851,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_20parse_loop_statement(CYTHON_UNU
  *         self.expect(TokenType.IDENTIFIER)  # "ilaa"
  *         end_expr = self.parse_expression()
  *         self.expect(TokenType.LEFT_BRACE)             # <<<<<<<<<<<<<<
- * 
+ *
  *         body = []
  */
   __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_expect); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 291, __pyx_L1_error)
@@ -10888,7 +10888,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_20parse_loop_statement(CYTHON_UNU
 
   /* "src/parser.py":293
  *         self.expect(TokenType.LEFT_BRACE)
- * 
+ *
  *         body = []             # <<<<<<<<<<<<<<
  *         while self.current_token.type != TokenType.RIGHT_BRACE:
  *             body.append(self.parse_statement())
@@ -10899,7 +10899,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_20parse_loop_statement(CYTHON_UNU
   __pyx_t_2 = 0;
 
   /* "src/parser.py":294
- * 
+ *
  *         body = []
  *         while self.current_token.type != TokenType.RIGHT_BRACE:             # <<<<<<<<<<<<<<
  *             body.append(self.parse_statement())
@@ -10928,7 +10928,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_20parse_loop_statement(CYTHON_UNU
  *         while self.current_token.type != TokenType.RIGHT_BRACE:
  *             body.append(self.parse_statement())             # <<<<<<<<<<<<<<
  *         self.expect(TokenType.RIGHT_BRACE)
- * 
+ *
  */
     __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_parse_statement); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 295, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
@@ -10962,7 +10962,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_20parse_loop_statement(CYTHON_UNU
  *         while self.current_token.type != TokenType.RIGHT_BRACE:
  *             body.append(self.parse_statement())
  *         self.expect(TokenType.RIGHT_BRACE)             # <<<<<<<<<<<<<<
- * 
+ *
  *         children = [start_expr, end_expr] + body
  */
   __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_expect); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 296, __pyx_L1_error)
@@ -10999,10 +10999,10 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_20parse_loop_statement(CYTHON_UNU
 
   /* "src/parser.py":298
  *         self.expect(TokenType.RIGHT_BRACE)
- * 
+ *
  *         children = [start_expr, end_expr] + body             # <<<<<<<<<<<<<<
  *         return ASTNode(NodeType.LOOP_STATEMENT, value=loop_var, children=children)
- * 
+ *
  */
   __pyx_t_2 = PyList_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 298, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
@@ -11019,10 +11019,10 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_20parse_loop_statement(CYTHON_UNU
   __pyx_t_4 = 0;
 
   /* "src/parser.py":299
- * 
+ *
  *         children = [start_expr, end_expr] + body
  *         return ASTNode(NodeType.LOOP_STATEMENT, value=loop_var, children=children)             # <<<<<<<<<<<<<<
- * 
+ *
  *     # -----------------------------
  */
   __Pyx_XDECREF(__pyx_r);
@@ -11087,7 +11087,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_20parse_loop_statement(CYTHON_UNU
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_3src_6parser_6Parser_23parse_while_statement(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_6parser_6Parser_23parse_while_statement(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -11095,7 +11095,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
 #endif
 ); /*proto*/
 static PyMethodDef __pyx_mdef_3src_6parser_6Parser_23parse_while_statement = {"parse_while_statement", (PyCFunction)(void*)(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_3src_6parser_6Parser_23parse_while_statement, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_3src_6parser_6Parser_23parse_while_statement(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_6parser_6Parser_23parse_while_statement(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -11317,7 +11317,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_22parse_while_statement(CYTHON_UN
  *         condition = self.parse_logical_expression()
  *         self.expect(TokenType.RIGHT_PAREN)             # <<<<<<<<<<<<<<
  *         self.expect(TokenType.LEFT_BRACE)
- * 
+ *
  */
   __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_expect); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 308, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
@@ -11355,7 +11355,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_22parse_while_statement(CYTHON_UN
  *         condition = self.parse_logical_expression()
  *         self.expect(TokenType.RIGHT_PAREN)
  *         self.expect(TokenType.LEFT_BRACE)             # <<<<<<<<<<<<<<
- * 
+ *
  *         body = []
  */
   __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_expect); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 309, __pyx_L1_error)
@@ -11392,7 +11392,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_22parse_while_statement(CYTHON_UN
 
   /* "src/parser.py":311
  *         self.expect(TokenType.LEFT_BRACE)
- * 
+ *
  *         body = []             # <<<<<<<<<<<<<<
  *         while self.current_token.type != TokenType.RIGHT_BRACE:
  *             body.append(self.parse_statement())
@@ -11403,7 +11403,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_22parse_while_statement(CYTHON_UN
   __pyx_t_1 = 0;
 
   /* "src/parser.py":312
- * 
+ *
  *         body = []
  *         while self.current_token.type != TokenType.RIGHT_BRACE:             # <<<<<<<<<<<<<<
  *             body.append(self.parse_statement())
@@ -11432,7 +11432,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_22parse_while_statement(CYTHON_UN
  *         while self.current_token.type != TokenType.RIGHT_BRACE:
  *             body.append(self.parse_statement())             # <<<<<<<<<<<<<<
  *         self.expect(TokenType.RIGHT_BRACE)
- * 
+ *
  */
     __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_parse_statement); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 313, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
@@ -11466,7 +11466,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_22parse_while_statement(CYTHON_UN
  *         while self.current_token.type != TokenType.RIGHT_BRACE:
  *             body.append(self.parse_statement())
  *         self.expect(TokenType.RIGHT_BRACE)             # <<<<<<<<<<<<<<
- * 
+ *
  *         children = [condition] + body
  */
   __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_expect); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 314, __pyx_L1_error)
@@ -11503,10 +11503,10 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_22parse_while_statement(CYTHON_UN
 
   /* "src/parser.py":316
  *         self.expect(TokenType.RIGHT_BRACE)
- * 
+ *
  *         children = [condition] + body             # <<<<<<<<<<<<<<
  *         return ASTNode(NodeType.WHILE_STATEMENT, children=children)
- * 
+ *
  */
   __pyx_t_1 = PyList_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 316, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
@@ -11520,10 +11520,10 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_22parse_while_statement(CYTHON_UN
   __pyx_t_3 = 0;
 
   /* "src/parser.py":317
- * 
+ *
  *         children = [condition] + body
  *         return ASTNode(NodeType.WHILE_STATEMENT, children=children)             # <<<<<<<<<<<<<<
- * 
+ *
  *     # -----------------------------
  */
   __Pyx_XDECREF(__pyx_r);
@@ -11585,7 +11585,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_22parse_while_statement(CYTHON_UN
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_3src_6parser_6Parser_25parse_break_statement(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_6parser_6Parser_25parse_break_statement(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -11593,7 +11593,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
 #endif
 ); /*proto*/
 static PyMethodDef __pyx_mdef_3src_6parser_6Parser_25parse_break_statement = {"parse_break_statement", (PyCFunction)(void*)(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_3src_6parser_6Parser_25parse_break_statement, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_3src_6parser_6Parser_25parse_break_statement(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_6parser_6Parser_25parse_break_statement(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -11698,7 +11698,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_24parse_break_statement(CYTHON_UN
  *     def parse_break_statement(self):
  *         self.expect(TokenType.JOOJI)             # <<<<<<<<<<<<<<
  *         return ASTNode(NodeType.BREAK_STATEMENT)
- * 
+ *
  */
   __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_expect); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 323, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
@@ -11736,7 +11736,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_24parse_break_statement(CYTHON_UN
  *     def parse_break_statement(self):
  *         self.expect(TokenType.JOOJI)
  *         return ASTNode(NodeType.BREAK_STATEMENT)             # <<<<<<<<<<<<<<
- * 
+ *
  *     # -----------------------------
  */
   __Pyx_XDECREF(__pyx_r);
@@ -11805,7 +11805,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_24parse_break_statement(CYTHON_UN
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_3src_6parser_6Parser_27parse_continue_statement(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_6parser_6Parser_27parse_continue_statement(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -11813,7 +11813,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
 #endif
 ); /*proto*/
 static PyMethodDef __pyx_mdef_3src_6parser_6Parser_27parse_continue_statement = {"parse_continue_statement", (PyCFunction)(void*)(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_3src_6parser_6Parser_27parse_continue_statement, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_3src_6parser_6Parser_27parse_continue_statement(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_6parser_6Parser_27parse_continue_statement(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -11918,7 +11918,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_26parse_continue_statement(CYTHON
  *     def parse_continue_statement(self):
  *         self.expect(TokenType.SII_WAD)             # <<<<<<<<<<<<<<
  *         return ASTNode(NodeType.CONTINUE_STATEMENT)
- * 
+ *
  */
   __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_expect); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 330, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
@@ -11956,7 +11956,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_26parse_continue_statement(CYTHON
  *     def parse_continue_statement(self):
  *         self.expect(TokenType.SII_WAD)
  *         return ASTNode(NodeType.CONTINUE_STATEMENT)             # <<<<<<<<<<<<<<
- * 
+ *
  *     # -----------------------------
  */
   __Pyx_XDECREF(__pyx_r);
@@ -12025,7 +12025,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_26parse_continue_statement(CYTHON
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_3src_6parser_6Parser_29parse_try_catch(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_6parser_6Parser_29parse_try_catch(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -12033,7 +12033,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
 #endif
 ); /*proto*/
 static PyMethodDef __pyx_mdef_3src_6parser_6Parser_29parse_try_catch = {"parse_try_catch", (PyCFunction)(void*)(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_3src_6parser_6Parser_29parse_try_catch, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_3src_6parser_6Parser_29parse_try_catch(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_6parser_6Parser_29parse_try_catch(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -12147,7 +12147,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_28parse_try_catch(CYTHON_UNUSED P
  *     def parse_try_catch(self):
  *         self.expect(TokenType.ISKU_DAY)             # <<<<<<<<<<<<<<
  *         self.expect(TokenType.LEFT_BRACE)
- * 
+ *
  */
   __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_expect); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 337, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
@@ -12185,7 +12185,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_28parse_try_catch(CYTHON_UNUSED P
  *     def parse_try_catch(self):
  *         self.expect(TokenType.ISKU_DAY)
  *         self.expect(TokenType.LEFT_BRACE)             # <<<<<<<<<<<<<<
- * 
+ *
  *         try_body = []
  */
   __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_expect); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 338, __pyx_L1_error)
@@ -12222,7 +12222,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_28parse_try_catch(CYTHON_UNUSED P
 
   /* "src/parser.py":340
  *         self.expect(TokenType.LEFT_BRACE)
- * 
+ *
  *         try_body = []             # <<<<<<<<<<<<<<
  *         while self.current_token.type != TokenType.RIGHT_BRACE:
  *             try_body.append(self.parse_statement())
@@ -12233,7 +12233,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_28parse_try_catch(CYTHON_UNUSED P
   __pyx_t_1 = 0;
 
   /* "src/parser.py":341
- * 
+ *
  *         try_body = []
  *         while self.current_token.type != TokenType.RIGHT_BRACE:             # <<<<<<<<<<<<<<
  *             try_body.append(self.parse_statement())
@@ -12262,7 +12262,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_28parse_try_catch(CYTHON_UNUSED P
  *         while self.current_token.type != TokenType.RIGHT_BRACE:
  *             try_body.append(self.parse_statement())             # <<<<<<<<<<<<<<
  *         self.expect(TokenType.RIGHT_BRACE)
- * 
+ *
  */
     __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_parse_statement); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 342, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
@@ -12296,7 +12296,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_28parse_try_catch(CYTHON_UNUSED P
  *         while self.current_token.type != TokenType.RIGHT_BRACE:
  *             try_body.append(self.parse_statement())
  *         self.expect(TokenType.RIGHT_BRACE)             # <<<<<<<<<<<<<<
- * 
+ *
  *         # parse 'qabo (errName)'
  */
   __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_expect); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 343, __pyx_L1_error)
@@ -12332,7 +12332,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_28parse_try_catch(CYTHON_UNUSED P
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "src/parser.py":346
- * 
+ *
  *         # parse 'qabo (errName)'
  *         self.expect(TokenType.QABO)             # <<<<<<<<<<<<<<
  *         self.expect(TokenType.LEFT_PAREN)
@@ -12468,7 +12468,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_28parse_try_catch(CYTHON_UNUSED P
  *         self.expect(TokenType.IDENTIFIER)
  *         self.expect(TokenType.RIGHT_PAREN)             # <<<<<<<<<<<<<<
  *         self.expect(TokenType.LEFT_BRACE)
- * 
+ *
  */
   __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_expect); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 350, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
@@ -12506,7 +12506,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_28parse_try_catch(CYTHON_UNUSED P
  *         self.expect(TokenType.IDENTIFIER)
  *         self.expect(TokenType.RIGHT_PAREN)
  *         self.expect(TokenType.LEFT_BRACE)             # <<<<<<<<<<<<<<
- * 
+ *
  *         catch_body = []
  */
   __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_expect); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 351, __pyx_L1_error)
@@ -12543,7 +12543,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_28parse_try_catch(CYTHON_UNUSED P
 
   /* "src/parser.py":353
  *         self.expect(TokenType.LEFT_BRACE)
- * 
+ *
  *         catch_body = []             # <<<<<<<<<<<<<<
  *         while self.current_token.type != TokenType.RIGHT_BRACE:
  *             catch_body.append(self.parse_statement())
@@ -12554,7 +12554,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_28parse_try_catch(CYTHON_UNUSED P
   __pyx_t_3 = 0;
 
   /* "src/parser.py":354
- * 
+ *
  *         catch_body = []
  *         while self.current_token.type != TokenType.RIGHT_BRACE:             # <<<<<<<<<<<<<<
  *             catch_body.append(self.parse_statement())
@@ -12583,7 +12583,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_28parse_try_catch(CYTHON_UNUSED P
  *         while self.current_token.type != TokenType.RIGHT_BRACE:
  *             catch_body.append(self.parse_statement())             # <<<<<<<<<<<<<<
  *         self.expect(TokenType.RIGHT_BRACE)
- * 
+ *
  */
     __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_parse_statement); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 355, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
@@ -12617,7 +12617,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_28parse_try_catch(CYTHON_UNUSED P
  *         while self.current_token.type != TokenType.RIGHT_BRACE:
  *             catch_body.append(self.parse_statement())
  *         self.expect(TokenType.RIGHT_BRACE)             # <<<<<<<<<<<<<<
- * 
+ *
  *         return ASTNode(NodeType.TRY_CATCH, value=error_var,
  */
   __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_expect); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 356, __pyx_L1_error)
@@ -12654,7 +12654,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_28parse_try_catch(CYTHON_UNUSED P
 
   /* "src/parser.py":358
  *         self.expect(TokenType.RIGHT_BRACE)
- * 
+ *
  *         return ASTNode(NodeType.TRY_CATCH, value=error_var,             # <<<<<<<<<<<<<<
  *                        children=[ASTNode(NodeType.BLOCK, children=try_body),
  *                                  ASTNode(NodeType.BLOCK, children=catch_body)])
@@ -12677,11 +12677,11 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_28parse_try_catch(CYTHON_UNUSED P
   if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_value, __pyx_v_error_var) < 0) __PYX_ERR(0, 358, __pyx_L1_error)
 
   /* "src/parser.py":359
- * 
+ *
  *         return ASTNode(NodeType.TRY_CATCH, value=error_var,
  *                        children=[ASTNode(NodeType.BLOCK, children=try_body),             # <<<<<<<<<<<<<<
  *                                  ASTNode(NodeType.BLOCK, children=catch_body)])
- * 
+ *
  */
   __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_ASTNode); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 359, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
@@ -12708,7 +12708,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_28parse_try_catch(CYTHON_UNUSED P
  *         return ASTNode(NodeType.TRY_CATCH, value=error_var,
  *                        children=[ASTNode(NodeType.BLOCK, children=try_body),
  *                                  ASTNode(NodeType.BLOCK, children=catch_body)])             # <<<<<<<<<<<<<<
- * 
+ *
  *     # -----------------------------
  */
   __Pyx_GetModuleGlobalName(__pyx_t_9, __pyx_n_s_ASTNode); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 360, __pyx_L1_error)
@@ -12733,11 +12733,11 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_28parse_try_catch(CYTHON_UNUSED P
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "src/parser.py":359
- * 
+ *
  *         return ASTNode(NodeType.TRY_CATCH, value=error_var,
  *                        children=[ASTNode(NodeType.BLOCK, children=try_body),             # <<<<<<<<<<<<<<
  *                                  ASTNode(NodeType.BLOCK, children=catch_body)])
- * 
+ *
  */
   __pyx_t_1 = PyList_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 359, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
@@ -12752,7 +12752,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_28parse_try_catch(CYTHON_UNUSED P
 
   /* "src/parser.py":358
  *         self.expect(TokenType.RIGHT_BRACE)
- * 
+ *
  *         return ASTNode(NodeType.TRY_CATCH, value=error_var,             # <<<<<<<<<<<<<<
  *                        children=[ASTNode(NodeType.BLOCK, children=try_body),
  *                                  ASTNode(NodeType.BLOCK, children=catch_body)])
@@ -12804,7 +12804,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_28parse_try_catch(CYTHON_UNUSED P
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_3src_6parser_6Parser_31parse_class_definition(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_6parser_6Parser_31parse_class_definition(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -12812,7 +12812,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
 #endif
 ); /*proto*/
 static PyMethodDef __pyx_mdef_3src_6parser_6Parser_31parse_class_definition = {"parse_class_definition", (PyCFunction)(void*)(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_3src_6parser_6Parser_31parse_class_definition, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_3src_6parser_6Parser_31parse_class_definition(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_6parser_6Parser_31parse_class_definition(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -12962,7 +12962,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_30parse_class_definition(CYTHON_U
  *         self.expect(TokenType.FASALKA)
  *         class_name = self.current_token.value             # <<<<<<<<<<<<<<
  *         self.expect(TokenType.IDENTIFIER)
- * 
+ *
  */
   __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_current_token); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 367, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
@@ -12976,7 +12976,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_30parse_class_definition(CYTHON_U
  *         self.expect(TokenType.FASALKA)
  *         class_name = self.current_token.value
  *         self.expect(TokenType.IDENTIFIER)             # <<<<<<<<<<<<<<
- * 
+ *
  *         parent_name = None
  */
   __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_expect); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 368, __pyx_L1_error)
@@ -13013,7 +13013,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_30parse_class_definition(CYTHON_U
 
   /* "src/parser.py":370
  *         self.expect(TokenType.IDENTIFIER)
- * 
+ *
  *         parent_name = None             # <<<<<<<<<<<<<<
  *         if self.current_token.type == TokenType.KA_DHAXAL:
  *             self.advance()  # consume 'ka_dhaxal'
@@ -13022,7 +13022,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_30parse_class_definition(CYTHON_U
   __pyx_v_parent_name = Py_None;
 
   /* "src/parser.py":371
- * 
+ *
  *         parent_name = None
  *         if self.current_token.type == TokenType.KA_DHAXAL:             # <<<<<<<<<<<<<<
  *             self.advance()  # consume 'ka_dhaxal'
@@ -13083,7 +13083,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_30parse_class_definition(CYTHON_U
  *             self.advance()  # consume 'ka_dhaxal'
  *             parent_name = self.current_token.value             # <<<<<<<<<<<<<<
  *             self.expect(TokenType.IDENTIFIER)
- * 
+ *
  */
     __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_current_token); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 373, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
@@ -13097,7 +13097,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_30parse_class_definition(CYTHON_U
  *             self.advance()  # consume 'ka_dhaxal'
  *             parent_name = self.current_token.value
  *             self.expect(TokenType.IDENTIFIER)             # <<<<<<<<<<<<<<
- * 
+ *
  *         self.expect(TokenType.LEFT_BRACE)
  */
     __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_expect); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 374, __pyx_L1_error)
@@ -13133,7 +13133,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_30parse_class_definition(CYTHON_U
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
     /* "src/parser.py":371
- * 
+ *
  *         parent_name = None
  *         if self.current_token.type == TokenType.KA_DHAXAL:             # <<<<<<<<<<<<<<
  *             self.advance()  # consume 'ka_dhaxal'
@@ -13143,9 +13143,9 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_30parse_class_definition(CYTHON_U
 
   /* "src/parser.py":376
  *             self.expect(TokenType.IDENTIFIER)
- * 
+ *
  *         self.expect(TokenType.LEFT_BRACE)             # <<<<<<<<<<<<<<
- * 
+ *
  *         # For simplicity, parse the body as statements
  */
   __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_expect); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 376, __pyx_L1_error)
@@ -13181,7 +13181,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_30parse_class_definition(CYTHON_U
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
   /* "src/parser.py":379
- * 
+ *
  *         # For simplicity, parse the body as statements
  *         class_body = []             # <<<<<<<<<<<<<<
  *         while self.current_token.type != TokenType.RIGHT_BRACE:
@@ -13222,7 +13222,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_30parse_class_definition(CYTHON_U
  *         while self.current_token.type != TokenType.RIGHT_BRACE:
  *             class_body.append(self.parse_statement())             # <<<<<<<<<<<<<<
  *         self.expect(TokenType.RIGHT_BRACE)
- * 
+ *
  */
     __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_parse_statement); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 381, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
@@ -13256,7 +13256,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_30parse_class_definition(CYTHON_U
  *         while self.current_token.type != TokenType.RIGHT_BRACE:
  *             class_body.append(self.parse_statement())
  *         self.expect(TokenType.RIGHT_BRACE)             # <<<<<<<<<<<<<<
- * 
+ *
  *         node = ASTNode(NodeType.CLASS_DEFINITION,
  */
   __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_expect); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 382, __pyx_L1_error)
@@ -13293,7 +13293,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_30parse_class_definition(CYTHON_U
 
   /* "src/parser.py":384
  *         self.expect(TokenType.RIGHT_BRACE)
- * 
+ *
  *         node = ASTNode(NodeType.CLASS_DEFINITION,             # <<<<<<<<<<<<<<
  *                        value=class_name, children=class_body)
  *         # if parent, store it in node.value or create a separate property
@@ -13312,7 +13312,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_30parse_class_definition(CYTHON_U
   __pyx_t_4 = 0;
 
   /* "src/parser.py":385
- * 
+ *
  *         node = ASTNode(NodeType.CLASS_DEFINITION,
  *                        value=class_name, children=class_body)             # <<<<<<<<<<<<<<
  *         # if parent, store it in node.value or create a separate property
@@ -13325,7 +13325,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_30parse_class_definition(CYTHON_U
 
   /* "src/parser.py":384
  *         self.expect(TokenType.RIGHT_BRACE)
- * 
+ *
  *         node = ASTNode(NodeType.CLASS_DEFINITION,             # <<<<<<<<<<<<<<
  *                        value=class_name, children=class_body)
  *         # if parent, store it in node.value or create a separate property
@@ -13353,7 +13353,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_30parse_class_definition(CYTHON_U
  *         if parent_name:
  *             node.value = (class_name, parent_name)             # <<<<<<<<<<<<<<
  *         return node
- * 
+ *
  */
     __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 388, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
@@ -13379,7 +13379,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_30parse_class_definition(CYTHON_U
  *         if parent_name:
  *             node.value = (class_name, parent_name)
  *         return node             # <<<<<<<<<<<<<<
- * 
+ *
  *     # -----------------------------
  */
   __Pyx_XDECREF(__pyx_r);
@@ -13418,11 +13418,11 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_30parse_class_definition(CYTHON_U
  *     # -----------------------------
  *     def parse_list_literal(self):             # <<<<<<<<<<<<<<
  *         self.expect(TokenType.LEFT_BRACKET)
- * 
+ *
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_3src_6parser_6Parser_33parse_list_literal(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_6parser_6Parser_33parse_list_literal(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -13430,7 +13430,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
 #endif
 ); /*proto*/
 static PyMethodDef __pyx_mdef_3src_6parser_6Parser_33parse_list_literal = {"parse_list_literal", (PyCFunction)(void*)(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_3src_6parser_6Parser_33parse_list_literal, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_3src_6parser_6Parser_33parse_list_literal(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_6parser_6Parser_33parse_list_literal(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -13537,7 +13537,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_32parse_list_literal(CYTHON_UNUSE
  *     # -----------------------------
  *     def parse_list_literal(self):
  *         self.expect(TokenType.LEFT_BRACKET)             # <<<<<<<<<<<<<<
- * 
+ *
  *         elements = []
  */
   __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_expect); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 395, __pyx_L1_error)
@@ -13574,7 +13574,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_32parse_list_literal(CYTHON_UNUSE
 
   /* "src/parser.py":397
  *         self.expect(TokenType.LEFT_BRACKET)
- * 
+ *
  *         elements = []             # <<<<<<<<<<<<<<
  *         while self.current_token.type != TokenType.RIGHT_BRACKET:
  *             elements.append(self.parse_expression())
@@ -13585,7 +13585,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_32parse_list_literal(CYTHON_UNUSE
   __pyx_t_1 = 0;
 
   /* "src/parser.py":398
- * 
+ *
  *         elements = []
  *         while self.current_token.type != TokenType.RIGHT_BRACKET:             # <<<<<<<<<<<<<<
  *             elements.append(self.parse_expression())
@@ -13714,7 +13714,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_32parse_list_literal(CYTHON_UNUSE
  *                 self.advance()
  *             else:
  *                 break             # <<<<<<<<<<<<<<
- * 
+ *
  *         self.expect(TokenType.RIGHT_BRACKET)
  */
     /*else*/ {
@@ -13726,10 +13726,10 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_32parse_list_literal(CYTHON_UNUSE
 
   /* "src/parser.py":405
  *                 break
- * 
+ *
  *         self.expect(TokenType.RIGHT_BRACKET)             # <<<<<<<<<<<<<<
  *         return ASTNode(NodeType.LIST_LITERAL, children=elements)
- * 
+ *
  */
   __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_expect); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 405, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
@@ -13764,10 +13764,10 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_32parse_list_literal(CYTHON_UNUSE
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "src/parser.py":406
- * 
+ *
  *         self.expect(TokenType.RIGHT_BRACKET)
  *         return ASTNode(NodeType.LIST_LITERAL, children=elements)             # <<<<<<<<<<<<<<
- * 
+ *
  *     # -----------------------------
  */
   __Pyx_XDECREF(__pyx_r);
@@ -13800,7 +13800,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_32parse_list_literal(CYTHON_UNUSE
  *     # -----------------------------
  *     def parse_list_literal(self):             # <<<<<<<<<<<<<<
  *         self.expect(TokenType.LEFT_BRACKET)
- * 
+ *
  */
 
   /* function exit code */
@@ -13823,11 +13823,11 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_32parse_list_literal(CYTHON_UNUSE
  *     # -----------------------------
  *     def parse_object_literal(self):             # <<<<<<<<<<<<<<
  *         self.expect(TokenType.LEFT_BRACE)
- * 
+ *
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_3src_6parser_6Parser_35parse_object_literal(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_6parser_6Parser_35parse_object_literal(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -13835,7 +13835,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
 #endif
 ); /*proto*/
 static PyMethodDef __pyx_mdef_3src_6parser_6Parser_35parse_object_literal = {"parse_object_literal", (PyCFunction)(void*)(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_3src_6parser_6Parser_35parse_object_literal, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_3src_6parser_6Parser_35parse_object_literal(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_6parser_6Parser_35parse_object_literal(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -13946,7 +13946,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_34parse_object_literal(CYTHON_UNU
  *     # -----------------------------
  *     def parse_object_literal(self):
  *         self.expect(TokenType.LEFT_BRACE)             # <<<<<<<<<<<<<<
- * 
+ *
  *         properties = []
  */
   __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_expect); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 412, __pyx_L1_error)
@@ -13983,7 +13983,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_34parse_object_literal(CYTHON_UNU
 
   /* "src/parser.py":414
  *         self.expect(TokenType.LEFT_BRACE)
- * 
+ *
  *         properties = []             # <<<<<<<<<<<<<<
  *         while self.current_token.type != TokenType.RIGHT_BRACE:
  *             # Property key
@@ -13994,7 +13994,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_34parse_object_literal(CYTHON_UNU
   __pyx_t_1 = 0;
 
   /* "src/parser.py":415
- * 
+ *
  *         properties = []
  *         while self.current_token.type != TokenType.RIGHT_BRACE:             # <<<<<<<<<<<<<<
  *             # Property key
@@ -14127,7 +14127,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_34parse_object_literal(CYTHON_UNU
  *             else:
  *                 raise ParserError(             # <<<<<<<<<<<<<<
  *                     "Expected property name as identifier or string", self.current_token)
- * 
+ *
  */
     /*else*/ {
       __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_ParserError); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 421, __pyx_L1_error)
@@ -14137,7 +14137,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_34parse_object_literal(CYTHON_UNU
  *             else:
  *                 raise ParserError(
  *                     "Expected property name as identifier or string", self.current_token)             # <<<<<<<<<<<<<<
- * 
+ *
  *             # Colon separator
  */
       __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_current_token); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 422, __pyx_L1_error)
@@ -14172,10 +14172,10 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_34parse_object_literal(CYTHON_UNU
     __pyx_L5:;
 
     /* "src/parser.py":425
- * 
+ *
  *             # Colon separator
  *             self.expect(TokenType.COLON)             # <<<<<<<<<<<<<<
- * 
+ *
  *             # Property value
  */
     __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_expect); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 425, __pyx_L1_error)
@@ -14211,10 +14211,10 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_34parse_object_literal(CYTHON_UNU
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
     /* "src/parser.py":428
- * 
+ *
  *             # Property value
  *             value = self.parse_expression()             # <<<<<<<<<<<<<<
- * 
+ *
  *             # Create a property node with key as value and expression as child
  */
     __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_parse_expression); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 428, __pyx_L1_error)
@@ -14245,7 +14245,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_34parse_object_literal(CYTHON_UNU
     __pyx_t_4 = 0;
 
     /* "src/parser.py":431
- * 
+ *
  *             # Create a property node with key as value and expression as child
  *             property_node = ASTNode(             # <<<<<<<<<<<<<<
  *                 NodeType.LITERAL, value=key, children=[value])
@@ -14259,7 +14259,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_34parse_object_literal(CYTHON_UNU
  *             property_node = ASTNode(
  *                 NodeType.LITERAL, value=key, children=[value])             # <<<<<<<<<<<<<<
  *             properties.append(property_node)
- * 
+ *
  */
     __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_NodeType); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 432, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
@@ -14268,7 +14268,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_34parse_object_literal(CYTHON_UNU
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
     /* "src/parser.py":431
- * 
+ *
  *             # Create a property node with key as value and expression as child
  *             property_node = ASTNode(             # <<<<<<<<<<<<<<
  *                 NodeType.LITERAL, value=key, children=[value])
@@ -14285,7 +14285,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_34parse_object_literal(CYTHON_UNU
  *             property_node = ASTNode(
  *                 NodeType.LITERAL, value=key, children=[value])             # <<<<<<<<<<<<<<
  *             properties.append(property_node)
- * 
+ *
  */
     __pyx_t_3 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 432, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
@@ -14299,7 +14299,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_34parse_object_literal(CYTHON_UNU
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
     /* "src/parser.py":431
- * 
+ *
  *             # Create a property node with key as value and expression as child
  *             property_node = ASTNode(             # <<<<<<<<<<<<<<
  *                 NodeType.LITERAL, value=key, children=[value])
@@ -14317,14 +14317,14 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_34parse_object_literal(CYTHON_UNU
  *             property_node = ASTNode(
  *                 NodeType.LITERAL, value=key, children=[value])
  *             properties.append(property_node)             # <<<<<<<<<<<<<<
- * 
+ *
  *             if self.current_token.type == TokenType.COMMA:
  */
     __pyx_t_8 = __Pyx_PyList_Append(__pyx_v_properties, __pyx_v_property_node); if (unlikely(__pyx_t_8 == ((int)-1))) __PYX_ERR(0, 433, __pyx_L1_error)
 
     /* "src/parser.py":435
  *             properties.append(property_node)
- * 
+ *
  *             if self.current_token.type == TokenType.COMMA:             # <<<<<<<<<<<<<<
  *                 self.advance()
  *             else:
@@ -14347,7 +14347,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_34parse_object_literal(CYTHON_UNU
     if (__pyx_t_6) {
 
       /* "src/parser.py":436
- * 
+ *
  *             if self.current_token.type == TokenType.COMMA:
  *                 self.advance()             # <<<<<<<<<<<<<<
  *             else:
@@ -14381,7 +14381,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_34parse_object_literal(CYTHON_UNU
 
       /* "src/parser.py":435
  *             properties.append(property_node)
- * 
+ *
  *             if self.current_token.type == TokenType.COMMA:             # <<<<<<<<<<<<<<
  *                 self.advance()
  *             else:
@@ -14393,7 +14393,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_34parse_object_literal(CYTHON_UNU
  *                 self.advance()
  *             else:
  *                 break             # <<<<<<<<<<<<<<
- * 
+ *
  *         self.expect(TokenType.RIGHT_BRACE)
  */
     /*else*/ {
@@ -14405,10 +14405,10 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_34parse_object_literal(CYTHON_UNU
 
   /* "src/parser.py":440
  *                 break
- * 
+ *
  *         self.expect(TokenType.RIGHT_BRACE)             # <<<<<<<<<<<<<<
  *         return ASTNode(NodeType.OBJECT_LITERAL, children=properties)
- * 
+ *
  */
   __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_expect); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 440, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
@@ -14443,10 +14443,10 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_34parse_object_literal(CYTHON_UNU
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
   /* "src/parser.py":441
- * 
+ *
  *         self.expect(TokenType.RIGHT_BRACE)
  *         return ASTNode(NodeType.OBJECT_LITERAL, children=properties)             # <<<<<<<<<<<<<<
- * 
+ *
  *     # -----------------------------
  */
   __Pyx_XDECREF(__pyx_r);
@@ -14479,7 +14479,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_34parse_object_literal(CYTHON_UNU
  *     # -----------------------------
  *     def parse_object_literal(self):             # <<<<<<<<<<<<<<
  *         self.expect(TokenType.LEFT_BRACE)
- * 
+ *
  */
 
   /* function exit code */
@@ -14505,11 +14505,11 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_34parse_object_literal(CYTHON_UNU
  *     # -----------------------------
  *     def parse_property_access(self, left):             # <<<<<<<<<<<<<<
  *         self.expect(TokenType.DOT)
- * 
+ *
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_3src_6parser_6Parser_37parse_property_access(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_6parser_6Parser_37parse_property_access(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -14517,7 +14517,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
 #endif
 ); /*proto*/
 static PyMethodDef __pyx_mdef_3src_6parser_6Parser_37parse_property_access = {"parse_property_access", (PyCFunction)(void*)(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_3src_6parser_6Parser_37parse_property_access, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_3src_6parser_6Parser_37parse_property_access(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_6parser_6Parser_37parse_property_access(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -14638,7 +14638,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_36parse_property_access(CYTHON_UN
  *     # -----------------------------
  *     def parse_property_access(self, left):
  *         self.expect(TokenType.DOT)             # <<<<<<<<<<<<<<
- * 
+ *
  *         if self.current_token.type != TokenType.IDENTIFIER:
  */
   __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_expect); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 447, __pyx_L1_error)
@@ -14675,7 +14675,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_36parse_property_access(CYTHON_UN
 
   /* "src/parser.py":449
  *         self.expect(TokenType.DOT)
- * 
+ *
  *         if self.current_token.type != TokenType.IDENTIFIER:             # <<<<<<<<<<<<<<
  *             raise ParserError(
  *                 "Expected property name after dot", self.current_token)
@@ -14698,11 +14698,11 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_36parse_property_access(CYTHON_UN
   if (unlikely(__pyx_t_6)) {
 
     /* "src/parser.py":450
- * 
+ *
  *         if self.current_token.type != TokenType.IDENTIFIER:
  *             raise ParserError(             # <<<<<<<<<<<<<<
  *                 "Expected property name after dot", self.current_token)
- * 
+ *
  */
     __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_ParserError); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 450, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
@@ -14711,7 +14711,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_36parse_property_access(CYTHON_UN
  *         if self.current_token.type != TokenType.IDENTIFIER:
  *             raise ParserError(
  *                 "Expected property name after dot", self.current_token)             # <<<<<<<<<<<<<<
- * 
+ *
  *         property_name = self.current_token.value
  */
     __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_current_token); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 451, __pyx_L1_error)
@@ -14745,7 +14745,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_36parse_property_access(CYTHON_UN
 
     /* "src/parser.py":449
  *         self.expect(TokenType.DOT)
- * 
+ *
  *         if self.current_token.type != TokenType.IDENTIFIER:             # <<<<<<<<<<<<<<
  *             raise ParserError(
  *                 "Expected property name after dot", self.current_token)
@@ -14754,10 +14754,10 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_36parse_property_access(CYTHON_UN
 
   /* "src/parser.py":453
  *                 "Expected property name after dot", self.current_token)
- * 
+ *
  *         property_name = self.current_token.value             # <<<<<<<<<<<<<<
  *         self.advance()
- * 
+ *
  */
   __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_current_token); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 453, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
@@ -14768,10 +14768,10 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_36parse_property_access(CYTHON_UN
   __pyx_t_4 = 0;
 
   /* "src/parser.py":454
- * 
+ *
  *         property_name = self.current_token.value
  *         self.advance()             # <<<<<<<<<<<<<<
- * 
+ *
  *         return ASTNode(NodeType.PROPERTY_ACCESS, value=property_name, children=[left])
  */
   __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_advance); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 454, __pyx_L1_error)
@@ -14802,9 +14802,9 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_36parse_property_access(CYTHON_UN
 
   /* "src/parser.py":456
  *         self.advance()
- * 
+ *
  *         return ASTNode(NodeType.PROPERTY_ACCESS, value=property_name, children=[left])             # <<<<<<<<<<<<<<
- * 
+ *
  *     # -----------------------------
  */
   __Pyx_XDECREF(__pyx_r);
@@ -14844,7 +14844,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_36parse_property_access(CYTHON_UN
  *     # -----------------------------
  *     def parse_property_access(self, left):             # <<<<<<<<<<<<<<
  *         self.expect(TokenType.DOT)
- * 
+ *
  */
 
   /* function exit code */
@@ -14871,7 +14871,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_36parse_property_access(CYTHON_UN
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_3src_6parser_6Parser_39parse_index_access(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_6parser_6Parser_39parse_index_access(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -14879,7 +14879,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
 #endif
 ); /*proto*/
 static PyMethodDef __pyx_mdef_3src_6parser_6Parser_39parse_index_access = {"parse_index_access", (PyCFunction)(void*)(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_3src_6parser_6Parser_39parse_index_access, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_3src_6parser_6Parser_39parse_index_access(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_6parser_6Parser_39parse_index_access(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -15039,7 +15039,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_38parse_index_access(CYTHON_UNUSE
  *         self.expect(TokenType.LEFT_BRACKET)
  *         index = self.parse_expression()             # <<<<<<<<<<<<<<
  *         self.expect(TokenType.RIGHT_BRACKET)
- * 
+ *
  */
   __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_parse_expression); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 463, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
@@ -15072,7 +15072,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_38parse_index_access(CYTHON_UNUSE
  *         self.expect(TokenType.LEFT_BRACKET)
  *         index = self.parse_expression()
  *         self.expect(TokenType.RIGHT_BRACKET)             # <<<<<<<<<<<<<<
- * 
+ *
  *         return ASTNode(NodeType.INDEX_ACCESS, children=[left, index])
  */
   __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_expect); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 464, __pyx_L1_error)
@@ -15109,9 +15109,9 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_38parse_index_access(CYTHON_UNUSE
 
   /* "src/parser.py":466
  *         self.expect(TokenType.RIGHT_BRACKET)
- * 
+ *
  *         return ASTNode(NodeType.INDEX_ACCESS, children=[left, index])             # <<<<<<<<<<<<<<
- * 
+ *
  *     # -----------------------------
  */
   __Pyx_XDECREF(__pyx_r);
@@ -15176,11 +15176,11 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_38parse_index_access(CYTHON_UNUSE
  *     # -----------------------------
  *     def parse_logical_expression(self):             # <<<<<<<<<<<<<<
  *         left = self.parse_comparison_expression()
- * 
+ *
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_3src_6parser_6Parser_41parse_logical_expression(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_6parser_6Parser_41parse_logical_expression(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -15188,7 +15188,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
 #endif
 ); /*proto*/
 static PyMethodDef __pyx_mdef_3src_6parser_6Parser_41parse_logical_expression = {"parse_logical_expression", (PyCFunction)(void*)(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_3src_6parser_6Parser_41parse_logical_expression, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_3src_6parser_6Parser_41parse_logical_expression(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_6parser_6Parser_41parse_logical_expression(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -15297,7 +15297,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_40parse_logical_expression(CYTHON
  *     # -----------------------------
  *     def parse_logical_expression(self):
  *         left = self.parse_comparison_expression()             # <<<<<<<<<<<<<<
- * 
+ *
  *         while self.current_token.type in (TokenType.AND, TokenType.OR):
  */
   __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_parse_comparison_expression); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 472, __pyx_L1_error)
@@ -15329,7 +15329,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_40parse_logical_expression(CYTHON
 
   /* "src/parser.py":474
  *         left = self.parse_comparison_expression()
- * 
+ *
  *         while self.current_token.type in (TokenType.AND, TokenType.OR):             # <<<<<<<<<<<<<<
  *             op_token = self.current_token
  *             self.advance()
@@ -15370,7 +15370,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_40parse_logical_expression(CYTHON
     if (!__pyx_t_6) break;
 
     /* "src/parser.py":475
- * 
+ *
  *         while self.current_token.type in (TokenType.AND, TokenType.OR):
  *             op_token = self.current_token             # <<<<<<<<<<<<<<
  *             self.advance()
@@ -15453,7 +15453,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_40parse_logical_expression(CYTHON
  *             right = self.parse_comparison_expression()
  *             left = ASTNode(NodeType.BINARY_OPERATION,             # <<<<<<<<<<<<<<
  *                            value=op_token.value, children=[left, right])
- * 
+ *
  */
     __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_ASTNode); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 478, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
@@ -15472,7 +15472,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_40parse_logical_expression(CYTHON
  *             right = self.parse_comparison_expression()
  *             left = ASTNode(NodeType.BINARY_OPERATION,
  *                            value=op_token.value, children=[left, right])             # <<<<<<<<<<<<<<
- * 
+ *
  *         return left
  */
     __pyx_t_3 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 479, __pyx_L1_error)
@@ -15497,7 +15497,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_40parse_logical_expression(CYTHON
  *             right = self.parse_comparison_expression()
  *             left = ASTNode(NodeType.BINARY_OPERATION,             # <<<<<<<<<<<<<<
  *                            value=op_token.value, children=[left, right])
- * 
+ *
  */
     __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_1, __pyx_t_3); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 478, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
@@ -15510,9 +15510,9 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_40parse_logical_expression(CYTHON
 
   /* "src/parser.py":481
  *                            value=op_token.value, children=[left, right])
- * 
+ *
  *         return left             # <<<<<<<<<<<<<<
- * 
+ *
  *     def parse_comparison_expression(self):
  */
   __Pyx_XDECREF(__pyx_r);
@@ -15525,7 +15525,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_40parse_logical_expression(CYTHON
  *     # -----------------------------
  *     def parse_logical_expression(self):             # <<<<<<<<<<<<<<
  *         left = self.parse_comparison_expression()
- * 
+ *
  */
 
   /* function exit code */
@@ -15547,14 +15547,14 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_40parse_logical_expression(CYTHON
 
 /* "src/parser.py":483
  *         return left
- * 
+ *
  *     def parse_comparison_expression(self):             # <<<<<<<<<<<<<<
  *         left = self.parse_expression()
- * 
+ *
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_3src_6parser_6Parser_43parse_comparison_expression(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_6parser_6Parser_43parse_comparison_expression(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -15562,7 +15562,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
 #endif
 ); /*proto*/
 static PyMethodDef __pyx_mdef_3src_6parser_6Parser_43parse_comparison_expression = {"parse_comparison_expression", (PyCFunction)(void*)(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_3src_6parser_6Parser_43parse_comparison_expression, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_3src_6parser_6Parser_43parse_comparison_expression(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_6parser_6Parser_43parse_comparison_expression(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -15669,10 +15669,10 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_42parse_comparison_expression(CYT
   __Pyx_RefNannySetupContext("parse_comparison_expression", 1);
 
   /* "src/parser.py":484
- * 
+ *
  *     def parse_comparison_expression(self):
  *         left = self.parse_expression()             # <<<<<<<<<<<<<<
- * 
+ *
  *         while self.current_token.type in (
  */
   __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_parse_expression); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 484, __pyx_L1_error)
@@ -15704,7 +15704,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_42parse_comparison_expression(CYT
 
   /* "src/parser.py":486
  *         left = self.parse_expression()
- * 
+ *
  *         while self.current_token.type in (             # <<<<<<<<<<<<<<
  *             TokenType.GREATER, TokenType.LESS,
  *             TokenType.GREATER_EQUAL, TokenType.LESS_EQUAL,
@@ -15717,7 +15717,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_42parse_comparison_expression(CYT
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
     /* "src/parser.py":487
- * 
+ *
  *         while self.current_token.type in (
  *             TokenType.GREATER, TokenType.LESS,             # <<<<<<<<<<<<<<
  *             TokenType.GREATER_EQUAL, TokenType.LESS_EQUAL,
@@ -15733,7 +15733,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_42parse_comparison_expression(CYT
 
     /* "src/parser.py":486
  *         left = self.parse_expression()
- * 
+ *
  *         while self.current_token.type in (             # <<<<<<<<<<<<<<
  *             TokenType.GREATER, TokenType.LESS,
  *             TokenType.GREATER_EQUAL, TokenType.LESS_EQUAL,
@@ -15747,7 +15747,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_42parse_comparison_expression(CYT
     }
 
     /* "src/parser.py":487
- * 
+ *
  *         while self.current_token.type in (
  *             TokenType.GREATER, TokenType.LESS,             # <<<<<<<<<<<<<<
  *             TokenType.GREATER_EQUAL, TokenType.LESS_EQUAL,
@@ -15763,7 +15763,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_42parse_comparison_expression(CYT
 
     /* "src/parser.py":486
  *         left = self.parse_expression()
- * 
+ *
  *         while self.current_token.type in (             # <<<<<<<<<<<<<<
  *             TokenType.GREATER, TokenType.LESS,
  *             TokenType.GREATER_EQUAL, TokenType.LESS_EQUAL,
@@ -15793,7 +15793,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_42parse_comparison_expression(CYT
 
     /* "src/parser.py":486
  *         left = self.parse_expression()
- * 
+ *
  *         while self.current_token.type in (             # <<<<<<<<<<<<<<
  *             TokenType.GREATER, TokenType.LESS,
  *             TokenType.GREATER_EQUAL, TokenType.LESS_EQUAL,
@@ -15823,7 +15823,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_42parse_comparison_expression(CYT
 
     /* "src/parser.py":486
  *         left = self.parse_expression()
- * 
+ *
  *         while self.current_token.type in (             # <<<<<<<<<<<<<<
  *             TokenType.GREATER, TokenType.LESS,
  *             TokenType.GREATER_EQUAL, TokenType.LESS_EQUAL,
@@ -15853,7 +15853,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_42parse_comparison_expression(CYT
 
     /* "src/parser.py":486
  *         left = self.parse_expression()
- * 
+ *
  *         while self.current_token.type in (             # <<<<<<<<<<<<<<
  *             TokenType.GREATER, TokenType.LESS,
  *             TokenType.GREATER_EQUAL, TokenType.LESS_EQUAL,
@@ -15883,7 +15883,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_42parse_comparison_expression(CYT
 
     /* "src/parser.py":486
  *         left = self.parse_expression()
- * 
+ *
  *         while self.current_token.type in (             # <<<<<<<<<<<<<<
  *             TokenType.GREATER, TokenType.LESS,
  *             TokenType.GREATER_EQUAL, TokenType.LESS_EQUAL,
@@ -15901,7 +15901,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_42parse_comparison_expression(CYT
  *         ):
  *             op_token = self.current_token             # <<<<<<<<<<<<<<
  *             self.advance()
- * 
+ *
  */
     __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_current_token); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 491, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
@@ -15912,7 +15912,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_42parse_comparison_expression(CYT
  *         ):
  *             op_token = self.current_token
  *             self.advance()             # <<<<<<<<<<<<<<
- * 
+ *
  *             if op_token.type == TokenType.EQUAL and self.current_token.type == TokenType.EQUAL:
  */
     __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_advance); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 492, __pyx_L1_error)
@@ -15943,7 +15943,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_42parse_comparison_expression(CYT
 
     /* "src/parser.py":494
  *             self.advance()
- * 
+ *
  *             if op_token.type == TokenType.EQUAL and self.current_token.type == TokenType.EQUAL:             # <<<<<<<<<<<<<<
  *                 operator_value = "=="
  *                 self.advance()
@@ -15985,7 +15985,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_42parse_comparison_expression(CYT
     if (__pyx_t_6) {
 
       /* "src/parser.py":495
- * 
+ *
  *             if op_token.type == TokenType.EQUAL and self.current_token.type == TokenType.EQUAL:
  *                 operator_value = "=="             # <<<<<<<<<<<<<<
  *                 self.advance()
@@ -16029,7 +16029,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_42parse_comparison_expression(CYT
 
       /* "src/parser.py":494
  *             self.advance()
- * 
+ *
  *             if op_token.type == TokenType.EQUAL and self.current_token.type == TokenType.EQUAL:             # <<<<<<<<<<<<<<
  *                 operator_value = "=="
  *                 self.advance()
@@ -16041,7 +16041,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_42parse_comparison_expression(CYT
  *                 self.advance()
  *             else:
  *                 operator_value = op_token.value             # <<<<<<<<<<<<<<
- * 
+ *
  *             right = self.parse_expression()
  */
     /*else*/ {
@@ -16054,7 +16054,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_42parse_comparison_expression(CYT
 
     /* "src/parser.py":500
  *                 operator_value = op_token.value
- * 
+ *
  *             right = self.parse_expression()             # <<<<<<<<<<<<<<
  *             left = ASTNode(NodeType.BINARY_OPERATION,
  *                            value=operator_value, children=[left, right])
@@ -16087,11 +16087,11 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_42parse_comparison_expression(CYT
     __pyx_t_1 = 0;
 
     /* "src/parser.py":501
- * 
+ *
  *             right = self.parse_expression()
  *             left = ASTNode(NodeType.BINARY_OPERATION,             # <<<<<<<<<<<<<<
  *                            value=operator_value, children=[left, right])
- * 
+ *
  */
     __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_ASTNode); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 501, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
@@ -16110,7 +16110,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_42parse_comparison_expression(CYT
  *             right = self.parse_expression()
  *             left = ASTNode(NodeType.BINARY_OPERATION,
  *                            value=operator_value, children=[left, right])             # <<<<<<<<<<<<<<
- * 
+ *
  *         return left
  */
     __pyx_t_3 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 502, __pyx_L1_error)
@@ -16128,11 +16128,11 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_42parse_comparison_expression(CYT
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
 
     /* "src/parser.py":501
- * 
+ *
  *             right = self.parse_expression()
  *             left = ASTNode(NodeType.BINARY_OPERATION,             # <<<<<<<<<<<<<<
  *                            value=operator_value, children=[left, right])
- * 
+ *
  */
     __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 501, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
@@ -16145,9 +16145,9 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_42parse_comparison_expression(CYT
 
   /* "src/parser.py":504
  *                            value=operator_value, children=[left, right])
- * 
+ *
  *         return left             # <<<<<<<<<<<<<<
- * 
+ *
  *     def parse_expression(self):
  */
   __Pyx_XDECREF(__pyx_r);
@@ -16157,10 +16157,10 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_42parse_comparison_expression(CYT
 
   /* "src/parser.py":483
  *         return left
- * 
+ *
  *     def parse_comparison_expression(self):             # <<<<<<<<<<<<<<
  *         left = self.parse_expression()
- * 
+ *
  */
 
   /* function exit code */
@@ -16183,14 +16183,14 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_42parse_comparison_expression(CYT
 
 /* "src/parser.py":506
  *         return left
- * 
+ *
  *     def parse_expression(self):             # <<<<<<<<<<<<<<
  *         left = self.parse_term()
- * 
+ *
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_3src_6parser_6Parser_45parse_expression(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_6parser_6Parser_45parse_expression(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -16198,7 +16198,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
 #endif
 ); /*proto*/
 static PyMethodDef __pyx_mdef_3src_6parser_6Parser_45parse_expression = {"parse_expression", (PyCFunction)(void*)(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_3src_6parser_6Parser_45parse_expression, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_3src_6parser_6Parser_45parse_expression(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_6parser_6Parser_45parse_expression(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -16304,10 +16304,10 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_44parse_expression(CYTHON_UNUSED 
   __Pyx_RefNannySetupContext("parse_expression", 1);
 
   /* "src/parser.py":507
- * 
+ *
  *     def parse_expression(self):
  *         left = self.parse_term()             # <<<<<<<<<<<<<<
- * 
+ *
  *         while self.current_token.type in (TokenType.PLUS, TokenType.MINUS):
  */
   __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_parse_term); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 507, __pyx_L1_error)
@@ -16339,7 +16339,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_44parse_expression(CYTHON_UNUSED 
 
   /* "src/parser.py":509
  *         left = self.parse_term()
- * 
+ *
  *         while self.current_token.type in (TokenType.PLUS, TokenType.MINUS):             # <<<<<<<<<<<<<<
  *             op = self.current_token
  *             self.advance()
@@ -16380,7 +16380,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_44parse_expression(CYTHON_UNUSED 
     if (!__pyx_t_6) break;
 
     /* "src/parser.py":510
- * 
+ *
  *         while self.current_token.type in (TokenType.PLUS, TokenType.MINUS):
  *             op = self.current_token             # <<<<<<<<<<<<<<
  *             self.advance()
@@ -16463,7 +16463,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_44parse_expression(CYTHON_UNUSED 
  *             right = self.parse_term()
  *             left = ASTNode(NodeType.BINARY_OPERATION,             # <<<<<<<<<<<<<<
  *                            value=op.value, children=[left, right])
- * 
+ *
  */
     __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_ASTNode); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 513, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
@@ -16482,7 +16482,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_44parse_expression(CYTHON_UNUSED 
  *             right = self.parse_term()
  *             left = ASTNode(NodeType.BINARY_OPERATION,
  *                            value=op.value, children=[left, right])             # <<<<<<<<<<<<<<
- * 
+ *
  *         return left
  */
     __pyx_t_3 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 514, __pyx_L1_error)
@@ -16507,7 +16507,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_44parse_expression(CYTHON_UNUSED 
  *             right = self.parse_term()
  *             left = ASTNode(NodeType.BINARY_OPERATION,             # <<<<<<<<<<<<<<
  *                            value=op.value, children=[left, right])
- * 
+ *
  */
     __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_1, __pyx_t_3); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 513, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
@@ -16520,9 +16520,9 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_44parse_expression(CYTHON_UNUSED 
 
   /* "src/parser.py":516
  *                            value=op.value, children=[left, right])
- * 
+ *
  *         return left             # <<<<<<<<<<<<<<
- * 
+ *
  *     def parse_term(self):
  */
   __Pyx_XDECREF(__pyx_r);
@@ -16532,10 +16532,10 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_44parse_expression(CYTHON_UNUSED 
 
   /* "src/parser.py":506
  *         return left
- * 
+ *
  *     def parse_expression(self):             # <<<<<<<<<<<<<<
  *         left = self.parse_term()
- * 
+ *
  */
 
   /* function exit code */
@@ -16557,14 +16557,14 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_44parse_expression(CYTHON_UNUSED 
 
 /* "src/parser.py":518
  *         return left
- * 
+ *
  *     def parse_term(self):             # <<<<<<<<<<<<<<
  *         left = self.parse_factor()
- * 
+ *
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_3src_6parser_6Parser_47parse_term(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_6parser_6Parser_47parse_term(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -16572,7 +16572,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
 #endif
 ); /*proto*/
 static PyMethodDef __pyx_mdef_3src_6parser_6Parser_47parse_term = {"parse_term", (PyCFunction)(void*)(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_3src_6parser_6Parser_47parse_term, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_3src_6parser_6Parser_47parse_term(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_6parser_6Parser_47parse_term(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -16678,10 +16678,10 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_46parse_term(CYTHON_UNUSED PyObje
   __Pyx_RefNannySetupContext("parse_term", 1);
 
   /* "src/parser.py":519
- * 
+ *
  *     def parse_term(self):
  *         left = self.parse_factor()             # <<<<<<<<<<<<<<
- * 
+ *
  *         while self.current_token.type in (TokenType.STAR, TokenType.SLASH, TokenType.MODULO):
  */
   __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_parse_factor); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 519, __pyx_L1_error)
@@ -16713,7 +16713,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_46parse_term(CYTHON_UNUSED PyObje
 
   /* "src/parser.py":521
  *         left = self.parse_factor()
- * 
+ *
  *         while self.current_token.type in (TokenType.STAR, TokenType.SLASH, TokenType.MODULO):             # <<<<<<<<<<<<<<
  *             op = self.current_token
  *             self.advance()
@@ -16768,7 +16768,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_46parse_term(CYTHON_UNUSED PyObje
     if (!__pyx_t_6) break;
 
     /* "src/parser.py":522
- * 
+ *
  *         while self.current_token.type in (TokenType.STAR, TokenType.SLASH, TokenType.MODULO):
  *             op = self.current_token             # <<<<<<<<<<<<<<
  *             self.advance()
@@ -16851,7 +16851,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_46parse_term(CYTHON_UNUSED PyObje
  *             right = self.parse_factor()
  *             left = ASTNode(NodeType.BINARY_OPERATION,             # <<<<<<<<<<<<<<
  *                            value=op.value, children=[left, right])
- * 
+ *
  */
     __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_ASTNode); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 525, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
@@ -16870,7 +16870,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_46parse_term(CYTHON_UNUSED PyObje
  *             right = self.parse_factor()
  *             left = ASTNode(NodeType.BINARY_OPERATION,
  *                            value=op.value, children=[left, right])             # <<<<<<<<<<<<<<
- * 
+ *
  *         return left
  */
     __pyx_t_3 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 526, __pyx_L1_error)
@@ -16895,7 +16895,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_46parse_term(CYTHON_UNUSED PyObje
  *             right = self.parse_factor()
  *             left = ASTNode(NodeType.BINARY_OPERATION,             # <<<<<<<<<<<<<<
  *                            value=op.value, children=[left, right])
- * 
+ *
  */
     __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_1, __pyx_t_3); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 525, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
@@ -16908,9 +16908,9 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_46parse_term(CYTHON_UNUSED PyObje
 
   /* "src/parser.py":528
  *                            value=op.value, children=[left, right])
- * 
+ *
  *         return left             # <<<<<<<<<<<<<<
- * 
+ *
  *     def parse_factor(self):
  */
   __Pyx_XDECREF(__pyx_r);
@@ -16920,10 +16920,10 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_46parse_term(CYTHON_UNUSED PyObje
 
   /* "src/parser.py":518
  *         return left
- * 
+ *
  *     def parse_term(self):             # <<<<<<<<<<<<<<
  *         left = self.parse_factor()
- * 
+ *
  */
 
   /* function exit code */
@@ -16945,14 +16945,14 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_46parse_term(CYTHON_UNUSED PyObje
 
 /* "src/parser.py":530
  *         return left
- * 
+ *
  *     def parse_factor(self):             # <<<<<<<<<<<<<<
  *         token = self.current_token
- * 
+ *
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_3src_6parser_6Parser_49parse_factor(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_6parser_6Parser_49parse_factor(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -16960,7 +16960,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
 #endif
 ); /*proto*/
 static PyMethodDef __pyx_mdef_3src_6parser_6Parser_49parse_factor = {"parse_factor", (PyCFunction)(void*)(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_3src_6parser_6Parser_49parse_factor, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_3src_6parser_6Parser_49parse_factor(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_6parser_6Parser_49parse_factor(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -17068,10 +17068,10 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_48parse_factor(CYTHON_UNUSED PyOb
   __Pyx_RefNannySetupContext("parse_factor", 1);
 
   /* "src/parser.py":531
- * 
+ *
  *     def parse_factor(self):
  *         token = self.current_token             # <<<<<<<<<<<<<<
- * 
+ *
  *         if token.type == TokenType.NUMBER:
  */
   __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_current_token); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 531, __pyx_L1_error)
@@ -17081,7 +17081,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_48parse_factor(CYTHON_UNUSED PyOb
 
   /* "src/parser.py":533
  *         token = self.current_token
- * 
+ *
  *         if token.type == TokenType.NUMBER:             # <<<<<<<<<<<<<<
  *             self.advance()
  *             return ASTNode(NodeType.LITERAL, value=token.value)
@@ -17101,7 +17101,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_48parse_factor(CYTHON_UNUSED PyOb
   if (__pyx_t_4) {
 
     /* "src/parser.py":534
- * 
+ *
  *         if token.type == TokenType.NUMBER:
  *             self.advance()             # <<<<<<<<<<<<<<
  *             return ASTNode(NodeType.LITERAL, value=token.value)
@@ -17170,7 +17170,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_48parse_factor(CYTHON_UNUSED PyOb
 
     /* "src/parser.py":533
  *         token = self.current_token
- * 
+ *
  *         if token.type == TokenType.NUMBER:             # <<<<<<<<<<<<<<
  *             self.advance()
  *             return ASTNode(NodeType.LITERAL, value=token.value)
@@ -17664,7 +17664,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_48parse_factor(CYTHON_UNUSED PyOb
  *             # Allow type names to be used as function names
  *             token_value = token.value if token.type == TokenType.IDENTIFIER else token.type.value             # <<<<<<<<<<<<<<
  *             self.advance()
- * 
+ *
  */
     __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_token, __pyx_n_s_type); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 550, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
@@ -17699,7 +17699,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_48parse_factor(CYTHON_UNUSED PyOb
  *             # Allow type names to be used as function names
  *             token_value = token.value if token.type == TokenType.IDENTIFIER else token.type.value
  *             self.advance()             # <<<<<<<<<<<<<<
- * 
+ *
  *             # Check if this is a function call (followed by left parenthesis)
  */
     __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_advance); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 551, __pyx_L1_error)
@@ -17729,11 +17729,11 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_48parse_factor(CYTHON_UNUSED PyOb
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
     /* "src/parser.py":554
- * 
+ *
  *             # Check if this is a function call (followed by left parenthesis)
  *             if self.current_token.type == TokenType.LEFT_PAREN:             # <<<<<<<<<<<<<<
  *                 return self.parse_function_call_helper(token_value)
- * 
+ *
  */
     __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_current_token); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 554, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
@@ -17756,7 +17756,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_48parse_factor(CYTHON_UNUSED PyOb
  *             # Check if this is a function call (followed by left parenthesis)
  *             if self.current_token.type == TokenType.LEFT_PAREN:
  *                 return self.parse_function_call_helper(token_value)             # <<<<<<<<<<<<<<
- * 
+ *
  *             node = ASTNode(NodeType.IDENTIFIER, value=token_value)
  */
       __Pyx_XDECREF(__pyx_r);
@@ -17789,19 +17789,19 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_48parse_factor(CYTHON_UNUSED PyOb
       goto __pyx_L0;
 
       /* "src/parser.py":554
- * 
+ *
  *             # Check if this is a function call (followed by left parenthesis)
  *             if self.current_token.type == TokenType.LEFT_PAREN:             # <<<<<<<<<<<<<<
  *                 return self.parse_function_call_helper(token_value)
- * 
+ *
  */
     }
 
     /* "src/parser.py":557
  *                 return self.parse_function_call_helper(token_value)
- * 
+ *
  *             node = ASTNode(NodeType.IDENTIFIER, value=token_value)             # <<<<<<<<<<<<<<
- * 
+ *
  *             # Handle property access (obj.prop) and index access (arr[idx])
  */
     __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_ASTNode); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 557, __pyx_L1_error)
@@ -17828,7 +17828,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_48parse_factor(CYTHON_UNUSED PyOb
     __pyx_t_3 = 0;
 
     /* "src/parser.py":560
- * 
+ *
  *             # Handle property access (obj.prop) and index access (arr[idx])
  *             while self.current_token.type in (TokenType.DOT, TokenType.LEFT_BRACKET):             # <<<<<<<<<<<<<<
  *                 if self.current_token.type == TokenType.DOT:
@@ -17942,7 +17942,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_48parse_factor(CYTHON_UNUSED PyOb
  *                     node = self.parse_property_access(node)
  *                 elif self.current_token.type == TokenType.LEFT_BRACKET:             # <<<<<<<<<<<<<<
  *                     node = self.parse_index_access(node)
- * 
+ *
  */
       __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_current_token); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 563, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
@@ -17965,7 +17965,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_48parse_factor(CYTHON_UNUSED PyOb
  *                     node = self.parse_property_access(node)
  *                 elif self.current_token.type == TokenType.LEFT_BRACKET:
  *                     node = self.parse_index_access(node)             # <<<<<<<<<<<<<<
- * 
+ *
  *             return node
  */
         __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_parse_index_access); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 564, __pyx_L1_error)
@@ -18000,7 +18000,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_48parse_factor(CYTHON_UNUSED PyOb
  *                     node = self.parse_property_access(node)
  *                 elif self.current_token.type == TokenType.LEFT_BRACKET:             # <<<<<<<<<<<<<<
  *                     node = self.parse_index_access(node)
- * 
+ *
  */
       }
       __pyx_L21:;
@@ -18008,9 +18008,9 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_48parse_factor(CYTHON_UNUSED PyOb
 
     /* "src/parser.py":566
  *                     node = self.parse_index_access(node)
- * 
+ *
  *             return node             # <<<<<<<<<<<<<<
- * 
+ *
  *         if token.type == TokenType.LEFT_PAREN:
  */
     __Pyx_XDECREF(__pyx_r);
@@ -18029,7 +18029,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_48parse_factor(CYTHON_UNUSED PyOb
 
   /* "src/parser.py":568
  *             return node
- * 
+ *
  *         if token.type == TokenType.LEFT_PAREN:             # <<<<<<<<<<<<<<
  *             self.advance()
  *             expr = self.parse_expression()
@@ -18049,7 +18049,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_48parse_factor(CYTHON_UNUSED PyOb
   if (__pyx_t_8) {
 
     /* "src/parser.py":569
- * 
+ *
  *         if token.type == TokenType.LEFT_PAREN:
  *             self.advance()             # <<<<<<<<<<<<<<
  *             expr = self.parse_expression()
@@ -18168,7 +18168,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_48parse_factor(CYTHON_UNUSED PyOb
 
     /* "src/parser.py":568
  *             return node
- * 
+ *
  *         if token.type == TokenType.LEFT_PAREN:             # <<<<<<<<<<<<<<
  *             self.advance()
  *             expr = self.parse_expression()
@@ -18246,7 +18246,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_48parse_factor(CYTHON_UNUSED PyOb
  *             return self.parse_list_literal()
  *         if token.type == TokenType.LEFT_BRACE:             # <<<<<<<<<<<<<<
  *             return self.parse_object_literal()
- * 
+ *
  */
   __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_token, __pyx_n_s_type); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 575, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
@@ -18266,7 +18266,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_48parse_factor(CYTHON_UNUSED PyOb
  *             return self.parse_list_literal()
  *         if token.type == TokenType.LEFT_BRACE:
  *             return self.parse_object_literal()             # <<<<<<<<<<<<<<
- * 
+ *
  *         raise ParserError(f"Unexpected token in factor: {token.type}")
  */
     __Pyx_XDECREF(__pyx_r);
@@ -18303,15 +18303,15 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_48parse_factor(CYTHON_UNUSED PyOb
  *             return self.parse_list_literal()
  *         if token.type == TokenType.LEFT_BRACE:             # <<<<<<<<<<<<<<
  *             return self.parse_object_literal()
- * 
+ *
  */
   }
 
   /* "src/parser.py":578
  *             return self.parse_object_literal()
- * 
+ *
  *         raise ParserError(f"Unexpected token in factor: {token.type}")             # <<<<<<<<<<<<<<
- * 
+ *
  *     def parse_function_call_helper(self, func_name):
  */
   __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_ParserError); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 578, __pyx_L1_error)
@@ -18353,10 +18353,10 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_48parse_factor(CYTHON_UNUSED PyOb
 
   /* "src/parser.py":530
  *         return left
- * 
+ *
  *     def parse_factor(self):             # <<<<<<<<<<<<<<
  *         token = self.current_token
- * 
+ *
  */
 
   /* function exit code */
@@ -18379,14 +18379,14 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_48parse_factor(CYTHON_UNUSED PyOb
 
 /* "src/parser.py":580
  *         raise ParserError(f"Unexpected token in factor: {token.type}")
- * 
+ *
  *     def parse_function_call_helper(self, func_name):             # <<<<<<<<<<<<<<
  *         """Helper method to parse a function call once we've identified the function name"""
  *         self.expect(TokenType.LEFT_PAREN)
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_3src_6parser_6Parser_51parse_function_call_helper(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_6parser_6Parser_51parse_function_call_helper(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -18395,7 +18395,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
 ); /*proto*/
 PyDoc_STRVAR(__pyx_doc_3src_6parser_6Parser_50parse_function_call_helper, "Helper method to parse a function call once we've identified the function name");
 static PyMethodDef __pyx_mdef_3src_6parser_6Parser_51parse_function_call_helper = {"parse_function_call_helper", (PyCFunction)(void*)(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_3src_6parser_6Parser_51parse_function_call_helper, __Pyx_METH_FASTCALL|METH_KEYWORDS, __pyx_doc_3src_6parser_6Parser_50parse_function_call_helper};
-static PyObject *__pyx_pw_3src_6parser_6Parser_51parse_function_call_helper(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_6parser_6Parser_51parse_function_call_helper(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -18518,7 +18518,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_50parse_function_call_helper(CYTH
  *         """Helper method to parse a function call once we've identified the function name"""
  *         self.expect(TokenType.LEFT_PAREN)             # <<<<<<<<<<<<<<
  *         args = []
- * 
+ *
  */
   __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_expect); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 582, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
@@ -18556,7 +18556,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_50parse_function_call_helper(CYTH
  *         """Helper method to parse a function call once we've identified the function name"""
  *         self.expect(TokenType.LEFT_PAREN)
  *         args = []             # <<<<<<<<<<<<<<
- * 
+ *
  *         # Parse arguments
  */
   __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 583, __pyx_L1_error)
@@ -18565,7 +18565,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_50parse_function_call_helper(CYTH
   __pyx_t_1 = 0;
 
   /* "src/parser.py":586
- * 
+ *
  *         # Parse arguments
  *         if self.current_token.type != TokenType.RIGHT_PAREN:             # <<<<<<<<<<<<<<
  *             args.append(self.parse_expression())
@@ -18652,7 +18652,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_50parse_function_call_helper(CYTH
  *             while self.current_token.type == TokenType.COMMA:
  *                 self.advance()             # <<<<<<<<<<<<<<
  *                 args.append(self.parse_expression())
- * 
+ *
  */
       __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_advance); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 589, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_2);
@@ -18684,7 +18684,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_50parse_function_call_helper(CYTH
  *             while self.current_token.type == TokenType.COMMA:
  *                 self.advance()
  *                 args.append(self.parse_expression())             # <<<<<<<<<<<<<<
- * 
+ *
  *         self.expect(TokenType.RIGHT_PAREN)
  */
       __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_parse_expression); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 590, __pyx_L1_error)
@@ -18716,7 +18716,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_50parse_function_call_helper(CYTH
     }
 
     /* "src/parser.py":586
- * 
+ *
  *         # Parse arguments
  *         if self.current_token.type != TokenType.RIGHT_PAREN:             # <<<<<<<<<<<<<<
  *             args.append(self.parse_expression())
@@ -18726,10 +18726,10 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_50parse_function_call_helper(CYTH
 
   /* "src/parser.py":592
  *                 args.append(self.parse_expression())
- * 
+ *
  *         self.expect(TokenType.RIGHT_PAREN)             # <<<<<<<<<<<<<<
  *         return ASTNode(NodeType.FUNCTION_CALL, value=func_name, children=args)
- * 
+ *
  */
   __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_expect); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 592, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
@@ -18764,10 +18764,10 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_50parse_function_call_helper(CYTH
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "src/parser.py":593
- * 
+ *
  *         self.expect(TokenType.RIGHT_PAREN)
  *         return ASTNode(NodeType.FUNCTION_CALL, value=func_name, children=args)             # <<<<<<<<<<<<<<
- * 
+ *
  *     def parse_return_statement(self):
  */
   __Pyx_XDECREF(__pyx_r);
@@ -18798,7 +18798,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_50parse_function_call_helper(CYTH
 
   /* "src/parser.py":580
  *         raise ParserError(f"Unexpected token in factor: {token.type}")
- * 
+ *
  *     def parse_function_call_helper(self, func_name):             # <<<<<<<<<<<<<<
  *         """Helper method to parse a function call once we've identified the function name"""
  *         self.expect(TokenType.LEFT_PAREN)
@@ -18821,14 +18821,14 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_50parse_function_call_helper(CYTH
 
 /* "src/parser.py":595
  *         return ASTNode(NodeType.FUNCTION_CALL, value=func_name, children=args)
- * 
+ *
  *     def parse_return_statement(self):             # <<<<<<<<<<<<<<
  *         self.expect(TokenType.SOO_CELI)
- *         # If there is an expression after sooCeli, parse it
+ *         # If there is an expression after soo_celi, parse it
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_3src_6parser_6Parser_53parse_return_statement(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_6parser_6Parser_53parse_return_statement(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -18836,7 +18836,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
 #endif
 ); /*proto*/
 static PyMethodDef __pyx_mdef_3src_6parser_6Parser_53parse_return_statement = {"parse_return_statement", (PyCFunction)(void*)(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_3src_6parser_6Parser_53parse_return_statement, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_3src_6parser_6Parser_53parse_return_statement(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_6parser_6Parser_53parse_return_statement(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -18939,10 +18939,10 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_52parse_return_statement(CYTHON_U
   __Pyx_RefNannySetupContext("parse_return_statement", 1);
 
   /* "src/parser.py":596
- * 
+ *
  *     def parse_return_statement(self):
  *         self.expect(TokenType.SOO_CELI)             # <<<<<<<<<<<<<<
- *         # If there is an expression after sooCeli, parse it
+ *         # If there is an expression after soo_celi, parse it
  *         if self.current_token.type != TokenType.SEMICOLON:
  */
   __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_expect); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 596, __pyx_L1_error)
@@ -18979,7 +18979,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_52parse_return_statement(CYTHON_U
 
   /* "src/parser.py":598
  *         self.expect(TokenType.SOO_CELI)
- *         # If there is an expression after sooCeli, parse it
+ *         # If there is an expression after soo_celi, parse it
  *         if self.current_token.type != TokenType.SEMICOLON:             # <<<<<<<<<<<<<<
  *             expr = self.parse_expression()
  *             return ASTNode(NodeType.RETURN_STATEMENT, children=[expr])
@@ -19002,7 +19002,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_52parse_return_statement(CYTHON_U
   if (__pyx_t_6) {
 
     /* "src/parser.py":599
- *         # If there is an expression after sooCeli, parse it
+ *         # If there is an expression after soo_celi, parse it
  *         if self.current_token.type != TokenType.SEMICOLON:
  *             expr = self.parse_expression()             # <<<<<<<<<<<<<<
  *             return ASTNode(NodeType.RETURN_STATEMENT, children=[expr])
@@ -19075,7 +19075,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_52parse_return_statement(CYTHON_U
 
     /* "src/parser.py":598
  *         self.expect(TokenType.SOO_CELI)
- *         # If there is an expression after sooCeli, parse it
+ *         # If there is an expression after soo_celi, parse it
  *         if self.current_token.type != TokenType.SEMICOLON:             # <<<<<<<<<<<<<<
  *             expr = self.parse_expression()
  *             return ASTNode(NodeType.RETURN_STATEMENT, children=[expr])
@@ -19124,10 +19124,10 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_52parse_return_statement(CYTHON_U
 
   /* "src/parser.py":595
  *         return ASTNode(NodeType.FUNCTION_CALL, value=func_name, children=args)
- * 
+ *
  *     def parse_return_statement(self):             # <<<<<<<<<<<<<<
  *         self.expect(TokenType.SOO_CELI)
- *         # If there is an expression after sooCeli, parse it
+ *         # If there is an expression after soo_celi, parse it
  */
 
   /* function exit code */
@@ -19411,7 +19411,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_tuple__2);
 
   /* "src/parser.py":7
- * 
+ *
  * class Parser:
  *     def __init__(self, tokens):             # <<<<<<<<<<<<<<
  *         self.tokens = tokens
@@ -19424,7 +19424,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
 
   /* "src/parser.py":12
  *         self.current_token = self.tokens[self.current_token_index]
- * 
+ *
  *     def advance(self):             # <<<<<<<<<<<<<<
  *         self.current_token_index += 1
  *         if self.current_token_index < len(self.tokens):
@@ -19436,7 +19436,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
 
   /* "src/parser.py":17
  *             self.current_token = self.tokens[self.current_token_index]
- * 
+ *
  *     def expect(self, token_type):             # <<<<<<<<<<<<<<
  *         if self.current_token.type == token_type:
  *             token = self.current_token
@@ -19448,7 +19448,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
 
   /* "src/parser.py":26
  *                 f"Expected {token_type}, got {self.current_token.type}", self.current_token)
- * 
+ *
  *     def parse(self):             # <<<<<<<<<<<<<<
  *         statements = []
  *         while self.current_token.type != TokenType.EOF:
@@ -19460,10 +19460,10 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
 
   /* "src/parser.py":32
  *         return ASTNode(NodeType.PROGRAM, children=statements)
- * 
+ *
  *     def parse_statement(self):             # <<<<<<<<<<<<<<
  *         ttype = self.current_token.type
- * 
+ *
  */
   __pyx_tuple__12 = PyTuple_Pack(9, __pyx_n_s_self, __pyx_n_s_ttype, __pyx_n_s_token_value, __pyx_n_s_property_name, __pyx_n_s_args, __pyx_n_s_value_expr, __pyx_n_s_target, __pyx_n_s_index_expr, __pyx_n_s_var_name); if (unlikely(!__pyx_tuple__12)) __PYX_ERR(0, 32, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__12);
@@ -19475,7 +19475,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  *     # -----------------------------
  *     def parse_variable_declaration(self, is_static=False):             # <<<<<<<<<<<<<<
  *         var_type = None
- * 
+ *
  */
   __pyx_tuple__14 = PyTuple_Pack(6, __pyx_n_s_self, __pyx_n_s_is_static, __pyx_n_s_var_type, __pyx_n_s_var_name, __pyx_n_s_expr, __pyx_n_s_node); if (unlikely(!__pyx_tuple__14)) __PYX_ERR(0, 152, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__14);
@@ -19604,7 +19604,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  *     # -----------------------------
  *     def parse_list_literal(self):             # <<<<<<<<<<<<<<
  *         self.expect(TokenType.LEFT_BRACKET)
- * 
+ *
  */
   __pyx_tuple__35 = PyTuple_Pack(2, __pyx_n_s_self, __pyx_n_s_elements); if (unlikely(!__pyx_tuple__35)) __PYX_ERR(0, 394, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__35);
@@ -19616,7 +19616,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  *     # -----------------------------
  *     def parse_object_literal(self):             # <<<<<<<<<<<<<<
  *         self.expect(TokenType.LEFT_BRACE)
- * 
+ *
  */
   __pyx_tuple__37 = PyTuple_Pack(5, __pyx_n_s_self, __pyx_n_s_properties, __pyx_n_s_key, __pyx_n_s_value, __pyx_n_s_property_node); if (unlikely(!__pyx_tuple__37)) __PYX_ERR(0, 411, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__37);
@@ -19628,7 +19628,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  *     # -----------------------------
  *     def parse_property_access(self, left):             # <<<<<<<<<<<<<<
  *         self.expect(TokenType.DOT)
- * 
+ *
  */
   __pyx_tuple__39 = PyTuple_Pack(3, __pyx_n_s_self, __pyx_n_s_left, __pyx_n_s_property_name); if (unlikely(!__pyx_tuple__39)) __PYX_ERR(0, 446, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__39);
@@ -19652,7 +19652,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  *     # -----------------------------
  *     def parse_logical_expression(self):             # <<<<<<<<<<<<<<
  *         left = self.parse_comparison_expression()
- * 
+ *
  */
   __pyx_tuple__43 = PyTuple_Pack(4, __pyx_n_s_self, __pyx_n_s_left, __pyx_n_s_op_token, __pyx_n_s_right); if (unlikely(!__pyx_tuple__43)) __PYX_ERR(0, 471, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__43);
@@ -19661,10 +19661,10 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
 
   /* "src/parser.py":483
  *         return left
- * 
+ *
  *     def parse_comparison_expression(self):             # <<<<<<<<<<<<<<
  *         left = self.parse_expression()
- * 
+ *
  */
   __pyx_tuple__45 = PyTuple_Pack(5, __pyx_n_s_self, __pyx_n_s_left, __pyx_n_s_op_token, __pyx_n_s_operator_value, __pyx_n_s_right); if (unlikely(!__pyx_tuple__45)) __PYX_ERR(0, 483, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__45);
@@ -19673,10 +19673,10 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
 
   /* "src/parser.py":506
  *         return left
- * 
+ *
  *     def parse_expression(self):             # <<<<<<<<<<<<<<
  *         left = self.parse_term()
- * 
+ *
  */
   __pyx_tuple__47 = PyTuple_Pack(4, __pyx_n_s_self, __pyx_n_s_left, __pyx_n_s_op, __pyx_n_s_right); if (unlikely(!__pyx_tuple__47)) __PYX_ERR(0, 506, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__47);
@@ -19685,19 +19685,19 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
 
   /* "src/parser.py":518
  *         return left
- * 
+ *
  *     def parse_term(self):             # <<<<<<<<<<<<<<
  *         left = self.parse_factor()
- * 
+ *
  */
   __pyx_codeobj__49 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 4, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__47, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_src_parser_py, __pyx_n_s_parse_term, 518, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__49)) __PYX_ERR(0, 518, __pyx_L1_error)
 
   /* "src/parser.py":530
  *         return left
- * 
+ *
  *     def parse_factor(self):             # <<<<<<<<<<<<<<
  *         token = self.current_token
- * 
+ *
  */
   __pyx_tuple__50 = PyTuple_Pack(5, __pyx_n_s_self, __pyx_n_s_token, __pyx_n_s_token_value, __pyx_n_s_node, __pyx_n_s_expr); if (unlikely(!__pyx_tuple__50)) __PYX_ERR(0, 530, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__50);
@@ -19706,7 +19706,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
 
   /* "src/parser.py":580
  *         raise ParserError(f"Unexpected token in factor: {token.type}")
- * 
+ *
  *     def parse_function_call_helper(self, func_name):             # <<<<<<<<<<<<<<
  *         """Helper method to parse a function call once we've identified the function name"""
  *         self.expect(TokenType.LEFT_PAREN)
@@ -19718,10 +19718,10 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
 
   /* "src/parser.py":595
  *         return ASTNode(NodeType.FUNCTION_CALL, value=func_name, children=args)
- * 
+ *
  *     def parse_return_statement(self):             # <<<<<<<<<<<<<<
  *         self.expect(TokenType.SOO_CELI)
- *         # If there is an expression after sooCeli, parse it
+ *         # If there is an expression after soo_celi, parse it
  */
   __pyx_tuple__54 = PyTuple_Pack(2, __pyx_n_s_self, __pyx_n_s_expr); if (unlikely(!__pyx_tuple__54)) __PYX_ERR(0, 595, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__54);
@@ -20116,7 +20116,7 @@ if (!__Pyx_RefNanny) {
  * from src.tokens import TokenType
  * from src.ast import ASTNode, NodeType             # <<<<<<<<<<<<<<
  * from src.errors import ParserError
- * 
+ *
  */
   __pyx_t_3 = PyList_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 2, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
@@ -20143,8 +20143,8 @@ if (!__Pyx_RefNanny) {
  * from src.tokens import TokenType
  * from src.ast import ASTNode, NodeType
  * from src.errors import ParserError             # <<<<<<<<<<<<<<
- * 
- * 
+ *
+ *
  */
   __pyx_t_2 = PyList_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 3, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
@@ -20161,8 +20161,8 @@ if (!__Pyx_RefNanny) {
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
   /* "src/parser.py":6
- * 
- * 
+ *
+ *
  * class Parser:             # <<<<<<<<<<<<<<
  *     def __init__(self, tokens):
  *         self.tokens = tokens
@@ -20171,7 +20171,7 @@ if (!__Pyx_RefNanny) {
   __Pyx_GOTREF(__pyx_t_3);
 
   /* "src/parser.py":7
- * 
+ *
  * class Parser:
  *     def __init__(self, tokens):             # <<<<<<<<<<<<<<
  *         self.tokens = tokens
@@ -20184,7 +20184,7 @@ if (!__Pyx_RefNanny) {
 
   /* "src/parser.py":12
  *         self.current_token = self.tokens[self.current_token_index]
- * 
+ *
  *     def advance(self):             # <<<<<<<<<<<<<<
  *         self.current_token_index += 1
  *         if self.current_token_index < len(self.tokens):
@@ -20196,7 +20196,7 @@ if (!__Pyx_RefNanny) {
 
   /* "src/parser.py":17
  *             self.current_token = self.tokens[self.current_token_index]
- * 
+ *
  *     def expect(self, token_type):             # <<<<<<<<<<<<<<
  *         if self.current_token.type == token_type:
  *             token = self.current_token
@@ -20208,7 +20208,7 @@ if (!__Pyx_RefNanny) {
 
   /* "src/parser.py":26
  *                 f"Expected {token_type}, got {self.current_token.type}", self.current_token)
- * 
+ *
  *     def parse(self):             # <<<<<<<<<<<<<<
  *         statements = []
  *         while self.current_token.type != TokenType.EOF:
@@ -20220,10 +20220,10 @@ if (!__Pyx_RefNanny) {
 
   /* "src/parser.py":32
  *         return ASTNode(NodeType.PROGRAM, children=statements)
- * 
+ *
  *     def parse_statement(self):             # <<<<<<<<<<<<<<
  *         ttype = self.current_token.type
- * 
+ *
  */
   __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_3src_6parser_6Parser_9parse_statement, 0, __pyx_n_s_Parser_parse_statement, NULL, __pyx_n_s_src_parser, __pyx_d, ((PyObject *)__pyx_codeobj__13)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 32, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
@@ -20235,7 +20235,7 @@ if (!__Pyx_RefNanny) {
  *     # -----------------------------
  *     def parse_variable_declaration(self, is_static=False):             # <<<<<<<<<<<<<<
  *         var_type = None
- * 
+ *
  */
   __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_3src_6parser_6Parser_11parse_variable_declaration, 0, __pyx_n_s_Parser_parse_variable_declaratio, NULL, __pyx_n_s_src_parser, __pyx_d, ((PyObject *)__pyx_codeobj__15)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 152, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
@@ -20368,7 +20368,7 @@ if (!__Pyx_RefNanny) {
  *     # -----------------------------
  *     def parse_list_literal(self):             # <<<<<<<<<<<<<<
  *         self.expect(TokenType.LEFT_BRACKET)
- * 
+ *
  */
   __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_3src_6parser_6Parser_33parse_list_literal, 0, __pyx_n_s_Parser_parse_list_literal, NULL, __pyx_n_s_src_parser, __pyx_d, ((PyObject *)__pyx_codeobj__36)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 394, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
@@ -20380,7 +20380,7 @@ if (!__Pyx_RefNanny) {
  *     # -----------------------------
  *     def parse_object_literal(self):             # <<<<<<<<<<<<<<
  *         self.expect(TokenType.LEFT_BRACE)
- * 
+ *
  */
   __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_3src_6parser_6Parser_35parse_object_literal, 0, __pyx_n_s_Parser_parse_object_literal, NULL, __pyx_n_s_src_parser, __pyx_d, ((PyObject *)__pyx_codeobj__38)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 411, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
@@ -20392,7 +20392,7 @@ if (!__Pyx_RefNanny) {
  *     # -----------------------------
  *     def parse_property_access(self, left):             # <<<<<<<<<<<<<<
  *         self.expect(TokenType.DOT)
- * 
+ *
  */
   __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_3src_6parser_6Parser_37parse_property_access, 0, __pyx_n_s_Parser_parse_property_access, NULL, __pyx_n_s_src_parser, __pyx_d, ((PyObject *)__pyx_codeobj__40)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 446, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
@@ -20416,7 +20416,7 @@ if (!__Pyx_RefNanny) {
  *     # -----------------------------
  *     def parse_logical_expression(self):             # <<<<<<<<<<<<<<
  *         left = self.parse_comparison_expression()
- * 
+ *
  */
   __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_3src_6parser_6Parser_41parse_logical_expression, 0, __pyx_n_s_Parser_parse_logical_expression, NULL, __pyx_n_s_src_parser, __pyx_d, ((PyObject *)__pyx_codeobj__44)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 471, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
@@ -20425,10 +20425,10 @@ if (!__Pyx_RefNanny) {
 
   /* "src/parser.py":483
  *         return left
- * 
+ *
  *     def parse_comparison_expression(self):             # <<<<<<<<<<<<<<
  *         left = self.parse_expression()
- * 
+ *
  */
   __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_3src_6parser_6Parser_43parse_comparison_expression, 0, __pyx_n_s_Parser_parse_comparison_expressi, NULL, __pyx_n_s_src_parser, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 483, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
@@ -20437,10 +20437,10 @@ if (!__Pyx_RefNanny) {
 
   /* "src/parser.py":506
  *         return left
- * 
+ *
  *     def parse_expression(self):             # <<<<<<<<<<<<<<
  *         left = self.parse_term()
- * 
+ *
  */
   __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_3src_6parser_6Parser_45parse_expression, 0, __pyx_n_s_Parser_parse_expression, NULL, __pyx_n_s_src_parser, __pyx_d, ((PyObject *)__pyx_codeobj__48)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 506, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
@@ -20449,10 +20449,10 @@ if (!__Pyx_RefNanny) {
 
   /* "src/parser.py":518
  *         return left
- * 
+ *
  *     def parse_term(self):             # <<<<<<<<<<<<<<
  *         left = self.parse_factor()
- * 
+ *
  */
   __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_3src_6parser_6Parser_47parse_term, 0, __pyx_n_s_Parser_parse_term, NULL, __pyx_n_s_src_parser, __pyx_d, ((PyObject *)__pyx_codeobj__49)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 518, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
@@ -20461,10 +20461,10 @@ if (!__Pyx_RefNanny) {
 
   /* "src/parser.py":530
  *         return left
- * 
+ *
  *     def parse_factor(self):             # <<<<<<<<<<<<<<
  *         token = self.current_token
- * 
+ *
  */
   __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_3src_6parser_6Parser_49parse_factor, 0, __pyx_n_s_Parser_parse_factor, NULL, __pyx_n_s_src_parser, __pyx_d, ((PyObject *)__pyx_codeobj__51)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 530, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
@@ -20473,7 +20473,7 @@ if (!__Pyx_RefNanny) {
 
   /* "src/parser.py":580
  *         raise ParserError(f"Unexpected token in factor: {token.type}")
- * 
+ *
  *     def parse_function_call_helper(self, func_name):             # <<<<<<<<<<<<<<
  *         """Helper method to parse a function call once we've identified the function name"""
  *         self.expect(TokenType.LEFT_PAREN)
@@ -20485,10 +20485,10 @@ if (!__Pyx_RefNanny) {
 
   /* "src/parser.py":595
  *         return ASTNode(NodeType.FUNCTION_CALL, value=func_name, children=args)
- * 
+ *
  *     def parse_return_statement(self):             # <<<<<<<<<<<<<<
  *         self.expect(TokenType.SOO_CELI)
- *         # If there is an expression after sooCeli, parse it
+ *         # If there is an expression after soo_celi, parse it
  */
   __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_3src_6parser_6Parser_53parse_return_statement, 0, __pyx_n_s_Parser_parse_return_statement, NULL, __pyx_n_s_src_parser, __pyx_d, ((PyObject *)__pyx_codeobj__55)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 595, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
@@ -20496,8 +20496,8 @@ if (!__Pyx_RefNanny) {
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
   /* "src/parser.py":6
- * 
- * 
+ *
+ *
  * class Parser:             # <<<<<<<<<<<<<<
  *     def __init__(self, tokens):
  *         self.tokens = tokens
@@ -21594,7 +21594,7 @@ static PyObject* __Pyx_PyInt_AddObjC(PyObject *op1, PyObject *op2, long intval, 
         const long b = intval;
         long x;
         long a = PyInt_AS_LONG(op1);
-        
+
             x = (long)((unsigned long)a + (unsigned long)b);
             if (likely((x^a) >= 0 || (x^b) >= 0))
                 return PyInt_FromLong(x);
@@ -21694,8 +21694,8 @@ static PyObject* __Pyx_PyInt_AddObjC(PyObject *op1, PyObject *op2, long intval, 
                 llx = lla + llb;
             return PyLong_FromLongLong(llx);
 #endif
-        
-        
+
+
     }
     #endif
     if (PyFloat_CheckExact(op1)) {
@@ -21706,7 +21706,7 @@ static PyObject* __Pyx_PyInt_AddObjC(PyObject *op1, PyObject *op2, long intval, 
         double a = PyFloat_AS_DOUBLE(op1);
 #endif
             double result;
-            
+
             PyFPE_START_PROTECT("add", return NULL)
             result = ((double)a) + (double)b;
             PyFPE_END_PROTECT(result)

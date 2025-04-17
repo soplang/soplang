@@ -2451,13 +2451,13 @@ static const char __pyx_k_QORAAL[] = "QORAAL";
 static const char __pyx_k_STRING[] = "STRING";
 static const char __pyx_k_haddii[] = "haddii";
 static const char __pyx_k_import[] = "__import__";
-static const char __pyx_k_intaAy[] = "intaAy";
-static const char __pyx_k_kaKeen[] = "kaKeen";
-static const char __pyx_k_kuCeli[] = "kuCeli";
+static const char __pyx_k_inta_ay[] = "inta_ay";
+static const char __pyx_k_ka_keen[] = "ka_keen";
+static const char __pyx_k_ku_celi[] = "ku_celi";
 static const char __pyx_k_module[] = "__module__";
 static const char __pyx_k_number[] = "number";
 static const char __pyx_k_qoraal[] = "qoraal";
-static const char __pyx_k_siiWad[] = "siiWad";
+static const char __pyx_k_sii_wad[] = "sii_wad";
 static const char __pyx_k_source[] = "source";
 static const char __pyx_k_tokens[] = "tokens";
 static const char __pyx_k_type_2[] = "type";
@@ -2474,18 +2474,18 @@ static const char __pyx_k_inta_ay[] = "inta_ay";
 static const char __pyx_k_isalnum[] = "isalnum";
 static const char __pyx_k_isalpha[] = "isalpha";
 static const char __pyx_k_isdigit[] = "isdigit";
-static const char __pyx_k_iskuDay[] = "iskuDay";
+static const char __pyx_k_isku_day[] = "isku_day";
 static const char __pyx_k_isspace[] = "isspace";
 static const char __pyx_k_ka_keen[] = "ka_keen";
 static const char __pyx_k_ku_celi[] = "ku_celi";
 static const char __pyx_k_prepare[] = "__prepare__";
 static const char __pyx_k_sii_wad[] = "sii_wad";
-static const char __pyx_k_sooCeli[] = "sooCeli";
+static const char __pyx_k_soo_celi[] = "soo_celi";
 static const char __pyx_k_ISKU_DAY[] = "ISKU_DAY";
 static const char __pyx_k_KEYWORDS[] = "KEYWORDS";
 static const char __pyx_k_SOO_CELI[] = "SOO_CELI";
 static const char __pyx_k_isku_day[] = "isku_day";
-static const char __pyx_k_kaDhaxal[] = "kaDhaxal";
+static const char __pyx_k_ka_dhaxal[] = "ka_dhaxal";
 static const char __pyx_k_peek_pos[] = "peek_pos";
 static const char __pyx_k_position[] = "position";
 static const char __pyx_k_qualname[] = "__qualname__";
@@ -2507,7 +2507,7 @@ static const char __pyx_k_LEFT_PAREN[] = "LEFT_PAREN";
 static const char __pyx_k_LESS_EQUAL[] = "LESS_EQUAL";
 static const char __pyx_k_LexerError[] = "LexerError";
 static const char __pyx_k_Lexer_peek[] = "Lexer.peek";
-static const char __pyx_k_haddiiKale[] = "haddiiKale";
+static const char __pyx_k_haddii_kale[] = "haddii_kale";
 static const char __pyx_k_identifier[] = "identifier";
 static const char __pyx_k_next_token[] = "next_token";
 static const char __pyx_k_quote_char[] = "quote_char";
@@ -2524,7 +2524,7 @@ static const char __pyx_k_Lexer___init[] = "Lexer.__init__";
 static const char __pyx_k_Token___init[] = "Token.__init__";
 static const char __pyx_k_Token___repr[] = "Token.__repr__";
 static const char __pyx_k_current_char[] = "current_char";
-static const char __pyx_k_haddiiKalena[] = "haddiiKalena";
+static const char __pyx_k_haddii_kalena[] = "haddii_kalena";
 static const char __pyx_k_initializing[] = "_initializing";
 static const char __pyx_k_is_coroutine[] = "_is_coroutine";
 static const char __pyx_k_skip_comment[] = "skip_comment";
@@ -2722,8 +2722,8 @@ typedef struct {
   PyObject *__pyx_n_u_fasalka;
   PyObject *__pyx_n_s_get;
   PyObject *__pyx_n_u_haddii;
-  PyObject *__pyx_n_u_haddiiKale;
-  PyObject *__pyx_n_u_haddiiKalena;
+  PyObject *__pyx_n_u_haddii_kale;
+  PyObject *__pyx_n_u_haddii_kalenaa;
   PyObject *__pyx_n_u_haddii_kale;
   PyObject *__pyx_n_u_haddii_kalena;
   PyObject *__pyx_n_u_howl;
@@ -2732,21 +2732,21 @@ typedef struct {
   PyObject *__pyx_n_s_init;
   PyObject *__pyx_n_s_init_subclass;
   PyObject *__pyx_n_s_initializing;
-  PyObject *__pyx_n_u_intaAy;
+  PyObject *__pyx_n_u_inta_ay;
   PyObject *__pyx_n_u_inta_ay;
   PyObject *__pyx_n_s_is_coroutine;
   PyObject *__pyx_n_s_isalnum;
   PyObject *__pyx_n_s_isalpha;
   PyObject *__pyx_n_s_isdigit;
-  PyObject *__pyx_n_u_iskuDay;
+  PyObject *__pyx_n_u_isku_day;
   PyObject *__pyx_n_u_isku_day;
   PyObject *__pyx_n_s_isspace;
   PyObject *__pyx_n_u_jooji;
-  PyObject *__pyx_n_u_kaDhaxal;
-  PyObject *__pyx_n_u_kaKeen;
   PyObject *__pyx_n_u_ka_dhaxal;
   PyObject *__pyx_n_u_ka_keen;
-  PyObject *__pyx_n_u_kuCeli;
+  PyObject *__pyx_n_u_ka_dhaxal;
+  PyObject *__pyx_n_u_ka_keen;
+  PyObject *__pyx_n_u_ku_celi;
   PyObject *__pyx_n_u_ku_celi;
   PyObject *__pyx_n_u_labadaran;
   PyObject *__pyx_n_u_liis;
@@ -2772,11 +2772,11 @@ typedef struct {
   PyObject *__pyx_n_s_self;
   PyObject *__pyx_n_s_set_name;
   PyObject *__pyx_n_u_shey;
-  PyObject *__pyx_n_u_siiWad;
+  PyObject *__pyx_n_u_sii_wad;
   PyObject *__pyx_n_u_sii_wad;
   PyObject *__pyx_n_s_skip_comment;
   PyObject *__pyx_n_s_skip_whitespace;
-  PyObject *__pyx_n_u_sooCeli;
+  PyObject *__pyx_n_u_soo_celi;
   PyObject *__pyx_n_u_soo_celi;
   PyObject *__pyx_n_s_source;
   PyObject *__pyx_n_s_source_code;
@@ -2989,8 +2989,8 @@ static int __pyx_m_clear(PyObject *m) {
   Py_CLEAR(clear_module_state->__pyx_n_u_fasalka);
   Py_CLEAR(clear_module_state->__pyx_n_s_get);
   Py_CLEAR(clear_module_state->__pyx_n_u_haddii);
-  Py_CLEAR(clear_module_state->__pyx_n_u_haddiiKale);
-  Py_CLEAR(clear_module_state->__pyx_n_u_haddiiKalena);
+  Py_CLEAR(clear_module_state->__pyx_n_u_haddii_kale);
+  Py_CLEAR(clear_module_state->__pyx_n_u_haddii_kalenaa);
   Py_CLEAR(clear_module_state->__pyx_n_u_haddii_kale);
   Py_CLEAR(clear_module_state->__pyx_n_u_haddii_kalena);
   Py_CLEAR(clear_module_state->__pyx_n_u_howl);
@@ -2999,21 +2999,21 @@ static int __pyx_m_clear(PyObject *m) {
   Py_CLEAR(clear_module_state->__pyx_n_s_init);
   Py_CLEAR(clear_module_state->__pyx_n_s_init_subclass);
   Py_CLEAR(clear_module_state->__pyx_n_s_initializing);
-  Py_CLEAR(clear_module_state->__pyx_n_u_intaAy);
+  Py_CLEAR(clear_module_state->__pyx_n_u_inta_ay);
   Py_CLEAR(clear_module_state->__pyx_n_u_inta_ay);
   Py_CLEAR(clear_module_state->__pyx_n_s_is_coroutine);
   Py_CLEAR(clear_module_state->__pyx_n_s_isalnum);
   Py_CLEAR(clear_module_state->__pyx_n_s_isalpha);
   Py_CLEAR(clear_module_state->__pyx_n_s_isdigit);
-  Py_CLEAR(clear_module_state->__pyx_n_u_iskuDay);
+  Py_CLEAR(clear_module_state->__pyx_n_u_isku_day);
   Py_CLEAR(clear_module_state->__pyx_n_u_isku_day);
   Py_CLEAR(clear_module_state->__pyx_n_s_isspace);
   Py_CLEAR(clear_module_state->__pyx_n_u_jooji);
-  Py_CLEAR(clear_module_state->__pyx_n_u_kaDhaxal);
-  Py_CLEAR(clear_module_state->__pyx_n_u_kaKeen);
   Py_CLEAR(clear_module_state->__pyx_n_u_ka_dhaxal);
   Py_CLEAR(clear_module_state->__pyx_n_u_ka_keen);
-  Py_CLEAR(clear_module_state->__pyx_n_u_kuCeli);
+  Py_CLEAR(clear_module_state->__pyx_n_u_ka_dhaxal);
+  Py_CLEAR(clear_module_state->__pyx_n_u_ka_keen);
+  Py_CLEAR(clear_module_state->__pyx_n_u_ku_celi);
   Py_CLEAR(clear_module_state->__pyx_n_u_ku_celi);
   Py_CLEAR(clear_module_state->__pyx_n_u_labadaran);
   Py_CLEAR(clear_module_state->__pyx_n_u_liis);
@@ -3039,11 +3039,11 @@ static int __pyx_m_clear(PyObject *m) {
   Py_CLEAR(clear_module_state->__pyx_n_s_self);
   Py_CLEAR(clear_module_state->__pyx_n_s_set_name);
   Py_CLEAR(clear_module_state->__pyx_n_u_shey);
-  Py_CLEAR(clear_module_state->__pyx_n_u_siiWad);
+  Py_CLEAR(clear_module_state->__pyx_n_u_sii_wad);
   Py_CLEAR(clear_module_state->__pyx_n_u_sii_wad);
   Py_CLEAR(clear_module_state->__pyx_n_s_skip_comment);
   Py_CLEAR(clear_module_state->__pyx_n_s_skip_whitespace);
-  Py_CLEAR(clear_module_state->__pyx_n_u_sooCeli);
+  Py_CLEAR(clear_module_state->__pyx_n_u_soo_celi);
   Py_CLEAR(clear_module_state->__pyx_n_u_soo_celi);
   Py_CLEAR(clear_module_state->__pyx_n_s_source);
   Py_CLEAR(clear_module_state->__pyx_n_s_source_code);
@@ -3234,8 +3234,8 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
   Py_VISIT(traverse_module_state->__pyx_n_u_fasalka);
   Py_VISIT(traverse_module_state->__pyx_n_s_get);
   Py_VISIT(traverse_module_state->__pyx_n_u_haddii);
-  Py_VISIT(traverse_module_state->__pyx_n_u_haddiiKale);
-  Py_VISIT(traverse_module_state->__pyx_n_u_haddiiKalena);
+  Py_VISIT(traverse_module_state->__pyx_n_u_haddii_kale);
+  Py_VISIT(traverse_module_state->__pyx_n_u_haddii_kalenaa);
   Py_VISIT(traverse_module_state->__pyx_n_u_haddii_kale);
   Py_VISIT(traverse_module_state->__pyx_n_u_haddii_kalena);
   Py_VISIT(traverse_module_state->__pyx_n_u_howl);
@@ -3244,21 +3244,21 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
   Py_VISIT(traverse_module_state->__pyx_n_s_init);
   Py_VISIT(traverse_module_state->__pyx_n_s_init_subclass);
   Py_VISIT(traverse_module_state->__pyx_n_s_initializing);
-  Py_VISIT(traverse_module_state->__pyx_n_u_intaAy);
+  Py_VISIT(traverse_module_state->__pyx_n_u_inta_ay);
   Py_VISIT(traverse_module_state->__pyx_n_u_inta_ay);
   Py_VISIT(traverse_module_state->__pyx_n_s_is_coroutine);
   Py_VISIT(traverse_module_state->__pyx_n_s_isalnum);
   Py_VISIT(traverse_module_state->__pyx_n_s_isalpha);
   Py_VISIT(traverse_module_state->__pyx_n_s_isdigit);
-  Py_VISIT(traverse_module_state->__pyx_n_u_iskuDay);
+  Py_VISIT(traverse_module_state->__pyx_n_u_isku_day);
   Py_VISIT(traverse_module_state->__pyx_n_u_isku_day);
   Py_VISIT(traverse_module_state->__pyx_n_s_isspace);
   Py_VISIT(traverse_module_state->__pyx_n_u_jooji);
-  Py_VISIT(traverse_module_state->__pyx_n_u_kaDhaxal);
-  Py_VISIT(traverse_module_state->__pyx_n_u_kaKeen);
   Py_VISIT(traverse_module_state->__pyx_n_u_ka_dhaxal);
   Py_VISIT(traverse_module_state->__pyx_n_u_ka_keen);
-  Py_VISIT(traverse_module_state->__pyx_n_u_kuCeli);
+  Py_VISIT(traverse_module_state->__pyx_n_u_ka_dhaxal);
+  Py_VISIT(traverse_module_state->__pyx_n_u_ka_keen);
+  Py_VISIT(traverse_module_state->__pyx_n_u_ku_celi);
   Py_VISIT(traverse_module_state->__pyx_n_u_ku_celi);
   Py_VISIT(traverse_module_state->__pyx_n_u_labadaran);
   Py_VISIT(traverse_module_state->__pyx_n_u_liis);
@@ -3284,11 +3284,11 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
   Py_VISIT(traverse_module_state->__pyx_n_s_self);
   Py_VISIT(traverse_module_state->__pyx_n_s_set_name);
   Py_VISIT(traverse_module_state->__pyx_n_u_shey);
-  Py_VISIT(traverse_module_state->__pyx_n_u_siiWad);
+  Py_VISIT(traverse_module_state->__pyx_n_u_sii_wad);
   Py_VISIT(traverse_module_state->__pyx_n_u_sii_wad);
   Py_VISIT(traverse_module_state->__pyx_n_s_skip_comment);
   Py_VISIT(traverse_module_state->__pyx_n_s_skip_whitespace);
-  Py_VISIT(traverse_module_state->__pyx_n_u_sooCeli);
+  Py_VISIT(traverse_module_state->__pyx_n_u_soo_celi);
   Py_VISIT(traverse_module_state->__pyx_n_u_soo_celi);
   Py_VISIT(traverse_module_state->__pyx_n_s_source);
   Py_VISIT(traverse_module_state->__pyx_n_s_source_code);
@@ -3489,8 +3489,8 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
 #define __pyx_n_u_fasalka __pyx_mstate_global->__pyx_n_u_fasalka
 #define __pyx_n_s_get __pyx_mstate_global->__pyx_n_s_get
 #define __pyx_n_u_haddii __pyx_mstate_global->__pyx_n_u_haddii
-#define __pyx_n_u_haddiiKale __pyx_mstate_global->__pyx_n_u_haddiiKale
-#define __pyx_n_u_haddiiKalena __pyx_mstate_global->__pyx_n_u_haddiiKalena
+#define __pyx_n_u_haddii_kale __pyx_mstate_global->__pyx_n_u_haddii_kale
+#define __pyx_n_u_haddii_kalenaa __pyx_mstate_global->__pyx_n_uhaddii_kalenana
 #define __pyx_n_u_haddii_kale __pyx_mstate_global->__pyx_n_u_haddii_kale
 #define __pyx_n_u_haddii_kalena __pyx_mstate_global->__pyx_n_u_haddii_kalena
 #define __pyx_n_u_howl __pyx_mstate_global->__pyx_n_u_howl
@@ -3499,21 +3499,21 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
 #define __pyx_n_s_init __pyx_mstate_global->__pyx_n_s_init
 #define __pyx_n_s_init_subclass __pyx_mstate_global->__pyx_n_s_init_subclass
 #define __pyx_n_s_initializing __pyx_mstate_global->__pyx_n_s_initializing
-#define __pyx_n_u_intaAy __pyx_mstate_global->__pyx_n_u_intaAy
+#define __pyx_n_u_inta_ay __pyx_mstate_global->__pyx_n_u_inta_ay
 #define __pyx_n_u_inta_ay __pyx_mstate_global->__pyx_n_u_inta_ay
 #define __pyx_n_s_is_coroutine __pyx_mstate_global->__pyx_n_s_is_coroutine
 #define __pyx_n_s_isalnum __pyx_mstate_global->__pyx_n_s_isalnum
 #define __pyx_n_s_isalpha __pyx_mstate_global->__pyx_n_s_isalpha
 #define __pyx_n_s_isdigit __pyx_mstate_global->__pyx_n_s_isdigit
-#define __pyx_n_u_iskuDay __pyx_mstate_global->__pyx_n_u_iskuDay
+#define __pyx_n_u_isku_day __pyx_mstate_global->__pyx_n_u_isku_day
 #define __pyx_n_u_isku_day __pyx_mstate_global->__pyx_n_u_isku_day
 #define __pyx_n_s_isspace __pyx_mstate_global->__pyx_n_s_isspace
 #define __pyx_n_u_jooji __pyx_mstate_global->__pyx_n_u_jooji
-#define __pyx_n_u_kaDhaxal __pyx_mstate_global->__pyx_n_u_kaDhaxal
-#define __pyx_n_u_kaKeen __pyx_mstate_global->__pyx_n_u_kaKeen
 #define __pyx_n_u_ka_dhaxal __pyx_mstate_global->__pyx_n_u_ka_dhaxal
 #define __pyx_n_u_ka_keen __pyx_mstate_global->__pyx_n_u_ka_keen
-#define __pyx_n_u_kuCeli __pyx_mstate_global->__pyx_n_u_kuCeli
+#define __pyx_n_u_ka_dhaxal __pyx_mstate_global->__pyx_n_u_ka_dhaxal
+#define __pyx_n_u_ka_keen __pyx_mstate_global->__pyx_n_u_ka_keen
+#define __pyx_n_u_ku_celi __pyx_mstate_global->__pyx_n_u_ku_celi
 #define __pyx_n_u_ku_celi __pyx_mstate_global->__pyx_n_u_ku_celi
 #define __pyx_n_u_labadaran __pyx_mstate_global->__pyx_n_u_labadaran
 #define __pyx_n_u_liis __pyx_mstate_global->__pyx_n_u_liis
@@ -3539,11 +3539,11 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
 #define __pyx_n_s_self __pyx_mstate_global->__pyx_n_s_self
 #define __pyx_n_s_set_name __pyx_mstate_global->__pyx_n_s_set_name
 #define __pyx_n_u_shey __pyx_mstate_global->__pyx_n_u_shey
-#define __pyx_n_u_siiWad __pyx_mstate_global->__pyx_n_u_siiWad
+#define __pyx_n_u_sii_wad __pyx_mstate_global->__pyx_n_u_sii_wad
 #define __pyx_n_u_sii_wad __pyx_mstate_global->__pyx_n_u_sii_wad
 #define __pyx_n_s_skip_comment __pyx_mstate_global->__pyx_n_s_skip_comment
 #define __pyx_n_s_skip_whitespace __pyx_mstate_global->__pyx_n_s_skip_whitespace
-#define __pyx_n_u_sooCeli __pyx_mstate_global->__pyx_n_u_sooCeli
+#define __pyx_n_u_soo_celi __pyx_mstate_global->__pyx_n_u_soo_celi
 #define __pyx_n_u_soo_celi __pyx_mstate_global->__pyx_n_u_soo_celi
 #define __pyx_n_s_source __pyx_mstate_global->__pyx_n_s_source
 #define __pyx_n_s_source_code __pyx_mstate_global->__pyx_n_s_source_code
@@ -3592,7 +3592,7 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
 /* #### Code section: module_code ### */
 
 /* "src/lexer.py":7
- * 
+ *
  * class Token:
  *     def __init__(self, type_, value):             # <<<<<<<<<<<<<<
  *         self.type = type_
@@ -3600,7 +3600,7 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_3src_5lexer_5Token_1__init__(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_5lexer_5Token_1__init__(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -3608,7 +3608,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
 #endif
 ); /*proto*/
 static PyMethodDef __pyx_mdef_3src_5lexer_5Token_1__init__ = {"__init__", (PyCFunction)(void*)(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_3src_5lexer_5Token_1__init__, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_3src_5lexer_5Token_1__init__(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_5lexer_5Token_1__init__(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -3738,7 +3738,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Token___init__(CYTHON_UNUSED PyObject *__
  *     def __init__(self, type_, value):
  *         self.type = type_             # <<<<<<<<<<<<<<
  *         self.value = value
- * 
+ *
  */
   if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_type_2, __pyx_v_type_) < 0) __PYX_ERR(0, 8, __pyx_L1_error)
 
@@ -3746,13 +3746,13 @@ static PyObject *__pyx_pf_3src_5lexer_5Token___init__(CYTHON_UNUSED PyObject *__
  *     def __init__(self, type_, value):
  *         self.type = type_
  *         self.value = value             # <<<<<<<<<<<<<<
- * 
+ *
  *     def __repr__(self):
  */
   if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_value, __pyx_v_value) < 0) __PYX_ERR(0, 9, __pyx_L1_error)
 
   /* "src/lexer.py":7
- * 
+ *
  * class Token:
  *     def __init__(self, type_, value):             # <<<<<<<<<<<<<<
  *         self.type = type_
@@ -3773,14 +3773,14 @@ static PyObject *__pyx_pf_3src_5lexer_5Token___init__(CYTHON_UNUSED PyObject *__
 
 /* "src/lexer.py":11
  *         self.value = value
- * 
+ *
  *     def __repr__(self):             # <<<<<<<<<<<<<<
  *         return f"Token({self.type}, {repr(self.value)})"
- * 
+ *
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_3src_5lexer_5Token_3__repr__(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_5lexer_5Token_3__repr__(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -3788,7 +3788,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
 #endif
 ); /*proto*/
 static PyMethodDef __pyx_mdef_3src_5lexer_5Token_3__repr__ = {"__repr__", (PyCFunction)(void*)(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_3src_5lexer_5Token_3__repr__, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_3src_5lexer_5Token_3__repr__(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_5lexer_5Token_3__repr__(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -3889,11 +3889,11 @@ static PyObject *__pyx_pf_3src_5lexer_5Token_2__repr__(CYTHON_UNUSED PyObject *_
   __Pyx_RefNannySetupContext("__repr__", 1);
 
   /* "src/lexer.py":12
- * 
+ *
  *     def __repr__(self):
  *         return f"Token({self.type}, {repr(self.value)})"             # <<<<<<<<<<<<<<
- * 
- * 
+ *
+ *
  */
   __Pyx_XDECREF(__pyx_r);
   __pyx_t_1 = PyTuple_New(5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 12, __pyx_L1_error)
@@ -3944,10 +3944,10 @@ static PyObject *__pyx_pf_3src_5lexer_5Token_2__repr__(CYTHON_UNUSED PyObject *_
 
   /* "src/lexer.py":11
  *         self.value = value
- * 
+ *
  *     def __repr__(self):             # <<<<<<<<<<<<<<
  *         return f"Token({self.type}, {repr(self.value)})"
- * 
+ *
  */
 
   /* function exit code */
@@ -3964,7 +3964,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Token_2__repr__(CYTHON_UNUSED PyObject *_
 }
 
 /* "src/lexer.py":16
- * 
+ *
  * class Lexer:
  *     def __init__(self, source_code):             # <<<<<<<<<<<<<<
  *         self.source = source_code
@@ -3972,7 +3972,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Token_2__repr__(CYTHON_UNUSED PyObject *_
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_3src_5lexer_5Lexer_1__init__(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_5lexer_5Lexer_1__init__(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -3980,7 +3980,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
 #endif
 ); /*proto*/
 static PyMethodDef __pyx_mdef_3src_5lexer_5Lexer_1__init__ = {"__init__", (PyCFunction)(void*)(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_3src_5lexer_5Lexer_1__init__, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_3src_5lexer_5Lexer_1__init__(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_5lexer_5Lexer_1__init__(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -4109,7 +4109,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer___init__(CYTHON_UNUSED PyObject *__
  *         self.source = source_code
  *         self.position = 0             # <<<<<<<<<<<<<<
  *         self.current_char = self.source[self.position] if self.source else None
- * 
+ *
  */
   if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_position, __pyx_int_0) < 0) __PYX_ERR(0, 18, __pyx_L1_error)
 
@@ -4117,7 +4117,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer___init__(CYTHON_UNUSED PyObject *__
  *         self.source = source_code
  *         self.position = 0
  *         self.current_char = self.source[self.position] if self.source else None             # <<<<<<<<<<<<<<
- * 
+ *
  *         self.KEYWORDS = {
  */
   __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_source); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 19, __pyx_L1_error)
@@ -4164,7 +4164,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer___init__(CYTHON_UNUSED PyObject *__
  *             "door": TokenType.DOOR,
  *             "howl": TokenType.HOWL,             # <<<<<<<<<<<<<<
  *             "soo_celi": TokenType.SOO_CELI,
- *             "sooCeli": TokenType.SOO_CELI,  # Camel case version
+ *             "soo_celi": TokenType.SOO_CELI,  # Camel case version
  */
   __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_TokenType); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 24, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
@@ -4178,7 +4178,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer___init__(CYTHON_UNUSED PyObject *__
  *             "door": TokenType.DOOR,
  *             "howl": TokenType.HOWL,
  *             "soo_celi": TokenType.SOO_CELI,             # <<<<<<<<<<<<<<
- *             "sooCeli": TokenType.SOO_CELI,  # Camel case version
+ *             "soo_celi": TokenType.SOO_CELI,  # Camel case version
  *             "qor": TokenType.QOR,
  */
   __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_TokenType); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 25, __pyx_L1_error)
@@ -4192,7 +4192,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer___init__(CYTHON_UNUSED PyObject *__
   /* "src/lexer.py":26
  *             "howl": TokenType.HOWL,
  *             "soo_celi": TokenType.SOO_CELI,
- *             "sooCeli": TokenType.SOO_CELI,  # Camel case version             # <<<<<<<<<<<<<<
+ *             "soo_celi": TokenType.SOO_CELI,  # Camel case version             # <<<<<<<<<<<<<<
  *             "qor": TokenType.QOR,
  *             "akhri": TokenType.AKHRI,
  */
@@ -4201,12 +4201,12 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer___init__(CYTHON_UNUSED PyObject *__
   __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_SOO_CELI); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 26, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_u_sooCeli, __pyx_t_5) < 0) __PYX_ERR(0, 23, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_u_soo_celi, __pyx_t_5) < 0) __PYX_ERR(0, 23, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
   /* "src/lexer.py":27
  *             "soo_celi": TokenType.SOO_CELI,
- *             "sooCeli": TokenType.SOO_CELI,  # Camel case version
+ *             "soo_celi": TokenType.SOO_CELI,  # Camel case version
  *             "qor": TokenType.QOR,             # <<<<<<<<<<<<<<
  *             "akhri": TokenType.AKHRI,
  *             "haddii": TokenType.HADDII,
@@ -4220,7 +4220,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer___init__(CYTHON_UNUSED PyObject *__
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
   /* "src/lexer.py":28
- *             "sooCeli": TokenType.SOO_CELI,  # Camel case version
+ *             "soo_celi": TokenType.SOO_CELI,  # Camel case version
  *             "qor": TokenType.QOR,
  *             "akhri": TokenType.AKHRI,             # <<<<<<<<<<<<<<
  *             "haddii": TokenType.HADDII,
@@ -4239,7 +4239,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer___init__(CYTHON_UNUSED PyObject *__
  *             "akhri": TokenType.AKHRI,
  *             "haddii": TokenType.HADDII,             # <<<<<<<<<<<<<<
  *             "haddii_kale": TokenType.HADDII_KALE,
- *             "haddiiKale": TokenType.HADDII_KALE,  # Camel case version
+ *             "haddii_kale": TokenType.HADDII_KALE,  # Camel case version
  */
   __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_TokenType); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 29, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
@@ -4253,7 +4253,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer___init__(CYTHON_UNUSED PyObject *__
  *             "akhri": TokenType.AKHRI,
  *             "haddii": TokenType.HADDII,
  *             "haddii_kale": TokenType.HADDII_KALE,             # <<<<<<<<<<<<<<
- *             "haddiiKale": TokenType.HADDII_KALE,  # Camel case version
+ *             "haddii_kale": TokenType.HADDII_KALE,  # Camel case version
  *             "haddii_kalena": TokenType.HADDII_KALENA,
  */
   __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_TokenType); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 30, __pyx_L1_error)
@@ -4267,23 +4267,23 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer___init__(CYTHON_UNUSED PyObject *__
   /* "src/lexer.py":31
  *             "haddii": TokenType.HADDII,
  *             "haddii_kale": TokenType.HADDII_KALE,
- *             "haddiiKale": TokenType.HADDII_KALE,  # Camel case version             # <<<<<<<<<<<<<<
+ *             "haddii_kale": TokenType.HADDII_KALE,  # Camel case version             # <<<<<<<<<<<<<<
  *             "haddii_kalena": TokenType.HADDII_KALENA,
- *             "haddiiKalena": TokenType.HADDII_KALENA,  # Camel case version
+ *             "haddii_kalenaa": TokenType.HADDII_KALENA,  # Camel case version
  */
   __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_TokenType); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 31, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_HADDII_KALE); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 31, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_u_haddiiKale, __pyx_t_4) < 0) __PYX_ERR(0, 23, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_u_haddii_kale, __pyx_t_4) < 0) __PYX_ERR(0, 23, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
   /* "src/lexer.py":32
  *             "haddii_kale": TokenType.HADDII_KALE,
- *             "haddiiKale": TokenType.HADDII_KALE,  # Camel case version
+ *             "haddii_kale": TokenType.HADDII_KALE,  # Camel case version
  *             "haddii_kalena": TokenType.HADDII_KALENA,             # <<<<<<<<<<<<<<
- *             "haddiiKalena": TokenType.HADDII_KALENA,  # Camel case version
+ *             "haddii_kalenaa": TokenType.HADDII_KALENA,  # Camel case version
  *             "ku_celi": TokenType.KU_CELI,
  */
   __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_TokenType); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 32, __pyx_L1_error)
@@ -4295,25 +4295,25 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer___init__(CYTHON_UNUSED PyObject *__
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
   /* "src/lexer.py":33
- *             "haddiiKale": TokenType.HADDII_KALE,  # Camel case version
+ *             "haddii_kale": TokenType.HADDII_KALE,  # Camel case version
  *             "haddii_kalena": TokenType.HADDII_KALENA,
- *             "haddiiKalena": TokenType.HADDII_KALENA,  # Camel case version             # <<<<<<<<<<<<<<
+ *             "haddii_kalenaa": TokenType.HADDII_KALENA,  # Camel case version             # <<<<<<<<<<<<<<
  *             "ku_celi": TokenType.KU_CELI,
- *             "kuCeli": TokenType.KU_CELI,  # Camel case version
+ *             "ku_celi": TokenType.KU_CELI,  # Camel case version
  */
   __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_TokenType); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 33, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_HADDII_KALENA); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 33, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_u_haddiiKalena, __pyx_t_4) < 0) __PYX_ERR(0, 23, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_u_haddii_kalenaa, __pyx_t_4) < 0) __PYX_ERR(0, 23, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
   /* "src/lexer.py":34
  *             "haddii_kalena": TokenType.HADDII_KALENA,
- *             "haddiiKalena": TokenType.HADDII_KALENA,  # Camel case version
+ *             "haddii_kalenaa": TokenType.HADDII_KALENA,  # Camel case version
  *             "ku_celi": TokenType.KU_CELI,             # <<<<<<<<<<<<<<
- *             "kuCeli": TokenType.KU_CELI,  # Camel case version
+ *             "ku_celi": TokenType.KU_CELI,  # Camel case version
  *             "inta_ay": TokenType.INTA_AY,
  */
   __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_TokenType); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 34, __pyx_L1_error)
@@ -4325,25 +4325,25 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer___init__(CYTHON_UNUSED PyObject *__
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
   /* "src/lexer.py":35
- *             "haddiiKalena": TokenType.HADDII_KALENA,  # Camel case version
+ *             "haddii_kalenaa": TokenType.HADDII_KALENA,  # Camel case version
  *             "ku_celi": TokenType.KU_CELI,
- *             "kuCeli": TokenType.KU_CELI,  # Camel case version             # <<<<<<<<<<<<<<
+ *             "ku_celi": TokenType.KU_CELI,  # Camel case version             # <<<<<<<<<<<<<<
  *             "inta_ay": TokenType.INTA_AY,
- *             "intaAy": TokenType.INTA_AY,  # Camel case version
+ *             "inta_ay": TokenType.INTA_AY,  # Camel case version
  */
   __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_TokenType); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 35, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_KU_CELI); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 35, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_u_kuCeli, __pyx_t_4) < 0) __PYX_ERR(0, 23, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_u_ku_celi, __pyx_t_4) < 0) __PYX_ERR(0, 23, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
   /* "src/lexer.py":36
  *             "ku_celi": TokenType.KU_CELI,
- *             "kuCeli": TokenType.KU_CELI,  # Camel case version
+ *             "ku_celi": TokenType.KU_CELI,  # Camel case version
  *             "inta_ay": TokenType.INTA_AY,             # <<<<<<<<<<<<<<
- *             "intaAy": TokenType.INTA_AY,  # Camel case version
+ *             "inta_ay": TokenType.INTA_AY,  # Camel case version
  *             "jooji": TokenType.JOOJI,
  */
   __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_TokenType); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 36, __pyx_L1_error)
@@ -4355,9 +4355,9 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer___init__(CYTHON_UNUSED PyObject *__
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
   /* "src/lexer.py":37
- *             "kuCeli": TokenType.KU_CELI,  # Camel case version
+ *             "ku_celi": TokenType.KU_CELI,  # Camel case version
  *             "inta_ay": TokenType.INTA_AY,
- *             "intaAy": TokenType.INTA_AY,  # Camel case version             # <<<<<<<<<<<<<<
+ *             "inta_ay": TokenType.INTA_AY,  # Camel case version             # <<<<<<<<<<<<<<
  *             "jooji": TokenType.JOOJI,
  *             "sii_wad": TokenType.SII_WAD,
  */
@@ -4366,15 +4366,15 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer___init__(CYTHON_UNUSED PyObject *__
   __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_INTA_AY); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 37, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_u_intaAy, __pyx_t_4) < 0) __PYX_ERR(0, 23, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_u_inta_ay, __pyx_t_4) < 0) __PYX_ERR(0, 23, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
   /* "src/lexer.py":38
  *             "inta_ay": TokenType.INTA_AY,
- *             "intaAy": TokenType.INTA_AY,  # Camel case version
+ *             "inta_ay": TokenType.INTA_AY,  # Camel case version
  *             "jooji": TokenType.JOOJI,             # <<<<<<<<<<<<<<
  *             "sii_wad": TokenType.SII_WAD,
- *             "siiWad": TokenType.SII_WAD,  # Camel case version
+ *             "sii_wad": TokenType.SII_WAD,  # Camel case version
  */
   __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_TokenType); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 38, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
@@ -4385,10 +4385,10 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer___init__(CYTHON_UNUSED PyObject *__
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
   /* "src/lexer.py":39
- *             "intaAy": TokenType.INTA_AY,  # Camel case version
+ *             "inta_ay": TokenType.INTA_AY,  # Camel case version
  *             "jooji": TokenType.JOOJI,
  *             "sii_wad": TokenType.SII_WAD,             # <<<<<<<<<<<<<<
- *             "siiWad": TokenType.SII_WAD,  # Camel case version
+ *             "sii_wad": TokenType.SII_WAD,  # Camel case version
  *             "isku_day": TokenType.ISKU_DAY,
  */
   __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_TokenType); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 39, __pyx_L1_error)
@@ -4402,23 +4402,23 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer___init__(CYTHON_UNUSED PyObject *__
   /* "src/lexer.py":40
  *             "jooji": TokenType.JOOJI,
  *             "sii_wad": TokenType.SII_WAD,
- *             "siiWad": TokenType.SII_WAD,  # Camel case version             # <<<<<<<<<<<<<<
+ *             "sii_wad": TokenType.SII_WAD,  # Camel case version             # <<<<<<<<<<<<<<
  *             "isku_day": TokenType.ISKU_DAY,
- *             "iskuDay": TokenType.ISKU_DAY,  # Camel case version
+ *             "isku_day": TokenType.ISKU_DAY,  # Camel case version
  */
   __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_TokenType); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 40, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_SII_WAD); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 40, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_u_siiWad, __pyx_t_5) < 0) __PYX_ERR(0, 23, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_u_sii_wad, __pyx_t_5) < 0) __PYX_ERR(0, 23, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
   /* "src/lexer.py":41
  *             "sii_wad": TokenType.SII_WAD,
- *             "siiWad": TokenType.SII_WAD,  # Camel case version
+ *             "sii_wad": TokenType.SII_WAD,  # Camel case version
  *             "isku_day": TokenType.ISKU_DAY,             # <<<<<<<<<<<<<<
- *             "iskuDay": TokenType.ISKU_DAY,  # Camel case version
+ *             "isku_day": TokenType.ISKU_DAY,  # Camel case version
  *             "qabo": TokenType.QABO,
  */
   __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_TokenType); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 41, __pyx_L1_error)
@@ -4430,9 +4430,9 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer___init__(CYTHON_UNUSED PyObject *__
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
   /* "src/lexer.py":42
- *             "siiWad": TokenType.SII_WAD,  # Camel case version
+ *             "sii_wad": TokenType.SII_WAD,  # Camel case version
  *             "isku_day": TokenType.ISKU_DAY,
- *             "iskuDay": TokenType.ISKU_DAY,  # Camel case version             # <<<<<<<<<<<<<<
+ *             "isku_day": TokenType.ISKU_DAY,  # Camel case version             # <<<<<<<<<<<<<<
  *             "qabo": TokenType.QABO,
  *             "ka_keen": TokenType.KA_KEEN,
  */
@@ -4441,15 +4441,15 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer___init__(CYTHON_UNUSED PyObject *__
   __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_ISKU_DAY); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 42, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_u_iskuDay, __pyx_t_5) < 0) __PYX_ERR(0, 23, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_u_isku_day, __pyx_t_5) < 0) __PYX_ERR(0, 23, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
   /* "src/lexer.py":43
  *             "isku_day": TokenType.ISKU_DAY,
- *             "iskuDay": TokenType.ISKU_DAY,  # Camel case version
+ *             "isku_day": TokenType.ISKU_DAY,  # Camel case version
  *             "qabo": TokenType.QABO,             # <<<<<<<<<<<<<<
  *             "ka_keen": TokenType.KA_KEEN,
- *             "kaKeen": TokenType.KA_KEEN,  # Camel case version
+ *             "ka_keen": TokenType.KA_KEEN,  # Camel case version
  */
   __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_TokenType); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 43, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
@@ -4460,10 +4460,10 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer___init__(CYTHON_UNUSED PyObject *__
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
   /* "src/lexer.py":44
- *             "iskuDay": TokenType.ISKU_DAY,  # Camel case version
+ *             "isku_day": TokenType.ISKU_DAY,  # Camel case version
  *             "qabo": TokenType.QABO,
  *             "ka_keen": TokenType.KA_KEEN,             # <<<<<<<<<<<<<<
- *             "kaKeen": TokenType.KA_KEEN,  # Camel case version
+ *             "ka_keen": TokenType.KA_KEEN,  # Camel case version
  *             "fasalka": TokenType.FASALKA,
  */
   __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_TokenType); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 44, __pyx_L1_error)
@@ -4477,7 +4477,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer___init__(CYTHON_UNUSED PyObject *__
   /* "src/lexer.py":45
  *             "qabo": TokenType.QABO,
  *             "ka_keen": TokenType.KA_KEEN,
- *             "kaKeen": TokenType.KA_KEEN,  # Camel case version             # <<<<<<<<<<<<<<
+ *             "ka_keen": TokenType.KA_KEEN,  # Camel case version             # <<<<<<<<<<<<<<
  *             "fasalka": TokenType.FASALKA,
  *             "ka_dhaxal": TokenType.KA_DHAXAL,
  */
@@ -4486,15 +4486,15 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer___init__(CYTHON_UNUSED PyObject *__
   __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_KA_KEEN); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 45, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_u_kaKeen, __pyx_t_4) < 0) __PYX_ERR(0, 23, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_u_ka_keen, __pyx_t_4) < 0) __PYX_ERR(0, 23, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
   /* "src/lexer.py":46
  *             "ka_keen": TokenType.KA_KEEN,
- *             "kaKeen": TokenType.KA_KEEN,  # Camel case version
+ *             "ka_keen": TokenType.KA_KEEN,  # Camel case version
  *             "fasalka": TokenType.FASALKA,             # <<<<<<<<<<<<<<
  *             "ka_dhaxal": TokenType.KA_DHAXAL,
- *             "kaDhaxal": TokenType.KA_DHAXAL,  # Camel case version
+ *             "ka_dhaxal": TokenType.KA_DHAXAL,  # Camel case version
  */
   __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_TokenType); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 46, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
@@ -4505,10 +4505,10 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer___init__(CYTHON_UNUSED PyObject *__
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
   /* "src/lexer.py":47
- *             "kaKeen": TokenType.KA_KEEN,  # Camel case version
+ *             "ka_keen": TokenType.KA_KEEN,  # Camel case version
  *             "fasalka": TokenType.FASALKA,
  *             "ka_dhaxal": TokenType.KA_DHAXAL,             # <<<<<<<<<<<<<<
- *             "kaDhaxal": TokenType.KA_DHAXAL,  # Camel case version
+ *             "ka_dhaxal": TokenType.KA_DHAXAL,  # Camel case version
  *             "cusub": TokenType.CUSUB,
  */
   __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_TokenType); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 47, __pyx_L1_error)
@@ -4522,7 +4522,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer___init__(CYTHON_UNUSED PyObject *__
   /* "src/lexer.py":48
  *             "fasalka": TokenType.FASALKA,
  *             "ka_dhaxal": TokenType.KA_DHAXAL,
- *             "kaDhaxal": TokenType.KA_DHAXAL,  # Camel case version             # <<<<<<<<<<<<<<
+ *             "ka_dhaxal": TokenType.KA_DHAXAL,  # Camel case version             # <<<<<<<<<<<<<<
  *             "cusub": TokenType.CUSUB,
  *             "nafta": TokenType.NAFTA,
  */
@@ -4531,15 +4531,15 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer___init__(CYTHON_UNUSED PyObject *__
   __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_KA_DHAXAL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 48, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_u_kaDhaxal, __pyx_t_5) < 0) __PYX_ERR(0, 23, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_u_ka_dhaxal, __pyx_t_5) < 0) __PYX_ERR(0, 23, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
   /* "src/lexer.py":49
  *             "ka_dhaxal": TokenType.KA_DHAXAL,
- *             "kaDhaxal": TokenType.KA_DHAXAL,  # Camel case version
+ *             "ka_dhaxal": TokenType.KA_DHAXAL,  # Camel case version
  *             "cusub": TokenType.CUSUB,             # <<<<<<<<<<<<<<
  *             "nafta": TokenType.NAFTA,
- * 
+ *
  */
   __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_TokenType); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 49, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
@@ -4550,10 +4550,10 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer___init__(CYTHON_UNUSED PyObject *__
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
   /* "src/lexer.py":50
- *             "kaDhaxal": TokenType.KA_DHAXAL,  # Camel case version
+ *             "ka_dhaxal": TokenType.KA_DHAXAL,  # Camel case version
  *             "cusub": TokenType.CUSUB,
  *             "nafta": TokenType.NAFTA,             # <<<<<<<<<<<<<<
- * 
+ *
  *             # Static types
  */
   __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_TokenType); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 50, __pyx_L1_error)
@@ -4565,7 +4565,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer___init__(CYTHON_UNUSED PyObject *__
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
   /* "src/lexer.py":53
- * 
+ *
  *             # Static types
  *             "tiro": TokenType.TIRO,             # <<<<<<<<<<<<<<
  *             "qoraal": TokenType.QORAAL,
@@ -4614,7 +4614,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer___init__(CYTHON_UNUSED PyObject *__
  *             "labadaran": TokenType.LABADARAN,
  *             "liis": TokenType.LIIS,             # <<<<<<<<<<<<<<
  *             "shey": TokenType.SHEY,
- * 
+ *
  */
   __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_TokenType); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 56, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
@@ -4628,7 +4628,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer___init__(CYTHON_UNUSED PyObject *__
  *             "labadaran": TokenType.LABADARAN,
  *             "liis": TokenType.LIIS,
  *             "shey": TokenType.SHEY,             # <<<<<<<<<<<<<<
- * 
+ *
  *             # Boolean literals
  */
   __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_TokenType); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 57, __pyx_L1_error)
@@ -4640,7 +4640,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer___init__(CYTHON_UNUSED PyObject *__
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
   /* "src/lexer.py":60
- * 
+ *
  *             # Boolean literals
  *             "true": TokenType.TRUE,             # <<<<<<<<<<<<<<
  *             "false": TokenType.FALSE,
@@ -4674,7 +4674,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer___init__(CYTHON_UNUSED PyObject *__
  *             "false": TokenType.FALSE,
  *             "null": TokenType.NULL             # <<<<<<<<<<<<<<
  *         }
- * 
+ *
  */
   __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_TokenType); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 62, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
@@ -4686,7 +4686,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer___init__(CYTHON_UNUSED PyObject *__
 
   /* "src/lexer.py":21
  *         self.current_char = self.source[self.position] if self.source else None
- * 
+ *
  *         self.KEYWORDS = {             # <<<<<<<<<<<<<<
  *             # Dynamic and control flow
  *             "door": TokenType.DOOR,
@@ -4695,7 +4695,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer___init__(CYTHON_UNUSED PyObject *__
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "src/lexer.py":16
- * 
+ *
  * class Lexer:
  *     def __init__(self, source_code):             # <<<<<<<<<<<<<<
  *         self.source = source_code
@@ -4720,14 +4720,14 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer___init__(CYTHON_UNUSED PyObject *__
 
 /* "src/lexer.py":65
  *         }
- * 
+ *
  *     def advance(self):             # <<<<<<<<<<<<<<
  *         self.position += 1
  *         if self.position < len(self.source):
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_3src_5lexer_5Lexer_3advance(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_5lexer_5Lexer_3advance(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -4735,7 +4735,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
 #endif
 ); /*proto*/
 static PyMethodDef __pyx_mdef_3src_5lexer_5Lexer_3advance = {"advance", (PyCFunction)(void*)(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_3src_5lexer_5Lexer_3advance, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_3src_5lexer_5Lexer_3advance(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_5lexer_5Lexer_3advance(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -4836,7 +4836,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_2advance(CYTHON_UNUSED PyObject *__
   __Pyx_RefNannySetupContext("advance", 1);
 
   /* "src/lexer.py":66
- * 
+ *
  *     def advance(self):
  *         self.position += 1             # <<<<<<<<<<<<<<
  *         if self.position < len(self.source):
@@ -4904,7 +4904,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_2advance(CYTHON_UNUSED PyObject *__
  *             self.current_char = self.source[self.position]
  *         else:
  *             self.current_char = None             # <<<<<<<<<<<<<<
- * 
+ *
  *     def skip_whitespace(self):
  */
   /*else*/ {
@@ -4914,7 +4914,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_2advance(CYTHON_UNUSED PyObject *__
 
   /* "src/lexer.py":65
  *         }
- * 
+ *
  *     def advance(self):             # <<<<<<<<<<<<<<
  *         self.position += 1
  *         if self.position < len(self.source):
@@ -4937,14 +4937,14 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_2advance(CYTHON_UNUSED PyObject *__
 
 /* "src/lexer.py":72
  *             self.current_char = None
- * 
+ *
  *     def skip_whitespace(self):             # <<<<<<<<<<<<<<
  *         while self.current_char and self.current_char.isspace():
  *             self.advance()
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_3src_5lexer_5Lexer_5skip_whitespace(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_5lexer_5Lexer_5skip_whitespace(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -4952,7 +4952,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
 #endif
 ); /*proto*/
 static PyMethodDef __pyx_mdef_3src_5lexer_5Lexer_5skip_whitespace = {"skip_whitespace", (PyCFunction)(void*)(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_3src_5lexer_5Lexer_5skip_whitespace, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_3src_5lexer_5Lexer_5skip_whitespace(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_5lexer_5Lexer_5skip_whitespace(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -5054,11 +5054,11 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_4skip_whitespace(CYTHON_UNUSED PyOb
   __Pyx_RefNannySetupContext("skip_whitespace", 1);
 
   /* "src/lexer.py":73
- * 
+ *
  *     def skip_whitespace(self):
  *         while self.current_char and self.current_char.isspace():             # <<<<<<<<<<<<<<
  *             self.advance()
- * 
+ *
  */
   while (1) {
     __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_current_char); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 73, __pyx_L1_error)
@@ -5107,7 +5107,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_4skip_whitespace(CYTHON_UNUSED PyOb
  *     def skip_whitespace(self):
  *         while self.current_char and self.current_char.isspace():
  *             self.advance()             # <<<<<<<<<<<<<<
- * 
+ *
  *     def skip_comment(self):
  */
     __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_advance); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 74, __pyx_L1_error)
@@ -5139,7 +5139,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_4skip_whitespace(CYTHON_UNUSED PyOb
 
   /* "src/lexer.py":72
  *             self.current_char = None
- * 
+ *
  *     def skip_whitespace(self):             # <<<<<<<<<<<<<<
  *         while self.current_char and self.current_char.isspace():
  *             self.advance()
@@ -5162,14 +5162,14 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_4skip_whitespace(CYTHON_UNUSED PyOb
 
 /* "src/lexer.py":76
  *             self.advance()
- * 
+ *
  *     def skip_comment(self):             # <<<<<<<<<<<<<<
  *         # Single-line comments (//)
  *         if self.current_char == '/' and self.peek() == '/':
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_3src_5lexer_5Lexer_7skip_comment(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_5lexer_5Lexer_7skip_comment(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -5177,7 +5177,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
 #endif
 ); /*proto*/
 static PyMethodDef __pyx_mdef_3src_5lexer_5Lexer_7skip_comment = {"skip_comment", (PyCFunction)(void*)(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_3src_5lexer_5Lexer_7skip_comment, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_3src_5lexer_5Lexer_7skip_comment(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_5lexer_5Lexer_7skip_comment(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -5329,7 +5329,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_6skip_comment(CYTHON_UNUSED PyObjec
  *         if self.current_char == '/' and self.peek() == '/':
  *             self.advance()  # Skip first '/'             # <<<<<<<<<<<<<<
  *             self.advance()  # Skip second '/'
- * 
+ *
  */
     __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_advance); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 79, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
@@ -5361,7 +5361,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_6skip_comment(CYTHON_UNUSED PyObjec
  *         if self.current_char == '/' and self.peek() == '/':
  *             self.advance()  # Skip first '/'
  *             self.advance()  # Skip second '/'             # <<<<<<<<<<<<<<
- * 
+ *
  *             # Skip until end of line or end of file
  */
     __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_advance); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 80, __pyx_L1_error)
@@ -5391,11 +5391,11 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_6skip_comment(CYTHON_UNUSED PyObjec
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
     /* "src/lexer.py":83
- * 
+ *
  *             # Skip until end of line or end of file
  *             while self.current_char and self.current_char != '\n':             # <<<<<<<<<<<<<<
  *                 self.advance()
- * 
+ *
  */
     while (1) {
       __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_current_char); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 83, __pyx_L1_error)
@@ -5419,7 +5419,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_6skip_comment(CYTHON_UNUSED PyObjec
  *             # Skip until end of line or end of file
  *             while self.current_char and self.current_char != '\n':
  *                 self.advance()             # <<<<<<<<<<<<<<
- * 
+ *
  *             # Skip the newline character if present
  */
       __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_advance); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 84, __pyx_L1_error)
@@ -5450,11 +5450,11 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_6skip_comment(CYTHON_UNUSED PyObjec
     }
 
     /* "src/lexer.py":87
- * 
+ *
  *             # Skip the newline character if present
  *             if self.current_char == '\n':             # <<<<<<<<<<<<<<
  *                 self.advance()
- * 
+ *
  */
     __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_current_char); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 87, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
@@ -5466,7 +5466,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_6skip_comment(CYTHON_UNUSED PyObjec
  *             # Skip the newline character if present
  *             if self.current_char == '\n':
  *                 self.advance()             # <<<<<<<<<<<<<<
- * 
+ *
  *             return True
  */
       __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_advance); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 88, __pyx_L1_error)
@@ -5496,19 +5496,19 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_6skip_comment(CYTHON_UNUSED PyObjec
       __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
       /* "src/lexer.py":87
- * 
+ *
  *             # Skip the newline character if present
  *             if self.current_char == '\n':             # <<<<<<<<<<<<<<
  *                 self.advance()
- * 
+ *
  */
     }
 
     /* "src/lexer.py":90
  *                 self.advance()
- * 
+ *
  *             return True             # <<<<<<<<<<<<<<
- * 
+ *
  *         # Multi-line comments (/[inserted by cython to avoid comment start]* ... *[inserted by cython to avoid comment closer]/)
  */
     __Pyx_XDECREF(__pyx_r);
@@ -5526,7 +5526,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_6skip_comment(CYTHON_UNUSED PyObjec
   }
 
   /* "src/lexer.py":93
- * 
+ *
  *         # Multi-line comments (/[inserted by cython to avoid comment start]* ... *[inserted by cython to avoid comment closer]/)
  *         elif self.current_char == '/' and self.peek() == '*':             # <<<<<<<<<<<<<<
  *             self.advance()  # Skip '/'
@@ -5576,7 +5576,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_6skip_comment(CYTHON_UNUSED PyObjec
  *         elif self.current_char == '/' and self.peek() == '*':
  *             self.advance()  # Skip '/'             # <<<<<<<<<<<<<<
  *             self.advance()  # Skip '*'
- * 
+ *
  */
     __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_advance); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 94, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
@@ -5608,7 +5608,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_6skip_comment(CYTHON_UNUSED PyObjec
  *         elif self.current_char == '/' and self.peek() == '*':
  *             self.advance()  # Skip '/'
  *             self.advance()  # Skip '*'             # <<<<<<<<<<<<<<
- * 
+ *
  *             while self.current_char:
  */
     __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_advance); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 95, __pyx_L1_error)
@@ -5639,7 +5639,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_6skip_comment(CYTHON_UNUSED PyObjec
 
     /* "src/lexer.py":97
  *             self.advance()  # Skip '*'
- * 
+ *
  *             while self.current_char:             # <<<<<<<<<<<<<<
  *                 if self.current_char == '*' and self.peek() == '/':
  *                     self.advance()  # Skip '*'
@@ -5652,7 +5652,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_6skip_comment(CYTHON_UNUSED PyObjec
       if (!__pyx_t_1) break;
 
       /* "src/lexer.py":98
- * 
+ *
  *             while self.current_char:
  *                 if self.current_char == '*' and self.peek() == '/':             # <<<<<<<<<<<<<<
  *                     self.advance()  # Skip '*'
@@ -5768,7 +5768,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_6skip_comment(CYTHON_UNUSED PyObjec
  *                     self.advance()  # Skip '/'
  *                     return True             # <<<<<<<<<<<<<<
  *                 self.advance()
- * 
+ *
  */
         __Pyx_XDECREF(__pyx_r);
         __Pyx_INCREF(Py_True);
@@ -5776,7 +5776,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_6skip_comment(CYTHON_UNUSED PyObjec
         goto __pyx_L0;
 
         /* "src/lexer.py":98
- * 
+ *
  *             while self.current_char:
  *                 if self.current_char == '*' and self.peek() == '/':             # <<<<<<<<<<<<<<
  *                     self.advance()  # Skip '*'
@@ -5788,7 +5788,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_6skip_comment(CYTHON_UNUSED PyObjec
  *                     self.advance()  # Skip '/'
  *                     return True
  *                 self.advance()             # <<<<<<<<<<<<<<
- * 
+ *
  *             # If we reach here, the comment was not properly closed
  */
       __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_advance); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 102, __pyx_L1_error)
@@ -5819,10 +5819,10 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_6skip_comment(CYTHON_UNUSED PyObjec
     }
 
     /* "src/lexer.py":105
- * 
+ *
  *             # If we reach here, the comment was not properly closed
  *             raise LexerError("Unterminated multi-line comment")             # <<<<<<<<<<<<<<
- * 
+ *
  *         return False
  */
     __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_LexerError); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 105, __pyx_L1_error)
@@ -5854,7 +5854,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_6skip_comment(CYTHON_UNUSED PyObjec
     __PYX_ERR(0, 105, __pyx_L1_error)
 
     /* "src/lexer.py":93
- * 
+ *
  *         # Multi-line comments (/[inserted by cython to avoid comment start]* ... *[inserted by cython to avoid comment closer]/)
  *         elif self.current_char == '/' and self.peek() == '*':             # <<<<<<<<<<<<<<
  *             self.advance()  # Skip '/'
@@ -5864,9 +5864,9 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_6skip_comment(CYTHON_UNUSED PyObjec
 
   /* "src/lexer.py":107
  *             raise LexerError("Unterminated multi-line comment")
- * 
+ *
  *         return False             # <<<<<<<<<<<<<<
- * 
+ *
  *     def peek(self):
  */
   __Pyx_XDECREF(__pyx_r);
@@ -5876,7 +5876,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_6skip_comment(CYTHON_UNUSED PyObjec
 
   /* "src/lexer.py":76
  *             self.advance()
- * 
+ *
  *     def skip_comment(self):             # <<<<<<<<<<<<<<
  *         # Single-line comments (//)
  *         if self.current_char == '/' and self.peek() == '/':
@@ -5897,14 +5897,14 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_6skip_comment(CYTHON_UNUSED PyObjec
 
 /* "src/lexer.py":109
  *         return False
- * 
+ *
  *     def peek(self):             # <<<<<<<<<<<<<<
  *         """Look at the next character without advancing"""
  *         peek_pos = self.position + 1
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_3src_5lexer_5Lexer_9peek(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_5lexer_5Lexer_9peek(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -5913,7 +5913,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
 ); /*proto*/
 PyDoc_STRVAR(__pyx_doc_3src_5lexer_5Lexer_8peek, "Look at the next character without advancing");
 static PyMethodDef __pyx_mdef_3src_5lexer_5Lexer_9peek = {"peek", (PyCFunction)(void*)(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_3src_5lexer_5Lexer_9peek, __Pyx_METH_FASTCALL|METH_KEYWORDS, __pyx_doc_3src_5lexer_5Lexer_8peek};
-static PyObject *__pyx_pw_3src_5lexer_5Lexer_9peek(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_5lexer_5Lexer_9peek(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -6052,7 +6052,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_8peek(CYTHON_UNUSED PyObject *__pyx
  *         if peek_pos >= len(self.source):
  *             return None             # <<<<<<<<<<<<<<
  *         return self.source[peek_pos]
- * 
+ *
  */
     __Pyx_XDECREF(__pyx_r);
     __pyx_r = Py_None; __Pyx_INCREF(Py_None);
@@ -6071,7 +6071,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_8peek(CYTHON_UNUSED PyObject *__pyx
  *         if peek_pos >= len(self.source):
  *             return None
  *         return self.source[peek_pos]             # <<<<<<<<<<<<<<
- * 
+ *
  *     def tokenize_identifier(self):
  */
   __Pyx_XDECREF(__pyx_r);
@@ -6086,7 +6086,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_8peek(CYTHON_UNUSED PyObject *__pyx
 
   /* "src/lexer.py":109
  *         return False
- * 
+ *
  *     def peek(self):             # <<<<<<<<<<<<<<
  *         """Look at the next character without advancing"""
  *         peek_pos = self.position + 1
@@ -6107,14 +6107,14 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_8peek(CYTHON_UNUSED PyObject *__pyx
 
 /* "src/lexer.py":116
  *         return self.source[peek_pos]
- * 
+ *
  *     def tokenize_identifier(self):             # <<<<<<<<<<<<<<
  *         identifier = ""
  *         while self.current_char and (self.current_char.isalnum() or self.current_char == "_"):
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_3src_5lexer_5Lexer_11tokenize_identifier(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_5lexer_5Lexer_11tokenize_identifier(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -6122,7 +6122,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
 #endif
 ); /*proto*/
 static PyMethodDef __pyx_mdef_3src_5lexer_5Lexer_11tokenize_identifier = {"tokenize_identifier", (PyCFunction)(void*)(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_3src_5lexer_5Lexer_11tokenize_identifier, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_3src_5lexer_5Lexer_11tokenize_identifier(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_5lexer_5Lexer_11tokenize_identifier(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -6227,7 +6227,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_10tokenize_identifier(CYTHON_UNUSED
   __Pyx_RefNannySetupContext("tokenize_identifier", 1);
 
   /* "src/lexer.py":117
- * 
+ *
  *     def tokenize_identifier(self):
  *         identifier = ""             # <<<<<<<<<<<<<<
  *         while self.current_char and (self.current_char.isalnum() or self.current_char == "_"):
@@ -6300,7 +6300,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_10tokenize_identifier(CYTHON_UNUSED
  *         while self.current_char and (self.current_char.isalnum() or self.current_char == "_"):
  *             identifier += self.current_char             # <<<<<<<<<<<<<<
  *             self.advance()
- * 
+ *
  */
     __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_current_char); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 119, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
@@ -6314,7 +6314,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_10tokenize_identifier(CYTHON_UNUSED
  *         while self.current_char and (self.current_char.isalnum() or self.current_char == "_"):
  *             identifier += self.current_char
  *             self.advance()             # <<<<<<<<<<<<<<
- * 
+ *
  *         # Check if it's a keyword
  */
     __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_advance); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 120, __pyx_L1_error)
@@ -6345,11 +6345,11 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_10tokenize_identifier(CYTHON_UNUSED
   }
 
   /* "src/lexer.py":123
- * 
+ *
  *         # Check if it's a keyword
  *         token_type = self.KEYWORDS.get(identifier, TokenType.IDENTIFIER)             # <<<<<<<<<<<<<<
  *         return Token(token_type, identifier)
- * 
+ *
  */
   __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_KEYWORDS); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 123, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
@@ -6391,7 +6391,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_10tokenize_identifier(CYTHON_UNUSED
  *         # Check if it's a keyword
  *         token_type = self.KEYWORDS.get(identifier, TokenType.IDENTIFIER)
  *         return Token(token_type, identifier)             # <<<<<<<<<<<<<<
- * 
+ *
  *     def tokenize_number(self):
  */
   __Pyx_XDECREF(__pyx_r);
@@ -6425,7 +6425,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_10tokenize_identifier(CYTHON_UNUSED
 
   /* "src/lexer.py":116
  *         return self.source[peek_pos]
- * 
+ *
  *     def tokenize_identifier(self):             # <<<<<<<<<<<<<<
  *         identifier = ""
  *         while self.current_char and (self.current_char.isalnum() or self.current_char == "_"):
@@ -6449,14 +6449,14 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_10tokenize_identifier(CYTHON_UNUSED
 
 /* "src/lexer.py":126
  *         return Token(token_type, identifier)
- * 
+ *
  *     def tokenize_number(self):             # <<<<<<<<<<<<<<
  *         number = ""
  *         while self.current_char and (self.current_char.isdigit() or self.current_char == "."):
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_3src_5lexer_5Lexer_13tokenize_number(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_5lexer_5Lexer_13tokenize_number(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -6464,7 +6464,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
 #endif
 ); /*proto*/
 static PyMethodDef __pyx_mdef_3src_5lexer_5Lexer_13tokenize_number = {"tokenize_number", (PyCFunction)(void*)(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_3src_5lexer_5Lexer_13tokenize_number, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_3src_5lexer_5Lexer_13tokenize_number(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_5lexer_5Lexer_13tokenize_number(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -6569,7 +6569,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_12tokenize_number(CYTHON_UNUSED PyO
   __Pyx_RefNannySetupContext("tokenize_number", 1);
 
   /* "src/lexer.py":127
- * 
+ *
  *     def tokenize_number(self):
  *         number = ""             # <<<<<<<<<<<<<<
  *         while self.current_char and (self.current_char.isdigit() or self.current_char == "."):
@@ -6657,7 +6657,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_12tokenize_number(CYTHON_UNUSED PyO
  *             number += self.current_char
  *             self.advance()             # <<<<<<<<<<<<<<
  *         return Token(TokenType.NUMBER, float(number))
- * 
+ *
  */
     __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_advance); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 130, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
@@ -6690,7 +6690,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_12tokenize_number(CYTHON_UNUSED PyO
  *             number += self.current_char
  *             self.advance()
  *         return Token(TokenType.NUMBER, float(number))             # <<<<<<<<<<<<<<
- * 
+ *
  *     def tokenize_string(self):
  */
   __Pyx_XDECREF(__pyx_r);
@@ -6733,7 +6733,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_12tokenize_number(CYTHON_UNUSED PyO
 
   /* "src/lexer.py":126
  *         return Token(token_type, identifier)
- * 
+ *
  *     def tokenize_number(self):             # <<<<<<<<<<<<<<
  *         number = ""
  *         while self.current_char and (self.current_char.isdigit() or self.current_char == "."):
@@ -6757,14 +6757,14 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_12tokenize_number(CYTHON_UNUSED PyO
 
 /* "src/lexer.py":133
  *         return Token(TokenType.NUMBER, float(number))
- * 
+ *
  *     def tokenize_string(self):             # <<<<<<<<<<<<<<
  *         quote_char = self.current_char
  *         self.advance()
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_3src_5lexer_5Lexer_15tokenize_string(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_5lexer_5Lexer_15tokenize_string(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -6772,7 +6772,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
 #endif
 ); /*proto*/
 static PyMethodDef __pyx_mdef_3src_5lexer_5Lexer_15tokenize_string = {"tokenize_string", (PyCFunction)(void*)(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_3src_5lexer_5Lexer_15tokenize_string, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_3src_5lexer_5Lexer_15tokenize_string(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_5lexer_5Lexer_15tokenize_string(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -6877,7 +6877,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_14tokenize_string(CYTHON_UNUSED PyO
   __Pyx_RefNannySetupContext("tokenize_string", 1);
 
   /* "src/lexer.py":134
- * 
+ *
  *     def tokenize_string(self):
  *         quote_char = self.current_char             # <<<<<<<<<<<<<<
  *         self.advance()
@@ -6893,7 +6893,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_14tokenize_string(CYTHON_UNUSED PyO
  *         quote_char = self.current_char
  *         self.advance()             # <<<<<<<<<<<<<<
  *         string_value = ""
- * 
+ *
  */
   __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_advance); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 135, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
@@ -6925,7 +6925,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_14tokenize_string(CYTHON_UNUSED PyO
  *         quote_char = self.current_char
  *         self.advance()
  *         string_value = ""             # <<<<<<<<<<<<<<
- * 
+ *
  *         while self.current_char and self.current_char != quote_char:
  */
   __Pyx_INCREF(__pyx_kp_u__6);
@@ -6933,7 +6933,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_14tokenize_string(CYTHON_UNUSED PyO
 
   /* "src/lexer.py":138
  *         string_value = ""
- * 
+ *
  *         while self.current_char and self.current_char != quote_char:             # <<<<<<<<<<<<<<
  *             string_value += self.current_char
  *             self.advance()
@@ -6959,11 +6959,11 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_14tokenize_string(CYTHON_UNUSED PyO
     if (!__pyx_t_5) break;
 
     /* "src/lexer.py":139
- * 
+ *
  *         while self.current_char and self.current_char != quote_char:
  *             string_value += self.current_char             # <<<<<<<<<<<<<<
  *             self.advance()
- * 
+ *
  */
     __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_current_char); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 139, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
@@ -6977,7 +6977,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_14tokenize_string(CYTHON_UNUSED PyO
  *         while self.current_char and self.current_char != quote_char:
  *             string_value += self.current_char
  *             self.advance()             # <<<<<<<<<<<<<<
- * 
+ *
  *         if self.current_char == quote_char:
  */
     __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_advance); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 140, __pyx_L1_error)
@@ -7009,7 +7009,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_14tokenize_string(CYTHON_UNUSED PyO
 
   /* "src/lexer.py":142
  *             self.advance()
- * 
+ *
  *         if self.current_char == quote_char:             # <<<<<<<<<<<<<<
  *             self.advance()
  *             return Token(TokenType.STRING, string_value)
@@ -7023,7 +7023,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_14tokenize_string(CYTHON_UNUSED PyO
   if (__pyx_t_5) {
 
     /* "src/lexer.py":143
- * 
+ *
  *         if self.current_char == quote_char:
  *             self.advance()             # <<<<<<<<<<<<<<
  *             return Token(TokenType.STRING, string_value)
@@ -7060,7 +7060,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_14tokenize_string(CYTHON_UNUSED PyO
  *             self.advance()
  *             return Token(TokenType.STRING, string_value)             # <<<<<<<<<<<<<<
  *         raise LexerError("Unterminated string literal")
- * 
+ *
  */
     __Pyx_XDECREF(__pyx_r);
     __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_Token_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 144, __pyx_L1_error)
@@ -7099,7 +7099,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_14tokenize_string(CYTHON_UNUSED PyO
 
     /* "src/lexer.py":142
  *             self.advance()
- * 
+ *
  *         if self.current_char == quote_char:             # <<<<<<<<<<<<<<
  *             self.advance()
  *             return Token(TokenType.STRING, string_value)
@@ -7110,7 +7110,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_14tokenize_string(CYTHON_UNUSED PyO
  *             self.advance()
  *             return Token(TokenType.STRING, string_value)
  *         raise LexerError("Unterminated string literal")             # <<<<<<<<<<<<<<
- * 
+ *
  *     def next_token(self):
  */
   __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_LexerError); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 145, __pyx_L1_error)
@@ -7143,7 +7143,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_14tokenize_string(CYTHON_UNUSED PyO
 
   /* "src/lexer.py":133
  *         return Token(TokenType.NUMBER, float(number))
- * 
+ *
  *     def tokenize_string(self):             # <<<<<<<<<<<<<<
  *         quote_char = self.current_char
  *         self.advance()
@@ -7167,14 +7167,14 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_14tokenize_string(CYTHON_UNUSED PyO
 
 /* "src/lexer.py":147
  *         raise LexerError("Unterminated string literal")
- * 
+ *
  *     def next_token(self):             # <<<<<<<<<<<<<<
  *         while self.current_char:
  *             # Skip whitespace
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_3src_5lexer_5Lexer_17next_token(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_5lexer_5Lexer_17next_token(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -7182,7 +7182,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
 #endif
 ); /*proto*/
 static PyMethodDef __pyx_mdef_3src_5lexer_5Lexer_17next_token = {"next_token", (PyCFunction)(void*)(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_3src_5lexer_5Lexer_17next_token, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_3src_5lexer_5Lexer_17next_token(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_5lexer_5Lexer_17next_token(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -7285,7 +7285,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_16next_token(CYTHON_UNUSED PyObject
   __Pyx_RefNannySetupContext("next_token", 1);
 
   /* "src/lexer.py":148
- * 
+ *
  *     def next_token(self):
  *         while self.current_char:             # <<<<<<<<<<<<<<
  *             # Skip whitespace
@@ -7341,7 +7341,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_16next_token(CYTHON_UNUSED PyObject
  *             if self.current_char.isspace():
  *                 self.skip_whitespace()             # <<<<<<<<<<<<<<
  *                 continue
- * 
+ *
  */
       __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_skip_whitespace); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 151, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
@@ -7373,7 +7373,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_16next_token(CYTHON_UNUSED PyObject
  *             if self.current_char.isspace():
  *                 self.skip_whitespace()
  *                 continue             # <<<<<<<<<<<<<<
- * 
+ *
  *             # Handle comments
  */
       goto __pyx_L3_continue;
@@ -7388,7 +7388,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_16next_token(CYTHON_UNUSED PyObject
     }
 
     /* "src/lexer.py":155
- * 
+ *
  *             # Handle comments
  *             if self.current_char == '/':             # <<<<<<<<<<<<<<
  *                 if self.skip_comment():
@@ -7405,7 +7405,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_16next_token(CYTHON_UNUSED PyObject
  *             if self.current_char == '/':
  *                 if self.skip_comment():             # <<<<<<<<<<<<<<
  *                     continue
- * 
+ *
  */
       __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_skip_comment); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 156, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
@@ -7439,7 +7439,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_16next_token(CYTHON_UNUSED PyObject
  *             if self.current_char == '/':
  *                 if self.skip_comment():
  *                     continue             # <<<<<<<<<<<<<<
- * 
+ *
  *             if self.current_char.isalpha():
  */
         goto __pyx_L3_continue;
@@ -7449,12 +7449,12 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_16next_token(CYTHON_UNUSED PyObject
  *             if self.current_char == '/':
  *                 if self.skip_comment():             # <<<<<<<<<<<<<<
  *                     continue
- * 
+ *
  */
       }
 
       /* "src/lexer.py":155
- * 
+ *
  *             # Handle comments
  *             if self.current_char == '/':             # <<<<<<<<<<<<<<
  *                 if self.skip_comment():
@@ -7464,10 +7464,10 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_16next_token(CYTHON_UNUSED PyObject
 
     /* "src/lexer.py":159
  *                     continue
- * 
+ *
  *             if self.current_char.isalpha():             # <<<<<<<<<<<<<<
  *                 return self.tokenize_identifier()
- * 
+ *
  */
     __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_current_char); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 159, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
@@ -7501,10 +7501,10 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_16next_token(CYTHON_UNUSED PyObject
     if (__pyx_t_2) {
 
       /* "src/lexer.py":160
- * 
+ *
  *             if self.current_char.isalpha():
  *                 return self.tokenize_identifier()             # <<<<<<<<<<<<<<
- * 
+ *
  *             if self.current_char.isdigit():
  */
       __Pyx_XDECREF(__pyx_r);
@@ -7538,19 +7538,19 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_16next_token(CYTHON_UNUSED PyObject
 
       /* "src/lexer.py":159
  *                     continue
- * 
+ *
  *             if self.current_char.isalpha():             # <<<<<<<<<<<<<<
  *                 return self.tokenize_identifier()
- * 
+ *
  */
     }
 
     /* "src/lexer.py":162
  *                 return self.tokenize_identifier()
- * 
+ *
  *             if self.current_char.isdigit():             # <<<<<<<<<<<<<<
  *                 return self.tokenize_number()
- * 
+ *
  */
     __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_current_char); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 162, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
@@ -7584,10 +7584,10 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_16next_token(CYTHON_UNUSED PyObject
     if (__pyx_t_2) {
 
       /* "src/lexer.py":163
- * 
+ *
  *             if self.current_char.isdigit():
  *                 return self.tokenize_number()             # <<<<<<<<<<<<<<
- * 
+ *
  *             if self.current_char in "\"'":
  */
       __Pyx_XDECREF(__pyx_r);
@@ -7621,19 +7621,19 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_16next_token(CYTHON_UNUSED PyObject
 
       /* "src/lexer.py":162
  *                 return self.tokenize_identifier()
- * 
+ *
  *             if self.current_char.isdigit():             # <<<<<<<<<<<<<<
  *                 return self.tokenize_number()
- * 
+ *
  */
     }
 
     /* "src/lexer.py":165
  *                 return self.tokenize_number()
- * 
+ *
  *             if self.current_char in "\"'":             # <<<<<<<<<<<<<<
  *                 return self.tokenize_string()
- * 
+ *
  */
     __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_current_char); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 165, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
@@ -7642,10 +7642,10 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_16next_token(CYTHON_UNUSED PyObject
     if (__pyx_t_2) {
 
       /* "src/lexer.py":166
- * 
+ *
  *             if self.current_char in "\"'":
  *                 return self.tokenize_string()             # <<<<<<<<<<<<<<
- * 
+ *
  *             if self.current_char == "+":
  */
       __Pyx_XDECREF(__pyx_r);
@@ -7679,16 +7679,16 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_16next_token(CYTHON_UNUSED PyObject
 
       /* "src/lexer.py":165
  *                 return self.tokenize_number()
- * 
+ *
  *             if self.current_char in "\"'":             # <<<<<<<<<<<<<<
  *                 return self.tokenize_string()
- * 
+ *
  */
     }
 
     /* "src/lexer.py":168
  *                 return self.tokenize_string()
- * 
+ *
  *             if self.current_char == "+":             # <<<<<<<<<<<<<<
  *                 self.advance()
  *                 return Token(TokenType.PLUS, "+")
@@ -7700,7 +7700,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_16next_token(CYTHON_UNUSED PyObject
     if (__pyx_t_2) {
 
       /* "src/lexer.py":169
- * 
+ *
  *             if self.current_char == "+":
  *                 self.advance()             # <<<<<<<<<<<<<<
  *                 return Token(TokenType.PLUS, "+")
@@ -7776,7 +7776,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_16next_token(CYTHON_UNUSED PyObject
 
       /* "src/lexer.py":168
  *                 return self.tokenize_string()
- * 
+ *
  *             if self.current_char == "+":             # <<<<<<<<<<<<<<
  *                 self.advance()
  *                 return Token(TokenType.PLUS, "+")
@@ -9864,7 +9864,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_16next_token(CYTHON_UNUSED PyObject
  *             if self.current_char == ";":
  *                 self.advance()             # <<<<<<<<<<<<<<
  *                 return Token(TokenType.SEMICOLON, ";")
- * 
+ *
  */
       __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_advance); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 237, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
@@ -9896,7 +9896,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_16next_token(CYTHON_UNUSED PyObject
  *             if self.current_char == ";":
  *                 self.advance()
  *                 return Token(TokenType.SEMICOLON, ";")             # <<<<<<<<<<<<<<
- * 
+ *
  *             # New tokens for lists and objects
  */
       __Pyx_XDECREF(__pyx_r);
@@ -9944,7 +9944,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_16next_token(CYTHON_UNUSED PyObject
     }
 
     /* "src/lexer.py":241
- * 
+ *
  *             # New tokens for lists and objects
  *             if self.current_char == "[":             # <<<<<<<<<<<<<<
  *                 self.advance()
@@ -10032,7 +10032,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_16next_token(CYTHON_UNUSED PyObject
       goto __pyx_L0;
 
       /* "src/lexer.py":241
- * 
+ *
  *             # New tokens for lists and objects
  *             if self.current_char == "[":             # <<<<<<<<<<<<<<
  *                 self.advance()
@@ -10155,7 +10155,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_16next_token(CYTHON_UNUSED PyObject
  *             if self.current_char == ".":
  *                 self.advance()             # <<<<<<<<<<<<<<
  *                 return Token(TokenType.DOT, ".")
- * 
+ *
  */
       __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_advance); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 248, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
@@ -10187,7 +10187,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_16next_token(CYTHON_UNUSED PyObject
  *             if self.current_char == ".":
  *                 self.advance()
  *                 return Token(TokenType.DOT, ".")             # <<<<<<<<<<<<<<
- * 
+ *
  *             raise LexerError(
  */
       __Pyx_XDECREF(__pyx_r);
@@ -10236,19 +10236,19 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_16next_token(CYTHON_UNUSED PyObject
 
     /* "src/lexer.py":251
  *                 return Token(TokenType.DOT, ".")
- * 
+ *
  *             raise LexerError(             # <<<<<<<<<<<<<<
  *                 f"Unexpected character: {self.current_char}", self.position)
- * 
+ *
  */
     __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_LexerError); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 251, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
 
     /* "src/lexer.py":252
- * 
+ *
  *             raise LexerError(
  *                 f"Unexpected character: {self.current_char}", self.position)             # <<<<<<<<<<<<<<
- * 
+ *
  *         return Token(TokenType.EOF, None)
  */
     __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_current_char); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 252, __pyx_L1_error)
@@ -10293,9 +10293,9 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_16next_token(CYTHON_UNUSED PyObject
 
   /* "src/lexer.py":254
  *                 f"Unexpected character: {self.current_char}", self.position)
- * 
+ *
  *         return Token(TokenType.EOF, None)             # <<<<<<<<<<<<<<
- * 
+ *
  *     def tokenize(self):
  */
   __Pyx_XDECREF(__pyx_r);
@@ -10335,7 +10335,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_16next_token(CYTHON_UNUSED PyObject
 
   /* "src/lexer.py":147
  *         raise LexerError("Unterminated string literal")
- * 
+ *
  *     def next_token(self):             # <<<<<<<<<<<<<<
  *         while self.current_char:
  *             # Skip whitespace
@@ -10358,14 +10358,14 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_16next_token(CYTHON_UNUSED PyObject
 
 /* "src/lexer.py":256
  *         return Token(TokenType.EOF, None)
- * 
+ *
  *     def tokenize(self):             # <<<<<<<<<<<<<<
  *         tokens = []
  *         while self.position < len(self.source):
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_3src_5lexer_5Lexer_19tokenize(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_5lexer_5Lexer_19tokenize(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -10373,7 +10373,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
 #endif
 ); /*proto*/
 static PyMethodDef __pyx_mdef_3src_5lexer_5Lexer_19tokenize = {"tokenize", (PyCFunction)(void*)(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_3src_5lexer_5Lexer_19tokenize, __Pyx_METH_FASTCALL|METH_KEYWORDS, 0};
-static PyObject *__pyx_pw_3src_5lexer_5Lexer_19tokenize(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_5lexer_5Lexer_19tokenize(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -10478,7 +10478,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_18tokenize(CYTHON_UNUSED PyObject *
   __Pyx_RefNannySetupContext("tokenize", 1);
 
   /* "src/lexer.py":257
- * 
+ *
  *     def tokenize(self):
  *         tokens = []             # <<<<<<<<<<<<<<
  *         while self.position < len(self.source):
@@ -10607,7 +10607,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer_18tokenize(CYTHON_UNUSED PyObject *
 
   /* "src/lexer.py":256
  *         return Token(TokenType.EOF, None)
- * 
+ *
  *     def tokenize(self):             # <<<<<<<<<<<<<<
  *         tokens = []
  *         while self.position < len(self.source):
@@ -10769,8 +10769,8 @@ static int __Pyx_CreateStringTabAndInitStrings(void) {
     {&__pyx_n_u_fasalka, __pyx_k_fasalka, sizeof(__pyx_k_fasalka), 0, 1, 0, 1},
     {&__pyx_n_s_get, __pyx_k_get, sizeof(__pyx_k_get), 0, 0, 1, 1},
     {&__pyx_n_u_haddii, __pyx_k_haddii, sizeof(__pyx_k_haddii), 0, 1, 0, 1},
-    {&__pyx_n_u_haddiiKale, __pyx_k_haddiiKale, sizeof(__pyx_k_haddiiKale), 0, 1, 0, 1},
-    {&__pyx_n_u_haddiiKalena, __pyx_k_haddiiKalena, sizeof(__pyx_k_haddiiKalena), 0, 1, 0, 1},
+    {&__pyx_n_u_haddii_kale, __pyx_k_haddii_kale, sizeof(__pyx_k_haddii_kale), 0, 1, 0, 1},
+    {&__pyx_n_u_haddii_kalenaa, __pyx_khaddii_kalenana, sizeof(__pyx_haddii_kalenaena), 0, 1, 0, 1},
     {&__pyx_n_u_haddii_kale, __pyx_k_haddii_kale, sizeof(__pyx_k_haddii_kale), 0, 1, 0, 1},
     {&__pyx_n_u_haddii_kalena, __pyx_k_haddii_kalena, sizeof(__pyx_k_haddii_kalena), 0, 1, 0, 1},
     {&__pyx_n_u_howl, __pyx_k_howl, sizeof(__pyx_k_howl), 0, 1, 0, 1},
@@ -10779,21 +10779,21 @@ static int __Pyx_CreateStringTabAndInitStrings(void) {
     {&__pyx_n_s_init, __pyx_k_init, sizeof(__pyx_k_init), 0, 0, 1, 1},
     {&__pyx_n_s_init_subclass, __pyx_k_init_subclass, sizeof(__pyx_k_init_subclass), 0, 0, 1, 1},
     {&__pyx_n_s_initializing, __pyx_k_initializing, sizeof(__pyx_k_initializing), 0, 0, 1, 1},
-    {&__pyx_n_u_intaAy, __pyx_k_intaAy, sizeof(__pyx_k_intaAy), 0, 1, 0, 1},
+    {&__pyx_n_u_inta_ay, __pyx_k_inta_ay, sizeof(__pyx_k_inta_ay), 0, 1, 0, 1},
     {&__pyx_n_u_inta_ay, __pyx_k_inta_ay, sizeof(__pyx_k_inta_ay), 0, 1, 0, 1},
     {&__pyx_n_s_is_coroutine, __pyx_k_is_coroutine, sizeof(__pyx_k_is_coroutine), 0, 0, 1, 1},
     {&__pyx_n_s_isalnum, __pyx_k_isalnum, sizeof(__pyx_k_isalnum), 0, 0, 1, 1},
     {&__pyx_n_s_isalpha, __pyx_k_isalpha, sizeof(__pyx_k_isalpha), 0, 0, 1, 1},
     {&__pyx_n_s_isdigit, __pyx_k_isdigit, sizeof(__pyx_k_isdigit), 0, 0, 1, 1},
-    {&__pyx_n_u_iskuDay, __pyx_k_iskuDay, sizeof(__pyx_k_iskuDay), 0, 1, 0, 1},
+    {&__pyx_n_u_isku_day, __pyx_k_isku_day, sizeof(__pyx_k_isku_day), 0, 1, 0, 1},
     {&__pyx_n_u_isku_day, __pyx_k_isku_day, sizeof(__pyx_k_isku_day), 0, 1, 0, 1},
     {&__pyx_n_s_isspace, __pyx_k_isspace, sizeof(__pyx_k_isspace), 0, 0, 1, 1},
     {&__pyx_n_u_jooji, __pyx_k_jooji, sizeof(__pyx_k_jooji), 0, 1, 0, 1},
-    {&__pyx_n_u_kaDhaxal, __pyx_k_kaDhaxal, sizeof(__pyx_k_kaDhaxal), 0, 1, 0, 1},
-    {&__pyx_n_u_kaKeen, __pyx_k_kaKeen, sizeof(__pyx_k_kaKeen), 0, 1, 0, 1},
     {&__pyx_n_u_ka_dhaxal, __pyx_k_ka_dhaxal, sizeof(__pyx_k_ka_dhaxal), 0, 1, 0, 1},
     {&__pyx_n_u_ka_keen, __pyx_k_ka_keen, sizeof(__pyx_k_ka_keen), 0, 1, 0, 1},
-    {&__pyx_n_u_kuCeli, __pyx_k_kuCeli, sizeof(__pyx_k_kuCeli), 0, 1, 0, 1},
+    {&__pyx_n_u_ka_dhaxal, __pyx_k_ka_dhaxal, sizeof(__pyx_k_ka_dhaxal), 0, 1, 0, 1},
+    {&__pyx_n_u_ka_keen, __pyx_k_ka_keen, sizeof(__pyx_k_ka_keen), 0, 1, 0, 1},
+    {&__pyx_n_u_ku_celi, __pyx_k_ku_celi, sizeof(__pyx_k_ku_celi), 0, 1, 0, 1},
     {&__pyx_n_u_ku_celi, __pyx_k_ku_celi, sizeof(__pyx_k_ku_celi), 0, 1, 0, 1},
     {&__pyx_n_u_labadaran, __pyx_k_labadaran, sizeof(__pyx_k_labadaran), 0, 1, 0, 1},
     {&__pyx_n_u_liis, __pyx_k_liis, sizeof(__pyx_k_liis), 0, 1, 0, 1},
@@ -10819,11 +10819,11 @@ static int __Pyx_CreateStringTabAndInitStrings(void) {
     {&__pyx_n_s_self, __pyx_k_self, sizeof(__pyx_k_self), 0, 0, 1, 1},
     {&__pyx_n_s_set_name, __pyx_k_set_name, sizeof(__pyx_k_set_name), 0, 0, 1, 1},
     {&__pyx_n_u_shey, __pyx_k_shey, sizeof(__pyx_k_shey), 0, 1, 0, 1},
-    {&__pyx_n_u_siiWad, __pyx_k_siiWad, sizeof(__pyx_k_siiWad), 0, 1, 0, 1},
+    {&__pyx_n_u_sii_wad, __pyx_k_sii_wad, sizeof(__pyx_k_sii_wad), 0, 1, 0, 1},
     {&__pyx_n_u_sii_wad, __pyx_k_sii_wad, sizeof(__pyx_k_sii_wad), 0, 1, 0, 1},
     {&__pyx_n_s_skip_comment, __pyx_k_skip_comment, sizeof(__pyx_k_skip_comment), 0, 0, 1, 1},
     {&__pyx_n_s_skip_whitespace, __pyx_k_skip_whitespace, sizeof(__pyx_k_skip_whitespace), 0, 0, 1, 1},
-    {&__pyx_n_u_sooCeli, __pyx_k_sooCeli, sizeof(__pyx_k_sooCeli), 0, 1, 0, 1},
+    {&__pyx_n_u_soo_celi, __pyx_k_soo_celi, sizeof(__pyx_k_soo_celi), 0, 1, 0, 1},
     {&__pyx_n_u_soo_celi, __pyx_k_soo_celi, sizeof(__pyx_k_soo_celi), 0, 1, 0, 1},
     {&__pyx_n_s_source, __pyx_k_source, sizeof(__pyx_k_source), 0, 0, 1, 1},
     {&__pyx_n_s_source_code, __pyx_k_source_code, sizeof(__pyx_k_source_code), 0, 0, 1, 1},
@@ -10862,7 +10862,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_RefNannySetupContext("__Pyx_InitCachedConstants", 0);
 
   /* "src/lexer.py":7
- * 
+ *
  * class Token:
  *     def __init__(self, type_, value):             # <<<<<<<<<<<<<<
  *         self.type = type_
@@ -10875,10 +10875,10 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
 
   /* "src/lexer.py":11
  *         self.value = value
- * 
+ *
  *     def __repr__(self):             # <<<<<<<<<<<<<<
  *         return f"Token({self.type}, {repr(self.value)})"
- * 
+ *
  */
   __pyx_tuple__34 = PyTuple_Pack(1, __pyx_n_s_self); if (unlikely(!__pyx_tuple__34)) __PYX_ERR(0, 11, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__34);
@@ -10886,7 +10886,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __pyx_codeobj__35 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__34, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_src_lexer_py, __pyx_n_s_repr, 11, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__35)) __PYX_ERR(0, 11, __pyx_L1_error)
 
   /* "src/lexer.py":16
- * 
+ *
  * class Lexer:
  *     def __init__(self, source_code):             # <<<<<<<<<<<<<<
  *         self.source = source_code
@@ -10899,7 +10899,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
 
   /* "src/lexer.py":65
  *         }
- * 
+ *
  *     def advance(self):             # <<<<<<<<<<<<<<
  *         self.position += 1
  *         if self.position < len(self.source):
@@ -10908,7 +10908,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
 
   /* "src/lexer.py":72
  *             self.current_char = None
- * 
+ *
  *     def skip_whitespace(self):             # <<<<<<<<<<<<<<
  *         while self.current_char and self.current_char.isspace():
  *             self.advance()
@@ -10917,7 +10917,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
 
   /* "src/lexer.py":76
  *             self.advance()
- * 
+ *
  *     def skip_comment(self):             # <<<<<<<<<<<<<<
  *         # Single-line comments (//)
  *         if self.current_char == '/' and self.peek() == '/':
@@ -10926,7 +10926,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
 
   /* "src/lexer.py":109
  *         return False
- * 
+ *
  *     def peek(self):             # <<<<<<<<<<<<<<
  *         """Look at the next character without advancing"""
  *         peek_pos = self.position + 1
@@ -10938,7 +10938,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
 
   /* "src/lexer.py":116
  *         return self.source[peek_pos]
- * 
+ *
  *     def tokenize_identifier(self):             # <<<<<<<<<<<<<<
  *         identifier = ""
  *         while self.current_char and (self.current_char.isalnum() or self.current_char == "_"):
@@ -10950,7 +10950,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
 
   /* "src/lexer.py":126
  *         return Token(token_type, identifier)
- * 
+ *
  *     def tokenize_number(self):             # <<<<<<<<<<<<<<
  *         number = ""
  *         while self.current_char and (self.current_char.isdigit() or self.current_char == "."):
@@ -10962,7 +10962,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
 
   /* "src/lexer.py":133
  *         return Token(TokenType.NUMBER, float(number))
- * 
+ *
  *     def tokenize_string(self):             # <<<<<<<<<<<<<<
  *         quote_char = self.current_char
  *         self.advance()
@@ -10974,7 +10974,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
 
   /* "src/lexer.py":147
  *         raise LexerError("Unterminated string literal")
- * 
+ *
  *     def next_token(self):             # <<<<<<<<<<<<<<
  *         while self.current_char:
  *             # Skip whitespace
@@ -10983,7 +10983,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
 
   /* "src/lexer.py":256
  *         return Token(TokenType.EOF, None)
- * 
+ *
  *     def tokenize(self):             # <<<<<<<<<<<<<<
  *         tokens = []
  *         while self.position < len(self.source):
@@ -11372,7 +11372,7 @@ if (!__Pyx_RefNanny) {
  * import re
  * from src.tokens import TokenType             # <<<<<<<<<<<<<<
  * from src.errors import LexerError
- * 
+ *
  */
   __pyx_t_2 = PyList_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 2, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
@@ -11392,8 +11392,8 @@ if (!__Pyx_RefNanny) {
  * import re
  * from src.tokens import TokenType
  * from src.errors import LexerError             # <<<<<<<<<<<<<<
- * 
- * 
+ *
+ *
  */
   __pyx_t_3 = PyList_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 3, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
@@ -11410,8 +11410,8 @@ if (!__Pyx_RefNanny) {
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
   /* "src/lexer.py":6
- * 
- * 
+ *
+ *
  * class Token:             # <<<<<<<<<<<<<<
  *     def __init__(self, type_, value):
  *         self.type = type_
@@ -11420,7 +11420,7 @@ if (!__Pyx_RefNanny) {
   __Pyx_GOTREF(__pyx_t_2);
 
   /* "src/lexer.py":7
- * 
+ *
  * class Token:
  *     def __init__(self, type_, value):             # <<<<<<<<<<<<<<
  *         self.type = type_
@@ -11433,10 +11433,10 @@ if (!__Pyx_RefNanny) {
 
   /* "src/lexer.py":11
  *         self.value = value
- * 
+ *
  *     def __repr__(self):             # <<<<<<<<<<<<<<
  *         return f"Token({self.type}, {repr(self.value)})"
- * 
+ *
  */
   __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_3src_5lexer_5Token_3__repr__, 0, __pyx_n_s_Token___repr, NULL, __pyx_n_s_src_lexer, __pyx_d, ((PyObject *)__pyx_codeobj__35)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 11, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
@@ -11444,8 +11444,8 @@ if (!__Pyx_RefNanny) {
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
   /* "src/lexer.py":6
- * 
- * 
+ *
+ *
  * class Token:             # <<<<<<<<<<<<<<
  *     def __init__(self, type_, value):
  *         self.type = type_
@@ -11457,8 +11457,8 @@ if (!__Pyx_RefNanny) {
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
   /* "src/lexer.py":15
- * 
- * 
+ *
+ *
  * class Lexer:             # <<<<<<<<<<<<<<
  *     def __init__(self, source_code):
  *         self.source = source_code
@@ -11467,7 +11467,7 @@ if (!__Pyx_RefNanny) {
   __Pyx_GOTREF(__pyx_t_2);
 
   /* "src/lexer.py":16
- * 
+ *
  * class Lexer:
  *     def __init__(self, source_code):             # <<<<<<<<<<<<<<
  *         self.source = source_code
@@ -11480,7 +11480,7 @@ if (!__Pyx_RefNanny) {
 
   /* "src/lexer.py":65
  *         }
- * 
+ *
  *     def advance(self):             # <<<<<<<<<<<<<<
  *         self.position += 1
  *         if self.position < len(self.source):
@@ -11492,7 +11492,7 @@ if (!__Pyx_RefNanny) {
 
   /* "src/lexer.py":72
  *             self.current_char = None
- * 
+ *
  *     def skip_whitespace(self):             # <<<<<<<<<<<<<<
  *         while self.current_char and self.current_char.isspace():
  *             self.advance()
@@ -11504,7 +11504,7 @@ if (!__Pyx_RefNanny) {
 
   /* "src/lexer.py":76
  *             self.advance()
- * 
+ *
  *     def skip_comment(self):             # <<<<<<<<<<<<<<
  *         # Single-line comments (//)
  *         if self.current_char == '/' and self.peek() == '/':
@@ -11516,7 +11516,7 @@ if (!__Pyx_RefNanny) {
 
   /* "src/lexer.py":109
  *         return False
- * 
+ *
  *     def peek(self):             # <<<<<<<<<<<<<<
  *         """Look at the next character without advancing"""
  *         peek_pos = self.position + 1
@@ -11528,7 +11528,7 @@ if (!__Pyx_RefNanny) {
 
   /* "src/lexer.py":116
  *         return self.source[peek_pos]
- * 
+ *
  *     def tokenize_identifier(self):             # <<<<<<<<<<<<<<
  *         identifier = ""
  *         while self.current_char and (self.current_char.isalnum() or self.current_char == "_"):
@@ -11540,7 +11540,7 @@ if (!__Pyx_RefNanny) {
 
   /* "src/lexer.py":126
  *         return Token(token_type, identifier)
- * 
+ *
  *     def tokenize_number(self):             # <<<<<<<<<<<<<<
  *         number = ""
  *         while self.current_char and (self.current_char.isdigit() or self.current_char == "."):
@@ -11552,7 +11552,7 @@ if (!__Pyx_RefNanny) {
 
   /* "src/lexer.py":133
  *         return Token(TokenType.NUMBER, float(number))
- * 
+ *
  *     def tokenize_string(self):             # <<<<<<<<<<<<<<
  *         quote_char = self.current_char
  *         self.advance()
@@ -11564,7 +11564,7 @@ if (!__Pyx_RefNanny) {
 
   /* "src/lexer.py":147
  *         raise LexerError("Unterminated string literal")
- * 
+ *
  *     def next_token(self):             # <<<<<<<<<<<<<<
  *         while self.current_char:
  *             # Skip whitespace
@@ -11576,7 +11576,7 @@ if (!__Pyx_RefNanny) {
 
   /* "src/lexer.py":256
  *         return Token(TokenType.EOF, None)
- * 
+ *
  *     def tokenize(self):             # <<<<<<<<<<<<<<
  *         tokens = []
  *         while self.position < len(self.source):
@@ -11587,8 +11587,8 @@ if (!__Pyx_RefNanny) {
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
   /* "src/lexer.py":15
- * 
- * 
+ *
+ *
  * class Lexer:             # <<<<<<<<<<<<<<
  *     def __init__(self, source_code):
  *         self.source = source_code
@@ -12823,7 +12823,7 @@ static PyObject* __Pyx_PyInt_AddObjC(PyObject *op1, PyObject *op2, long intval, 
         const long b = intval;
         long x;
         long a = PyInt_AS_LONG(op1);
-        
+
             x = (long)((unsigned long)a + (unsigned long)b);
             if (likely((x^a) >= 0 || (x^b) >= 0))
                 return PyInt_FromLong(x);
@@ -12923,8 +12923,8 @@ static PyObject* __Pyx_PyInt_AddObjC(PyObject *op1, PyObject *op2, long intval, 
                 llx = lla + llb;
             return PyLong_FromLongLong(llx);
 #endif
-        
-        
+
+
     }
     #endif
     if (PyFloat_CheckExact(op1)) {
@@ -12935,7 +12935,7 @@ static PyObject* __Pyx_PyInt_AddObjC(PyObject *op1, PyObject *op2, long intval, 
         double a = PyFloat_AS_DOUBLE(op1);
 #endif
             double result;
-            
+
             PyFPE_START_PROTECT("add", return NULL)
             result = ((double)a) + (double)b;
             PyFPE_END_PROTECT(result)
