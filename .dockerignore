@@ -1,0 +1,5 @@
+# Include only essential files - everything else is excluded
+*
+!main.py
+!src/
+!src/**

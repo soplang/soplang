@@ -5,11 +5,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    image: soplang:latest
+    container_name: soplang
     volumes:
-      - .:/app
-    working_dir: /app
+      - .:/scripts
+    working_dir: /scripts
     tty: true
     stdin_open: true
-    environment:
-      - PYTHONPATH=/app
-    command: bash 
