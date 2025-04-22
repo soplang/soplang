@@ -12,7 +12,7 @@ This document provides a reference for all keywords in the Soplang programming l
 | `labadaran` | Boolean type                 | `bool`             | `labadaran waaRun = true`               |
 | `shey`      | Object type                  | `object`           | `shey person = { "name": "Sharafdin" }` |
 | `liis`      | List/array type              | `array`            | `liis numbers = [1, 2, 3]`              |
-| `null`      | Null value                   | `null`             | `door a = null`                         |
+| `waxba`      | waxba value                   | `waxba`             | `door a = waxba`                         |
 
 ## Control Flow Keywords
 
