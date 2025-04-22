@@ -46,7 +46,7 @@ install-dev:
 # Testing target
 .PHONY: test
 test:
-	$(PYTHON) -m pytest $(PYTEST_FLAGS)
+	./run_tests.py
 
 # Code formatting targets
 .PHONY: format format-check
