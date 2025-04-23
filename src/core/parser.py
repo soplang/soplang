@@ -644,7 +644,8 @@ class Parser:
             self.advance()
             return ASTNode(NodeType.LITERAL, value=None)
         elif token.type == TokenType.IDENTIFIER or token.type in (
-            TokenType.QORAAL, TokenType.TIRO, TokenType.LABADARAN, TokenType.LIIS, TokenType.SHEY
+            TokenType.QORAAL, TokenType.TIRO, TokenType.LABADARAN, TokenType.LIIS, TokenType.SHEY,
+            TokenType.QOR, TokenType.AKHRI  # Added QOR and AKHRI to handle them in expressions
         ):
             # Allow type names to be used as function names
             token_value = token.value if token.type == TokenType.IDENTIFIER else token.type.value
