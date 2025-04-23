@@ -106,7 +106,7 @@ class Interpreter:
             self.variable_types[var_name] = node.var_type
 
             # Validate the value against the declared type
-            self.validate_type(var_name, var_value, node.var_type)
+            self.validate_type(var_name, var_value, node.var_type, node)
 
         self.variables[var_name] = var_value
         return var_value
@@ -114,55 +114,72 @@ class Interpreter:
     # -----------------------------
     #  Type validation
     # -----------------------------
-    def validate_type(self, var_name, value, expected_type):
+    def validate_type(self, var_name, value, expected_type, node=None):
         """Validates that the value matches the expected static type"""
+        # Get line and position from node if available
+        line = getattr(node, 'line', None)
+        position = getattr(node, 'position', None)
 
         if expected_type == TokenType.TIRO:
             if not isinstance(value, (int, float)):
                 raise TypeError("type_mismatch",
                                 var_name=var_name,
                                 value=value,
-                                expected_type="tiro")
+                                expected_type="tiro",
+                                line=line,
+                                position=position)
 
         elif expected_type == TokenType.QORAAL:
             if not isinstance(value, str):
                 raise TypeError("type_mismatch",
                                 var_name=var_name,
                                 value=value,
-                                expected_type="qoraal")
+                                expected_type="qoraal",
+                                line=line,
+                                position=position)
 
         elif expected_type == TokenType.LABADARAN:
             if not isinstance(value, bool):
                 raise TypeError("type_mismatch",
                                 var_name=var_name,
                                 value=value,
-                                expected_type="labadaran")
+                                expected_type="labadaran",
+                                line=line,
+                                position=position)
 
         elif expected_type == TokenType.LIIS:
             if not isinstance(value, list):
                 raise TypeError("type_mismatch",
                                 var_name=var_name,
                                 value=value,
-                                expected_type="liis")
+                                expected_type="liis",
+                                line=line,
+                                position=position)
 
         elif expected_type == TokenType.SHEY:
             if not isinstance(value, dict):
                 raise TypeError("type_mismatch",
                                 var_name=var_name,
                                 value=value,
-                                expected_type="shey")
+                                expected_type="shey",
+                                line=line,
+                                position=position)
 
     # -----------------------------
     #  Variable Assignment
     # -----------------------------
-    def assign_variable(self, var_name, value):
+    def assign_variable(self, var_name, value, line=None, position=None):
         """Assign a value to a variable, with type checking if it's statically typed"""
         if var_name not in self.variables:
-            raise RuntimeError("undefined_variable", name=var_name)
+            raise RuntimeError("undefined_variable", name=var_name,
+                               line=line, position=position)
 
         # If it's a statically typed variable, validate the type
         if var_name in self.variable_types:
-            self.validate_type(var_name, value, self.variable_types[var_name])
+            # Create a temporary node with line/position for validation
+            temp_node = ASTNode(NodeType.ASSIGNMENT, line=line, position=position)
+            self.validate_type(
+                var_name, value, self.variable_types[var_name], temp_node)
 
         self.variables[var_name] = value
         return value
@@ -173,17 +190,22 @@ class Interpreter:
     def execute_assignment(self, node):
         """Execute an assignment node (identifier = expression)"""
         target = node.children[0]  # Target of assignment
-        value = self.evaluate(node.children[1])  # Expression to assign
+        value = self.evaluate(node.children[1])
+
+        # Get line and position from node
+        line = getattr(node, 'line', None)
+        position = getattr(node, 'position', None)
 
         # Simple variable assignment
         if target.type == NodeType.IDENTIFIER:
-            return self.assign_variable(target.value, value)
+            return self.assign_variable(target.value, value, line, position)
 
         # Property assignment (obj.prop = value)
         elif target.type == NodeType.PROPERTY_ACCESS:
             obj = self.evaluate(target.children[0])
             if not isinstance(obj, dict):
-                raise TypeError("property_access", prop=target.value)
+                raise TypeError("property_access", prop=target.value,
+                                line=line, position=position)
 
             prop_name = target.value
             obj[prop_name] = value
@@ -193,22 +215,25 @@ class Interpreter:
         elif target.type == NodeType.INDEX_ACCESS:
             arr = self.evaluate(target.children[0])
             if not isinstance(arr, list):
-                raise TypeError("index_access")
+                raise TypeError("index_access", line=line, position=position)
 
             idx = self.evaluate(target.children[1])
             if not isinstance(idx, (int, float)) or int(idx) != idx:
-                raise TypeError("invalid_operand", operator="[]", type_name="tiro")
+                raise TypeError("invalid_operand", operator="[]",
+                                type_name="tiro", line=line, position=position)
 
             idx = int(idx)
             if idx < 0 or idx >= len(arr):
-                raise RuntimeError("index_out_of_range", index=idx)
+                raise RuntimeError("index_out_of_range", index=idx,
+                                   line=line, position=position)
 
             arr[idx] = value
             return value
 
         else:
             raise RuntimeError(
-                "invalid_syntax", detail=f"Invalid assignment target: {target.type}")
+                "invalid_syntax", detail=f"Invalid assignment target: {target.type}",
+                line=line, position=position)
 
     # -----------------------------
     #  Function Call
@@ -487,13 +512,18 @@ class Interpreter:
     #  Evaluate expressions
     # -----------------------------
     def evaluate(self, node):
+        # Get line and position from node
+        line = getattr(node, 'line', None)
+        position = getattr(node, 'position', None)
+
         if node.type == NodeType.LITERAL:
             return node.value
         if node.type == NodeType.IDENTIFIER:
             if node.value in self.variables:
                 return self.variables[node.value]
             else:
-                raise RuntimeError("undefined_variable", name=node.value)
+                raise RuntimeError("undefined_variable",
+                                   name=node.value, line=line, position=position)
         if node.type == NodeType.BINARY_OPERATION:
             left_val = self.evaluate(node.children[0])
             right_val = self.evaluate(node.children[1])
@@ -505,7 +535,8 @@ class Interpreter:
             if node.value == "!":
                 return not bool(operand_val)
             else:
-                raise RuntimeError("unknown_operator", operator=node.value)
+                raise RuntimeError("unknown_operator",
+                                   operator=node.value, line=line, position=position)
         if node.type == NodeType.LIST_LITERAL:
             # Evaluate each element in the list
             return [self.evaluate(element) for element in node.children]
@@ -521,12 +552,14 @@ class Interpreter:
             # Evaluate the object expression
             obj = self.evaluate(node.children[0])
             if not isinstance(obj, dict):
-                raise TypeError("property_access", prop=node.value)
+                raise TypeError("property_access", prop=node.value,
+                                line=line, position=position)
 
             # Get the property name and return the value
             prop_name = node.value
             if prop_name not in obj:
-                raise RuntimeError("property_not_found", prop_name=prop_name)
+                raise RuntimeError("property_not_found",
+                                   prop_name=prop_name, line=line, position=position)
 
             return obj[prop_name]
         if node.type == NodeType.METHOD_CALL:
@@ -560,16 +593,18 @@ class Interpreter:
             # Evaluate the array expression
             arr = self.evaluate(node.children[0])
             if not isinstance(arr, list):
-                raise TypeError("index_access")
+                raise TypeError("index_access", line=line, position=position)
 
             # Evaluate the index expression
             idx = self.evaluate(node.children[1])
             if not isinstance(idx, (int, float)) or int(idx) != idx:
-                raise TypeError("invalid_operand", operator="[]", type_name="tiro")
+                raise TypeError("invalid_operand", operator="[]",
+                                type_name="tiro", line=line, position=position)
 
             idx = int(idx)
             if idx < 0 or idx >= len(arr):
-                raise RuntimeError("index_out_of_range", index=idx)
+                raise RuntimeError("index_out_of_range", index=idx,
+                                   line=line, position=position)
 
             return arr[idx]
         if node.type == NodeType.FUNCTION_CALL:
@@ -596,7 +631,8 @@ class Interpreter:
             }
             return instance
 
-        raise RuntimeError("unknown_node_type", node_type=node.type)
+        raise RuntimeError("unknown_node_type", node_type=node.type,
+                           line=line, position=position)
 
     def apply_operator(self, operator, left, right):
         """Apply an operator to two values."""

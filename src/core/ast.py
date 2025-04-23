@@ -32,14 +32,21 @@ class NodeType(Enum):
 
 
 class ASTNode:
-    def __init__(self, type_, value=None, children=None):
+    def __init__(self, type_, value=None, children=None, line=None, position=None):
         self.type = type_
         self.value = value
         self.children = children if children else []
         self.var_type = None  # For static typing
+        self.line = line  # Store line number
+        self.position = position  # Store position/column number
 
     def __repr__(self):
         type_info = ""
         if self.type == NodeType.VARIABLE_DECLARATION and hasattr(self, 'var_type') and self.var_type is not None:
             type_info = f", var_type={self.var_type}"
-        return f"ASTNode({self.type}, value={self.value}{type_info}, children={self.children})"
+        line_pos = ""
+        if self.line is not None:
+            line_pos = f", line={self.line}"
+            if self.position is not None:
+                line_pos += f", pos={self.position}"
+        return f"ASTNode({self.type}, value={self.value}{type_info}{line_pos}, children={self.children})"
