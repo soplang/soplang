@@ -13,94 +13,131 @@ class ErrorMessageManager:
 
     # Error type prefixes
     ERROR_PREFIXES = {
-        "lexer": "Khalad lexer (Lexer Error)",
-        "parser": "Khalad parser (Parser Error)",
-        "type": "Khalad nuuc (Type Error)",
-        "runtime": "Khalad runtime (Runtime Error)",
-        "import": "Khalad import (Import Error)",
+        "lexer": "Khalad lexer",
+        "parser": "Khalad parser",
+        "type": "Khalad nuuc",
+        "runtime": "Khalad runtime",
+        "import": "Khalad import",
     }
 
     # Lexer errors
     LEXER_ERRORS = {
-        "unexpected_char": "Xaraf aan la filayn (Unexpected character): {char}",
-        "unterminated_string": "Qoraal aan la dhammaystirin (Unterminated string)",
-        "unterminated_comment": "Faallo aan la dhammaystirin (Unterminated comment)",
+        "unexpected_char": "Xaraf aan la filayn: {char}",
+        "unterminated_string": "Qoraal aan la dhammaystirin",
+        "unterminated_comment": "Faallo aan la dhammaystirin",
     }
 
     # Parser errors
     PARSER_ERRORS = {
-        "expected_token": "Waxaa la filayay (Expected) {expected}, laakiin waxaa la helay (found) {found}",
-        "unexpected_token": "Calaamad aan la filayn (Unexpected token): {token}",
-        "invalid_syntax": "Qoraalka syntax-kiisa waa khalad (Invalid syntax): {detail}",
-        "missing_paren": "Waxaa ka maqan hal ')' (Missing closing parenthesis)",
-        "missing_brace": "Waxaa ka maqan hal '}' (Missing closing brace)",
-        "missing_bracket": "Waxaa ka maqan hal ']' (Missing closing bracket)",
+        "expected_token": "Waxaa la filayay {expected}, laakiin waxaa la helay {found}",
+        "unexpected_token": "Calaamad aan la filayn: {token}",
+        "invalid_syntax": "Qoraalka syntax-kiisa waa khalad: {detail}",
+        "missing_paren": "Waxaa ka maqan hal ')'",
+        "missing_brace": "Waxaa ka maqan hal '}'",
+        "missing_bracket": "Waxaa ka maqan hal ']'",
     }
 
     # Type errors
     TYPE_ERRORS = {
-        "type_mismatch": "'{var_name}' waa {expected_type} laakin qiimaheeda '{value}' ma ahan {expected_type} (Type mismatch)",
-        "cannot_convert": "'{value}' ma badali karo {target_type} (Cannot convert to this type)",
-        "invalid_operand": "Ma isticmaali karo '{operator}' oo ku shaqeeya {type_name} (Invalid operand for this operator)",
-        "property_access": "Ma heli karo astaanta '{prop}' ee qiimaha aan ahayn shey (Cannot access property on non-object)",
-        "index_access": "Ma heli karo tirooyinka ee qiimaha aan ahayn liis (Cannot use index on non-list)",
-        "invalid_method": "Ma wici karo habka '{method}' ee qiimaha {type_name} (Cannot call method on this type)",
+        "type_mismatch": "'{var_name}' waa {expected_type} laakin qiimaheeda '{value}' ma ahan {expected_type}",
+        "cannot_convert": "'{value}' ma badali karo {target_type}",
+        "invalid_operand": "Ma isticmaali karo '{operator}' oo ku shaqeeya {type_name}",
+        "property_access": "Ma heli karo astaanta '{prop}' ee qiimaha aan ahayn shey",
+        "index_access": "Ma heli karo tirooyinka ee qiimaha aan ahayn liis",
+        "invalid_method": "Ma wici karo habka '{method}' ee qiimaha {type_name}",
     }
 
     # Runtime errors
     RUNTIME_ERRORS = {
-        "undefined_variable": "Doorsame aan la qeexin (Undefined variable): '{name}'",
-        "undefined_function": "Howl aan la qeexin (Undefined function): '{name}'",
-        "division_by_zero": "Ma suurtogali karto qeybinta eber (Division by zero)",
-        "modulo_by_zero": "Ma suurtogali karto modulo eber (Modulo by zero)",
-        "index_out_of_range": "Tirada fihris-ku waa ka baxsan xadka (Index out of range): {index}",
-        "property_not_found": "Astaanta '{prop_name}' kuma jirto sheyga (Property not found on object)",
-        "method_not_found": "Habka '{method_name}' kuma jirto {type_name} (Method not found on object)",
-        "missing_argument": "Howsha '{func_name}' waxay u baahan tahay {expected} dood, laakiin waxaa la siiyay {provided} (Missing argument)",
-        "parent_class_not_found": "Fasalka waalidka '{parent_name}' ma jiro (Parent class not found)",
-        "break_outside_loop": "Jooji waa in ay ku jiraan xalqad (Break outside loop)",
-        "continue_outside_loop": "Sii_wad waa in ay ku jiraan xalqad (Continue outside loop)",
-        "return_outside_function": "Soo_celi waa in ay ku jirto howl (Return outside function)",
-        "invalid_for_loop": "Ku_celi billowga, dhamaadka iyo tallaabada waa in ay yihiin tiro (Invalid for loop parameters)",
-        "unknown_node_type": "Nooca cladka aan la aqoon (Unknown node type): {node_type}",
-        "unknown_operator": "Hawl-gal aan la aqoon (Unknown operator): {operator}",
+        "undefined_variable": "Doorsame aan la qeexin: '{name}'",
+        "undefined_function": "Howl aan la qeexin: '{name}'",
+        "division_by_zero": "Ma suurtogali karto qeybinta eber",
+        "modulo_by_zero": "Ma suurtogali karto modulo eber",
+        "index_out_of_range": "Tirada fihris-ku waa ka baxsan xadka: {index}",
+        "property_not_found": "Astaanta '{prop_name}' kuma jirto sheyga",
+        "method_not_found": "Habka '{method_name}' kuma jirto {type_name}",
+        "missing_argument": "Howsha '{func_name}' waxay u baahan tahay {expected} dood, laakiin waxaa la siiyay {provided}",
+        "parent_class_not_found": "Fasalka waalidka '{parent_name}' ma jiro",
+        "break_outside_loop": "Jooji waa in ay ku jiraan xalqad",
+        "continue_outside_loop": "Sii_wad waa in ay ku jiraan xalqad",
+        "return_outside_function": "Soo_celi waa in ay ku jirto howl",
+        "invalid_for_loop": "Ku_celi billowga, dhamaadka iyo tallaabada waa in ay yihiin tiro",
+        "unknown_node_type": "Nooca cladka aan la aqoon: {node_type}",
+        "unknown_operator": "Hawl-gal aan la aqoon: {operator}",
     }
 
     # Import errors
     IMPORT_ERRORS = {
-        "file_not_found": "Faylka '{module}' ma helin (File not found)",
-        "import_error": "Qalad baa ka jira file-ka {filename}: {error} (Error in imported file)",
+        "file_not_found": "Faylka '{module}' ma helin",
+        "import_error": "Qalad baa ka jira file-ka {filename}: {error}",
     }
 
     @classmethod
-    def format_error(cls, error_type, message, line=None, position=None, **kwargs):
-        """Format an error message.
+    def _get_error_dict(cls, error_type):
+        """Get the appropriate error dictionary based on the error type.
 
         Args:
-            error_type (str): The type of error (lexer, parser, type, runtime).
-            message (str): The error message.
-            line (int, optional): The line number where the error occurred.
-            position (int, optional): The position in the line where the error occurred.
-            **kwargs: Additional arguments to format into the message.
+            error_type (str): The type of error (lexer, parser, runtime, type, import)
 
         Returns:
-            str: The formatted error message.
+            dict: The dictionary containing error messages for the specified type
         """
-        if error_type not in cls.ERROR_PREFIXES:
-            error_type = "runtime"
-
-        error_prefix = cls.ERROR_PREFIXES[error_type]
-
-        # Format the message with any provided kwargs
-        formatted_message = message.format(**kwargs) if kwargs else message
-
-        if line is not None and position is not None:
-            return (
-                f"{error_prefix}: {formatted_message} ee sadar (line) {line}, "
-                f"goobta (position) {position}"
-            )
+        if error_type == "lexer":
+            return cls.LEXER_ERRORS
+        elif error_type == "parser":
+            return cls.PARSER_ERRORS
+        elif error_type == "type":
+            return cls.TYPE_ERRORS
+        elif error_type == "runtime":
+            return cls.RUNTIME_ERRORS
+        elif error_type == "import":
+            return cls.IMPORT_ERRORS
         else:
-            return f"{error_prefix}: {formatted_message}"
+            return cls.RUNTIME_ERRORS  # Default to runtime errors
+
+    @classmethod
+    def format_error(cls, error_type, code, line=None, position=None, **kwargs):
+        """
+        Format an error message with the given code, line, and position.
+
+        Args:
+            error_type (str): The type of error (lexer, parser, runtime, type)
+            code (str): The error code to look up in the error dictionaries
+            line (int, optional): The line number where the error occurred
+            position (int, optional): The position in the line where the error occurred
+            **kwargs: Placeholder variables to substitute in the error message
+
+        Returns:
+            str: The formatted error message
+        """
+        # Validate the error type
+        if error_type not in ["lexer", "parser", "runtime", "type", "import"]:
+            error_type = "runtime"  # Default to runtime if type is not recognized
+
+        # Get the error message for the given code
+        error_dict = cls._get_error_dict(error_type)
+        if code in error_dict:
+            error_message = error_dict[code]
+            # Format the error message with the provided kwargs
+            if kwargs:
+                error_message = error_message.format(**kwargs)
+        else:
+            # Use the code as the error message if not found in the dictionary
+            error_message = code
+
+        # Format location information (line and position)
+        location_info = ""
+        if line is not None:
+            location_info += f" sadar {line}"
+            if position is not None:
+                location_info += f", goobta {position}"
+
+        # Format the final error message in Somali only
+        final_message = f"Khalad {error_type}:{location_info}"
+        if error_message:
+            final_message += f" - {error_message}"
+
+        return final_message
 
     @classmethod
     def get_lexer_error(cls, error_code, **kwargs):
@@ -200,8 +237,10 @@ class TypeError(SoplangError):
 class ValueError(SoplangError):
     def __init__(self, message, line=None, position=None):
         self.message = ErrorMessageManager.format_error(
-            "runtime", f"Khalad qiimaha ah (Value Error): {message}",
-            line=line, position=position
+            "runtime",
+            f"Khalad qiimaha ah (Value Error): {message}",
+            line=line,
+            position=position,
         )
         super().__init__(self.message)
 
@@ -209,8 +248,10 @@ class ValueError(SoplangError):
 class NameError(SoplangError):
     def __init__(self, name, line=None, position=None):
         self.message = ErrorMessageManager.format_error(
-            "runtime", f"Khalad magaca ah (Name Error): '{name}' ma jiro",
-            line=line, position=position
+            "runtime",
+            f"Khalad magaca ah (Name Error): '{name}' ma jiro",
+            line=line,
+            position=position,
         )
         super().__init__(self.message)
 
