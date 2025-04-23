@@ -103,6 +103,7 @@ class ErrorMessageManager:
         Args:
             error_type (str): The type of error (lexer, parser, runtime, type)
             code (str): The error code to look up in the error dictionaries
+                        or an already formatted error message
             line (int, optional): The line number where the error occurred
             position (int, optional): The position in the line where the error occurred
             **kwargs: Placeholder variables to substitute in the error message
@@ -114,7 +115,8 @@ class ErrorMessageManager:
         if error_type not in ["lexer", "parser", "runtime", "type", "import"]:
             error_type = "runtime"  # Default to runtime if type is not recognized
 
-        # Get the error message for the given code
+        # Get the error message - if code is in the dictionary, format it
+        # otherwise use the code as the message (may already be formatted)
         error_dict = cls._get_error_dict(error_type)
         if code in error_dict:
             error_message = error_dict[code]
@@ -122,20 +124,17 @@ class ErrorMessageManager:
             if kwargs:
                 error_message = error_message.format(**kwargs)
         else:
-            # Use the code as the error message if not found in the dictionary
+            # Use the code as the error message (may already be formatted)
             error_message = code
 
-        # Format location information (line and position)
-        location_info = ""
-        if line is not None:
-            location_info += f" sadar {line}"
-            if position is not None:
-                location_info += f", goobta {position}"
+        # Format the final message in the exact format requested
+        final_message = f"Khalad {error_type}: {error_message}"
 
-        # Format the final error message in Somali only
-        final_message = f"Khalad {error_type}:{location_info}"
-        if error_message:
-            final_message += f" - {error_message}"
+        # Add location information if available
+        if line is not None:
+            final_message += f" sadar {line}"
+            if position is not None:
+                final_message += f", goobta {position}"
 
         return final_message
 
@@ -182,15 +181,24 @@ class ErrorMessageManager:
 
 class LexerError(SoplangError):
     def __init__(self, error_code, position=None, line=None, **kwargs):
+        # Make a copy of kwargs and add position and line
+        params = kwargs.copy()
+        if position is not None:
+            params["position"] = position
+        if line is not None:
+            params["line"] = line
+
         if error_code in ErrorMessageManager.LEXER_ERRORS:
-            # Get error message template from error code
+            # Get the template from the dictionary
             message_template = ErrorMessageManager.LEXER_ERRORS[error_code]
-            # Use format_error to get a properly formatted message
+            # Format the template with the provided parameters
+            message = message_template.format(**params) if params else message_template
+            # Create the final message
             self.message = ErrorMessageManager.format_error(
-                "lexer", message_template, line=line, position=position, **kwargs
+                "lexer", message, line=line, position=position
             )
         else:
-            # Handle direct error message strings (fallback)
+            # Direct message
             self.message = ErrorMessageManager.format_error(
                 "lexer", error_code, line=line, position=position
             )
@@ -200,15 +208,26 @@ class LexerError(SoplangError):
 
 class ParserError(SoplangError):
     def __init__(self, error_code, token=None, line=None, position=None, **kwargs):
+        # Make a copy of kwargs and add token, position and line
+        params = kwargs.copy()
+        if token is not None:
+            params["token"] = token
+        if position is not None:
+            params["position"] = position
+        if line is not None:
+            params["line"] = line
+
         if error_code in ErrorMessageManager.PARSER_ERRORS:
-            # Get error message template from error code
+            # Get the template from the dictionary
             message_template = ErrorMessageManager.PARSER_ERRORS[error_code]
-            # Use format_error to get a properly formatted message
+            # Format the template with the provided parameters
+            message = message_template.format(**params) if params else message_template
+            # Create the final message
             self.message = ErrorMessageManager.format_error(
-                "parser", message_template, line=line, position=position, **kwargs
+                "parser", message, line=line, position=position
             )
         else:
-            # Handle direct error message strings (fallback)
+            # Direct message
             self.message = ErrorMessageManager.format_error(
                 "parser", error_code, line=line, position=position
             )
@@ -218,15 +237,24 @@ class ParserError(SoplangError):
 
 class TypeError(SoplangError):
     def __init__(self, error_code, line=None, position=None, **kwargs):
+        # Make a copy of kwargs and add position and line
+        params = kwargs.copy()
+        if position is not None:
+            params["position"] = position
+        if line is not None:
+            params["line"] = line
+
         if error_code in ErrorMessageManager.TYPE_ERRORS:
-            # Get error message template from error code
+            # Get the template from the dictionary
             message_template = ErrorMessageManager.TYPE_ERRORS[error_code]
-            # Use format_error to get a properly formatted message
+            # Format the template with the provided parameters
+            message = message_template.format(**params) if params else message_template
+            # Create the final message
             self.message = ErrorMessageManager.format_error(
-                "type", message_template, line=line, position=position, **kwargs
+                "type", message, line=line, position=position
             )
         else:
-            # Handle direct error message strings (fallback)
+            # Direct message
             self.message = ErrorMessageManager.format_error(
                 "type", error_code, line=line, position=position
             )
@@ -258,15 +286,24 @@ class NameError(SoplangError):
 
 class ImportError(SoplangError):
     def __init__(self, error_code, line=None, position=None, **kwargs):
+        # Make a copy of kwargs and add position and line
+        params = kwargs.copy()
+        if position is not None:
+            params["position"] = position
+        if line is not None:
+            params["line"] = line
+
         if error_code in ErrorMessageManager.IMPORT_ERRORS:
-            # Get error message template from error code
+            # Get the template from the dictionary
             message_template = ErrorMessageManager.IMPORT_ERRORS[error_code]
-            # Use format_error to get a properly formatted message
+            # Format the template with the provided parameters
+            message = message_template.format(**params) if params else message_template
+            # Create the final message
             self.message = ErrorMessageManager.format_error(
-                "import", message_template, line=line, position=position, **kwargs
+                "import", message, line=line, position=position
             )
         else:
-            # Handle direct error message strings (fallback)
+            # Direct message
             self.message = ErrorMessageManager.format_error(
                 "import", error_code, line=line, position=position
             )
@@ -276,15 +313,24 @@ class ImportError(SoplangError):
 
 class RuntimeError(SoplangError):
     def __init__(self, error_code, line=None, position=None, **kwargs):
+        # Make a copy of kwargs and add position and line
+        params = kwargs.copy()
+        if position is not None:
+            params["position"] = position
+        if line is not None:
+            params["line"] = line
+
         if error_code in ErrorMessageManager.RUNTIME_ERRORS:
-            # Get error message template from error code
+            # Get the template from the dictionary
             message_template = ErrorMessageManager.RUNTIME_ERRORS[error_code]
-            # Use format_error to get a properly formatted message
+            # Format the template with the provided parameters
+            message = message_template.format(**params) if params else message_template
+            # Create the final message
             self.message = ErrorMessageManager.format_error(
-                "runtime", message_template, line=line, position=position, **kwargs
+                "runtime", message, line=line, position=position
             )
         else:
-            # Handle direct error message strings (fallback)
+            # Direct message
             self.message = ErrorMessageManager.format_error(
                 "runtime", error_code, line=line, position=position
             )
