@@ -32,7 +32,7 @@ door result = laban_jibbaar(15)
 qor("  laban_jibbaar(15) stored in variable: " + result)
 
 // Function with type checking
-howl check_even(tiro num) {
+howl check_even(num) {
     haddii (num % 2 == 0) {
         soo_celi been
     } haddii_kalena {
@@ -45,14 +45,14 @@ qor("  check_even(4): " + check_even(4))
 qor("  check_even(7): " + check_even(7))
 
 // Function with conditional return
-howl get_grade(tiro score) {
+howl get_grade(score) {
     haddii (score >= 90) {
         soo_celi "A"
-    } haddii_kalena (score >= 80) {
+    } haddii_kale (score >= 80) {
         soo_celi "B"
-    } haddii_kalena (score >= 70) {
+    } haddii_kale (score >= 70) {
         soo_celi "C"
-    } haddii_kalena (score >= 60) {
+    } haddii_kale (score >= 60) {
         soo_celi "D"
     } haddii_kalena {
         soo_celi "F"
@@ -67,7 +67,7 @@ qor("  get_grade(65): " + get_grade(65))
 qor("  get_grade(55): " + get_grade(55))
 
 // Function that calls another function
-howl process_number(tiro n) {
+howl process_number(n) {
     door doubled = laban_jibbaar(n)
     soo_celi "Processed: " + doubled
 }
