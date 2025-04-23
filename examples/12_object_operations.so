@@ -13,21 +13,19 @@ shey person = {
 
 qor("  Empty object: " + empty_obj)
 qor("  Person object: " + person)
+qor("  Type of person: " + nuuc(person))
 
 // Accessing properties
-qor("  Name: " + person["magac"])
-qor("  Age: " + person["da"])
-qor("  City: " + person["magaalo"])
+qor("  Name: " + person.magac)
+qor("  Age: " + person.da)
+qor("  City: " + person.magaalo)
 
-// Alternative syntax for accessing properties (if supported)
-// qor("  Name (dot notation): " + person.magac)
-
-// Modifying properties
-person["da"] = 31
+// Modifying properties using dot notation
+person.da = 31
 qor("  After changing age: " + person)
 
-// Adding new properties
-person["shaqo"] = "Barnaamij Samayne"
+// Adding new properties using dot notation
+person.shaqo = "Barnaamij Samayne"
 qor("  After adding job: " + person)
 
 // Nested objects
@@ -44,34 +42,66 @@ shey employee = {
 }
 
 qor("  Employee with nested address: " + employee)
-qor("  Employee's district: " + employee["address"]["district"])
+qor("  Employee's district: " + employee.address.district)
 
 // Object keys
-door keys = person.keys()
+door keys = person.furaha()
 qor("  Object keys: " + keys)
+qor("  Type of keys: " + nuuc(keys))
 
-// Object iteration
-qor("  Object key-value pairs:")
-ku_celi i min 0 ilaa keys.length() - 1 {
-    door key = keys[i]
-    qor("    " + key + ": " + person[key])
+// Debug - Print first few keys if they exist
+haddii (keys.dherer() > 0) {
+    qor("  First key: " + keys[0])
 }
 
 // Check if property exists
-labadaran has_job = person.has("shaqo")
+labadaran has_job = person.haystaa("shaqo")
 qor("  Does person have 'shaqo'? " + has_job)
 
-labadaran has_email = person.has("email")
+labadaran has_email = person.haystaa("email")
 qor("  Does person have 'email'? " + has_email)
 
 // Removing properties
-person.remove("shaqo")
+person.tirtir("shaqo")
 qor("  After removing job: " + person)
 
 // Merging objects
 shey obj1 = {a: 1, b: 2}
 shey obj2 = {c: 3, d: 4}
-shey merged = obj1.merge(obj2)
+shey merged = obj1.iskudar(obj2)
 qor("  obj1: " + obj1)
 qor("  obj2: " + obj2)
 qor("  Merged object: " + merged)
+
+// Testing additional nested property access
+qor("\nTesting additional nested property access:")
+
+// Create a company object with nested properties
+shey company = {
+    name: "Somali Tech",
+    location: {
+        city: "Mogadishu",
+        address: "Innovation Avenue"
+    }
+}
+
+// Test accessing nested properties
+qor("  Company name: " + company.name)
+qor("  Company city: " + company.location.city)
+qor("  Company address: " + company.location.address)
+
+// Test updating nested properties using dot notation
+company.location.city = "Hargeisa"
+qor("  Updated city: " + company.location.city)
+
+// Test object with array
+shey team = {
+    members: [
+        {name: "Ali", role: "Developer"},
+        {name: "Fatima", role: "Designer"}
+    ]
+}
+
+// Access array elements in object
+qor("  First team member: " + team.members[0].name)
+qor("  Second team member role: " + team.members[1].role)

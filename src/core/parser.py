@@ -32,24 +32,24 @@ class Parser:
         return ASTNode(NodeType.PROGRAM, children=statements)
 
     def parse_statement(self):
+        """Parse a statement and return an AST node."""
         ttype = self.current_token.type
 
-        # Handle dynamic typing (door)
-        if ttype == TokenType.DOOR:
-            return self.parse_variable_declaration(is_static=False)
-        # Handle static typing (tiro, qoraal, labadaran, liis, shey)
-        elif ttype in (
-            TokenType.TIRO,
-            TokenType.QORAAL,
-            TokenType.LABADARAN,
-            TokenType.LIIS,
-            TokenType.SHEY,
-        ):
+        if ttype == TokenType.TIRO:
             return self.parse_variable_declaration(is_static=True)
+        elif ttype == TokenType.QORAAL:
+            return self.parse_variable_declaration(is_static=True)
+        elif ttype == TokenType.LABADARAN:
+            return self.parse_variable_declaration(is_static=True)
+        elif ttype == TokenType.LIIS:
+            return self.parse_variable_declaration(is_static=True)
+        elif ttype == TokenType.SHEY:
+            return self.parse_variable_declaration(is_static=True)
+        elif ttype == TokenType.DOOR:
+            return self.parse_variable_declaration(is_static=False)
         elif ttype == TokenType.HOWL:
             return self.parse_function_definition()
         elif ttype == TokenType.QOR or ttype == TokenType.AKHRI:
-            # 'qor' or 'akhri' -> function call
             return self.parse_function_call()
         elif ttype == TokenType.HADDII:
             return self.parse_if_statement()
@@ -69,122 +69,99 @@ class Parser:
             return self.parse_import_statement()
         elif ttype == TokenType.FASALKA:
             return self.parse_class_definition()
+        elif ttype == TokenType.LEFT_BRACE:
+            # Parse code block { ... }
+            self.advance()  # Consume '{'
+
+            statements = []
+            while self.current_token.type != TokenType.RIGHT_BRACE:
+                statements.append(self.parse_statement())
+
+            self.expect(TokenType.RIGHT_BRACE)
+            return ASTNode(NodeType.BLOCK, children=statements)
         elif ttype == TokenType.IDENTIFIER:
-            # Check if this is a function call (identifier followed by parentheses)
-            if (
-                self.current_token_index + 1 < len(self.tokens)
-                and self.tokens[self.current_token_index + 1].type
-                == TokenType.LEFT_PAREN
-            ):
-                return self.parse_function_call()
+            # This could be a function call, a variable assignment, a property access, etc.
+            identifier_value = self.current_token.value
+            self.advance()  # Consume the identifier
 
-            # Check if this is an object method call (obj.method(...))
-            # or a variable assignment (obj.prop = value) or (obj[idx] = value)
-            if self.current_token_index + 1 < len(self.tokens) and (
-                self.tokens[self.current_token_index + 1].type == TokenType.DOT
-                or self.tokens[self.current_token_index + 1].type
-                == TokenType.LEFT_BRACKET
-            ):
-                token_value = self.current_token.value
-                self.advance()  # consume the identifier
+            # Handle property chains (obj.prop1.prop2) or arrays (obj[idx]) for assignment
+            if self.current_token.type in (TokenType.DOT, TokenType.LEFT_BRACKET):
+                left = ASTNode(NodeType.IDENTIFIER, value=identifier_value)
 
-                # Handle method call or property access
-                if self.current_token.type == TokenType.DOT:
-                    self.advance()  # consume the dot
+                # Parse any chain of property accesses or array indexing
+                while self.current_token.type in (TokenType.DOT, TokenType.LEFT_BRACKET):
+                    if self.current_token.type == TokenType.DOT:
+                        # Handle property access (obj.prop)
+                        self.advance()  # Consume the dot
 
-                    # Get the property or method name
-                    property_name = self.current_token.value
-                    self.advance()  # consume property name
+                        if self.current_token.type != TokenType.IDENTIFIER:
+                            raise ParserError(
+                                "Expected property name after dot", self.current_token)
 
-                    # Handle method call (obj.method(...))
-                    if self.current_token.type == TokenType.LEFT_PAREN:
-                        # Parse arguments
-                        args = []
-                        self.advance()  # consume left paren
+                        prop_name = self.current_token.value
+                        self.advance()  # Consume the property name
 
-                        if self.current_token.type != TokenType.RIGHT_PAREN:
-                            args.append(self.parse_expression())
-                            while self.current_token.type == TokenType.COMMA:
-                                self.advance()
+                        if self.current_token.type == TokenType.LEFT_PAREN:
+                            # This is a method call (obj.method())
+                            args = []
+                            self.advance()  # Consume left paren
+
+                            if self.current_token.type != TokenType.RIGHT_PAREN:
                                 args.append(self.parse_expression())
+                                while self.current_token.type == TokenType.COMMA:
+                                    self.advance()
+                                    args.append(self.parse_expression())
 
-                        self.expect(TokenType.RIGHT_PAREN)
+                            self.expect(TokenType.RIGHT_PAREN)
+                            left = ASTNode(NodeType.METHOD_CALL,
+                                           value=prop_name, children=[left] + args)
+                        else:
+                            # Regular property access (obj.prop)
+                            left = ASTNode(NodeType.PROPERTY_ACCESS,
+                                           value=prop_name, children=[left])
 
-                        # Create function call node with obj.method as function name
-                        return ASTNode(
-                            NodeType.FUNCTION_CALL,
-                            value=f"{token_value}.{property_name}",
-                            children=args,
-                        )
+                    elif self.current_token.type == TokenType.LEFT_BRACKET:
+                        # Handle array indexing (arr[idx])
+                        self.advance()  # Consume left bracket
+                        index = self.parse_expression()
+                        self.expect(TokenType.RIGHT_BRACKET)
+                        left = ASTNode(NodeType.INDEX_ACCESS, children=[left, index])
 
-                    # Handle property assignment (obj.prop = value)
-                    elif self.current_token.type == TokenType.EQUAL:
-                        self.advance()  # consume equals
+                # Now check if this is an assignment (obj.prop = value or arr[idx] = value)
+                if self.current_token.type == TokenType.EQUAL:
+                    self.advance()  # Consume equals
+                    value = self.parse_logical_expression()
+                    return ASTNode(NodeType.ASSIGNMENT, children=[left, value])
 
-                        # Use parse_logical_expression for property assignment
-                        value_expr = self.parse_logical_expression()
+                # If not an assignment, just return the property access or method call
+                return left
 
-                        # Create an object to represent the target
-                        target = ASTNode(
-                            NodeType.PROPERTY_ACCESS,
-                            value=property_name,
-                            children=[ASTNode(NodeType.IDENTIFIER, value=token_value)],
-                        )
+            # Handle function call (func())
+            elif self.current_token.type == TokenType.LEFT_PAREN:
+                args = []
+                self.advance()  # Consume left paren
 
-                        # Create an assignment node
-                        return ASTNode(
-                            NodeType.ASSIGNMENT, children=[target, value_expr]
-                        )
+                if self.current_token.type != TokenType.RIGHT_PAREN:
+                    args.append(self.parse_expression())
+                    while self.current_token.type == TokenType.COMMA:
+                        self.advance()
+                        args.append(self.parse_expression())
 
-                # Handle index access and assignment (obj[idx])
-                elif self.current_token.type == TokenType.LEFT_BRACKET:
-                    self.advance()  # consume left bracket
-                    index_expr = self.parse_expression()
-                    self.expect(TokenType.RIGHT_BRACKET)
+                self.expect(TokenType.RIGHT_PAREN)
+                return ASTNode(NodeType.FUNCTION_CALL, value=identifier_value, children=args)
 
-                    # Handle assignment (obj[idx] = value)
-                    if self.current_token.type == TokenType.EQUAL:
-                        self.advance()  # consume equals
-
-                        # Use parse_logical_expression for index assignment
-                        value_expr = self.parse_logical_expression()
-
-                        # Create an object to represent the target
-                        target = ASTNode(
-                            NodeType.INDEX_ACCESS,
-                            children=[
-                                ASTNode(NodeType.IDENTIFIER, value=token_value),
-                                index_expr,
-                            ],
-                        )
-
-                        # Create an assignment node
-                        return ASTNode(
-                            NodeType.ASSIGNMENT, children=[target, value_expr]
-                        )
-
-                # If we get here, something is wrong
-                raise ParserError(
-                    f"Expected '(' or '=' after property access", self.current_token
-                )
-
-            # Handle regular variable assignment (var = value)
-            elif (
-                self.current_token_index + 1 < len(self.tokens)
-                and self.tokens[self.current_token_index + 1].type == TokenType.EQUAL
-            ):
-                var_name = self.current_token.value
-                self.advance()  # consume identifier
-                self.advance()  # consume equals
-
-                # Use parse_logical_expression to support comparison operations in assignments
-                value_expr = self.parse_logical_expression()
-
-                # Create an assignment node
+            # Handle simple variable assignment (var = value)
+            elif self.current_token.type == TokenType.EQUAL:
+                self.advance()  # Consume equals
+                value = self.parse_logical_expression()
                 return ASTNode(
                     NodeType.ASSIGNMENT,
-                    children=[ASTNode(NodeType.IDENTIFIER, value=var_name), value_expr],
+                    children=[ASTNode(NodeType.IDENTIFIER,
+                                      value=identifier_value), value]
                 )
+
+            # Just a variable reference
+            return ASTNode(NodeType.IDENTIFIER, value=identifier_value)
 
         # Top-level 'haddii_kale', 'haddii_kalena' are invalid
         if ttype in (TokenType.HADDII_KALE, TokenType.HADDII_KALENA):
@@ -260,8 +237,8 @@ class Parser:
         """Parse a function call like 'qor("Hello")'"""
         func_name = self.current_token.value
         if (
-            self.current_token.type != TokenType.IDENTIFIER
-            and self.current_token.type
+            self.current_token.type != TokenType.IDENTIFIER and
+            self.current_token.type
             not in (
                 TokenType.QOR,
                 TokenType.AKHRI,
@@ -365,8 +342,8 @@ class Parser:
         # Check for optional step parameter
         step_expr = None
         if (
-            self.current_token.type == TokenType.IDENTIFIER
-            and self.current_token.value == "by"
+            self.current_token.type == TokenType.IDENTIFIER and
+            self.current_token.value == "by"
         ):
             self.advance()  # consume "by"
             step_expr = self.parse_expression()
@@ -506,8 +483,8 @@ class Parser:
         while self.current_token.type != TokenType.RIGHT_BRACE:
             # Property key
             if (
-                self.current_token.type == TokenType.IDENTIFIER
-                or self.current_token.type == TokenType.STRING
+                self.current_token.type == TokenType.IDENTIFIER or
+                self.current_token.type == TokenType.STRING
             ):
                 key = self.current_token.value
                 self.advance()
@@ -533,47 +510,6 @@ class Parser:
 
         self.expect(TokenType.RIGHT_BRACE)
         return ASTNode(NodeType.OBJECT_LITERAL, children=properties)
-
-    # -----------------------------
-    #  Property Access: obj.property
-    # -----------------------------
-    def parse_property_access(self, left):
-        self.expect(TokenType.DOT)
-
-        if self.current_token.type != TokenType.IDENTIFIER:
-            raise ParserError("Expected property name after dot", self.current_token)
-
-        property_name = self.current_token.value
-        self.advance()
-
-        # Special handling for method calls
-        if self.current_token.type == TokenType.LEFT_PAREN:
-            # This is a method call like object.method()
-            args = []
-            self.advance()  # consume left paren
-
-            if self.current_token.type != TokenType.RIGHT_PAREN:
-                args.append(self.parse_expression())
-                while self.current_token.type == TokenType.COMMA:
-                    self.advance()
-                    args.append(self.parse_expression())
-
-            self.expect(TokenType.RIGHT_PAREN)
-            return ASTNode(
-                NodeType.METHOD_CALL, value=property_name, children=[left] + args
-            )
-
-        return ASTNode(NodeType.PROPERTY_ACCESS, value=property_name, children=[left])
-
-    # -----------------------------
-    #  Index Access: arr[index]
-    # -----------------------------
-    def parse_index_access(self, left):
-        self.expect(TokenType.LEFT_BRACKET)
-        index = self.parse_expression()
-        self.expect(TokenType.RIGHT_BRACKET)
-
-        return ASTNode(NodeType.INDEX_ACCESS, children=[left, index])
 
     # -----------------------------
     #  Expression Parsing
@@ -610,9 +546,10 @@ class Parser:
         return left
 
     def parse_factor(self):
+        """Parse factors: unary operations and postfix expressions"""
         token = self.current_token
 
-        # Handle unary operators (+ and -)
+        # Handle unary operations
         if token.type in (TokenType.PLUS, TokenType.MINUS, TokenType.NOT):
             op = token
             self.advance()
@@ -622,81 +559,114 @@ class Parser:
             if op.type == TokenType.PLUS:
                 return factor
 
-            # For unary minus, create a binary operation that multiplies by -1
+            # For unary minus
             if op.type == TokenType.MINUS:
                 # Create a negative number directly if it's a literal
-                if factor.type == NodeType.LITERAL and isinstance(
-                    factor.value, (int, float)
-                ):
+                if factor.type == NodeType.LITERAL and isinstance(factor.value, (int, float)):
                     return ASTNode(NodeType.LITERAL, value=-factor.value)
 
                 # Otherwise create a binary operation
                 minus_one = ASTNode(NodeType.LITERAL, value=-1)
-                return ASTNode(
-                    NodeType.BINARY_OPERATION, value="*", children=[minus_one, factor]
-                )
+                return ASTNode(NodeType.BINARY_OPERATION, value="*", children=[minus_one, factor])
 
-            # For NOT operator, create a unary NOT operation
+            # For NOT operator
             if op.type == TokenType.NOT:
-                # Create a unary node instead of binary
                 return ASTNode(NodeType.UNARY_OPERATION, value="!", children=[factor])
+
+        # Handle postfix expressions
+        return self.parse_postfix()
+
+    def parse_postfix(self):
+        """Parse postfix expressions: property access, method calls, and array indexing"""
+        expr = self.parse_primary()
+
+        # Handle property access (obj.prop), method calls (obj.method()), and array indexing (array[index])
+        while (
+            self.current_token.type == TokenType.DOT or
+            self.current_token.type == TokenType.LEFT_BRACKET
+        ):
+            if self.current_token.type == TokenType.DOT:
+                # Property access
+                self.advance()  # Consume the dot
+
+                if self.current_token.type != TokenType.IDENTIFIER:
+                    raise ParserError(
+                        "Expected property name after dot", self.current_token)
+
+                property_name = self.current_token.value
+                self.advance()  # Consume the property name
+
+                if self.current_token.type == TokenType.LEFT_PAREN:
+                    # This is a method call (obj.method())
+                    args = []
+                    self.advance()  # Consume the left paren
+
+                    if self.current_token.type != TokenType.RIGHT_PAREN:
+                        args.append(self.parse_expression())
+                        while self.current_token.type == TokenType.COMMA:
+                            self.advance()
+                            args.append(self.parse_expression())
+
+                    self.expect(TokenType.RIGHT_PAREN)
+                    expr = ASTNode(NodeType.METHOD_CALL,
+                                   value=property_name, children=[expr] + args)
+                else:
+                    # Regular property access (obj.prop)
+                    expr = ASTNode(NodeType.PROPERTY_ACCESS,
+                                   value=property_name, children=[expr])
+
+            elif self.current_token.type == TokenType.LEFT_BRACKET:
+                # Array indexing (array[index])
+                self.advance()  # Consume the left bracket
+                index = self.parse_expression()
+                self.expect(TokenType.RIGHT_BRACKET)
+                expr = ASTNode(NodeType.INDEX_ACCESS, children=[expr, index])
+
+        return expr
+
+    def parse_primary(self):
+        """Parse a primary expression: literal, identifier, or parenthesized expression"""
+        token = self.current_token
 
         if token.type == TokenType.NUMBER:
             self.advance()
             return ASTNode(NodeType.LITERAL, value=token.value)
-        if token.type == TokenType.STRING:
+        elif token.type == TokenType.STRING:
             self.advance()
             return ASTNode(NodeType.LITERAL, value=token.value)
-        if token.type == TokenType.TRUE:
+        elif token.type == TokenType.TRUE:
             self.advance()
             return ASTNode(NodeType.LITERAL, value=True)
-        if token.type == TokenType.FALSE:
+        elif token.type == TokenType.FALSE:
             self.advance()
             return ASTNode(NodeType.LITERAL, value=False)
-        if token.type == TokenType.NULL:
+        elif token.type == TokenType.NULL:
             self.advance()
             return ASTNode(NodeType.LITERAL, value=None)
-        if token.type == TokenType.IDENTIFIER or token.type in (
-            TokenType.QORAAL,
-            TokenType.TIRO,
-            TokenType.LABADARAN,
-            TokenType.LIIS,
-            TokenType.SHEY,
+        elif token.type == TokenType.IDENTIFIER or token.type in (
+            TokenType.QORAAL, TokenType.TIRO, TokenType.LABADARAN, TokenType.LIIS, TokenType.SHEY
         ):
             # Allow type names to be used as function names
-            token_value = (
-                token.value if token.type == TokenType.IDENTIFIER else token.type.value
-            )
+            token_value = token.value if token.type == TokenType.IDENTIFIER else token.type.value
             self.advance()
 
             # Check if this is a function call (followed by left parenthesis)
             if self.current_token.type == TokenType.LEFT_PAREN:
                 return self.parse_function_call_helper(token_value)
 
-            node = ASTNode(NodeType.IDENTIFIER, value=token_value)
-
-            # Handle property access (obj.prop) and index access (arr[idx])
-            while self.current_token.type in (TokenType.DOT, TokenType.LEFT_BRACKET):
-                if self.current_token.type == TokenType.DOT:
-                    node = self.parse_property_access(node)
-                elif self.current_token.type == TokenType.LEFT_BRACKET:
-                    node = self.parse_index_access(node)
-
-            return node
-
-        if token.type == TokenType.LEFT_PAREN:
+            # Just an identifier
+            return ASTNode(NodeType.IDENTIFIER, value=token_value)
+        elif token.type == TokenType.LEFT_PAREN:
             self.advance()
-            # Use parse_logical_expression instead of parse_expression inside parentheses
-            # to handle comparison operators correctly
             expr = self.parse_logical_expression()
             self.expect(TokenType.RIGHT_PAREN)
             return expr
-        if token.type == TokenType.LEFT_BRACKET:
+        elif token.type == TokenType.LEFT_BRACKET:
             return self.parse_list_literal()
-        if token.type == TokenType.LEFT_BRACE:
+        elif token.type == TokenType.LEFT_BRACE:
             return self.parse_object_literal()
-
-        raise ParserError(f"Unexpected token in factor: {token.type}")
+        else:
+            raise ParserError(f"Unexpected token in primary expression: {token.type}")
 
     def parse_function_call_helper(self, func_name):
         """Helper method to parse a function call once we've identified the function name"""
@@ -751,8 +721,8 @@ class Parser:
             self.advance()
 
             if (
-                op_token.type == TokenType.EQUAL
-                and self.current_token.type == TokenType.EQUAL
+                op_token.type == TokenType.EQUAL and
+                self.current_token.type == TokenType.EQUAL
             ):
                 operator_value = "=="
                 self.advance()

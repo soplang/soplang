@@ -80,6 +80,14 @@ class Interpreter:
             return self.execute_class_definition(node)
         elif node.type == NodeType.ASSIGNMENT:
             return self.execute_assignment(node)
+        # Handle expressions that might be statements
+        elif node.type in (NodeType.BINARY_OPERATION, NodeType.UNARY_OPERATION,
+                           NodeType.PROPERTY_ACCESS, NodeType.METHOD_CALL,
+                           NodeType.INDEX_ACCESS, NodeType.IDENTIFIER,
+                           NodeType.LITERAL):
+            # Just evaluate the expression and discard the result
+            self.evaluate(node)
+            return None
         else:
             raise RuntimeError(f"Unknown statement type: {node.type}")
 
@@ -317,18 +325,18 @@ class Interpreter:
 
         # If we have at least 3 children before the body, the 3rd one is the step
         if len(node.children) > 2 and (
-            node.children[2].type == NodeType.LITERAL
-            or node.children[2].type == NodeType.IDENTIFIER
-            or node.children[2].type == NodeType.BINARY_OPERATION
+            node.children[2].type == NodeType.LITERAL or
+            node.children[2].type == NodeType.IDENTIFIER or
+            node.children[2].type == NodeType.BINARY_OPERATION
         ):
             step_value = self.evaluate(node.children[2])
             body_start_index = 3
 
         # Ensure all values are numbers
         if (
-            not isinstance(start_value, (int, float))
-            or not isinstance(end_value, (int, float))
-            or not isinstance(step_value, (int, float))
+            not isinstance(start_value, (int, float)) or
+            not isinstance(end_value, (int, float)) or
+            not isinstance(step_value, (int, float))
         ):
             raise TypeError(
                 "Ku_celi billowga, dhamaadka iyo tallaabada waa in ay yihiin tiro"
