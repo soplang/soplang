@@ -251,29 +251,44 @@ class Parser:
     #  tiro y = 10 (static typing)
     # -----------------------------
     def parse_variable_declaration(self, is_static=False):
-        var_type = None
+        # Get the variable type (for static typing)
+        var_type = self.current_token.type if is_static else None
+        token_line = getattr(self.current_token, 'line', None)
+        token_position = getattr(self.current_token, 'position', None)
 
-        if is_static:
-            # Store the type information for static typing
-            var_type = self.current_token.type
-            self.advance()
-        else:
-            # For dynamic typing (door)
-            self.expect(TokenType.DOOR)
+        self.advance()  # Consume type/door token
+
+        # Get the variable name
+        if self.current_token.type != TokenType.IDENTIFIER:
+            raise ParserError(
+                "expected_token",
+                expected="identifier",
+                found=self.get_friendly_token_name(self.current_token.type),
+                token=self.current_token,
+                line=getattr(self.current_token, 'line', None),
+                position=getattr(self.current_token, 'position', None)
+            )
 
         var_name = self.current_token.value
-        self.expect(TokenType.IDENTIFIER)
+        self.advance()  # Consume identifier
+
+        # Expect equals sign
         self.expect(TokenType.EQUAL)
 
-        # Use parse_logical_expression instead of parse_expression to handle comparisons
-        expr = self.parse_logical_expression()
+        # Parse the expression to assign to the variable
+        expression = self.parse_expression()
 
-        # Include type information in the AST node for static typing
-        node = ASTNode(NodeType.VARIABLE_DECLARATION, value=var_name, children=[expr])
-        if is_static:
-            node.var_type = var_type
+        # Create variable declaration node
+        var_node = ASTNode(
+            NodeType.VARIABLE_DECLARATION,
+            value=var_name,
+            children=[expression],
+            line=token_line,
+            position=token_position
+        )
+        var_node.var_type = var_type  # Store type for static typing
 
-        return node
+        return var_node
 
     # -----------------------------
     #  howl foo(a, b) { ... }
@@ -850,3 +865,9 @@ class Parser:
             return ASTNode(NodeType.RETURN_STATEMENT, children=[expr])
         # Otherwise, it's a return with no value
         return ASTNode(NodeType.RETURN_STATEMENT)
+
+    def create_node(self, node_type, value=None, children=None):
+        """Create an AST node with current token's line and position information"""
+        line = getattr(self.current_token, 'line', None)
+        position = getattr(self.current_token, 'position', None)
+        return ASTNode(node_type, value=value, children=children, line=line, position=position)
