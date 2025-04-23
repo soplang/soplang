@@ -456,6 +456,14 @@ class Interpreter:
             left_val = self.evaluate(node.children[0])
             right_val = self.evaluate(node.children[1])
             return self.apply_operator(node.value, left_val, right_val)
+        if node.type == NodeType.UNARY_OPERATION:
+            # For unary operations, only evaluate the operand
+            operand_val = self.evaluate(node.children[0])
+            # Handle different unary operators
+            if node.value == "!":
+                return not bool(operand_val)
+            else:
+                raise RuntimeError(f"Unknown unary operator: {node.value}")
         if node.type == NodeType.LIST_LITERAL:
             # Evaluate each element in the list
             return [self.evaluate(element) for element in node.children]

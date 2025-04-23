@@ -72,18 +72,18 @@ class Parser:
         elif ttype == TokenType.IDENTIFIER:
             # Check if this is a function call (identifier followed by parentheses)
             if (
-                self.current_token_index + 1 < len(self.tokens)
-                and self.tokens[self.current_token_index + 1].type
-                == TokenType.LEFT_PAREN
+                self.current_token_index + 1 < len(self.tokens) and
+                self.tokens[self.current_token_index + 1].type ==
+                TokenType.LEFT_PAREN
             ):
                 return self.parse_function_call()
 
             # Check if this is an object method call (obj.method(...))
             # or a variable assignment (obj.prop = value) or (obj[idx] = value)
             if self.current_token_index + 1 < len(self.tokens) and (
-                self.tokens[self.current_token_index + 1].type == TokenType.DOT
-                or self.tokens[self.current_token_index + 1].type
-                == TokenType.LEFT_BRACKET
+                self.tokens[self.current_token_index + 1].type == TokenType.DOT or
+                self.tokens[self.current_token_index + 1].type ==
+                TokenType.LEFT_BRACKET
             ):
                 token_value = self.current_token.value
                 self.advance()  # consume the identifier
@@ -170,8 +170,8 @@ class Parser:
 
             # Handle regular variable assignment (var = value)
             elif (
-                self.current_token_index + 1 < len(self.tokens)
-                and self.tokens[self.current_token_index + 1].type == TokenType.EQUAL
+                self.current_token_index + 1 < len(self.tokens) and
+                self.tokens[self.current_token_index + 1].type == TokenType.EQUAL
             ):
                 var_name = self.current_token.value
                 self.advance()  # consume identifier
@@ -260,8 +260,8 @@ class Parser:
         """Parse a function call like 'qor("Hello")'"""
         func_name = self.current_token.value
         if (
-            self.current_token.type != TokenType.IDENTIFIER
-            and self.current_token.type
+            self.current_token.type != TokenType.IDENTIFIER and
+            self.current_token.type
             not in (
                 TokenType.QOR,
                 TokenType.AKHRI,
@@ -491,8 +491,8 @@ class Parser:
         while self.current_token.type != TokenType.RIGHT_BRACE:
             # Property key
             if (
-                self.current_token.type == TokenType.IDENTIFIER
-                or self.current_token.type == TokenType.STRING
+                self.current_token.type == TokenType.IDENTIFIER or
+                self.current_token.type == TokenType.STRING
             ):
                 key = self.current_token.value
                 self.advance()
@@ -598,7 +598,7 @@ class Parser:
         token = self.current_token
 
         # Handle unary operators (+ and -)
-        if token.type in (TokenType.PLUS, TokenType.MINUS):
+        if token.type in (TokenType.PLUS, TokenType.MINUS, TokenType.NOT):
             op = token
             self.advance()
             factor = self.parse_factor()
@@ -619,6 +619,13 @@ class Parser:
                 minus_one = ASTNode(NodeType.LITERAL, value=-1)
                 return ASTNode(
                     NodeType.BINARY_OPERATION, value="*", children=[minus_one, factor]
+                )
+
+            # For NOT operator, create a unary NOT operation
+            if op.type == TokenType.NOT:
+                # Create a unary node instead of binary
+                return ASTNode(
+                    NodeType.UNARY_OPERATION, value="!", children=[factor]
                 )
 
         if token.type == TokenType.NUMBER:
@@ -731,8 +738,8 @@ class Parser:
             self.advance()
 
             if (
-                op_token.type == TokenType.EQUAL
-                and self.current_token.type == TokenType.EQUAL
+                op_token.type == TokenType.EQUAL and
+                self.current_token.type == TokenType.EQUAL
             ):
                 operator_value = "=="
                 self.advance()
