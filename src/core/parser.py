@@ -93,44 +93,86 @@ class Parser:
         return ASTNode(NodeType.PROGRAM, children=statements)
 
     def parse_statement(self):
-        """Parse a statement and return an AST node."""
-        ttype = self.current_token.type
+        """
+        Parse any statement in the language
+        """
+        token = self.current_token
+        token_type = token.type
+        line = getattr(token, 'line', None)
+        position = getattr(token, 'position', None)
 
-        if ttype == TokenType.TIRO:
-            return self.parse_variable_declaration(is_static=True)
-        elif ttype == TokenType.QORAAL:
-            return self.parse_variable_declaration(is_static=True)
-        elif ttype == TokenType.LABADARAN:
-            return self.parse_variable_declaration(is_static=True)
-        elif ttype == TokenType.LIIS:
-            return self.parse_variable_declaration(is_static=True)
-        elif ttype == TokenType.SHEY:
-            return self.parse_variable_declaration(is_static=True)
-        elif ttype == TokenType.DOOR:
-            return self.parse_variable_declaration(is_static=False)
-        elif ttype == TokenType.HOWL:
-            return self.parse_function_definition()
-        elif ttype == TokenType.QOR or ttype == TokenType.AKHRI:
-            return self.parse_function_call()
-        elif ttype == TokenType.HADDII:
+        # Handle haddii (if statement)
+        if token_type == TokenType.HADDII:
             return self.parse_if_statement()
-        elif ttype == TokenType.KU_CELI:
-            return self.parse_loop_statement()
-        elif ttype == TokenType.INTA_AY:
-            return self.parse_while_statement()
-        elif ttype == TokenType.JOOJI:
-            return self.parse_break_statement()
-        elif ttype == TokenType.SII_WAD:
-            return self.parse_continue_statement()
-        elif ttype == TokenType.SOO_CELI:
+
+        # Handle variable declarations with static typing
+        elif token_type in (
+            TokenType.TIRO,
+            TokenType.QORAAL,
+            TokenType.LABADARAN,
+            TokenType.LIIS,
+            TokenType.SHEY,
+        ):
+            return self.parse_variable_declaration(is_static=True)
+
+        # Handle variable declaration with dynamic typing (door)
+        elif token_type == TokenType.DOOR:
+            return self.parse_variable_declaration(is_static=False)
+
+        # Handle function definition (howl)
+        elif token_type == TokenType.HOWL:
+            return self.parse_function_definition()
+
+        # Handle return statement (soo_celi)
+        elif token_type == TokenType.SOO_CELI:
             return self.parse_return_statement()
-        elif ttype == TokenType.ISKU_DAY:
+
+        # Handle print statement (qor)
+        elif token_type == TokenType.QOR:
+            self.advance()  # Consume qor
+            # Parse function call expression
+            return ASTNode(
+                NodeType.FUNCTION_CALL,
+                value="qor",
+                children=[self.parse_expression()],
+                line=line,
+                position=position
+            )
+
+        # Handle function calls
+        elif token_type == TokenType.QOR or token_type == TokenType.AKHRI:
+            return self.parse_function_call()
+
+        # Handle loops
+        elif token_type == TokenType.KU_CELI:
+            return self.parse_loop_statement()
+
+        # Handle while loop
+        elif token_type == TokenType.INTA_AY:
+            return self.parse_while_statement()
+
+        # Handle break statement
+        elif token_type == TokenType.JOOJI:
+            return self.parse_break_statement()
+
+        # Handle continue statement
+        elif token_type == TokenType.SII_WAD:
+            return self.parse_continue_statement()
+
+        # Handle try/catch
+        elif token_type == TokenType.ISKU_DAY:
             return self.parse_try_catch()
-        elif ttype == TokenType.KA_KEEN:
+
+        # Handle import statement
+        elif token_type == TokenType.KA_KEEN:
             return self.parse_import_statement()
-        elif ttype == TokenType.FASALKA:
+
+        # Handle class definition
+        elif token_type == TokenType.FASALKA:
             return self.parse_class_definition()
-        elif ttype == TokenType.LEFT_BRACE:
+
+        # Handle code block
+        elif token_type == TokenType.LEFT_BRACE:
             # Parse code block { ... }
             self.advance()  # Consume '{'
 
@@ -140,7 +182,9 @@ class Parser:
 
             self.expect(TokenType.RIGHT_BRACE)
             return ASTNode(NodeType.BLOCK, children=statements)
-        elif ttype == TokenType.IDENTIFIER:
+
+        # Handle identifier
+        elif token_type == TokenType.IDENTIFIER:
             # This could be a function call, a variable assignment, a property access, etc.
             identifier_value = self.current_token.value
             self.advance()  # Consume the identifier
@@ -231,19 +275,19 @@ class Parser:
             return ASTNode(NodeType.IDENTIFIER, value=identifier_value)
 
         # Top-level 'haddii_kale', 'haddii_kalena' are invalid
-        if ttype in (TokenType.HADDII_KALE, TokenType.HADDII_KALENA):
+        if token_type in (TokenType.HADDII_KALE, TokenType.HADDII_KALENA):
             raise ParserError(
                 "unexpected_token",
-                token=self.get_friendly_token_name(ttype),
-                line=getattr(self.current_token, 'line', None),
-                position=getattr(self.current_token, 'position', None)
+                token=self.get_friendly_token_name(token_type),
+                line=getattr(token, 'line', None),
+                position=getattr(token, 'position', None)
             )
 
         raise ParserError(
             "unexpected_token",
-            token=self.get_friendly_token_name(ttype),
-            line=getattr(self.current_token, 'line', None),
-            position=getattr(self.current_token, 'position', None)
+            token=self.get_friendly_token_name(token_type),
+            line=getattr(token, 'line', None),
+            position=getattr(token, 'position', None)
         )
 
     # -----------------------------
