@@ -73,7 +73,7 @@ class ErrorMessageManager:
     }
 
     @classmethod
-    def format_error(cls, error_type, message, line=None, position=None):
+    def format_error(cls, error_type, message, line=None, position=None, **kwargs):
         """Format an error message.
 
         Args:
@@ -81,6 +81,7 @@ class ErrorMessageManager:
             message (str): The error message.
             line (int, optional): The line number where the error occurred.
             position (int, optional): The position in the line where the error occurred.
+            **kwargs: Additional arguments to format into the message.
 
         Returns:
             str: The formatted error message.
@@ -90,13 +91,16 @@ class ErrorMessageManager:
 
         error_prefix = cls.ERROR_PREFIXES[error_type]
 
+        # Format the message with any provided kwargs
+        formatted_message = message.format(**kwargs) if kwargs else message
+
         if line is not None and position is not None:
             return (
-                f"{error_prefix}: {message} ee sadar (line) {line}, "
+                f"{error_prefix}: {formatted_message} ee sadar (line) {line}, "
                 f"goobta (position) {position}"
             )
         else:
-            return f"{error_prefix}: {message}"
+            return f"{error_prefix}: {formatted_message}"
 
     @classmethod
     def get_lexer_error(cls, error_code, **kwargs):
@@ -141,95 +145,110 @@ class ErrorMessageManager:
 
 class LexerError(SoplangError):
     def __init__(self, error_code, position=None, line=None, **kwargs):
-        kwargs.update({"position": position, "line": line})
-
         if error_code in ErrorMessageManager.LEXER_ERRORS:
-            # Get error message from error code
-            message = ErrorMessageManager.LEXER_ERRORS[error_code]
-            self.message = ErrorMessageManager.format_error("lexer", message, **kwargs)
+            # Get error message template from error code
+            message_template = ErrorMessageManager.LEXER_ERRORS[error_code]
+            # Use format_error to get a properly formatted message
+            self.message = ErrorMessageManager.format_error(
+                "lexer", message_template, line=line, position=position, **kwargs
+            )
         else:
             # Handle direct error message strings (fallback)
-            self.message = error_code
+            self.message = ErrorMessageManager.format_error(
+                "lexer", error_code, line=line, position=position
+            )
 
-        # Add type prefix only once with English translation
-        self.full_message = f"Khalad lexer (Lexer Error): {self.message}"
-        super().__init__(self.full_message)
+        super().__init__(self.message)
 
 
 class ParserError(SoplangError):
     def __init__(self, error_code, token=None, line=None, position=None, **kwargs):
-        kwargs.update({"token": token, "line": line, "position": position})
-
         if error_code in ErrorMessageManager.PARSER_ERRORS:
-            # Get error message from error code
-            message = ErrorMessageManager.PARSER_ERRORS[error_code]
-            self.message = ErrorMessageManager.format_error("parser", message, **kwargs)
+            # Get error message template from error code
+            message_template = ErrorMessageManager.PARSER_ERRORS[error_code]
+            # Use format_error to get a properly formatted message
+            self.message = ErrorMessageManager.format_error(
+                "parser", message_template, line=line, position=position, **kwargs
+            )
         else:
             # Handle direct error message strings (fallback)
-            self.message = error_code
+            self.message = ErrorMessageManager.format_error(
+                "parser", error_code, line=line, position=position
+            )
 
-        # Add type prefix only once with English translation
-        self.full_message = f"Khalad parser (Parser Error): {self.message}"
-        super().__init__(self.full_message)
+        super().__init__(self.message)
 
 
 class TypeError(SoplangError):
-    def __init__(self, error_code, **kwargs):
+    def __init__(self, error_code, line=None, position=None, **kwargs):
         if error_code in ErrorMessageManager.TYPE_ERRORS:
-            # Get error message from error code
-            message = ErrorMessageManager.TYPE_ERRORS[error_code]
-            self.message = ErrorMessageManager.format_error("type", message, **kwargs)
+            # Get error message template from error code
+            message_template = ErrorMessageManager.TYPE_ERRORS[error_code]
+            # Use format_error to get a properly formatted message
+            self.message = ErrorMessageManager.format_error(
+                "type", message_template, line=line, position=position, **kwargs
+            )
         else:
             # Handle direct error message strings (fallback)
-            self.message = error_code
+            self.message = ErrorMessageManager.format_error(
+                "type", error_code, line=line, position=position
+            )
 
-        # Add type prefix only once with English translation
-        self.full_message = f"Khalad type (Type Error): {self.message}"
-        super().__init__(self.full_message)
+        super().__init__(self.message)
 
 
 class ValueError(SoplangError):
-    def __init__(self, message):
-        self.message = f"Khalad qiimaha ah (Value Error): {message}"
+    def __init__(self, message, line=None, position=None):
+        self.message = ErrorMessageManager.format_error(
+            "runtime", f"Khalad qiimaha ah (Value Error): {message}",
+            line=line, position=position
+        )
         super().__init__(self.message)
 
 
 class NameError(SoplangError):
-    def __init__(self, name):
-        self.message = f"Khalad magaca ah (Name Error): '{name}' ma jiro"
+    def __init__(self, name, line=None, position=None):
+        self.message = ErrorMessageManager.format_error(
+            "runtime", f"Khalad magaca ah (Name Error): '{name}' ma jiro",
+            line=line, position=position
+        )
         super().__init__(self.message)
 
 
 class ImportError(SoplangError):
-    def __init__(self, error_code, **kwargs):
+    def __init__(self, error_code, line=None, position=None, **kwargs):
         if error_code in ErrorMessageManager.IMPORT_ERRORS:
-            # Get error message from error code
-            message = ErrorMessageManager.IMPORT_ERRORS[error_code]
-            self.message = ErrorMessageManager.format_error("import", message, **kwargs)
-        else:
-            # Handle direct error message strings (fallback)
-            self.message = error_code
-
-        # Add type prefix only once with English translation
-        self.full_message = f"Khalad import (Import Error): {self.message}"
-        super().__init__(self.full_message)
-
-
-class RuntimeError(SoplangError):
-    def __init__(self, error_code, **kwargs):
-        if error_code in ErrorMessageManager.RUNTIME_ERRORS:
-            # Get error message from error code
-            message = ErrorMessageManager.RUNTIME_ERRORS[error_code]
+            # Get error message template from error code
+            message_template = ErrorMessageManager.IMPORT_ERRORS[error_code]
+            # Use format_error to get a properly formatted message
             self.message = ErrorMessageManager.format_error(
-                "runtime", message, **kwargs
+                "import", message_template, line=line, position=position, **kwargs
             )
         else:
             # Handle direct error message strings (fallback)
-            self.message = error_code
+            self.message = ErrorMessageManager.format_error(
+                "import", error_code, line=line, position=position
+            )
 
-        # Add type prefix only once with English translation
-        self.full_message = f"Khalad runtime (Runtime Error): {self.message}"
-        super().__init__(self.full_message)
+        super().__init__(self.message)
+
+
+class RuntimeError(SoplangError):
+    def __init__(self, error_code, line=None, position=None, **kwargs):
+        if error_code in ErrorMessageManager.RUNTIME_ERRORS:
+            # Get error message template from error code
+            message_template = ErrorMessageManager.RUNTIME_ERRORS[error_code]
+            # Use format_error to get a properly formatted message
+            self.message = ErrorMessageManager.format_error(
+                "runtime", message_template, line=line, position=position, **kwargs
+            )
+        else:
+            # Handle direct error message strings (fallback)
+            self.message = ErrorMessageManager.format_error(
+                "runtime", error_code, line=line, position=position
+            )
+
+        super().__init__(self.message)
 
 
 # Signal exceptions (not errors, but control flow)

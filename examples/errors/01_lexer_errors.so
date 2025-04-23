@@ -36,5 +36,5 @@ door variable = 5 @ 10
 // }
 
 // Valid code to run when all examples are commented out
-door test = 10
-qor("Only this line should print when all errors are commented out")
+// door test = 10
+// qor("Only this line should print when all errors are commented out")
