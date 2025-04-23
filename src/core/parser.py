@@ -120,7 +120,9 @@ class Parser:
                     # Handle property assignment (obj.prop = value)
                     elif self.current_token.type == TokenType.EQUAL:
                         self.advance()  # consume equals
-                        value_expr = self.parse_expression()
+
+                        # Use parse_logical_expression for property assignment
+                        value_expr = self.parse_logical_expression()
 
                         # Create an object to represent the target
                         target = ASTNode(
@@ -143,7 +145,9 @@ class Parser:
                     # Handle assignment (obj[idx] = value)
                     if self.current_token.type == TokenType.EQUAL:
                         self.advance()  # consume equals
-                        value_expr = self.parse_expression()
+
+                        # Use parse_logical_expression for index assignment
+                        value_expr = self.parse_logical_expression()
 
                         # Create an object to represent the target
                         target = ASTNode(
@@ -172,7 +176,9 @@ class Parser:
                 var_name = self.current_token.value
                 self.advance()  # consume identifier
                 self.advance()  # consume equals
-                value_expr = self.parse_expression()
+
+                # Use parse_logical_expression to support comparison operations in assignments
+                value_expr = self.parse_logical_expression()
 
                 # Create an assignment node
                 return ASTNode(
@@ -206,7 +212,9 @@ class Parser:
         var_name = self.current_token.value
         self.expect(TokenType.IDENTIFIER)
         self.expect(TokenType.EQUAL)
-        expr = self.parse_expression()
+
+        # Use parse_logical_expression instead of parse_expression to handle comparisons
+        expr = self.parse_logical_expression()
 
         # Include type information in the AST node for static typing
         node = ASTNode(NodeType.VARIABLE_DECLARATION, value=var_name, children=[expr])
@@ -658,7 +666,9 @@ class Parser:
 
         if token.type == TokenType.LEFT_PAREN:
             self.advance()
-            expr = self.parse_expression()
+            # Use parse_logical_expression instead of parse_expression inside parentheses
+            # to handle comparison operators correctly
+            expr = self.parse_logical_expression()
             self.expect(TokenType.RIGHT_PAREN)
             return expr
         if token.type == TokenType.LEFT_BRACKET:

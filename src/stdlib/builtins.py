@@ -52,6 +52,10 @@ class SoplangBuiltins:
         """
         Convert a value to a string
         """
+        # Convert boolean values to Soplang equivalents
+        if isinstance(value, bool):
+            return "run" if value else "been"
+
         if isinstance(value, dict):
             try:
                 # Simple JSON-like stringification for dictionaries

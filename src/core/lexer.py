@@ -45,8 +45,8 @@ class Lexer:
             "liis": TokenType.LIIS,
             "shey": TokenType.SHEY,
             # Boolean literals
-            "been": TokenType.TRUE,
-            "run": TokenType.FALSE,
+            "run": TokenType.TRUE,
+            "been": TokenType.FALSE,
             "null": TokenType.NULL,
         }
 

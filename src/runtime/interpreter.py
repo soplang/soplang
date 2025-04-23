@@ -1,19 +1,31 @@
 import os
+
 from src.core.ast import ASTNode, NodeType
 from src.core.tokens import TokenType
-from src.utils.errors import RuntimeError, TypeError, BreakSignal, ContinueSignal, ReturnSignal, ImportError
-from src.stdlib.builtins import get_builtin_functions, get_list_methods, get_object_methods
+from src.stdlib.builtins import (
+    get_builtin_functions,
+    get_list_methods,
+    get_object_methods,
+)
+from src.utils.errors import (
+    BreakSignal,
+    ContinueSignal,
+    ImportError,
+    ReturnSignal,
+    RuntimeError,
+    TypeError,
+)
 
 
 class Interpreter:
     def __init__(self):
-        self.variables = {}             # Global variables
-        self.variable_types = {}        # Store static types
+        self.variables = {}  # Global variables
+        self.variable_types = {}  # Store static types
         self.functions = get_builtin_functions()  # Built-in functions
         self.list_methods = get_list_methods()
         self.object_methods = get_object_methods()
-        self.classes = {}               # Store class definitions
-        self.call_stack = []            # Track function calls if needed
+        self.classes = {}  # Store class definitions
+        self.call_stack = []  # Track function calls if needed
 
     def interpret(self, root):
         if root.type != NodeType.PROGRAM:
@@ -22,8 +34,7 @@ class Interpreter:
             try:
                 result = self.execute(statement)
             except (BreakSignal, ContinueSignal):
-                raise RuntimeError(
-                    "Jooji ama sii_wad waa in ay ku jiraan xalqad.")
+                raise RuntimeError("Jooji ama sii_wad waa in ay ku jiraan xalqad.")
             except ReturnSignal:
                 raise RuntimeError("Soo_celi waa in ay ku jirto howl.")
             # If needed, handle global returns
@@ -80,7 +91,7 @@ class Interpreter:
         var_value = self.evaluate(node.children[0])  # expression
 
         # If this is a static type declaration, store the type and enforce it
-        if hasattr(node, 'var_type') and node.var_type is not None:
+        if hasattr(node, "var_type") and node.var_type is not None:
             # Store the type information
             self.variable_types[var_name] = node.var_type
 
@@ -99,27 +110,32 @@ class Interpreter:
         if expected_type == TokenType.TIRO:
             if not isinstance(value, (int, float)):
                 raise TypeError(
-                    f"'{var_name}' waa tiro laakin qiimaheeda '{value}' ma ahan tiro")
+                    f"'{var_name}' waa tiro laakin qiimaheeda '{value}' ma ahan tiro"
+                )
 
         elif expected_type == TokenType.QORAAL:
             if not isinstance(value, str):
                 raise TypeError(
-                    f"'{var_name}' waa qoraal laakin qiimaheeda '{value}' ma ahan qoraal")
+                    f"'{var_name}' waa qoraal laakin qiimaheeda '{value}' ma ahan qoraal"
+                )
 
         elif expected_type == TokenType.LABADARAN:
             if not isinstance(value, bool):
                 raise TypeError(
-                    f"'{var_name}' waa labadaran laakin qiimaheeda '{value}' ma ahan labadaran")
+                    f"'{var_name}' waa labadaran laakin qiimaheeda '{value}' ma ahan labadaran"
+                )
 
         elif expected_type == TokenType.LIIS:
             if not isinstance(value, list):
                 raise TypeError(
-                    f"'{var_name}' waa liis laakin qiimaheeda '{value}' ma ahan liis")
+                    f"'{var_name}' waa liis laakin qiimaheeda '{value}' ma ahan liis"
+                )
 
         elif expected_type == TokenType.SHEY:
             if not isinstance(value, dict):
                 raise TypeError(
-                    f"'{var_name}' waa shey laakin qiimaheeda '{value}' ma ahan shey")
+                    f"'{var_name}' waa shey laakin qiimaheeda '{value}' ma ahan shey"
+                )
 
     # -----------------------------
     #  Variable Assignment
@@ -193,8 +209,8 @@ class Interpreter:
             else:
                 # User-defined function (Soplang function)
                 user_func = self.functions[func_name]
-                params = user_func['params']
-                body = user_func['body']
+                params = user_func["params"]
+                body = user_func["body"]
 
                 # Create a new scope for function execution
                 old_vars = self.variables.copy()
@@ -236,7 +252,8 @@ class Interpreter:
                 return self.object_methods[method_name](obj, *args)
             else:
                 raise RuntimeError(
-                    f"Method '{method_name}' not found on {type(obj).__name__}")
+                    f"Method '{method_name}' not found on {type(obj).__name__}"
+                )
         else:
             raise RuntimeError(f"Function '{func_name}' is not defined")
 
@@ -294,9 +311,10 @@ class Interpreter:
         end_value = self.evaluate(node.children[1])
 
         # Ensure start and end are numbers
-        if not isinstance(start_value, (int, float)) or not isinstance(end_value, (int, float)):
-            raise TypeError(
-                "Ku_celi billowga iyo dhamaadka waa in ay yihiin tiro")
+        if not isinstance(start_value, (int, float)) or not isinstance(
+            end_value, (int, float)
+        ):
+            raise TypeError("Ku_celi billowga iyo dhamaadka waa in ay yihiin tiro")
 
         i = start_value
         while i <= end_value:
@@ -362,7 +380,7 @@ class Interpreter:
         filename = node.value
 
         try:
-            with open(filename, 'r') as f:
+            with open(filename, "r") as f:
                 code = f.read()
 
             # Import the modules only when needed
@@ -381,8 +399,7 @@ class Interpreter:
         except FileNotFoundError:
             raise ImportError(f"{filename}")
         except Exception as e:
-            raise RuntimeError(
-                f"Qalad baa ka jira file-ka {filename}: {str(e)}")
+            raise RuntimeError(f"Qalad baa ka jira file-ka {filename}: {str(e)}")
 
     # -----------------------------
     #  Class Definition
@@ -400,21 +417,21 @@ class Interpreter:
 
         # Create the class definition
         class_def = {
-            'name': class_name,
-            'parent': parent_name,
-            'methods': {},
-            'fields': {}
+            "name": class_name,
+            "parent": parent_name,
+            "methods": {},
+            "fields": {},
         }
 
         # Process class body
         for child in node.children:
             if child.type == NodeType.FUNCTION_DEFINITION:
                 method_name = child.value
-                class_def['methods'][method_name] = child
+                class_def["methods"][method_name] = child
             elif child.type == NodeType.VARIABLE_DECLARATION:
                 field_name = child.value
                 field_value = self.evaluate(child.children[0])
-                class_def['fields'][field_name] = field_value
+                class_def["fields"][field_name] = field_value
             else:
                 # Execute any statements in the class (like qor())
                 self.execute(child)
@@ -455,13 +472,13 @@ class Interpreter:
             obj = self.evaluate(node.children[0])
             if not isinstance(obj, dict):
                 raise TypeError(
-                    f"Cannot access property '{node.value}' of non-object value")
+                    f"Cannot access property '{node.value}' of non-object value"
+                )
 
             # Get the property name and return the value
             prop_name = node.value
             if prop_name not in obj:
-                raise RuntimeError(
-                    f"Property '{prop_name}' does not exist on object")
+                raise RuntimeError(f"Property '{prop_name}' does not exist on object")
 
             return obj[prop_name]
         if node.type == NodeType.METHOD_CALL:
@@ -489,7 +506,8 @@ class Interpreter:
                     return obj[method_name](*args)
 
             raise RuntimeError(
-                f"Method '{method_name}' does not exist on {type(obj).__name__}")
+                f"Method '{method_name}' does not exist on {type(obj).__name__}"
+            )
         if node.type == NodeType.INDEX_ACCESS:
             # Evaluate the array expression
             arr = self.evaluate(node.children[0])
@@ -536,7 +554,11 @@ class Interpreter:
         if operator == "+":
             # Handle string concatenation
             if isinstance(left, str) or isinstance(right, str):
-                return str(left) + str(right)
+                # Import SoplangBuiltins for proper string conversion
+                from src.stdlib.builtins import SoplangBuiltins
+
+                # Use qoraal for proper string conversion (including booleans to been/run)
+                return SoplangBuiltins.qoraal(left) + SoplangBuiltins.qoraal(right)
             return left + right
         elif operator == "-":
             return left - right
@@ -548,8 +570,7 @@ class Interpreter:
             return left / right
         elif operator == "%":
             if right == 0:
-                raise RuntimeError(
-                    "Ma suurtogali karto modulo eber.")
+                raise RuntimeError("Ma suurtogali karto modulo eber.")
             return left % right
         elif operator == "==":
             return left == right
@@ -589,6 +610,6 @@ class Interpreter:
 
         # Store the function definition
         self.functions[func_name] = {
-            'params': [param.value for param in param_nodes],
-            'body': body_nodes
+            "params": [param.value for param in param_nodes],
+            "body": body_nodes,
         }
