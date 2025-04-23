@@ -1,0 +1,73 @@
+// Test: Conditional Statements
+// This test checks if conditional statements work properly
+
+qor("Testing conditional statements (haddii / haddii_kale / haddii_kalena):")
+
+// Simple if-else
+tiro age = 20
+qor("  Testing with age = " + age)
+
+haddii (age < 13) {
+    qor("  Result: Waa ilmo")
+} haddii_kalena (age < 20) {
+    qor("  Result: Waa dhallinyaro")
+} haddii_kalena {
+    qor("  Result: Waa qof weyn")
+}
+
+// Test with different age values
+age = 10
+qor("  Testing with age = " + age)
+haddii (age < 13) {
+    qor("  Result: Waa ilmo")
+} haddii_kalena (age < 20) {
+    qor("  Result: Waa dhallinyaro")
+} haddii_kalena {
+    qor("  Result: Waa qof weyn")
+}
+
+// Multiple conditions
+tiro score = 85
+qor("  Testing with score = " + score)
+haddii (score >= 90) {
+    qor("  Grade: A")
+} haddii_kalena (score >= 80) {
+    qor("  Grade: B")
+} haddii_kalena (score >= 70) {
+    qor("  Grade: C")
+} haddii_kalena (score >= 60) {
+    qor("  Grade: D")
+} haddii_kalena {
+    qor("  Grade: F")
+}
+
+// Test with different score values
+score = 95
+qor("  Testing with score = " + score)
+haddii (score >= 90) {
+    qor("  Grade: A")
+} haddii_kalena (score >= 80) {
+    qor("  Grade: B")
+} haddii_kalena (score >= 70) {
+    qor("  Grade: C")
+} haddii_kalena (score >= 60) {
+    qor("  Grade: D")
+} haddii_kalena {
+    qor("  Grade: F")
+}
+
+// Nested if statements
+tiro x = 10
+tiro y = 20
+
+qor("  Testing nested conditions with x = " + x + " and y = " + y)
+haddii (x > 5) {
+    qor("  x is greater than 5")
+    haddii (y > 15) {
+        qor("  and y is greater than 15")
+    } haddii_kalena {
+        qor("  but y is not greater than 15")
+    }
+} haddii_kalena {
+    qor("  x is not greater than 5")
+}

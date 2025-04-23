@@ -1,0 +1,31 @@
+// Test: Logical Operators
+// This test checks if logical operators work properly
+
+qor("Testing logical operators:")
+
+labadaran c = been
+labadaran d = run
+qor("  c = " + c + ", d = " + d)
+
+// Basic logical operations
+qor("  AND (c && d): " + (c && d))
+qor("  OR (c || d): " + (c || d))
+qor("  NOT (!c): " + (!c))
+qor("  NOT (!d): " + (!d))
+
+// Compound expressions
+qor("  Compound AND (c && !d): " + (c && !d))
+qor("  Compound OR (!c || d): " + (!c || d))
+qor("  Complex expression (c && (d || !d)): " + (c && (d || !d)))
+qor("  Complex expression ((c || d) && (c || !d)): " + ((c || d) && (c || !d)))
+
+// Using comparison results in logical operations
+tiro x = 10
+tiro y = 20
+qor("  x = " + x + ", y = " + y)
+qor("  Comparison in logical expression ((x > 5) && (y < 30)): " + ((x > 5) && (y < 30)))
+qor("  Comparison in logical expression ((x > 15) || (y < 30)): " + ((x > 15) || (y < 30)))
+
+// Assignment of logical operations
+door result = (x < y) && (c || d)
+qor("  Assignment of logical operation (result = (x < y) && (c || d)): " + result)

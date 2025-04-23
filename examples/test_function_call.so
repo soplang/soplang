@@ -1,8 +1,0 @@
-// Simple test for function calls // Define a function
-
-howl sayHello() {
-    qor("Hello, World!")
-}
-// Call the function
-
-sayHello()

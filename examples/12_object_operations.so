@@ -1,0 +1,77 @@
+// Test: Object Operations
+// This test checks if object operations work properly
+
+qor("Testing object operations:")
+
+// Creating objects
+shey empty_obj = {}
+shey person = {
+    magac: "Asha",
+    da: 30,
+    magaalo: "Muqdisho"
+}
+
+qor("  Empty object: " + empty_obj)
+qor("  Person object: " + person)
+
+// Accessing properties
+qor("  Name: " + person["magac"])
+qor("  Age: " + person["da"])
+qor("  City: " + person["magaalo"])
+
+// Alternative syntax for accessing properties (if supported)
+// qor("  Name (dot notation): " + person.magac)
+
+// Modifying properties
+person["da"] = 31
+qor("  After changing age: " + person)
+
+// Adding new properties
+person["shaqo"] = "Barnaamij Samayne"
+qor("  After adding job: " + person)
+
+// Nested objects
+shey address = {
+    city: "Muqdisho",
+    country: "Soomaaliya",
+    district: "Hodan"
+}
+
+shey employee = {
+    name: "Mohamed",
+    age: 28,
+    address: address
+}
+
+qor("  Employee with nested address: " + employee)
+qor("  Employee's district: " + employee["address"]["district"])
+
+// Object keys
+door keys = person.keys()
+qor("  Object keys: " + keys)
+
+// Object iteration
+qor("  Object key-value pairs:")
+ku_celi i min 0 ilaa keys.length() - 1 {
+    door key = keys[i]
+    qor("    " + key + ": " + person[key])
+}
+
+// Check if property exists
+labadaran has_job = person.has("shaqo")
+qor("  Does person have 'shaqo'? " + has_job)
+
+labadaran has_email = person.has("email")
+qor("  Does person have 'email'? " + has_email)
+
+// Removing properties
+person.remove("shaqo")
+qor("  After removing job: " + person)
+
+// Merging objects
+shey obj1 = {a: 1, b: 2}
+shey obj2 = {c: 3, d: 4}
+shey merged = obj1.merge(obj2)
+qor("  obj1: " + obj1)
+qor("  obj2: " + obj2)
+qor("  Merged object: " + merged)

@@ -1,0 +1,29 @@
+// Test: Arithmetic Operators
+// This test checks if arithmetic operators work properly
+
+qor("Testing arithmetic operators:")
+
+tiro a = 15
+tiro b = 5
+qor("  a = " + a + ", b = " + b)
+
+// Basic operations
+qor("  Addition (a + b): " + (a + b))
+qor("  Subtraction (a - b): " + (a - b))
+qor("  Multiplication (a * b): " + (a * b))
+qor("  Division (a / b): " + (a / b))
+qor("  Modulus (a % b): " + (a % b))
+
+// Test with negative numbers
+tiro negative = -10
+qor("  negative = " + negative)
+qor("  Addition with negative (a + negative): " + (a + negative))
+qor("  Negative multiplication (negative * b): " + (negative * b))
+
+// Operator precedence
+qor("  Operator precedence (2 + 3 * 4): " + (2 + 3 * 4))
+qor("  Using parentheses ((2 + 3) * 4): " + ((2 + 3) * 4))
+
+// Complex expression
+tiro complex = (a + b) * 2 - 10 / 2
+qor("  Complex expression ((a + b) * 2 - 10 / 2): " + complex)

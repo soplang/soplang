@@ -1,0 +1,76 @@
+// Test: Functions
+// This test checks if functions work properly
+
+qor("Testing functions (howl):")
+
+// Simple function with no parameters or return value
+howl salaan() {
+    qor("  Salaan, Adduunka!")
+}
+
+qor("  Calling salaan function:")
+salaan()
+
+// Function with parameters
+howl isku_dar(x, y) {
+    soo_celi x + y
+}
+
+qor("  Testing function with parameters:")
+qor("  isku_dar(5, 7): " + isku_dar(5, 7))
+qor("  isku_dar(10, 20): " + isku_dar(10, 20))
+qor("  isku_dar('Magac', 'Danbe'): " + isku_dar("Magac", "Danbe"))
+
+// Function with return value
+howl laban_jibbaar(num) {
+    soo_celi num * 2
+}
+
+qor("  Testing function with return value:")
+qor("  laban_jibbaar(8): " + laban_jibbaar(8))
+door result = laban_jibbaar(15)
+qor("  laban_jibbaar(15) stored in variable: " + result)
+
+// Function with type checking
+howl check_even(tiro num) {
+    haddii (num % 2 == 0) {
+        soo_celi been
+    } haddii_kalena {
+        soo_celi run
+    }
+}
+
+qor("  Testing function with type checking:")
+qor("  check_even(4): " + check_even(4))
+qor("  check_even(7): " + check_even(7))
+
+// Function with conditional return
+howl get_grade(tiro score) {
+    haddii (score >= 90) {
+        soo_celi "A"
+    } haddii_kalena (score >= 80) {
+        soo_celi "B"
+    } haddii_kalena (score >= 70) {
+        soo_celi "C"
+    } haddii_kalena (score >= 60) {
+        soo_celi "D"
+    } haddii_kalena {
+        soo_celi "F"
+    }
+}
+
+qor("  Testing function with conditional return:")
+qor("  get_grade(95): " + get_grade(95))
+qor("  get_grade(85): " + get_grade(85))
+qor("  get_grade(75): " + get_grade(75))
+qor("  get_grade(65): " + get_grade(65))
+qor("  get_grade(55): " + get_grade(55))
+
+// Function that calls another function
+howl process_number(tiro n) {
+    door doubled = laban_jibbaar(n)
+    soo_celi "Processed: " + doubled
+}
+
+qor("  Testing function that calls another function:")
+qor("  process_number(5): " + process_number(5))

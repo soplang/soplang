@@ -1,0 +1,64 @@
+// Test: List Operations
+// This test checks if list operations work properly
+
+qor("Testing list operations:")
+
+// Creating lists
+liis empty_list = []
+liis numbers = [10, 20, 30, 40, 50]
+liis mixed = [1, "two", been, [1, 2], {name: "something"}]
+
+qor("  Empty list: " + empty_list)
+qor("  Numbers list: " + numbers)
+qor("  Mixed list: " + mixed)
+
+// Accessing elements
+qor("  First element of numbers: " + numbers[0])
+qor("  Third element of numbers: " + numbers[2])
+qor("  Last element of numbers: " + numbers[4])
+
+// Modifying elements
+numbers[1] = 25
+qor("  After changing second element: " + numbers)
+
+// List length
+qor("  List length: " + numbers.length())
+
+// Push operation
+numbers.push(60)
+qor("  After push: " + numbers)
+numbers.push(70)
+qor("  After another push: " + numbers)
+
+// Pop operation
+door popped = numbers.pop()
+qor("  Popped value: " + popped)
+qor("  List after pop: " + numbers)
+
+// Nested list access
+liis nested = [[1, 2], [3, 4]]
+qor("  Nested list: " + nested)
+qor("  Accessing nested element [1][0]: " + nested[1][0])
+
+// List iteration
+qor("  List iteration using for loop:")
+ku_celi i min 0 ilaa numbers.length() - 1 {
+    qor("    Element " + i + ": " + numbers[i])
+}
+
+// List concatenation
+liis list1 = [1, 2, 3]
+liis list2 = [4, 5, 6]
+liis combined = list1.concat(list2)
+qor("  List1: " + list1)
+qor("  List2: " + list2)
+qor("  Combined list: " + combined)
+
+// Check if element exists in list
+tiro search_value = 30
+labadaran contains = numbers.contains(search_value)
+qor("  Does numbers contain " + search_value + "? " + contains)
+
+search_value = 100
+contains = numbers.contains(search_value)
+qor("  Does numbers contain " + search_value + "? " + contains)

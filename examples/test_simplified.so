@@ -1,9 +1,0 @@
-// Simplified version of the first part of 03_functions.so // ==  == = BASIC FUNCTIONS ==  == = qor(" ==  == = BASIC FUNCTIONS ==  == = ") // Simple function with no parameters or return value
-
-howl sayGreeting() {
-    qor("Hello, welcome to Soplang!")
-}
-
-sayGreeting()
-qor("")
-// Empty line
