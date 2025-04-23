@@ -3,9 +3,12 @@ from src.utils.errors import TypeError, ValueError
 
 class SoplangBuiltins:
     @staticmethod
-    def qor(message):
+    def qor(message=""):
         """
-        Print a message to the console (equivalent to print/console.log)
+        Print a message to the console (equivalent to 'print' in many languages)
+
+        Args:
+            message: The message to print (default: empty string)
         """
         print(message)
         return message

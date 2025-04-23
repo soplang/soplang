@@ -58,16 +58,34 @@ def run_soplang_file(filename):
         return 0  # Success
 
     except FileNotFoundError:
-        print(f"❌ File '{filename}' not found.")
+        # File not found error in Somali
+        print(f"❌ Khalad: Faylka '{filename}' ma helin.")
         return 1  # Error
     except SoplangError as e:
-        # Display error message - no need to add "Error:" prefix as it's already in the error message
+        # Display error message - already formatted in Somali
         print(f"\n❌ {e}")
-        print("Program execution failed.")
         return 1  # Error
     except Exception as e:
-        print(f"\n❌ Unexpected error: {e}")
-        print("Program execution failed.")
+        # Convert Python exceptions to Somali error messages
+        from src.utils.errors import RuntimeError
+
+        # Format different types of Python errors as Somali errors
+        if "missing 1 required positional argument" in str(e):
+            # Function missing argument
+            func_name = str(e).split('.')[0]
+            error = RuntimeError("missing_argument",
+                                 func_name=func_name, expected="1", provided="0")
+        elif "division by zero" in str(e):
+            # Division by zero
+            error = RuntimeError("division_by_zero")
+        elif "list index out of range" in str(e):
+            # List index out of range
+            error = RuntimeError("index_out_of_range", index="?")
+        else:
+            # Generic error
+            error = RuntimeError(f"Khalad: {str(e)}")
+
+        print(f"\n❌ {error}")
         return 1  # Error
 
 
