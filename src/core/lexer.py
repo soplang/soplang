@@ -1,4 +1,3 @@
-import re
 from src.core.tokens import TokenType
 from src.utils.errors import LexerError
 
@@ -39,18 +38,16 @@ class Lexer:
             "ka_dhaxal": TokenType.KA_DHAXAL,
             "cusub": TokenType.CUSUB,
             "nafta": TokenType.NAFTA,
-
             # Static types
             "tiro": TokenType.TIRO,
             "qoraal": TokenType.QORAAL,
             "labadaran": TokenType.LABADARAN,
             "liis": TokenType.LIIS,
             "shey": TokenType.SHEY,
-
             # Boolean literals
-            "true": TokenType.TRUE,
-            "false": TokenType.FALSE,
-            "null": TokenType.NULL
+            "been": TokenType.TRUE,
+            "run": TokenType.FALSE,
+            "null": TokenType.NULL,
         }
 
     def advance(self):
@@ -66,27 +63,27 @@ class Lexer:
 
     def skip_comment(self):
         # Single-line comments (//)
-        if self.current_char == '/' and self.peek() == '/':
+        if self.current_char == "/" and self.peek() == "/":
             self.advance()  # Skip first '/'
             self.advance()  # Skip second '/'
 
             # Skip until end of line or end of file
-            while self.current_char and self.current_char != '\n':
+            while self.current_char and self.current_char != "\n":
                 self.advance()
 
             # Skip the newline character if present
-            if self.current_char == '\n':
+            if self.current_char == "\n":
                 self.advance()
 
             return True
 
         # Multi-line comments (/* ... */)
-        elif self.current_char == '/' and self.peek() == '*':
+        elif self.current_char == "/" and self.peek() == "*":
             self.advance()  # Skip '/'
             self.advance()  # Skip '*'
 
             while self.current_char:
-                if self.current_char == '*' and self.peek() == '/':
+                if self.current_char == "*" and self.peek() == "/":
                     self.advance()  # Skip '*'
                     self.advance()  # Skip '/'
                     return True
@@ -106,7 +103,9 @@ class Lexer:
 
     def tokenize_identifier(self):
         identifier = ""
-        while self.current_char and (self.current_char.isalnum() or self.current_char == "_"):
+        while self.current_char and (
+            self.current_char.isalnum() or self.current_char == "_"
+        ):
             identifier += self.current_char
             self.advance()
 
@@ -116,7 +115,9 @@ class Lexer:
 
     def tokenize_number(self):
         number = ""
-        while self.current_char and (self.current_char.isdigit() or self.current_char == "."):
+        while self.current_char and (
+            self.current_char.isdigit() or self.current_char == "."
+        ):
             number += self.current_char
             self.advance()
         return Token(TokenType.NUMBER, float(number))
@@ -143,7 +144,7 @@ class Lexer:
                 continue
 
             # Handle comments
-            if self.current_char == '/':
+            if self.current_char == "/":
                 if self.skip_comment():
                     continue
 
@@ -210,14 +211,16 @@ class Lexer:
                     self.advance()
                     return Token(TokenType.AND, "&&")
                 raise LexerError(
-                    f"Unexpected character after &: {self.current_char}", self.position)
+                    f"Unexpected character after &: {self.current_char}", self.position
+                )
             if self.current_char == "|":
                 self.advance()
                 if self.current_char == "|":
                     self.advance()
                     return Token(TokenType.OR, "||")
                 raise LexerError(
-                    f"Unexpected character after |: {self.current_char}", self.position)
+                    f"Unexpected character after |: {self.current_char}", self.position
+                )
             if self.current_char == ",":
                 self.advance()
                 return Token(TokenType.COMMA, ",")
@@ -240,7 +243,8 @@ class Lexer:
                 return Token(TokenType.DOT, ".")
 
             raise LexerError(
-                f"Unexpected character: {self.current_char}", self.position)
+                f"Unexpected character: {self.current_char}", self.position
+            )
 
         return Token(TokenType.EOF, None)
 
