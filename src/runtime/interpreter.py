@@ -6,6 +6,7 @@ from src.stdlib.builtins import (
     get_builtin_functions,
     get_list_methods,
     get_object_methods,
+    SoplangBuiltins,
 )
 from src.utils.errors import (
     BreakSignal,
@@ -176,7 +177,7 @@ class Interpreter:
         elif target.type == NodeType.PROPERTY_ACCESS:
             obj = self.evaluate(target.children[0])
             if not isinstance(obj, dict):
-                raise TypeError("Cannot set property of non-object value")
+                raise TypeError("Cannot set property of non-shey value")
 
             prop_name = target.value
             obj[prop_name] = value
@@ -186,11 +187,11 @@ class Interpreter:
         elif target.type == NodeType.INDEX_ACCESS:
             arr = self.evaluate(target.children[0])
             if not isinstance(arr, list):
-                raise TypeError("Cannot set index of non-list value")
+                raise TypeError("Cannot set index of non-liis value")
 
             idx = self.evaluate(target.children[1])
             if not isinstance(idx, (int, float)) or int(idx) != idx:
-                raise TypeError("List index must be an integer")
+                raise TypeError("List index must be a tiro")
 
             idx = int(idx)
             if idx < 0 or idx >= len(arr):
@@ -260,7 +261,7 @@ class Interpreter:
                 return self.object_methods[method_name](obj, *args)
             else:
                 raise RuntimeError(
-                    f"Method '{method_name}' not found on {type(obj).__name__}"
+                    f"Method '{method_name}' not found on {SoplangBuiltins.nuuc(obj)}"
                 )
         else:
             raise RuntimeError(f"Function '{func_name}' is not defined")
@@ -517,13 +518,13 @@ class Interpreter:
             obj = self.evaluate(node.children[0])
             if not isinstance(obj, dict):
                 raise TypeError(
-                    f"Cannot access property '{node.value}' of non-object value"
+                    f"Cannot access property '{node.value}' of non-shey value"
                 )
 
             # Get the property name and return the value
             prop_name = node.value
             if prop_name not in obj:
-                raise RuntimeError(f"Property '{prop_name}' does not exist on object")
+                raise RuntimeError(f"Property '{prop_name}' does not exist on shey")
 
             return obj[prop_name]
         if node.type == NodeType.METHOD_CALL:
@@ -551,18 +552,18 @@ class Interpreter:
                     return obj[method_name](*args)
 
             raise RuntimeError(
-                f"Method '{method_name}' does not exist on {type(obj).__name__}"
+                f"Method '{method_name}' does not exist on {SoplangBuiltins.nuuc(obj)}"
             )
         if node.type == NodeType.INDEX_ACCESS:
             # Evaluate the array expression
             arr = self.evaluate(node.children[0])
             if not isinstance(arr, list):
-                raise TypeError("Cannot access index of non-list value")
+                raise TypeError(f"Cannot access index of non-liis value")
 
             # Evaluate the index expression
             idx = self.evaluate(node.children[1])
             if not isinstance(idx, (int, float)) or int(idx) != idx:
-                raise TypeError("List index must be an integer")
+                raise TypeError("List index must be a tiro")
 
             idx = int(idx)
             if idx < 0 or idx >= len(arr):
@@ -658,3 +659,63 @@ class Interpreter:
             "params": [param.value for param in param_nodes],
             "body": body_nodes,
         }
+
+    def execute_method_call(self, node):
+        # Get object
+        obj = self.evaluate(node.children[0])
+
+        # Get method name
+        method_name = node.value
+
+        # Try to find method in the appropriate registry
+        method = None
+        if isinstance(obj, dict):
+            # Object methods
+            if method_name in self.object_methods:
+                method = self.object_methods[method_name]
+        elif isinstance(obj, list):
+            # List methods
+            if method_name in self.list_methods:
+                method = self.list_methods[method_name]
+        else:
+            # Could extend to other types of objects
+            pass
+
+        if method is None:
+            if isinstance(obj, dict) or isinstance(obj, list):
+                raise RuntimeError(
+                    f"Method '{method_name}' not found on {SoplangBuiltins.nuuc(obj)}"
+                )
+            else:
+                raise TypeError(
+                    f"Cannot call methods on {SoplangBuiltins.nuuc(obj)} values"
+                )
+
+    def execute_list_method(self, method_name, obj, args):
+        """Execute a list method"""
+        if not isinstance(obj, list):
+            raise TypeError(f"Cannot call list methods on {SoplangBuiltins.nuuc(obj)}")
+
+        if method_name not in self.list_methods:
+            raise RuntimeError(
+                f"Method '{method_name}' does not exist on {SoplangBuiltins.nuuc(obj)}"
+            )
+
+        method = self.list_methods[method_name]
+        args.insert(0, obj)  # Insert the list as the first argument
+        return method(*args)
+
+    def execute_object_method(self, method_name, obj, args):
+        """Execute an object method"""
+        if not isinstance(obj, dict):
+            raise TypeError(
+                f"Cannot call object methods on {SoplangBuiltins.nuuc(obj)}")
+
+        if method_name not in self.object_methods:
+            raise RuntimeError(
+                f"Method '{method_name}' does not exist on {SoplangBuiltins.nuuc(obj)}"
+            )
+
+        method = self.object_methods[method_name]
+        args.insert(0, obj)  # Insert the object as the first argument
+        return method(*args)
