@@ -305,32 +305,61 @@ class Interpreter:
         # node.value = loop_var name
         # node.children[0] = start
         # node.children[1] = end
-        # node.children[2..] = body
+        # node.children[2] = step (optional)
+        # node.children[2...] or node.children[3...] = body
         loop_var = node.value
         start_value = self.evaluate(node.children[0])
         end_value = self.evaluate(node.children[1])
 
-        # Ensure start and end are numbers
-        if not isinstance(start_value, (int, float)) or not isinstance(
-            end_value, (int, float)
+        # Check if there's a step parameter
+        step_value = 1  # Default step
+        body_start_index = 2
+
+        # If we have at least 3 children before the body, the 3rd one is the step
+        if len(node.children) > 2 and (
+            node.children[2].type == NodeType.LITERAL
+            or node.children[2].type == NodeType.IDENTIFIER
+            or node.children[2].type == NodeType.BINARY_OPERATION
         ):
-            raise TypeError("Ku_celi billowga iyo dhamaadka waa in ay yihiin tiro")
+            step_value = self.evaluate(node.children[2])
+            body_start_index = 3
+
+        # Ensure all values are numbers
+        if (
+            not isinstance(start_value, (int, float))
+            or not isinstance(end_value, (int, float))
+            or not isinstance(step_value, (int, float))
+        ):
+            raise TypeError(
+                "Ku_celi billowga, dhamaadka iyo tallaabada waa in ay yihiin tiro"
+            )
 
         i = start_value
-        while i <= end_value:
+        # Check step direction to determine the appropriate comparison
+        if step_value > 0:
+
+            def condition():
+                return i <= end_value
+
+        else:
+
+            def condition():
+                return i >= end_value
+
+        while condition():
             # Set the loop variable in scope
             self.variables[loop_var] = i
 
             # Execute the body
             try:
-                for stmt_index in range(2, len(node.children)):
+                for stmt_index in range(body_start_index, len(node.children)):
                     self.execute(node.children[stmt_index])
             except BreakSignal:
                 break  # Exit the loop
             except ContinueSignal:
                 pass  # Skip to the next iteration
 
-            i += 1
+            i += step_value
 
     # -----------------------------
     #  While Statement
