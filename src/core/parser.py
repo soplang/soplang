@@ -1,5 +1,5 @@
-from src.core.tokens import TokenType
 from src.core.ast import ASTNode, NodeType
+from src.core.tokens import TokenType
 from src.utils.errors import ParserError
 
 
@@ -21,7 +21,9 @@ class Parser:
             return token
         else:
             raise ParserError(
-                f"Expected {token_type}, got {self.current_token.type}", self.current_token)
+                f"Expected {token_type}, got {self.current_token.type}",
+                self.current_token,
+            )
 
     def parse(self):
         statements = []
@@ -36,7 +38,13 @@ class Parser:
         if ttype == TokenType.DOOR:
             return self.parse_variable_declaration(is_static=False)
         # Handle static typing (tiro, qoraal, labadaran, liis, shey)
-        elif ttype in (TokenType.TIRO, TokenType.QORAAL, TokenType.LABADARAN, TokenType.LIIS, TokenType.SHEY):
+        elif ttype in (
+            TokenType.TIRO,
+            TokenType.QORAAL,
+            TokenType.LABADARAN,
+            TokenType.LIIS,
+            TokenType.SHEY,
+        ):
             return self.parse_variable_declaration(is_static=True)
         elif ttype == TokenType.HOWL:
             return self.parse_function_definition()
@@ -63,15 +71,20 @@ class Parser:
             return self.parse_class_definition()
         elif ttype == TokenType.IDENTIFIER:
             # Check if this is a function call (identifier followed by parentheses)
-            if (self.current_token_index + 1 < len(self.tokens) and
-                    self.tokens[self.current_token_index + 1].type == TokenType.LEFT_PAREN):
+            if (
+                self.current_token_index + 1 < len(self.tokens)
+                and self.tokens[self.current_token_index + 1].type
+                == TokenType.LEFT_PAREN
+            ):
                 return self.parse_function_call()
 
             # Check if this is an object method call (obj.method(...))
             # or a variable assignment (obj.prop = value) or (obj[idx] = value)
-            if (self.current_token_index + 1 < len(self.tokens) and
-                (self.tokens[self.current_token_index + 1].type == TokenType.DOT or
-                 self.tokens[self.current_token_index + 1].type == TokenType.LEFT_BRACKET)):
+            if self.current_token_index + 1 < len(self.tokens) and (
+                self.tokens[self.current_token_index + 1].type == TokenType.DOT
+                or self.tokens[self.current_token_index + 1].type
+                == TokenType.LEFT_BRACKET
+            ):
                 token_value = self.current_token.value
                 self.advance()  # consume the identifier
 
@@ -98,7 +111,11 @@ class Parser:
                         self.expect(TokenType.RIGHT_PAREN)
 
                         # Create function call node with obj.method as function name
-                        return ASTNode(NodeType.FUNCTION_CALL, value=f"{token_value}.{property_name}", children=args)
+                        return ASTNode(
+                            NodeType.FUNCTION_CALL,
+                            value=f"{token_value}.{property_name}",
+                            children=args,
+                        )
 
                     # Handle property assignment (obj.prop = value)
                     elif self.current_token.type == TokenType.EQUAL:
@@ -106,11 +123,16 @@ class Parser:
                         value_expr = self.parse_expression()
 
                         # Create an object to represent the target
-                        target = ASTNode(NodeType.PROPERTY_ACCESS, value=property_name,
-                                         children=[ASTNode(NodeType.IDENTIFIER, value=token_value)])
+                        target = ASTNode(
+                            NodeType.PROPERTY_ACCESS,
+                            value=property_name,
+                            children=[ASTNode(NodeType.IDENTIFIER, value=token_value)],
+                        )
 
                         # Create an assignment node
-                        return ASTNode(NodeType.ASSIGNMENT, children=[target, value_expr])
+                        return ASTNode(
+                            NodeType.ASSIGNMENT, children=[target, value_expr]
+                        )
 
                 # Handle index access and assignment (obj[idx])
                 elif self.current_token.type == TokenType.LEFT_BRACKET:
@@ -124,32 +146,45 @@ class Parser:
                         value_expr = self.parse_expression()
 
                         # Create an object to represent the target
-                        target = ASTNode(NodeType.INDEX_ACCESS,
-                                         children=[ASTNode(NodeType.IDENTIFIER, value=token_value), index_expr])
+                        target = ASTNode(
+                            NodeType.INDEX_ACCESS,
+                            children=[
+                                ASTNode(NodeType.IDENTIFIER, value=token_value),
+                                index_expr,
+                            ],
+                        )
 
                         # Create an assignment node
-                        return ASTNode(NodeType.ASSIGNMENT, children=[target, value_expr])
+                        return ASTNode(
+                            NodeType.ASSIGNMENT, children=[target, value_expr]
+                        )
 
                 # If we get here, something is wrong
                 raise ParserError(
-                    f"Expected '(' or '=' after property access", self.current_token)
+                    f"Expected '(' or '=' after property access", self.current_token
+                )
 
             # Handle regular variable assignment (var = value)
-            elif (self.current_token_index + 1 < len(self.tokens) and
-                  self.tokens[self.current_token_index + 1].type == TokenType.EQUAL):
+            elif (
+                self.current_token_index + 1 < len(self.tokens)
+                and self.tokens[self.current_token_index + 1].type == TokenType.EQUAL
+            ):
                 var_name = self.current_token.value
                 self.advance()  # consume identifier
                 self.advance()  # consume equals
                 value_expr = self.parse_expression()
 
                 # Create an assignment node
-                return ASTNode(NodeType.ASSIGNMENT,
-                               children=[ASTNode(NodeType.IDENTIFIER, value=var_name), value_expr])
+                return ASTNode(
+                    NodeType.ASSIGNMENT,
+                    children=[ASTNode(NodeType.IDENTIFIER, value=var_name), value_expr],
+                )
 
         # Top-level 'haddii_kale', 'haddii_kalena' are invalid
         if ttype in (TokenType.HADDII_KALE, TokenType.HADDII_KALENA):
             raise ParserError(
-                f"Unexpected token: {ttype} at top-level.", self.current_token)
+                f"Unexpected token: {ttype} at top-level.", self.current_token
+            )
 
         raise ParserError(f"Unexpected token: {ttype}", self.current_token)
 
@@ -174,8 +209,7 @@ class Parser:
         expr = self.parse_expression()
 
         # Include type information in the AST node for static typing
-        node = ASTNode(NodeType.VARIABLE_DECLARATION,
-                       value=var_name, children=[expr])
+        node = ASTNode(NodeType.VARIABLE_DECLARATION, value=var_name, children=[expr])
         if is_static:
             node.var_type = var_type
 
@@ -205,18 +239,32 @@ class Parser:
             body.append(self.parse_statement())
 
         self.expect(TokenType.RIGHT_BRACE)
-        return ASTNode(NodeType.FUNCTION_DEFINITION, value=func_name,
-                       children=[ASTNode(NodeType.IDENTIFIER, value=p) for p in params] + body)
+        return ASTNode(
+            NodeType.FUNCTION_DEFINITION,
+            value=func_name,
+            children=[ASTNode(NodeType.IDENTIFIER, value=p) for p in params] + body,
+        )
 
     # -----------------------------
     #  Function calls: qor("Hi") or akhri("Enter name:")
     # -----------------------------
     def parse_function_call(self):
-        """Parse a function call like 'qor("Hello")' """
+        """Parse a function call like 'qor("Hello")'"""
         func_name = self.current_token.value
-        if self.current_token.type != TokenType.IDENTIFIER and self.current_token.type not in (TokenType.QOR, TokenType.AKHRI, TokenType.QORAAL, TokenType.TIRO, TokenType.LABADARAN, TokenType.LIIS, TokenType.SHEY):
-            raise ParserError(
-                f"Expected function name, got {self.current_token.type}")
+        if (
+            self.current_token.type != TokenType.IDENTIFIER
+            and self.current_token.type
+            not in (
+                TokenType.QOR,
+                TokenType.AKHRI,
+                TokenType.QORAAL,
+                TokenType.TIRO,
+                TokenType.LABADARAN,
+                TokenType.LIIS,
+                TokenType.SHEY,
+            )
+        ):
+            raise ParserError(f"Expected function name, got {self.current_token.type}")
 
         # For non-identifier function names (like type names), get the value from the type
         if self.current_token.type != TokenType.IDENTIFIER:
@@ -274,8 +322,9 @@ class Parser:
             while self.current_token.type != TokenType.RIGHT_BRACE:
                 elif_body.append(self.parse_statement())
             self.expect(TokenType.RIGHT_BRACE)
-            elif_node = ASTNode(NodeType.IF_STATEMENT, children=[
-                                elif_condition] + elif_body)
+            elif_node = ASTNode(
+                NodeType.IF_STATEMENT, children=[elif_condition] + elif_body
+            )
             children.append(elif_node)
 
         # Optionally parse 'haddii_kalena'
@@ -370,9 +419,14 @@ class Parser:
             catch_body.append(self.parse_statement())
         self.expect(TokenType.RIGHT_BRACE)
 
-        return ASTNode(NodeType.TRY_CATCH, value=error_var,
-                       children=[ASTNode(NodeType.BLOCK, children=try_body),
-                                 ASTNode(NodeType.BLOCK, children=catch_body)])
+        return ASTNode(
+            NodeType.TRY_CATCH,
+            value=error_var,
+            children=[
+                ASTNode(NodeType.BLOCK, children=try_body),
+                ASTNode(NodeType.BLOCK, children=catch_body),
+            ],
+        )
 
     # -----------------------------
     #  Class Definition: fasalka Ey ka_dhaxal Xayawaan { ... }
@@ -396,8 +450,7 @@ class Parser:
             class_body.append(self.parse_statement())
         self.expect(TokenType.RIGHT_BRACE)
 
-        node = ASTNode(NodeType.CLASS_DEFINITION,
-                       value=class_name, children=class_body)
+        node = ASTNode(NodeType.CLASS_DEFINITION, value=class_name, children=class_body)
         # if parent, store it in node.value or create a separate property
         if parent_name:
             node.value = (class_name, parent_name)
@@ -429,12 +482,16 @@ class Parser:
         properties = []
         while self.current_token.type != TokenType.RIGHT_BRACE:
             # Property key
-            if self.current_token.type == TokenType.IDENTIFIER or self.current_token.type == TokenType.STRING:
+            if (
+                self.current_token.type == TokenType.IDENTIFIER
+                or self.current_token.type == TokenType.STRING
+            ):
                 key = self.current_token.value
                 self.advance()
             else:
                 raise ParserError(
-                    "Expected property name as identifier or string", self.current_token)
+                    "Expected property name as identifier or string", self.current_token
+                )
 
             # Colon separator
             self.expect(TokenType.COLON)
@@ -443,8 +500,7 @@ class Parser:
             value = self.parse_expression()
 
             # Create a property node with key as value and expression as child
-            property_node = ASTNode(
-                NodeType.LITERAL, value=key, children=[value])
+            property_node = ASTNode(NodeType.LITERAL, value=key, children=[value])
             properties.append(property_node)
 
             if self.current_token.type == TokenType.COMMA:
@@ -462,8 +518,7 @@ class Parser:
         self.expect(TokenType.DOT)
 
         if self.current_token.type != TokenType.IDENTIFIER:
-            raise ParserError(
-                "Expected property name after dot", self.current_token)
+            raise ParserError("Expected property name after dot", self.current_token)
 
         property_name = self.current_token.value
         self.advance()
@@ -481,7 +536,9 @@ class Parser:
                     args.append(self.parse_expression())
 
             self.expect(TokenType.RIGHT_PAREN)
-            return ASTNode(NodeType.METHOD_CALL, value=property_name, children=[left] + args)
+            return ASTNode(
+                NodeType.METHOD_CALL, value=property_name, children=[left] + args
+            )
 
         return ASTNode(NodeType.PROPERTY_ACCESS, value=property_name, children=[left])
 
@@ -506,25 +563,55 @@ class Parser:
             op = self.current_token
             self.advance()
             right = self.parse_term()
-            left = ASTNode(NodeType.BINARY_OPERATION,
-                           value=op.value, children=[left, right])
+            left = ASTNode(
+                NodeType.BINARY_OPERATION, value=op.value, children=[left, right]
+            )
 
         return left
 
     def parse_term(self):
         left = self.parse_factor()
 
-        while self.current_token.type in (TokenType.STAR, TokenType.SLASH, TokenType.MODULO):
+        while self.current_token.type in (
+            TokenType.STAR,
+            TokenType.SLASH,
+            TokenType.MODULO,
+        ):
             op = self.current_token
             self.advance()
             right = self.parse_factor()
-            left = ASTNode(NodeType.BINARY_OPERATION,
-                           value=op.value, children=[left, right])
+            left = ASTNode(
+                NodeType.BINARY_OPERATION, value=op.value, children=[left, right]
+            )
 
         return left
 
     def parse_factor(self):
         token = self.current_token
+
+        # Handle unary operators (+ and -)
+        if token.type in (TokenType.PLUS, TokenType.MINUS):
+            op = token
+            self.advance()
+            factor = self.parse_factor()
+
+            # For unary plus, just return the factor as is
+            if op.type == TokenType.PLUS:
+                return factor
+
+            # For unary minus, create a binary operation that multiplies by -1
+            if op.type == TokenType.MINUS:
+                # Create a negative number directly if it's a literal
+                if factor.type == NodeType.LITERAL and isinstance(
+                    factor.value, (int, float)
+                ):
+                    return ASTNode(NodeType.LITERAL, value=-factor.value)
+
+                # Otherwise create a binary operation
+                minus_one = ASTNode(NodeType.LITERAL, value=-1)
+                return ASTNode(
+                    NodeType.BINARY_OPERATION, value="*", children=[minus_one, factor]
+                )
 
         if token.type == TokenType.NUMBER:
             self.advance()
@@ -541,9 +628,17 @@ class Parser:
         if token.type == TokenType.NULL:
             self.advance()
             return ASTNode(NodeType.LITERAL, value=None)
-        if token.type == TokenType.IDENTIFIER or token.type in (TokenType.QORAAL, TokenType.TIRO, TokenType.LABADARAN, TokenType.LIIS, TokenType.SHEY):
+        if token.type == TokenType.IDENTIFIER or token.type in (
+            TokenType.QORAAL,
+            TokenType.TIRO,
+            TokenType.LABADARAN,
+            TokenType.LIIS,
+            TokenType.SHEY,
+        ):
             # Allow type names to be used as function names
-            token_value = token.value if token.type == TokenType.IDENTIFIER else token.type.value
+            token_value = (
+                token.value if token.type == TokenType.IDENTIFIER else token.type.value
+            )
             self.advance()
 
             # Check if this is a function call (followed by left parenthesis)
@@ -605,8 +700,9 @@ class Parser:
             op_token = self.current_token
             self.advance()
             right = self.parse_comparison_expression()
-            left = ASTNode(NodeType.BINARY_OPERATION,
-                           value=op_token.value, children=[left, right])
+            left = ASTNode(
+                NodeType.BINARY_OPERATION, value=op_token.value, children=[left, right]
+            )
 
         return left
 
@@ -614,22 +710,29 @@ class Parser:
         left = self.parse_expression()
 
         while self.current_token.type in (
-            TokenType.GREATER, TokenType.LESS,
-            TokenType.GREATER_EQUAL, TokenType.LESS_EQUAL,
-            TokenType.EQUAL, TokenType.NOT_EQUAL
+            TokenType.GREATER,
+            TokenType.LESS,
+            TokenType.GREATER_EQUAL,
+            TokenType.LESS_EQUAL,
+            TokenType.EQUAL,
+            TokenType.NOT_EQUAL,
         ):
             op_token = self.current_token
             self.advance()
 
-            if op_token.type == TokenType.EQUAL and self.current_token.type == TokenType.EQUAL:
+            if (
+                op_token.type == TokenType.EQUAL
+                and self.current_token.type == TokenType.EQUAL
+            ):
                 operator_value = "=="
                 self.advance()
             else:
                 operator_value = op_token.value
 
             right = self.parse_expression()
-            left = ASTNode(NodeType.BINARY_OPERATION,
-                           value=operator_value, children=[left, right])
+            left = ASTNode(
+                NodeType.BINARY_OPERATION, value=operator_value, children=[left, right]
+            )
 
         return left
 
