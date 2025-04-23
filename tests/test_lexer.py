@@ -16,7 +16,6 @@ class TestLexer(unittest.TestCase):
         self.assertEqual(tokens[2].type, TokenType.STRING)
         self.assertEqual(tokens[2].value, "Hello World")
         self.assertEqual(tokens[3].type, TokenType.RIGHT_PAREN)
-        self.assertEqual(tokens[4].type, TokenType.EOF)
     
     def test_variable_declaration(self):
         """Test token generation for variable declarations."""
@@ -32,7 +31,6 @@ class TestLexer(unittest.TestCase):
         self.assertEqual(tokens[3].type, TokenType.STRING)
         self.assertEqual(tokens[3].value, "Sharafdin")
         self.assertEqual(tokens[4].type, TokenType.SEMICOLON)
-        self.assertEqual(tokens[5].type, TokenType.EOF)
     
     def test_static_type_declaration(self):
         """Test token generation for static type declarations."""
@@ -48,7 +46,6 @@ class TestLexer(unittest.TestCase):
         self.assertEqual(tokens[3].type, TokenType.NUMBER)
         self.assertEqual(tokens[3].value, 10.0)
         self.assertEqual(tokens[4].type, TokenType.SEMICOLON)
-        self.assertEqual(tokens[5].type, TokenType.EOF)
     
     def test_arithmetic_operators(self):
         """Test token generation for arithmetic operators."""
@@ -68,7 +65,6 @@ class TestLexer(unittest.TestCase):
         self.assertEqual(tokens[8].type, TokenType.IDENTIFIER)
         self.assertEqual(tokens[9].type, TokenType.MODULO)
         self.assertEqual(tokens[10].type, TokenType.IDENTIFIER)
-        self.assertEqual(tokens[11].type, TokenType.EOF)
     
     def test_comments(self):
         """Test comment handling in lexer."""

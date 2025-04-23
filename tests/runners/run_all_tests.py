@@ -12,13 +12,16 @@ from tests.test_parser import TestParser
 from tests.test_interpreter import TestInterpreter
 
 if __name__ == "__main__":
-    # Create test suite with all tests
+    # Create test loader
+    loader = unittest.TestLoader()
+    
+    # Create test suite with all test classes
     test_suite = unittest.TestSuite()
     
-    # Add all test cases
-    test_suite.addTest(unittest.makeSuite(TestLexer))
-    test_suite.addTest(unittest.makeSuite(TestParser))
-    test_suite.addTest(unittest.makeSuite(TestInterpreter))
+    # Add all test cases using the loader
+    test_suite.addTests(loader.loadTestsFromTestCase(TestLexer))
+    test_suite.addTests(loader.loadTestsFromTestCase(TestParser))
+    test_suite.addTests(loader.loadTestsFromTestCase(TestInterpreter))
     
     # Run tests with verbose output
     runner = unittest.TextTestRunner(verbosity=2)
