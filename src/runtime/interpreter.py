@@ -30,15 +30,16 @@ class Interpreter:
 
     def interpret(self, root):
         if root.type != NodeType.PROGRAM:
-            raise RuntimeError("Root node must be PROGRAM.")
+            raise RuntimeError("invalid_syntax", detail="Root node must be PROGRAM")
         for statement in root.children:
             try:
                 result = self.execute(statement)
-            except (BreakSignal, ContinueSignal):
-                raise RuntimeError("Jooji ama sii_wad waa in ay ku jiraan xalqad.")
+            except BreakSignal:
+                raise RuntimeError("break_outside_loop")
+            except ContinueSignal:
+                raise RuntimeError("continue_outside_loop")
             except ReturnSignal:
-                raise RuntimeError("Soo_celi waa in ay ku jirto howl.")
-            # If needed, handle global returns
+                raise RuntimeError("return_outside_function")
 
     # -----------------------------
     #  Execute Statement
@@ -90,7 +91,7 @@ class Interpreter:
             self.evaluate(node)
             return None
         else:
-            raise RuntimeError(f"Unknown statement type: {node.type}")
+            raise RuntimeError("unknown_node_type", node_type=node.type)
 
     # -----------------------------
     #  Variable Declaration
@@ -118,33 +119,38 @@ class Interpreter:
 
         if expected_type == TokenType.TIRO:
             if not isinstance(value, (int, float)):
-                raise TypeError(
-                    f"'{var_name}' waa tiro laakin qiimaheeda '{value}' ma ahan tiro"
-                )
+                raise TypeError("type_mismatch",
+                                var_name=var_name,
+                                value=value,
+                                expected_type="tiro")
 
         elif expected_type == TokenType.QORAAL:
             if not isinstance(value, str):
-                raise TypeError(
-                    f"'{var_name}' waa qoraal laakin qiimaheeda '{value}' ma ahan qoraal"
-                )
+                raise TypeError("type_mismatch",
+                                var_name=var_name,
+                                value=value,
+                                expected_type="qoraal")
 
         elif expected_type == TokenType.LABADARAN:
             if not isinstance(value, bool):
-                raise TypeError(
-                    f"'{var_name}' waa labadaran laakin qiimaheeda '{value}' ma ahan labadaran"
-                )
+                raise TypeError("type_mismatch",
+                                var_name=var_name,
+                                value=value,
+                                expected_type="labadaran")
 
         elif expected_type == TokenType.LIIS:
             if not isinstance(value, list):
-                raise TypeError(
-                    f"'{var_name}' waa liis laakin qiimaheeda '{value}' ma ahan liis"
-                )
+                raise TypeError("type_mismatch",
+                                var_name=var_name,
+                                value=value,
+                                expected_type="liis")
 
         elif expected_type == TokenType.SHEY:
             if not isinstance(value, dict):
-                raise TypeError(
-                    f"'{var_name}' waa shey laakin qiimaheeda '{value}' ma ahan shey"
-                )
+                raise TypeError("type_mismatch",
+                                var_name=var_name,
+                                value=value,
+                                expected_type="shey")
 
     # -----------------------------
     #  Variable Assignment
@@ -152,7 +158,7 @@ class Interpreter:
     def assign_variable(self, var_name, value):
         """Assign a value to a variable, with type checking if it's statically typed"""
         if var_name not in self.variables:
-            raise RuntimeError(f"Ma jiro doorsame '{var_name}'")
+            raise RuntimeError("undefined_variable", name=var_name)
 
         # If it's a statically typed variable, validate the type
         if var_name in self.variable_types:
@@ -177,7 +183,7 @@ class Interpreter:
         elif target.type == NodeType.PROPERTY_ACCESS:
             obj = self.evaluate(target.children[0])
             if not isinstance(obj, dict):
-                raise TypeError("Cannot set property of non-shey value")
+                raise TypeError("property_access", prop=target.value)
 
             prop_name = target.value
             obj[prop_name] = value
@@ -187,21 +193,22 @@ class Interpreter:
         elif target.type == NodeType.INDEX_ACCESS:
             arr = self.evaluate(target.children[0])
             if not isinstance(arr, list):
-                raise TypeError("Cannot set index of non-liis value")
+                raise TypeError("index_access")
 
             idx = self.evaluate(target.children[1])
             if not isinstance(idx, (int, float)) or int(idx) != idx:
-                raise TypeError("List index must be a tiro")
+                raise TypeError("invalid_operand", operator="[]", type_name="tiro")
 
             idx = int(idx)
             if idx < 0 or idx >= len(arr):
-                raise RuntimeError(f"List index out of range: {idx}")
+                raise RuntimeError("index_out_of_range", index=idx)
 
             arr[idx] = value
             return value
 
         else:
-            raise RuntimeError(f"Invalid assignment target: {target.type}")
+            raise RuntimeError(
+                "invalid_syntax", detail=f"Invalid assignment target: {target.type}")
 
     # -----------------------------
     #  Function Call
@@ -251,7 +258,7 @@ class Interpreter:
             obj = self.variables.get(obj_name)
 
             if obj is None:
-                raise RuntimeError(f"Object '{obj_name}' is not defined")
+                raise RuntimeError("undefined_variable", name=obj_name)
 
             if isinstance(obj, list) and method_name in self.list_methods:
                 # Call list method
@@ -261,10 +268,9 @@ class Interpreter:
                 return self.object_methods[method_name](obj, *args)
             else:
                 raise RuntimeError(
-                    f"Method '{method_name}' not found on {SoplangBuiltins.nuuc(obj)}"
-                )
+                    "method_not_found", method_name=method_name, type_name=SoplangBuiltins.nuuc(obj))
         else:
-            raise RuntimeError(f"Function '{func_name}' is not defined")
+            raise RuntimeError("undefined_function", name=func_name)
 
     # -----------------------------
     #  If Statement
@@ -339,9 +345,7 @@ class Interpreter:
             not isinstance(end_value, (int, float)) or
             not isinstance(step_value, (int, float))
         ):
-            raise TypeError(
-                "Ku_celi billowga, dhamaadka iyo tallaabada waa in ay yihiin tiro"
-            )
+            raise TypeError("invalid_for_loop")
 
         i = start_value
         # Check step direction to determine the appropriate comparison
@@ -435,9 +439,9 @@ class Interpreter:
                 self.execute(stmt)
 
         except FileNotFoundError:
-            raise ImportError(f"{filename}")
+            raise ImportError("file_not_found", module=filename)
         except Exception as e:
-            raise RuntimeError(f"Qalad baa ka jira file-ka {filename}: {str(e)}")
+            raise ImportError("import_error", filename=filename, error=str(e))
 
     # -----------------------------
     #  Class Definition
@@ -451,7 +455,7 @@ class Interpreter:
 
         # Validate parent class exists if specified
         if parent_name and parent_name not in self.classes:
-            raise RuntimeError(f"Fasalka waalidka '{parent_name}' ma jiro")
+            raise RuntimeError("parent_class_not_found", parent_name=parent_name)
 
         # Create the class definition
         class_def = {
@@ -489,7 +493,7 @@ class Interpreter:
             if node.value in self.variables:
                 return self.variables[node.value]
             else:
-                raise RuntimeError(f"Undefined variable: {node.value}")
+                raise RuntimeError("undefined_variable", name=node.value)
         if node.type == NodeType.BINARY_OPERATION:
             left_val = self.evaluate(node.children[0])
             right_val = self.evaluate(node.children[1])
@@ -501,7 +505,7 @@ class Interpreter:
             if node.value == "!":
                 return not bool(operand_val)
             else:
-                raise RuntimeError(f"Unknown unary operator: {node.value}")
+                raise RuntimeError("unknown_operator", operator=node.value)
         if node.type == NodeType.LIST_LITERAL:
             # Evaluate each element in the list
             return [self.evaluate(element) for element in node.children]
@@ -517,14 +521,12 @@ class Interpreter:
             # Evaluate the object expression
             obj = self.evaluate(node.children[0])
             if not isinstance(obj, dict):
-                raise TypeError(
-                    f"Cannot access property '{node.value}' of non-shey value"
-                )
+                raise TypeError("property_access", prop=node.value)
 
             # Get the property name and return the value
             prop_name = node.value
             if prop_name not in obj:
-                raise RuntimeError(f"Property '{prop_name}' does not exist on shey")
+                raise RuntimeError("property_not_found", prop_name=prop_name)
 
             return obj[prop_name]
         if node.type == NodeType.METHOD_CALL:
@@ -551,23 +553,23 @@ class Interpreter:
                     args = [self.evaluate(arg) for arg in node.children[1:]]
                     return obj[method_name](*args)
 
-            raise RuntimeError(
-                f"Method '{method_name}' does not exist on {SoplangBuiltins.nuuc(obj)}"
-            )
+            raise RuntimeError("method_not_found", method_name=method_name,
+                               type_name=SoplangBuiltins.nuuc(obj))
+
         if node.type == NodeType.INDEX_ACCESS:
             # Evaluate the array expression
             arr = self.evaluate(node.children[0])
             if not isinstance(arr, list):
-                raise TypeError(f"Cannot access index of non-liis value")
+                raise TypeError("index_access")
 
             # Evaluate the index expression
             idx = self.evaluate(node.children[1])
             if not isinstance(idx, (int, float)) or int(idx) != idx:
-                raise TypeError("List index must be a tiro")
+                raise TypeError("invalid_operand", operator="[]", type_name="tiro")
 
             idx = int(idx)
             if idx < 0 or idx >= len(arr):
-                raise RuntimeError(f"List index out of range: {idx}")
+                raise RuntimeError("index_out_of_range", index=idx)
 
             return arr[idx]
         if node.type == NodeType.FUNCTION_CALL:
@@ -580,11 +582,12 @@ class Interpreter:
             # children[0] = className, children[1..] = constructor args
             classNameNode = node.children[0]
             if classNameNode.type != NodeType.IDENTIFIER:
-                raise RuntimeError("Expected class name after 'cusub'")
+                raise RuntimeError(
+                    "invalid_syntax", detail="Expected class name after 'cusub'")
 
             className = classNameNode.value
             if className not in self.classes:
-                raise RuntimeError(f"Class not defined: {className}")
+                raise RuntimeError("parent_class_not_found", parent_name=className)
 
             # We won't do a full OOP system, just store as dict for now
             instance = {
@@ -593,7 +596,7 @@ class Interpreter:
             }
             return instance
 
-        raise RuntimeError(f"Cannot evaluate node type: {node.type}")
+        raise RuntimeError("unknown_node_type", node_type=node.type)
 
     def apply_operator(self, operator, left, right):
         """Apply an operator to two values."""
@@ -612,11 +615,11 @@ class Interpreter:
             return left * right
         elif operator == "/":
             if right == 0:
-                raise RuntimeError("Ma suurtogali karto qeybinta eber.")
+                raise RuntimeError("division_by_zero")
             return left / right
         elif operator == "%":
             if right == 0:
-                raise RuntimeError("Ma suurtogali karto modulo eber.")
+                raise RuntimeError("modulo_by_zero")
             return left % right
         elif operator == "==":
             return left == right
@@ -635,12 +638,13 @@ class Interpreter:
         elif operator == "||":
             return bool(left) or bool(right)
         else:
-            raise RuntimeError(f"Unknown operator: {operator}")
+            raise RuntimeError("unknown_operator", operator=operator)
 
     # Define a function and store it in the functions dictionary
     def define_function(self, node):
         if node.type != NodeType.FUNCTION_DEFINITION:
-            raise RuntimeError("Expected function definition node.")
+            raise RuntimeError(
+                "invalid_syntax", detail="Expected function definition node")
 
         # Extract function name and parameters
         func_name = node.value
@@ -684,22 +688,20 @@ class Interpreter:
         if method is None:
             if isinstance(obj, dict) or isinstance(obj, list):
                 raise RuntimeError(
-                    f"Method '{method_name}' not found on {SoplangBuiltins.nuuc(obj)}"
-                )
+                    "method_not_found", method_name=method_name, type_name=SoplangBuiltins.nuuc(obj))
             else:
-                raise TypeError(
-                    f"Cannot call methods on {SoplangBuiltins.nuuc(obj)} values"
-                )
+                raise TypeError("invalid_method", method=method_name,
+                                type_name=SoplangBuiltins.nuuc(obj))
 
     def execute_list_method(self, method_name, obj, args):
         """Execute a list method"""
         if not isinstance(obj, list):
-            raise TypeError(f"Cannot call list methods on {SoplangBuiltins.nuuc(obj)}")
+            raise TypeError("invalid_method", method=method_name,
+                            type_name=SoplangBuiltins.nuuc(obj))
 
         if method_name not in self.list_methods:
-            raise RuntimeError(
-                f"Method '{method_name}' does not exist on {SoplangBuiltins.nuuc(obj)}"
-            )
+            raise RuntimeError("method_not_found",
+                               method_name=method_name, type_name="liis")
 
         method = self.list_methods[method_name]
         args.insert(0, obj)  # Insert the list as the first argument
@@ -708,13 +710,12 @@ class Interpreter:
     def execute_object_method(self, method_name, obj, args):
         """Execute an object method"""
         if not isinstance(obj, dict):
-            raise TypeError(
-                f"Cannot call object methods on {SoplangBuiltins.nuuc(obj)}")
+            raise TypeError("invalid_method", method=method_name,
+                            type_name=SoplangBuiltins.nuuc(obj))
 
         if method_name not in self.object_methods:
-            raise RuntimeError(
-                f"Method '{method_name}' does not exist on {SoplangBuiltins.nuuc(obj)}"
-            )
+            raise RuntimeError("method_not_found",
+                               method_name=method_name, type_name="shey")
 
         method = self.object_methods[method_name]
         args.insert(0, obj)  # Insert the object as the first argument

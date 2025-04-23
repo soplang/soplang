@@ -15,6 +15,8 @@ class Lexer:
     def __init__(self, source_code):
         self.source = source_code
         self.position = 0
+        self.line = 1  # Track line number
+        self.column = 1  # Track column position
         self.current_char = self.source[self.position] if self.source else None
 
         self.KEYWORDS = {
@@ -51,6 +53,13 @@ class Lexer:
         }
 
     def advance(self):
+        # Update line and column tracking
+        if self.current_char == '\n':
+            self.line += 1
+            self.column = 1
+        else:
+            self.column += 1
+
         self.position += 1
         if self.position < len(self.source):
             self.current_char = self.source[self.position]
@@ -90,7 +99,8 @@ class Lexer:
                 self.advance()
 
             # If we reach here, the comment was not properly closed
-            raise LexerError("Unterminated multi-line comment")
+            raise LexerError("unterminated_comment",
+                             position=self.column, line=self.line)
 
         return False
 
@@ -134,7 +144,7 @@ class Lexer:
         if self.current_char == quote_char:
             self.advance()
             return Token(TokenType.STRING, string_value)
-        raise LexerError("Unterminated string literal")
+        raise LexerError("unterminated_string", position=self.column, line=self.line)
 
     def next_token(self):
         while self.current_char:
@@ -211,7 +221,7 @@ class Lexer:
                     self.advance()
                     return Token(TokenType.AND, "&&")
                 raise LexerError(
-                    f"Unexpected character after &: {self.current_char}", self.position
+                    "unexpected_char", position=self.column, line=self.line, char="&"
                 )
             if self.current_char == "|":
                 self.advance()
@@ -219,7 +229,7 @@ class Lexer:
                     self.advance()
                     return Token(TokenType.OR, "||")
                 raise LexerError(
-                    f"Unexpected character after |: {self.current_char}", self.position
+                    "unexpected_char", position=self.column, line=self.line, char="|"
                 )
             if self.current_char == ",":
                 self.advance()
@@ -243,7 +253,7 @@ class Lexer:
                 return Token(TokenType.DOT, ".")
 
             raise LexerError(
-                f"Unexpected character: {self.current_char}", self.position
+                "unexpected_char", position=self.column, line=self.line, char=self.current_char
             )
 
         return Token(TokenType.EOF, None)

@@ -11,6 +11,7 @@ This module contains the core functions for running Soplang code:
 from src.core.lexer import Lexer
 from src.core.parser import Parser
 from src.runtime.interpreter import Interpreter
+from src.utils.errors import SoplangError
 import os
 import sys
 
@@ -57,10 +58,15 @@ def run_soplang_file(filename):
         return 0  # Success
 
     except FileNotFoundError:
-        print(f"❌ Error: File '{filename}' not found.")
+        print(f"❌ File '{filename}' not found.")
+        return 1  # Error
+    except SoplangError as e:
+        # Display error message - no need to add "Error:" prefix as it's already in the error message
+        print(f"\n❌ {e}")
+        print("Program execution failed.")
         return 1  # Error
     except Exception as e:
-        print(f"\n❌ Error: {e}")
+        print(f"\n❌ Unexpected error: {e}")
         print("Program execution failed.")
         return 1  # Error
 

@@ -1,0 +1,107 @@
+# Pull Request: Fix Error Messages to Display Properly in Somali
+
+## Problem
+Currently, error messages in Soplang have several issues:
+1. Error messages have duplicated prefixes (e.g., "Khalad markii loo qaybinayay: Khalad markii loo qaybinayay:")
+2. Line and position information is not being displayed properly
+3. Some errors are raised with raw strings rather than using the error code system
+4. The format doesn't match what's described in the docs (`Khalad [type]: [message] at line [line], position [position]`)
+
+## Proposed Changes
+
+### 1. Add line tracking in Lexer class (src/core/lexer.py)
+```python
+def __init__(self, source_code):
+    self.source = source_code
+    self.position = 0
+    self.line = 1  # Track line number
+    self.column = 1  # Track column for better positions
+    self.current_char = self.source[self.position] if self.source else None
+    # Rest of the code...
+
+def advance(self):
+    # Update line and column tracking
+    if self.current_char == '\n':
+        self.line += 1
+        self.column = 1
+    else:
+        self.column += 1
+
+    self.position += 1
+    if self.position < len(self.source):
+        self.current_char = self.source[self.position]
+    else:
+        self.current_char = None
+```
+
+### 2. Fix error raising in lexer to use error codes (src/core/lexer.py)
+```python
+# Replace:
+raise LexerError(f"Unexpected character: {self.current_char}", self.position)
+
+# With:
+raise LexerError("unexpected_char",
+                position=self.column,
+                line=self.line,
+                char=self.current_char)
+
+# Similarly for unterminated string:
+raise LexerError("unterminated_string", position=self.column, line=self.line)
+
+# And for unterminated comment:
+raise LexerError("unterminated_comment", position=self.column, line=self.line)
+```
+
+### 3. Fix error classes to prevent double prefixes (src/utils/errors.py)
+```python
+class LexerError(SoplangError):
+    def __init__(self, error_code, position=None, line=None, **kwargs):
+        kwargs.update({"position": position, "line": line})
+
+        if error_code in ErrorMessageManager.LEXER_ERRORS:
+            # Use the error code to get a template and format it
+            message = ErrorMessageManager.LEXER_ERRORS[error_code]
+            self.message = ErrorMessageManager.format_error(message, **kwargs)
+        else:
+            # Fallback for custom messages
+            self.message = error_code
+
+        # Add the type prefix only once
+        self.full_message = f"Khalad lexer: {self.message}"
+        super().__init__(self.full_message)
+```
+
+### 4. Apply similar fixes to other error classes
+
+Similar changes should be applied to ParserError, TypeError, RuntimeError, and other error classes to ensure consistent formatting.
+
+### 5. Update error display in run_soplang_file (src/runtime/main.py)
+
+```python
+def run_soplang_file(filename):
+    # ... existing code ...
+
+    except SoplangError as e:
+        # Display the error message directly - it's already properly formatted
+        print(f"\n❌ {e}")
+        print("Program execution failed.")
+        return 1  # Error
+```
+
+## Expected Results
+
+After these changes, users will see properly formatted error messages in Somali, with line and position information:
+
+Before:
+```
+❌ Error: Khalad markii loo qaybinayay: Khalad markii loo qaybinayay: Unexpected character: @
+Program execution failed.
+```
+
+After:
+```
+❌ Khalad lexer: Xaraf aan la filayn: @ ee sadar 12, goobta 18
+Program execution failed.
+```
+
+These changes will make the error messages more helpful to Somali-speaking users, while also making the error display consistent with the documentation.
