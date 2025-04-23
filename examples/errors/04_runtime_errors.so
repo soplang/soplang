@@ -4,7 +4,7 @@
 qor("Soplang Runtime Error Examples")
 qor("============================")
 qor("Uncomment examples one at a time to see specific errors")
-qor()
+qor("")
 
 // Example 1: Undefined variable
 // This will cause an error because the variable doesn't exist
@@ -12,7 +12,7 @@ qor()
 
 // Example 2: Division by zero
 // This will cause an error because division by zero is not allowed
-// door result = 10 / 0
+door result = 10 / 0
 
 // Example 3: Modulo by zero
 // This will cause an error because modulo by zero is not allowed
@@ -45,15 +45,15 @@ qor()
 // greet("Aisha")  // Missing the age argument
 
 // Valid code with try-catch to handle runtime errors safely
-qor("Using try-catch to safely handle potential errors:")
-door x = 10
-door y = 0
+// qor("Using try-catch to safely handle potential errors:")
+// door x = 10
+// door y = 0
 
-isku_day {
-    door result = x / y
-    qor("This won't print")
-} qabo (errorMsg) {
-    qor("Caught error: " + errorMsg)
-}
+// isku_day {
+//     door result = x / y
+//     qor("This won't print")
+// } qabo (errorMsg) {
+//     qor("Caught error: " + errorMsg)
+// }
 
-qor("Program continues after catching the error")
+// qor("Program continues after catching the error")
