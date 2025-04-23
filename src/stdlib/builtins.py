@@ -24,10 +24,10 @@ class SoplangBuiltins:
         """
         if isinstance(value, str):
             return "qoraal"
-        elif isinstance(value, (int, float)):
-            return "tiro"
         elif isinstance(value, bool):
             return "labadaran"
+        elif isinstance(value, (int, float)):
+            return "tiro"
         elif isinstance(value, list):
             return "liis"
         elif isinstance(value, dict):
@@ -114,7 +114,8 @@ class SoplangBuiltins:
             raise TypeError("Qiimahu ma ahan liis (Value is not a list)")
         if len(lst) == 0:
             raise ValueError(
-                "Ma saari kartid liis madhan (Cannot pop from an empty list)")
+                "Ma saari kartid liis madhan (Cannot pop from an empty list)"
+            )
         return lst.pop()
 
     @staticmethod
@@ -139,18 +140,17 @@ class SoplangBuiltins:
             try:
                 index = int(index)
             except ValueError:
-                raise TypeError(
-                    "Index waa inuu noqdaa tiro (Index must be a number)")
+                raise TypeError("Index waa inuu noqdaa tiro (Index must be a number)")
 
         if not isinstance(index, (int, float)):
-            raise TypeError(
-                "Index waa inuu noqdaa tiro (Index must be a number)")
+            raise TypeError("Index waa inuu noqdaa tiro (Index must be a number)")
 
         index = int(index)  # Convert float to int if needed
 
         if index < 0 or index >= len(lst):
             raise ValueError(
-                f"Index {index} waa ka baxsan xadka liiska (Index out of range)")
+                f"Index {index} waa ka baxsan xadka liiska (Index out of range)"
+            )
 
         return lst[index]
 
@@ -167,18 +167,17 @@ class SoplangBuiltins:
             try:
                 index = int(index)
             except ValueError:
-                raise TypeError(
-                    "Index waa inuu noqdaa tiro (Index must be a number)")
+                raise TypeError("Index waa inuu noqdaa tiro (Index must be a number)")
 
         if not isinstance(index, (int, float)):
-            raise TypeError(
-                "Index waa inuu noqdaa tiro (Index must be a number)")
+            raise TypeError("Index waa inuu noqdaa tiro (Index must be a number)")
 
         index = int(index)  # Convert float to int if needed
 
         if index < 0 or index >= len(lst):
             raise ValueError(
-                f"Index {index} waa ka baxsan xadka liiska (Index out of range)")
+                f"Index {index} waa ka baxsan xadka liiska (Index out of range)"
+            )
 
         lst[index] = value
         return value
@@ -240,7 +239,7 @@ def get_builtin_functions():
         "qoraal": SoplangBuiltins.qoraal,
         "labadaran": SoplangBuiltins.labadaran,
         "liis": SoplangBuiltins.liis,
-        "shey": SoplangBuiltins.shey
+        "shey": SoplangBuiltins.shey,
     }
 
     return builtins
@@ -250,10 +249,7 @@ def get_object_methods():
     """
     Returns a dictionary of object methods
     """
-    methods = {
-        "keys": SoplangBuiltins.object_keys,
-        "has": SoplangBuiltins.object_has
-    }
+    methods = {"keys": SoplangBuiltins.object_keys, "has": SoplangBuiltins.object_has}
 
     return methods
 
@@ -265,7 +261,7 @@ def get_list_methods():
     methods = {
         "push": SoplangBuiltins.list_push,
         "pop": SoplangBuiltins.list_pop,
-        "length": SoplangBuiltins.list_length
+        "length": SoplangBuiltins.list_length,
     }
 
     return methods
