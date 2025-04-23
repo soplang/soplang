@@ -9,6 +9,58 @@ class Parser:
         self.current_token_index = 0
         self.current_token = self.tokens[self.current_token_index]
 
+    def get_friendly_token_name(self, token_type):
+        """Convert token types to user-friendly descriptions."""
+        token_descriptions = {
+            TokenType.LEFT_PAREN: "opening parenthesis '('",
+            TokenType.RIGHT_PAREN: "closing parenthesis ')'",
+            TokenType.LEFT_BRACE: "opening brace '{'",
+            TokenType.RIGHT_BRACE: "closing brace '}'",
+            TokenType.LEFT_BRACKET: "opening bracket '['",
+            TokenType.RIGHT_BRACKET: "closing bracket ']'",
+            TokenType.COMMA: "comma ','",
+            TokenType.DOT: "dot '.'",
+            TokenType.COLON: "colon ':'",
+            TokenType.SEMICOLON: "semicolon ';'",
+            TokenType.PLUS: "plus '+'",
+            TokenType.MINUS: "minus '-'",
+            TokenType.STAR: "multiplication '*'",
+            TokenType.SLASH: "division '/'",
+            TokenType.MODULO: "modulo '%'",
+            TokenType.EQUAL: "equals sign '='",
+            TokenType.GREATER: "greater than '>'",
+            TokenType.LESS: "less than '<'",
+            TokenType.GREATER_EQUAL: "greater than or equal '>='",
+            TokenType.LESS_EQUAL: "less than or equal '<='",
+            TokenType.NOT_EQUAL: "not equal '!='",
+            TokenType.AND: "logical AND '&&'",
+            TokenType.OR: "logical OR '||'",
+            TokenType.NOT: "logical NOT '!'",
+            TokenType.IDENTIFIER: "variable or function name",
+            TokenType.STRING: "string",
+            TokenType.NUMBER: "number",
+            TokenType.TRUE: "boolean 'run' (true)",
+            TokenType.FALSE: "boolean 'been' (false)",
+            TokenType.NULL: "null",
+            # Keywords
+            TokenType.DOOR: "keyword 'door'",
+            TokenType.HOWL: "keyword 'howl' (function)",
+            TokenType.SOO_CELI: "keyword 'soo_celi' (return)",
+            TokenType.QOR: "keyword 'qor' (print)",
+            TokenType.HADDII: "keyword 'haddii' (if)",
+            TokenType.HADDII_KALE: "keyword 'haddii_kale' (else if)",
+            TokenType.HADDII_KALENA: "keyword 'haddii_kalena' (else)",
+            TokenType.KU_CELI: "keyword 'ku_celi' (for)",
+            TokenType.INTA_AY: "keyword 'inta_ay' (while)",
+            TokenType.TIRO: "keyword 'tiro' (number type)",
+            TokenType.QORAAL: "keyword 'qoraal' (string type)",
+            TokenType.LABADARAN: "keyword 'labadaran' (boolean type)",
+            TokenType.LIIS: "keyword 'liis' (list type)",
+            TokenType.SHEY: "keyword 'shey' (object type)",
+        }
+
+        return token_descriptions.get(token_type, str(token_type))
+
     def advance(self):
         self.current_token_index += 1
         if self.current_token_index < len(self.tokens):
@@ -20,9 +72,18 @@ class Parser:
             self.advance()
             return token
         else:
+            # Get user-friendly descriptions for the tokens
+            expected_description = self.get_friendly_token_name(token_type)
+            found_description = self.get_friendly_token_name(self.current_token.type)
+
+            # Use the "expected_token" error code from ErrorMessageManager.PARSER_ERRORS
             raise ParserError(
-                f"Expected {token_type}, got {self.current_token.type}",
-                self.current_token,
+                "expected_token",
+                expected=expected_description,
+                found=found_description,
+                token=self.current_token,
+                line=getattr(self.current_token, 'line', None),
+                position=getattr(self.current_token, 'position', None)
             )
 
     def parse(self):
@@ -96,7 +157,13 @@ class Parser:
 
                         if self.current_token.type != TokenType.IDENTIFIER:
                             raise ParserError(
-                                "Expected property name after dot", self.current_token)
+                                "expected_token",
+                                expected="IDENTIFIER",
+                                found=self.current_token.type,
+                                token=self.current_token,
+                                line=getattr(self.current_token, 'line', None),
+                                position=getattr(self.current_token, 'position', None)
+                            )
 
                         prop_name = self.current_token.value
                         self.advance()  # Consume the property name
@@ -166,10 +233,18 @@ class Parser:
         # Top-level 'haddii_kale', 'haddii_kalena' are invalid
         if ttype in (TokenType.HADDII_KALE, TokenType.HADDII_KALENA):
             raise ParserError(
-                f"Unexpected token: {ttype} at top-level.", self.current_token
+                "unexpected_token",
+                token=self.get_friendly_token_name(ttype),
+                line=getattr(self.current_token, 'line', None),
+                position=getattr(self.current_token, 'position', None)
             )
 
-        raise ParserError(f"Unexpected token: {ttype}", self.current_token)
+        raise ParserError(
+            "unexpected_token",
+            token=self.get_friendly_token_name(ttype),
+            line=getattr(self.current_token, 'line', None),
+            position=getattr(self.current_token, 'position', None)
+        )
 
     # -----------------------------
     #  door x = 5  (dynamic typing)
@@ -249,7 +324,14 @@ class Parser:
                 TokenType.SHEY,
             )
         ):
-            raise ParserError(f"Expected function name, got {self.current_token.type}")
+            raise ParserError(
+                "expected_token",
+                expected="function name",
+                found=self.get_friendly_token_name(self.current_token.type),
+                token=self.current_token,
+                line=getattr(self.current_token, 'line', None),
+                position=getattr(self.current_token, 'position', None)
+            )
 
         # For non-identifier function names (like type names), get the value from the type
         if self.current_token.type != TokenType.IDENTIFIER:
@@ -271,7 +353,14 @@ class Parser:
     def parse_import_statement(self):
         self.expect(TokenType.KA_KEEN)
         if self.current_token.type != TokenType.STRING:
-            raise SyntaxError("Expected a string after ka_keen")
+            raise ParserError(
+                "expected_token",
+                expected="string for file path",
+                found=self.get_friendly_token_name(self.current_token.type),
+                token=self.current_token,
+                line=getattr(self.current_token, 'line', None),
+                position=getattr(self.current_token, 'position', None)
+            )
         filename = self.current_token.value
         self.advance()  # consume the STRING
         return ASTNode(NodeType.IMPORT_STATEMENT, value=filename)
@@ -490,7 +579,12 @@ class Parser:
                 self.advance()
             else:
                 raise ParserError(
-                    "Expected property name as identifier or string", self.current_token
+                    "expected_token",
+                    expected="property name (identifier or string)",
+                    found=self.get_friendly_token_name(self.current_token.type),
+                    token=self.current_token,
+                    line=getattr(self.current_token, 'line', None),
+                    position=getattr(self.current_token, 'position', None)
                 )
 
             # Colon separator
@@ -591,7 +685,13 @@ class Parser:
 
                 if self.current_token.type != TokenType.IDENTIFIER:
                     raise ParserError(
-                        "Expected property name after dot", self.current_token)
+                        "expected_token",
+                        expected="property name",
+                        found=self.get_friendly_token_name(self.current_token.type),
+                        token=self.current_token,
+                        line=getattr(self.current_token, 'line', None),
+                        position=getattr(self.current_token, 'position', None)
+                    )
 
                 property_name = self.current_token.value
                 self.advance()  # Consume the property name
@@ -667,7 +767,12 @@ class Parser:
         elif token.type == TokenType.LEFT_BRACE:
             return self.parse_object_literal()
         else:
-            raise ParserError(f"Unexpected token in primary expression: {token.type}")
+            raise ParserError(
+                "unexpected_token",
+                token=self.get_friendly_token_name(token.type),
+                line=getattr(token, 'line', None),
+                position=getattr(token, 'position', None)
+            )
 
     def parse_function_call_helper(self, func_name):
         """Helper method to parse a function call once we've identified the function name"""

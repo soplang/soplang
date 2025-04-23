@@ -40,5 +40,5 @@ haddii (5 > 3 {
 // }
 
 // Valid code to run when all examples are commented out
-door test = 5 + 5
-qor("Only this line should print when all errors are commented out: " + test)
+// door test = 5 + 5
+// qor("Only this line should print when all errors are commented out: " + test)
