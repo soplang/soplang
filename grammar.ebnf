@@ -162,3 +162,14 @@ Comment ::= SingleLineComment | MultiLineComment
 SingleLineComment ::= "//" {Character} '\n'
 
 MultiLineComment ::= "/*" {Character} "*/"
+
+// ===== ERROR FORMATTING =====
+ErrorMessage ::= "Khalad" ErrorType ":" ErrorDetail ["ee" "sadar" LineNumber "," "goobta" Position]
+
+ErrorType ::= "lexer" | "parser" | "runtime" | "type" | "import"
+
+ErrorDetail ::= {Character}
+
+LineNumber ::= Digit {Digit}
+
+Position ::= Digit {Digit}

@@ -74,7 +74,7 @@ ArgumentList ::= Expression {"," Expression}
 ## Control Flow
 
 ```ebnf
-IfStatement ::= "haddii" "(" Expression ")" Block 
+IfStatement ::= "haddii" "(" Expression ")" Block
                {ElseIfClause}
                [ElseClause]
 
@@ -208,6 +208,20 @@ Symbol ::= '!' | '@' | '#' | '$' | '%' | '^' | '&' | '*' | '(' | ')' | '-' | '+'
 Whitespace ::= ' ' | '\t' | '\n' | '\r'
 ```
 
+## Error Messages
+
+```ebnf
+ErrorMessage ::= "Khalad" ErrorType ":" ErrorDetail ["ee" "sadar" LineNumber "," "goobta" Position]
+
+ErrorType ::= "lexer" | "parser" | "runtime" | "type" | "import"
+
+ErrorDetail ::= {Character}
+
+LineNumber ::= Digit {Digit}
+
+Position ::= Digit {Digit}
+```
+
 ## Comments
 
 ```ebnf
@@ -216,4 +230,4 @@ Comment ::= SingleLineComment | MultiLineComment
 SingleLineComment ::= "//" {Character} '\n'
 
 MultiLineComment ::= "/*" {Character} "*/"
-``` 
+```

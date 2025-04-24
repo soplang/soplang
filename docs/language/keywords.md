@@ -12,7 +12,7 @@ This document provides a reference for all keywords in the Soplang programming l
 | `labadaran` | Boolean type                 | `bool`             | `labadaran waaRun = true`               |
 | `shey`      | Object type                  | `object`           | `shey person = { "name": "Sharafdin" }` |
 | `liis`      | List/array type              | `array`            | `liis numbers = [1, 2, 3]`              |
-| `waxba`      | waxba value                   | `waxba`             | `door a = waxba`                         |
+| `waxba`     | waxba value                  | `waxba`            | `door a = waxba`                        |
 
 ## Control Flow Keywords
 
@@ -91,6 +91,18 @@ This document provides a reference for all keywords in the Soplang programming l
 | `tiro`      | Convert to number    | `int`/`float`      | `door n = tiro("5")`                     |
 | `qoraal`    | Convert to string    | `str`              | `door s = qoraal(25)`                    |
 | `labadaran` | Convert to boolean   | `bool`             | `door b = labadaran(1)`                  |
+
+## Error Message Terminology
+
+| Somali Term | Meaning            | English Equivalent | Example Usage                                                     |
+| ----------- | ------------------ | ------------------ | ----------------------------------------------------------------- |
+| `Khalad`    | Error              | `Error`            | `Khalad lexer: Xaraf aan la filayn: @`                            |
+| `sadar`     | Line (in code)     | `line`             | `ee sadar 12, goobta 18`                                          |
+| `goobta`    | Position (in code) | `position`         | `ee sadar 12, goobta 18`                                          |
+| `lexer`     | Lexical analyzer   | `lexer`            | `Khalad lexer: Xaraf aan la filayn: @`                            |
+| `parser`    | Syntax analyzer    | `parser`           | `Khalad parser: Waxaa la filayay ')', laakiin waxaa la helay '+'` |
+| `runtime`   | Execution time     | `runtime`          | `Khalad runtime: Ma suurtogali karto qeybinta eber`               |
+| `nuuc`      | Type               | `type`             | `Khalad nuuc: Qiimaheeda '10' ma ahan qoraal`                     |
 
 ## Special Syntax
 
