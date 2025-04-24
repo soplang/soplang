@@ -128,21 +128,26 @@ class SoplangShell:
         if not code or code.startswith('//'):
             return
 
+        # Format the code first for better handling
+        code = self._format_code(code)
+
         try:
             # DIRECT EXECUTION OF COMMON PATTERNS
             # This bypasses the normal parser for better interactive experience
 
             # Case 1: Print statements (qor)
             if code.startswith('qor'):
-                # Extract the content to print
-                match = re.search(r'qor\s*\(\s*["\'](.*?)[\'"]\s*\)', code)
+                # Extract the content to print (remove the trailing semicolon if present)
+                code_without_semicolon = code[:-1] if code.endswith(';') else code
+                match = re.search(
+                    r'qor\s*\(\s*["\'](.*?)[\'"]\s*\)', code_without_semicolon)
                 if match:
                     # Direct execution of print
                     print(match.group(1))
                     return
 
                 # Handle print with variable or expression
-                match = re.search(r'qor\s*\(\s*(.*?)\s*\)', code)
+                match = re.search(r'qor\s*\(\s*(.*?)\s*\)', code_without_semicolon)
                 if match:
                     expr = match.group(1)
 
@@ -230,8 +235,10 @@ class SoplangShell:
 
             # Case 2: Variable declaration with door (dynamic typing)
             if code.startswith('door '):
+                # Remove semicolon for regex processing if present
+                code_without_semicolon = code[:-1] if code.endswith(';') else code
                 # Match pattern: door name = value
-                match = re.search(r'door\s+(\w+)\s*=\s*(.+)', code)
+                match = re.search(r'door\s+(\w+)\s*=\s*(.+)', code_without_semicolon)
                 if match:
                     var_name = match.group(1)
                     var_value = match.group(2).strip()
@@ -239,10 +246,20 @@ class SoplangShell:
                     # Handle string values
                     if (var_value.startswith('"') and var_value.endswith('"')) or \
                        (var_value.startswith("'") and var_value.endswith("'")):
-                        self.interpreter.variables[var_name] = var_value[1:-1]
-                        print(
-                            f"\033[32m=> {var_name} = \"{self.interpreter.variables[var_name]}\"\033[0m")
-                        return
+                        try:
+                            # Extract the actual string value
+                            string_value = var_value[1:-1]
+                            # Assign it directly to the interpreter's variables
+                            self.interpreter.variables[var_name] = string_value
+                            print(
+                                f"\033[32m=> {var_name} = \"{string_value}\"\033[0m")
+                            return
+                        except Exception as e:
+                            # Create a proper Soplang error for any issues
+                            from src.utils.errors import RuntimeError
+                            error = RuntimeError(f"Khalad fulinta: {str(e)}")
+                            print(f"\033[31m{error.message}\033[0m")
+                            return
 
                     # Handle numeric values
                     try:
@@ -285,9 +302,12 @@ class SoplangShell:
 
             # Case 3: Static typing (tiro, qoraal)
             if code.startswith('tiro ') or code.startswith('qoraal '):
-                type_name = code.split(' ')[0]  # tiro or qoraal
+                # Remove semicolon for regex processing if present
+                code_without_semicolon = code[:-1] if code.endswith(';') else code
+                type_name = code_without_semicolon.split(' ')[0]  # tiro or qoraal
                 # Match pattern: type name = value
-                match = re.search(rf'{type_name}\s+(\w+)\s*=\s*(.+)', code)
+                match = re.search(rf'{type_name}\s+(\w+)\s*=\s*(.+)',
+                                  code_without_semicolon)
                 if match:
                     var_name = match.group(1)
                     var_value = match.group(2).strip()
@@ -322,8 +342,11 @@ class SoplangShell:
                             except:
                                 pass
 
-                            print(
-                                f"\033[31mKhalad nuuca ah: Cannot assign non-integer to tiro\033[0m")
+                            # Use the exact error format from errors.py
+                            from src.utils.errors import TypeError
+                            error = TypeError("type_mismatch", var_name=var_name,
+                                              expected_type="tiro", value=var_value)
+                            print(f"\033[31m{error.message}\033[0m")
                             return
 
                     elif type_name == 'qoraal':
@@ -335,14 +358,19 @@ class SoplangShell:
                                 f"\033[32m=> {var_name} = \"{self.interpreter.variables[var_name]}\" (qoraal)\033[0m")
                             return
                         else:
-                            print(
-                                f"\033[31mKhalad nuuca ah: Cannot assign non-string to qoraal\033[0m")
+                            # Use the exact error format from errors.py
+                            from src.utils.errors import TypeError
+                            error = TypeError("type_mismatch", var_name=var_name,
+                                              expected_type="qoraal", value=var_value)
+                            print(f"\033[31m{error.message}\033[0m")
                             return
 
             # Case 4: Direct expression evaluation (calculator mode)
-            if all(c in "0123456789+-*/() " for c in code):
+            if all(c in "0123456789+-*/() " for c in code.rstrip(';')):
+                # Remove semicolon for eval if present
+                code_without_semicolon = code[:-1] if code.endswith(';') else code
                 try:
-                    result = eval(code)
+                    result = eval(code_without_semicolon)
                     print(f"\033[32m=> {result}\033[0m")
                     return
                 except:
@@ -361,9 +389,94 @@ class SoplangShell:
                 # Run the code with main.py
                 main_path = os.path.join(os.path.dirname(
                     os.path.dirname(os.path.abspath(__file__))), "main.py")
-                # Use a modified Python PATH so main.py can find its imports
-                command = f"PYTHONPATH={os.path.dirname(os.path.dirname(os.path.abspath(__file__)))} python {main_path} {temp_filename}"
-                os.system(command)
+
+                # Check if main.py exists before trying to run it
+                if not os.path.exists(main_path):
+                    # Use Soplang's ParserError
+                    from src.utils.errors import ParserError
+
+                    # Create a proper Soplang parser error
+                    error = ParserError(
+                        "invalid_syntax", detail="Qoraalka syntax-kiisa waa khalad")
+                    print(f"\033[31m{error.message}\033[0m")
+                    return
+
+                # Use subprocess instead of os.system to capture output and errors
+                import subprocess
+                try:
+                    # Use a modified Python PATH so main.py can find its imports
+                    env = os.environ.copy()
+                    env["PYTHONPATH"] = os.path.dirname(
+                        os.path.dirname(os.path.abspath(__file__)))
+
+                    # Run the command and capture output
+                    process = subprocess.run(
+                        ["python", main_path, temp_filename],
+                        env=env,
+                        capture_output=True,
+                        text=True,
+                        check=False
+                    )
+
+                    # Print stdout if available
+                    if process.stdout:
+                        print(process.stdout)
+
+                    # Handle error gracefully using Soplang's error system
+                    if process.returncode != 0:
+                        from src.utils.errors import ParserError, RuntimeError, TypeError, SoplangError
+
+                        stderr = process.stderr
+                        # Try to extract the actual Soplang error message if it exists
+                        if "Khalad" in stderr:
+                            # Find the error message which starts with "Khalad"
+                            for line in stderr.split('\n'):
+                                if line.strip().startswith("Khalad") or "❌" in line:
+                                    print(f"\033[31m{line.strip()}\033[0m")
+                                    return
+
+                        # If we couldn't find a Soplang error, create an appropriate one using the ErrorMessageManager
+                        if "ModuleNotFoundError" in stderr or "ImportError" in stderr:
+                            from src.utils.errors import ImportError, ErrorMessageManager
+                            error_msg = ErrorMessageManager.get_import_error(
+                                "import_error", filename=temp_filename, error="Module not found")
+                            print(f"\033[31m{error_msg}\033[0m")
+                        elif "FileNotFoundError" in stderr:
+                            from src.utils.errors import ImportError, ErrorMessageManager
+                            error_msg = ErrorMessageManager.get_import_error(
+                                "file_not_found", module=temp_filename)
+                            print(f"\033[31m{error_msg}\033[0m")
+                        elif "SyntaxError" in stderr or "unexpected token" in stderr:
+                            from src.utils.errors import ParserError, ErrorMessageManager
+                            error_msg = ErrorMessageManager.get_parser_error(
+                                "invalid_syntax", detail="Khalad syntax ah ama qeexis khalad ah")
+                            print(f"\033[31m{error_msg}\033[0m")
+                        elif "TypeError" in stderr:
+                            from src.utils.errors import TypeError, ErrorMessageManager
+                            error_msg = ErrorMessageManager.get_type_error(
+                                "invalid_operand", operator="?", type_name="?")
+                            print(f"\033[31m{error_msg}\033[0m")
+                        elif "NameError" in stderr:
+                            # Try to extract the variable name from the NameError message
+                            from src.utils.errors import RuntimeError, ErrorMessageManager
+                            var_match = re.search(
+                                r"name '([^']+)' is not defined", stderr)
+                            var_name = var_match.group(1) if var_match else "?"
+                            error_msg = ErrorMessageManager.get_runtime_error(
+                                "undefined_variable", name=var_name)
+                            print(f"\033[31m{error_msg}\033[0m")
+                        else:
+                            from src.utils.errors import RuntimeError, ErrorMessageManager
+                            error_msg = ErrorMessageManager.get_runtime_error(
+                                "Khalad fulinta: Qalad aan la aqoonsan")
+                            print(f"\033[31m{error_msg}\033[0m")
+
+                except subprocess.SubprocessError:
+                    from src.utils.errors import RuntimeError, ErrorMessageManager
+                    error_msg = ErrorMessageManager.get_runtime_error(
+                        "Khalad fulinta: Ma awoodin inaan koodka fuliyo")
+                    print(f"\033[31m{error_msg}\033[0m")
+
             finally:
                 # Clean up the temporary file
                 try:
@@ -372,18 +485,66 @@ class SoplangShell:
                     pass
 
         except Exception as e:
-            print(f"\033[31mUnexpected error: {str(e)}\033[0m")
+            # Convert Python exception to Soplang error using ErrorMessageManager
+            from src.utils.errors import RuntimeError, SoplangError, ErrorMessageManager
+
+            # If it's already a SoplangError, use its message
+            if isinstance(e, SoplangError):
+                print(f"\033[31m{e.message}\033[0m")
+            else:
+                # Try to determine the type of error
+                error_msg = str(e)
+                if "name" in error_msg and "is not defined" in error_msg:
+                    # Extract the variable name from error like "'x' is not defined"
+                    match = re.search(r"'([^']+)'", error_msg)
+                    var_name = match.group(1) if match else "?"
+                    error_msg = ErrorMessageManager.get_runtime_error(
+                        "undefined_variable", name=var_name)
+                    print(f"\033[31m{error_msg}\033[0m")
+                elif "division by zero" in error_msg:
+                    error_msg = ErrorMessageManager.get_runtime_error(
+                        "division_by_zero")
+                    print(f"\033[31m{error_msg}\033[0m")
+                elif "index" in error_msg and "out of range" in error_msg:
+                    error_msg = ErrorMessageManager.get_runtime_error(
+                        "index_out_of_range", index="?")
+                    print(f"\033[31m{error_msg}\033[0m")
+                elif "local variable" in error_msg and "not associated with a value" in error_msg:
+                    # This indicates an issue with module scope/imports
+                    error_msg = ErrorMessageManager.get_runtime_error(
+                        "Khalad fulinta: Modul qeexis ayaa khaladan")
+                    print(f"\033[31m{error_msg}\033[0m")
+                else:
+                    # Remove internal implementation details - sanitize the error message
+                    # Replace Python-specific parts with Soplang-friendly errors
+                    sanitized_error = error_msg
+
+                    # Replace Python module paths
+                    sanitized_error = re.sub(
+                        r'File ".*?", line \d+, in .*?\n', '', sanitized_error)
+
+                    # Replace Python class names
+                    sanitized_error = re.sub(r'<class \'.*?\'>', '', sanitized_error)
+
+                    # Replace memory addresses
+                    sanitized_error = re.sub(r'at 0x[0-9a-f]+', '', sanitized_error)
+
+                    # Use a simpler error message if it's excessively technical
+                    if len(sanitized_error) > 100 or "Traceback" in sanitized_error:
+                        sanitized_error = "Khalad fulinta oo aan la aqoonsan"
+
+                    # Generic runtime error with sanitized message using ErrorMessageManager
+                    error_msg = ErrorMessageManager.get_runtime_error(
+                        f"Khalad fulinta: {sanitized_error}")
+                    print(f"\033[31m{error_msg}\033[0m")
+
             # Provide helpful hint for using alternatives
             print(
                 "\033[33m// Hint: Try :multiline mode for complex code or :run to run a file\033[0m")
 
-    def _format_code(self, code):
+    def _format_code(self, code, silent=True):
         """Format code for better interactive use"""
         code = code.strip()
-
-        # Don't add semicolons to lines ending with }
-        if code.endswith('}'):
-            return code
 
         # Handle common Soplang syntax issues in interactive mode
         if code.startswith('qor'):
@@ -399,11 +560,11 @@ class SoplangShell:
             if '=' in code and ' = ' not in code:
                 code = re.sub(r'=', ' = ', code, 1)
 
-        # Remove semicolon if present (we'll add it back if needed)
-        if code.endswith(';'):
-            code = code[:-1]
+        # We no longer automatically add semicolons since we properly check for them
+        # and show Soplang errors if they're missing
 
-        print(f"\033[90m// Processing: {code}\033[0m")
+        if not silent:
+            print(f"\033[90m// Processing: {code}\033[0m")
         return code
 
     def process_command(self, command):
