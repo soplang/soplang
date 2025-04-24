@@ -16,27 +16,28 @@ Program ::= Statement {Statement}
 // ===== STATEMENTS =====
 Statement ::= VariableDeclaration
             | FunctionDeclaration
-            | FunctionCall ";"
+            | FunctionCall
             | IfStatement
             | LoopStatement
             | WhileStatement
-            | BreakStatement ";"
-            | ContinueStatement ";"
-            | ReturnStatement ";"
+            | BreakStatement
+            | ContinueStatement
+            | ReturnStatement
             | TryCatchStatement
-            | ImportStatement ";"
+            | ImportStatement
             | ClassDeclaration
-            | AssignmentStatement ";"
+            | AssignmentStatement
             | Block
+            | ThrowStatement
 
 Block ::= "{" {Statement} "}"
 
 // ===== VARIABLE DECLARATIONS =====
 VariableDeclaration ::= DynamicDeclaration | StaticDeclaration
 
-DynamicDeclaration ::= "door" Identifier "=" Expression ";"
+DynamicDeclaration ::= "door" Identifier "=" Expression
 
-StaticDeclaration ::= StaticType Identifier "=" Expression ";"
+StaticDeclaration ::= StaticType Identifier "=" Expression
 
 StaticType ::= "tiro"      // Number
              | "qoraal"    // String
@@ -51,7 +52,9 @@ ParameterList ::= Identifier {"," Identifier}
 
 // ===== FUNCTION CALLS =====
 FunctionCall ::= Identifier "(" [ArgumentList] ")"
-               | ObjectProperty "(" [ArgumentList] ")"
+               | MethodCall
+
+MethodCall ::= ObjectProperty "(" [ArgumentList] ")"
 
 ArgumentList ::= Expression {"," Expression}
 
@@ -65,7 +68,7 @@ ElseIfClause ::= "haddii_kale" "(" Expression ")" Block
 ElseClause ::= "haddii_kalena" Block
 
 // ===== LOOPS =====
-LoopStatement ::= "ku_celi" Identifier "min" Expression "ilaa" Expression Block
+LoopStatement ::= "ku_celi" Identifier "min" Expression "ilaa" Expression ["by" Expression] Block
 
 WhileStatement ::= "inta_ay" "(" Expression ")" Block
 
@@ -75,6 +78,9 @@ ContinueStatement ::= "sii_wad"
 
 // ===== RETURN STATEMENT =====
 ReturnStatement ::= "soo_celi" [Expression]
+
+// ===== THROW STATEMENT =====
+ThrowStatement ::= "throw" Expression
 
 // ===== TRY-CATCH =====
 TryCatchStatement ::= "isku_day" Block "qabo" "(" Identifier ")" Block
@@ -114,8 +120,12 @@ Factor ::= NumberLiteral
         | IndexAccess
         | ListLiteral
         | ObjectLiteral
+        | NewExpression
         | "(" Expression ")"
         | UnaryOperator Factor
+
+// ===== NEW EXPRESSION =====
+NewExpression ::= "cusub" Identifier "(" [ArgumentList] ")"
 
 // ===== OPERATORS =====
 LogicalOperator ::= "&&" | "||"
@@ -133,9 +143,9 @@ NumberLiteral ::= Digit {Digit} ["." Digit {Digit}]
 
 StringLiteral ::= '"' {Character} '"' | "'" {Character} "'"
 
-BooleanLiteral ::= "true" | "false"
+BooleanLiteral ::= "true" | "false" | "run" | "been"
 
-NullLiteral ::= "null"
+NullLiteral ::= "null" | "waxba"
 
 ListLiteral ::= "[" [Expression {"," Expression}] "]"
 
@@ -173,3 +183,16 @@ ErrorDetail ::= {Character}
 LineNumber ::= Digit {Digit}
 
 Position ::= Digit {Digit}
+
+// ===== LIST METHODS =====
+ListMethod ::= "kudar"       // push
+             | "kasaar"      // pop
+             | "dherer"      // length
+             | "iskuxir"     // concat
+             | "ka_kooban"   // contains
+
+// ===== OBJECT METHODS =====
+ObjectMethod ::= "furaha"    // keys
+               | "haystaa"   // has
+               | "tirtir"    // remove
+               | "iskudar"   // merge

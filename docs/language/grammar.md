@@ -22,18 +22,19 @@ Program ::= Statement {Statement}
 ```ebnf
 Statement ::= VariableDeclaration
             | FunctionDeclaration
-            | FunctionCall ";"
+            | FunctionCall
             | IfStatement
             | LoopStatement
             | WhileStatement
-            | BreakStatement ";"
-            | ContinueStatement ";"
-            | ReturnStatement ";"
+            | BreakStatement
+            | ContinueStatement
+            | ReturnStatement
             | TryCatchStatement
-            | ImportStatement ";"
+            | ImportStatement
             | ClassDeclaration
-            | AssignmentStatement ";"
+            | AssignmentStatement
             | Block
+            | ThrowStatement
 
 Block ::= "{" {Statement} "}"
 ```
@@ -43,9 +44,9 @@ Block ::= "{" {Statement} "}"
 ```ebnf
 VariableDeclaration ::= DynamicDeclaration | StaticDeclaration
 
-DynamicDeclaration ::= "door" Identifier "=" Expression ";"
+DynamicDeclaration ::= "door" Identifier "=" Expression
 
-StaticDeclaration ::= StaticType Identifier "=" Expression ";"
+StaticDeclaration ::= StaticType Identifier "=" Expression
 
 StaticType ::= "tiro"      // Number
              | "qoraal"    // String
@@ -66,7 +67,9 @@ ParameterList ::= Identifier {"," Identifier}
 
 ```ebnf
 FunctionCall ::= Identifier "(" [ArgumentList] ")"
-               | ObjectProperty "(" [ArgumentList] ")"
+               | MethodCall
+
+MethodCall ::= ObjectProperty "(" [ArgumentList] ")"
 
 ArgumentList ::= Expression {"," Expression}
 ```
@@ -86,7 +89,7 @@ ElseClause ::= "haddii_kalena" Block
 ## Loops
 
 ```ebnf
-LoopStatement ::= "ku_celi" Identifier "min" Expression "ilaa" Expression Block
+LoopStatement ::= "ku_celi" Identifier "min" Expression "ilaa" Expression ["by" Expression] Block
 
 WhileStatement ::= "inta_ay" "(" Expression ")" Block
 
@@ -99,6 +102,12 @@ ContinueStatement ::= "sii_wad"
 
 ```ebnf
 ReturnStatement ::= "soo_celi" [Expression]
+```
+
+## Throw Statement
+
+```ebnf
+ThrowStatement ::= "throw" Expression
 ```
 
 ## Try-Catch
@@ -156,8 +165,15 @@ Factor ::= NumberLiteral
         | IndexAccess
         | ListLiteral
         | ObjectLiteral
+        | NewExpression
         | "(" Expression ")"
         | UnaryOperator Factor
+```
+
+## New Expression
+
+```ebnf
+NewExpression ::= "cusub" Identifier "(" [ArgumentList] ")"
 ```
 
 ## Operators
@@ -181,9 +197,9 @@ NumberLiteral ::= Digit {Digit} ["." Digit {Digit}]
 
 StringLiteral ::= '"' {Character} '"' | "'" {Character} "'"
 
-BooleanLiteral ::= "true" | "false"
+BooleanLiteral ::= "true" | "false" | "run" | "been"
 
-NullLiteral ::= "null"
+NullLiteral ::= "null" | "waxba"
 
 ListLiteral ::= "[" [Expression {"," Expression}] "]"
 
@@ -206,6 +222,25 @@ Character ::= Letter | Digit | Symbol | Whitespace
 Symbol ::= '!' | '@' | '#' | '$' | '%' | '^' | '&' | '*' | '(' | ')' | '-' | '+' | '=' | '{' | '}' | '[' | ']' | ':' | ';' | '"' | "'" | '<' | '>' | ',' | '.' | '?' | '/' | '\\' | '|' | '`' | '~'
 
 Whitespace ::= ' ' | '\t' | '\n' | '\r'
+```
+
+## List Methods
+
+```ebnf
+ListMethod ::= "kudar"       // push
+             | "kasaar"      // pop
+             | "dherer"      // length
+             | "iskuxir"     // concat
+             | "ka_kooban"   // contains
+```
+
+## Object Methods
+
+```ebnf
+ObjectMethod ::= "furaha"    // keys
+               | "haystaa"   // has
+               | "tirtir"    // remove
+               | "iskudar"   // merge
 ```
 
 ## Error Messages

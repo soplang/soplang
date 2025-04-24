@@ -42,10 +42,11 @@ This document provides a reference for all keywords in the Soplang programming l
 
 ## Error Handling Keywords
 
-| Keyword    | Meaning     | English Equivalent | Example                         |
-| ---------- | ----------- | ------------------ | ------------------------------- |
-| `isku_day` | Try block   | `try`              | `isku_day { /* code */ }`       |
-| `qabo`     | Catch block | `catch`            | `qabo (khalad) { qor(khalad) }` |
+| Keyword    | Meaning            | English Equivalent | Example                         |
+| ---------- | ------------------ | ------------------ | ------------------------------- |
+| `isku_day` | Try block          | `try`              | `isku_day { /* code */ }`       |
+| `qabo`     | Catch block        | `catch`            | `qabo (khalad) { qor(khalad) }` |
+| `throw`    | Throw an exception | `throw`            | `throw "Error message"`         |
 
 ## Object-Oriented Programming Keywords
 
@@ -61,6 +62,14 @@ This document provides a reference for all keywords in the Soplang programming l
 | Keyword   | Meaning          | English Equivalent | Example                 |
 | --------- | ---------------- | ------------------ | ----------------------- |
 | `ka_keen` | Import statement | `import`           | `ka_keen "math_lib.so"` |
+
+## Special Values
+
+| Value   | Meaning       | English Equivalent | Example                  |
+| ------- | ------------- | ------------------ | ------------------------ |
+| `run`   | Boolean true  | `true`             | `labadaran check = run`  |
+| `been`  | Boolean false | `false`            | `labadaran check = been` |
+| `waxba` | Null value    | `null`             | `door empty = waxba`     |
 
 ## Operators
 
@@ -91,6 +100,27 @@ This document provides a reference for all keywords in the Soplang programming l
 | `tiro`      | Convert to number    | `int`/`float`      | `door n = tiro("5")`                     |
 | `qoraal`    | Convert to string    | `str`              | `door s = qoraal(25)`                    |
 | `labadaran` | Convert to boolean   | `bool`             | `door b = labadaran(1)`                  |
+| `liis`      | Create a list        | `list/array`       | `door list = liis(1, 2, 3)`              |
+| `shey`      | Create an object     | `object/dict`      | `door obj = shey(name: "Ali", age: 25)`  |
+
+## List Methods
+
+| Method      | Meaning              | English Equivalent  | Example                                |
+| ----------- | -------------------- | ------------------- | -------------------------------------- |
+| `kudar`     | Add item to list     | `push/append`       | `myList.kudar(newItem)`                |
+| `kasaar`    | Remove last item     | `pop`               | `door lastItem = myList.kasaar()`      |
+| `dherer`    | Get list length      | `length/size`       | `door size = myList.dherer()`          |
+| `iskuxir`   | Concatenate lists    | `concat`            | `door combined = list1.iskuxir(list2)` |
+| `ka_kooban` | Check if item exists | `contains/includes` | `door exists = myList.ka_kooban(item)` |
+
+## Object Methods
+
+| Method    | Meaning             | English Equivalent   | Example                               |
+| --------- | ------------------- | -------------------- | ------------------------------------- |
+| `furaha`  | Get object keys     | `keys`               | `door keys = myObj.furaha()`          |
+| `haystaa` | Check if key exists | `has/hasOwnProperty` | `door exists = myObj.haystaa("name")` |
+| `tirtir`  | Remove property     | `delete`             | `myObj.tirtir("oldProp")`             |
+| `iskudar` | Merge objects       | `merge/assign`       | `door merged = obj1.iskudar(obj2)`    |
 
 ## Error Message Terminology
 
