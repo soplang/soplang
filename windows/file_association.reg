@@ -3,10 +3,14 @@ Windows Registry Editor Version 5.00
 ; Primary file extension (.sop)
 [HKEY_CURRENT_USER\Software\Classes\.sop]
 @="SoplangFile"
+"Content Type"="application/x-soplang"
+"PerceivedType"="text"
 
 ; Secondary file extension (.so)
 [HKEY_CURRENT_USER\Software\Classes\.so]
 @="SoplangFile"
+"Content Type"="application/x-soplang"
+"PerceivedType"="text"
 
 [HKEY_CURRENT_USER\Software\Classes\SoplangFile]
 @="Soplang Source Code"
@@ -15,8 +19,16 @@ Windows Registry Editor Version 5.00
 @="INSTALLDIR\\soplang_icon.ico"
 
 [HKEY_CURRENT_USER\Software\Classes\SoplangFile\shell]
+@="open"
 
 [HKEY_CURRENT_USER\Software\Classes\SoplangFile\shell\open]
+@="Open with Soplang"
 
 [HKEY_CURRENT_USER\Software\Classes\SoplangFile\shell\open\command]
 @="\"INSTALLDIR\\soplang.exe\" \"%1\""
+
+[HKEY_CURRENT_USER\Software\Classes\SoplangFile\shell\edit]
+@="Edit Soplang Source"
+
+[HKEY_CURRENT_USER\Software\Classes\SoplangFile\shell\edit\command]
+@="notepad.exe \"%1\""

@@ -23,6 +23,12 @@ ChangesEnvironment=yes
 SetupIconFile=soplang_icon.ico
 UninstallDisplayIcon={app}\soplang.exe
 WizardStyle=modern
+VersionInfoVersion={#MyAppVersion}
+VersionInfoCompany={#MyAppPublisher}
+VersionInfoDescription=Installer for {#MyAppName}
+VersionInfoCopyright=© 2025 {#MyAppPublisher}
+VersionInfoProductName={#MyAppName}
+VersionInfoProductVersion={#MyAppVersion}
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -46,12 +52,30 @@ Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: de
 [Registry]
 ; Primary file extension (.sop)
 Root: HKCR; Subkey: ".sop"; ValueType: string; ValueName: ""; ValueData: "SoplangFile"; Flags: uninsdeletevalue; Tasks: fileassociation
-Root: HKCR; Subkey: "SoplangFile"; ValueType: string; ValueName: ""; ValueData: "Soplang Source Code"; Flags: uninsdeletekey; Tasks: fileassociation
-Root: HKCR; Subkey: "SoplangFile\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\soplang_icon.ico"; Tasks: fileassociation
-Root: HKCR; Subkey: "SoplangFile\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#MyAppExeName}"" ""%1"""; Tasks: fileassociation
+Root: HKCR; Subkey: ".sop"; ValueType: string; ValueName: "Content Type"; ValueData: "application/x-soplang"; Tasks: fileassociation
+Root: HKCR; Subkey: ".sop"; ValueType: string; ValueName: "PerceivedType"; ValueData: "text"; Tasks: fileassociation
 
 ; Secondary file extension (.so)
 Root: HKCR; Subkey: ".so"; ValueType: string; ValueName: ""; ValueData: "SoplangFile"; Flags: uninsdeletevalue; Tasks: fileassociation
+Root: HKCR; Subkey: ".so"; ValueType: string; ValueName: "Content Type"; ValueData: "application/x-soplang"; Tasks: fileassociation
+Root: HKCR; Subkey: ".so"; ValueType: string; ValueName: "PerceivedType"; ValueData: "text"; Tasks: fileassociation
+
+; File type
+Root: HKCR; Subkey: "SoplangFile"; ValueType: string; ValueName: ""; ValueData: "Soplang Source Code"; Flags: uninsdeletekey; Tasks: fileassociation
+Root: HKCR; Subkey: "SoplangFile"; ValueType: string; ValueName: "FriendlyTypeName"; ValueData: "Soplang Source Code"; Tasks: fileassociation
+Root: HKCR; Subkey: "SoplangFile\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\soplang_icon.ico"; Tasks: fileassociation
+
+; Shell commands
+Root: HKCR; Subkey: "SoplangFile\shell"; ValueType: string; ValueName: ""; ValueData: "open"; Tasks: fileassociation
+Root: HKCR; Subkey: "SoplangFile\shell\open"; ValueType: string; ValueName: ""; ValueData: "Run with Soplang"; Tasks: fileassociation
+Root: HKCR; Subkey: "SoplangFile\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#MyAppExeName}"" ""%1"""; Tasks: fileassociation
+Root: HKCR; Subkey: "SoplangFile\shell\edit"; ValueType: string; ValueName: ""; ValueData: "Edit Soplang Source"; Tasks: fileassociation
+Root: HKCR; Subkey: "SoplangFile\shell\edit\command"; ValueType: string; ValueName: ""; ValueData: "notepad.exe ""%1"""; Tasks: fileassociation
+
+; Application registration
+Root: HKCU; Subkey: "Software\Classes\Applications\{#MyAppExeName}\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#MyAppExeName}"" ""%1"""; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\Applications\{#MyAppExeName}\SupportedTypes"; ValueType: string; ValueName: ".sop"; ValueData: ""
+Root: HKCU; Subkey: "Software\Classes\Applications\{#MyAppExeName}\SupportedTypes"; ValueType: string; ValueName: ".so"; ValueData: ""
 
 [Code]
 const
