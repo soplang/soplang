@@ -27,10 +27,10 @@ VersionInfoVersion={#MyAppVersion}
 VersionInfoCompany={#MyAppPublisher}
 VersionInfoDescription=Installer for {#MyAppName}
 VersionInfoCopyright=© 2025 {#MyAppPublisher}
-VersionInfoProductName={#MyAppName}
+VersionInfoProductName={#MyAppName} Interpreter
 VersionInfoProductVersion={#MyAppVersion}
-AppVerName={#MyAppName}
-UninstallDisplayName={#MyAppName}
+AppVerName={#MyAppName} Interpreter
+UninstallDisplayName={#MyAppName} Interpreter
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -45,11 +45,13 @@ Source: "..\dist\soplang\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdi
 Source: "soplang_icon.ico"; DestDir: "{app}"; Flags: ignoreversion
 Source: "file_association.reg"; DestDir: "{app}"; Flags: ignoreversion
 Source: "soplang_cmd.bat"; DestDir: "{app}"; Flags: ignoreversion
+Source: "soplang_launcher.bat"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
-Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
+Name: "{group}\Soplang Interpreter"; Filename: "{app}\soplang_launcher.bat"; IconFilename: "{app}\soplang_icon.ico"; Comment: "Run Soplang Interactive Shell"
+Name: "{group}\Soplang Command Prompt"; Filename: "{cmd}"; Parameters: "/k ""{app}\soplang_cmd.bat"""; IconFilename: "{app}\soplang_icon.ico"; Comment: "Open a command prompt with Soplang in the path"
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
-Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
+Name: "{autodesktop}\Soplang Interpreter"; Filename: "{app}\soplang_launcher.bat"; IconFilename: "{app}\soplang_icon.ico"; Tasks: desktopicon
 
 [Registry]
 ; Primary file extension (.sop)
@@ -70,12 +72,12 @@ Root: HKCR; Subkey: "SoplangFile\DefaultIcon"; ValueType: string; ValueName: "";
 ; Shell commands
 Root: HKCR; Subkey: "SoplangFile\shell"; ValueType: string; ValueName: ""; ValueData: "open"; Tasks: fileassociation
 Root: HKCR; Subkey: "SoplangFile\shell\open"; ValueType: string; ValueName: ""; ValueData: "Run with Soplang"; Tasks: fileassociation
-Root: HKCR; Subkey: "SoplangFile\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#MyAppExeName}"" ""%1"""; Tasks: fileassociation
+Root: HKCR; Subkey: "SoplangFile\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\soplang_cmd.bat"" ""%1"""; Tasks: fileassociation
 Root: HKCR; Subkey: "SoplangFile\shell\edit"; ValueType: string; ValueName: ""; ValueData: "Edit Soplang Source"; Tasks: fileassociation
 Root: HKCR; Subkey: "SoplangFile\shell\edit\command"; ValueType: string; ValueName: ""; ValueData: "notepad.exe ""%1"""; Tasks: fileassociation
 
 ; Application registration
-Root: HKCU; Subkey: "Software\Classes\Applications\{#MyAppExeName}\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#MyAppExeName}"" ""%1"""; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\Applications\{#MyAppExeName}\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\soplang_cmd.bat"" ""%1"""; Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\Classes\Applications\{#MyAppExeName}\SupportedTypes"; ValueType: string; ValueName: ".sop"; ValueData: ""
 Root: HKCU; Subkey: "Software\Classes\Applications\{#MyAppExeName}\SupportedTypes"; ValueType: string; ValueName: ".so"; ValueData: ""
 

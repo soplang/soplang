@@ -16,7 +16,7 @@ Windows Registry Editor Version 5.00
 @="Soplang Source Code"
 
 [HKEY_CURRENT_USER\Software\Classes\SoplangFile\DefaultIcon]
-@="INSTALLDIR\\soplang_icon.ico"
+@="\"INSTALLDIR\\soplang_icon.ico"
 
 [HKEY_CURRENT_USER\Software\Classes\SoplangFile\shell]
 @="open"
@@ -25,7 +25,7 @@ Windows Registry Editor Version 5.00
 @="Open with Soplang"
 
 [HKEY_CURRENT_USER\Software\Classes\SoplangFile\shell\open\command]
-@="\"INSTALLDIR\\soplang.exe\" \"%1\""
+@="\"INSTALLDIR\\soplang_cmd.bat\" \"%1\""
 
 [HKEY_CURRENT_USER\Software\Classes\SoplangFile\shell\edit]
 @="Edit Soplang Source"
