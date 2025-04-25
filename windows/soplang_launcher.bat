@@ -10,13 +10,6 @@ set "SOPLANG_HOME=%~dp0"
 REM Remove trailing backslash
 set "SOPLANG_HOME=%SOPLANG_HOME:~0,-1%"
 
-REM Display banner
-echo.
-echo =====================================================
-echo    Soplang Interpreter - The Somali Programming Language
-echo =====================================================
-echo.
-
 REM Launch Soplang in interactive mode
 cd /d "%SOPLANG_HOME%"
 call "%SOPLANG_HOME%\soplang.exe" -i

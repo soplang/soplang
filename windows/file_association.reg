@@ -25,7 +25,7 @@ Windows Registry Editor Version 5.00
 @="Open with Soplang"
 
 [HKEY_CURRENT_USER\Software\Classes\SoplangFile\shell\open\command]
-@="\"INSTALLDIR\\soplang_cmd.bat\" \"%1\""
+@="\"INSTALLDIR\\soplang.exe\" \"%1\""
 
 [HKEY_CURRENT_USER\Software\Classes\SoplangFile\shell\edit]
 @="Edit Soplang Source"

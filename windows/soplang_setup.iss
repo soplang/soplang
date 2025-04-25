@@ -73,12 +73,12 @@ Root: HKCR; Subkey: "SoplangFile\DefaultIcon"; ValueType: string; ValueName: "";
 ; Shell commands
 Root: HKCR; Subkey: "SoplangFile\shell"; ValueType: string; ValueName: ""; ValueData: "open"; Tasks: fileassociation
 Root: HKCR; Subkey: "SoplangFile\shell\open"; ValueType: string; ValueName: ""; ValueData: "Run with Soplang"; Tasks: fileassociation
-Root: HKCR; Subkey: "SoplangFile\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\soplang_cmd.bat"" ""%1"""; Tasks: fileassociation
+Root: HKCR; Subkey: "SoplangFile\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#MyAppExeName}"" ""%1"""; Tasks: fileassociation
 Root: HKCR; Subkey: "SoplangFile\shell\edit"; ValueType: string; ValueName: ""; ValueData: "Edit Soplang Source"; Tasks: fileassociation
 Root: HKCR; Subkey: "SoplangFile\shell\edit\command"; ValueType: string; ValueName: ""; ValueData: "notepad.exe ""%1"""; Tasks: fileassociation
 
 ; Application registration
-Root: HKCU; Subkey: "Software\Classes\Applications\{#MyAppExeName}\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\soplang_cmd.bat"" ""%1"""; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\Applications\{#MyAppExeName}\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#MyAppExeName}"" ""%1"""; Flags: uninsdeletekey
 Root: HKCU; Subkey: "Software\Classes\Applications\{#MyAppExeName}\SupportedTypes"; ValueType: string; ValueName: ".sop"; ValueData: ""
 Root: HKCU; Subkey: "Software\Classes\Applications\{#MyAppExeName}\SupportedTypes"; ValueType: string; ValueName: ".so"; ValueData: ""
 
