@@ -30,6 +30,16 @@ Write-Host "Soplang Logo Preparation for Windows" -ForegroundColor Cyan
 Write-Host "=====================================" -ForegroundColor Cyan
 Write-Host ""
 
+# Check if we should regenerate the icon, even if it exists
+$regenerate = $false
+if (Test-Path "soplang_icon.ico") {
+    $response = Read-Host "Icon file already exists. Do you want to regenerate it? (y/n)"
+    if ($response -eq "y") {
+        $regenerate = $true
+        Write-Host "Will regenerate the icon." -ForegroundColor Cyan
+    }
+}
+
 # Check if the ImageMagick convert command is available
 $hasImageMagick = $false
 try {
@@ -45,10 +55,23 @@ if (-not $hasImageMagick) {
     Write-Host "For best results, install ImageMagick from: https://imagemagick.org/script/download.php" -ForegroundColor Yellow
     Write-Host "Or manually convert your logo to a Windows .ico file." -ForegroundColor Yellow
     Write-Host ""
+    Write-Host "Icon Tips for Professional Look:" -ForegroundColor Cyan
+    Write-Host "1. Use a clean, simple design that's recognizable even at small sizes" -ForegroundColor Cyan
+    Write-Host "2. Use a transparent background" -ForegroundColor Cyan
+    Write-Host "3. Ensure high contrast for visibility in taskbars" -ForegroundColor Cyan
+    Write-Host "4. Create a square image before converting to icon format" -ForegroundColor Cyan
+    Write-Host "5. Include multiple resolutions (16x16, 32x32, 48x48, 256x256)" -ForegroundColor Cyan
+    Write-Host ""
 }
 
 # Get project root (parent of windows directory)
 $projectRoot = Split-Path -Parent $PSScriptRoot
+
+# Check if we should proceed with icon creation
+if (Test-Path "soplang_icon.ico" -and -not $regenerate) {
+    Write-Host "Using existing icon file: soplang_icon.ico" -ForegroundColor Green
+    exit 0
+}
 
 # Try to locate logo files automatically
 $logoFiles = Get-ChildItem -Path $projectRoot -Filter "*.png" -Recurse | Where-Object { $_.Name -like "*logo*" -or $_.Name -like "*icon*" }
@@ -90,7 +113,9 @@ $iconPath = "soplang_icon.ico"
 # Convert the logo to an icon if ImageMagick is available
 if ($hasImageMagick) {
     Write-Host "Converting logo to icon using ImageMagick..." -ForegroundColor Cyan
-    magick convert "$selectedLogo" -define icon:auto-resize=256,128,64,48,32,16 "$iconPath"
+
+    # Create a multi-resolution icon for best appearance
+    magick convert "$selectedLogo" -background transparent -define icon:auto-resize=256,128,64,48,32,16 "$iconPath"
 
     if (Test-Path $iconPath) {
         Write-Host "Icon created successfully: $iconPath" -ForegroundColor Green
@@ -103,6 +128,7 @@ if ($hasImageMagick) {
     Copy-Item -Path $selectedLogo -Destination "soplang_logo.png" -Force
     Write-Host "Copied logo to: soplang_logo.png" -ForegroundColor Yellow
     Write-Host "NOTE: You will need to manually convert this to an .ico file for best results." -ForegroundColor Yellow
+    Write-Host "Try using an online converter like convertio.co or icoconvert.com" -ForegroundColor Yellow
 }
 
 # Copy logo to other locations where it might be useful (now all within windows folder)
