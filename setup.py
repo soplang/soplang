@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+import sys
+
 from setuptools import find_packages, setup
 
 # Read requirements from requirements.txt
@@ -6,6 +8,10 @@ with open("requirements.txt") as f:
     requirements = [
         line.strip() for line in f if not line.startswith("#") and line.strip()
     ]
+
+# Filter out readline on Windows, as it's not compatible
+if sys.platform == "win32":
+    requirements = [req for req in requirements if not req.startswith("readline")]
 
 # Windows-specific requirements
 windows_requirements = [
