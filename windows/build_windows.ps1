@@ -51,17 +51,33 @@ if (-not (Test-Path "windows\soplang_icon.ico")) {
     New-Item -Path "windows\soplang_icon.ico" -ItemType File -Force | Out-Null
 }
 
+# Remove any existing venv to start fresh
+if (Test-Path "venv") {
+    Write-Host "Removing existing virtual environment..." -ForegroundColor Cyan
+    Remove-Item -Path "venv" -Recurse -Force
+}
+
 # Create a virtual environment
 Write-Host "Creating virtual environment..." -ForegroundColor Cyan
-python -m venv venv
-. .\venv\Scripts\Activate.ps1
+try {
+    python -m venv venv
+} catch {
+    Write-Host "Error creating virtual environment. Trying with admin rights..." -ForegroundColor Yellow
+    Start-Process python -ArgumentList "-m venv venv" -Verb RunAs -Wait
+}
+
+# Activate the virtual environment
+Write-Host "Activating virtual environment..." -ForegroundColor Cyan
+try {
+    & .\venv\Scripts\Activate.ps1
+} catch {
+    Write-Host "Error activating environment. Please run this script with administrator privileges." -ForegroundColor Red
+    exit 1
+}
 
 # Install dependencies
-Write-Host "Installing dependencies..." -ForegroundColor Cyan
-pip install -r requirements.txt
-pip install pyinstaller
-pip install pywin32
-pip install setuptools wheel
+Write-Host "Installing Windows-specific dependencies..." -ForegroundColor Cyan
+pip install -r windows\requirements_windows.txt
 
 # Install development package
 Write-Host "Installing Soplang in development mode..." -ForegroundColor Cyan

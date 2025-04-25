@@ -1,0 +1,12 @@
+# Core dependencies for Windows
+# readline is excluded as it's not available on Windows
+prompt_toolkit>=3.0.0
+colorama>=0.4.4
+pywin32>=300
+pyinstaller>=6.0.0
+
+# Development dependencies
+pytest>=7.0.0
+pytest-cov>=4.0.0
+flake8>=6.0.0
+black>=23.0.0
