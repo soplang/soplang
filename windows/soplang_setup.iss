@@ -50,7 +50,7 @@ Source: "soplang_launcher.bat"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\Soplang Interpreter"; Filename: "{app}\soplang_launcher.bat"; IconFilename: "{app}\soplang_icon.ico"; Comment: "Run Soplang Interactive Shell"; WorkingDir: "{app}"
-Name: "{group}\Soplang Command Prompt"; Filename: "{sys}\cmd.exe"; Parameters: "/k ""{app}\soplang_cmd.bat"""; IconFilename: "{app}\soplang_icon.ico"; Comment: "Open a command prompt with Soplang in the path"; WorkingDir: "{app}"
+Name: "{group}\Soplang Command Prompt"; Filename: "{sys}\cmd.exe"; Parameters: "/k set ""PATH={app};%PATH%"" && cd /d ""{app}"""; IconFilename: "{app}\soplang_icon.ico"; Comment: "Open a command prompt with Soplang in the path"; WorkingDir: "{app}"
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
 Name: "{autodesktop}\Soplang Interpreter"; Filename: "{app}\soplang_launcher.bat"; IconFilename: "{app}\soplang_icon.ico"; Tasks: desktopicon; WorkingDir: "{app}"
 
