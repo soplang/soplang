@@ -30,7 +30,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 Name: "addtopath"; Description: "Add Soplang to PATH"; GroupDescription: "System settings:"
-Name: "fileassociation"; Description: "Associate Soplang with .sop and .so files"; GroupDescription: "File associations:"; Flags: checked
+Name: "fileassociation"; Description: "Associate Soplang with .sop and .so files"; GroupDescription: "File associations:"
 
 [Files]
 Source: "..\dist\soplang\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
