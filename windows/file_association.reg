@@ -1,0 +1,22 @@
+Windows Registry Editor Version 5.00
+
+; Primary file extension (.sop)
+[HKEY_CURRENT_USER\Software\Classes\.sop]
+@="SoplangFile"
+
+; Secondary file extension (.so)
+[HKEY_CURRENT_USER\Software\Classes\.so]
+@="SoplangFile"
+
+[HKEY_CURRENT_USER\Software\Classes\SoplangFile]
+@="Soplang Source Code"
+
+[HKEY_CURRENT_USER\Software\Classes\SoplangFile\DefaultIcon]
+@="INSTALLDIR\\soplang_icon.ico"
+
+[HKEY_CURRENT_USER\Software\Classes\SoplangFile\shell]
+
+[HKEY_CURRENT_USER\Software\Classes\SoplangFile\shell\open]
+
+[HKEY_CURRENT_USER\Software\Classes\SoplangFile\shell\open\command]
+@="\"INSTALLDIR\\soplang.exe\" \"%1\""

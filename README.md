@@ -12,6 +12,8 @@ Soplang is a programming language with syntax inspired by Somali language, makin
 - **Type safety** - enforces type checking at runtime
 - **Interpreter-based** - easy to run on any platform with Python
 - **Interactive shell** - REPL for quick experimentation
+- **Windows installer** - dedicated installer for Windows users
+- **File extensions** - uses `.sop` (primary) and `.so` (secondary) file extensions
 
 ## Example
 
@@ -51,6 +53,29 @@ qor(salaam(magac))        // Prints: Salaan, Sharafdin!
 - [Language Reference](docs/language/keywords.md)
 - [Examples](examples/)
 - [Contributing Guide](docs/CONTRIBUTING.md)
+
+## Installation
+
+
+### Windows
+
+Windows users can download the installer from the [releases page](https://github.com/sharafdin/soplang/releases).
+
+After installation:
+- Run Soplang from the Start menu
+- Double-click `.sop` or `.so` files to run them with Soplang
+- Use the `soplang` command from any Command Prompt
+
+For Windows developers who want to build the installer themselves, see the [Windows Build Guide](windows/WINDOWS_BUILD_GUIDE.md):
+
+```powershell
+# Clone the repository
+git clone https://github.com/sharafdin/soplang.git
+cd soplang/windows
+
+# Run the build script
+.\build_windows.ps1
+```
 
 ## Development
 
