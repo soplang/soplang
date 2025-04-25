@@ -18,7 +18,8 @@ echo =====================================================
 echo.
 
 REM Launch Soplang in interactive mode
-"%SOPLANG_HOME%\soplang.exe" -i
+cd /d "%SOPLANG_HOME%"
+call "%SOPLANG_HOME%\soplang.exe" -i
 
 REM If Soplang exits unexpectedly, keep the window open
 if %ERRORLEVEL% neq 0 (
@@ -26,6 +27,10 @@ if %ERRORLEVEL% neq 0 (
     echo Soplang exited with error code: %ERRORLEVEL%
     echo.
     pause
+) else (
+    echo.
+    echo Soplang session ended.
+    timeout /t 3 >nul
 )
 
 endlocal
