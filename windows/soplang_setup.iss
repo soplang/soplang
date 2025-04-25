@@ -29,6 +29,8 @@ VersionInfoDescription=Installer for {#MyAppName}
 VersionInfoCopyright=© 2025 {#MyAppPublisher}
 VersionInfoProductName={#MyAppName}
 VersionInfoProductVersion={#MyAppVersion}
+AppVerName={#MyAppName}
+UninstallDisplayName={#MyAppName}
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
