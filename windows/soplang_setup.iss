@@ -1,6 +1,6 @@
 #define MyAppName "Soplang"
 #define MyAppVersion "0.1.0"
-#define MyAppPublisher "Soplang.org"
+#define MyAppPublisher "Soplang Software Foundation"
 #define MyAppURL "https://www.soplang.org/"
 #define MyAppExeName "soplang.exe"
 
