@@ -29,7 +29,7 @@ powershell -Command "$ws = New-Object -ComObject WScript.Shell; $s = $ws.CreateS
 
 REM Create the Soplang Command Prompt shortcut
 echo Creating Soplang Command Prompt shortcut...
-powershell -Command "$ws = New-Object -ComObject WScript.Shell; $s = $ws.CreateShortcut('%STARTMENU%\Soplang Command Prompt.lnk'); $s.TargetPath = 'cmd.exe'; $s.Arguments = '/k ""%SOPLANG_DIR%\soplang_cmd.bat""'; $s.WorkingDirectory = '%SOPLANG_DIR%'; $s.IconLocation = '%SOPLANG_DIR%\soplang_icon.ico'; $s.Description = 'Open a command prompt with Soplang in the path'; $s.Save()"
+powershell -Command "$ws = New-Object -ComObject WScript.Shell; $s = $ws.CreateShortcut('%STARTMENU%\Soplang Command Prompt.lnk'); $s.TargetPath = 'cmd.exe'; $s.Arguments = '/k set ""PATH=%SOPLANG_DIR%;%PATH%"" && cd /d ""%SOPLANG_DIR%""'; $s.WorkingDirectory = '%SOPLANG_DIR%'; $s.IconLocation = '%SOPLANG_DIR%\soplang_icon.ico'; $s.Description = 'Open a command prompt with Soplang in the path'; $s.Save()"
 
 echo Shortcuts created successfully!
 echo Soplang Interpreter: %STARTMENU%\Soplang Interpreter.lnk
