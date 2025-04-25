@@ -1,6 +1,14 @@
 # -*- mode: python ; coding: utf-8 -*-
 
+import os
+import platform
 block_cipher = None
+
+# Icon file path - ensure it exists
+icon_file = os.path.join('windows', 'soplang_icon.ico')
+if not os.path.exists(icon_file):
+    print(f"Warning: Icon file {icon_file} not found. The executable will use a default icon.")
+    icon_file = None
 
 a = Analysis(
     ['main.py'],
@@ -52,7 +60,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon='windows/soplang_icon.ico',
+    icon=icon_file,
 )
 
 coll = COLLECT(

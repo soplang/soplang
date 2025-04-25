@@ -65,6 +65,9 @@ class SoplangShell:
         self.in_multiline_mode = False
         self.last_examples_list = []
 
+        # Initialize colorama for proper Windows console color support
+        init(autoreset=True)
+
         # Initialize prompt_toolkit if we're using it
         if platform.system() == "Windows" and USE_PROMPT_TOOLKIT:
             self.prompt_session = PromptSession(history=FileHistory(self.history_file))
@@ -98,9 +101,19 @@ class SoplangShell:
             try:
                 # Determine the appropriate prompt text
                 if self.in_multiline_mode:
-                    prompt_text = "\033[1;33m... \033[0m"
+                    if platform.system() == "Windows" and not USE_PROMPT_TOOLKIT:
+                        # Simple prompt for Windows without prompt_toolkit
+                        prompt_text = "... "
+                    else:
+                        # Colorized prompt for other platforms or with prompt_toolkit
+                        prompt_text = "\033[1;33m... \033[0m"
                 else:
-                    prompt_text = "\n\033[1;36msoplang>\033[0m "
+                    if platform.system() == "Windows" and not USE_PROMPT_TOOLKIT:
+                        # Simple prompt for Windows without prompt_toolkit
+                        prompt_text = "\nsoplang> "
+                    else:
+                        # Colorized prompt for other platforms or with prompt_toolkit
+                        prompt_text = "\n\033[1;36msoplang>\033[0m "
 
                 # Get user input with the appropriate input method
                 if platform.system() == "Windows" and USE_PROMPT_TOOLKIT:
@@ -233,7 +246,7 @@ class SoplangShell:
                                 result += part[1:-1]
                             # Check if it's a function call like qoraal()
                             elif part.startswith("qoraal(") and part.endswith(")"):
-                                var_name = part[len("qoraal(") : -1].strip()
+                                var_name = part[len("qoraal("): -1].strip()
                                 if var_name in self.interpreter.variables:
                                     value = str(self.interpreter.variables[var_name])
                                     result += value
@@ -255,8 +268,8 @@ class SoplangShell:
                         eval_expr = expr
                         for var_name, var_value in self.interpreter.variables.items():
                             if (
-                                isinstance(var_value, (int, float))
-                                and var_name in eval_expr
+                                isinstance(var_value, (int, float)) and
+                                var_name in eval_expr
                             ):
                                 eval_expr = eval_expr.replace(var_name, str(var_value))
 
@@ -325,8 +338,8 @@ class SoplangShell:
                             eval_expr = var_value
                             for vname, vvalue in self.interpreter.variables.items():
                                 if (
-                                    isinstance(vvalue, (int, float))
-                                    and vname in eval_expr
+                                    isinstance(vvalue, (int, float)) and
+                                    vname in eval_expr
                                 ):
                                     eval_expr = eval_expr.replace(vname, str(vvalue))
 
@@ -369,8 +382,8 @@ class SoplangShell:
                                 eval_expr = var_value
                                 for vname, vvalue in self.interpreter.variables.items():
                                     if (
-                                        isinstance(vvalue, (int, float))
-                                        and vname in eval_expr
+                                        isinstance(vvalue, (int, float)) and
+                                        vname in eval_expr
                                     ):
                                         eval_expr = eval_expr.replace(
                                             vname, str(vvalue)
@@ -615,8 +628,8 @@ class SoplangShell:
                     )
                     print(f"\033[31m{error_msg}\033[0m")
                 elif (
-                    "local variable" in error_msg
-                    and "not associated with a value" in error_msg
+                    "local variable" in error_msg and
+                    "not associated with a value" in error_msg
                 ):
                     # This indicates an issue with module scope/imports
                     error_msg = ErrorMessageManager.get_runtime_error(
@@ -833,13 +846,17 @@ class SoplangShell:
 
     def print_welcome(self):
         """Print welcome message"""
-        print("\n\033[1;34m" + "=" * 50 + "\033[0m")
-        print("\033[1;34m        Soplang Interactive Shell\033[0m")
-        print("\033[1;34m" + "=" * 50 + "\033[0m")
-        print("Type Soplang code to execute it")
-        print("Type \033[1m:help\033[0m for a list of commands")
-        print("Type \033[1m:exit\033[0m to quit or press \033[1mCtrl+D\033[0m")
-        print("\033[1;34m" + "=" * 50 + "\033[0m")
+        # Use colorama constants for better Windows compatibility
+        print("")
+        print(f"{Fore.BLUE}{Style.BRIGHT}" + "=" * 50 + f"{Style.RESET_ALL}")
+        print(f"{Fore.BLUE}{Style.BRIGHT}          Soplang - The Somali Programming Language{Style.RESET_ALL}")
+        print(f"{Fore.BLUE}{Style.BRIGHT}" + "=" * 50 + f"{Style.RESET_ALL}")
+        print(f"Type Soplang code to execute it")
+        print(f"Type {Style.BRIGHT}:help{Style.RESET_ALL} for a list of commands")
+        print(
+            f"Type {Style.BRIGHT}:exit{Style.RESET_ALL} to quit or press {Style.BRIGHT}Ctrl+D{Style.RESET_ALL}")
+        print(f"{Fore.BLUE}{Style.BRIGHT}" + "=" * 50 + f"{Style.RESET_ALL}")
+        print("")
 
     def toggle_multiline(self, args):
         """Toggle multiline input mode"""

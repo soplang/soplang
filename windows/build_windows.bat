@@ -41,15 +41,31 @@ if not exist windows\soplang_icon.ico (
     echo. > windows\soplang_icon.ico
 )
 
-REM Create a virtual environment
-echo Creating virtual environment...
-python -m venv venv
-call venv\Scripts\activate.bat
+REM Remove existing venv if it exists
+if exist venv (
+    echo Removing existing virtual environment...
+    rmdir /s /q venv
+)
 
-REM Install dependencies
-echo Installing dependencies...
-pip install -r requirements.txt
-pip install pyinstaller pywin32 setuptools wheel
+REM Create a virtual environment with elevated permissions if needed
+echo Creating virtual environment...
+python -m venv venv 2>nul
+if %ERRORLEVEL% neq 0 (
+    echo Error creating virtual environment. Trying with admin rights...
+    powershell Start-Process python -ArgumentList "-m venv venv" -Verb RunAs -Wait
+)
+
+REM Activate the virtual environment
+echo Activating virtual environment...
+call venv\Scripts\activate.bat
+if %ERRORLEVEL% neq 0 (
+    echo Error activating environment. Please run this script with administrator privileges.
+    exit /b 1
+)
+
+REM Install Windows-specific dependencies
+echo Installing Windows-specific dependencies...
+pip install -r windows\requirements_windows.txt
 
 REM Install development package
 echo Installing Soplang in development mode...
