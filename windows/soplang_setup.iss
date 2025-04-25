@@ -10,6 +10,8 @@
 AppId={{F1C77F9E-F26A-4D23-9A8B-CF3D26AE5A18}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
+AppVerName={#MyAppName} Interpreter
+UninstallDisplayName={#MyAppName} Interpreter
 AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
@@ -29,8 +31,7 @@ VersionInfoDescription=Installer for {#MyAppName}
 VersionInfoCopyright=© 2025 {#MyAppPublisher}
 VersionInfoProductName={#MyAppName} Interpreter
 VersionInfoProductVersion={#MyAppVersion}
-AppVerName={#MyAppName} Interpreter
-UninstallDisplayName={#MyAppName} Interpreter
+
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -48,10 +49,10 @@ Source: "soplang_cmd.bat"; DestDir: "{app}"; Flags: ignoreversion
 Source: "soplang_launcher.bat"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
-Name: "{group}\Soplang Interpreter"; Filename: "{app}\soplang_launcher.bat"; IconFilename: "{app}\soplang_icon.ico"; Comment: "Run Soplang Interactive Shell"
-Name: "{group}\Soplang Command Prompt"; Filename: "{cmd}"; Parameters: "/k ""{app}\soplang_cmd.bat"""; IconFilename: "{app}\soplang_icon.ico"; Comment: "Open a command prompt with Soplang in the path"
+Name: "{group}\Soplang Interpreter"; Filename: "{app}\soplang_launcher.bat"; IconFilename: "{app}\soplang_icon.ico"; Comment: "Run Soplang Interactive Shell"; WorkingDir: "{app}"
+Name: "{group}\Soplang Command Prompt"; Filename: "{sys}\cmd.exe"; Parameters: "/k ""{app}\soplang_cmd.bat"""; IconFilename: "{app}\soplang_icon.ico"; Comment: "Open a command prompt with Soplang in the path"; WorkingDir: "{app}"
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
-Name: "{autodesktop}\Soplang Interpreter"; Filename: "{app}\soplang_launcher.bat"; IconFilename: "{app}\soplang_icon.ico"; Tasks: desktopicon
+Name: "{autodesktop}\Soplang Interpreter"; Filename: "{app}\soplang_launcher.bat"; IconFilename: "{app}\soplang_icon.ico"; Tasks: desktopicon; WorkingDir: "{app}"
 
 [Registry]
 ; Primary file extension (.sop)

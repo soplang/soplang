@@ -11,10 +11,12 @@ set "SOPLANG_HOME=%~dp0"
 REM Remove trailing backslash
 set "SOPLANG_HOME=%SOPLANG_HOME:~0,-1%"
 
-REM Store the current command line mode (interactive or not)
+REM Determine if running interactively (simpler method)
 set "IS_INTERACTIVE=0"
-echo %CMDCMDLINE% | findstr /C:"cmd.exe" >nul 2>&1
-if %ERRORLEVEL% equ 0 set "IS_INTERACTIVE=1"
+for /f "tokens=2" %%a in ("%CMDCMDLINE%") do (
+    if /i "%%~a" == "/c" set "IS_INTERACTIVE=0"
+    if /i "%%~a" == "/k" set "IS_INTERACTIVE=1"
+)
 
 REM Check if there are arguments
 if "%1"=="" (
@@ -27,7 +29,7 @@ if "%1"=="" (
         "%SOPLANG_HOME%\soplang.exe" "%~1"
         set LAST_ERROR=%ERRORLEVEL%
 
-        REM Only pause if launched from explorer (not command line) and there was an error
+        REM Only pause if not running interactively and there was an error
         if %IS_INTERACTIVE% equ 0 (
             if %LAST_ERROR% neq 0 (
                 echo.
