@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# Soplang Python Optimized Runner
+# This script runs the Python implementation with optimization flags
+
+# Get the directory where the script is located
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+# Set PYTHONPATH to include the script directory
+export PYTHONPATH="$SCRIPT_DIR"
+
+# Set Python optimization flags
+export PYTHONOPTIMIZE=2  # Maximum optimization level
+
+# Run the Python interpreter with optimizations
+python3 -O "$SCRIPT_DIR/main.py" "$@"

@@ -56,6 +56,20 @@ qor(salaam(magac))        // Prints: Salaan, Sharafdin!
 
 ## Installation
 
+### Universal Build Script
+
+The easiest way to build Soplang on any platform is to use the universal build script:
+
+```bash
+# Make the script executable (Unix systems)
+chmod +x build.sh
+
+# Run the script
+./build.sh
+```
+
+This script automatically detects your platform (Windows, Linux, or macOS) and runs the appropriate build script.
+
 ### Windows
 
 Windows users can download the installer from the [releases page](https://github.com/sharafdin/soplang/releases).
