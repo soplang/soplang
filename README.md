@@ -4,6 +4,8 @@
 
 Soplang is a programming language with syntax inspired by Somali language, making programming more accessible to Somali speakers. It uniquely combines static and dynamic typing systems in one elegant language with a focus on clarity and ease of use.
 
+**New to Soplang?** Check out our [comprehensive Installation Guide](docs/installation.md) for detailed setup instructions on all platforms.
+
 ## Features
 
 - **Powerful type system** - Combines both static typing (`tiro`, `qoraal`, etc.) and dynamic typing (`door`) in one language
@@ -56,79 +58,30 @@ qor(salaam(magac))        // Prints: Salaan, Sharafdin!
 
 ## Installation
 
-### Universal Build Script
+For detailed installation instructions, see the [Installation Guide](docs/installation.md).
 
-The easiest way to build Soplang on any platform is to use the universal build script:
+### Download Installers
 
-```bash
-# Make the script executable (Unix systems)
-chmod +x build.sh
+The easiest way to get started is to download a pre-built installer from our [releases page](https://github.com/sharafdin/soplang/releases).
 
-# Run the script
-./build.sh
-```
+### Building from Source
 
-This script automatically detects your platform (Windows, Linux, or macOS) and runs the appropriate build script.
+If you want to build Soplang from source, refer to the platform-specific build guides:
 
-### Windows
+- **Windows**: See the [Windows Build Guide](windows/WINDOWS_BUILD_GUIDE.md)
+- **Linux**: See the [Linux Build Guide](linux/README.md)
+- **macOS**: See the [macOS Build Guide](macos/README.md)
 
-Windows users can download the installer from the [releases page](https://github.com/sharafdin/soplang/releases).
-
-After installation:
-- Run Soplang from the Start menu
-- Double-click `.sop` or `.so` files to run them with Soplang
-- Use the `soplang` command from any Command Prompt
-
-For Windows developers who want to build the installer themselves, see the [Windows Build Guide](windows/WINDOWS_BUILD_GUIDE.md):
-
-```powershell
-# Clone the repository
-git clone https://github.com/sharafdin/soplang.git
-cd soplang/windows
-
-# Run the build script
-.\build_windows.ps1
-```
-
-### Linux
-
-Linux users can build and install Soplang using the provided build scripts:
+You can also use our universal build script that automatically detects your platform:
 
 ```bash
 # Clone the repository
 git clone https://github.com/sharafdin/soplang.git
-cd soplang/linux
+cd soplang
 
-# Make the build script executable
-chmod +x build_linux.sh
-
-# Run the build script
-./build_linux.sh
+# Run the universal build script
+./build.sh  # (may need chmod +x build.sh on Unix systems)
 ```
-
-This creates a Debian package (.deb) on Debian-based systems or an RPM package on Red Hat-based systems.
-
-For more details on Linux installation and customization, see the [Linux Build Guide](linux/README.md).
-
-### macOS
-
-macOS users can build and install Soplang as a native macOS application:
-
-```bash
-# Clone the repository
-git clone https://github.com/sharafdin/soplang.git
-cd soplang/macos
-
-# Make the build script executable
-chmod +x build_macos.sh
-
-# Run the build script
-./build_macos.sh
-```
-
-This creates a macOS application bundle and optionally a disk image (.dmg) for easy distribution.
-
-For more details on macOS installation and customization, see the [macOS Build Guide](macos/README.md).
 
 ## Development
 
