@@ -12,7 +12,7 @@ Soplang is a programming language with syntax inspired by Somali language, makin
 - **Type safety** - enforces type checking at runtime
 - **Interpreter-based** - easy to run on any platform with Python
 - **Interactive shell** - REPL for quick experimentation
-- **Windows installer** - dedicated installer for Windows users
+- **Cross-platform** - dedicated installers for Windows, Linux, and macOS
 - **File extensions** - uses `.sop` (primary) and `.so` (secondary) file extensions
 
 ## Example
@@ -56,7 +56,6 @@ qor(salaam(magac))        // Prints: Salaan, Sharafdin!
 
 ## Installation
 
-
 ### Windows
 
 Windows users can download the installer from the [releases page](https://github.com/sharafdin/soplang/releases).
@@ -76,6 +75,46 @@ cd soplang/windows
 # Run the build script
 .\build_windows.ps1
 ```
+
+### Linux
+
+Linux users can build and install Soplang using the provided build scripts:
+
+```bash
+# Clone the repository
+git clone https://github.com/sharafdin/soplang.git
+cd soplang/linux
+
+# Make the build script executable
+chmod +x build_linux.sh
+
+# Run the build script
+./build_linux.sh
+```
+
+This creates a Debian package (.deb) on Debian-based systems or an RPM package on Red Hat-based systems.
+
+For more details on Linux installation and customization, see the [Linux Build Guide](linux/README.md).
+
+### macOS
+
+macOS users can build and install Soplang as a native macOS application:
+
+```bash
+# Clone the repository
+git clone https://github.com/sharafdin/soplang.git
+cd soplang/macos
+
+# Make the build script executable
+chmod +x build_macos.sh
+
+# Run the build script
+./build_macos.sh
+```
+
+This creates a macOS application bundle and optionally a disk image (.dmg) for easy distribution.
+
+For more details on macOS installation and customization, see the [macOS Build Guide](macos/README.md).
 
 ## Development
 
