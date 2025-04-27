@@ -95,9 +95,14 @@ jobs:
           echo "| Linux    | [soplang-${{ env.VERSION_NUM }}-linux.deb](replace_with_actual_link)   | TBD |" >> release_template.md
           echo "| macOS    | [soplang-${{ env.VERSION_NUM }}-macos.dmg](replace_with_actual_link)   | TBD |" >> release_template.md
           echo "" >> release_template.md
-          echo "## 📋 Changelog" >> release_template.md
-          echo "" >> release_template.md
-          echo "$CHANGELOG_CONTENT" >> release_template.md
+
+          # Note: Removed the "## 📋 Changelog" heading to avoid duplication
+          # The actual changelog content should be displayed directly
+
+          # Process the changelog content to add GitHub username links
+          PROCESSED_CHANGELOG=$(echo "$CHANGELOG_CONTENT" | sed -E 's/\[Mr Sharafdin\]/\[@sharafdin\]\(https:\/\/github.com\/sharafdin\)/g')
+
+          echo "$PROCESSED_CHANGELOG" >> release_template.md
           echo "" >> release_template.md
           echo "## 📝 Release Checklist" >> release_template.md
           echo "" >> release_template.md

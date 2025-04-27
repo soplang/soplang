@@ -91,6 +91,27 @@ For best changelog generation, use conventional commit messages:
 - `build: update build process` - Appears in the "Build" section
 - `remove: remove feature` - Appears in the "Removed" section
 
+### Attribution and GitHub Links
+
+For proper attribution in the changelog and release notes:
+
+1. Ensure your git config has your GitHub username as the author name:
+   ```bash
+   git config --global user.name "sharafdin"
+   ```
+
+2. In commit messages, you can manually add attribution like:
+   ```
+   feat: add error messages [@sharafdin](https://github.com/sharafdin)
+   ```
+
+3. The automated changelog will create GitHub links for authors in the format:
+   ```
+   [@username](https://github.com/username)
+   ```
+
+4. When editing the release notes, ensure usernames are properly linked if the automation doesn't catch them
+
 ## Troubleshooting
 
 If the automated release process fails:

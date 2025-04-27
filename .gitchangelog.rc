@@ -44,6 +44,10 @@ subject_process = (strip |
                    ReSub(r'^([^:]*):(\s*)(.*)$', r'**\1:**\2\3') |
                    strip)
 
+# Process author names to include GitHub links
+# Note: This assumes the author name in commits matches the GitHub username
+author_format = "[@%(author_name)s](https://github.com/%(author_name)s)"
+
 # Format for the different body parts
 body_process = (strip |
                 ReSub(r'((^|\n)[A-Z]\w+(-\w+)*: .*(\n\s+.*)*)+$', r'') |
