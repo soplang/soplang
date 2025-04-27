@@ -63,6 +63,7 @@ include_details = False
 author_transforms = {
     "Mr Sharafdin": "sharafdin",
     "Sharafdin": "sharafdin",
+    # Add more username mappings as needed
 }
 
 # Ignore specific commits (e.g., merge commits)
