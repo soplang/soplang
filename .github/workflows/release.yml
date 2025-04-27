@@ -55,16 +55,32 @@ jobs:
             echo "" >> CHANGELOG.md
             echo "All notable changes to this project will be documented in this file." >> CHANGELOG.md
             echo "" >> CHANGELOG.md
+            echo "FIRST_RUN=true" >> $GITHUB_ENV
+          else
+            echo "FIRST_RUN=false" >> $GITHUB_ENV
           fi
 
           # Generate changelog for the current version
           PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
           if [ -z "$PREV_TAG" ]; then
             # No previous tag, generate changelog from the beginning
-            CHANGELOG_CONTENT=$(gitchangelog HEAD)
+            echo "No previous tag found, generating changelog from first commit"
+            FIRST_COMMIT=$(git rev-list --max-parents=0 HEAD)
+            CHANGELOG_CONTENT=$(gitchangelog $FIRST_COMMIT..HEAD || echo "- Initial release")
+
+            # For first release with no tags, force CHANGELOG_CHANGED to true
+            echo "CHANGELOG_FORCED=true" >> $GITHUB_ENV
           else
             # Generate changelog since the last tag
-            CHANGELOG_CONTENT=$(gitchangelog $PREV_TAG..HEAD)
+            echo "Generating changelog since tag $PREV_TAG"
+            CHANGELOG_CONTENT=$(gitchangelog $PREV_TAG..HEAD || echo "- No notable changes")
+            echo "CHANGELOG_FORCED=false" >> $GITHUB_ENV
+          fi
+
+          # If we got no content from gitchangelog, provide a default entry
+          if [ -z "$CHANGELOG_CONTENT" ]; then
+            echo "No changelog content generated, using default"
+            CHANGELOG_CONTENT="### Added\n- Initial release of Soplang ${{ env.VERSION }}"
           fi
 
           # Create a new changelog entry
@@ -96,9 +112,6 @@ jobs:
           echo "| macOS    | [soplang-${{ env.VERSION_NUM }}-macos.dmg](replace_with_actual_link)   | TBD |" >> release_template.md
           echo "" >> release_template.md
 
-          # Note: Removed the "## 📋 Changelog" heading to avoid duplication
-          # The actual changelog content should be displayed directly
-
           # Process the changelog content to add GitHub username links
           PROCESSED_CHANGELOG=$(echo "$CHANGELOG_CONTENT" | sed -E 's/\[Mr Sharafdin\]/\[@sharafdin\]\(https:\/\/github.com\/sharafdin\)/g')
 
@@ -121,7 +134,7 @@ jobs:
           echo "EOF" >> $GITHUB_ENV
 
           # Check if CHANGELOG.md changed
-          if [[ $(git status --porcelain CHANGELOG.md | wc -l) -gt 0 ]]; then
+          if [[ $(git status --porcelain CHANGELOG.md | wc -l) -gt 0 || "${{ env.FIRST_RUN }}" == "true" || "${{ env.CHANGELOG_FORCED }}" == "true" ]]; then
             echo "CHANGELOG_CHANGED=true" >> $GITHUB_ENV
           else
             echo "CHANGELOG_CHANGED=false" >> $GITHUB_ENV
@@ -131,11 +144,21 @@ jobs:
       - name: Commit updated changelog
         if: env.CHANGELOG_CHANGED == 'true'
         run: |
+          echo "Changelog changed, committing updates..."
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git add CHANGELOG.md
           git commit -m "chore: update changelog for ${{ env.VERSION }}"
           git push
+          echo "Changelog committed and pushed successfully"
+
+      - name: Debug changelog status
+        run: |
+          echo "CHANGELOG_CHANGED: ${{ env.CHANGELOG_CHANGED }}"
+          echo "FIRST_RUN: ${{ env.FIRST_RUN }}"
+          echo "CHANGELOG_FORCED: ${{ env.CHANGELOG_FORCED }}"
+          echo "CHANGELOG.md status:"
+          git status --porcelain CHANGELOG.md
 
       # Create a Draft GitHub Release
       - name: Create git tag
