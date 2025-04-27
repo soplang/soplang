@@ -83,49 +83,29 @@ jobs:
             CHANGELOG_CONTENT="### Added\n- Initial release of Soplang ${{ env.VERSION }}"
           fi
 
-          # Process the changelog content to add GitHub username links
-          # This ensures usernames are properly linked in the CHANGELOG.md file
-          PROCESSED_CHANGELOG=$(echo "$CHANGELOG_CONTENT" | sed -E 's/\[Mr Sharafdin\]/\[@sharafdin\]\(https:\/\/github.com\/sharafdin\)/g')
-
-          # Remove "(unreleased)" text which causes confusion
-          PROCESSED_CHANGELOG=$(echo "$PROCESSED_CHANGELOG" | sed -E 's/\(unreleased\)//g')
-
           # Create a new changelog entry
           echo "## [${{ env.VERSION }}] - $(date +'%Y-%m-%d')" > changelog_entry.md
           echo "" >> changelog_entry.md
-          echo "$PROCESSED_CHANGELOG" >> changelog_entry.md
+          echo "$CHANGELOG_CONTENT" >> changelog_entry.md
           echo "" >> changelog_entry.md
 
-          # Check if CHANGELOG.md already has an Unreleased section
+          # Check if Unreleased section already exists
           if grep -q "## \[Unreleased\]" CHANGELOG.md; then
-            echo "Found existing Unreleased section, inserting after it"
-            # Generate a temporary file with the new content
-            NEW_VERSION_ENTRY="## [${{ env.VERSION }}] - $(date +'%Y-%m-%d')"
-            echo "$NEW_VERSION_ENTRY" > version_header.tmp
-            echo "" >> version_header.tmp
-            echo "$PROCESSED_CHANGELOG" >> version_header.tmp
-
-            # Use a more YAML-friendly approach to insert after Unreleased section
-            awk '/## \[Unreleased\]/{print; getline; if ($0 == "") print ""; system("cat version_header.tmp"); next}1' CHANGELOG.md > CHANGELOG.tmp
-            mv CHANGELOG.tmp CHANGELOG.md
-            rm version_header.tmp
+            echo "Unreleased section already exists, updating existing changelog structure"
+            # Insert new entry after the Unreleased section
+            sed -i "/## \[Unreleased\]/r changelog_entry.md" CHANGELOG.md
           else
-            echo "No existing Unreleased section, creating new format"
-            # Create a temporary file for the unreleased and new version
-            echo "## [Unreleased]" > header.tmp
-            echo "" >> header.tmp
-            echo "## [${{ env.VERSION }}] - $(date +'%Y-%m-%d')" >> header.tmp
-            echo "" >> header.tmp
-            echo "$PROCESSED_CHANGELOG" >> header.tmp
-
-            # Insert after line 4 (after header text)
-            sed -i '4r header.tmp' CHANGELOG.md
-            rm header.tmp
+            echo "No Unreleased section found, creating standard structure"
+            # Insert the new entry and create Unreleased section
+            awk 'NR==4{print "## [Unreleased]\n"}1' CHANGELOG.md > temp_changelog
+            sed -i '4 r changelog_entry.md' temp_changelog
+            mv temp_changelog CHANGELOG.md
           fi
 
           # Save the changelog entry for the release notes
+          CHANGELOG_ONLY=$(cat changelog_entry.md)
           echo "CHANGELOG_ONLY<<EOF" >> $GITHUB_ENV
-          echo "$PROCESSED_CHANGELOG" >> $GITHUB_ENV
+          echo "$CHANGELOG_ONLY" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
 
           # Create release template with download table and checklist
@@ -139,6 +119,13 @@ jobs:
           echo "| Linux    | [soplang-${{ env.VERSION_NUM }}-linux.deb](replace_with_actual_link)   | TBD |" >> release_template.md
           echo "| macOS    | [soplang-${{ env.VERSION_NUM }}-macos.dmg](replace_with_actual_link)   | TBD |" >> release_template.md
           echo "" >> release_template.md
+
+          # Process the changelog content to add GitHub username links
+          # More comprehensive pattern matching for various username formats
+          PROCESSED_CHANGELOG=$(echo "$CHANGELOG_CONTENT" | sed -E \
+            -e 's/\[Mr Sharafdin\]/[@sharafdin](https:\/\/github.com\/sharafdin)/g' \
+            -e 's/\[Sharafdin\]/[@sharafdin](https:\/\/github.com\/sharafdin)/g' \
+            -e 's/\[(Mr )?([A-Za-z0-9_-]+)\]/[@\2](https:\/\/github.com\/\2)/g')
 
           echo "$PROCESSED_CHANGELOG" >> release_template.md
           echo "" >> release_template.md

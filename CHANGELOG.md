@@ -16,9 +16,3 @@ All notable changes to this project will be documented in this file.
 
 ### Completed
 - Completed the initial interpreter for Soplang.
-
----
-
-## [Unreleased]
-
-- (No changes yet)

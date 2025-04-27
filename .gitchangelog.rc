@@ -53,6 +53,18 @@ body_process = (strip |
                 ReSub(r'((^|\n)[A-Z]\w+(-\w+)*: .*(\n\s+.*)*)+$', r'') |
                 strip)
 
+# Additional transformations for consistency
+revs_file_encoding = 'utf-8'
+output_encoding = 'utf-8'
+include_merge = False
+include_details = False
+
+# Manually transform specific names for consistent GitHub linking
+author_transforms = {
+    "Mr Sharafdin": "sharafdin",
+    "Sharafdin": "sharafdin",
+}
+
 # Ignore specific commits (e.g., merge commits)
 ignore_regexps = [
     r'@minor', r'!minor',
