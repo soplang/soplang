@@ -133,7 +133,7 @@ jobs:
           body: ${{ env.RELEASE_NOTES }}
           draft: false
           prerelease: false
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.Soplang_Release_Token  }}
 
       - name: Release status
         run: |
