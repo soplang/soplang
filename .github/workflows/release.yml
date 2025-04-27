@@ -122,20 +122,15 @@ jobs:
             echo "CHANGELOG_CHANGED=false" >> $GITHUB_ENV
           fi
 
-      # Modified approach for updating CHANGELOG.md - create a PR instead of direct push
-      - name: Create Pull Request for changelog update
+      # Use direct commit approach with proper GitHub bot identity
+      - name: Commit updated changelog
         if: env.CHANGELOG_CHANGED == 'true'
-        uses: peter-evans/create-pull-request@v5
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "chore: update changelog for ${{ env.VERSION }}"
-          title: "Update CHANGELOG for ${{ env.VERSION }}"
-          body: |
-            Automated changelog update for version ${{ env.VERSION }}
-
-            This PR was created automatically by the release workflow.
-          branch: changelog-update-${{ env.VERSION }}
-          base: ${{ github.ref }}
+        run: |
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add CHANGELOG.md
+          git commit -m "chore: update changelog for ${{ env.VERSION }}"
+          git push
 
       # Create a Draft GitHub Release
       - name: Create git tag
@@ -158,6 +153,6 @@ jobs:
       - name: Release status
         run: |
           echo "✅ Release ${{ env.VERSION }} draft created successfully!"
-          echo "  - Created a PR to update the changelog"
+          echo "  - Changelog updated with direct commit"
           echo "  - GitHub Release draft created with tag ${{ env.VERSION }}"
           echo "  - Please upload binaries manually and publish the release"
