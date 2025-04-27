@@ -104,6 +104,10 @@ make format
 make help
 ```
 
+## Releases
+
+Soplang uses an automated release process powered by GitHub Actions. For details on creating releases, see our [Release Process Documentation](docs/RELEASE_PROCESS.md).
+
 ## Contributing
 
 Contributions are welcome! See our [Contributing Guide](docs/CONTRIBUTING.md) for details on how to get started.

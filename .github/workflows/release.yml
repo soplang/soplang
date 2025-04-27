@@ -1,0 +1,143 @@
+name: Soplang Release Automation
+
+on:
+  push:
+    branches:
+      - "release/v*"
+
+jobs:
+  release-process:
+    name: Automated Release Process
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # Fetch all history for changelog generation
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.x"
+
+      - name: Extract version from branch name
+        id: extract_version
+        run: |
+          BRANCH_NAME=${GITHUB_REF#refs/heads/}
+          VERSION=${BRANCH_NAME#release/}
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "Version extracted: $VERSION"
+
+      # Step 1: Build the project
+      - name: Build Soplang
+        run: |
+          # Install build dependencies
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+          # Build the project
+          # Using build.sh as the universal build script
+          chmod +x build.sh
+          ./build.sh
+
+          # Check if any files changed during the build
+          if [[ $(git status --porcelain | wc -l) -gt 0 ]]; then
+            echo "BUILD_CHANGES=true" >> $GITHUB_ENV
+          else
+            echo "BUILD_CHANGES=false" >> $GITHUB_ENV
+          fi
+
+      - name: Commit build artifacts
+        if: env.BUILD_CHANGES == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .
+          git commit -m "build: build for ${{ env.VERSION }}"
+          git push
+
+      # Step 2: Update the CHANGELOG.md file
+      - name: Install changelog generator
+        run: |
+          pip install gitchangelog pystache
+          echo "Using gitchangelog for changelog generation"
+
+      - name: Create or update CHANGELOG.md
+        id: changelog
+        run: |
+          # Check if CHANGELOG.md exists, create it if it doesn't
+          if [ ! -f CHANGELOG.md ]; then
+            echo "# CHANGELOG" > CHANGELOG.md
+            echo "" >> CHANGELOG.md
+            echo "All notable changes to this project will be documented in this file." >> CHANGELOG.md
+            echo "" >> CHANGELOG.md
+          fi
+
+          # Generate changelog for the current version
+          PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -z "$PREV_TAG" ]; then
+            # No previous tag, generate changelog from the beginning
+            CHANGELOG_CONTENT=$(gitchangelog HEAD)
+          else
+            # Generate changelog since the last tag
+            CHANGELOG_CONTENT=$(gitchangelog $PREV_TAG..HEAD)
+          fi
+
+          # Create a new changelog entry
+          echo "## [${{ env.VERSION }}] - $(date +'%Y-%m-%d')" > changelog_entry.md
+          echo "" >> changelog_entry.md
+          echo "$CHANGELOG_CONTENT" >> changelog_entry.md
+          echo "" >> changelog_entry.md
+
+          # Insert the new entry after the header
+          awk 'NR==4{print "## [Unreleased]\n"}1' CHANGELOG.md > temp_changelog
+          sed -i '4 r changelog_entry.md' temp_changelog
+          mv temp_changelog CHANGELOG.md
+
+          # Save the changelog entry for the release notes
+          RELEASE_NOTES=$(cat changelog_entry.md)
+          echo "RELEASE_NOTES<<EOF" >> $GITHUB_ENV
+          echo "$RELEASE_NOTES" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+          # Check if CHANGELOG.md changed
+          if [[ $(git status --porcelain CHANGELOG.md | wc -l) -gt 0 ]]; then
+            echo "CHANGELOG_CHANGED=true" >> $GITHUB_ENV
+          else
+            echo "CHANGELOG_CHANGED=false" >> $GITHUB_ENV
+          fi
+
+      - name: Commit updated changelog
+        if: env.CHANGELOG_CHANGED == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add CHANGELOG.md
+          git commit -m "chore: update changelog for ${{ env.VERSION }}"
+          git push
+
+      # Step 3: Create a GitHub Release
+      - name: Create git tag
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git tag -a ${{ env.VERSION }} -m "Release ${{ env.VERSION }}"
+          git push origin ${{ env.VERSION }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ env.VERSION }}
+          name: "Release ${{ env.VERSION }}"
+          body: ${{ env.RELEASE_NOTES }}
+          draft: false
+          prerelease: false
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Release status
+        run: |
+          echo "✅ Release ${{ env.VERSION }} completed successfully!"
+          echo "  - Build artifacts committed (if changes were detected)"
+          echo "  - Changelog updated"
+          echo "  - GitHub Release created with tag ${{ env.VERSION }}"

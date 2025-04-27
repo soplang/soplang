@@ -1,0 +1,62 @@
+## gitchangelog.rc
+
+# Output format
+output_engine = mustache("markdown")
+
+# Tag format
+tag_filter_regexp = r'^v[0-9]+\.[0-9]+\.[0-9]+$'
+
+# Section mapping (based on commit message prefixes)
+section_regexps = [
+    ('Added', [
+        r'^feat:',
+        r'^add:',
+        r'^feature:',
+    ]),
+    ('Fixed', [
+        r'^fix:',
+        r'^bug:',
+        r'^bugfix:',
+    ]),
+    ('Changed', [
+        r'^change:',
+        r'^refactor:',
+        r'^perf:',
+        r'^performance:',
+    ]),
+    ('Documentation', [
+        r'^doc:',
+        r'^docs:'
+    ]),
+    ('Build', [
+        r'^build:',
+        r'^ci:',
+    ]),
+    ('Removed', [
+        r'^remove:',
+        r'^chore\(remove\):',
+    ]),
+    ('Other', None),  # Match all other commits
+]
+
+# Commit message transformations
+subject_process = (strip |
+                   ReSub(r'^([^:]*):(\s*)(.*)$', r'**\1:**\2\3') |
+                   strip)
+
+# Format for the different body parts
+body_process = (strip |
+                ReSub(r'((^|\n)[A-Z]\w+(-\w+)*: .*(\n\s+.*)*)+$', r'') |
+                strip)
+
+# Ignore specific commits (e.g., merge commits)
+ignore_regexps = [
+    r'@minor', r'!minor',
+    r'@cosmetic', r'!cosmetic',
+    r'@refactor', r'!refactor',
+    r'^Merge branch',
+    r'^Merge pull request',
+    r'^Merge remote-tracking branch',
+    r'^Merged in',
+    r'^Revert ',
+]
