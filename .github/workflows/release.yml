@@ -6,8 +6,8 @@ on:
       - "release/v*"
 
 jobs:
-  release-process:
-    name: Automated Release Process
+  draft-release:
+    name: Draft Release Process
     runs-on: ubuntu-latest
 
     steps:
@@ -26,41 +26,13 @@ jobs:
         run: |
           BRANCH_NAME=${GITHUB_REF#refs/heads/}
           VERSION=${BRANCH_NAME#release/}
+          # Remove v prefix if present (for file naming)
+          VERSION_NUM=${VERSION#v}
           echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "Version extracted: $VERSION"
+          echo "VERSION_NUM=$VERSION_NUM" >> $GITHUB_ENV
+          echo "Version extracted: $VERSION (number: $VERSION_NUM)"
 
-      # Step 1: Build the project
-      - name: Build Soplang
-        run: |
-          # Install build dependencies
-          python -m pip install --upgrade pip
-
-          # Filter out readline from requirements.txt for the GitHub Actions environment
-          grep -v "readline" requirements.txt > github_requirements.txt
-          pip install -r github_requirements.txt
-
-          # Build the project
-          # Using build.sh as the universal build script
-          chmod +x build.sh
-          ./build.sh
-
-          # Check if any files changed during the build
-          if [[ $(git status --porcelain | wc -l) -gt 0 ]]; then
-            echo "BUILD_CHANGES=true" >> $GITHUB_ENV
-          else
-            echo "BUILD_CHANGES=false" >> $GITHUB_ENV
-          fi
-
-      - name: Commit build artifacts
-        if: env.BUILD_CHANGES == 'true'
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add .
-          git commit -m "build: build for ${{ env.VERSION }}"
-          git push
-
-      # Step 2: Update the CHANGELOG.md file
+      # Update the CHANGELOG.md file
       - name: Install changelog generator
         run: |
           pip install gitchangelog pystache
@@ -99,9 +71,40 @@ jobs:
           mv temp_changelog CHANGELOG.md
 
           # Save the changelog entry for the release notes
-          RELEASE_NOTES=$(cat changelog_entry.md)
-          echo "RELEASE_NOTES<<EOF" >> $GITHUB_ENV
-          echo "$RELEASE_NOTES" >> $GITHUB_ENV
+          CHANGELOG_ONLY=$(cat changelog_entry.md)
+          echo "CHANGELOG_ONLY<<EOF" >> $GITHUB_ENV
+          echo "$CHANGELOG_ONLY" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+          # Create release template with download table and checklist
+          echo "# 🚀 Soplang ${{ env.VERSION }} Release" > release_template.md
+          echo "" >> release_template.md
+          echo "## 🛠️ Downloads" >> release_template.md
+          echo "" >> release_template.md
+          echo "| Platform | File | Checksum |" >> release_template.md
+          echo "|----------|------|----------|" >> release_template.md
+          echo "| Windows  | [soplang-${{ env.VERSION_NUM }}-windows.exe](replace_with_actual_link) | TBD |" >> release_template.md
+          echo "| Linux    | [soplang-${{ env.VERSION_NUM }}-linux.deb](replace_with_actual_link)   | TBD |" >> release_template.md
+          echo "| macOS    | [soplang-${{ env.VERSION_NUM }}-macos.dmg](replace_with_actual_link)   | TBD |" >> release_template.md
+          echo "" >> release_template.md
+          echo "## 📋 Changelog" >> release_template.md
+          echo "" >> release_template.md
+          echo "$CHANGELOG_CONTENT" >> release_template.md
+          echo "" >> release_template.md
+          echo "## 📝 Release Checklist" >> release_template.md
+          echo "" >> release_template.md
+          echo "- [ ] Build Windows binary (soplang-${{ env.VERSION_NUM }}-windows.exe)" >> release_template.md
+          echo "- [ ] Build Linux binary (soplang-${{ env.VERSION_NUM }}-linux.deb)" >> release_template.md
+          echo "- [ ] Build macOS binary (soplang-${{ env.VERSION_NUM }}-macos.dmg)" >> release_template.md
+          echo "- [ ] Upload all binaries as assets" >> release_template.md
+          echo "- [ ] Calculate and add SHA256 checksums to the table" >> release_template.md
+          echo "- [ ] Remove this checklist section" >> release_template.md
+          echo "- [ ] Publish the release" >> release_template.md
+
+          # Save full release template for the draft
+          RELEASE_TEMPLATE=$(cat release_template.md)
+          echo "RELEASE_TEMPLATE<<EOF" >> $GITHUB_ENV
+          echo "$RELEASE_TEMPLATE" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
 
           # Check if CHANGELOG.md changed
@@ -120,7 +123,7 @@ jobs:
           git commit -m "chore: update changelog for ${{ env.VERSION }}"
           git push
 
-      # Step 3: Create a GitHub Release
+      # Create a Draft GitHub Release
       - name: Create git tag
         run: |
           git config --local user.email "action@github.com"
@@ -128,18 +131,19 @@ jobs:
           git tag -a ${{ env.VERSION }} -m "Release ${{ env.VERSION }}"
           git push origin ${{ env.VERSION }}
 
-      - name: Create GitHub Release
+      - name: Create GitHub Draft Release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ env.VERSION }}
-          name: "Release ${{ env.VERSION }}"
-          body: ${{ env.RELEASE_NOTES }}
-          draft: false
+          name: "Soplang ${{ env.VERSION }}"
+          body: ${{ env.RELEASE_TEMPLATE }}
+          draft: true
           prerelease: false
           token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Release status
         run: |
-          echo "✅ Release ${{ env.VERSION }} completed successfully!"
-          echo "  - Build artifacts committed (if changes were detected)"
+          echo "✅ Release ${{ env.VERSION }} draft created successfully!"
           echo "  - Changelog updated"
-          echo "  - GitHub Release created with tag ${{ env.VERSION }}"
+          echo "  - GitHub Release draft created with tag ${{ env.VERSION }}"
+          echo "  - Please upload binaries manually and publish the release"

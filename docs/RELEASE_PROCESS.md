@@ -1,12 +1,19 @@
 # Soplang Release Process
 
-This document outlines the automated release process for Soplang.
+This document outlines the semi-automated release process for Soplang.
 
-## Automated Release Workflow
+## Release Workflow Overview
 
-Soplang uses GitHub Actions to automate the release process. The workflow is triggered when code is pushed to a branch that matches the pattern `release/v*` (e.g., `release/v1.2.0`).
+Soplang uses a combination of manual binary building and automated release drafting:
 
-### How to Create a Release
+1. **Manual Building**: Binaries for Windows, Linux, and macOS are built manually by the development team
+2. **Automated Draft Creation**: GitHub Actions creates a draft release with appropriate templates
+3. **Manual Asset Upload**: Binaries are uploaded to the draft release
+4. **Manual Publishing**: The release is reviewed and published by a team member
+
+## Creating a Release
+
+### Step 1: Create a Release Branch
 
 1. Create a new branch from `main` using the naming convention `release/vX.Y.Z` (e.g., `release/v0.2.0`):
    ```bash
@@ -22,38 +29,58 @@ Soplang uses GitHub Actions to automate the release process. The workflow is tri
    git push origin release/v0.2.0
    ```
 
-4. The GitHub Actions workflow will automatically:
-   - Build the project
-   - Update the CHANGELOG.md
-   - Create a GitHub release with the appropriate tag
+4. This will trigger the GitHub Actions workflow to:
+   - Update the CHANGELOG.md with entries since the last release
+   - Create a git tag for the release
+   - Draft a GitHub release with a template for the release notes
 
-5. After the workflow completes successfully, merge the release branch back to main:
+### Step 2: Build Platform-Specific Binaries
+
+After the GitHub Action completes, build the binaries for each platform:
+
+1. **Windows Binary**:
    ```bash
-   git checkout main
-   git merge release/v0.2.0
-   git push origin main
+   cd windows
+   ./build_windows.ps1  # Or build_windows.bat
    ```
+   This will create `windows/Output/soplang-setup.exe`
 
-## Workflow Details
+2. **Linux Binary**:
+   ```bash
+   cd linux
+   ./build_linux.sh
+   ```
+   This will create `linux/soplang_<version>_amd64.deb` (or .rpm)
 
-The automated release process performs the following steps:
+3. **macOS Binary**:
+   ```bash
+   cd macos
+   ./build_macos.sh
+   ```
+   This will create `macos/Soplang-<version>.dmg`
 
-1. **Build the project**
-   - Builds Soplang using the universal build script
-   - Commits any modified files resulting from the build process
+### Step 3: Upload Binaries and Publish the Release
 
-2. **Update the changelog**
-   - Creates CHANGELOG.md if it doesn't exist
-   - Generates a changelog entry based on commits since the last release
-   - Commits the updated changelog
+1. Go to the "Releases" section on GitHub
+2. Find the draft release created by the workflow
+3. Upload the binaries you built as assets
+4. Update the download links in the release description
+5. Calculate and add SHA256 checksums for each file
+6. Remove the checklist section
+7. Review the release and publish it
 
-3. **Create a GitHub release**
-   - Tags the repository with the version number
-   - Creates a GitHub release using the changelog as release notes
+### Step 4: Merge the Release Branch
+
+After the release is published, merge the release branch back to main:
+```bash
+git checkout main
+git merge release/v0.2.0
+git push origin main
+```
 
 ## Commit Message Format
 
-To ensure the changelog is generated correctly, use conventional commit messages:
+For best changelog generation, use conventional commit messages:
 
 - `feat: add new feature` - Appears in the "Added" section
 - `fix: fix a bug` - Appears in the "Fixed" section
@@ -62,15 +89,6 @@ To ensure the changelog is generated correctly, use conventional commit messages
 - `build: update build process` - Appears in the "Build" section
 - `remove: remove feature` - Appears in the "Removed" section
 
-## Manual Release Process
-
-If you need to create a release manually:
-
-1. Build the project
-2. Update the CHANGELOG.md
-3. Commit and tag the release
-4. Create a GitHub release with the appropriate tag
-
 ## Troubleshooting
 
 If the automated release process fails:
@@ -78,3 +96,8 @@ If the automated release process fails:
 1. Check the GitHub Actions logs for error details
 2. Make the necessary corrections
 3. Push the changes to the release branch to trigger the workflow again
+
+If you need to make a manual release entirely:
+1. Follow steps 1-3 in the "Creating a Release" section
+2. Manually create a GitHub release with the appropriate tag
+3. Add the changelog content and file information manually
