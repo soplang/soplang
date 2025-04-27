@@ -4,12 +4,13 @@ This document outlines the semi-automated release process for Soplang.
 
 ## Release Workflow Overview
 
-Soplang uses a combination of manual binary building and automated release drafting:
+Soplang uses a combination of manual binary building and automated processes:
 
 1. **Manual Building**: Binaries for Windows, Linux, and macOS are built manually by the development team
-2. **Automated Draft Creation**: GitHub Actions creates a draft release with appropriate templates
-3. **Manual Asset Upload**: Binaries are uploaded to the draft release
-4. **Manual Publishing**: The release is reviewed and published by a team member
+2. **Automated Docker Images**: Docker images are automatically built and pushed to Docker Hub and GitHub Container Registry
+3. **Automated Draft Creation**: GitHub Actions creates a draft release with appropriate templates
+4. **Manual Asset Upload**: Binaries are uploaded to the draft release
+5. **Manual Publishing**: The release is reviewed and published by a team member
 
 ## Creating a Release
 
@@ -68,12 +69,25 @@ After the GitHub Action completes, build the binaries for each platform:
 3. Upload the binaries you built as assets
 4. Update the download links in the release description
 5. Calculate and add SHA256 checksums for each file
-6. Remove the checklist section
-7. Review the release and publish it
+6. Verify that Docker images have been built and pushed successfully
+7. Remove the checklist section
+8. Review the release and publish it
 
-### Step 4: Merge the Release Branch
+### Step 4: Verify Docker Image Deployment
 
-After the release is published, merge the release branch back to main:
+After publishing the release, the Docker workflow will automatically build and push Docker images:
+
+1. Verify that the images have been pushed to Docker Hub at [soplang/soplang](https://hub.docker.com/r/soplang/soplang)
+2. Verify that the images have been pushed to GitHub Container Registry at [ghcr.io/soplang/soplang](https://github.com/soplang/soplang/pkgs/container/soplang)
+3. Test the Docker images by running:
+   ```bash
+   docker pull soplang/soplang:latest
+   docker run -it --rm soplang/soplang -v
+   ```
+
+### Step 5: Merge the Release Branch
+
+After the release is published and verified, merge the release branch back to main:
 ```bash
 git checkout main
 git merge release/v0.2.0
@@ -112,6 +126,17 @@ For proper attribution in the changelog and release notes:
 
 4. When editing the release notes, ensure usernames are properly linked if the automation doesn't catch them
 
+## Docker Image Tagging
+
+The Docker automation will create the following tags:
+
+1. Full version: `soplang/soplang:0.2.0`
+2. Minor version: `soplang/soplang:0.2`
+3. Major version: `soplang/soplang:0`
+4. Latest tag: `soplang/soplang:latest` (only on main branch)
+
+The same tags are also created in the GitHub Container Registry with the prefix `ghcr.io/soplang/`.
+
 ## Troubleshooting
 
 If the automated release process fails:
@@ -120,7 +145,7 @@ If the automated release process fails:
 2. Make the necessary corrections
 3. Push the changes to the release branch to trigger the workflow again
 
-If you need to make a manual release entirely:
-1. Follow steps 1-3 in the "Creating a Release" section
-2. Manually create a GitHub release with the appropriate tag
-3. Add the changelog content and file information manually
+If Docker image building fails:
+1. Check the Docker workflow logs in the GitHub Actions tab
+2. Common issues include permission problems or missing secrets
+3. Ensure `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` secrets are configured in the repository

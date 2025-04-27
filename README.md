@@ -15,6 +15,7 @@ Soplang is a programming language with syntax inspired by Somali language, makin
 - **Interpreter-based** - easy to run on any platform with Python
 - **Interactive shell** - REPL for quick experimentation
 - **Cross-platform** - dedicated installers for Windows, Linux, and macOS
+- **Docker support** - run anywhere with Docker without installation
 - **File extensions** - uses `.sop` (primary) and `.so` (secondary) file extensions
 
 ## Example
@@ -55,6 +56,7 @@ qor(salaam(magac))        // Prints: Salaan, Sharafdin!
 - [Language Reference](docs/language/keywords.md)
 - [Examples](examples/)
 - [Contributing Guide](docs/CONTRIBUTING.md)
+- [Docker Guide](docs/docker.md)
 
 ## Installation
 
@@ -63,6 +65,20 @@ For detailed installation instructions, see the [Installation Guide](docs/instal
 ### Download Installers
 
 The easiest way to get started is to download a pre-built installer from our [releases page](https://github.com/sharafdin/soplang/releases).
+
+### Using Docker (No Installation Required)
+
+You can run Soplang using Docker without installing anything:
+
+```bash
+# Run the interactive shell
+docker run -it --rm soplang/soplang
+
+# Run a Soplang script
+docker run -it --rm -v $(pwd):/scripts soplang/soplang my_script.sop
+```
+
+See the [Docker Guide](docs/docker.md) for more details.
 
 ### Building from Source
 
