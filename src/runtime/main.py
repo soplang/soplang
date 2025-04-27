@@ -8,12 +8,13 @@ This module contains the core functions for running Soplang code:
 - Main entry point for direct file execution
 """
 
+import os
+import sys
+
 from src.core.lexer import Lexer
 from src.core.parser import Parser
 from src.runtime.interpreter import Interpreter
 from src.utils.errors import SoplangError
-import os
-import sys
 
 
 def run_soplang_file(filename):
@@ -35,12 +36,12 @@ def run_soplang_file(filename):
     print(f"\n🔹 Running Soplang file: {filename}")
 
     try:
-        with open(filename, 'r') as file:
+        with open(filename, "r") as file:
             code = file.read()
 
         # Ensure code ends with a newline to avoid parsing issues
-        if not code.endswith('\n'):
-            code += '\n'
+        if not code.endswith("\n"):
+            code += "\n"
 
         # 1) Tokenize the source code
         lexer = Lexer(code)
@@ -72,9 +73,10 @@ def run_soplang_file(filename):
         # Format different types of Python errors as Somali errors
         if "missing 1 required positional argument" in str(e):
             # Function missing argument
-            func_name = str(e).split('.')[0]
-            error = RuntimeError("missing_argument",
-                                 func_name=func_name, expected="1", provided="0")
+            func_name = str(e).split(".")[0]
+            error = RuntimeError(
+                "missing_argument", func_name=func_name, expected="1", provided="0"
+            )
         elif "division by zero" in str(e):
             # Division by zero
             error = RuntimeError("division_by_zero")
@@ -96,13 +98,17 @@ def print_usage():
     Shows how to run Soplang files and lists all example files in the examples directory
     """
     print("\n📚 Usage Guide:")
-    print("  python main.py [filename.so]     - Run a Soplang file")
+    print("  python main.py [filename.sop]     - Run a Soplang file")
     print("  python main.py                   - Start interactive shell")
 
     print("\n📂 Available examples:")
     examples_dir = "examples"
     try:
-        examples = [f for f in os.listdir(examples_dir) if f.endswith('.so')]
+        examples = [
+            f
+            for f in os.listdir(examples_dir)
+            if f.endswith(".sop") or f.endswith(".so")
+        ]
         if examples:
             for example in sorted(examples):
                 print(f"  • {examples_dir}/{example}")
@@ -132,7 +138,9 @@ def main():
     else:
         # No file specified, show welcome and usage information
         print("\n👋 Welcome to Soplang!")
-        print("Please specify a Soplang file (.so) to run, or run without arguments for the interactive shell.")
+        print(
+            "Please specify a Soplang file (.sop) to run, or run without arguments for the interactive shell."
+        )
         print_usage()
         return 0  # Success
 

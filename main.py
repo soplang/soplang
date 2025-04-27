@@ -4,13 +4,14 @@
 # Main entry point for both shell and file execution
 # ======================================================
 
-from src.runtime.shell import SoplangShell
-import sys
 import argparse
 import os
+import sys
+
 from src.core.lexer import Lexer
 from src.core.parser import Parser
 from src.runtime.interpreter import Interpreter
+from src.runtime.shell import SoplangShell
 
 
 def main():
@@ -24,25 +25,33 @@ def main():
 
     Usage:
         python main.py                   # Start interactive shell
-        python main.py filename.so       # Execute a Soplang file
+        python main.py filename.sop      # Execute a Soplang file
         python main.py -e 1              # Run example number 1
         python main.py -c 'qor("Hello")' # Execute code snippet
         python main.py -v                # Display version information
     """
     # Setup command line argument parser
-    parser = argparse.ArgumentParser(
-        description="Soplang Programming Language")
-    parser.add_argument('-v', '--version', action='store_true',
-                        help='Display Soplang version information')
-    parser.add_argument('-f', '--file', metavar='FILE',
-                        help='Execute a Soplang file')
-    parser.add_argument('-e', '--example', metavar='N',
-                        type=int, help='Run example program number N')
-    parser.add_argument('-i', '--interactive', action='store_true',
-                        help='Start interactive shell after executing file')
-    parser.add_argument('-c', '--command', metavar='CODE',
-                        help='Execute Soplang code snippet')
-    parser.add_argument('filename', nargs='?', help='Soplang file to execute')
+    parser = argparse.ArgumentParser(description="Soplang Programming Language")
+    parser.add_argument(
+        "-v",
+        "--version",
+        action="store_true",
+        help="Display Soplang version information",
+    )
+    parser.add_argument("-f", "--file", metavar="FILE", help="Execute a Soplang file")
+    parser.add_argument(
+        "-e", "--example", metavar="N", type=int, help="Run example program number N"
+    )
+    parser.add_argument(
+        "-i",
+        "--interactive",
+        action="store_true",
+        help="Start interactive shell after executing file",
+    )
+    parser.add_argument(
+        "-c", "--command", metavar="CODE", help="Execute Soplang code snippet"
+    )
+    parser.add_argument("filename", nargs="?", help="Soplang file to execute")
 
     # Parse arguments
     args = parser.parse_args()
@@ -73,13 +82,17 @@ def main():
 
         if args.example < 1 or args.example > len(shell.last_examples_list):
             print(
-                f"\033[31mInvalid example number. Choose between 1 and {len(shell.last_examples_list)}\033[0m")
+                f"\033[31mInvalid example number. Choose between 1 and {len(shell.last_examples_list)}\033[0m"
+            )
             return 1
 
         # Run the example
         example_file = shell.last_examples_list[args.example - 1]
-        example_path = os.path.join(os.path.dirname(
-            os.path.dirname(os.path.abspath(__file__))), "examples", example_file)
+        example_path = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+            "examples",
+            example_file,
+        )
         shell.run_file(example_path)
 
         # Start interactive shell afterward if requested

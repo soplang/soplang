@@ -14,13 +14,15 @@ if [ "$1" == "--debug" ]; then
 fi
 
 if [ $# -lt 1 ]; then
-    echo "Usage: $0 [--debug] <soplang_file.so>"
+    echo "Usage: $0 [--debug] <soplang_file.sop>"
     echo ""
     echo "Options:"
     echo "  --debug    Enable debug output"
     echo ""
     echo "Available examples:"
-    ls -1 "$SCRIPT_DIR/examples/"*.so
+    ls -1 "$SCRIPT_DIR/examples/"*.sop
+    # Also show .so files as secondary
+    ls -1 "$SCRIPT_DIR/examples/"*.so 2>/dev/null || true
     exit 1
 fi
 

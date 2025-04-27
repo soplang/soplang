@@ -4,12 +4,12 @@ This directory contains example files that demonstrate various types of errors i
 
 ## Files Overview
 
-1. **01_lexer_errors.so**: Demonstrates errors that occur during the lexical analysis phase (tokenization).
-2. **02_parser_errors.so**: Demonstrates errors that occur during the parsing phase (syntax analysis).
-3. **03_type_errors.so**: Demonstrates errors related to Soplang's type system.
-4. **04_runtime_errors.so**: Demonstrates errors that occur during program execution.
-5. **05_control_flow_errors.so**: Demonstrates errors related to control flow statements.
-6. **06_error_handling.so**: Demonstrates proper error handling techniques in Soplang.
+1. **01_lexer_errors.sop**: Demonstrates errors that occur during the lexical analysis phase (tokenization).
+2. **02_parser_errors.sop**: Demonstrates errors that occur during the parsing phase (syntax analysis).
+3. **03_type_errors.sop**: Demonstrates errors related to Soplang's type system.
+4. **04_runtime_errors.sop**: Demonstrates errors that occur during program execution.
+5. **05_control_flow_errors.sop**: Demonstrates errors related to control flow statements.
+6. **06_error_handling.sop**: Demonstrates proper error handling techniques in Soplang.
 
 ## How to Use These Examples
 
@@ -22,7 +22,7 @@ Each file contains commented-out examples of different error types. To see a spe
 
 ```bash
 # Example: Running a lexer error example
-python main.py examples/errors/01_lexer_errors.so
+python main.py examples/errors/01_lexer_errors.sop
 ```
 
 ## Error Message Format
@@ -40,7 +40,7 @@ Where:
 
 ## Error Handling
 
-The `06_error_handling.so` file demonstrates how to use the `isku_day`/`qabo` (try/catch) mechanism to handle errors gracefully in your Soplang programs.
+The `06_error_handling.sop` file demonstrates how to use the `isku_day`/`qabo` (try/catch) mechanism to handle errors gracefully in your Soplang programs.
 
 ## Common Error Types
 
