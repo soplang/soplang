@@ -5,6 +5,12 @@ on:
     branches:
       - "release/v*"
 
+# Add explicit permissions for the GITHUB_TOKEN
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
 jobs:
   draft-release:
     name: Draft Release Process
@@ -15,6 +21,8 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0 # Fetch all history for changelog generation
+          # Add token for checkout to allow pushing later
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Python
         uses: actions/setup-python@v4
@@ -114,20 +122,26 @@ jobs:
             echo "CHANGELOG_CHANGED=false" >> $GITHUB_ENV
           fi
 
-      - name: Commit updated changelog
+      # Modified approach for updating CHANGELOG.md - create a PR instead of direct push
+      - name: Create Pull Request for changelog update
         if: env.CHANGELOG_CHANGED == 'true'
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add CHANGELOG.md
-          git commit -m "chore: update changelog for ${{ env.VERSION }}"
-          git push
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore: update changelog for ${{ env.VERSION }}"
+          title: "Update CHANGELOG for ${{ env.VERSION }}"
+          body: |
+            Automated changelog update for version ${{ env.VERSION }}
+
+            This PR was created automatically by the release workflow.
+          branch: changelog-update-${{ env.VERSION }}
+          base: ${{ github.ref }}
 
       # Create a Draft GitHub Release
       - name: Create git tag
         run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
           git tag -a ${{ env.VERSION }} -m "Release ${{ env.VERSION }}"
           git push origin ${{ env.VERSION }}
 
@@ -144,6 +158,6 @@ jobs:
       - name: Release status
         run: |
           echo "✅ Release ${{ env.VERSION }} draft created successfully!"
-          echo "  - Changelog updated"
+          echo "  - Created a PR to update the changelog"
           echo "  - GitHub Release draft created with tag ${{ env.VERSION }}"
           echo "  - Please upload binaries manually and publish the release"

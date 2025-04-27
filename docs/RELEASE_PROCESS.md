@@ -30,9 +30,11 @@ Soplang uses a combination of manual binary building and automated release draft
    ```
 
 4. This will trigger the GitHub Actions workflow to:
-   - Update the CHANGELOG.md with entries since the last release
+   - Create a pull request to update the CHANGELOG.md with entries since the last release
    - Create a git tag for the release
    - Draft a GitHub release with a template for the release notes
+
+5. Review and merge the automatically created PR to update the changelog
 
 ### Step 2: Build Platform-Specific Binaries
 
