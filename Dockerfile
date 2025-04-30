@@ -12,9 +12,14 @@ WORKDIR /app
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir wheel
 
-# Copy requirements first for better layer caching
-COPY requirements.txt .
-RUN pip wheel --no-cache-dir --wheel-dir /app/wheels -r requirements.txt
+# Install core dependencies directly (in case requirements.txt isn't present)
+RUN pip install --no-cache-dir colorama>=0.4.0 prompt_toolkit>=3.0.0
+
+# Copy requirements if it exists and install any additional dependencies
+COPY requirements.txt* ./
+RUN if [ -f requirements.txt ]; then \
+    pip wheel --no-cache-dir --wheel-dir /app/wheels -r requirements.txt; \
+    fi
 
 # Final stage - smaller image
 FROM python:3.10-slim
@@ -27,10 +32,15 @@ ARG VCS_REF=unknown
 # Set working directory
 WORKDIR /app
 
-# Copy wheels from builder stage
-COPY --from=builder /app/wheels /wheels
-RUN pip install --no-cache-dir --no-index --find-links=/wheels /wheels/* && \
-    rm -rf /wheels
+# Install core dependencies directly
+RUN pip install --no-cache-dir colorama>=0.4.0 prompt_toolkit>=3.0.0
+
+# Copy wheels from builder stage if any were created
+COPY --from=builder /app/wheels* /wheels
+RUN if [ -d /wheels ]; then \
+    pip install --no-cache-dir --no-index --find-links=/wheels /wheels/* && \
+    rm -rf /wheels; \
+    fi
 
 # Copy only the necessary files
 COPY main.py .
