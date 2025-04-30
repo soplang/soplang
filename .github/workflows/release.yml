@@ -10,6 +10,7 @@ permissions:
   contents: write
   pull-requests: write
   issues: write
+  packages: write # Added for GitHub Container Registry
 
 jobs:
   draft-release:
@@ -108,7 +109,7 @@ jobs:
           echo "$CHANGELOG_ONLY" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
 
-          # Create release template with download table and checklist
+          # Create release template with download table, Docker info, and checklist
           echo "# 🚀 Soplang ${{ env.VERSION }} Release" > release_template.md
           echo "" >> release_template.md
           echo "## 🛠️ Downloads" >> release_template.md
@@ -118,6 +119,29 @@ jobs:
           echo "| Windows  | [soplang-${{ env.VERSION_NUM }}-windows.exe](replace_with_actual_link) | TBD |" >> release_template.md
           echo "| Linux    | [soplang-${{ env.VERSION_NUM }}-linux.deb](replace_with_actual_link)   | TBD |" >> release_template.md
           echo "| macOS    | [soplang-${{ env.VERSION_NUM }}-macos.dmg](replace_with_actual_link)   | TBD |" >> release_template.md
+          echo "" >> release_template.md
+
+          echo "## 🐳 Docker Images" >> release_template.md
+          echo "" >> release_template.md
+          echo "Docker images are automatically built and pushed to Docker Hub and GitHub Container Registry:" >> release_template.md
+          echo "" >> release_template.md
+          echo "```bash" >> release_template.md
+          echo "# Pull from Docker Hub" >> release_template.md
+          echo "docker pull soplang/soplang:${{ env.VERSION_NUM }}" >> release_template.md
+          echo "" >> release_template.md
+          echo "# Pull from GitHub Container Registry" >> release_template.md
+          echo "docker pull ghcr.io/soplang/soplang:${{ env.VERSION_NUM }}" >> release_template.md
+          echo "```" >> release_template.md
+          echo "" >> release_template.md
+          echo "### Quick Start with Docker" >> release_template.md
+          echo "" >> release_template.md
+          echo "```bash" >> release_template.md
+          echo "# Run interactive shell" >> release_template.md
+          echo "docker run -it --rm soplang/soplang" >> release_template.md
+          echo "" >> release_template.md
+          echo "# Run a Soplang script" >> release_template.md
+          echo "docker run -it --rm -v \$(pwd):/scripts soplang/soplang my_script.sop" >> release_template.md
+          echo "```" >> release_template.md
           echo "" >> release_template.md
 
           # Process the changelog content to add GitHub username links
@@ -136,6 +160,7 @@ jobs:
           echo "- [ ] Build macOS binary (soplang-${{ env.VERSION_NUM }}-macos.dmg)" >> release_template.md
           echo "- [ ] Upload all binaries as assets" >> release_template.md
           echo "- [ ] Calculate and add SHA256 checksums to the table" >> release_template.md
+          echo "- [ ] Verify Docker images were built and pushed successfully" >> release_template.md
           echo "- [ ] Remove this checklist section" >> release_template.md
           echo "- [ ] Publish the release" >> release_template.md
 
