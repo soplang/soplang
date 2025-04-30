@@ -77,27 +77,6 @@ jobs:
           DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
           VCS_REF: ${{ github.sha }}
 
-      # Check if Docker Hub repository exists
-      - name: Check if Docker Hub Repository Exists
-        id: check_repo
-        if: ${{ env.DOCKERHUB_USERNAME != '' && env.DOCKERHUB_TOKEN != '' }}
-        run: |
-          # Get a token for Docker Hub API
-          TOKEN=$(curl -s -H "Content-Type: application/json" -X POST -d '{"username": "'${{ secrets.DOCKERHUB_USERNAME }}'", "password": "'${{ secrets.DOCKERHUB_TOKEN }}'"}' https://hub.docker.com/v2/users/login/ | jq -r .token)
-
-          # Check if repository exists
-          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -H "Authorization: JWT ${TOKEN}" https://hub.docker.com/v2/repositories/soplang/soplang/)
-
-          if [ "$HTTP_CODE" == "200" ]; then
-            echo "Docker Hub repository soplang/soplang exists."
-            echo "exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "Docker Hub repository soplang/soplang does not exist or you don't have access."
-            echo "To create the repository, go to: https://hub.docker.com/repository/create"
-            echo "Make sure you have Admin access to the soplang organization."
-            echo "exists=false" >> $GITHUB_OUTPUT
-          fi
-
       # Login to GitHub Container Registry (always available with GITHUB_TOKEN)
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v2
@@ -137,48 +116,15 @@ jobs:
             BUILD_DATE=${{ steps.meta.outputs.labels['org.opencontainers.image.created'] }}
             VCS_REF=${{ github.sha }}
 
-      # Update Docker Hub Description
-      - name: Update Docker Hub Description
-        if: ${{ env.DOCKERHUB_USERNAME != '' && env.DOCKERHUB_TOKEN != '' && steps.check_repo.outputs.exists == 'true' }}
-        uses: peter-evans/dockerhub-description@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-          repository: soplang/soplang
-          readme-filepath: ./README.md
-          short-description: "Soplang - The Sophomore Programming Language"
-        continue-on-error: true
-        env:
-          debug-mode: true
-
-      # Check Docker Hub Description Update Status
-      - name: Check Docker Hub Description Update Status
-        if: ${{ env.DOCKERHUB_USERNAME != '' && env.DOCKERHUB_TOKEN != '' }}
-        run: |
-          echo "Note: If the 'Update Docker Hub Description' step failed with a 'Forbidden' error, this might be due to:"
-          echo "  1. Docker Hub API restrictions - some APIs are limited to users with 'Admin' role"
-          echo "  2. The DOCKERHUB_TOKEN may need to be a Personal Access Token with sufficient permissions"
-          echo "  3. The Docker Hub account may not have Admin access to the organization repository"
-          echo ""
-          echo "To fix this issue, you can:"
-          echo "  1. Update the description manually on Docker Hub instead"
-          echo "  2. Generate a new Personal Access Token in Docker Hub with full access"
-          echo "  3. Ensure the DOCKERHUB_USERNAME has Admin permissions to the repository"
-          echo ""
-          echo "Manual update URL: https://hub.docker.com/repository/docker/soplang/soplang/general"
-
       # Verify Docker Hub Repository and provide appropriate guidance
-      - name: Verify Docker Hub Repository
-        if: ${{ env.DOCKERHUB_USERNAME != '' && env.DOCKERHUB_TOKEN != '' }}
+      - name: Verify Docker Push
         run: |
-          if [[ "${{ steps.check_repo.outputs.exists }}" == "true" ]]; then
-            echo "✅ Docker Hub repository exists. The image should be available soon at: https://hub.docker.com/r/soplang/soplang"
+          echo "✅ Build and push completed!"
+
+          if [[ -n "${{ secrets.DOCKERHUB_USERNAME }}" && -n "${{ secrets.DOCKERHUB_TOKEN }}" ]]; then
+            echo "Docker Hub image should be available at: https://hub.docker.com/r/soplang/soplang"
             echo "To verify availability (may take a few minutes):"
             echo "docker pull soplang/soplang:latest"
-          else
-            echo "❌ Docker Hub repository does not exist or you don't have access to it."
-            echo "Please create the repository manually at: https://hub.docker.com/repository/create"
-            echo "Make sure to create it with the name 'soplang/soplang' and ensure you have Admin access."
           fi
 
           echo ""
