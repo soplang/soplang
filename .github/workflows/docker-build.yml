@@ -119,12 +119,41 @@ jobs:
       - name: Update Docker Hub Description
         uses: peter-evans/dockerhub-description@v3
         if: ${{ env.DOCKERHUB_USERNAME != '' && env.DOCKERHUB_TOKEN != '' }}
+        continue-on-error: true
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           repository: soplang/soplang
           readme-filepath: ./README.md
           short-description: "The Somali Programming Language"
+          enable-url-completion: true
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # Add a verification step for Docker Hub
+      - name: Verify Docker Hub Push
+        run: |
+          echo "Verifying Docker Hub image availability..."
+          sleep 30  # Allow time for Docker Hub to process the push
+
+          # Check if image is accessible (doesn't require credentials to check)
+          if docker pull soplang/soplang:latest > /dev/null 2>&1; then
+            echo "✅ Docker Hub image available at soplang/soplang:latest"
+          else
+            echo "⚠️ Docker Hub image not yet available. This may be normal for first push."
+          fi
+
+          echo "Verifying GitHub Container Registry image availability..."
+          # Check if image is accessible (requires GitHub token)
+          if docker pull ghcr.io/${{ github.repository }}:latest > /dev/null 2>&1; then
+            echo "✅ GitHub Container Registry image available at ghcr.io/${{ github.repository }}:latest"
+          else
+            echo "⚠️ GitHub Container Registry image not yet available. This may require package visibility settings to be adjusted."
+          fi
+
+          echo "Docker images should be available at:"
+          echo "- Docker Hub: docker pull soplang/soplang:latest"
+          echo "- GitHub Container Registry: docker pull ghcr.io/${{ github.repository }}:latest"
+
+          echo "Note: For the first publish, you may need to manually create the Docker Hub repository at https://hub.docker.com/repository/create"
