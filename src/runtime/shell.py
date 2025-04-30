@@ -246,7 +246,7 @@ class SoplangShell:
                                 result += part[1:-1]
                             # Check if it's a function call like qoraal()
                             elif part.startswith("qoraal(") and part.endswith(")"):
-                                var_name = part[len("qoraal("): -1].strip()
+                                var_name = part[len("qoraal(") : -1].strip()
                                 if var_name in self.interpreter.variables:
                                     value = str(self.interpreter.variables[var_name])
                                     result += value
@@ -268,8 +268,8 @@ class SoplangShell:
                         eval_expr = expr
                         for var_name, var_value in self.interpreter.variables.items():
                             if (
-                                isinstance(var_value, (int, float)) and
-                                var_name in eval_expr
+                                isinstance(var_value, (int, float))
+                                and var_name in eval_expr
                             ):
                                 eval_expr = eval_expr.replace(var_name, str(var_value))
 
@@ -338,8 +338,8 @@ class SoplangShell:
                             eval_expr = var_value
                             for vname, vvalue in self.interpreter.variables.items():
                                 if (
-                                    isinstance(vvalue, (int, float)) and
-                                    vname in eval_expr
+                                    isinstance(vvalue, (int, float))
+                                    and vname in eval_expr
                                 ):
                                     eval_expr = eval_expr.replace(vname, str(vvalue))
 
@@ -382,8 +382,8 @@ class SoplangShell:
                                 eval_expr = var_value
                                 for vname, vvalue in self.interpreter.variables.items():
                                     if (
-                                        isinstance(vvalue, (int, float)) and
-                                        vname in eval_expr
+                                        isinstance(vvalue, (int, float))
+                                        and vname in eval_expr
                                     ):
                                         eval_expr = eval_expr.replace(
                                             vname, str(vvalue)
@@ -628,8 +628,8 @@ class SoplangShell:
                     )
                     print(f"\033[31m{error_msg}\033[0m")
                 elif (
-                    "local variable" in error_msg and
-                    "not associated with a value" in error_msg
+                    "local variable" in error_msg
+                    and "not associated with a value" in error_msg
                 ):
                     # This indicates an issue with module scope/imports
                     error_msg = ErrorMessageManager.get_runtime_error(
@@ -770,13 +770,10 @@ class SoplangShell:
             # Use the run_soplang_file function from src/runtime/main.py
             from src.runtime.main import run_soplang_file
 
-            print(f"\n\033[1mRunning: {filename}\033[0m")
-            print("=" * 40)
-
             # Call the function that properly tokenizes, parses, and interprets the file
+            # The run_soplang_file function now handles all output formatting
             run_soplang_file(filename)
 
-            print("=" * 40)
         except FileNotFoundError:
             print(f"\033[31mFile not found: {filename}\033[0m")
         except Exception as e:
@@ -849,12 +846,15 @@ class SoplangShell:
         # Use colorama constants for better Windows compatibility
         print("")
         print(f"{Fore.BLUE}{Style.BRIGHT}" + "=" * 50 + f"{Style.RESET_ALL}")
-        print(f"{Fore.BLUE}{Style.BRIGHT}          Soplang - The Somali Programming Language{Style.RESET_ALL}")
+        print(
+            f"{Fore.BLUE}{Style.BRIGHT}          Soplang - The Somali Programming Language{Style.RESET_ALL}"
+        )
         print(f"{Fore.BLUE}{Style.BRIGHT}" + "=" * 50 + f"{Style.RESET_ALL}")
         print(f"Type Soplang code to execute it")
         print(f"Type {Style.BRIGHT}:help{Style.RESET_ALL} for a list of commands")
         print(
-            f"Type {Style.BRIGHT}:exit{Style.RESET_ALL} to quit or press {Style.BRIGHT}Ctrl+D{Style.RESET_ALL}")
+            f"Type {Style.BRIGHT}:exit{Style.RESET_ALL} to quit or press {Style.BRIGHT}Ctrl+D{Style.RESET_ALL}"
+        )
         print(f"{Fore.BLUE}{Style.BRIGHT}" + "=" * 50 + f"{Style.RESET_ALL}")
         print("")
 

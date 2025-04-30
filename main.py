@@ -61,7 +61,7 @@ def main():
 
     # Display version information if requested
     if args.version:
-        print("\n=== Soplang: The Somali Programming Language ===")
+        print("Soplang - The Somali Programming Language")
         print("Version: 0.1.0")
         print("Website: https://www.soplang.org/")
         print("License: MIT")
@@ -69,7 +69,7 @@ def main():
 
     # Execute code snippet if provided
     if args.command:
-        print("\n=== Executing Soplang code snippet ===")
+        # No decorative header - just execute the code directly
         shell.execute_code(args.command)
         return 0
 
@@ -104,7 +104,7 @@ def main():
     # Handle file if provided (either through --file or positional argument)
     filename = args.file or args.filename
     if filename:
-        print(f"\n\033[1mRunning file: {filename}\033[0m")
+        # Remove redundant "Running file" message as it's handled in run_file
         shell.run_file(filename)
 
         # Start interactive shell afterward if requested

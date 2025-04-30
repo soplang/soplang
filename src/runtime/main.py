@@ -33,8 +33,6 @@ def run_soplang_file(filename):
     Returns:
         int: Exit code (0 for success, 1 for error)
     """
-    print(f"\n🔹 Running Soplang file: {filename}")
-
     try:
         with open(filename, "r") as file:
             code = file.read()
@@ -53,18 +51,19 @@ def run_soplang_file(filename):
 
         # 3) Interpret and execute the AST
         inter = Interpreter()
-        print("\n🔹 Program Output:")
+        # Clean output without any headers or decorations
         inter.interpret(ast)
-        print("\n✅ Program finished successfully.")
+
+        # No status indication - clean execution completes silently
         return 0  # Success
 
     except FileNotFoundError:
         # File not found error in Somali
-        print(f"❌ Khalad: Faylka '{filename}' ma helin.")
+        print(f"✗ Khalad: Faylka '{os.path.basename(filename)}' ma helin.")
         return 1  # Error
     except SoplangError as e:
         # Display error message - already formatted in Somali
-        print(f"\n❌ {e}")
+        print(f"✗ {e}")
         return 1  # Error
     except Exception as e:
         # Convert Python exceptions to Somali error messages
@@ -87,7 +86,7 @@ def run_soplang_file(filename):
             # Generic error
             error = RuntimeError(f"Khalad: {str(e)}")
 
-        print(f"\n❌ {error}")
+        print(f"✗ {error}")
         return 1  # Error
 
 
@@ -97,11 +96,11 @@ def print_usage():
 
     Shows how to run Soplang files and lists all example files in the examples directory
     """
-    print("\n📚 Usage Guide:")
+    print("\nUsage Guide:")
     print("  python main.py [filename.sop]     - Run a Soplang file")
     print("  python main.py                   - Start interactive shell")
 
-    print("\n📂 Available examples:")
+    print("\nAvailable examples:")
     examples_dir = "examples"
     try:
         examples = [
@@ -111,11 +110,11 @@ def print_usage():
         ]
         if examples:
             for example in sorted(examples):
-                print(f"  • {examples_dir}/{example}")
+                print(f"  {examples_dir}/{example}")
         else:
-            print("  • No example files found")
+            print("  No example files found")
     except FileNotFoundError:
-        print("  • Examples directory not found")
+        print("  Examples directory not found")
 
 
 def main():
@@ -129,7 +128,7 @@ def main():
     Returns:
         int: Exit code (0 for success, 1 for error)
     """
-    print("\n=== Soplang: The Somali Programming Language ===")
+    print("Soplang: The Somali Programming Language")
 
     if len(sys.argv) > 1:
         # Run the specified file
@@ -137,7 +136,7 @@ def main():
         return run_soplang_file(filename)
     else:
         # No file specified, show welcome and usage information
-        print("\n👋 Welcome to Soplang!")
+        print("\nWelcome to Soplang!")
         print(
             "Please specify a Soplang file (.sop) to run, or run without arguments for the interactive shell."
         )
