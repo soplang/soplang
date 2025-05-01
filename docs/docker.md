@@ -36,6 +36,17 @@ To run a Soplang script from your current directory:
 docker run -it --rm -v $(pwd):/scripts soplang/soplang my_script.sop
 ```
 
+Note that the file path should be relative to your mounted directory. For example, if your script is in the examples folder:
+
+```bash
+# If running from the project root
+docker run -it --rm -v $(pwd):/scripts soplang/soplang examples/01_dynamic_typing.sop
+
+# If examples/ is in your current directory
+cd examples
+docker run -it --rm -v $(pwd):/scripts soplang/soplang 01_dynamic_typing.sop
+```
+
 ### Mounting a Volume for Persistent Scripts
 
 To maintain a persistent workspace:
