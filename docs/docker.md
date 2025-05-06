@@ -67,7 +67,7 @@ docker run -it --rm -v $(pwd):/scripts -w /scripts/my_project soplang/soplang
 
 ```bash
 # Create a hello.sop file
-echo 'qor("Salaan, Adduunka!")' > hello.sop
+echo 'bandhig("Salaan, Adduunka!")' > hello.sop
 
 # Run it with Docker
 docker run -it --rm -v $(pwd):/scripts soplang/soplang hello.sop

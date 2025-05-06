@@ -138,12 +138,12 @@ class Interpreter:
                                 line=line,
                                 position=position)
 
-        elif expected_type == TokenType.LABADARAN:
+        elif expected_type == TokenType.BOOL:
             if not isinstance(value, bool):
                 raise TypeError("type_mismatch",
                                 var_name=var_name,
                                 value=value,
-                                expected_type="labadaran",
+                                expected_type="bool",
                                 line=line,
                                 position=position)
 
@@ -339,7 +339,7 @@ class Interpreter:
             index += 1
 
     # -----------------------------
-    #  Loop Statement (for/ku_celi)
+    #  Loop Statement (for/kuceli)
     # -----------------------------
     def execute_loop_statement(self, node):
         # node.value = loop_var name
@@ -500,7 +500,7 @@ class Interpreter:
                 field_value = self.evaluate(child.children[0])
                 class_def["fields"][field_name] = field_value
             else:
-                # Execute any statements in the class (like qor())
+                # Execute any statements in the class (like bandhig())
                 self.execute(child)
 
         # Store the class definition

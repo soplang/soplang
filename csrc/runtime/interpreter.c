@@ -13799,7 +13799,7 @@ static PyObject *__pyx_pf_3src_11interpreter_11Interpreter_28execute_class_defin
  *                 field_value = self.evaluate(child.children[0])
  *                 class_def['fields'][field_name] = field_value             # <<<<<<<<<<<<<<
  *             else:
- *                 # Execute any statements in the class (like qor())
+ *                 # Execute any statements in the class (like bandhig())
  */
       __pyx_t_3 = __Pyx_PyDict_GetItem(__pyx_v_class_def, __pyx_n_u_fields); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 417, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
@@ -13818,7 +13818,7 @@ static PyObject *__pyx_pf_3src_11interpreter_11Interpreter_28execute_class_defin
 
     /* "src/interpreter.py":420
  *             else:
- *                 # Execute any statements in the class (like qor())
+ *                 # Execute any statements in the class (like bandhig())
  *                 self.execute(child)             # <<<<<<<<<<<<<<
  * 
  *         # Store the class definition

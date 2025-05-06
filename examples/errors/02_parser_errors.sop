@@ -1,29 +1,29 @@
 // Soplang Parser Errors
 // Demonstrates errors that occur during the parsing phase
 
-qor("Soplang Parser Error Examples")
-qor("============================")
-qor("Uncomment examples one at a time to see specific errors")
-qor("")
+bandhig("Soplang Parser Error Examples")
+bandhig("============================")
+bandhig("Uncomment examples one at a time to see specific errors")
+bandhig("")
 
 // Example 1: Missing closing parenthesis
 // This will cause an error because the parenthesis is not closed
 haddii (5 > 3 {
-    qor("Missing closing parenthesis")
+    bandhig("Missing closing parenthesis")
 }
 
 // Example 2: Missing closing brace
 // This will cause an error because the brace is not closed
 // haddii (5 > 3) {
-//     qor("Missing closing brace")
+//     bandhig("Missing closing brace")
 
 // Example 3: Unexpected token
 // This will cause an error because the expression is incomplete
 // door x = 5 +
 
 // Example 4: Missing argument in function call
-// This will cause an error because qor() requires an argument
-// qor()
+// This will cause an error because bandhig() requires an argument
+// bandhig()
 
 // Example 5: Invalid statement termination
 // This will cause an error because of the extra semicolon (not needed in Soplang)
@@ -36,9 +36,9 @@ haddii (5 > 3 {
 // Example 7: Invalid if-else structure
 // This will cause an error because haddii_kalena requires a preceding haddii
 // haddii_kalena {
-//     qor("Invalid if-else structure")
+//     bandhig("Invalid if-else structure")
 // }
 
 // Valid code to run when all examples are commented out
 // door test = 5 + 5
-// qor("Only this line should print when all errors are commented out: " + test)
+// bandhig("Only this line should print when all errors are commented out: " + test)
