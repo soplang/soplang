@@ -34,7 +34,7 @@ class SoplangBuiltins:
         elif isinstance(value, list):
             return "liis"
         elif isinstance(value, dict):
-            return "shey"
+            return "walax"
         elif value is None:
             return "waxba"
         else:
@@ -96,7 +96,7 @@ class SoplangBuiltins:
         return list(args)
 
     @staticmethod
-    def shey(**kwargs):
+    def walax(**kwargs):
         """
         Create a dictionary from keyword arguments
         """

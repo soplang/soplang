@@ -4,8 +4,8 @@
 qor("Testing object operations:")
 
 // Creating objects
-shey empty_obj = {}
-shey person = {
+walax empty_obj = {}
+walax person = {
     magac: "Asha",
     da: 30,
     magaalo: "Muqdisho"
@@ -29,13 +29,13 @@ person.shaqo = "Barnaamij Samayne"
 qor("  After adding job: " + person)
 
 // Nested objects
-shey address = {
+walax address = {
     city: "Muqdisho",
     country: "Soomaaliya",
     district: "Hodan"
 }
 
-shey employee = {
+walax employee = {
     name: "Mohamed",
     age: 28,
     address: address
@@ -66,9 +66,9 @@ person.tirtir("shaqo")
 qor("  After removing job: " + person)
 
 // Merging objects
-shey obj1 = {a: 1, b: 2}
-shey obj2 = {c: 3, d: 4}
-shey merged = obj1.iskudar(obj2)
+walax obj1 = {a: 1, b: 2}
+walax obj2 = {c: 3, d: 4}
+walax merged = obj1.iskudar(obj2)
 qor("  obj1: " + obj1)
 qor("  obj2: " + obj2)
 qor("  Merged object: " + merged)
@@ -77,7 +77,7 @@ qor("  Merged object: " + merged)
 qor("\nTesting additional nested property access:")
 
 // Create a company object with nested properties
-shey company = {
+walax company = {
     name: "Somali Tech",
     location: {
         city: "Mogadishu",
@@ -95,7 +95,7 @@ company.location.city = "Hargeisa"
 qor("  Updated city: " + company.location.city)
 
 // Test object with array
-shey team = {
+walax team = {
     members: [
         {name: "Ali", role: "Developer"},
         {name: "Fatima", role: "Designer"}

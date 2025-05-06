@@ -10,7 +10,7 @@ This document provides a reference for all keywords in the Soplang programming l
 | `tiro`      | Integer type                 | `int`              | `tiro da = 25`                          |
 | `qoraal`    | String type                  | `string`           | `qoraal magac = "Sharafdin"`            |
 | `labadaran` | Boolean type                 | `bool`             | `labadaran waaRun = true`               |
-| `shey`      | Object type                  | `object`           | `shey person = { "name": "Sharafdin" }` |
+| `walax`      | Object type                  | `object`           | `walax person = { "name": "Sharafdin" }` |
 | `liis`      | List/array type              | `array`            | `liis numbers = [1, 2, 3]`              |
 | `waxba`     | waxba value                  | `waxba`            | `door a = waxba`                        |
 
@@ -101,7 +101,7 @@ This document provides a reference for all keywords in the Soplang programming l
 | `qoraal`    | Convert to string    | `str`              | `door s = qoraal(25)`                    |
 | `labadaran` | Convert to boolean   | `bool`             | `door b = labadaran(1)`                  |
 | `liis`      | Create a list        | `list/array`       | `door list = liis(1, 2, 3)`              |
-| `shey`      | Create an object     | `object/dict`      | `door obj = shey(name: "Ali", age: 25)`  |
+| `walax`      | Create an object     | `object/dict`      | `door obj = walax(name: "Ali", age: 25)`  |
 
 ## List Methods
 

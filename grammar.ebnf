@@ -43,7 +43,7 @@ StaticType ::= "tiro"      // Number
              | "qoraal"    // String
              | "labadaran" // Boolean
              | "liis"      // List/Array
-             | "shey"      // Object
+             | "walax"      // Object
 
 // ===== FUNCTION DECLARATIONS =====
 FunctionDeclaration ::= "hawl" Identifier "(" [ParameterList] ")" Block

@@ -17,7 +17,7 @@ qor()
 
 // Example 2: Try-catch with property access
 qor("Example 2: Try-catch with property access")
-shey person = {name: "Hassan"}
+walax person = {name: "Hassan"}
 isku_day {
     qor("Age: " + person.age)  // Accessing non-existent property
 } qabo (errorMsg) {

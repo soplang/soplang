@@ -19,12 +19,12 @@ qor("  Boolean (labadaran): " + bool_var)
 liis list_var = [1, 2, 3, "afar", been]
 qor("  List (liis): " + list_var)
 
-// Object (shey)
-shey object_var = {
+// Object (walax)
+walax object_var = {
     magac: "Ahmed",
     da: 25
 }
-qor("  Object (shey): " + object_var)
+qor("  Object (walax): " + object_var)
 
 // Try to assign incompatible types (should fail)
 // Uncomment these lines to test type enforcement

@@ -28,7 +28,7 @@ class TokenType(Enum):
     QORAAL = "qoraal"      # string
     LABADARAN = "labadaran"  # boolean
     LIIS = "liis"          # list
-    SHEY = "shey"          # object/dict
+    WALAX = "walax"          # object/dict
 
     # Data & Operators
     IDENTIFIER = "IDENTIFIER"

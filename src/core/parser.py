@@ -56,7 +56,7 @@ class Parser:
             TokenType.QORAAL: "keyword 'qoraal' (string type)",
             TokenType.LABADARAN: "keyword 'labadaran' (boolean type)",
             TokenType.LIIS: "keyword 'liis' (list type)",
-            TokenType.SHEY: "keyword 'shey' (object type)",
+            TokenType.WALAX: "keyword 'walax' (object type)",
         }
 
         return token_descriptions.get(token_type, str(token_type))
@@ -111,7 +111,7 @@ class Parser:
             TokenType.QORAAL,
             TokenType.LABADARAN,
             TokenType.LIIS,
-            TokenType.SHEY,
+            TokenType.WALAX,
         ):
             return self.parse_variable_declaration(is_static=True)
 
@@ -380,7 +380,7 @@ class Parser:
                 TokenType.TIRO,
                 TokenType.LABADARAN,
                 TokenType.LIIS,
-                TokenType.SHEY,
+                TokenType.WALAX,
             )
         ):
             raise ParserError(

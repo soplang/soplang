@@ -108,7 +108,7 @@ Demonstrates object operations and features.
 
 **Features tested:**
 - Dynamic object declaration
-- Static object declaration with `shey` type
+- Static object declaration with `walax` type
 - Empty objects
 - Objects with mixed value types
 - Nested objects
