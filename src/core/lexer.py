@@ -30,7 +30,7 @@ class Lexer:
             "akhri": TokenType.AKHRI,
             "haddii": TokenType.HADDII,
             "haddii_kale": TokenType.HADDII_KALE,
-            "haddii_kalena": TokenType.HADDII_KALENA,
+            "ugudambeyn": TokenType.UGUDAMBEYN,
             "ku_celi": TokenType.KU_CELI,
             "inta_ay": TokenType.INTA_AY,
             "jooji": TokenType.JOOJI,
