@@ -49,7 +49,7 @@ Demonstrates conditional statements and loops.
 - For loops (`ku_celi`)
 - While loops (`inta_ay`)
 - Break statements (`jooji`)
-- Continue statements (`sii_wad`)
+- Continue statements (`soco`)
 - Nested loops
 
 **Run with:**

@@ -59,7 +59,7 @@ class ErrorMessageManager:
         "missing_argument": "Howsha '{func_name}' waxay u baahan tahay {expected} dood, laakiin waxaa la siiyay {provided}",
         "parent_class_not_found": "Fasalka waalidka '{parent_name}' ma jiro",
         "break_outside_loop": "Jooji waa in ay ku jiraan xalqad",
-        "continue_outside_loop": "Sii_wad waa in ay ku jiraan xalqad",
+        "continue_outside_loop": "soco waa in ay ku jiraan xalqad",
         "return_outside_function": "celi waa in ay ku jirto hawl",
         "invalid_for_loop": "Ku_celi billowga, dhamaadka iyo tallaabada waa in ay yihiin tiro",
         "unknown_node_type": "Nooca cladka aan la aqoon: {node_type}",

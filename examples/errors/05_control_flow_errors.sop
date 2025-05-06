@@ -16,7 +16,7 @@ qor()
 
 // Example 3: Continue outside loop
 // This will cause an error because continue statements are only valid inside loops
-// sii_wad
+// soco
 
 // Example 4: Invalid for loop parameters
 // This will cause an error because for loop parameters must be numeric

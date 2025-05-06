@@ -34,7 +34,7 @@ class Lexer:
             "ku_celi": TokenType.KU_CELI,
             "inta_ay": TokenType.INTA_AY,
             "jooji": TokenType.JOOJI,
-            "sii_wad": TokenType.SII_WAD,
+            "soco": TokenType.soco,
             "isku_day": TokenType.ISKU_DAY,
             "qabo": TokenType.QABO,
             "ka_keen": TokenType.KA_KEEN,
