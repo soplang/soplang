@@ -1,10 +1,10 @@
 // Soplang Type Errors
 // Demonstrates errors that occur due to type system violations
 
-qor("Soplang Type Error Examples")
-qor("==========================")
-qor("Uncomment examples one at a time to see specific errors")
-qor("")
+bandhig("Soplang Type Error Examples")
+bandhig("==========================")
+bandhig("Uncomment examples one at a time to see specific errors")
+bandhig("")
 
 // Example 1: Type mismatch with static typing
 // This will cause an error because you can't assign a number to a string variable
@@ -18,7 +18,7 @@ qor("")
 
 // Example 3: Type mismatch with static typing (boolean)
 // This will cause an error because you can't assign a number to a boolean variable
-// labadaran isActive = run
+// bool isActive = run
 // isActive = 1
 
 // Example 4: Invalid operation for type (indexing non-list)
@@ -44,4 +44,4 @@ qor("")
 // Valid code to run when all examples are commented out
 // door dynamicVar = "This can be reassigned to different types"
 // dynamicVar = 42  // Valid for dynamic typing with 'door'
-// qor("Only this line should print when all errors are commented out: " + dynamicVar)
+// bandhig("Only this line should print when all errors are commented out: " + dynamicVar)

@@ -39,13 +39,13 @@ $success = $output -match "Soplang: The Somali Programming Language"
 Show-TestResult -TestName "Version Check" -Success $success -Output $output
 
 # Test 2: Execute a simple code snippet
-$output = & $SoplangExePath -c 'qor("Hello from Soplang on Windows!")' 2>&1
+$output = & $SoplangExePath -c 'bandhig("Hello from Soplang on Windows!")' 2>&1
 $success = $output -match "Hello from Soplang on Windows!"
 Show-TestResult -TestName "Code Execution" -Success $success -Output $output
 
 # Test 3: Create and run a test file with .sop extension (primary)
 $testFilePath1 = ".\windows\test_file.sop"
-"qor(`"This is a test .sop file for Soplang on Windows`");" | Out-File -FilePath $testFilePath1
+"bandhig(`"This is a test .sop file for Soplang on Windows`");" | Out-File -FilePath $testFilePath1
 
 $output = & $SoplangExePath $testFilePath1 2>&1
 $success = $output -match "This is a test .sop file for Soplang on Windows"
@@ -53,7 +53,7 @@ Show-TestResult -TestName "Primary (.sop) File Execution" -Success $success -Out
 
 # Test 4: Create and run a test file with .so extension (secondary)
 $testFilePath2 = ".\windows\test_file.so"
-"qor(`"This is a test .so file for Soplang on Windows`");" | Out-File -FilePath $testFilePath2
+"bandhig(`"This is a test .so file for Soplang on Windows`");" | Out-File -FilePath $testFilePath2
 
 $output = & $SoplangExePath $testFilePath2 2>&1
 $success = $output -match "This is a test .so file for Soplang on Windows"

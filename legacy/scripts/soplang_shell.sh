@@ -31,7 +31,7 @@ if [ "$1" == "--help" ] || [ "$1" == "-h" ]; then
     echo "  ./soplang_shell.sh                           Start interactive shell"
     echo "  ./soplang_shell.sh examples/hello_world.so   Run a Soplang file"
     echo "  ./soplang_shell.sh -e 1                      Run the first example"
-    echo "  ./soplang_shell.sh -c 'qor(\"Hello\")'"      Execute code snippet"
+    echo "  ./soplang_shell.sh -c 'bandhig(\"Hello\")'"      Execute code snippet"
     exit 0
 fi
 

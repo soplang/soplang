@@ -68,13 +68,13 @@ ElseIfClause ::= "haddii_kale" "(" Expression ")" Block
 ElseClause ::= "haddii_kalena" Block
 
 // ===== LOOPS =====
-LoopStatement ::= "ku_celi" Identifier "min" Expression "ilaa" Expression ["by" Expression] Block
+LoopStatement ::= "kuceli" Identifier "min" Expression "ilaa" Expression ["by" Expression] Block
 
 WhileStatement ::= "inta_ay" "(" Expression ")" Block
 
 BreakStatement ::= "jooji"
 
-ContinueStatement ::= "sii_wad"
+ContinueStatement ::= "soco"
 
 // ===== RETURN STATEMENT =====
 ReturnStatement ::= "celi" [Expression]
@@ -145,7 +145,7 @@ StringLiteral ::= '"' {Character} '"' | "'" {Character} "'"
 
 BooleanLiteral ::= "true" | "false" | "run" | "been"
 
-NullLiteral ::= "null" | "waxba"
+NullLiteral ::= "null" | "maran"
 
 ListLiteral ::= "[" [Expression {"," Expression}] "]"
 
@@ -189,10 +189,10 @@ ListMethod ::= "kudar"       // push
              | "kasaar"      // pop
              | "dherer"      // length
              | "iskuxir"     // concat
-             | "ka_kooban"   // contains
+             | "leeyahay"   // contains
 
 // ===== OBJECT METHODS =====
-ObjectMethod ::= "furaha"    // keys
-               | "haystaa"   // has
+ObjectMethod ::= "fure"    // keys
+               | "leeyahay"   // has
                | "tirtir"    // remove
                | "iskudar"   // merge

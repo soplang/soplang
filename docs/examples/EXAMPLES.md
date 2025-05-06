@@ -7,7 +7,7 @@ This document describes each example program available in the Soplang programmin
 A simple introduction to Soplang syntax and basic features.
 
 **Features tested:**
-- Basic output with `qor()`
+- Basic output with `bandhig()`
 - Variable declarations (dynamic and static)
 - String concatenation
 - Function definition and calls
@@ -46,10 +46,10 @@ Demonstrates conditional statements and loops.
 - Else statements (`haddii_kalena`)
 - Nested conditionals
 - Complex conditions with logical operators
-- For loops (`ku_celi`)
+- For loops (`kuceli`)
 - While loops (`inta_ay`)
 - Break statements (`jooji`)
-- Continue statements (`sii_wad`)
+- Continue statements (`soco`)
 - Nested loops
 
 **Run with:**

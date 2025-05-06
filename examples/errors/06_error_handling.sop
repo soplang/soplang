@@ -1,65 +1,65 @@
 // Soplang Error Handling
 // Demonstrates how to handle errors properly in Soplang
 
-qor("Soplang Error Handling Examples")
-qor("=============================")
-qor()
+bandhig("Soplang Error Handling Examples")
+bandhig("=============================")
+bandhig()
 
 // Example 1: Basic try-catch
-qor("Example 1: Basic try-catch")
+bandhig("Example 1: Basic try-catch")
 isku_day {
     door result = 10 / 0
-    qor("This won't print")
+    bandhig("This won't print")
 } qabo (errorMsg) {
-    qor("Caught division by zero error: " + errorMsg)
+    bandhig("Caught division by zero error: " + errorMsg)
 }
-qor()
+bandhig()
 
 // Example 2: Try-catch with property access
-qor("Example 2: Try-catch with property access")
+bandhig("Example 2: Try-catch with property access")
 walax person = {name: "Hassan"}
 isku_day {
-    qor("Age: " + person.age)  // Accessing non-existent property
+    bandhig("Age: " + person.age)  // Accessing non-existent property
 } qabo (errorMsg) {
-    qor("Caught property error: " + errorMsg)
+    bandhig("Caught property error: " + errorMsg)
     // Add the missing property to fix the issue
     person.age = 30
-    qor("Fixed: Age is now " + person.age)
+    bandhig("Fixed: Age is now " + person.age)
 }
-qor()
+bandhig()
 
 // Example 3: Try-catch with index out of bounds
-qor("Example 3: Try-catch with index out of bounds")
+bandhig("Example 3: Try-catch with index out of bounds")
 liis numbers = [1, 2, 3]
 isku_day {
     door value = numbers[5]  // Index out of bounds
 } qabo (errorMsg) {
-    qor("Caught index error: " + errorMsg)
+    bandhig("Caught index error: " + errorMsg)
     // Add more elements to make the index valid
     numbers.kudar(4)
     numbers.kudar(5)
     numbers.kudar(6)
-    qor("Fixed: Value at index 5 is now " + numbers[5])
+    bandhig("Fixed: Value at index 5 is now " + numbers[5])
 }
-qor()
+bandhig()
 
 // Example 4: Nested try-catch
-qor("Example 4: Nested try-catch")
+bandhig("Example 4: Nested try-catch")
 isku_day {
     door x = 1
     isku_day {
         door y = x / 0
     } qabo (innerError) {
-        qor("Inner catch: " + innerError)
+        bandhig("Inner catch: " + innerError)
         throw "Rethrowing modified error"  // Rethrow to outer catch
     }
 } qabo (outerError) {
-    qor("Outer catch: " + outerError)
+    bandhig("Outer catch: " + outerError)
 }
-qor()
+bandhig()
 
 // Example 5: Function with error handling
-qor("Example 5: Function with error handling")
+bandhig("Example 5: Function with error handling")
 hawl safeDivide(a, b) {
     isku_day {
         haddii (b == 0) {
@@ -67,7 +67,7 @@ hawl safeDivide(a, b) {
         }
         celi a / b
     } qabo (errorMsg) {
-        qor("Error in safeDivide: " + errorMsg)
+        bandhig("Error in safeDivide: " + errorMsg)
         celi null  // Return a default value in case of error
     }
 }
@@ -75,8 +75,8 @@ hawl safeDivide(a, b) {
 door result1 = safeDivide(10, 2)
 door result2 = safeDivide(10, 0)
 
-qor("Result of 10/2: " + result1)
-qor("Result of 10/0: " + result2)
-qor()
+bandhig("Result of 10/2: " + result1)
+bandhig("Result of 10/0: " + result2)
+bandhig()
 
-qor("All error handling examples completed")
+bandhig("All error handling examples completed")

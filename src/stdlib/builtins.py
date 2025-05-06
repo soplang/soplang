@@ -3,7 +3,7 @@ from src.utils.errors import TypeError, ValueError
 
 class SoplangBuiltins:
     @staticmethod
-    def qor(message=""):
+    def bandhig(message=""):
         """
         Print a message to the console (equivalent to 'print' in many languages)
 
@@ -14,7 +14,7 @@ class SoplangBuiltins:
         return message
 
     @staticmethod
-    def akhri(prompt=""):
+    def gelin(prompt=""):
         """
         Read input from the user (equivalent to input/prompt)
         """
@@ -28,7 +28,7 @@ class SoplangBuiltins:
         if isinstance(value, str):
             return "qoraal"
         elif isinstance(value, bool):
-            return "labadaran"
+            return "bool"
         elif isinstance(value, (int, float)):
             return "tiro"
         elif isinstance(value, list):
@@ -36,7 +36,7 @@ class SoplangBuiltins:
         elif isinstance(value, dict):
             return "walax"
         elif value is None:
-            return "waxba"
+            return "maran"
         else:
             return "aan la aqoon"
 
@@ -80,7 +80,7 @@ class SoplangBuiltins:
         return str(value)
 
     @staticmethod
-    def labadaran(value):
+    def bool(value):
         """
         Convert a value to a boolean
         """
@@ -293,12 +293,12 @@ def get_builtin_functions():
     Returns a dictionary of all built-in functions
     """
     builtins = {
-        "qor": SoplangBuiltins.qor,
-        "akhri": SoplangBuiltins.akhri,
+        "bandhig": SoplangBuiltins.bandhig,
+        "gelin": SoplangBuiltins.gelin,
         "nuuc": SoplangBuiltins.nuuc,
         "tiro": SoplangBuiltins.tiro,
         "qoraal": SoplangBuiltins.qoraal,
-        "labadaran": SoplangBuiltins.labadaran,
+        "bool": SoplangBuiltins.bool,
         "liis": SoplangBuiltins.liis,
         "walax": SoplangBuiltins.walax,
     }
@@ -311,8 +311,8 @@ def get_object_methods():
     Returns a dictionary of object methods
     """
     methods = {
-        "furaha": SoplangBuiltins.object_keys,
-        "haystaa": SoplangBuiltins.object_has,
+        "fure": SoplangBuiltins.object_keys,
+        "leeyahay": SoplangBuiltins.object_has,
         "tirtir": SoplangBuiltins.object_remove,
         "iskudar": SoplangBuiltins.object_merge
     }
@@ -329,7 +329,7 @@ def get_list_methods():
         "kasaar": SoplangBuiltins.list_pop,
         "dherer": SoplangBuiltins.list_length,
         "iskuxir": SoplangBuiltins.list_concat,
-        "ka_kooban": SoplangBuiltins.list_contains,
+        "leeyahay": SoplangBuiltins.list_contains,
     }
 
     return methods

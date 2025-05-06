@@ -2208,13 +2208,13 @@ static const char __pyx_k_op[] = "op";
 static const char __pyx_k_AND[] = "AND";
 static const char __pyx_k_DOT[] = "DOT";
 static const char __pyx_k_EOF[] = "EOF";
-static const char __pyx_k_QOR[] = "QOR";
+static const char __pyx_k_BANDHIG[] = "BANDHIG";
 static const char __pyx_k__56[] = "?";
 static const char __pyx_k_doc[] = "__doc__";
 static const char __pyx_k_got[] = ", got ";
 static const char __pyx_k_key[] = "key";
 static const char __pyx_k_DOOR[] = "DOOR";
-static const char __pyx_k_HOWL[] = "HOWL";
+static const char __pyx_k_hawl[] = "hawl";
 static const char __pyx_k_LESS[] = "LESS";
 static const char __pyx_k_LIIS[] = "LIIS";
 static const char __pyx_k_NULL[] = "NULL";
@@ -2509,7 +2509,7 @@ typedef struct {
   PyObject *__pyx_n_s_HADDII;
   PyObject *__pyx_n_s_HADDII_KALE;
   PyObject *__pyx_n_s_HADDII_KALENA;
-  PyObject *__pyx_n_s_HOWL;
+  PyObject *__pyx_n_s_hawl;
   PyObject *__pyx_n_s_IDENTIFIER;
   PyObject *__pyx_n_s_IF_STATEMENT;
   PyObject *__pyx_n_s_IMPORT_STATEMENT;
@@ -2571,7 +2571,7 @@ typedef struct {
   PyObject *__pyx_n_s_Parser_parse_variable_declaratio;
   PyObject *__pyx_n_s_Parser_parse_while_statement;
   PyObject *__pyx_n_s_QABO;
-  PyObject *__pyx_n_s_QOR;
+  PyObject *__pyx_n_s_BANDHIG;
   PyObject *__pyx_n_s_QORAAL;
   PyObject *__pyx_n_s_RETURN_STATEMENT;
   PyObject *__pyx_n_s_RIGHT_BRACE;
@@ -2827,7 +2827,7 @@ static int __pyx_m_clear(PyObject *m) {
   Py_CLEAR(clear_module_state->__pyx_n_s_HADDII);
   Py_CLEAR(clear_module_state->__pyx_n_s_HADDII_KALE);
   Py_CLEAR(clear_module_state->__pyx_n_s_HADDII_KALENA);
-  Py_CLEAR(clear_module_state->__pyx_n_s_HOWL);
+  Py_CLEAR(clear_module_state->__pyx_n_s_hawl);
   Py_CLEAR(clear_module_state->__pyx_n_s_IDENTIFIER);
   Py_CLEAR(clear_module_state->__pyx_n_s_IF_STATEMENT);
   Py_CLEAR(clear_module_state->__pyx_n_s_IMPORT_STATEMENT);
@@ -2889,7 +2889,7 @@ static int __pyx_m_clear(PyObject *m) {
   Py_CLEAR(clear_module_state->__pyx_n_s_Parser_parse_variable_declaratio);
   Py_CLEAR(clear_module_state->__pyx_n_s_Parser_parse_while_statement);
   Py_CLEAR(clear_module_state->__pyx_n_s_QABO);
-  Py_CLEAR(clear_module_state->__pyx_n_s_QOR);
+  Py_CLEAR(clear_module_state->__pyx_n_s_BANDHIG);
   Py_CLEAR(clear_module_state->__pyx_n_s_QORAAL);
   Py_CLEAR(clear_module_state->__pyx_n_s_RETURN_STATEMENT);
   Py_CLEAR(clear_module_state->__pyx_n_s_RIGHT_BRACE);
@@ -3123,7 +3123,7 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
   Py_VISIT(traverse_module_state->__pyx_n_s_HADDII);
   Py_VISIT(traverse_module_state->__pyx_n_s_HADDII_KALE);
   Py_VISIT(traverse_module_state->__pyx_n_s_HADDII_KALENA);
-  Py_VISIT(traverse_module_state->__pyx_n_s_HOWL);
+  Py_VISIT(traverse_module_state->__pyx_n_s_hawl);
   Py_VISIT(traverse_module_state->__pyx_n_s_IDENTIFIER);
   Py_VISIT(traverse_module_state->__pyx_n_s_IF_STATEMENT);
   Py_VISIT(traverse_module_state->__pyx_n_s_IMPORT_STATEMENT);
@@ -3185,7 +3185,7 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
   Py_VISIT(traverse_module_state->__pyx_n_s_Parser_parse_variable_declaratio);
   Py_VISIT(traverse_module_state->__pyx_n_s_Parser_parse_while_statement);
   Py_VISIT(traverse_module_state->__pyx_n_s_QABO);
-  Py_VISIT(traverse_module_state->__pyx_n_s_QOR);
+  Py_VISIT(traverse_module_state->__pyx_n_s_BANDHIG);
   Py_VISIT(traverse_module_state->__pyx_n_s_QORAAL);
   Py_VISIT(traverse_module_state->__pyx_n_s_RETURN_STATEMENT);
   Py_VISIT(traverse_module_state->__pyx_n_s_RIGHT_BRACE);
@@ -3429,7 +3429,7 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
 #define __pyx_n_s_HADDII __pyx_mstate_global->__pyx_n_s_HADDII
 #define __pyx_n_s_HADDII_KALE __pyx_mstate_global->__pyx_n_s_HADDII_KALE
 #define __pyx_n_s_HADDII_KALENA __pyx_mstate_global->__pyx_n_s_HADDII_KALENA
-#define __pyx_n_s_HOWL __pyx_mstate_global->__pyx_n_s_HOWL
+#define __pyx_n_s_hawl __pyx_mstate_global->__pyx_n_s_hawl
 #define __pyx_n_s_IDENTIFIER __pyx_mstate_global->__pyx_n_s_IDENTIFIER
 #define __pyx_n_s_IF_STATEMENT __pyx_mstate_global->__pyx_n_s_IF_STATEMENT
 #define __pyx_n_s_IMPORT_STATEMENT __pyx_mstate_global->__pyx_n_s_IMPORT_STATEMENT
@@ -3491,7 +3491,7 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
 #define __pyx_n_s_Parser_parse_variable_declaratio __pyx_mstate_global->__pyx_n_s_Parser_parse_variable_declaratio
 #define __pyx_n_s_Parser_parse_while_statement __pyx_mstate_global->__pyx_n_s_Parser_parse_while_statement
 #define __pyx_n_s_QABO __pyx_mstate_global->__pyx_n_s_QABO
-#define __pyx_n_s_QOR __pyx_mstate_global->__pyx_n_s_QOR
+#define __pyx_n_s_BANDHIG __pyx_mstate_global->__pyx_n_s_BANDHIG
 #define __pyx_n_s_QORAAL __pyx_mstate_global->__pyx_n_s_QORAAL
 #define __pyx_n_s_RETURN_STATEMENT __pyx_mstate_global->__pyx_n_s_RETURN_STATEMENT
 #define __pyx_n_s_RIGHT_BRACE __pyx_mstate_global->__pyx_n_s_RIGHT_BRACE
@@ -4846,7 +4846,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
  *         # Handle static typing (tiro, qoraal, labadaran, liis, shey)
  *         elif ttype in (TokenType.TIRO, TokenType.QORAAL, TokenType.LABADARAN, TokenType.LIIS, TokenType.SHEY):             # <<<<<<<<<<<<<<
  *             return self.parse_variable_declaration(is_static=True)
- *         elif ttype == TokenType.HOWL:
+ *         elif ttype == TokenType.hawl:
  */
   __Pyx_INCREF(__pyx_v_ttype);
   __pyx_t_4 = __pyx_v_ttype;
@@ -4925,7 +4925,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
  *         # Handle static typing (tiro, qoraal, labadaran, liis, shey)
  *         elif ttype in (TokenType.TIRO, TokenType.QORAAL, TokenType.LABADARAN, TokenType.LIIS, TokenType.SHEY):
  *             return self.parse_variable_declaration(is_static=True)             # <<<<<<<<<<<<<<
- *         elif ttype == TokenType.HOWL:
+ *         elif ttype == TokenType.hawl:
  *             return self.parse_function_definition()
  */
     __Pyx_XDECREF(__pyx_r);
@@ -4947,20 +4947,20 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
  *         # Handle static typing (tiro, qoraal, labadaran, liis, shey)
  *         elif ttype in (TokenType.TIRO, TokenType.QORAAL, TokenType.LABADARAN, TokenType.LIIS, TokenType.SHEY):             # <<<<<<<<<<<<<<
  *             return self.parse_variable_declaration(is_static=True)
- *         elif ttype == TokenType.HOWL:
+ *         elif ttype == TokenType.hawl:
  */
   }
 
   /* "src/parser.py":41
  *         elif ttype in (TokenType.TIRO, TokenType.QORAAL, TokenType.LABADARAN, TokenType.LIIS, TokenType.SHEY):
  *             return self.parse_variable_declaration(is_static=True)
- *         elif ttype == TokenType.HOWL:             # <<<<<<<<<<<<<<
+ *         elif ttype == TokenType.hawl:             # <<<<<<<<<<<<<<
  *             return self.parse_function_definition()
- *         elif ttype == TokenType.QOR or ttype == TokenType.AKHRI:
+ *         elif ttype == TokenType.BANDHIG or ttype == TokenType.AKHRI:
  */
   __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_TokenType); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 41, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_HOWL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 41, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_hawl); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 41, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_t_2 = PyObject_RichCompare(__pyx_v_ttype, __pyx_t_1, Py_EQ); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 41, __pyx_L1_error)
@@ -4971,10 +4971,10 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
 
     /* "src/parser.py":42
  *             return self.parse_variable_declaration(is_static=True)
- *         elif ttype == TokenType.HOWL:
+ *         elif ttype == TokenType.hawl:
  *             return self.parse_function_definition()             # <<<<<<<<<<<<<<
- *         elif ttype == TokenType.QOR or ttype == TokenType.AKHRI:
- *             # 'qor' or 'akhri' -> function call
+ *         elif ttype == TokenType.BANDHIG or ttype == TokenType.AKHRI:
+ *             # 'bandhig' or 'akhri' -> function call
  */
     __Pyx_XDECREF(__pyx_r);
     __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_parse_function_definition); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 42, __pyx_L1_error)
@@ -5008,22 +5008,22 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
     /* "src/parser.py":41
  *         elif ttype in (TokenType.TIRO, TokenType.QORAAL, TokenType.LABADARAN, TokenType.LIIS, TokenType.SHEY):
  *             return self.parse_variable_declaration(is_static=True)
- *         elif ttype == TokenType.HOWL:             # <<<<<<<<<<<<<<
+ *         elif ttype == TokenType.hawl:             # <<<<<<<<<<<<<<
  *             return self.parse_function_definition()
- *         elif ttype == TokenType.QOR or ttype == TokenType.AKHRI:
+ *         elif ttype == TokenType.BANDHIG or ttype == TokenType.AKHRI:
  */
   }
 
   /* "src/parser.py":43
- *         elif ttype == TokenType.HOWL:
+ *         elif ttype == TokenType.hawl:
  *             return self.parse_function_definition()
- *         elif ttype == TokenType.QOR or ttype == TokenType.AKHRI:             # <<<<<<<<<<<<<<
- *             # 'qor' or 'akhri' -> function call
+ *         elif ttype == TokenType.BANDHIG or ttype == TokenType.AKHRI:             # <<<<<<<<<<<<<<
+ *             # 'bandhig' or 'akhri' -> function call
  *             return self.parse_function_call()
  */
   __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_TokenType); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 43, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_QOR); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 43, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_BANDHIG); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 43, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_t_2 = PyObject_RichCompare(__pyx_v_ttype, __pyx_t_1, Py_EQ); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 43, __pyx_L1_error)
@@ -5049,8 +5049,8 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
   if (__pyx_t_5) {
 
     /* "src/parser.py":45
- *         elif ttype == TokenType.QOR or ttype == TokenType.AKHRI:
- *             # 'qor' or 'akhri' -> function call
+ *         elif ttype == TokenType.BANDHIG or ttype == TokenType.AKHRI:
+ *             # 'bandhig' or 'akhri' -> function call
  *             return self.parse_function_call()             # <<<<<<<<<<<<<<
  *         elif ttype == TokenType.HADDII:
  *             return self.parse_if_statement()
@@ -5085,16 +5085,16 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
     goto __pyx_L0;
 
     /* "src/parser.py":43
- *         elif ttype == TokenType.HOWL:
+ *         elif ttype == TokenType.hawl:
  *             return self.parse_function_definition()
- *         elif ttype == TokenType.QOR or ttype == TokenType.AKHRI:             # <<<<<<<<<<<<<<
- *             # 'qor' or 'akhri' -> function call
+ *         elif ttype == TokenType.BANDHIG or ttype == TokenType.AKHRI:             # <<<<<<<<<<<<<<
+ *             # 'bandhig' or 'akhri' -> function call
  *             return self.parse_function_call()
  */
   }
 
   /* "src/parser.py":46
- *             # 'qor' or 'akhri' -> function call
+ *             # 'bandhig' or 'akhri' -> function call
  *             return self.parse_function_call()
  *         elif ttype == TokenType.HADDII:             # <<<<<<<<<<<<<<
  *             return self.parse_if_statement()
@@ -5148,7 +5148,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
     goto __pyx_L0;
 
     /* "src/parser.py":46
- *             # 'qor' or 'akhri' -> function call
+ *             # 'bandhig' or 'akhri' -> function call
  *             return self.parse_function_call()
  *         elif ttype == TokenType.HADDII:             # <<<<<<<<<<<<<<
  *             return self.parse_if_statement()
@@ -7807,10 +7807,10 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_10parse_variable_declaration(CYTH
 }
 
 /* "src/parser.py":179
- *     #  howl foo(a, b) { ... }
+ *     #  hawl foo(a, b) { ... }
  *     # -----------------------------
  *     def parse_function_definition(self):             # <<<<<<<<<<<<<<
- *         self.expect(TokenType.HOWL)
+ *         self.expect(TokenType.hawl)
  *         func_name = self.current_token.value
  */
 
@@ -7938,7 +7938,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_12parse_function_definition(CYTHO
   /* "src/parser.py":180
  *     # -----------------------------
  *     def parse_function_definition(self):
- *         self.expect(TokenType.HOWL)             # <<<<<<<<<<<<<<
+ *         self.expect(TokenType.hawl)             # <<<<<<<<<<<<<<
  *         func_name = self.current_token.value
  *         self.expect(TokenType.IDENTIFIER)
  */
@@ -7946,7 +7946,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_12parse_function_definition(CYTHO
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_TokenType); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 180, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_HOWL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 180, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_hawl); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 180, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_t_3 = NULL;
@@ -7976,7 +7976,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_12parse_function_definition(CYTHO
 
   /* "src/parser.py":181
  *     def parse_function_definition(self):
- *         self.expect(TokenType.HOWL)
+ *         self.expect(TokenType.hawl)
  *         func_name = self.current_token.value             # <<<<<<<<<<<<<<
  *         self.expect(TokenType.IDENTIFIER)
  *         self.expect(TokenType.LEFT_PAREN)
@@ -7990,7 +7990,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_12parse_function_definition(CYTHO
   __pyx_t_2 = 0;
 
   /* "src/parser.py":182
- *         self.expect(TokenType.HOWL)
+ *         self.expect(TokenType.hawl)
  *         func_name = self.current_token.value
  *         self.expect(TokenType.IDENTIFIER)             # <<<<<<<<<<<<<<
  *         self.expect(TokenType.LEFT_PAREN)
@@ -8520,10 +8520,10 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_12parse_function_definition(CYTHO
   goto __pyx_L0;
 
   /* "src/parser.py":179
- *     #  howl foo(a, b) { ... }
+ *     #  hawl foo(a, b) { ... }
  *     # -----------------------------
  *     def parse_function_definition(self):             # <<<<<<<<<<<<<<
- *         self.expect(TokenType.HOWL)
+ *         self.expect(TokenType.hawl)
  *         func_name = self.current_token.value
  */
 
@@ -8551,10 +8551,10 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_12parse_function_definition(CYTHO
 }
 
 /* "src/parser.py":206
- *     #  Function calls: qor("Hi") or akhri("Enter name:")
+ *     #  Function calls: bandhig("Hi") or akhri("Enter name:")
  *     # -----------------------------
  *     def parse_function_call(self):             # <<<<<<<<<<<<<<
- *         """Parse a function call like 'qor("Hello")' """
+ *         """Parse a function call like 'bandhig("Hello")' """
  *         func_name = self.current_token.value
  */
 
@@ -8566,7 +8566,7 @@ PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 PyObject *__pyx_args, PyObject *__pyx_kwds
 #endif
 ); /*proto*/
-PyDoc_STRVAR(__pyx_doc_3src_6parser_6Parser_14parse_function_call, "Parse a function call like 'qor(\"Hello\")' ");
+PyDoc_STRVAR(__pyx_doc_3src_6parser_6Parser_14parse_function_call, "Parse a function call like 'bandhig(\"Hello\")' ");
 static PyMethodDef __pyx_mdef_3src_6parser_6Parser_15parse_function_call = {"parse_function_call", (PyCFunction)(void*)(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_3src_6parser_6Parser_15parse_function_call, __Pyx_METH_FASTCALL|METH_KEYWORDS, __pyx_doc_3src_6parser_6Parser_14parse_function_call};
 static PyObject *__pyx_pw_3src_6parser_6Parser_15parse_function_call(PyObject *__pyx_self,
 #if CYTHON_METH_FASTCALL
@@ -8674,9 +8674,9 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_14parse_function_call(CYTHON_UNUS
 
   /* "src/parser.py":208
  *     def parse_function_call(self):
- *         """Parse a function call like 'qor("Hello")' """
+ *         """Parse a function call like 'bandhig("Hello")' """
  *         func_name = self.current_token.value             # <<<<<<<<<<<<<<
- *         if self.current_token.type != TokenType.IDENTIFIER and self.current_token.type not in (TokenType.QOR, TokenType.AKHRI, TokenType.QORAAL, TokenType.TIRO, TokenType.LABADARAN, TokenType.LIIS, TokenType.SHEY):
+ *         if self.current_token.type != TokenType.IDENTIFIER and self.current_token.type not in (TokenType.BANDHIG, TokenType.AKHRI, TokenType.QORAAL, TokenType.TIRO, TokenType.LABADARAN, TokenType.LIIS, TokenType.SHEY):
  *             raise ParserError(
  */
   __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_current_token); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 208, __pyx_L1_error)
@@ -8688,9 +8688,9 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_14parse_function_call(CYTHON_UNUS
   __pyx_t_2 = 0;
 
   /* "src/parser.py":209
- *         """Parse a function call like 'qor("Hello")' """
+ *         """Parse a function call like 'bandhig("Hello")' """
  *         func_name = self.current_token.value
- *         if self.current_token.type != TokenType.IDENTIFIER and self.current_token.type not in (TokenType.QOR, TokenType.AKHRI, TokenType.QORAAL, TokenType.TIRO, TokenType.LABADARAN, TokenType.LIIS, TokenType.SHEY):             # <<<<<<<<<<<<<<
+ *         if self.current_token.type != TokenType.IDENTIFIER and self.current_token.type not in (TokenType.BANDHIG, TokenType.AKHRI, TokenType.QORAAL, TokenType.TIRO, TokenType.LABADARAN, TokenType.LIIS, TokenType.SHEY):             # <<<<<<<<<<<<<<
  *             raise ParserError(
  *                 f"Expected function name, got {self.current_token.type}")
  */
@@ -8721,7 +8721,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_14parse_function_call(CYTHON_UNUS
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_TokenType); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 209, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_QOR); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 209, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_BANDHIG); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 209, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_t_2 = PyObject_RichCompare(__pyx_t_4, __pyx_t_1, Py_NE); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 209, __pyx_L1_error)
@@ -8822,7 +8822,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_14parse_function_call(CYTHON_UNUS
 
     /* "src/parser.py":210
  *         func_name = self.current_token.value
- *         if self.current_token.type != TokenType.IDENTIFIER and self.current_token.type not in (TokenType.QOR, TokenType.AKHRI, TokenType.QORAAL, TokenType.TIRO, TokenType.LABADARAN, TokenType.LIIS, TokenType.SHEY):
+ *         if self.current_token.type != TokenType.IDENTIFIER and self.current_token.type not in (TokenType.BANDHIG, TokenType.AKHRI, TokenType.QORAAL, TokenType.TIRO, TokenType.LABADARAN, TokenType.LIIS, TokenType.SHEY):
  *             raise ParserError(             # <<<<<<<<<<<<<<
  *                 f"Expected function name, got {self.current_token.type}")
  *
@@ -8831,7 +8831,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_14parse_function_call(CYTHON_UNUS
     __Pyx_GOTREF(__pyx_t_2);
 
     /* "src/parser.py":211
- *         if self.current_token.type != TokenType.IDENTIFIER and self.current_token.type not in (TokenType.QOR, TokenType.AKHRI, TokenType.QORAAL, TokenType.TIRO, TokenType.LABADARAN, TokenType.LIIS, TokenType.SHEY):
+ *         if self.current_token.type != TokenType.IDENTIFIER and self.current_token.type not in (TokenType.BANDHIG, TokenType.AKHRI, TokenType.QORAAL, TokenType.TIRO, TokenType.LABADARAN, TokenType.LIIS, TokenType.SHEY):
  *             raise ParserError(
  *                 f"Expected function name, got {self.current_token.type}")             # <<<<<<<<<<<<<<
  *
@@ -8876,9 +8876,9 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_14parse_function_call(CYTHON_UNUS
     __PYX_ERR(0, 210, __pyx_L1_error)
 
     /* "src/parser.py":209
- *         """Parse a function call like 'qor("Hello")' """
+ *         """Parse a function call like 'bandhig("Hello")' """
  *         func_name = self.current_token.value
- *         if self.current_token.type != TokenType.IDENTIFIER and self.current_token.type not in (TokenType.QOR, TokenType.AKHRI, TokenType.QORAAL, TokenType.TIRO, TokenType.LABADARAN, TokenType.LIIS, TokenType.SHEY):             # <<<<<<<<<<<<<<
+ *         if self.current_token.type != TokenType.IDENTIFIER and self.current_token.type not in (TokenType.BANDHIG, TokenType.AKHRI, TokenType.QORAAL, TokenType.TIRO, TokenType.LABADARAN, TokenType.LIIS, TokenType.SHEY):             # <<<<<<<<<<<<<<
  *             raise ParserError(
  *                 f"Expected function name, got {self.current_token.type}")
  */
@@ -9005,10 +9005,10 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_14parse_function_call(CYTHON_UNUS
   goto __pyx_L0;
 
   /* "src/parser.py":206
- *     #  Function calls: qor("Hi") or akhri("Enter name:")
+ *     #  Function calls: bandhig("Hi") or akhri("Enter name:")
  *     # -----------------------------
  *     def parse_function_call(self):             # <<<<<<<<<<<<<<
- *         """Parse a function call like 'qor("Hello")' """
+ *         """Parse a function call like 'bandhig("Hello")' """
  *         func_name = self.current_token.value
  */
 
@@ -19192,7 +19192,7 @@ static int __Pyx_CreateStringTabAndInitStrings(void) {
     {&__pyx_n_s_HADDII, __pyx_k_HADDII, sizeof(__pyx_k_HADDII), 0, 0, 1, 1},
     {&__pyx_n_s_HADDII_KALE, __pyx_k_HADDII_KALE, sizeof(__pyx_k_HADDII_KALE), 0, 0, 1, 1},
     {&__pyx_n_s_HADDII_KALENA, __pyx_k_HADDII_KALENA, sizeof(__pyx_k_HADDII_KALENA), 0, 0, 1, 1},
-    {&__pyx_n_s_HOWL, __pyx_k_HOWL, sizeof(__pyx_k_HOWL), 0, 0, 1, 1},
+    {&__pyx_n_s_hawl, __pyx_k_hawl, sizeof(__pyx_k_hawl), 0, 0, 1, 1},
     {&__pyx_n_s_IDENTIFIER, __pyx_k_IDENTIFIER, sizeof(__pyx_k_IDENTIFIER), 0, 0, 1, 1},
     {&__pyx_n_s_IF_STATEMENT, __pyx_k_IF_STATEMENT, sizeof(__pyx_k_IF_STATEMENT), 0, 0, 1, 1},
     {&__pyx_n_s_IMPORT_STATEMENT, __pyx_k_IMPORT_STATEMENT, sizeof(__pyx_k_IMPORT_STATEMENT), 0, 0, 1, 1},
@@ -19254,7 +19254,7 @@ static int __Pyx_CreateStringTabAndInitStrings(void) {
     {&__pyx_n_s_Parser_parse_variable_declaratio, __pyx_k_Parser_parse_variable_declaratio, sizeof(__pyx_k_Parser_parse_variable_declaratio), 0, 0, 1, 1},
     {&__pyx_n_s_Parser_parse_while_statement, __pyx_k_Parser_parse_while_statement, sizeof(__pyx_k_Parser_parse_while_statement), 0, 0, 1, 1},
     {&__pyx_n_s_QABO, __pyx_k_QABO, sizeof(__pyx_k_QABO), 0, 0, 1, 1},
-    {&__pyx_n_s_QOR, __pyx_k_QOR, sizeof(__pyx_k_QOR), 0, 0, 1, 1},
+    {&__pyx_n_s_BANDHIG, __pyx_k_BANDHIG, sizeof(__pyx_k_BANDHIG), 0, 0, 1, 1},
     {&__pyx_n_s_QORAAL, __pyx_k_QORAAL, sizeof(__pyx_k_QORAAL), 0, 0, 1, 1},
     {&__pyx_n_s_RETURN_STATEMENT, __pyx_k_RETURN_STATEMENT, sizeof(__pyx_k_RETURN_STATEMENT), 0, 0, 1, 1},
     {&__pyx_n_s_RIGHT_BRACE, __pyx_k_RIGHT_BRACE, sizeof(__pyx_k_RIGHT_BRACE), 0, 0, 1, 1},
@@ -19486,10 +19486,10 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_tuple__16);
 
   /* "src/parser.py":179
- *     #  howl foo(a, b) { ... }
+ *     #  hawl foo(a, b) { ... }
  *     # -----------------------------
  *     def parse_function_definition(self):             # <<<<<<<<<<<<<<
- *         self.expect(TokenType.HOWL)
+ *         self.expect(TokenType.hawl)
  *         func_name = self.current_token.value
  */
   __pyx_tuple__17 = PyTuple_Pack(5, __pyx_n_s_self, __pyx_n_s_func_name, __pyx_n_s_params, __pyx_n_s_body, __pyx_n_s_p); if (unlikely(!__pyx_tuple__17)) __PYX_ERR(0, 179, __pyx_L1_error)
@@ -19498,10 +19498,10 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __pyx_codeobj__18 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__17, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_src_parser_py, __pyx_n_s_parse_function_definition, 179, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__18)) __PYX_ERR(0, 179, __pyx_L1_error)
 
   /* "src/parser.py":206
- *     #  Function calls: qor("Hi") or akhri("Enter name:")
+ *     #  Function calls: bandhig("Hi") or akhri("Enter name:")
  *     # -----------------------------
  *     def parse_function_call(self):             # <<<<<<<<<<<<<<
- *         """Parse a function call like 'qor("Hello")' """
+ *         """Parse a function call like 'bandhig("Hello")' """
  *         func_name = self.current_token.value
  */
   __pyx_tuple__19 = PyTuple_Pack(2, __pyx_n_s_self, __pyx_n_s_func_name); if (unlikely(!__pyx_tuple__19)) __PYX_ERR(0, 206, __pyx_L1_error)
@@ -20244,10 +20244,10 @@ if (!__Pyx_RefNanny) {
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
   /* "src/parser.py":179
- *     #  howl foo(a, b) { ... }
+ *     #  hawl foo(a, b) { ... }
  *     # -----------------------------
  *     def parse_function_definition(self):             # <<<<<<<<<<<<<<
- *         self.expect(TokenType.HOWL)
+ *         self.expect(TokenType.hawl)
  *         func_name = self.current_token.value
  */
   __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_3src_6parser_6Parser_13parse_function_definition, 0, __pyx_n_s_Parser_parse_function_definition, NULL, __pyx_n_s_src_parser, __pyx_d, ((PyObject *)__pyx_codeobj__18)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 179, __pyx_L1_error)
@@ -20256,10 +20256,10 @@ if (!__Pyx_RefNanny) {
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
   /* "src/parser.py":206
- *     #  Function calls: qor("Hi") or akhri("Enter name:")
+ *     #  Function calls: bandhig("Hi") or akhri("Enter name:")
  *     # -----------------------------
  *     def parse_function_call(self):             # <<<<<<<<<<<<<<
- *         """Parse a function call like 'qor("Hello")' """
+ *         """Parse a function call like 'bandhig("Hello")' """
  *         func_name = self.current_token.value
  */
   __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_3src_6parser_6Parser_15parse_function_call, 0, __pyx_n_s_Parser_parse_function_call, NULL, __pyx_n_s_src_parser, __pyx_d, ((PyObject *)__pyx_codeobj__20)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 206, __pyx_L1_error)

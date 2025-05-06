@@ -64,7 +64,7 @@ docker run --rm -v "$(pwd):/scripts" soplang:latest examples/XX_example_name.so
 **Purpose**: Demonstrates Soplang's static typing system with type-specific keywords.
 
 **Features Tested**:
-- Static variable declaration with `tiro`, `qoraal`, `labadaran`, `liis`, and `walax`
+- Static variable declaration with `tiro`, `qoraal`, `bool`, `liis`, and `walax`
 - Type enforcement at runtime
 - Error handling for type violations
 
@@ -156,17 +156,17 @@ docker run --rm -v "$(pwd):/scripts" soplang:latest examples/XX_example_name.so
 
 ### 08_for_loops.so
 
-**Purpose**: Tests for loops in Soplang using `ku_celi`.
+**Purpose**: Tests for loops in Soplang using `kuceli`.
 
 **Features Tested**:
 - Basic for loop syntax
 - Looping through ranges of numbers
 - Custom step values
-- Loop control with `jooji` (break) and `sii_wad` (continue)
+- Loop control with `jooji` (break) and `soco` (continue)
 - Nested loops
 
 **Key Concepts**:
-- The `ku_celi` statement iterates from a start to an end value
+- The `kuceli` statement iterates from a start to an end value
 - The step can be specified with the optional `by` clause
 
 ### 09_while_loops.so
@@ -176,7 +176,7 @@ docker run --rm -v "$(pwd):/scripts" soplang:latest examples/XX_example_name.so
 **Features Tested**:
 - While loop syntax
 - Conditional looping
-- Loop control with `jooji` (break) and `sii_wad` (continue)
+- Loop control with `jooji` (break) and `soco` (continue)
 - Infinite loops with manual breaking
 - Nested while loops
 
@@ -211,7 +211,7 @@ docker run --rm -v "$(pwd):/scripts" soplang:latest examples/XX_example_name.so
 - List creation and initialization
 - Accessing elements by index
 - Modifying elements
-- List methods: `kudar` (push), `kasaar` (pop), `dherer` (length), `iskuxir` (concat), `ka_kooban` (contains)
+- List methods: `kudar` (push), `kasaar` (pop), `dherer` (length), `iskuxir` (concat), `leeyahay` (contains)
 - List iteration
 - Nested lists
 
@@ -228,7 +228,7 @@ docker run --rm -v "$(pwd):/scripts" soplang:latest examples/XX_example_name.so
 - Object creation and initialization
 - Property access with dot notation
 - Property modification
-- Object methods: `furaha` (keys), `haystaa` (has), `tirtir` (remove), `iskudar` (merge)
+- Object methods: `fure` (keys), `leeyahay` (has), `tirtir` (remove), `iskudar` (merge)
 - Nested objects
 - Objects with arrays
 - Arrays of objects
@@ -253,7 +253,7 @@ docker run --rm -v "$(pwd):/scripts" soplang:latest examples/XX_example_name.so
 - Type detection with `nuuc()`
 
 **Key Concepts**:
-- The type conversion functions (`tiro`, `qoraal`, `labadaran`) convert values between types
+- The type conversion functions (`tiro`, `qoraal`, `bool`) convert values between types
 - The `nuuc()` function returns the type of a value as a string
 
 ### 14_comparison_assignment.so
@@ -262,7 +262,7 @@ docker run --rm -v "$(pwd):/scripts" soplang:latest examples/XX_example_name.so
 
 **Features Tested**:
 - Assigning comparison results to variables
-- Using both `door` and `labadaran` types for storing boolean results
+- Using both `door` and `bool` types for storing boolean results
 - Complex boolean expressions in assignments
 - Reassigning boolean values
 
@@ -272,16 +272,16 @@ docker run --rm -v "$(pwd):/scripts" soplang:latest examples/XX_example_name.so
 
 ### 15_user_input.so
 
-**Purpose**: Demonstrates user input in Soplang using the `akhri` function.
+**Purpose**: Demonstrates user input in Soplang using the `gelin` function.
 
 **Features Tested**:
-- Basic input with `akhri`
+- Basic input with `gelin`
 - Displaying prompts
 - Processing user input
 - Type checking input with `nuuc()`
 
 **Key Concepts**:
-- The `akhri` function gets input from the user
+- The `gelin` function gets input from the user
 - Input is always returned as a string
 - Input can be converted to other types as needed
 

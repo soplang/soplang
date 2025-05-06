@@ -1,12 +1,12 @@
 // Test: Type Checking
 // This test checks if the nuuc function works properly for detecting types
 
-qor("Testing type checking (nuuc):")
+bandhig("Testing type checking (nuuc):")
 
 // Create variables of different types
 tiro number_var = 42
 qoraal string_var = "Soplang waa luqad wacan"
-labadaran bool_var = been
+bool bool_var = been
 liis list_var = [1, 2, 3, "afar", been]
 walax object_var = {
     magac: "Ahmed",
@@ -15,20 +15,20 @@ walax object_var = {
 door dynamic_var = "dynamic"
 
 // Check types with nuuc function
-qor("  Type of number_var: " + nuuc(number_var))
-qor("  Type of string_var: " + nuuc(string_var))
-qor("  Type of bool_var: " + nuuc(bool_var))
-qor("  Type of list_var: " + nuuc(list_var))
-qor("  Type of object_var: " + nuuc(object_var))
-qor("  Type of dynamic_var: " + nuuc(dynamic_var))
+bandhig("  Type of number_var: " + nuuc(number_var))
+bandhig("  Type of string_var: " + nuuc(string_var))
+bandhig("  Type of bool_var: " + nuuc(bool_var))
+bandhig("  Type of list_var: " + nuuc(list_var))
+bandhig("  Type of object_var: " + nuuc(object_var))
+bandhig("  Type of dynamic_var: " + nuuc(dynamic_var))
 
 // Change type of dynamic variable and check again
 dynamic_var = 100
-qor("  Type of dynamic_var after change: " + nuuc(dynamic_var))
+bandhig("  Type of dynamic_var after change: " + nuuc(dynamic_var))
 
 // Check type of literal values
-qor("  Type of literal number: " + nuuc(123))
-qor("  Type of literal string: " + nuuc("test"))
-qor("  Type of literal boolean: " + nuuc(run))
-qor("  Type of literal list: " + nuuc([1, 2, 3]))
-qor("  Type of literal object: " + nuuc({a: 1, b: 2}))
+bandhig("  Type of literal number: " + nuuc(123))
+bandhig("  Type of literal string: " + nuuc("test"))
+bandhig("  Type of literal boolean: " + nuuc(run))
+bandhig("  Type of literal list: " + nuuc([1, 2, 3]))
+bandhig("  Type of literal object: " + nuuc({a: 1, b: 2}))
