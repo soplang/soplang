@@ -9,7 +9,7 @@ This document provides a reference for all keywords in the Soplang programming l
 | `door`      | Dynamic variable declaration | `var`/`let`        | `door magac = "Sharafdin"`              |
 | `tiro`      | Integer type                 | `int`              | `tiro da = 25`                          |
 | `qoraal`    | String type                  | `string`           | `qoraal magac = "Sharafdin"`            |
-| `labadaran` | Boolean type                 | `bool`             | `labadaran waaRun = true`               |
+| `bool` | Boolean type                 | `bool`             | `boolwaaRun = true`               |
 | `shey`      | Object type                  | `object`           | `shey person = { "name": "Sharafdin" }` |
 | `liis`      | List/array type              | `array`            | `liis numbers = [1, 2, 3]`              |
 | `maran`     | maran value                  | `maran`            | `door a = maran`                        |
@@ -67,8 +67,8 @@ This document provides a reference for all keywords in the Soplang programming l
 
 | Value   | Meaning       | English Equivalent | Example                  |
 | ------- | ------------- | ------------------ | ------------------------ |
-| `run`   | Boolean true  | `true`             | `labadaran check = run`  |
-| `been`  | Boolean false | `false`            | `labadaran check = been` |
+| `run`   | Boolean true  | `true`             | `bool check = run`  |
+| `been`  | Boolean false | `false`            | `bool check = been` |
 | `maran` | Null value    | `null`             | `door empty = maran`     |
 
 ## Operators
@@ -99,7 +99,7 @@ This document provides a reference for all keywords in the Soplang programming l
 | `nuuc`      | Get type of variable | `typeof`           | `bandhig(nuuc(magac))`                       |
 | `tiro`      | Convert to number    | `int`/`float`      | `door n = tiro("5")`                     |
 | `qoraal`    | Convert to string    | `str`              | `door s = qoraal(25)`                    |
-| `labadaran` | Convert to boolean   | `bool`             | `door b = labadaran(1)`                  |
+| `bool` | Convert to boolean   | `bool`             | `door b = bool(1)`                  |
 | `liis`      | Create a list        | `list/array`       | `door list = liis(1, 2, 3)`              |
 | `shey`      | Create an object     | `object/dict`      | `door obj = shey(name: "Ali", age: 25)`  |
 

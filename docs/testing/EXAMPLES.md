@@ -64,7 +64,7 @@ docker run --rm -v "$(pwd):/scripts" soplang:latest examples/XX_example_name.so
 **Purpose**: Demonstrates Soplang's static typing system with type-specific keywords.
 
 **Features Tested**:
-- Static variable declaration with `tiro`, `qoraal`, `labadaran`, `liis`, and `shey`
+- Static variable declaration with `tiro`, `qoraal`, `bool`, `liis`, and `shey`
 - Type enforcement at runtime
 - Error handling for type violations
 
@@ -253,7 +253,7 @@ docker run --rm -v "$(pwd):/scripts" soplang:latest examples/XX_example_name.so
 - Type detection with `nuuc()`
 
 **Key Concepts**:
-- The type conversion functions (`tiro`, `qoraal`, `labadaran`) convert values between types
+- The type conversion functions (`tiro`, `qoraal`, `bool`) convert values between types
 - The `nuuc()` function returns the type of a value as a string
 
 ### 14_comparison_assignment.so
@@ -262,7 +262,7 @@ docker run --rm -v "$(pwd):/scripts" soplang:latest examples/XX_example_name.so
 
 **Features Tested**:
 - Assigning comparison results to variables
-- Using both `door` and `labadaran` types for storing boolean results
+- Using both `door` and `bool` types for storing boolean results
 - Complex boolean expressions in assignments
 - Reassigning boolean values
 

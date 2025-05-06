@@ -138,12 +138,12 @@ class Interpreter:
                                 line=line,
                                 position=position)
 
-        elif expected_type == TokenType.LABADARAN:
+        elif expected_type == TokenType.BOOL:
             if not isinstance(value, bool):
                 raise TypeError("type_mismatch",
                                 var_name=var_name,
                                 value=value,
-                                expected_type="labadaran",
+                                expected_type="bool",
                                 line=line,
                                 position=position)
 

@@ -50,7 +50,8 @@ StaticDeclaration ::= StaticType Identifier "=" Expression
 
 StaticType ::= "tiro"      // Number
              | "qoraal"    // String
-             | "labadaran" // Boolean
+             | "bool
+             " // Boolean
              | "liis"      // List/Array
              | "shey"      // Object
 ```

@@ -55,10 +55,10 @@ haddii (keys.dherer() > 0) {
 }
 
 // Check if property exists
-labadaran has_job = person.leeyahay("shaqo")
+bool has_job = person.leeyahay("shaqo")
 bandhig("  Does person have 'shaqo'? " + has_job)
 
-labadaran has_email = person.leeyahay("email")
+bool has_email = person.leeyahay("email")
 bandhig("  Does person have 'email'? " + has_email)
 
 // Removing properties

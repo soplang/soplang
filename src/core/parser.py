@@ -54,7 +54,7 @@ class Parser:
             TokenType.INTA_AY: "keyword 'inta_ay' (while)",
             TokenType.TIRO: "keyword 'tiro' (number type)",
             TokenType.QORAAL: "keyword 'qoraal' (string type)",
-            TokenType.LABADARAN: "keyword 'labadaran' (boolean type)",
+            TokenType.BOOL: "keyword 'bool' (boolean type)",
             TokenType.LIIS: "keyword 'liis' (list type)",
             TokenType.SHEY: "keyword 'shey' (object type)",
         }
@@ -109,7 +109,7 @@ class Parser:
         elif token_type in (
             TokenType.TIRO,
             TokenType.QORAAL,
-            TokenType.LABADARAN,
+            TokenType.BOOL,
             TokenType.LIIS,
             TokenType.SHEY,
         ):
@@ -378,7 +378,7 @@ class Parser:
                 TokenType.AKHRI,
                 TokenType.QORAAL,
                 TokenType.TIRO,
-                TokenType.LABADARAN,
+                TokenType.BOOL,
                 TokenType.LIIS,
                 TokenType.SHEY,
             )
@@ -803,8 +803,8 @@ class Parser:
             self.advance()
             return ASTNode(NodeType.LITERAL, value=None)
         elif token.type == TokenType.IDENTIFIER or token.type in (
-            TokenType.QORAAL, TokenType.TIRO, TokenType.LABADARAN, TokenType.LIIS, TokenType.SHEY,
-            TokenType.BANDHIG, TokenType.AKHRI  # Added BANDHIG and AKHRI to handle them in expressions
+            TokenType.QORAAL, TokenType.TIRO, TokenType.BOOL, TokenType.LIIS, TokenType.SHEY,
+            TokenType.BANDHIG, TokenType.AKHRI  # Added QOR and AKHRI to handle them in expressions
         ):
             # Allow type names to be used as function names
             token_value = token.value if token.type == TokenType.IDENTIFIER else token.type.value

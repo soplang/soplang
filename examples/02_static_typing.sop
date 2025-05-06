@@ -10,9 +10,8 @@ bandhig("  Number (tiro): " + number_var)
 // String (qoraal)
 qoraal string_var = "Soplang waa luqad wacan"
 bandhig("  String (qoraal): " + string_var)
-
-// Boolean (labadaran)
-labadaran bool_var = been
+// Boolean (bool)
+bool bool_var = been
 bandhig("  Boolean (labadaran): " + bool_var)
 
 // List (liis)

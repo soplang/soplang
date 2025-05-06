@@ -45,7 +45,7 @@ class Lexer:
             # Static types
             "tiro": TokenType.TIRO,
             "qoraal": TokenType.QORAAL,
-            "labadaran": TokenType.LABADARAN,
+            "bool": TokenType.BOOL,
             "liis": TokenType.LIIS,
             "shey": TokenType.SHEY,
             # Boolean literals

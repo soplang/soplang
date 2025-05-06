@@ -36,7 +36,7 @@ This directory contains various test examples for the Soplang programming langua
 6. **06_static_typing.so** - Tests static typing using type-specific keywords.
    * Integer variables (`tiro`)
    * String variables (`qoraal`)
-   * Boolean variables (`labadaran`)
+   * Boolean variables (`bool`)
    * Type enforcement
    * Type conversion between static types
 
