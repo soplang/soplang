@@ -192,7 +192,7 @@ ListMethod ::= "kudar"       // push
              | "ka_kooban"   // contains
 
 // ===== OBJECT METHODS =====
-ObjectMethod ::= "furaha"    // keys
+ObjectMethod ::= "fure"    // keys
                | "haystaa"   // has
                | "tirtir"    // remove
                | "iskudar"   // merge

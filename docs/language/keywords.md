@@ -117,7 +117,7 @@ This document provides a reference for all keywords in the Soplang programming l
 
 | Method    | Meaning             | English Equivalent   | Example                               |
 | --------- | ------------------- | -------------------- | ------------------------------------- |
-| `furaha`  | Get object keys     | `keys`               | `door keys = myObj.furaha()`          |
+| `fure`  | Get object keys     | `keys`               | `door keys = myObj.fure()`          |
 | `haystaa` | Check if key exists | `has/hasOwnProperty` | `door exists = myObj.haystaa("name")` |
 | `tirtir`  | Remove property     | `delete`             | `myObj.tirtir("oldProp")`             |
 | `iskudar` | Merge objects       | `merge/assign`       | `door merged = obj1.iskudar(obj2)`    |
