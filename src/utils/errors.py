@@ -15,7 +15,7 @@ class ErrorMessageManager:
     ERROR_PREFIXES = {
         "lexer": "Khalad lexer",
         "parser": "Khalad parser",
-        "type": "Khalad nuuc",
+        "type": "Khalad nooc",
         "runtime": "Khalad runtime",
         "import": "Khalad import",
     }
@@ -160,7 +160,7 @@ class ErrorMessageManager:
         if error_code in cls.TYPE_ERRORS:
             message = cls.TYPE_ERRORS[error_code]
             return cls.format_error("type", message, **kwargs)
-        return f"Khalad nuuca ah: {error_code}"
+        return f"Khalad nooca ah: {error_code}"
 
     @classmethod
     def get_runtime_error(cls, error_code, **kwargs):
