@@ -39,7 +39,7 @@ door result = 10 / 0
 
 // Example 8: Missing arguments
 // This will cause an error because not enough arguments are provided
-// howl greet(name, age) {
+// hawl greet(name, age) {
 //     qor("Hello, " + name + "! You are " + age + " years old.")
 // }
 // greet("Aisha")  // Missing the age argument

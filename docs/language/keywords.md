@@ -37,8 +37,8 @@ This document provides a reference for all keywords in the Soplang programming l
 
 | Keyword    | Meaning              | English Equivalent | Example                                |
 | ---------- | -------------------- | ------------------ | -------------------------------------- |
-| `howl`     | Function declaration | `function`         | `howl isuGee(a, b) { soo_celi a + b }` |
-| `soo_celi` | Return statement     | `return`           | `soo_celi x * 2`                       |
+| `hawl`     | Function declaration | `function`         | `hawl isuGee(a, b) { celi a + b }` |
+| `celi` | Return statement     | `return`           | `celi x * 2`                       |
 
 ## Error Handling Keywords
 

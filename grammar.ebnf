@@ -77,7 +77,7 @@ BreakStatement ::= "jooji"
 ContinueStatement ::= "sii_wad"
 
 // ===== RETURN STATEMENT =====
-ReturnStatement ::= "soo_celi" [Expression]
+ReturnStatement ::= "celi" [Expression]
 
 // ===== THROW STATEMENT =====
 ThrowStatement ::= "throw" Expression

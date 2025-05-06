@@ -44,8 +44,8 @@ class Parser:
             TokenType.NULL: "null",
             # Keywords
             TokenType.DOOR: "keyword 'door'",
-            TokenType.HAWL: "keyword 'howl' (function)",
-            TokenType.SOO_CELI: "keyword 'soo_celi' (return)",
+            TokenType.HAWL: "keyword 'hawl' (function)",
+            TokenType.CELI: "keyword 'celi' (return)",
             TokenType.QOR: "keyword 'qor' (print)",
             TokenType.HADDII: "keyword 'haddii' (if)",
             TokenType.HADDII_KALE: "keyword 'haddii_kale' (else if)",
@@ -123,8 +123,8 @@ class Parser:
         elif token_type == TokenType.HOWL:
             return self.parse_function_definition()
 
-        # Handle return statement (soo_celi)
-        elif token_type == TokenType.SOO_CELI:
+        # Handle return statement (celi)
+        elif token_type == TokenType.CELI:
             return self.parse_return_statement()
 
         # Handle print statement (qor)
@@ -902,8 +902,8 @@ class Parser:
         return left
 
     def parse_return_statement(self):
-        self.expect(TokenType.SOO_CELI)
-        # If there is an expression after soo_celi, parse it
+        self.expect(TokenType.CELI)
+        # If there is an expression after celi, parse it
         if self.current_token.type != TokenType.SEMICOLON:
             expr = self.parse_expression()
             return ASTNode(NodeType.RETURN_STATEMENT, children=[expr])

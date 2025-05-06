@@ -117,7 +117,7 @@ class TestInterpreter(unittest.TestCase):
         """Test function definition and calling."""
         source = '''
         hawl add(a, b) {
-            soo_celi a + b
+            celi a + b
         }
         door result = add(5, 7)
         qor("5 + 7 = " + qoraal(result))
