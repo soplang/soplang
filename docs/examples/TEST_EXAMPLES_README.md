@@ -30,7 +30,7 @@ This directory contains various test examples for the Soplang programming langua
 5. **05_dynamic_typing.so** - Tests dynamic typing using the `door` keyword.
    * Variable initialization with different types
    * Type changes during runtime
-   * Type checking with `nuuc()`
+   * Type checking with `nooc()`
    * Using dynamic types in expressions
 
 6. **06_static_typing.so** - Tests static typing using type-specific keywords.
