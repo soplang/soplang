@@ -56,9 +56,9 @@ qor("  Combined list: " + combined)
 
 // Check if element exists in list
 tiro search_value = 30
-labadaran contains = numbers.ka_kooban(search_value)
+labadaran contains = numbers.leeyahay(search_value)
 qor("  Does numbers contain " + search_value + "? " + contains)
 
 search_value = 100
-contains = numbers.ka_kooban(search_value)
+contains = numbers.leeyahay(search_value)
 qor("  Does numbers contain " + search_value + "? " + contains)
