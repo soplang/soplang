@@ -26,7 +26,7 @@ qor()
 
 // Example 5: Unreachable code after return
 // This code will execute but the line after return won't be reached
-// howl testReturn() {
+// hawl testReturn() {
 //     soo_celi "Returned value"
 //     qor("This line is unreachable")  // This warning would be detected in more advanced languages
 // }
@@ -48,7 +48,7 @@ ku_celi i min 1 ilaa 3 {
 }
 
 // Valid example of proper function return
-howl add(a, b) {
+hawl add(a, b) {
     soo_celi a + b
 }
 door result = add(5, 3)

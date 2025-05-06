@@ -45,7 +45,7 @@ qor("  check_even(4): " + check_even(4))
 qor("  check_even(7): " + check_even(7))
 
 // Function with conditional return
-howl get_grade(score) {
+hawl get_grade(score) {
     haddii (score >= 90) {
         soo_celi "A"
     } haddii_kale (score >= 80) {
@@ -67,7 +67,7 @@ qor("  get_grade(65): " + get_grade(65))
 qor("  get_grade(55): " + get_grade(55))
 
 // Function that calls another function
-howl process_number(n) {
+hawl process_number(n) {
     door doubled = laban_jibbaar(n)
     soo_celi "Processed: " + doubled
 }
