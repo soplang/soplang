@@ -44,7 +44,7 @@ class Parser:
             TokenType.NULL: "null",
             # Keywords
             TokenType.DOOR: "keyword 'door'",
-            TokenType.HOWL: "keyword 'howl' (function)",
+            TokenType.HAWL: "keyword 'howl' (function)",
             TokenType.SOO_CELI: "keyword 'soo_celi' (return)",
             TokenType.QOR: "keyword 'qor' (print)",
             TokenType.HADDII: "keyword 'haddii' (if)",
@@ -338,7 +338,7 @@ class Parser:
     #  howl foo(a, b) { ... }
     # -----------------------------
     def parse_function_definition(self):
-        self.expect(TokenType.HOWL)
+        self.expect(TokenType.HAWL)
         func_name = self.current_token.value
         self.expect(TokenType.IDENTIFIER)
         self.expect(TokenType.LEFT_PAREN)

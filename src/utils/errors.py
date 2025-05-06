@@ -50,7 +50,7 @@ class ErrorMessageManager:
     # Runtime errors
     RUNTIME_ERRORS = {
         "undefined_variable": "Doorsame aan la qeexin: '{name}'",
-        "undefined_function": "Howl aan la qeexin: '{name}'",
+        "undefined_function": "Hawl aan la qeexin: '{name}'",
         "division_by_zero": "Ma suurtogali karto qeybinta eber",
         "modulo_by_zero": "Ma suurtogali karto modulo eber",
         "index_out_of_range": "Tirada fihris-ku waa ka baxsan xadka: {index}",
