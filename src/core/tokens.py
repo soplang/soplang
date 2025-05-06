@@ -14,7 +14,7 @@ class TokenType(Enum):
     KU_CELI = "ku_celi"
     INTA_AY = "inta_ay"
     JOOJI = "jooji"        # break
-    SII_WAD = "sii_wad"    # continue
+    soco = "soco"    # continue
     ISKU_DAY = "isku_day"  # try
     QABO = "qabo"          # catch
     KA_KEEN = "ka_keen"    # import

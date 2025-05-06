@@ -162,7 +162,7 @@ docker run --rm -v "$(pwd):/scripts" soplang:latest examples/XX_example_name.so
 - Basic for loop syntax
 - Looping through ranges of numbers
 - Custom step values
-- Loop control with `jooji` (break) and `sii_wad` (continue)
+- Loop control with `jooji` (break) and `soco` (continue)
 - Nested loops
 
 **Key Concepts**:
@@ -176,7 +176,7 @@ docker run --rm -v "$(pwd):/scripts" soplang:latest examples/XX_example_name.so
 **Features Tested**:
 - While loop syntax
 - Conditional looping
-- Loop control with `jooji` (break) and `sii_wad` (continue)
+- Loop control with `jooji` (break) and `soco` (continue)
 - Infinite loops with manual breaking
 - Nested while loops
 

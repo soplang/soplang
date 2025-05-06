@@ -25,10 +25,10 @@ ku_celi i min 1 ilaa 10 {
 }
 
 // For loop with continue
-qor("  For loop with continue (sii_wad):")
+qor("  For loop with continue (soco):")
 ku_celi i min 1 ilaa 5 {
     haddii (i % 2 == 0) {
-        sii_wad
+        soco
     }
     qor("    Odd number: " + i)
 }

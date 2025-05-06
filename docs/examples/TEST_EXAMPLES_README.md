@@ -23,7 +23,7 @@ This directory contains various test examples for the Soplang programming langua
 4. **04_loops.so** - Tests loop constructs.
    * Basic for loops (`ku_celi`)
    * Loops with break statements (`jooji`)
-   * Loops with continue statements (`sii_wad`)
+   * Loops with continue statements (`soco`)
    * Nested loops
    * While loops simulation (`inta_ay`)
 

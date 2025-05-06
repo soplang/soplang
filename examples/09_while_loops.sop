@@ -28,7 +28,7 @@ counter = 0
 inta_ay (counter < 5) {
     counter = counter + 1
     haddii (counter % 2 == 0) {
-        sii_wad
+        soco
     }
     qor("    Odd count: " + counter)
 }

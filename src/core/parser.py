@@ -156,7 +156,7 @@ class Parser:
             return self.parse_break_statement()
 
         # Handle continue statement
-        elif token_type == TokenType.SII_WAD:
+        elif token_type == TokenType.soco:
             return self.parse_continue_statement()
 
         # Handle try/catch
@@ -536,10 +536,10 @@ class Parser:
         return ASTNode(NodeType.BREAK_STATEMENT)
 
     # -----------------------------
-    #  Continue statement: sii_wad
+    #  Continue statement: soco
     # -----------------------------
     def parse_continue_statement(self):
-        self.expect(TokenType.SII_WAD)
+        self.expect(TokenType.soco)
         return ASTNode(NodeType.CONTINUE_STATEMENT)
 
     # -----------------------------

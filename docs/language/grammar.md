@@ -95,7 +95,7 @@ WhileStatement ::= "inta_ay" "(" Expression ")" Block
 
 BreakStatement ::= "jooji"
 
-ContinueStatement ::= "sii_wad"
+ContinueStatement ::= "soco"
 ```
 
 ## Return Statement

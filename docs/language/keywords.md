@@ -29,7 +29,7 @@ This document provides a reference for all keywords in the Soplang programming l
 | `ku_celi` | For loop            | `for`              | `ku_celi i min 1 ilaa 5 { qor(i) }`     |
 | `inta_ay` | While loop          | `while`            | `inta_ay (x < 5) { qor(x); x = x + 1 }` |
 | `jooji`   | Break statement     | `break`            | `haddii (x == 3) { jooji }`             |
-| `sii_wad` | Continue statement  | `continue`         | `haddii (x == 3) { sii_wad }`           |
+| `soco` | Continue statement  | `continue`         | `haddii (x == 3) { soco }`           |
 | `min`     | From (in for loops) | `from`             | `ku_celi i min 1 ilaa 5 { qor(i) }`     |
 | `ilaa`    | To (in for loops)   | `to`               | `ku_celi i min 1 ilaa 5 { qor(i) }`     |
 
