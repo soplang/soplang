@@ -96,7 +96,7 @@ This document provides a reference for all keywords in the Soplang programming l
 | ----------- | -------------------- | ------------------ | ---------------------------------------- |
 | `bandhig`       | Print to console     | `print`            | `qor("Salaan, Adduunka!")`               |
 | `gelin`     | Read input from user | `input`            | `door magac = gelin("Magacaaga geli: ")` |
-| `nuuc`      | Get type of variable | `typeof`           | `qor(nuuc(magac))`                       |
+| `nooc`      | Get type of variable | `typeof`           | `qor(nooc(magac))`                       |
 | `tiro`      | Convert to number    | `int`/`float`      | `door n = tiro("5")`                     |
 | `qoraal`    | Convert to string    | `str`              | `door s = qoraal(25)`                    |
 | `bool` | Convert to boolean   | `bool`             | `door b = bool(1)`                  |
@@ -132,7 +132,7 @@ This document provides a reference for all keywords in the Soplang programming l
 | `lexer`     | Lexical analyzer   | `lexer`            | `Khalad lexer: Xaraf aan la filayn: @`                            |
 | `parser`    | Syntax analyzer    | `parser`           | `Khalad parser: Waxaa la filayay ')', laakiin waxaa la helay '+'` |
 | `runtime`   | Execution time     | `runtime`          | `Khalad runtime: Ma suurtogali karto qeybinta eber`               |
-| `nuuc`      | Type               | `type`             | `Khalad nuuc: Qiimaheeda '10' ma ahan qoraal`                     |
+| `nooc`      | Type               | `type`             | `Khalad nooc: Qiimaheeda '10' ma ahan qoraal`                     |
 
 ## Special Syntax
 
