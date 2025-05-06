@@ -25,7 +25,7 @@ This directory contains various test examples for the Soplang programming langua
    * Loops with break statements (`jooji`)
    * Loops with continue statements (`soco`)
    * Nested loops
-   * While loops simulation (`inta_ay`)
+   * While loops simulation (`intay`)
 
 5. **05_dynamic_typing.so** - Tests dynamic typing using the `door` keyword.
    * Variable initialization with different types

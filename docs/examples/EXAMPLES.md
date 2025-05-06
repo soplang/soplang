@@ -47,7 +47,7 @@ Demonstrates conditional statements and loops.
 - Nested conditionals
 - Complex conditions with logical operators
 - For loops (`kuceli`)
-- While loops (`inta_ay`)
+- While loops (`intay`)
 - Break statements (`jooji`)
 - Continue statements (`soco`)
 - Nested loops
