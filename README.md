@@ -44,8 +44,8 @@ haddii (age > 18) {
 }
 
 // Functions
-howl salaam(qof) {
-    soo_celi "Salaan, " + qof + "!"
+hawl salaam(qof) {
+    celi "Salaan, " + qof + "!"
 }
 qor(salaam(magac))        // Prints: Salaan, Sharafdin!
 ```

@@ -8,7 +8,7 @@ qor()
 
 // Example 1: Return outside function
 // This will cause an error because return statements are only valid inside functions
-// soo_celi "Can't return outside a function"
+// celi "Can't return outside a function"
 
 // Example 2: Break outside loop
 // This will cause an error because break statements are only valid inside loops
@@ -26,8 +26,8 @@ qor()
 
 // Example 5: Unreachable code after return
 // This code will execute but the line after return won't be reached
-// howl testReturn() {
-//     soo_celi "Returned value"
+// hawl testReturn() {
+//     celi "Returned value"
 //     qor("This line is unreachable")  // This warning would be detected in more advanced languages
 // }
 // testReturn()
@@ -48,8 +48,8 @@ kuceli i min 1 ilaa 3 {
 }
 
 // Valid example of proper function return
-howl add(a, b) {
-    soo_celi a + b
+hawl add(a, b) {
+    celi a + b
 }
 door result = add(5, 3)
 qor("Function result: " + result)

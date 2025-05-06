@@ -191,16 +191,16 @@ docker run --rm -v "$(pwd):/scripts" soplang:latest examples/XX_example_name.so
 **Purpose**: Demonstrates function definition and calling in Soplang.
 
 **Features Tested**:
-- Function definition with `howl`
+- Function definition with `hawl`
 - Parameter passing
-- Return values with `soo_celi`
+- Return values with `celi`
 - Recursive functions
 - Function scoping
 - Default parameters
 
 **Key Concepts**:
 - Functions encapsulate reusable code
-- Return values are specified with `soo_celi`
+- Return values are specified with `celi`
 - Functions have their own variable scope
 
 ### 11_list_operations.so
@@ -228,7 +228,7 @@ docker run --rm -v "$(pwd):/scripts" soplang:latest examples/XX_example_name.so
 - Object creation and initialization
 - Property access with dot notation
 - Property modification
-- Object methods: `furaha` (keys), `haystaa` (has), `tirtir` (remove), `iskudar` (merge)
+- Object methods: `fure` (keys), `haystaa` (has), `tirtir` (remove), `iskudar` (merge)
 - Nested objects
 - Objects with arrays
 - Arrays of objects

@@ -58,7 +58,7 @@ StaticType ::= "tiro"      // Number
 ## Function Declarations
 
 ```ebnf
-FunctionDeclaration ::= "howl" Identifier "(" [ParameterList] ")" Block
+FunctionDeclaration ::= "hawl" Identifier "(" [ParameterList] ")" Block
 
 ParameterList ::= Identifier {"," Identifier}
 ```
@@ -101,7 +101,7 @@ ContinueStatement ::= "soco"
 ## Return Statement
 
 ```ebnf
-ReturnStatement ::= "soo_celi" [Expression]
+ReturnStatement ::= "celi" [Expression]
 ```
 
 ## Throw Statement
@@ -237,7 +237,7 @@ ListMethod ::= "kudar"       // push
 ## Object Methods
 
 ```ebnf
-ObjectMethod ::= "furaha"    // keys
+ObjectMethod ::= "fure"    // keys
                | "haystaa"   // has
                | "tirtir"    // remove
                | "iskudar"   // merge

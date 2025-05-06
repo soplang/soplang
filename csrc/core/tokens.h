@@ -9,7 +9,7 @@
 typedef enum {
     // Keywords
     DOOR,           // door (variable declaration)
-    HOWL,           // howl (function definition)
+    hawl,           // hawl (function definition)
     SOO_CELI,       // soo_celi (return)
     QOR,            // qor (print)
     AKHRI,          // akhri (input)

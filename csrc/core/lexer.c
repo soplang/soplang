@@ -2396,7 +2396,7 @@ static const char __pyx_k_doc[] = "__doc__";
 static const char __pyx_k_get[] = "get";
 static const char __pyx_k_qor[] = "qor";
 static const char __pyx_k_DOOR[] = "DOOR";
-static const char __pyx_k_HOWL[] = "HOWL";
+static const char __pyx_k_hawl[] = "hawl";
 static const char __pyx_k_LESS[] = "LESS";
 static const char __pyx_k_LIIS[] = "LIIS";
 static const char __pyx_k_NULL[] = "NULL";
@@ -2408,7 +2408,7 @@ static const char __pyx_k_TIRO[] = "TIRO";
 static const char __pyx_k_TRUE[] = "TRUE";
 static const char __pyx_k_dict[] = "__dict__";
 static const char __pyx_k_door[] = "door";
-static const char __pyx_k_howl[] = "howl";
+static const char __pyx_k_hawl[] = "hawl";
 static const char __pyx_k_init[] = "__init__";
 static const char __pyx_k_liis[] = "liis";
 static const char __pyx_k_main[] = "__main__";
@@ -2614,7 +2614,7 @@ typedef struct {
   PyObject *__pyx_n_s_HADDII;
   PyObject *__pyx_n_s_HADDII_KALE;
   PyObject *__pyx_n_s_HADDII_KALENA;
-  PyObject *__pyx_n_s_HOWL;
+  PyObject *__pyx_n_s_hawl;
   PyObject *__pyx_n_s_IDENTIFIER;
   PyObject *__pyx_n_s_INTA_AY;
   PyObject *__pyx_n_s_ISKU_DAY;
@@ -2726,7 +2726,7 @@ typedef struct {
   PyObject *__pyx_n_u_haddii_kalenaa;
   PyObject *__pyx_n_u_haddii_kale;
   PyObject *__pyx_n_u_haddii_kalena;
-  PyObject *__pyx_n_u_howl;
+  PyObject *__pyx_n_u_hawl;
   PyObject *__pyx_n_s_identifier;
   PyObject *__pyx_n_s_import;
   PyObject *__pyx_n_s_init;
@@ -2881,7 +2881,7 @@ static int __pyx_m_clear(PyObject *m) {
   Py_CLEAR(clear_module_state->__pyx_n_s_HADDII);
   Py_CLEAR(clear_module_state->__pyx_n_s_HADDII_KALE);
   Py_CLEAR(clear_module_state->__pyx_n_s_HADDII_KALENA);
-  Py_CLEAR(clear_module_state->__pyx_n_s_HOWL);
+  Py_CLEAR(clear_module_state->__pyx_n_s_hawl);
   Py_CLEAR(clear_module_state->__pyx_n_s_IDENTIFIER);
   Py_CLEAR(clear_module_state->__pyx_n_s_INTA_AY);
   Py_CLEAR(clear_module_state->__pyx_n_s_ISKU_DAY);
@@ -2993,7 +2993,7 @@ static int __pyx_m_clear(PyObject *m) {
   Py_CLEAR(clear_module_state->__pyx_n_u_haddii_kalenaa);
   Py_CLEAR(clear_module_state->__pyx_n_u_haddii_kale);
   Py_CLEAR(clear_module_state->__pyx_n_u_haddii_kalena);
-  Py_CLEAR(clear_module_state->__pyx_n_u_howl);
+  Py_CLEAR(clear_module_state->__pyx_n_u_hawl);
   Py_CLEAR(clear_module_state->__pyx_n_s_identifier);
   Py_CLEAR(clear_module_state->__pyx_n_s_import);
   Py_CLEAR(clear_module_state->__pyx_n_s_init);
@@ -3126,7 +3126,7 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
   Py_VISIT(traverse_module_state->__pyx_n_s_HADDII);
   Py_VISIT(traverse_module_state->__pyx_n_s_HADDII_KALE);
   Py_VISIT(traverse_module_state->__pyx_n_s_HADDII_KALENA);
-  Py_VISIT(traverse_module_state->__pyx_n_s_HOWL);
+  Py_VISIT(traverse_module_state->__pyx_n_s_hawl);
   Py_VISIT(traverse_module_state->__pyx_n_s_IDENTIFIER);
   Py_VISIT(traverse_module_state->__pyx_n_s_INTA_AY);
   Py_VISIT(traverse_module_state->__pyx_n_s_ISKU_DAY);
@@ -3238,7 +3238,7 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
   Py_VISIT(traverse_module_state->__pyx_n_u_haddii_kalenaa);
   Py_VISIT(traverse_module_state->__pyx_n_u_haddii_kale);
   Py_VISIT(traverse_module_state->__pyx_n_u_haddii_kalena);
-  Py_VISIT(traverse_module_state->__pyx_n_u_howl);
+  Py_VISIT(traverse_module_state->__pyx_n_u_hawl);
   Py_VISIT(traverse_module_state->__pyx_n_s_identifier);
   Py_VISIT(traverse_module_state->__pyx_n_s_import);
   Py_VISIT(traverse_module_state->__pyx_n_s_init);
@@ -3381,7 +3381,7 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
 #define __pyx_n_s_HADDII __pyx_mstate_global->__pyx_n_s_HADDII
 #define __pyx_n_s_HADDII_KALE __pyx_mstate_global->__pyx_n_s_HADDII_KALE
 #define __pyx_n_s_HADDII_KALENA __pyx_mstate_global->__pyx_n_s_HADDII_KALENA
-#define __pyx_n_s_HOWL __pyx_mstate_global->__pyx_n_s_HOWL
+#define __pyx_n_s_hawl __pyx_mstate_global->__pyx_n_s_hawl
 #define __pyx_n_s_IDENTIFIER __pyx_mstate_global->__pyx_n_s_IDENTIFIER
 #define __pyx_n_s_INTA_AY __pyx_mstate_global->__pyx_n_s_INTA_AY
 #define __pyx_n_s_ISKU_DAY __pyx_mstate_global->__pyx_n_s_ISKU_DAY
@@ -3493,7 +3493,7 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
 #define __pyx_n_u_haddii_kalenaa __pyx_mstate_global->__pyx_n_uhaddii_kalenana
 #define __pyx_n_u_haddii_kale __pyx_mstate_global->__pyx_n_u_haddii_kale
 #define __pyx_n_u_haddii_kalena __pyx_mstate_global->__pyx_n_u_haddii_kalena
-#define __pyx_n_u_howl __pyx_mstate_global->__pyx_n_u_howl
+#define __pyx_n_u_hawl __pyx_mstate_global->__pyx_n_u_hawl
 #define __pyx_n_s_identifier __pyx_mstate_global->__pyx_n_s_identifier
 #define __pyx_n_s_import __pyx_mstate_global->__pyx_n_s_import
 #define __pyx_n_s_init __pyx_mstate_global->__pyx_n_s_init
@@ -4146,7 +4146,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer___init__(CYTHON_UNUSED PyObject *__
  *         self.KEYWORDS = {
  *             # Dynamic and control flow
  *             "door": TokenType.DOOR,             # <<<<<<<<<<<<<<
- *             "howl": TokenType.HOWL,
+ *             "hawl": TokenType.hawl,
  *             "soo_celi": TokenType.SOO_CELI,
  */
   __pyx_t_1 = __Pyx_PyDict_NewPresized(36); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 23, __pyx_L1_error)
@@ -4162,21 +4162,21 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer___init__(CYTHON_UNUSED PyObject *__
   /* "src/lexer.py":24
  *             # Dynamic and control flow
  *             "door": TokenType.DOOR,
- *             "howl": TokenType.HOWL,             # <<<<<<<<<<<<<<
+ *             "hawl": TokenType.hawl,             # <<<<<<<<<<<<<<
  *             "soo_celi": TokenType.SOO_CELI,
  *             "soo_celi": TokenType.SOO_CELI,  # Camel case version
  */
   __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_TokenType); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 24, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_HOWL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 24, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_hawl); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 24, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_u_howl, __pyx_t_5) < 0) __PYX_ERR(0, 23, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_u_hawl, __pyx_t_5) < 0) __PYX_ERR(0, 23, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
   /* "src/lexer.py":25
  *             "door": TokenType.DOOR,
- *             "howl": TokenType.HOWL,
+ *             "hawl": TokenType.hawl,
  *             "soo_celi": TokenType.SOO_CELI,             # <<<<<<<<<<<<<<
  *             "soo_celi": TokenType.SOO_CELI,  # Camel case version
  *             "qor": TokenType.QOR,
@@ -4190,7 +4190,7 @@ static PyObject *__pyx_pf_3src_5lexer_5Lexer___init__(CYTHON_UNUSED PyObject *__
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
   /* "src/lexer.py":26
- *             "howl": TokenType.HOWL,
+ *             "hawl": TokenType.hawl,
  *             "soo_celi": TokenType.SOO_CELI,
  *             "soo_celi": TokenType.SOO_CELI,  # Camel case version             # <<<<<<<<<<<<<<
  *             "qor": TokenType.QOR,
@@ -10661,7 +10661,7 @@ static int __Pyx_CreateStringTabAndInitStrings(void) {
     {&__pyx_n_s_HADDII, __pyx_k_HADDII, sizeof(__pyx_k_HADDII), 0, 0, 1, 1},
     {&__pyx_n_s_HADDII_KALE, __pyx_k_HADDII_KALE, sizeof(__pyx_k_HADDII_KALE), 0, 0, 1, 1},
     {&__pyx_n_s_HADDII_KALENA, __pyx_k_HADDII_KALENA, sizeof(__pyx_k_HADDII_KALENA), 0, 0, 1, 1},
-    {&__pyx_n_s_HOWL, __pyx_k_HOWL, sizeof(__pyx_k_HOWL), 0, 0, 1, 1},
+    {&__pyx_n_s_hawl, __pyx_k_hawl, sizeof(__pyx_k_hawl), 0, 0, 1, 1},
     {&__pyx_n_s_IDENTIFIER, __pyx_k_IDENTIFIER, sizeof(__pyx_k_IDENTIFIER), 0, 0, 1, 1},
     {&__pyx_n_s_INTA_AY, __pyx_k_INTA_AY, sizeof(__pyx_k_INTA_AY), 0, 0, 1, 1},
     {&__pyx_n_s_ISKU_DAY, __pyx_k_ISKU_DAY, sizeof(__pyx_k_ISKU_DAY), 0, 0, 1, 1},
@@ -10773,7 +10773,7 @@ static int __Pyx_CreateStringTabAndInitStrings(void) {
     {&__pyx_n_u_haddii_kalenaa, __pyx_khaddii_kalenana, sizeof(__pyx_haddii_kalenaena), 0, 1, 0, 1},
     {&__pyx_n_u_haddii_kale, __pyx_k_haddii_kale, sizeof(__pyx_k_haddii_kale), 0, 1, 0, 1},
     {&__pyx_n_u_haddii_kalena, __pyx_k_haddii_kalena, sizeof(__pyx_k_haddii_kalena), 0, 1, 0, 1},
-    {&__pyx_n_u_howl, __pyx_k_howl, sizeof(__pyx_k_howl), 0, 1, 0, 1},
+    {&__pyx_n_u_hawl, __pyx_k_hawl, sizeof(__pyx_k_hawl), 0, 1, 0, 1},
     {&__pyx_n_s_identifier, __pyx_k_identifier, sizeof(__pyx_k_identifier), 0, 0, 1, 1},
     {&__pyx_n_s_import, __pyx_k_import, sizeof(__pyx_k_import), 0, 0, 1, 1},
     {&__pyx_n_s_init, __pyx_k_init, sizeof(__pyx_k_init), 0, 0, 1, 1},
