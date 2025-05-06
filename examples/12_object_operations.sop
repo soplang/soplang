@@ -68,7 +68,7 @@ bandhig("  After removing job: " + person)
 // Merging objects
 shey obj1 = {a: 1, b: 2}
 shey obj2 = {c: 3, d: 4}
-shey merged = obj1.iskudar(obj2)
+shey merged = obj1.kudar(obj2)
 bandhig("  obj1: " + obj1)
 bandhig("  obj2: " + obj2)
 bandhig("  Merged object: " + merged)

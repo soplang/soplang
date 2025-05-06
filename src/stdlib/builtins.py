@@ -314,7 +314,7 @@ def get_object_methods():
         "fure": SoplangBuiltins.object_keys,
         "leeyahay": SoplangBuiltins.object_has,
         "tirtir": SoplangBuiltins.object_remove,
-        "iskudar": SoplangBuiltins.object_merge
+        "kudar": SoplangBuiltins.object_merge
     }
 
     return methods
