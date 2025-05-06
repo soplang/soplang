@@ -62,10 +62,10 @@ Demonstrates conditional statements and loops.
 Demonstrates function definitions and usage.
 
 **Features tested:**
-- Basic function declaration with `howl`
+- Basic function declaration with `hawl`
 - Functions with parameters
 - Functions with multiple parameters
-- Return values with `soo_celi`
+- Return values with `celi`
 - Functions that compute values
 - Conditional returns
 - Functions working with complex data
