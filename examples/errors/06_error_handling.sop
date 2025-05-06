@@ -60,15 +60,15 @@ qor()
 
 // Example 5: Function with error handling
 qor("Example 5: Function with error handling")
-howl safeDivide(a, b) {
+hawl safeDivide(a, b) {
     isku_day {
         haddii (b == 0) {
             throw "Cannot divide by zero"
         }
-        soo_celi a / b
+        celi a / b
     } qabo (errorMsg) {
         qor("Error in safeDivide: " + errorMsg)
-        soo_celi null  // Return a default value in case of error
+        celi null  // Return a default value in case of error
     }
 }
 

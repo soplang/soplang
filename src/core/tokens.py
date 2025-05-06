@@ -4,8 +4,8 @@ from enum import Enum
 class TokenType(Enum):
     # Existing
     DOOR = "door"
-    HOWL = "howl"
-    SOO_CELI = "soo_celi"
+    HAWL = "hawl"
+    CELI = "celi"
     QOR = "qor"
     AKHRI = "akhri"
     HADDII = "haddii"

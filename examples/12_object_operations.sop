@@ -45,7 +45,7 @@ qor("  Employee with nested address: " + employee)
 qor("  Employee's district: " + employee.address.district)
 
 // Object keys
-door keys = person.furaha()
+door keys = person.fure()
 qor("  Object keys: " + keys)
 qor("  Type of keys: " + nuuc(keys))
 

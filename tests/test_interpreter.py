@@ -116,8 +116,8 @@ class TestInterpreter(unittest.TestCase):
     def test_function_definition_and_call(self):
         """Test function definition and calling."""
         source = '''
-        howl add(a, b) {
-            soo_celi a + b
+        hawl add(a, b) {
+            celi a + b
         }
         door result = add(5, 7)
         qor("5 + 7 = " + qoraal(result))

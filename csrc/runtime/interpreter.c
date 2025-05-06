@@ -2578,7 +2578,7 @@ static const char __pyx_k_Interpreter_execute_while_statem[] = "Interpreter.exec
 static const char __pyx_k_Jooji_ama_sii_wad_waa_in_ay_ku_j[] = "Jooji ama sii_wad waa in ay ku jiraan xalqad.";
 static const char __pyx_k_Ku_celi_billowga_iyo_dhamaadka_w[] = "Ku_celi billowga iyo dhamaadka waa in ay yihiin tiro";
 static const char __pyx_k_Ma_suurtogali_karto_qeybinta_ebe[] = "Ma suurtogali karto qeybinta eber.";
-static const char __pyx_k_Soo_celi_waa_in_ay_ku_jirto_howl[] = "Soo_celi waa in ay ku jirto howl.";
+static const char __pyx_k_Soo_celi_waa_in_ay_ku_jirto_hawl[] = "Soo_celi waa in ay ku jirto hawl.";
 /* #### Code section: decls ### */
 static PyObject *__pyx_pf_3src_11interpreter_11Interpreter___init__(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_3src_11interpreter_11Interpreter_2interpret(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_root); /* proto */
@@ -2703,7 +2703,7 @@ typedef struct {
   PyObject *__pyx_kp_u_Root_node_must_be_PROGRAM;
   PyObject *__pyx_n_s_RuntimeError;
   PyObject *__pyx_n_s_SHEY;
-  PyObject *__pyx_kp_u_Soo_celi_waa_in_ay_ku_jirto_howl;
+  PyObject *__pyx_kp_u_Soo_celi_waa_in_ay_ku_jirto_hawl;
   PyObject *__pyx_n_s_TIRO;
   PyObject *__pyx_n_s_TRY_CATCH;
   PyObject *__pyx_n_s_TokenType;
@@ -3048,7 +3048,7 @@ static int __pyx_m_clear(PyObject *m) {
   Py_CLEAR(clear_module_state->__pyx_kp_u_Root_node_must_be_PROGRAM);
   Py_CLEAR(clear_module_state->__pyx_n_s_RuntimeError);
   Py_CLEAR(clear_module_state->__pyx_n_s_SHEY);
-  Py_CLEAR(clear_module_state->__pyx_kp_u_Soo_celi_waa_in_ay_ku_jirto_howl);
+  Py_CLEAR(clear_module_state->__pyx_kp_u_Soo_celi_waa_in_ay_ku_jirto_hawl);
   Py_CLEAR(clear_module_state->__pyx_n_s_TIRO);
   Py_CLEAR(clear_module_state->__pyx_n_s_TRY_CATCH);
   Py_CLEAR(clear_module_state->__pyx_n_s_TokenType);
@@ -3371,7 +3371,7 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
   Py_VISIT(traverse_module_state->__pyx_kp_u_Root_node_must_be_PROGRAM);
   Py_VISIT(traverse_module_state->__pyx_n_s_RuntimeError);
   Py_VISIT(traverse_module_state->__pyx_n_s_SHEY);
-  Py_VISIT(traverse_module_state->__pyx_kp_u_Soo_celi_waa_in_ay_ku_jirto_howl);
+  Py_VISIT(traverse_module_state->__pyx_kp_u_Soo_celi_waa_in_ay_ku_jirto_hawl);
   Py_VISIT(traverse_module_state->__pyx_n_s_TIRO);
   Py_VISIT(traverse_module_state->__pyx_n_s_TRY_CATCH);
   Py_VISIT(traverse_module_state->__pyx_n_s_TokenType);
@@ -3704,7 +3704,7 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
 #define __pyx_kp_u_Root_node_must_be_PROGRAM __pyx_mstate_global->__pyx_kp_u_Root_node_must_be_PROGRAM
 #define __pyx_n_s_RuntimeError __pyx_mstate_global->__pyx_n_s_RuntimeError
 #define __pyx_n_s_SHEY __pyx_mstate_global->__pyx_n_s_SHEY
-#define __pyx_kp_u_Soo_celi_waa_in_ay_ku_jirto_howl __pyx_mstate_global->__pyx_kp_u_Soo_celi_waa_in_ay_ku_jirto_howl
+#define __pyx_kp_u_Soo_celi_waa_in_ay_ku_jirto_hawl __pyx_mstate_global->__pyx_kp_u_Soo_celi_waa_in_ay_ku_jirto_hawl
 #define __pyx_n_s_TIRO __pyx_mstate_global->__pyx_n_s_TIRO
 #define __pyx_n_s_TRY_CATCH __pyx_mstate_global->__pyx_n_s_TRY_CATCH
 #define __pyx_n_s_TokenType __pyx_mstate_global->__pyx_n_s_TokenType
@@ -4627,7 +4627,7 @@ static PyObject *__pyx_pf_3src_11interpreter_11Interpreter_2interpret(CYTHON_UNU
  *                 raise RuntimeError(
  *                     "Jooji ama sii_wad waa in ay ku jiraan xalqad.")
  *             except ReturnSignal:             # <<<<<<<<<<<<<<
- *                 raise RuntimeError("Soo_celi waa in ay ku jirto howl.")
+ *                 raise RuntimeError("Soo_celi waa in ay ku jirto hawl.")
  *             # If needed, handle global returns
  */
       __Pyx_ErrFetch(&__pyx_t_2, &__pyx_t_1, &__pyx_t_11);
@@ -4647,7 +4647,7 @@ static PyObject *__pyx_pf_3src_11interpreter_11Interpreter_2interpret(CYTHON_UNU
         /* "src/interpreter.py":28
  *                     "Jooji ama sii_wad waa in ay ku jiraan xalqad.")
  *             except ReturnSignal:
- *                 raise RuntimeError("Soo_celi waa in ay ku jirto howl.")             # <<<<<<<<<<<<<<
+ *                 raise RuntimeError("Soo_celi waa in ay ku jirto hawl.")             # <<<<<<<<<<<<<<
  *             # If needed, handle global returns
  * 
  */
@@ -4668,7 +4668,7 @@ static PyObject *__pyx_pf_3src_11interpreter_11Interpreter_2interpret(CYTHON_UNU
         }
         #endif
         {
-          PyObject *__pyx_callargs[2] = {__pyx_t_15, __pyx_kp_u_Soo_celi_waa_in_ay_ku_jirto_howl};
+          PyObject *__pyx_callargs[2] = {__pyx_t_15, __pyx_kp_u_Soo_celi_waa_in_ay_ku_jirto_hawl};
           __pyx_t_13 = __Pyx_PyObject_FastCall(__pyx_t_12, __pyx_callargs+1-__pyx_t_5, 1+__pyx_t_5);
           __Pyx_XDECREF(__pyx_t_15); __pyx_t_15 = 0;
           if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 28, __pyx_L8_except_error)
@@ -17088,7 +17088,7 @@ static int __Pyx_CreateStringTabAndInitStrings(void) {
     {&__pyx_kp_u_Root_node_must_be_PROGRAM, __pyx_k_Root_node_must_be_PROGRAM, sizeof(__pyx_k_Root_node_must_be_PROGRAM), 0, 1, 0, 0},
     {&__pyx_n_s_RuntimeError, __pyx_k_RuntimeError, sizeof(__pyx_k_RuntimeError), 0, 0, 1, 1},
     {&__pyx_n_s_SHEY, __pyx_k_SHEY, sizeof(__pyx_k_SHEY), 0, 0, 1, 1},
-    {&__pyx_kp_u_Soo_celi_waa_in_ay_ku_jirto_howl, __pyx_k_Soo_celi_waa_in_ay_ku_jirto_howl, sizeof(__pyx_k_Soo_celi_waa_in_ay_ku_jirto_howl), 0, 1, 0, 0},
+    {&__pyx_kp_u_Soo_celi_waa_in_ay_ku_jirto_hawl, __pyx_k_Soo_celi_waa_in_ay_ku_jirto_hawl, sizeof(__pyx_k_Soo_celi_waa_in_ay_ku_jirto_hawl), 0, 1, 0, 0},
     {&__pyx_n_s_TIRO, __pyx_k_TIRO, sizeof(__pyx_k_TIRO), 0, 0, 1, 1},
     {&__pyx_n_s_TRY_CATCH, __pyx_k_TRY_CATCH, sizeof(__pyx_k_TRY_CATCH), 0, 0, 1, 1},
     {&__pyx_n_s_TokenType, __pyx_k_TokenType, sizeof(__pyx_k_TokenType), 0, 0, 1, 1},
