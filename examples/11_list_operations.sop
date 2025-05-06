@@ -49,7 +49,7 @@ kuceli i min 0 ilaa numbers.dherer() - 1 {
 // List concatenation
 liis list1 = [1, 2, 3]
 liis list2 = [4, 5, 6]
-liis combined = list1.iskuxir(list2)
+liis combined = list1.kudar(list2)
 bandhig("  List1: " + list1)
 bandhig("  List2: " + list2)
 bandhig("  Combined list: " + combined)
