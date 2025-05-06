@@ -272,16 +272,16 @@ docker run --rm -v "$(pwd):/scripts" soplang:latest examples/XX_example_name.so
 
 ### 15_user_input.so
 
-**Purpose**: Demonstrates user input in Soplang using the `akhri` function.
+**Purpose**: Demonstrates user input in Soplang using the `gelin` function.
 
 **Features Tested**:
-- Basic input with `akhri`
+- Basic input with `gelin`
 - Displaying prompts
 - Processing user input
 - Type checking input with `nuuc()`
 
 **Key Concepts**:
-- The `akhri` function gets input from the user
+- The `gelin` function gets input from the user
 - Input is always returned as a string
 - Input can be converted to other types as needed
 

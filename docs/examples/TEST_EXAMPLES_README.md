@@ -9,7 +9,7 @@ This directory contains various test examples for the Soplang programming langua
    * String concatenation
    * Printing boolean values
 
-2. **02_user_input.so** - Tests the user input functionality using the `akhri()` function.
+2. **02_user_input.so** - Tests the user input functionality using the `gelin()` function.
    * Reading user input and storing in variables
    * Converting input strings to numbers
    * Using input in expressions

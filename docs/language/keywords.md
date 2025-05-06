@@ -95,7 +95,7 @@ This document provides a reference for all keywords in the Soplang programming l
 | Function    | Meaning              | English Equivalent | Example                                  |
 | ----------- | -------------------- | ------------------ | ---------------------------------------- |
 | `qor`       | Print to console     | `print`            | `qor("Salaan, Adduunka!")`               |
-| `akhri`     | Read input from user | `input`            | `door magac = akhri("Magacaaga geli: ")` |
+| `gelin`     | Read input from user | `input`            | `door magac = gelin("Magacaaga geli: ")` |
 | `nuuc`      | Get type of variable | `typeof`           | `qor(nuuc(magac))`                       |
 | `tiro`      | Convert to number    | `int`/`float`      | `door n = tiro("5")`                     |
 | `qoraal`    | Convert to string    | `str`              | `door s = qoraal(25)`                    |
