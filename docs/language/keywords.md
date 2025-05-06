@@ -120,7 +120,7 @@ This document provides a reference for all keywords in the Soplang programming l
 | `fure`  | Get object keys     | `keys`               | `door keys = myObj.fure()`          |
 | `leeyahay` | Check if key exists | `has/hasOwnProperty` | `door exists = myObj.leeyahay("name")` |
 | `tirtir`  | Remove property     | `delete`             | `myObj.tirtir("oldProp")`             |
-| `iskudar` | Merge objects       | `merge/assign`       | `door merged = obj1.iskudar(obj2)`    |
+| `kudar` | Merge objects       | `merge/assign`       | `door merged = obj1.kudar(obj2)`    |
 
 ## Error Message Terminology
 

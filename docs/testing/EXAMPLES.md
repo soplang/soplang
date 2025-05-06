@@ -228,7 +228,7 @@ docker run --rm -v "$(pwd):/scripts" soplang:latest examples/XX_example_name.so
 - Object creation and initialization
 - Property access with dot notation
 - Property modification
-- Object methods: `fure` (keys), `leeyahay` (has), `tirtir` (remove), `iskudar` (merge)
+- Object methods: `fure` (keys), `leeyahay` (has), `tirtir` (remove), `kudar` (merge)
 - Nested objects
 - Objects with arrays
 - Arrays of objects
