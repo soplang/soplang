@@ -94,9 +94,9 @@ This document provides a reference for all keywords in the Soplang programming l
 
 | Function    | Meaning              | English Equivalent | Example                                  |
 | ----------- | -------------------- | ------------------ | ---------------------------------------- |
-| `bandhig`       | Print to console     | `print`            | `bandhig("Salaan, Adduunka!")`               |
-| `akhri`     | Read input from user | `input`            | `door magac = akhri("Magacaaga geli: ")` |
-| `nuuc`      | Get type of variable | `typeof`           | `bandhig(nuuc(magac))`                       |
+| `bandhig`       | Print to console     | `print`            | `qor("Salaan, Adduunka!")`               |
+| `gelin`     | Read input from user | `input`            | `door magac = gelin("Magacaaga geli: ")` |
+| `nuuc`      | Get type of variable | `typeof`           | `qor(nuuc(magac))`                       |
 | `tiro`      | Convert to number    | `int`/`float`      | `door n = tiro("5")`                     |
 | `qoraal`    | Convert to string    | `str`              | `door s = qoraal(25)`                    |
 | `bool` | Convert to boolean   | `bool`             | `door b = bool(1)`                  |

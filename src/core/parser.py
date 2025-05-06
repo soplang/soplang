@@ -140,7 +140,7 @@ class Parser:
             )
 
         # Handle function calls
-        elif token_type == TokenType.BANDHIG or token_type == TokenType.AKHRI:
+        elif token_type == TokenType.BANDHIG or token_type == TokenType.GELIN:
             return self.parse_function_call()
 
         # Handle loops
@@ -365,7 +365,7 @@ class Parser:
         )
 
     # -----------------------------
-    #  Function calls: bandhig("Hi") or akhri("Enter name:")
+    #  Function calls: bandhig("Hi") or gelin("Enter name:")
     # -----------------------------
     def parse_function_call(self):
         """Parse a function call like 'bandhig("Hello")'"""
@@ -375,7 +375,7 @@ class Parser:
             self.current_token.type
             not in (
                 TokenType.BANDHIG,
-                TokenType.AKHRI,
+                TokenType.GELIN,
                 TokenType.QORAAL,
                 TokenType.TIRO,
                 TokenType.BOOL,
@@ -804,7 +804,7 @@ class Parser:
             return ASTNode(NodeType.LITERAL, value=None)
         elif token.type == TokenType.IDENTIFIER or token.type in (
             TokenType.QORAAL, TokenType.TIRO, TokenType.BOOL, TokenType.LIIS, TokenType.SHEY,
-            TokenType.BANDHIG, TokenType.AKHRI  # Added QOR and AKHRI to handle them in expressions
+            TokenType.BANDHIG, TokenType.GELIN  # Added QOR and GELIN to handle them in expressions
         ):
             # Allow type names to be used as function names
             token_value = token.value if token.type == TokenType.IDENTIFIER else token.type.value

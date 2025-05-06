@@ -14,7 +14,7 @@ class SoplangBuiltins:
         return message
 
     @staticmethod
-    def akhri(prompt=""):
+    def gelin(prompt=""):
         """
         Read input from the user (equivalent to input/prompt)
         """
@@ -294,7 +294,7 @@ def get_builtin_functions():
     """
     builtins = {
         "bandhig": SoplangBuiltins.bandhig,
-        "akhri": SoplangBuiltins.akhri,
+        "gelin": SoplangBuiltins.gelin,
         "nuuc": SoplangBuiltins.nuuc,
         "tiro": SoplangBuiltins.tiro,
         "qoraal": SoplangBuiltins.qoraal,

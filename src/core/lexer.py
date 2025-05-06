@@ -27,7 +27,7 @@ class Lexer:
             "hawl": TokenType.HAWL,
             "celi": TokenType.CELI,
             "bandhig": TokenType.BANDHIG,
-            "akhri": TokenType.AKHRI,
+            "gelin": TokenType.GELIN,
             "haddii": TokenType.HADDII,
             "haddii_kale": TokenType.HADDII_KALE,
             "haddii_kalena": TokenType.HADDII_KALENA,
