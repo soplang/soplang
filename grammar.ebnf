@@ -46,7 +46,7 @@ StaticType ::= "tiro"      // Number
              | "shey"      // Object
 
 // ===== FUNCTION DECLARATIONS =====
-FunctionDeclaration ::= "howl" Identifier "(" [ParameterList] ")" Block
+FunctionDeclaration ::= "hawl" Identifier "(" [ParameterList] ")" Block
 
 ParameterList ::= Identifier {"," Identifier}
 

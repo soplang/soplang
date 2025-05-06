@@ -119,8 +119,8 @@ class Parser:
         elif token_type == TokenType.DOOR:
             return self.parse_variable_declaration(is_static=False)
 
-        # Handle function definition (howl)
-        elif token_type == TokenType.HOWL:
+        # Handle function definition (hawl)
+        elif token_type == TokenType.hawl:
             return self.parse_function_definition()
 
         # Handle return statement (celi)
@@ -335,7 +335,7 @@ class Parser:
         return var_node
 
     # -----------------------------
-    #  howl foo(a, b) { ... }
+    #  hawl foo(a, b) { ... }
     # -----------------------------
     def parse_function_definition(self):
         self.expect(TokenType.HAWL)

@@ -58,7 +58,7 @@ StaticType ::= "tiro"      // Number
 ## Function Declarations
 
 ```ebnf
-FunctionDeclaration ::= "howl" Identifier "(" [ParameterList] ")" Block
+FunctionDeclaration ::= "hawl" Identifier "(" [ParameterList] ")" Block
 
 ParameterList ::= Identifier {"," Identifier}
 ```

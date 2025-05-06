@@ -1893,7 +1893,7 @@ static const char __pyx_k_doc[] = "__doc__";
 static const char __pyx_k_qor[] = "qor";
 static const char __pyx_k_DOOR[] = "DOOR";
 static const char __pyx_k_Enum[] = "Enum";
-static const char __pyx_k_HOWL[] = "HOWL";
+static const char __pyx_k_hawl[] = "hawl";
 static const char __pyx_k_LESS[] = "LESS";
 static const char __pyx_k_LIIS[] = "LIIS";
 static const char __pyx_k_NULL[] = "NULL";
@@ -1906,7 +1906,7 @@ static const char __pyx_k_TRUE[] = "TRUE";
 static const char __pyx_k_dict[] = "__dict__";
 static const char __pyx_k_door[] = "door";
 static const char __pyx_k_enum[] = "enum";
-static const char __pyx_k_howl[] = "howl";
+static const char __pyx_k_hawl[] = "hawl";
 static const char __pyx_k_liis[] = "liis";
 static const char __pyx_k_main[] = "__main__";
 static const char __pyx_k_name[] = "__name__";
@@ -2035,7 +2035,7 @@ typedef struct {
   PyObject *__pyx_n_s_HADDII;
   PyObject *__pyx_n_s_HADDII_KALE;
   PyObject *__pyx_n_s_HADDII_KALENA;
-  PyObject *__pyx_n_s_HOWL;
+  PyObject *__pyx_n_s_hawl;
   PyObject *__pyx_n_s_IDENTIFIER;
   PyObject *__pyx_n_u_IDENTIFIER;
   PyObject *__pyx_n_s_INTA_AY;
@@ -2114,7 +2114,7 @@ typedef struct {
   PyObject *__pyx_n_u_haddii;
   PyObject *__pyx_n_u_haddii_kale;
   PyObject *__pyx_n_u_haddii_kalena;
-  PyObject *__pyx_n_u_howl;
+  PyObject *__pyx_n_u_hawl;
   PyObject *__pyx_n_s_import;
   PyObject *__pyx_n_s_init_subclass;
   PyObject *__pyx_n_u_inta_ay;
@@ -2208,7 +2208,7 @@ static int __pyx_m_clear(PyObject *m) {
   Py_CLEAR(clear_module_state->__pyx_n_s_HADDII);
   Py_CLEAR(clear_module_state->__pyx_n_s_HADDII_KALE);
   Py_CLEAR(clear_module_state->__pyx_n_s_HADDII_KALENA);
-  Py_CLEAR(clear_module_state->__pyx_n_s_HOWL);
+  Py_CLEAR(clear_module_state->__pyx_n_s_hawl);
   Py_CLEAR(clear_module_state->__pyx_n_s_IDENTIFIER);
   Py_CLEAR(clear_module_state->__pyx_n_u_IDENTIFIER);
   Py_CLEAR(clear_module_state->__pyx_n_s_INTA_AY);
@@ -2287,7 +2287,7 @@ static int __pyx_m_clear(PyObject *m) {
   Py_CLEAR(clear_module_state->__pyx_n_u_haddii);
   Py_CLEAR(clear_module_state->__pyx_n_u_haddii_kale);
   Py_CLEAR(clear_module_state->__pyx_n_u_haddii_kalena);
-  Py_CLEAR(clear_module_state->__pyx_n_u_howl);
+  Py_CLEAR(clear_module_state->__pyx_n_u_hawl);
   Py_CLEAR(clear_module_state->__pyx_n_s_import);
   Py_CLEAR(clear_module_state->__pyx_n_s_init_subclass);
   Py_CLEAR(clear_module_state->__pyx_n_u_inta_ay);
@@ -2359,7 +2359,7 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
   Py_VISIT(traverse_module_state->__pyx_n_s_HADDII);
   Py_VISIT(traverse_module_state->__pyx_n_s_HADDII_KALE);
   Py_VISIT(traverse_module_state->__pyx_n_s_HADDII_KALENA);
-  Py_VISIT(traverse_module_state->__pyx_n_s_HOWL);
+  Py_VISIT(traverse_module_state->__pyx_n_s_hawl);
   Py_VISIT(traverse_module_state->__pyx_n_s_IDENTIFIER);
   Py_VISIT(traverse_module_state->__pyx_n_u_IDENTIFIER);
   Py_VISIT(traverse_module_state->__pyx_n_s_INTA_AY);
@@ -2438,7 +2438,7 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
   Py_VISIT(traverse_module_state->__pyx_n_u_haddii);
   Py_VISIT(traverse_module_state->__pyx_n_u_haddii_kale);
   Py_VISIT(traverse_module_state->__pyx_n_u_haddii_kalena);
-  Py_VISIT(traverse_module_state->__pyx_n_u_howl);
+  Py_VISIT(traverse_module_state->__pyx_n_u_hawl);
   Py_VISIT(traverse_module_state->__pyx_n_s_import);
   Py_VISIT(traverse_module_state->__pyx_n_s_init_subclass);
   Py_VISIT(traverse_module_state->__pyx_n_u_inta_ay);
@@ -2520,7 +2520,7 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
 #define __pyx_n_s_HADDII __pyx_mstate_global->__pyx_n_s_HADDII
 #define __pyx_n_s_HADDII_KALE __pyx_mstate_global->__pyx_n_s_HADDII_KALE
 #define __pyx_n_s_HADDII_KALENA __pyx_mstate_global->__pyx_n_s_HADDII_KALENA
-#define __pyx_n_s_HOWL __pyx_mstate_global->__pyx_n_s_HOWL
+#define __pyx_n_s_hawl __pyx_mstate_global->__pyx_n_s_hawl
 #define __pyx_n_s_IDENTIFIER __pyx_mstate_global->__pyx_n_s_IDENTIFIER
 #define __pyx_n_u_IDENTIFIER __pyx_mstate_global->__pyx_n_u_IDENTIFIER
 #define __pyx_n_s_INTA_AY __pyx_mstate_global->__pyx_n_s_INTA_AY
@@ -2599,7 +2599,7 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
 #define __pyx_n_u_haddii __pyx_mstate_global->__pyx_n_u_haddii
 #define __pyx_n_u_haddii_kale __pyx_mstate_global->__pyx_n_u_haddii_kale
 #define __pyx_n_u_haddii_kalena __pyx_mstate_global->__pyx_n_u_haddii_kalena
-#define __pyx_n_u_howl __pyx_mstate_global->__pyx_n_u_howl
+#define __pyx_n_u_hawl __pyx_mstate_global->__pyx_n_u_hawl
 #define __pyx_n_s_import __pyx_mstate_global->__pyx_n_s_import
 #define __pyx_n_s_init_subclass __pyx_mstate_global->__pyx_n_s_init_subclass
 #define __pyx_n_u_inta_ay __pyx_mstate_global->__pyx_n_u_inta_ay
@@ -2669,7 +2669,7 @@ static int __Pyx_CreateStringTabAndInitStrings(void) {
     {&__pyx_n_s_HADDII, __pyx_k_HADDII, sizeof(__pyx_k_HADDII), 0, 0, 1, 1},
     {&__pyx_n_s_HADDII_KALE, __pyx_k_HADDII_KALE, sizeof(__pyx_k_HADDII_KALE), 0, 0, 1, 1},
     {&__pyx_n_s_HADDII_KALENA, __pyx_k_HADDII_KALENA, sizeof(__pyx_k_HADDII_KALENA), 0, 0, 1, 1},
-    {&__pyx_n_s_HOWL, __pyx_k_HOWL, sizeof(__pyx_k_HOWL), 0, 0, 1, 1},
+    {&__pyx_n_s_hawl, __pyx_k_hawl, sizeof(__pyx_k_hawl), 0, 0, 1, 1},
     {&__pyx_n_s_IDENTIFIER, __pyx_k_IDENTIFIER, sizeof(__pyx_k_IDENTIFIER), 0, 0, 1, 1},
     {&__pyx_n_u_IDENTIFIER, __pyx_k_IDENTIFIER, sizeof(__pyx_k_IDENTIFIER), 0, 1, 0, 1},
     {&__pyx_n_s_INTA_AY, __pyx_k_INTA_AY, sizeof(__pyx_k_INTA_AY), 0, 0, 1, 1},
@@ -2748,7 +2748,7 @@ static int __Pyx_CreateStringTabAndInitStrings(void) {
     {&__pyx_n_u_haddii, __pyx_k_haddii, sizeof(__pyx_k_haddii), 0, 1, 0, 1},
     {&__pyx_n_u_haddii_kale, __pyx_k_haddii_kale, sizeof(__pyx_k_haddii_kale), 0, 1, 0, 1},
     {&__pyx_n_u_haddii_kalena, __pyx_k_haddii_kalena, sizeof(__pyx_k_haddii_kalena), 0, 1, 0, 1},
-    {&__pyx_n_u_howl, __pyx_k_howl, sizeof(__pyx_k_howl), 0, 1, 0, 1},
+    {&__pyx_n_u_hawl, __pyx_k_hawl, sizeof(__pyx_k_hawl), 0, 1, 0, 1},
     {&__pyx_n_s_import, __pyx_k_import, sizeof(__pyx_k_import), 0, 0, 1, 1},
     {&__pyx_n_s_init_subclass, __pyx_k_init_subclass, sizeof(__pyx_k_init_subclass), 0, 0, 1, 1},
     {&__pyx_n_u_inta_ay, __pyx_k_inta_ay, sizeof(__pyx_k_inta_ay), 0, 1, 0, 1},
@@ -3204,7 +3204,7 @@ if (!__Pyx_RefNanny) {
  * class TokenType(Enum):
  *     # Existing
  *     DOOR = "door"             # <<<<<<<<<<<<<<
- *     HOWL = "howl"
+ *     hawl = "hawl"
  *     SOO_CELI = "soo_celi"
  */
   if (__Pyx_SetNameInClass(__pyx_t_5, __pyx_n_s_DOOR, __pyx_n_u_door) < 0) __PYX_ERR(0, 6, __pyx_L1_error)
@@ -3212,15 +3212,15 @@ if (!__Pyx_RefNanny) {
   /* "src/tokens.py":7
  *     # Existing
  *     DOOR = "door"
- *     HOWL = "howl"             # <<<<<<<<<<<<<<
+ *     hawl = "hawl"             # <<<<<<<<<<<<<<
  *     SOO_CELI = "soo_celi"
  *     QOR = "qor"
  */
-  if (__Pyx_SetNameInClass(__pyx_t_5, __pyx_n_s_HOWL, __pyx_n_u_howl) < 0) __PYX_ERR(0, 7, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_5, __pyx_n_s_hawl, __pyx_n_u_hawl) < 0) __PYX_ERR(0, 7, __pyx_L1_error)
 
   /* "src/tokens.py":8
  *     DOOR = "door"
- *     HOWL = "howl"
+ *     hawl = "hawl"
  *     SOO_CELI = "soo_celi"             # <<<<<<<<<<<<<<
  *     QOR = "qor"
  *     AKHRI = "akhri"
@@ -3228,7 +3228,7 @@ if (!__Pyx_RefNanny) {
   if (__Pyx_SetNameInClass(__pyx_t_5, __pyx_n_s_SOO_CELI, __pyx_n_u_soo_celi) < 0) __PYX_ERR(0, 8, __pyx_L1_error)
 
   /* "src/tokens.py":9
- *     HOWL = "howl"
+ *     hawl = "hawl"
  *     SOO_CELI = "soo_celi"
  *     QOR = "qor"             # <<<<<<<<<<<<<<
  *     AKHRI = "akhri"

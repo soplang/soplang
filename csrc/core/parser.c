@@ -2214,7 +2214,7 @@ static const char __pyx_k_doc[] = "__doc__";
 static const char __pyx_k_got[] = ", got ";
 static const char __pyx_k_key[] = "key";
 static const char __pyx_k_DOOR[] = "DOOR";
-static const char __pyx_k_HOWL[] = "HOWL";
+static const char __pyx_k_hawl[] = "hawl";
 static const char __pyx_k_LESS[] = "LESS";
 static const char __pyx_k_LIIS[] = "LIIS";
 static const char __pyx_k_NULL[] = "NULL";
@@ -2509,7 +2509,7 @@ typedef struct {
   PyObject *__pyx_n_s_HADDII;
   PyObject *__pyx_n_s_HADDII_KALE;
   PyObject *__pyx_n_s_HADDII_KALENA;
-  PyObject *__pyx_n_s_HOWL;
+  PyObject *__pyx_n_s_hawl;
   PyObject *__pyx_n_s_IDENTIFIER;
   PyObject *__pyx_n_s_IF_STATEMENT;
   PyObject *__pyx_n_s_IMPORT_STATEMENT;
@@ -2827,7 +2827,7 @@ static int __pyx_m_clear(PyObject *m) {
   Py_CLEAR(clear_module_state->__pyx_n_s_HADDII);
   Py_CLEAR(clear_module_state->__pyx_n_s_HADDII_KALE);
   Py_CLEAR(clear_module_state->__pyx_n_s_HADDII_KALENA);
-  Py_CLEAR(clear_module_state->__pyx_n_s_HOWL);
+  Py_CLEAR(clear_module_state->__pyx_n_s_hawl);
   Py_CLEAR(clear_module_state->__pyx_n_s_IDENTIFIER);
   Py_CLEAR(clear_module_state->__pyx_n_s_IF_STATEMENT);
   Py_CLEAR(clear_module_state->__pyx_n_s_IMPORT_STATEMENT);
@@ -3123,7 +3123,7 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
   Py_VISIT(traverse_module_state->__pyx_n_s_HADDII);
   Py_VISIT(traverse_module_state->__pyx_n_s_HADDII_KALE);
   Py_VISIT(traverse_module_state->__pyx_n_s_HADDII_KALENA);
-  Py_VISIT(traverse_module_state->__pyx_n_s_HOWL);
+  Py_VISIT(traverse_module_state->__pyx_n_s_hawl);
   Py_VISIT(traverse_module_state->__pyx_n_s_IDENTIFIER);
   Py_VISIT(traverse_module_state->__pyx_n_s_IF_STATEMENT);
   Py_VISIT(traverse_module_state->__pyx_n_s_IMPORT_STATEMENT);
@@ -3429,7 +3429,7 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
 #define __pyx_n_s_HADDII __pyx_mstate_global->__pyx_n_s_HADDII
 #define __pyx_n_s_HADDII_KALE __pyx_mstate_global->__pyx_n_s_HADDII_KALE
 #define __pyx_n_s_HADDII_KALENA __pyx_mstate_global->__pyx_n_s_HADDII_KALENA
-#define __pyx_n_s_HOWL __pyx_mstate_global->__pyx_n_s_HOWL
+#define __pyx_n_s_hawl __pyx_mstate_global->__pyx_n_s_hawl
 #define __pyx_n_s_IDENTIFIER __pyx_mstate_global->__pyx_n_s_IDENTIFIER
 #define __pyx_n_s_IF_STATEMENT __pyx_mstate_global->__pyx_n_s_IF_STATEMENT
 #define __pyx_n_s_IMPORT_STATEMENT __pyx_mstate_global->__pyx_n_s_IMPORT_STATEMENT
@@ -4846,7 +4846,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
  *         # Handle static typing (tiro, qoraal, labadaran, liis, shey)
  *         elif ttype in (TokenType.TIRO, TokenType.QORAAL, TokenType.LABADARAN, TokenType.LIIS, TokenType.SHEY):             # <<<<<<<<<<<<<<
  *             return self.parse_variable_declaration(is_static=True)
- *         elif ttype == TokenType.HOWL:
+ *         elif ttype == TokenType.hawl:
  */
   __Pyx_INCREF(__pyx_v_ttype);
   __pyx_t_4 = __pyx_v_ttype;
@@ -4925,7 +4925,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
  *         # Handle static typing (tiro, qoraal, labadaran, liis, shey)
  *         elif ttype in (TokenType.TIRO, TokenType.QORAAL, TokenType.LABADARAN, TokenType.LIIS, TokenType.SHEY):
  *             return self.parse_variable_declaration(is_static=True)             # <<<<<<<<<<<<<<
- *         elif ttype == TokenType.HOWL:
+ *         elif ttype == TokenType.hawl:
  *             return self.parse_function_definition()
  */
     __Pyx_XDECREF(__pyx_r);
@@ -4947,20 +4947,20 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
  *         # Handle static typing (tiro, qoraal, labadaran, liis, shey)
  *         elif ttype in (TokenType.TIRO, TokenType.QORAAL, TokenType.LABADARAN, TokenType.LIIS, TokenType.SHEY):             # <<<<<<<<<<<<<<
  *             return self.parse_variable_declaration(is_static=True)
- *         elif ttype == TokenType.HOWL:
+ *         elif ttype == TokenType.hawl:
  */
   }
 
   /* "src/parser.py":41
  *         elif ttype in (TokenType.TIRO, TokenType.QORAAL, TokenType.LABADARAN, TokenType.LIIS, TokenType.SHEY):
  *             return self.parse_variable_declaration(is_static=True)
- *         elif ttype == TokenType.HOWL:             # <<<<<<<<<<<<<<
+ *         elif ttype == TokenType.hawl:             # <<<<<<<<<<<<<<
  *             return self.parse_function_definition()
  *         elif ttype == TokenType.QOR or ttype == TokenType.AKHRI:
  */
   __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_TokenType); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 41, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_HOWL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 41, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_hawl); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 41, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_t_2 = PyObject_RichCompare(__pyx_v_ttype, __pyx_t_1, Py_EQ); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 41, __pyx_L1_error)
@@ -4971,7 +4971,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
 
     /* "src/parser.py":42
  *             return self.parse_variable_declaration(is_static=True)
- *         elif ttype == TokenType.HOWL:
+ *         elif ttype == TokenType.hawl:
  *             return self.parse_function_definition()             # <<<<<<<<<<<<<<
  *         elif ttype == TokenType.QOR or ttype == TokenType.AKHRI:
  *             # 'qor' or 'akhri' -> function call
@@ -5008,14 +5008,14 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
     /* "src/parser.py":41
  *         elif ttype in (TokenType.TIRO, TokenType.QORAAL, TokenType.LABADARAN, TokenType.LIIS, TokenType.SHEY):
  *             return self.parse_variable_declaration(is_static=True)
- *         elif ttype == TokenType.HOWL:             # <<<<<<<<<<<<<<
+ *         elif ttype == TokenType.hawl:             # <<<<<<<<<<<<<<
  *             return self.parse_function_definition()
  *         elif ttype == TokenType.QOR or ttype == TokenType.AKHRI:
  */
   }
 
   /* "src/parser.py":43
- *         elif ttype == TokenType.HOWL:
+ *         elif ttype == TokenType.hawl:
  *             return self.parse_function_definition()
  *         elif ttype == TokenType.QOR or ttype == TokenType.AKHRI:             # <<<<<<<<<<<<<<
  *             # 'qor' or 'akhri' -> function call
@@ -5085,7 +5085,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_8parse_statement(CYTHON_UNUSED Py
     goto __pyx_L0;
 
     /* "src/parser.py":43
- *         elif ttype == TokenType.HOWL:
+ *         elif ttype == TokenType.hawl:
  *             return self.parse_function_definition()
  *         elif ttype == TokenType.QOR or ttype == TokenType.AKHRI:             # <<<<<<<<<<<<<<
  *             # 'qor' or 'akhri' -> function call
@@ -7807,10 +7807,10 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_10parse_variable_declaration(CYTH
 }
 
 /* "src/parser.py":179
- *     #  howl foo(a, b) { ... }
+ *     #  hawl foo(a, b) { ... }
  *     # -----------------------------
  *     def parse_function_definition(self):             # <<<<<<<<<<<<<<
- *         self.expect(TokenType.HOWL)
+ *         self.expect(TokenType.hawl)
  *         func_name = self.current_token.value
  */
 
@@ -7938,7 +7938,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_12parse_function_definition(CYTHO
   /* "src/parser.py":180
  *     # -----------------------------
  *     def parse_function_definition(self):
- *         self.expect(TokenType.HOWL)             # <<<<<<<<<<<<<<
+ *         self.expect(TokenType.hawl)             # <<<<<<<<<<<<<<
  *         func_name = self.current_token.value
  *         self.expect(TokenType.IDENTIFIER)
  */
@@ -7946,7 +7946,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_12parse_function_definition(CYTHO
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_TokenType); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 180, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_HOWL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 180, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_hawl); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 180, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_t_3 = NULL;
@@ -7976,7 +7976,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_12parse_function_definition(CYTHO
 
   /* "src/parser.py":181
  *     def parse_function_definition(self):
- *         self.expect(TokenType.HOWL)
+ *         self.expect(TokenType.hawl)
  *         func_name = self.current_token.value             # <<<<<<<<<<<<<<
  *         self.expect(TokenType.IDENTIFIER)
  *         self.expect(TokenType.LEFT_PAREN)
@@ -7990,7 +7990,7 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_12parse_function_definition(CYTHO
   __pyx_t_2 = 0;
 
   /* "src/parser.py":182
- *         self.expect(TokenType.HOWL)
+ *         self.expect(TokenType.hawl)
  *         func_name = self.current_token.value
  *         self.expect(TokenType.IDENTIFIER)             # <<<<<<<<<<<<<<
  *         self.expect(TokenType.LEFT_PAREN)
@@ -8520,10 +8520,10 @@ static PyObject *__pyx_pf_3src_6parser_6Parser_12parse_function_definition(CYTHO
   goto __pyx_L0;
 
   /* "src/parser.py":179
- *     #  howl foo(a, b) { ... }
+ *     #  hawl foo(a, b) { ... }
  *     # -----------------------------
  *     def parse_function_definition(self):             # <<<<<<<<<<<<<<
- *         self.expect(TokenType.HOWL)
+ *         self.expect(TokenType.hawl)
  *         func_name = self.current_token.value
  */
 
@@ -19192,7 +19192,7 @@ static int __Pyx_CreateStringTabAndInitStrings(void) {
     {&__pyx_n_s_HADDII, __pyx_k_HADDII, sizeof(__pyx_k_HADDII), 0, 0, 1, 1},
     {&__pyx_n_s_HADDII_KALE, __pyx_k_HADDII_KALE, sizeof(__pyx_k_HADDII_KALE), 0, 0, 1, 1},
     {&__pyx_n_s_HADDII_KALENA, __pyx_k_HADDII_KALENA, sizeof(__pyx_k_HADDII_KALENA), 0, 0, 1, 1},
-    {&__pyx_n_s_HOWL, __pyx_k_HOWL, sizeof(__pyx_k_HOWL), 0, 0, 1, 1},
+    {&__pyx_n_s_hawl, __pyx_k_hawl, sizeof(__pyx_k_hawl), 0, 0, 1, 1},
     {&__pyx_n_s_IDENTIFIER, __pyx_k_IDENTIFIER, sizeof(__pyx_k_IDENTIFIER), 0, 0, 1, 1},
     {&__pyx_n_s_IF_STATEMENT, __pyx_k_IF_STATEMENT, sizeof(__pyx_k_IF_STATEMENT), 0, 0, 1, 1},
     {&__pyx_n_s_IMPORT_STATEMENT, __pyx_k_IMPORT_STATEMENT, sizeof(__pyx_k_IMPORT_STATEMENT), 0, 0, 1, 1},
@@ -19486,10 +19486,10 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_tuple__16);
 
   /* "src/parser.py":179
- *     #  howl foo(a, b) { ... }
+ *     #  hawl foo(a, b) { ... }
  *     # -----------------------------
  *     def parse_function_definition(self):             # <<<<<<<<<<<<<<
- *         self.expect(TokenType.HOWL)
+ *         self.expect(TokenType.hawl)
  *         func_name = self.current_token.value
  */
   __pyx_tuple__17 = PyTuple_Pack(5, __pyx_n_s_self, __pyx_n_s_func_name, __pyx_n_s_params, __pyx_n_s_body, __pyx_n_s_p); if (unlikely(!__pyx_tuple__17)) __PYX_ERR(0, 179, __pyx_L1_error)
@@ -20244,10 +20244,10 @@ if (!__Pyx_RefNanny) {
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
   /* "src/parser.py":179
- *     #  howl foo(a, b) { ... }
+ *     #  hawl foo(a, b) { ... }
  *     # -----------------------------
  *     def parse_function_definition(self):             # <<<<<<<<<<<<<<
- *         self.expect(TokenType.HOWL)
+ *         self.expect(TokenType.hawl)
  *         func_name = self.current_token.value
  */
   __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_3src_6parser_6Parser_13parse_function_definition, 0, __pyx_n_s_Parser_parse_function_definition, NULL, __pyx_n_s_src_parser, __pyx_d, ((PyObject *)__pyx_codeobj__18)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 179, __pyx_L1_error)
