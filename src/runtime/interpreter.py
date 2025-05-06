@@ -156,12 +156,12 @@ class Interpreter:
                                 line=line,
                                 position=position)
 
-        elif expected_type == TokenType.SHEY:
+        elif expected_type == TokenType.WALAX:
             if not isinstance(value, dict):
                 raise TypeError("type_mismatch",
                                 var_name=var_name,
                                 value=value,
-                                expected_type="shey",
+                                expected_type="walax",
                                 line=line,
                                 position=position)
 
@@ -751,7 +751,7 @@ class Interpreter:
 
         if method_name not in self.object_methods:
             raise RuntimeError("method_not_found",
-                               method_name=method_name, type_name="shey")
+                               method_name=method_name, type_name="walax")
 
         method = self.object_methods[method_name]
         args.insert(0, obj)  # Insert the object as the first argument

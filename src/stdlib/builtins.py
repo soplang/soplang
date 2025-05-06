@@ -34,7 +34,7 @@ class SoplangBuiltins:
         elif isinstance(value, list):
             return "liis"
         elif isinstance(value, dict):
-            return "shey"
+            return "walax"
         elif value is None:
             return "maran"
         else:
@@ -96,7 +96,7 @@ class SoplangBuiltins:
         return list(args)
 
     @staticmethod
-    def shey(**kwargs):
+    def walax(**kwargs):
         """
         Create a dictionary from keyword arguments
         """
@@ -219,7 +219,7 @@ class SoplangBuiltins:
         Get a property from an object
         """
         if not isinstance(obj, dict):
-            raise TypeError("Qiimahu ma ahan shey (Value is not an object)")
+            raise TypeError("Qiimahu ma ahan walax (Value is not an object)")
 
         if key not in obj:
             return None
@@ -232,7 +232,7 @@ class SoplangBuiltins:
         Set a property on an object
         """
         if not isinstance(obj, dict):
-            raise TypeError("Qiimahu ma ahan shey (Value is not an object)")
+            raise TypeError("Qiimahu ma ahan walax (Value is not an object)")
 
         obj[key] = value
         return value
@@ -243,7 +243,7 @@ class SoplangBuiltins:
         Get all keys from an object as a list
         """
         if not isinstance(obj, dict):
-            raise TypeError("Qiimahu ma ahan shey (Value is not an object)")
+            raise TypeError("Qiimahu ma ahan walax (Value is not an object)")
 
         return list(obj.keys())
 
@@ -253,7 +253,7 @@ class SoplangBuiltins:
         Check if an object has a specific property
         """
         if not isinstance(obj, dict):
-            raise TypeError("Qiimahu ma ahan shey (Value is not an object)")
+            raise TypeError("Qiimahu ma ahan walax (Value is not an object)")
 
         return key in obj
 
@@ -263,7 +263,7 @@ class SoplangBuiltins:
         Remove a property from an object
         """
         if not isinstance(obj, dict):
-            raise TypeError("Qiimahu ma ahan shey (Value is not an object)")
+            raise TypeError("Qiimahu ma ahan walax (Value is not an object)")
 
         if key in obj:
             del obj[key]
@@ -277,10 +277,10 @@ class SoplangBuiltins:
         """
         if not isinstance(obj1, dict):
             raise TypeError(
-                "Qiimaha koowaad ma ahan shey (First value is not an object)")
+                "Qiimaha koowaad ma ahan walax (First value is not an object)")
         if not isinstance(obj2, dict):
             raise TypeError(
-                "Qiimaha labaad ma ahan shey (Second value is not an object)")
+                "Qiimaha labaad ma ahan walax (Second value is not an object)")
 
         # Create a new dictionary with items from both objects
         result = obj1.copy()
@@ -300,7 +300,7 @@ def get_builtin_functions():
         "qoraal": SoplangBuiltins.qoraal,
         "bool": SoplangBuiltins.bool,
         "liis": SoplangBuiltins.liis,
-        "shey": SoplangBuiltins.shey,
+        "walax": SoplangBuiltins.walax,
     }
 
     return builtins

@@ -64,7 +64,7 @@ docker run --rm -v "$(pwd):/scripts" soplang:latest examples/XX_example_name.so
 **Purpose**: Demonstrates Soplang's static typing system with type-specific keywords.
 
 **Features Tested**:
-- Static variable declaration with `tiro`, `qoraal`, `bool`, `liis`, and `shey`
+- Static variable declaration with `tiro`, `qoraal`, `bool`, `liis`, and `walax`
 - Type enforcement at runtime
 - Error handling for type violations
 

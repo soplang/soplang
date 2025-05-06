@@ -43,7 +43,7 @@ This directory contains various test examples for the Soplang programming langua
 7. **07_functions.so** - Tests function definitions and calls.
    * Functions with no parameters
    * Functions with parameters
-   * Functions with return values (`soo_celi`)
+   * Functions with return values (`celi`)
    * Conditional returns
    * Nested function calls
 

@@ -47,7 +47,7 @@ class Lexer:
             "qoraal": TokenType.QORAAL,
             "bool": TokenType.BOOL,
             "liis": TokenType.LIIS,
-            "shey": TokenType.SHEY,
+            "walax": TokenType.WALAX,
             # Boolean literals
             "run": TokenType.TRUE,
             "been": TokenType.FALSE,

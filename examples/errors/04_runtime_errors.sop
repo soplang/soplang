@@ -25,12 +25,14 @@ door result = 10 / 0
 
 // Example 5: Property not found
 // This will cause an error because the property doesn't exist
+// walax person = {name: "Farah"}
+// bandhig(person.age)
 // shey person = {name: "Farah"}
 // bandhig(person.age)
 
 // Example 6: Method not found
 // This will cause an error because the method doesn't exist
-// shey book = {title: "Soplang Programming"}
+// walax book = {title: "Soplang Programming"}
 // book.readChapter()
 
 // Example 7: Undefined function

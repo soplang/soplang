@@ -56,7 +56,7 @@ class Parser:
             TokenType.QORAAL: "keyword 'qoraal' (string type)",
             TokenType.BOOL: "keyword 'bool' (boolean type)",
             TokenType.LIIS: "keyword 'liis' (list type)",
-            TokenType.SHEY: "keyword 'shey' (object type)",
+            TokenType.WALAX: "keyword 'walax' (object type)",
         }
 
         return token_descriptions.get(token_type, str(token_type))
@@ -111,16 +111,15 @@ class Parser:
             TokenType.QORAAL,
             TokenType.BOOL,
             TokenType.LIIS,
-            TokenType.SHEY,
+            TokenType.WALAX,
         ):
             return self.parse_variable_declaration(is_static=True)
 
         # Handle variable declaration with dynamic typing (door)
         elif token_type == TokenType.DOOR:
             return self.parse_variable_declaration(is_static=False)
-
         # Handle function definition (hawl)
-        elif token_type == TokenType.hawl:
+        elif token_type == TokenType.HAWL:
             return self.parse_function_definition()
 
         # Handle return statement (celi)
@@ -380,7 +379,7 @@ class Parser:
                 TokenType.TIRO,
                 TokenType.BOOL,
                 TokenType.LIIS,
-                TokenType.SHEY,
+                TokenType.WALAX,
             )
         ):
             raise ParserError(
