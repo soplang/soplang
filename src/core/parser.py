@@ -46,7 +46,7 @@ class Parser:
             TokenType.DOOR: "keyword 'door'",
             TokenType.HAWL: "keyword 'hawl' (function)",
             TokenType.CELI: "keyword 'celi' (return)",
-            TokenType.QOR: "keyword 'qor' (print)",
+            TokenType.BANDHIG: "keyword 'bandhig' (print)",
             TokenType.HADDII: "keyword 'haddii' (if)",
             TokenType.HADDII_KALE: "keyword 'haddii_kale' (else if)",
             TokenType.HADDII_KALENA: "keyword 'haddii_kalena' (else)",
@@ -127,20 +127,20 @@ class Parser:
         elif token_type == TokenType.CELI:
             return self.parse_return_statement()
 
-        # Handle print statement (qor)
-        elif token_type == TokenType.QOR:
-            self.advance()  # Consume qor
+        # Handle print statement (bandhig)
+        elif token_type == TokenType.BANDHIG:
+            self.advance()  # Consume bandhig
             # Parse function call expression
             return ASTNode(
                 NodeType.FUNCTION_CALL,
-                value="qor",
+                value="bandhig",
                 children=[self.parse_expression()],
                 line=line,
                 position=position
             )
 
         # Handle function calls
-        elif token_type == TokenType.QOR or token_type == TokenType.AKHRI:
+        elif token_type == TokenType.BANDHIG or token_type == TokenType.AKHRI:
             return self.parse_function_call()
 
         # Handle loops
@@ -365,16 +365,16 @@ class Parser:
         )
 
     # -----------------------------
-    #  Function calls: qor("Hi") or akhri("Enter name:")
+    #  Function calls: bandhig("Hi") or akhri("Enter name:")
     # -----------------------------
     def parse_function_call(self):
-        """Parse a function call like 'qor("Hello")'"""
+        """Parse a function call like 'bandhig("Hello")'"""
         func_name = self.current_token.value
         if (
             self.current_token.type != TokenType.IDENTIFIER and
             self.current_token.type
             not in (
-                TokenType.QOR,
+                TokenType.BANDHIG,
                 TokenType.AKHRI,
                 TokenType.QORAAL,
                 TokenType.TIRO,
@@ -804,7 +804,7 @@ class Parser:
             return ASTNode(NodeType.LITERAL, value=None)
         elif token.type == TokenType.IDENTIFIER or token.type in (
             TokenType.QORAAL, TokenType.TIRO, TokenType.BOOL, TokenType.LIIS, TokenType.SHEY,
-            TokenType.QOR, TokenType.AKHRI  # Added QOR and AKHRI to handle them in expressions
+            TokenType.BANDHIG, TokenType.AKHRI  # Added QOR and AKHRI to handle them in expressions
         ):
             # Allow type names to be used as function names
             token_value = token.value if token.type == TokenType.IDENTIFIER else token.type.value

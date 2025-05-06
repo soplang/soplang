@@ -7,7 +7,7 @@ This document describes each example program available in the Soplang programmin
 A simple introduction to Soplang syntax and basic features.
 
 **Features tested:**
-- Basic output with `qor()`
+- Basic output with `bandhig()`
 - Variable declarations (dynamic and static)
 - String concatenation
 - Function definition and calls

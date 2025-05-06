@@ -26,7 +26,7 @@ class Lexer:
             "door": TokenType.DOOR,
             "hawl": TokenType.HAWL,
             "celi": TokenType.CELI,
-            "qor": TokenType.QOR,
+            "bandhig": TokenType.BANDHIG,
             "akhri": TokenType.AKHRI,
             "haddii": TokenType.HADDII,
             "haddii_kale": TokenType.HADDII_KALE,

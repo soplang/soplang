@@ -181,12 +181,12 @@ class SoplangShell:
             # DIRECT EXECUTION OF COMMON PATTERNS
             # This bypasses the normal parser for better interactive experience
 
-            # Case 1: Print statements (qor)
-            if code.startswith("qor"):
+            # Case 1: Print statements (bandhig)
+            if code.startswith("bandhig"):
                 # Extract the content to print (remove the trailing semicolon if present)
                 code_without_semicolon = code[:-1] if code.endswith(";") else code
                 match = re.search(
-                    r'qor\s*\(\s*["\'](.*?)[\'"]\s*\)', code_without_semicolon
+                    r'bandhig\s*\(\s*["\'](.*?)[\'"]\s*\)', code_without_semicolon
                 )
                 if match:
                     # Direct execution of print
@@ -194,7 +194,7 @@ class SoplangShell:
                     return
 
                 # Handle print with variable or expression
-                match = re.search(r"qor\s*\(\s*(.*?)\s*\)", code_without_semicolon)
+                match = re.search(r"bandhig\s*\(\s*(.*?)\s*\)", code_without_semicolon)
                 if match:
                     expr = match.group(1)
 
@@ -672,13 +672,13 @@ class SoplangShell:
         code = code.strip()
 
         # Handle common Soplang syntax issues in interactive mode
-        if code.startswith("qor"):
-            # Fix qor with missing parentheses
+        if code.startswith("bandhig"):
+            # Fix bandhig with missing parentheses
             if "(" not in code and ('"' in code or "'" in code):
-                match = re.search(r'qor\s*["\'](.+?)["\']', code)
+                match = re.search(r'bandhig\s*["\'](.+?)["\']', code)
                 if match:
                     string_content = match.group(1)
-                    code = f'qor("{string_content}")'
+                    code = f'bandhig("{string_content}")'
 
         # Fix variable declarations with bad spacing
         if any(code.startswith(prefix) for prefix in ["door ", "tiro ", "qoraal "]):
