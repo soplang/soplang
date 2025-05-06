@@ -28,7 +28,7 @@ class SoplangBuiltins:
         if isinstance(value, str):
             return "qoraal"
         elif isinstance(value, bool):
-            return "labadaran"
+            return "bool"
         elif isinstance(value, (int, float)):
             return "tiro"
         elif isinstance(value, list):
@@ -80,7 +80,7 @@ class SoplangBuiltins:
         return str(value)
 
     @staticmethod
-    def labadaran(value):
+    def bool(value):
         """
         Convert a value to a boolean
         """
@@ -298,7 +298,7 @@ def get_builtin_functions():
         "nuuc": SoplangBuiltins.nuuc,
         "tiro": SoplangBuiltins.tiro,
         "qoraal": SoplangBuiltins.qoraal,
-        "labadaran": SoplangBuiltins.labadaran,
+        "bool": SoplangBuiltins.bool,
         "liis": SoplangBuiltins.liis,
         "shey": SoplangBuiltins.shey,
     }

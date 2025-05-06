@@ -3,8 +3,8 @@
 
 qor("Testing logical operators:")
 
-labadaran c = been
-labadaran d = run
+bool c = been
+bool d = run
 qor("  c = " + c + ", d = " + d)
 
 // Basic logical operations

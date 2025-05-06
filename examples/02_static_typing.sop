@@ -11,9 +11,9 @@ qor("  Number (tiro): " + number_var)
 qoraal string_var = "Soplang waa luqad wacan"
 qor("  String (qoraal): " + string_var)
 
-// Boolean (labadaran)
-labadaran bool_var = been
-qor("  Boolean (labadaran): " + bool_var)
+// Boolean (bool)
+bool bool_var = been
+qor("  Boolean (bool): " + bool_var)
 
 // List (liis)
 liis list_var = [1, 2, 3, "afar", been]

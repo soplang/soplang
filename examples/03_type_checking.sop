@@ -6,7 +6,7 @@ qor("Testing type checking (nuuc):")
 // Create variables of different types
 tiro number_var = 42
 qoraal string_var = "Soplang waa luqad wacan"
-labadaran bool_var = been
+bool bool_var = been
 liis list_var = [1, 2, 3, "afar", been]
 shey object_var = {
     magac: "Ahmed",

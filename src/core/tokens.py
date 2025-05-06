@@ -26,7 +26,7 @@ class TokenType(Enum):
     # Static types
     TIRO = "tiro"          # number
     QORAAL = "qoraal"      # string
-    LABADARAN = "labadaran"  # boolean
+    BOOL = "bool"  # boolean
     LIIS = "liis"          # list
     SHEY = "shey"          # object/dict
 

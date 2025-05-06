@@ -26,18 +26,18 @@ qor("  door result5 = a >= b: " + result5)
 door result6 = a <= b
 qor("  door result6 = a <= b: " + result6)
 
-// Test with labadaran (boolean) type
-labadaran isGreater = a > b
-qor("  labadaran isGreater = a > b: " + isGreater)
+// Test with bool (boolean) type
+bool isGreater = a > b
+qor("  bool isGreater = a > b: " + isGreater)
 
-labadaran isLess = a < b
-qor("  labadaran isLess = a < b: " + isLess)
+bool isLess = a < b
+qor("  bool isLess = a < b: " + isLess)
 
-labadaran isEqual = a == b
-qor("  labadaran isEqual = a == b: " + isEqual)
+bool isEqual = a == b
+qor("  bool isEqual = a == b: " + isEqual)
 
-labadaran isNotEqual = a != b
-qor("  labadaran isNotEqual = a != b: " + isNotEqual)
+bool isNotEqual = a != b
+qor("  bool isNotEqual = a != b: " + isNotEqual)
 
 // Test with complex expressions
 door complex1 = (a > b) && (a != b)

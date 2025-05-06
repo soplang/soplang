@@ -55,10 +55,10 @@ haddii (keys.dherer() > 0) {
 }
 
 // Check if property exists
-labadaran has_job = person.haystaa("shaqo")
+bool has_job = person.haystaa("shaqo")
 qor("  Does person have 'shaqo'? " + has_job)
 
-labadaran has_email = person.haystaa("email")
+bool has_email = person.haystaa("email")
 qor("  Does person have 'email'? " + has_email)
 
 // Removing properties
