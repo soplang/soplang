@@ -293,7 +293,7 @@ class Interpreter:
                 return self.object_methods[method_name](obj, *args)
             else:
                 raise RuntimeError(
-                    "method_not_found", method_name=method_name, type_name=SoplangBuiltins.nuuc(obj))
+                    "method_not_found", method_name=method_name, type_name=SoplangBuiltins.nooc(obj))
         else:
             raise RuntimeError("undefined_function", name=func_name)
 
@@ -587,7 +587,7 @@ class Interpreter:
                     return obj[method_name](*args)
 
             raise RuntimeError("method_not_found", method_name=method_name,
-                               type_name=SoplangBuiltins.nuuc(obj))
+                               type_name=SoplangBuiltins.nooc(obj))
 
         if node.type == NodeType.INDEX_ACCESS:
             # Evaluate the array expression
@@ -724,16 +724,16 @@ class Interpreter:
         if method is None:
             if isinstance(obj, dict) or isinstance(obj, list):
                 raise RuntimeError(
-                    "method_not_found", method_name=method_name, type_name=SoplangBuiltins.nuuc(obj))
+                    "method_not_found", method_name=method_name, type_name=SoplangBuiltins.nooc(obj))
             else:
                 raise TypeError("invalid_method", method=method_name,
-                                type_name=SoplangBuiltins.nuuc(obj))
+                                type_name=SoplangBuiltins.nooc(obj))
 
     def execute_list_method(self, method_name, obj, args):
         """Execute a list method"""
         if not isinstance(obj, list):
             raise TypeError("invalid_method", method=method_name,
-                            type_name=SoplangBuiltins.nuuc(obj))
+                            type_name=SoplangBuiltins.nooc(obj))
 
         if method_name not in self.list_methods:
             raise RuntimeError("method_not_found",
@@ -747,7 +747,7 @@ class Interpreter:
         """Execute an object method"""
         if not isinstance(obj, dict):
             raise TypeError("invalid_method", method=method_name,
-                            type_name=SoplangBuiltins.nuuc(obj))
+                            type_name=SoplangBuiltins.nooc(obj))
 
         if method_name not in self.object_methods:
             raise RuntimeError("method_not_found",
