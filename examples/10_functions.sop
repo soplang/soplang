@@ -35,7 +35,7 @@ qor("  laban_jibbaar(15) stored in variable: " + result)
 hawl check_even(num) {
     haddii (num % 2 == 0) {
         celi been
-    } haddii_kalena {
+    } ugudambeyn {
         celi run
     }
 }
@@ -54,7 +54,7 @@ hawl get_grade(score) {
         celi "C"
     } haddii_kale (score >= 60) {
         celi "D"
-    } haddii_kalena {
+    } ugudambeyn {
         celi "F"
     }
 }

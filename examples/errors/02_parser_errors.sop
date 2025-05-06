@@ -34,8 +34,8 @@ haddii (5 > 3 {
 // door z = 10 *
 
 // Example 7: Invalid if-else structure
-// This will cause an error because haddii_kalena requires a preceding haddii
-// haddii_kalena {
+// This will cause an error because ugudambeyn requires a preceding haddii
+// ugudambeyn {
 //     qor("Invalid if-else structure")
 // }
 
