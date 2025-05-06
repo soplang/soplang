@@ -50,7 +50,7 @@ class Parser:
             TokenType.HADDII: "keyword 'haddii' (if)",
             TokenType.HADDII_KALE: "keyword 'haddii_kale' (else if)",
             TokenType.HADDII_KALENA: "keyword 'haddii_kalena' (else)",
-            TokenType.KU_CELI: "keyword 'ku_celi' (for)",
+            TokenType.kuceli: "keyword 'kuceli' (for)",
             TokenType.INTA_AY: "keyword 'inta_ay' (while)",
             TokenType.TIRO: "keyword 'tiro' (number type)",
             TokenType.QORAAL: "keyword 'qoraal' (string type)",
@@ -144,7 +144,7 @@ class Parser:
             return self.parse_function_call()
 
         # Handle loops
-        elif token_type == TokenType.KU_CELI:
+        elif token_type == TokenType.kuceli:
             return self.parse_loop_statement()
 
         # Handle while loop
@@ -475,11 +475,11 @@ class Parser:
         return ASTNode(NodeType.IF_STATEMENT, children=children)
 
     # -----------------------------
-    #  Loops: ku_celi i min 1 ilaa 5 { ... }
-    #  or with step: ku_celi i min 1 ilaa 5 by 2 { ... }
+    #  Loops: kuceli i min 1 ilaa 5 { ... }
+    #  or with step: kuceli i min 1 ilaa 5 by 2 { ... }
     # -----------------------------
     def parse_loop_statement(self):
-        self.expect(TokenType.KU_CELI)
+        self.expect(TokenType.kuceli)
         loop_var = self.current_token.value
         self.expect(TokenType.IDENTIFIER)  # e.g. i
         self.expect(TokenType.IDENTIFIER)  # "min"

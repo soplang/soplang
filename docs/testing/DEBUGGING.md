@@ -69,7 +69,7 @@ qor("Debug - y: " + y)
 
 // Debug control flow
 qor("Entering loop")
-ku_celi i min 0 ilaa 5 {
+kuceli i min 0 ilaa 5 {
     qor("  Loop iteration: " + i)
 }
 qor("Exiting loop")

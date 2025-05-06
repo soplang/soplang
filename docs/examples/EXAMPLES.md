@@ -46,7 +46,7 @@ Demonstrates conditional statements and loops.
 - Else statements (`haddii_kalena`)
 - Nested conditionals
 - Complex conditions with logical operators
-- For loops (`ku_celi`)
+- For loops (`kuceli`)
 - While loops (`inta_ay`)
 - Break statements (`jooji`)
 - Continue statements (`soco`)
