@@ -36,7 +36,7 @@ class SoplangBuiltins:
         elif isinstance(value, dict):
             return "shey"
         elif value is None:
-            return "waxba"
+            return "maran"
         else:
             return "aan la aqoon"
 

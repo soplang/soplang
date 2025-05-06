@@ -199,7 +199,7 @@ StringLiteral ::= '"' {Character} '"' | "'" {Character} "'"
 
 BooleanLiteral ::= "true" | "false" | "run" | "been"
 
-NullLiteral ::= "null" | "waxba"
+NullLiteral ::= "null" | "maran"
 
 ListLiteral ::= "[" [Expression {"," Expression}] "]"
 
