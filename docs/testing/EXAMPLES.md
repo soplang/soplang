@@ -211,7 +211,7 @@ docker run --rm -v "$(pwd):/scripts" soplang:latest examples/XX_example_name.so
 - List creation and initialization
 - Accessing elements by index
 - Modifying elements
-- List methods: `kudar` (push), `kasaar` (pop), `dherer` (length), `iskuxir` (concat), `leeyahay` (contains)
+- List methods: `kudar` (push), `kasaar` (pop), `dherer` (length), `kudar` (concat), `leeyahay` (contains)
 - List iteration
 - Nested lists
 

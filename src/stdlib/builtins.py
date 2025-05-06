@@ -328,7 +328,7 @@ def get_list_methods():
         "kudar": SoplangBuiltins.list_push,
         "kasaar": SoplangBuiltins.list_pop,
         "dherer": SoplangBuiltins.list_length,
-        "iskuxir": SoplangBuiltins.list_concat,
+        "kudar": SoplangBuiltins.list_concat,
         "leeyahay": SoplangBuiltins.list_contains,
     }
 
