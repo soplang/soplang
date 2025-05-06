@@ -83,7 +83,7 @@ IfStatement ::= "haddii" "(" Expression ")" Block
 
 ElseIfClause ::= "haddii_kale" "(" Expression ")" Block
 
-ElseClause ::= "haddii_kalena" Block
+ElseClause ::= "ugudambeyn" Block
 ```
 
 ## Loops

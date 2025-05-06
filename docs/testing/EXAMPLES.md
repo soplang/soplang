@@ -145,8 +145,8 @@ docker run --rm -v "$(pwd):/scripts" soplang:latest examples/XX_example_name.so
 
 **Features Tested**:
 - Basic if statements (`haddii`)
-- If-else statements (`haddii` / `haddii_kalena`)
-- If-else if-else chains (`haddii` / `haddii_kale` / `haddii_kalena`)
+- If-else statements (`haddii` / `ugudambeyn`)
+- If-else if-else chains (`haddii` / `haddii_kale` / `ugudambeyn`)
 - Nested conditionals
 - Complex conditions with logical operators
 

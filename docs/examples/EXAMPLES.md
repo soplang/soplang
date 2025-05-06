@@ -43,7 +43,7 @@ Demonstrates conditional statements and loops.
 **Features tested:**
 - If statements (`haddii`)
 - If-else statements (`haddii_kale`)
-- Else statements (`haddii_kalena`)
+- Else statements (`ugudambeyn`)
 - Nested conditionals
 - Complex conditions with logical operators
 - For loops (`ku_celi`)

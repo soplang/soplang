@@ -77,7 +77,7 @@ qor("Exiting loop")
 // Debug conditional branches
 haddii (condition) {
     qor("Condition is true")
-} haddii_kalena {
+} ugudambeyn {
     qor("Condition is false")
 }
 ```

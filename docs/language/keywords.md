@@ -20,7 +20,7 @@ This document provides a reference for all keywords in the Soplang programming l
 | --------------- | ----------------- | ------------------ | ---------------------------------------- |
 | `haddii`        | If statement      | `if`               | `haddii (x > 10) { qor("Weyn") }`        |
 | `haddii_kale`   | Else if statement | `else if`          | `haddii_kale (x == 10) { qor("Dhexe") }` |
-| `haddii_kalena` | Else statement    | `else`             | `haddii_kalena { qor("Yar") }`           |
+| `ugudambeyn` | Else statement    | `else`             | `ugudambeyn { qor("Yar") }`           |
 
 ## Loop Keywords
 
