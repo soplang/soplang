@@ -231,7 +231,7 @@ Whitespace ::= ' ' | '\t' | '\n' | '\r'
 ListMethod ::= "kudar"       // push
              | "kasaar"      // pop
              | "dherer"      // length
-             | "iskuxir"     // concat
+             | "kudar"     // concat
              | "leeyahay"   // contains
 ```
 

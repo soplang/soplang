@@ -110,7 +110,7 @@ This document provides a reference for all keywords in the Soplang programming l
 | `kudar`     | Add item to list     | `push/append`       | `myList.kudar(newItem)`                |
 | `kasaar`    | Remove last item     | `pop`               | `door lastItem = myList.kasaar()`      |
 | `dherer`    | Get list length      | `length/size`       | `door size = myList.dherer()`          |
-| `iskuxir`   | Concatenate lists    | `concat`            | `door combined = list1.iskuxir(list2)` |
+| `kudar`   | Concatenate lists    | `concat`            | `door combined = list1.kudar(list2)` |
 | `leeyahay` | Check if item exists | `contains/includes` | `door exists = myList.leeyahay(item)` |
 
 ## Object Methods
