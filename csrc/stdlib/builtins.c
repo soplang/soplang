@@ -2523,7 +2523,7 @@ static const char __pyx_k_key[] = "key";
 static const char __pyx_k_lst[] = "lst";
 static const char __pyx_k_obj[] = "obj";
 static const char __pyx_k_pop[] = "pop";
-static const char __pyx_k_qor[] = "qor";
+static const char __pyx_k_bandhig[] = "bandhig";
 static const char __pyx_k_args[] = "args";
 static const char __pyx_k_dict[] = "__dict__";
 static const char __pyx_k_item[] = "item";
@@ -2587,7 +2587,7 @@ static const char __pyx_k_get_list_methods[] = "get_list_methods";
 static const char __pyx_k_asyncio_coroutines[] = "asyncio.coroutines";
 static const char __pyx_k_cline_in_traceback[] = "cline_in_traceback";
 static const char __pyx_k_get_object_methods[] = "get_object_methods";
-static const char __pyx_k_SoplangBuiltins_qor[] = "SoplangBuiltins.qor";
+static const char __pyx_k_SoplangBuiltins_bandhig[] = "SoplangBuiltins.bandhig";
 static const char __pyx_k_ma_badali_karo_tiro[] = "' ma badali karo tiro";
 static const char __pyx_k_SoplangBuiltins_liis[] = "SoplangBuiltins.liis";
 static const char __pyx_k_SoplangBuiltins_nuuc[] = "SoplangBuiltins.nuuc";
@@ -2612,7 +2612,7 @@ static const char __pyx_k_Ma_saari_kartid_liis_madhan_Cann[] = "Ma saari kartid 
 static const char __pyx_k_Qiimahu_ma_ahan_liis_Value_is_no[] = "Qiimahu ma ahan liis (Value is not a list)";
 static const char __pyx_k_Qiimahu_ma_ahan_shey_Value_is_no[] = "Qiimahu ma ahan shey (Value is not an object)";
 /* #### Code section: decls ### */
-static PyObject *__pyx_pf_3src_8builtins_15SoplangBuiltins_qor(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_message); /* proto */
+static PyObject *__pyx_pf_3src_8builtins_15SoplangBuiltins_bandhig(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_message); /* proto */
 static PyObject *__pyx_pf_3src_8builtins_15SoplangBuiltins_2akhri(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_prompt); /* proto */
 static PyObject *__pyx_pf_3src_8builtins_15SoplangBuiltins_4nuuc(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_value); /* proto */
 static PyObject *__pyx_pf_3src_8builtins_15SoplangBuiltins_6tiro(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_value); /* proto */
@@ -2683,7 +2683,7 @@ typedef struct {
   PyObject *__pyx_n_s_SoplangBuiltins_object_has;
   PyObject *__pyx_n_s_SoplangBuiltins_object_keys;
   PyObject *__pyx_n_s_SoplangBuiltins_object_set;
-  PyObject *__pyx_n_s_SoplangBuiltins_qor;
+  PyObject *__pyx_n_s_SoplangBuiltins_bandhig;
   PyObject *__pyx_n_s_SoplangBuiltins_qoraal;
   PyObject *__pyx_n_s_SoplangBuiltins_shey;
   PyObject *__pyx_n_s_SoplangBuiltins_tiro;
@@ -2761,8 +2761,8 @@ typedef struct {
   PyObject *__pyx_n_s_print;
   PyObject *__pyx_n_s_prompt;
   PyObject *__pyx_n_u_push;
-  PyObject *__pyx_n_s_qor;
-  PyObject *__pyx_n_u_qor;
+  PyObject *__pyx_n_s_bandhig;
+  PyObject *__pyx_n_u_bandhig;
   PyObject *__pyx_n_s_qoraal;
   PyObject *__pyx_n_u_qoraal;
   PyObject *__pyx_n_s_qualname;
@@ -2881,7 +2881,7 @@ static int __pyx_m_clear(PyObject *m) {
   Py_CLEAR(clear_module_state->__pyx_n_s_SoplangBuiltins_object_has);
   Py_CLEAR(clear_module_state->__pyx_n_s_SoplangBuiltins_object_keys);
   Py_CLEAR(clear_module_state->__pyx_n_s_SoplangBuiltins_object_set);
-  Py_CLEAR(clear_module_state->__pyx_n_s_SoplangBuiltins_qor);
+  Py_CLEAR(clear_module_state->__pyx_n_s_SoplangBuiltins_bandhig);
   Py_CLEAR(clear_module_state->__pyx_n_s_SoplangBuiltins_qoraal);
   Py_CLEAR(clear_module_state->__pyx_n_s_SoplangBuiltins_shey);
   Py_CLEAR(clear_module_state->__pyx_n_s_SoplangBuiltins_tiro);
@@ -2959,8 +2959,8 @@ static int __pyx_m_clear(PyObject *m) {
   Py_CLEAR(clear_module_state->__pyx_n_s_print);
   Py_CLEAR(clear_module_state->__pyx_n_s_prompt);
   Py_CLEAR(clear_module_state->__pyx_n_u_push);
-  Py_CLEAR(clear_module_state->__pyx_n_s_qor);
-  Py_CLEAR(clear_module_state->__pyx_n_u_qor);
+  Py_CLEAR(clear_module_state->__pyx_n_s_bandhig);
+  Py_CLEAR(clear_module_state->__pyx_n_u_bandhig);
   Py_CLEAR(clear_module_state->__pyx_n_s_qoraal);
   Py_CLEAR(clear_module_state->__pyx_n_u_qoraal);
   Py_CLEAR(clear_module_state->__pyx_n_s_qualname);
@@ -3057,7 +3057,7 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
   Py_VISIT(traverse_module_state->__pyx_n_s_SoplangBuiltins_object_has);
   Py_VISIT(traverse_module_state->__pyx_n_s_SoplangBuiltins_object_keys);
   Py_VISIT(traverse_module_state->__pyx_n_s_SoplangBuiltins_object_set);
-  Py_VISIT(traverse_module_state->__pyx_n_s_SoplangBuiltins_qor);
+  Py_VISIT(traverse_module_state->__pyx_n_s_SoplangBuiltins_bandhig);
   Py_VISIT(traverse_module_state->__pyx_n_s_SoplangBuiltins_qoraal);
   Py_VISIT(traverse_module_state->__pyx_n_s_SoplangBuiltins_shey);
   Py_VISIT(traverse_module_state->__pyx_n_s_SoplangBuiltins_tiro);
@@ -3135,8 +3135,8 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
   Py_VISIT(traverse_module_state->__pyx_n_s_print);
   Py_VISIT(traverse_module_state->__pyx_n_s_prompt);
   Py_VISIT(traverse_module_state->__pyx_n_u_push);
-  Py_VISIT(traverse_module_state->__pyx_n_s_qor);
-  Py_VISIT(traverse_module_state->__pyx_n_u_qor);
+  Py_VISIT(traverse_module_state->__pyx_n_s_bandhig);
+  Py_VISIT(traverse_module_state->__pyx_n_u_bandhig);
   Py_VISIT(traverse_module_state->__pyx_n_s_qoraal);
   Py_VISIT(traverse_module_state->__pyx_n_u_qoraal);
   Py_VISIT(traverse_module_state->__pyx_n_s_qualname);
@@ -3243,7 +3243,7 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
 #define __pyx_n_s_SoplangBuiltins_object_has __pyx_mstate_global->__pyx_n_s_SoplangBuiltins_object_has
 #define __pyx_n_s_SoplangBuiltins_object_keys __pyx_mstate_global->__pyx_n_s_SoplangBuiltins_object_keys
 #define __pyx_n_s_SoplangBuiltins_object_set __pyx_mstate_global->__pyx_n_s_SoplangBuiltins_object_set
-#define __pyx_n_s_SoplangBuiltins_qor __pyx_mstate_global->__pyx_n_s_SoplangBuiltins_qor
+#define __pyx_n_s_SoplangBuiltins_bandhig __pyx_mstate_global->__pyx_n_s_SoplangBuiltins_bandhig
 #define __pyx_n_s_SoplangBuiltins_qoraal __pyx_mstate_global->__pyx_n_s_SoplangBuiltins_qoraal
 #define __pyx_n_s_SoplangBuiltins_shey __pyx_mstate_global->__pyx_n_s_SoplangBuiltins_shey
 #define __pyx_n_s_SoplangBuiltins_tiro __pyx_mstate_global->__pyx_n_s_SoplangBuiltins_tiro
@@ -3321,8 +3321,8 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
 #define __pyx_n_s_print __pyx_mstate_global->__pyx_n_s_print
 #define __pyx_n_s_prompt __pyx_mstate_global->__pyx_n_s_prompt
 #define __pyx_n_u_push __pyx_mstate_global->__pyx_n_u_push
-#define __pyx_n_s_qor __pyx_mstate_global->__pyx_n_s_qor
-#define __pyx_n_u_qor __pyx_mstate_global->__pyx_n_u_qor
+#define __pyx_n_s_bandhig __pyx_mstate_global->__pyx_n_s_bandhig
+#define __pyx_n_u_bandhig __pyx_mstate_global->__pyx_n_u_bandhig
 #define __pyx_n_s_qoraal __pyx_mstate_global->__pyx_n_s_qoraal
 #define __pyx_n_u_qoraal __pyx_mstate_global->__pyx_n_u_qoraal
 #define __pyx_n_s_qualname __pyx_mstate_global->__pyx_n_s_qualname
@@ -3384,21 +3384,21 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
  * 
  * class SoplangBuiltins:
  *     @staticmethod             # <<<<<<<<<<<<<<
- *     def qor(message):
+ *     def bandhig(message):
  *         """
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_3src_8builtins_15SoplangBuiltins_1qor(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_8builtins_15SoplangBuiltins_1bandhig(PyObject *__pyx_self, 
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
 PyObject *__pyx_args, PyObject *__pyx_kwds
 #endif
 ); /*proto*/
-PyDoc_STRVAR(__pyx_doc_3src_8builtins_15SoplangBuiltins_qor, "\n        Print a message to the console (equivalent to print/console.log)\n        ");
-static PyMethodDef __pyx_mdef_3src_8builtins_15SoplangBuiltins_1qor = {"qor", (PyCFunction)(void*)(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_3src_8builtins_15SoplangBuiltins_1qor, __Pyx_METH_FASTCALL|METH_KEYWORDS, __pyx_doc_3src_8builtins_15SoplangBuiltins_qor};
-static PyObject *__pyx_pw_3src_8builtins_15SoplangBuiltins_1qor(PyObject *__pyx_self, 
+PyDoc_STRVAR(__pyx_doc_3src_8builtins_15SoplangBuiltins_bandhig, "\n        Print a message to the console (equivalent to print/console.log)\n        ");
+static PyMethodDef __pyx_mdef_3src_8builtins_15SoplangBuiltins_1bandhig = {"bandhig", (PyCFunction)(void*)(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_3src_8builtins_15SoplangBuiltins_1bandhig, __Pyx_METH_FASTCALL|METH_KEYWORDS, __pyx_doc_3src_8builtins_15SoplangBuiltins_bandhig};
+static PyObject *__pyx_pw_3src_8builtins_15SoplangBuiltins_1bandhig(PyObject *__pyx_self, 
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -3416,7 +3416,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   int __pyx_clineno = 0;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("qor (wrapper)", 0);
+  __Pyx_RefNannySetupContext("bandhig (wrapper)", 0);
   #if !CYTHON_METH_FASTCALL
   #if CYTHON_ASSUME_SAFE_MACROS
   __pyx_nargs = PyTuple_GET_SIZE(__pyx_args);
@@ -3447,7 +3447,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
       }
       if (unlikely(kw_args > 0)) {
         const Py_ssize_t kwd_pos_args = __pyx_nargs;
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "qor") < 0)) __PYX_ERR(0, 5, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "bandhig") < 0)) __PYX_ERR(0, 5, __pyx_L3_error)
       }
     } else if (unlikely(__pyx_nargs != 1)) {
       goto __pyx_L5_argtuple_error;
@@ -3458,7 +3458,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   }
   goto __pyx_L6_skip;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("qor", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 5, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("bandhig", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 5, __pyx_L3_error)
   __pyx_L6_skip:;
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -3468,11 +3468,11 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
       __Pyx_Arg_XDECREF_FASTCALL(values[__pyx_temp]);
     }
   }
-  __Pyx_AddTraceback("src.builtins.SoplangBuiltins.qor", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("src.builtins.SoplangBuiltins.bandhig", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_3src_8builtins_15SoplangBuiltins_qor(__pyx_self, __pyx_v_message);
+  __pyx_r = __pyx_pf_3src_8builtins_15SoplangBuiltins_bandhig(__pyx_self, __pyx_v_message);
 
   /* function exit code */
   {
@@ -3485,14 +3485,14 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_3src_8builtins_15SoplangBuiltins_qor(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_message) {
+static PyObject *__pyx_pf_3src_8builtins_15SoplangBuiltins_bandhig(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_message) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
-  __Pyx_RefNannySetupContext("qor", 1);
+  __Pyx_RefNannySetupContext("bandhig", 1);
 
   /* "src/builtins.py":10
  *         Print a message to the console (equivalent to print/console.log)
@@ -3521,14 +3521,14 @@ static PyObject *__pyx_pf_3src_8builtins_15SoplangBuiltins_qor(CYTHON_UNUSED PyO
  * 
  * class SoplangBuiltins:
  *     @staticmethod             # <<<<<<<<<<<<<<
- *     def qor(message):
+ *     def bandhig(message):
  *         """
  */
 
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
-  __Pyx_AddTraceback("src.builtins.SoplangBuiltins.qor", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("src.builtins.SoplangBuiltins.bandhig", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -8204,7 +8204,7 @@ static PyObject *__pyx_pf_3src_8builtins_get_builtin_functions(CYTHON_UNUSED PyO
   /* "src/builtins.py":236
  *     """
  *     builtins = {
- *         "qor": SoplangBuiltins.qor,             # <<<<<<<<<<<<<<
+ *         "bandhig": SoplangBuiltins.bandhig,             # <<<<<<<<<<<<<<
  *         "akhri": SoplangBuiltins.akhri,
  *         "nuuc": SoplangBuiltins.nuuc,
  */
@@ -8212,15 +8212,15 @@ static PyObject *__pyx_pf_3src_8builtins_get_builtin_functions(CYTHON_UNUSED PyO
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_SoplangBuiltins); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 236, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_qor); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 236, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_bandhig); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 236, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_u_qor, __pyx_t_3) < 0) __PYX_ERR(0, 236, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_u_bandhig, __pyx_t_3) < 0) __PYX_ERR(0, 236, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
   /* "src/builtins.py":237
  *     builtins = {
- *         "qor": SoplangBuiltins.qor,
+ *         "bandhig": SoplangBuiltins.bandhig,
  *         "akhri": SoplangBuiltins.akhri,             # <<<<<<<<<<<<<<
  *         "nuuc": SoplangBuiltins.nuuc,
  *         "tiro": SoplangBuiltins.tiro,
@@ -8234,7 +8234,7 @@ static PyObject *__pyx_pf_3src_8builtins_get_builtin_functions(CYTHON_UNUSED PyO
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
   /* "src/builtins.py":238
- *         "qor": SoplangBuiltins.qor,
+ *         "bandhig": SoplangBuiltins.bandhig,
  *         "akhri": SoplangBuiltins.akhri,
  *         "nuuc": SoplangBuiltins.nuuc,             # <<<<<<<<<<<<<<
  *         "tiro": SoplangBuiltins.tiro,
@@ -8619,7 +8619,7 @@ static int __Pyx_CreateStringTabAndInitStrings(void) {
     {&__pyx_n_s_SoplangBuiltins_object_has, __pyx_k_SoplangBuiltins_object_has, sizeof(__pyx_k_SoplangBuiltins_object_has), 0, 0, 1, 1},
     {&__pyx_n_s_SoplangBuiltins_object_keys, __pyx_k_SoplangBuiltins_object_keys, sizeof(__pyx_k_SoplangBuiltins_object_keys), 0, 0, 1, 1},
     {&__pyx_n_s_SoplangBuiltins_object_set, __pyx_k_SoplangBuiltins_object_set, sizeof(__pyx_k_SoplangBuiltins_object_set), 0, 0, 1, 1},
-    {&__pyx_n_s_SoplangBuiltins_qor, __pyx_k_SoplangBuiltins_qor, sizeof(__pyx_k_SoplangBuiltins_qor), 0, 0, 1, 1},
+    {&__pyx_n_s_SoplangBuiltins_bandhig, __pyx_k_SoplangBuiltins_bandhig, sizeof(__pyx_k_SoplangBuiltins_bandhig), 0, 0, 1, 1},
     {&__pyx_n_s_SoplangBuiltins_qoraal, __pyx_k_SoplangBuiltins_qoraal, sizeof(__pyx_k_SoplangBuiltins_qoraal), 0, 0, 1, 1},
     {&__pyx_n_s_SoplangBuiltins_shey, __pyx_k_SoplangBuiltins_shey, sizeof(__pyx_k_SoplangBuiltins_shey), 0, 0, 1, 1},
     {&__pyx_n_s_SoplangBuiltins_tiro, __pyx_k_SoplangBuiltins_tiro, sizeof(__pyx_k_SoplangBuiltins_tiro), 0, 0, 1, 1},
@@ -8697,8 +8697,8 @@ static int __Pyx_CreateStringTabAndInitStrings(void) {
     {&__pyx_n_s_print, __pyx_k_print, sizeof(__pyx_k_print), 0, 0, 1, 1},
     {&__pyx_n_s_prompt, __pyx_k_prompt, sizeof(__pyx_k_prompt), 0, 0, 1, 1},
     {&__pyx_n_u_push, __pyx_k_push, sizeof(__pyx_k_push), 0, 1, 0, 1},
-    {&__pyx_n_s_qor, __pyx_k_qor, sizeof(__pyx_k_qor), 0, 0, 1, 1},
-    {&__pyx_n_u_qor, __pyx_k_qor, sizeof(__pyx_k_qor), 0, 1, 0, 1},
+    {&__pyx_n_s_bandhig, __pyx_k_bandhig, sizeof(__pyx_k_bandhig), 0, 0, 1, 1},
+    {&__pyx_n_u_bandhig, __pyx_k_bandhig, sizeof(__pyx_k_bandhig), 0, 1, 0, 1},
     {&__pyx_n_s_qoraal, __pyx_k_qoraal, sizeof(__pyx_k_qoraal), 0, 0, 1, 1},
     {&__pyx_n_u_qoraal, __pyx_k_qoraal, sizeof(__pyx_k_qoraal), 0, 1, 0, 1},
     {&__pyx_n_s_qualname, __pyx_k_qualname, sizeof(__pyx_k_qualname), 0, 0, 1, 1},
@@ -8740,13 +8740,13 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  * 
  * class SoplangBuiltins:
  *     @staticmethod             # <<<<<<<<<<<<<<
- *     def qor(message):
+ *     def bandhig(message):
  *         """
  */
   __pyx_tuple__13 = PyTuple_Pack(1, __pyx_n_s_message); if (unlikely(!__pyx_tuple__13)) __PYX_ERR(0, 5, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__13);
   __Pyx_GIVEREF(__pyx_tuple__13);
-  __pyx_codeobj__14 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__13, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_src_builtins_py, __pyx_n_s_qor, 5, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__14)) __PYX_ERR(0, 5, __pyx_L1_error)
+  __pyx_codeobj__14 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__13, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_src_builtins_py, __pyx_n_s_bandhig, 5, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__14)) __PYX_ERR(0, 5, __pyx_L1_error)
 
   /* "src/builtins.py":13
  *         return message
@@ -9362,7 +9362,7 @@ if (!__Pyx_RefNanny) {
  * 
  * class SoplangBuiltins:             # <<<<<<<<<<<<<<
  *     @staticmethod
- *     def qor(message):
+ *     def bandhig(message):
  */
   __pyx_t_3 = __Pyx_Py3MetaclassPrepare((PyObject *) NULL, __pyx_empty_tuple, __pyx_n_s_SoplangBuiltins, __pyx_n_s_SoplangBuiltins, (PyObject *) NULL, __pyx_n_s_src_builtins, (PyObject *) NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 4, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
@@ -9371,15 +9371,15 @@ if (!__Pyx_RefNanny) {
  * 
  * class SoplangBuiltins:
  *     @staticmethod             # <<<<<<<<<<<<<<
- *     def qor(message):
+ *     def bandhig(message):
  *         """
  */
-  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_3src_8builtins_15SoplangBuiltins_1qor, __Pyx_CYFUNCTION_STATICMETHOD, __pyx_n_s_SoplangBuiltins_qor, NULL, __pyx_n_s_src_builtins, __pyx_d, ((PyObject *)__pyx_codeobj__14)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 5, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_3src_8builtins_15SoplangBuiltins_1bandhig, __Pyx_CYFUNCTION_STATICMETHOD, __pyx_n_s_SoplangBuiltins_bandhig, NULL, __pyx_n_s_src_builtins, __pyx_d, ((PyObject *)__pyx_codeobj__14)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 5, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_staticmethod, __pyx_t_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 5, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_qor, __pyx_t_4) < 0) __PYX_ERR(0, 5, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_bandhig, __pyx_t_4) < 0) __PYX_ERR(0, 5, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
   /* "src/builtins.py":13
@@ -9628,7 +9628,7 @@ if (!__Pyx_RefNanny) {
  * 
  * class SoplangBuiltins:             # <<<<<<<<<<<<<<
  *     @staticmethod
- *     def qor(message):
+ *     def bandhig(message):
  */
   __pyx_t_4 = __Pyx_Py3ClassCreate(((PyObject*)&PyType_Type), __pyx_n_s_SoplangBuiltins, __pyx_empty_tuple, __pyx_t_3, NULL, 0, 0); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 4, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);

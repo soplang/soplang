@@ -18,20 +18,20 @@ This document provides a reference for all keywords in the Soplang programming l
 
 | Keyword         | Meaning           | English Equivalent | Example                                  |
 | --------------- | ----------------- | ------------------ | ---------------------------------------- |
-| `haddii`        | If statement      | `if`               | `haddii (x > 10) { qor("Weyn") }`        |
-| `haddii_kale`   | Else if statement | `else if`          | `haddii_kale (x == 10) { qor("Dhexe") }` |
-| `haddii_kalena` | Else statement    | `else`             | `haddii_kalena { qor("Yar") }`           |
+| `haddii`        | If statement      | `if`               | `haddii (x > 10) { bandhig("Weyn") }`        |
+| `haddii_kale`   | Else if statement | `else if`          | `haddii_kale (x == 10) { bandhig("Dhexe") }` |
+| `haddii_kalena` | Else statement    | `else`             | `haddii_kalena { bandhig("Yar") }`           |
 
 ## Loop Keywords
 
 | Keyword   | Meaning             | English Equivalent | Example                                 |
 | --------- | ------------------- | ------------------ | --------------------------------------- |
-| `kuceli` | For loop            | `for`              | `kuceli i min 1 ilaa 5 { qor(i) }`     |
-| `inta_ay` | While loop          | `while`            | `inta_ay (x < 5) { qor(x); x = x + 1 }` |
+| `kuceli` | For loop            | `for`              | `kuceli i min 1 ilaa 5 { bandhig(i) }`     |
+| `inta_ay` | While loop          | `while`            | `inta_ay (x < 5) { bandhig(x); x = x + 1 }` |
 | `jooji`   | Break statement     | `break`            | `haddii (x == 3) { jooji }`             |
 | `soco` | Continue statement  | `continue`         | `haddii (x == 3) { soco }`           |
-| `min`     | From (in for loops) | `from`             | `kuceli i min 1 ilaa 5 { qor(i) }`     |
-| `ilaa`    | To (in for loops)   | `to`               | `kuceli i min 1 ilaa 5 { qor(i) }`     |
+| `min`     | From (in for loops) | `from`             | `kuceli i min 1 ilaa 5 { bandhig(i) }`     |
+| `ilaa`    | To (in for loops)   | `to`               | `kuceli i min 1 ilaa 5 { bandhig(i) }`     |
 
 ## Function Keywords
 
@@ -45,7 +45,7 @@ This document provides a reference for all keywords in the Soplang programming l
 | Keyword    | Meaning            | English Equivalent | Example                         |
 | ---------- | ------------------ | ------------------ | ------------------------------- |
 | `isku_day` | Try block          | `try`              | `isku_day { /* code */ }`       |
-| `qabo`     | Catch block        | `catch`            | `qabo (khalad) { qor(khalad) }` |
+| `qabo`     | Catch block        | `catch`            | `qabo (khalad) { bandhig(khalad) }` |
 | `throw`    | Throw an exception | `throw`            | `throw "Error message"`         |
 
 ## Object-Oriented Programming Keywords
@@ -94,9 +94,9 @@ This document provides a reference for all keywords in the Soplang programming l
 
 | Function    | Meaning              | English Equivalent | Example                                  |
 | ----------- | -------------------- | ------------------ | ---------------------------------------- |
-| `qor`       | Print to console     | `print`            | `qor("Salaan, Adduunka!")`               |
+| `bandhig`       | Print to console     | `print`            | `bandhig("Salaan, Adduunka!")`               |
 | `akhri`     | Read input from user | `input`            | `door magac = akhri("Magacaaga geli: ")` |
-| `nuuc`      | Get type of variable | `typeof`           | `qor(nuuc(magac))`                       |
+| `nuuc`      | Get type of variable | `typeof`           | `bandhig(nuuc(magac))`                       |
 | `tiro`      | Convert to number    | `int`/`float`      | `door n = tiro("5")`                     |
 | `qoraal`    | Convert to string    | `str`              | `door s = qoraal(25)`                    |
 | `labadaran` | Convert to boolean   | `bool`             | `door b = labadaran(1)`                  |
@@ -140,7 +140,7 @@ This document provides a reference for all keywords in the Soplang programming l
 | ------- | ------------------- | ------------------ | --------------------------------- |
 | `//`    | Single-line comment | `//`               | `// Tani waa comment`             |
 | `/* */` | Multi-line comment  | `/* */`            | `/* Tani waa comment dheer */`    |
-| `{ }`   | Code block          | `{ }`              | `haddii (x > 10) { qor("Weyn") }` |
+| `{ }`   | Code block          | `{ }`              | `haddii (x > 10) { bandhig("Weyn") }` |
 | `( )`   | Expression grouping | `( )`              | `(a + b) * c`                     |
 | `[ ]`   | List/array access   | `[ ]`              | `numbers[0]`                      |
 | `.`     | Property access     | `.`                | `person.name`                     |

@@ -1,10 +1,10 @@
 // Soplang Lexer Errors
 // Demonstrates errors that occur during the lexical analysis phase
 
-qor("Soplang Lexer Error Examples")
-qor("============================")
-qor("Uncomment examples one at a time to see specific errors")
-qor("")
+bandhig("Soplang Lexer Error Examples")
+bandhig("============================")
+bandhig("Uncomment examples one at a time to see specific errors")
+bandhig("")
 
 // Example 1: Unexpected character
 // This will cause an error because '@' is not a valid character in Soplang
@@ -26,15 +26,15 @@ door variable = 5 @ 10
 // Example 4: Invalid logical operator
 // This causes an error because '&' needs another '&' to form '&&'
 // haddii (run & run) {
-//     qor("This won't work")
+//     bandhig("This won't work")
 // }
 
 // Example 5: Invalid syntax for OR operator
 // This causes an error because '|' needs another '|' to form '||'
 // haddii (been | been) {
-//     qor("This also won't work")
+//     bandhig("This also won't work")
 // }
 
 // Valid code to run when all examples are commented out
 // door test = 10
-// qor("Only this line should print when all errors are commented out")
+// bandhig("Only this line should print when all errors are commented out")

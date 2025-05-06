@@ -2,21 +2,21 @@
 // This example shows how to use akhri to get user input
 
 // First, let's print a brief explanation
-qor("Akhri Example - User Input in Soplang")
-qor("---------------------------------")
+bandhig("Akhri Example - User Input in Soplang")
+bandhig("---------------------------------")
 
 // Using akhri to get the user's name
 door magac = akhri("Enter your name: ")
 
 // Display a greeting with the entered name
-qor("Hello, " + magac + "!")
-qor("Welcome to Soplang programming!")
+bandhig("Hello, " + magac + "!")
+bandhig("Welcome to Soplang programming!")
 
 // Show the type of the input (always a string)
-qor("The type of your input is: " + nuuc(magac))
+bandhig("The type of your input is: " + nuuc(magac))
 
 // Example of simple input processing
-qor("Your name has several characters.")
+bandhig("Your name has several characters.")
 
 // Thank the user
-qor("Thank you for trying akhri in Soplang!")
+bandhig("Thank you for trying akhri in Soplang!")

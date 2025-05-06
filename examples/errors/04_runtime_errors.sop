@@ -1,14 +1,14 @@
 // Soplang Runtime Errors
 // Demonstrates errors that occur during program execution
 
-qor("Soplang Runtime Error Examples")
-qor("============================")
-qor("Uncomment examples one at a time to see specific errors")
-qor("")
+bandhig("Soplang Runtime Error Examples")
+bandhig("============================")
+bandhig("Uncomment examples one at a time to see specific errors")
+bandhig("")
 
 // Example 1: Undefined variable
 // This will cause an error because the variable doesn't exist
-// qor(undefinedVariable)
+// bandhig(undefinedVariable)
 
 // Example 2: Division by zero
 // This will cause an error because division by zero is not allowed
@@ -26,7 +26,7 @@ door result = 10 / 0
 // Example 5: Property not found
 // This will cause an error because the property doesn't exist
 // shey person = {name: "Farah"}
-// qor(person.age)
+// bandhig(person.age)
 
 // Example 6: Method not found
 // This will cause an error because the method doesn't exist
@@ -40,20 +40,20 @@ door result = 10 / 0
 // Example 8: Missing arguments
 // This will cause an error because not enough arguments are provided
 // hawl greet(name, age) {
-//     qor("Hello, " + name + "! You are " + age + " years old.")
+//     bandhig("Hello, " + name + "! You are " + age + " years old.")
 // }
 // greet("Aisha")  // Missing the age argument
 
 // Valid code with try-catch to handle runtime errors safely
-// qor("Using try-catch to safely handle potential errors:")
+// bandhig("Using try-catch to safely handle potential errors:")
 // door x = 10
 // door y = 0
 
 // isku_day {
 //     door result = x / y
-//     qor("This won't print")
+//     bandhig("This won't print")
 // } qabo (errorMsg) {
-//     qor("Caught error: " + errorMsg)
+//     bandhig("Caught error: " + errorMsg)
 // }
 
-// qor("Program continues after catching the error")
+// bandhig("Program continues after catching the error")
