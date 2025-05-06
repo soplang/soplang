@@ -39,7 +39,7 @@ tiro age = 25             // Static typing - number only
 // Control flow
 haddii (age > 18) {
     qor("Waa qof weyn")   // Is an adult
-} haddii_kalena {
+} ugudambeyn {
     qor("Waa qof yar")    // Is a child
 }
 
