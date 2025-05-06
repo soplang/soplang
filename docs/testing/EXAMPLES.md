@@ -156,7 +156,7 @@ docker run --rm -v "$(pwd):/scripts" soplang:latest examples/XX_example_name.so
 
 ### 08_for_loops.so
 
-**Purpose**: Tests for loops in Soplang using `ku_celi`.
+**Purpose**: Tests for loops in Soplang using `kuceli`.
 
 **Features Tested**:
 - Basic for loop syntax
@@ -166,7 +166,7 @@ docker run --rm -v "$(pwd):/scripts" soplang:latest examples/XX_example_name.so
 - Nested loops
 
 **Key Concepts**:
-- The `ku_celi` statement iterates from a start to an end value
+- The `kuceli` statement iterates from a start to an end value
 - The step can be specified with the optional `by` clause
 
 ### 09_while_loops.so

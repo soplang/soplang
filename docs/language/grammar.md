@@ -89,7 +89,7 @@ ElseClause ::= "haddii_kalena" Block
 ## Loops
 
 ```ebnf
-LoopStatement ::= "ku_celi" Identifier "min" Expression "ilaa" Expression ["by" Expression] Block
+LoopStatement ::= "kuceli" Identifier "min" Expression "ilaa" Expression ["by" Expression] Block
 
 WhileStatement ::= "inta_ay" "(" Expression ")" Block
 

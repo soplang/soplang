@@ -105,7 +105,7 @@ class TestInterpreter(unittest.TestCase):
     def test_for_loop(self):
         """Test for loop execution."""
         source = '''
-        ku_celi i min 1 ilaa 3 {
+        kuceli i min 1 ilaa 3 {
             qor("Number: " + qoraal(i))
         }
         '''

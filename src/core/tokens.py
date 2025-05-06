@@ -11,7 +11,7 @@ class TokenType(Enum):
     HADDII = "haddii"
     HADDII_KALE = "haddii_kale"
     HADDII_KALENA = "haddii_kalena"
-    KU_CELI = "ku_celi"
+    kuceli = "kuceli"
     INTA_AY = "inta_ay"
     JOOJI = "jooji"        # break
     soco = "soco"    # continue

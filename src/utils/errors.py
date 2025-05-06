@@ -61,7 +61,7 @@ class ErrorMessageManager:
         "break_outside_loop": "Jooji waa in ay ku jiraan xalqad",
         "continue_outside_loop": "soco waa in ay ku jiraan xalqad",
         "return_outside_function": "Soo_celi waa in ay ku jirto howl",
-        "invalid_for_loop": "Ku_celi billowga, dhamaadka iyo tallaabada waa in ay yihiin tiro",
+        "invalid_for_loop": "kuceli billowga, dhamaadka iyo tallaabada waa in ay yihiin tiro",
         "unknown_node_type": "Nooca cladka aan la aqoon: {node_type}",
         "unknown_operator": "Hawl-gal aan la aqoon: {operator}",
     }
