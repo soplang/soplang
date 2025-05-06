@@ -1,30 +1,30 @@
 // Test: Static Typing
 // This test checks if static typing works properly
 
-qor("Testing static typing:")
+bandhig("Testing static typing:")
 
 // Number (tiro)
 tiro number_var = 42
-qor("  Number (tiro): " + number_var)
+bandhig("  Number (tiro): " + number_var)
 
 // String (qoraal)
 qoraal string_var = "Soplang waa luqad wacan"
-qor("  String (qoraal): " + string_var)
+bandhig("  String (qoraal): " + string_var)
 
 // Boolean (labadaran)
 labadaran bool_var = been
-qor("  Boolean (labadaran): " + bool_var)
+bandhig("  Boolean (labadaran): " + bool_var)
 
 // List (liis)
 liis list_var = [1, 2, 3, "afar", been]
-qor("  List (liis): " + list_var)
+bandhig("  List (liis): " + list_var)
 
 // Object (shey)
 shey object_var = {
     magac: "Ahmed",
     da: 25
 }
-qor("  Object (shey): " + object_var)
+bandhig("  Object (shey): " + object_var)
 
 // Try to assign incompatible types (should fail)
 // Uncomment these lines to test type enforcement

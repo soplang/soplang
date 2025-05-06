@@ -1,37 +1,37 @@
 // Test: Comparison Operators
 // This test checks if comparison operators work properly
 
-qor("Testing comparison operators:")
+bandhig("Testing comparison operators:")
 
 tiro a = 15
 tiro b = 5
 tiro c = 15
-qor("  a = " + a + ", b = " + b + ", c = " + c)
+bandhig("  a = " + a + ", b = " + b + ", c = " + c)
 
 // Basic comparisons
-qor("  Equal (a == b): " + (a == b))
-qor("  Equal (a == c): " + (a == c))
-qor("  Not equal (a != b): " + (a != b))
-qor("  Not equal (a != c): " + (a != c))
-qor("  Greater than (a > b): " + (a > b))
-qor("  Greater than (b > a): " + (b > a))
-qor("  Less than (a < b): " + (a < b))
-qor("  Less than (b < a): " + (b < a))
-qor("  Greater than or equal (a >= c): " + (a >= c))
-qor("  Greater than or equal (a >= b): " + (a >= b))
-qor("  Less than or equal (a <= c): " + (a <= c))
-qor("  Less than or equal (a <= b): " + (a <= b))
+bandhig("  Equal (a == b): " + (a == b))
+bandhig("  Equal (a == c): " + (a == c))
+bandhig("  Not equal (a != b): " + (a != b))
+bandhig("  Not equal (a != c): " + (a != c))
+bandhig("  Greater than (a > b): " + (a > b))
+bandhig("  Greater than (b > a): " + (b > a))
+bandhig("  Less than (a < b): " + (a < b))
+bandhig("  Less than (b < a): " + (b < a))
+bandhig("  Greater than or equal (a >= c): " + (a >= c))
+bandhig("  Greater than or equal (a >= b): " + (a >= b))
+bandhig("  Less than or equal (a <= c): " + (a <= c))
+bandhig("  Less than or equal (a <= b): " + (a <= b))
 
 // Test comparisons in assignments
 door result1 = a > b
-qor("  Assignment of comparison (result1 = a > b): " + result1)
+bandhig("  Assignment of comparison (result1 = a > b): " + result1)
 
 door result2 = a == c
-qor("  Assignment of equality (result2 = a == c): " + result2)
+bandhig("  Assignment of equality (result2 = a == c): " + result2)
 
 // Test with different types
 door str1 = "abc"
 door str2 = "abc"
 door str3 = "def"
-qor("  String equality (str1 == str2): " + (str1 == str2))
-qor("  String inequality (str1 != str3): " + (str1 != str3))
+bandhig("  String equality (str1 == str2): " + (str1 == str2))
+bandhig("  String inequality (str1 != str3): " + (str1 != str3))

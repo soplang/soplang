@@ -6,7 +6,7 @@ class TokenType(Enum):
     DOOR = "door"
     HAWL = "hawl"
     CELI = "celi"
-    QOR = "qor"
+    BANDHIG = "bandhig"
     AKHRI = "akhri"
     HADDII = "haddii"
     HADDII_KALE = "haddii_kale"

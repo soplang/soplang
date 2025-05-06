@@ -55,3 +55,6 @@ env/
 
 # Soplang specific
 .soplang_history 
+
+# macOS
+.DS_Store

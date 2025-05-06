@@ -27,7 +27,7 @@ def main():
         python main.py                   # Start interactive shell
         python main.py filename.sop      # Execute a Soplang file
         python main.py -e 1              # Run example number 1
-        python main.py -c 'qor("Hello")' # Execute code snippet
+        python main.py -c 'bandhig("Hello")' # Execute code snippet
         python main.py -v                # Display version information
     """
     # Setup command line argument parser
