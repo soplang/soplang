@@ -90,7 +90,7 @@ class TestParser(unittest.TestCase):
         source = '''
         haddii (x > 10) {
             qor("x is greater than 10")
-        } haddii_kalena {
+        } ugudambeyn {
             qor("x is not greater than 10")
         }
         '''
@@ -109,7 +109,7 @@ class TestParser(unittest.TestCase):
         self.assertIn(TokenType.QOR, token_types)
         self.assertIn(TokenType.STRING, token_types)
         self.assertIn(TokenType.RIGHT_BRACE, token_types)
-        self.assertIn(TokenType.HADDII_KALENA, token_types)
+        self.assertIn(TokenType.UGUDAMBEYN, token_types)
     
     def test_for_loop_tokens(self):
         """Test tokenization of for loops."""
