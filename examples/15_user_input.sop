@@ -13,7 +13,7 @@ bandhig("Hello, " + magac + "!")
 bandhig("Welcome to Soplang programming!")
 
 // Show the type of the input (always a string)
-bandhig("The type of your input is: " + nuuc(magac))
+bandhig("The type of your input is: " + nooc(magac))
 
 // Example of simple input processing
 bandhig("Your name has several characters.")

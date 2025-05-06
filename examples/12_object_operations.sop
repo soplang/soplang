@@ -13,7 +13,7 @@ walax person = {
 
 bandhig("  Empty object: " + empty_obj)
 bandhig("  Person object: " + person)
-bandhig("  Type of person: " + nuuc(person))
+bandhig("  Type of person: " + nooc(person))
 
 // Accessing properties
 bandhig("  Name: " + person.magac)
@@ -47,7 +47,7 @@ bandhig("  Employee's district: " + employee.address.district)
 // Object keys
 door keys = person.fure()
 bandhig("  Object keys: " + keys)
-bandhig("  Type of keys: " + nuuc(keys))
+bandhig("  Type of keys: " + nooc(keys))
 
 // Debug - Print first few keys if they exist
 haddii (keys.dherer() > 0) {

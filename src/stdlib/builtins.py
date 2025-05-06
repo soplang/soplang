@@ -21,7 +21,7 @@ class SoplangBuiltins:
         return input(prompt)
 
     @staticmethod
-    def nuuc(value):
+    def nooc(value):
         """
         Return the type of a value as a string
         """
@@ -295,7 +295,7 @@ def get_builtin_functions():
     builtins = {
         "bandhig": SoplangBuiltins.bandhig,
         "gelin": SoplangBuiltins.gelin,
-        "nuuc": SoplangBuiltins.nuuc,
+        "nooc": SoplangBuiltins.nooc,
         "tiro": SoplangBuiltins.tiro,
         "qoraal": SoplangBuiltins.qoraal,
         "bool": SoplangBuiltins.bool,

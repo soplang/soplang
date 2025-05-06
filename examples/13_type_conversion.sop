@@ -6,12 +6,12 @@ bandhig("Testing type conversion:")
 // Number to string conversion
 tiro num_value = 42
 qoraal string_value = qoraal(num_value)
-bandhig("  Number to string: " + string_value + " (Type: " + nuuc(string_value) + ")")
+bandhig("  Number to string: " + string_value + " (Type: " + nooc(string_value) + ")")
 
 // String to number conversion
 qoraal num_string = "123"
 tiro converted_num = tiro(num_string)
-bandhig("  String to number: " + converted_num + " (Type: " + nuuc(converted_num) + ")")
+bandhig("  String to number: " + converted_num + " (Type: " + nooc(converted_num) + ")")
 
 // Boolean to number conversion
 tiro bool_num_t = tiro(been)
