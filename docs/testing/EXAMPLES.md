@@ -156,17 +156,17 @@ docker run --rm -v "$(pwd):/scripts" soplang:latest examples/XX_example_name.so
 
 ### 08_for_loops.so
 
-**Purpose**: Tests for loops in Soplang using `ku_celi`.
+**Purpose**: Tests for loops in Soplang using `kuceli`.
 
 **Features Tested**:
 - Basic for loop syntax
 - Looping through ranges of numbers
 - Custom step values
-- Loop control with `jooji` (break) and `sii_wad` (continue)
+- Loop control with `jooji` (break) and `soco` (continue)
 - Nested loops
 
 **Key Concepts**:
-- The `ku_celi` statement iterates from a start to an end value
+- The `kuceli` statement iterates from a start to an end value
 - The step can be specified with the optional `by` clause
 
 ### 09_while_loops.so
@@ -176,7 +176,7 @@ docker run --rm -v "$(pwd):/scripts" soplang:latest examples/XX_example_name.so
 **Features Tested**:
 - While loop syntax
 - Conditional looping
-- Loop control with `jooji` (break) and `sii_wad` (continue)
+- Loop control with `jooji` (break) and `soco` (continue)
 - Infinite loops with manual breaking
 - Nested while loops
 
@@ -191,16 +191,16 @@ docker run --rm -v "$(pwd):/scripts" soplang:latest examples/XX_example_name.so
 **Purpose**: Demonstrates function definition and calling in Soplang.
 
 **Features Tested**:
-- Function definition with `howl`
+- Function definition with `hawl`
 - Parameter passing
-- Return values with `soo_celi`
+- Return values with `celi`
 - Recursive functions
 - Function scoping
 - Default parameters
 
 **Key Concepts**:
 - Functions encapsulate reusable code
-- Return values are specified with `soo_celi`
+- Return values are specified with `celi`
 - Functions have their own variable scope
 
 ### 11_list_operations.so

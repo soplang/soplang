@@ -1,7 +1,7 @@
 // Test: Object Operations
 // This test checks if object operations work properly
 
-qor("Testing object operations:")
+bandhig("Testing object operations:")
 
 // Creating objects
 shey empty_obj = {}
@@ -11,22 +11,22 @@ shey person = {
     magaalo: "Muqdisho"
 }
 
-qor("  Empty object: " + empty_obj)
-qor("  Person object: " + person)
-qor("  Type of person: " + nuuc(person))
+bandhig("  Empty object: " + empty_obj)
+bandhig("  Person object: " + person)
+bandhig("  Type of person: " + nuuc(person))
 
 // Accessing properties
-qor("  Name: " + person.magac)
-qor("  Age: " + person.da)
-qor("  City: " + person.magaalo)
+bandhig("  Name: " + person.magac)
+bandhig("  Age: " + person.da)
+bandhig("  City: " + person.magaalo)
 
 // Modifying properties using dot notation
 person.da = 31
-qor("  After changing age: " + person)
+bandhig("  After changing age: " + person)
 
 // Adding new properties using dot notation
 person.shaqo = "Barnaamij Samayne"
-qor("  After adding job: " + person)
+bandhig("  After adding job: " + person)
 
 // Nested objects
 shey address = {
@@ -41,40 +41,40 @@ shey employee = {
     address: address
 }
 
-qor("  Employee with nested address: " + employee)
-qor("  Employee's district: " + employee.address.district)
+bandhig("  Employee with nested address: " + employee)
+bandhig("  Employee's district: " + employee.address.district)
 
 // Object keys
 door keys = person.fure()
-qor("  Object keys: " + keys)
-qor("  Type of keys: " + nuuc(keys))
+bandhig("  Object keys: " + keys)
+bandhig("  Type of keys: " + nuuc(keys))
 
 // Debug - Print first few keys if they exist
 haddii (keys.dherer() > 0) {
-    qor("  First key: " + keys[0])
+    bandhig("  First key: " + keys[0])
 }
 
 // Check if property exists
 labadaran has_job = person.leeyahay("shaqo")
-qor("  Does person have 'shaqo'? " + has_job)
+bandhig("  Does person have 'shaqo'? " + has_job)
 
 labadaran has_email = person.leeyahay("email")
-qor("  Does person have 'email'? " + has_email)
+bandhig("  Does person have 'email'? " + has_email)
 
 // Removing properties
 person.tirtir("shaqo")
-qor("  After removing job: " + person)
+bandhig("  After removing job: " + person)
 
 // Merging objects
 shey obj1 = {a: 1, b: 2}
 shey obj2 = {c: 3, d: 4}
 shey merged = obj1.iskudar(obj2)
-qor("  obj1: " + obj1)
-qor("  obj2: " + obj2)
-qor("  Merged object: " + merged)
+bandhig("  obj1: " + obj1)
+bandhig("  obj2: " + obj2)
+bandhig("  Merged object: " + merged)
 
 // Testing additional nested property access
-qor("\nTesting additional nested property access:")
+bandhig("\nTesting additional nested property access:")
 
 // Create a company object with nested properties
 shey company = {
@@ -86,13 +86,13 @@ shey company = {
 }
 
 // Test accessing nested properties
-qor("  Company name: " + company.name)
-qor("  Company city: " + company.location.city)
-qor("  Company address: " + company.location.address)
+bandhig("  Company name: " + company.name)
+bandhig("  Company city: " + company.location.city)
+bandhig("  Company address: " + company.location.address)
 
 // Test updating nested properties using dot notation
 company.location.city = "Hargeisa"
-qor("  Updated city: " + company.location.city)
+bandhig("  Updated city: " + company.location.city)
 
 // Test object with array
 shey team = {
@@ -103,5 +103,5 @@ shey team = {
 }
 
 // Access array elements in object
-qor("  First team member: " + team.members[0].name)
-qor("  Second team member role: " + team.members[1].role)
+bandhig("  First team member: " + team.members[0].name)
+bandhig("  Second team member role: " + team.members[1].role)

@@ -46,7 +46,7 @@ StaticType ::= "tiro"      // Number
              | "shey"      // Object
 
 // ===== FUNCTION DECLARATIONS =====
-FunctionDeclaration ::= "howl" Identifier "(" [ParameterList] ")" Block
+FunctionDeclaration ::= "hawl" Identifier "(" [ParameterList] ")" Block
 
 ParameterList ::= Identifier {"," Identifier}
 
@@ -68,16 +68,16 @@ ElseIfClause ::= "haddii_kale" "(" Expression ")" Block
 ElseClause ::= "haddii_kalena" Block
 
 // ===== LOOPS =====
-LoopStatement ::= "ku_celi" Identifier "min" Expression "ilaa" Expression ["by" Expression] Block
+LoopStatement ::= "kuceli" Identifier "min" Expression "ilaa" Expression ["by" Expression] Block
 
 WhileStatement ::= "inta_ay" "(" Expression ")" Block
 
 BreakStatement ::= "jooji"
 
-ContinueStatement ::= "sii_wad"
+ContinueStatement ::= "soco"
 
 // ===== RETURN STATEMENT =====
-ReturnStatement ::= "soo_celi" [Expression]
+ReturnStatement ::= "celi" [Expression]
 
 // ===== THROW STATEMENT =====
 ThrowStatement ::= "throw" Expression
@@ -145,7 +145,7 @@ StringLiteral ::= '"' {Character} '"' | "'" {Character} "'"
 
 BooleanLiteral ::= "true" | "false" | "run" | "been"
 
-NullLiteral ::= "null" | "waxba"
+NullLiteral ::= "null" | "maran"
 
 ListLiteral ::= "[" [Expression {"," Expression}] "]"
 

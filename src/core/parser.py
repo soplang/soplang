@@ -44,13 +44,13 @@ class Parser:
             TokenType.NULL: "null",
             # Keywords
             TokenType.DOOR: "keyword 'door'",
-            TokenType.HOWL: "keyword 'howl' (function)",
-            TokenType.SOO_CELI: "keyword 'soo_celi' (return)",
-            TokenType.QOR: "keyword 'qor' (print)",
+            TokenType.HAWL: "keyword 'hawl' (function)",
+            TokenType.CELI: "keyword 'celi' (return)",
+            TokenType.BANDHIG: "keyword 'bandhig' (print)",
             TokenType.HADDII: "keyword 'haddii' (if)",
             TokenType.HADDII_KALE: "keyword 'haddii_kale' (else if)",
             TokenType.HADDII_KALENA: "keyword 'haddii_kalena' (else)",
-            TokenType.KU_CELI: "keyword 'ku_celi' (for)",
+            TokenType.kuceli: "keyword 'kuceli' (for)",
             TokenType.INTA_AY: "keyword 'inta_ay' (while)",
             TokenType.TIRO: "keyword 'tiro' (number type)",
             TokenType.QORAAL: "keyword 'qoraal' (string type)",
@@ -119,32 +119,32 @@ class Parser:
         elif token_type == TokenType.DOOR:
             return self.parse_variable_declaration(is_static=False)
 
-        # Handle function definition (howl)
-        elif token_type == TokenType.HOWL:
+        # Handle function definition (hawl)
+        elif token_type == TokenType.hawl:
             return self.parse_function_definition()
 
-        # Handle return statement (soo_celi)
-        elif token_type == TokenType.SOO_CELI:
+        # Handle return statement (celi)
+        elif token_type == TokenType.CELI:
             return self.parse_return_statement()
 
-        # Handle print statement (qor)
-        elif token_type == TokenType.QOR:
-            self.advance()  # Consume qor
+        # Handle print statement (bandhig)
+        elif token_type == TokenType.BANDHIG:
+            self.advance()  # Consume bandhig
             # Parse function call expression
             return ASTNode(
                 NodeType.FUNCTION_CALL,
-                value="qor",
+                value="bandhig",
                 children=[self.parse_expression()],
                 line=line,
                 position=position
             )
 
         # Handle function calls
-        elif token_type == TokenType.QOR or token_type == TokenType.AKHRI:
+        elif token_type == TokenType.BANDHIG or token_type == TokenType.AKHRI:
             return self.parse_function_call()
 
         # Handle loops
-        elif token_type == TokenType.KU_CELI:
+        elif token_type == TokenType.kuceli:
             return self.parse_loop_statement()
 
         # Handle while loop
@@ -156,7 +156,7 @@ class Parser:
             return self.parse_break_statement()
 
         # Handle continue statement
-        elif token_type == TokenType.SII_WAD:
+        elif token_type == TokenType.soco:
             return self.parse_continue_statement()
 
         # Handle try/catch
@@ -335,10 +335,10 @@ class Parser:
         return var_node
 
     # -----------------------------
-    #  howl foo(a, b) { ... }
+    #  hawl foo(a, b) { ... }
     # -----------------------------
     def parse_function_definition(self):
-        self.expect(TokenType.HOWL)
+        self.expect(TokenType.HAWL)
         func_name = self.current_token.value
         self.expect(TokenType.IDENTIFIER)
         self.expect(TokenType.LEFT_PAREN)
@@ -365,16 +365,16 @@ class Parser:
         )
 
     # -----------------------------
-    #  Function calls: qor("Hi") or akhri("Enter name:")
+    #  Function calls: bandhig("Hi") or akhri("Enter name:")
     # -----------------------------
     def parse_function_call(self):
-        """Parse a function call like 'qor("Hello")'"""
+        """Parse a function call like 'bandhig("Hello")'"""
         func_name = self.current_token.value
         if (
             self.current_token.type != TokenType.IDENTIFIER and
             self.current_token.type
             not in (
-                TokenType.QOR,
+                TokenType.BANDHIG,
                 TokenType.AKHRI,
                 TokenType.QORAAL,
                 TokenType.TIRO,
@@ -475,11 +475,11 @@ class Parser:
         return ASTNode(NodeType.IF_STATEMENT, children=children)
 
     # -----------------------------
-    #  Loops: ku_celi i min 1 ilaa 5 { ... }
-    #  or with step: ku_celi i min 1 ilaa 5 by 2 { ... }
+    #  Loops: kuceli i min 1 ilaa 5 { ... }
+    #  or with step: kuceli i min 1 ilaa 5 by 2 { ... }
     # -----------------------------
     def parse_loop_statement(self):
-        self.expect(TokenType.KU_CELI)
+        self.expect(TokenType.kuceli)
         loop_var = self.current_token.value
         self.expect(TokenType.IDENTIFIER)  # e.g. i
         self.expect(TokenType.IDENTIFIER)  # "min"
@@ -536,10 +536,10 @@ class Parser:
         return ASTNode(NodeType.BREAK_STATEMENT)
 
     # -----------------------------
-    #  Continue statement: sii_wad
+    #  Continue statement: soco
     # -----------------------------
     def parse_continue_statement(self):
-        self.expect(TokenType.SII_WAD)
+        self.expect(TokenType.soco)
         return ASTNode(NodeType.CONTINUE_STATEMENT)
 
     # -----------------------------
@@ -804,7 +804,7 @@ class Parser:
             return ASTNode(NodeType.LITERAL, value=None)
         elif token.type == TokenType.IDENTIFIER or token.type in (
             TokenType.QORAAL, TokenType.TIRO, TokenType.LABADARAN, TokenType.LIIS, TokenType.SHEY,
-            TokenType.QOR, TokenType.AKHRI  # Added QOR and AKHRI to handle them in expressions
+            TokenType.BANDHIG, TokenType.AKHRI  # Added BANDHIG and AKHRI to handle them in expressions
         ):
             # Allow type names to be used as function names
             token_value = token.value if token.type == TokenType.IDENTIFIER else token.type.value
@@ -902,8 +902,8 @@ class Parser:
         return left
 
     def parse_return_statement(self):
-        self.expect(TokenType.SOO_CELI)
-        # If there is an expression after soo_celi, parse it
+        self.expect(TokenType.CELI)
+        # If there is an expression after celi, parse it
         if self.current_token.type != TokenType.SEMICOLON:
             expr = self.parse_expression()
             return ASTNode(NodeType.RETURN_STATEMENT, children=[expr])

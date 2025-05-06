@@ -70,7 +70,7 @@ class TestParser(unittest.TestCase):
     def test_function_call(self):
         """Test parsing of function calls."""
         # Parse directly from a node for testing
-        lexer = Lexer('qor("Hello")')
+        lexer = Lexer('bandhig("Hello")')
         tokens = lexer.tokenize()
         
         # Inspect tokens for debugging
@@ -80,7 +80,7 @@ class TestParser(unittest.TestCase):
             
         # Because function call parsing is complex, skip full testing for now
         # Just verify lexer produces the correct tokens
-        self.assertEqual(tokens[0].type, TokenType.QOR)
+        self.assertEqual(tokens[0].type, TokenType.BANDHIG)
         self.assertEqual(tokens[1].type, TokenType.LEFT_PAREN)
         self.assertEqual(tokens[2].type, TokenType.STRING)
         self.assertEqual(tokens[3].type, TokenType.RIGHT_PAREN)
@@ -89,9 +89,9 @@ class TestParser(unittest.TestCase):
         """Test tokenization of if statements."""
         source = '''
         haddii (x > 10) {
-            qor("x is greater than 10")
+            bandhig("x is greater than 10")
         } haddii_kalena {
-            qor("x is not greater than 10")
+            bandhig("x is not greater than 10")
         }
         '''
         lexer = Lexer(source)
@@ -106,7 +106,7 @@ class TestParser(unittest.TestCase):
         self.assertIn(TokenType.NUMBER, token_types)
         self.assertIn(TokenType.RIGHT_PAREN, token_types)
         self.assertIn(TokenType.LEFT_BRACE, token_types)
-        self.assertIn(TokenType.QOR, token_types)
+        self.assertIn(TokenType.BANDHIG, token_types)
         self.assertIn(TokenType.STRING, token_types)
         self.assertIn(TokenType.RIGHT_BRACE, token_types)
         self.assertIn(TokenType.HADDII_KALENA, token_types)
@@ -114,8 +114,8 @@ class TestParser(unittest.TestCase):
     def test_for_loop_tokens(self):
         """Test tokenization of for loops."""
         source = '''
-        ku_celi i min 0 ilaa 5 {
-            qor(i)
+        kuceli i min 0 ilaa 5 {
+            bandhig(i)
         }
         '''
         lexer = Lexer(source)
@@ -123,11 +123,11 @@ class TestParser(unittest.TestCase):
         
         # Verify the tokens are generated correctly
         token_types = [token.type for token in tokens]
-        self.assertIn(TokenType.KU_CELI, token_types)
+        self.assertIn(TokenType.kuceli, token_types)
         self.assertIn(TokenType.IDENTIFIER, token_types)
         self.assertIn(TokenType.NUMBER, token_types)
         self.assertIn(TokenType.LEFT_BRACE, token_types)
-        self.assertIn(TokenType.QOR, token_types)
+        self.assertIn(TokenType.BANDHIG, token_types)
         self.assertIn(TokenType.RIGHT_BRACE, token_types)
         
         # Also verify the token values

@@ -1,76 +1,76 @@
 // Test: Functions
 // This test checks if functions work properly
 
-qor("Testing functions (howl):")
+bandhig("Testing functions (hawl):")
 
 // Simple function with no parameters or return value
-howl salaan() {
-    qor("  Salaan, Adduunka!")
+hawl salaan() {
+    bandhig("  Salaan, Adduunka!")
 }
 
-qor("  Calling salaan function:")
+bandhig("  Calling salaan function:")
 salaan()
 
 // Function with parameters
-howl isku_dar(x, y) {
-    soo_celi x + y
+hawl isku_dar(x, y) {
+    celi x + y
 }
 
-qor("  Testing function with parameters:")
-qor("  isku_dar(5, 7): " + isku_dar(5, 7))
-qor("  isku_dar(10, 20): " + isku_dar(10, 20))
-qor("  isku_dar('Magac', 'Danbe'): " + isku_dar("Magac", "Danbe"))
+bandhig("  Testing function with parameters:")
+bandhig("  isku_dar(5, 7): " + isku_dar(5, 7))
+bandhig("  isku_dar(10, 20): " + isku_dar(10, 20))
+bandhig("  isku_dar('Magac', 'Danbe'): " + isku_dar("Magac", "Danbe"))
 
 // Function with return value
-howl laban_jibbaar(num) {
-    soo_celi num * 2
+hawl laban_jibbaar(num) {
+    celi num * 2
 }
 
-qor("  Testing function with return value:")
-qor("  laban_jibbaar(8): " + laban_jibbaar(8))
+bandhig("  Testing function with return value:")
+bandhig("  laban_jibbaar(8): " + laban_jibbaar(8))
 door result = laban_jibbaar(15)
-qor("  laban_jibbaar(15) stored in variable: " + result)
+bandhig("  laban_jibbaar(15) stored in variable: " + result)
 
 // Function with type checking
-howl check_even(num) {
+hawl check_even(num) {
     haddii (num % 2 == 0) {
-        soo_celi been
+        celi been
     } haddii_kalena {
-        soo_celi run
+        celi run
     }
 }
 
-qor("  Testing function with type checking:")
-qor("  check_even(4): " + check_even(4))
-qor("  check_even(7): " + check_even(7))
+bandhig("  Testing function with type checking:")
+bandhig("  check_even(4): " + check_even(4))
+bandhig("  check_even(7): " + check_even(7))
 
 // Function with conditional return
-howl get_grade(score) {
+hawl get_grade(score) {
     haddii (score >= 90) {
-        soo_celi "A"
+        celi "A"
     } haddii_kale (score >= 80) {
-        soo_celi "B"
+        celi "B"
     } haddii_kale (score >= 70) {
-        soo_celi "C"
+        celi "C"
     } haddii_kale (score >= 60) {
-        soo_celi "D"
+        celi "D"
     } haddii_kalena {
-        soo_celi "F"
+        celi "F"
     }
 }
 
-qor("  Testing function with conditional return:")
-qor("  get_grade(95): " + get_grade(95))
-qor("  get_grade(85): " + get_grade(85))
-qor("  get_grade(75): " + get_grade(75))
-qor("  get_grade(65): " + get_grade(65))
-qor("  get_grade(55): " + get_grade(55))
+bandhig("  Testing function with conditional return:")
+bandhig("  get_grade(95): " + get_grade(95))
+bandhig("  get_grade(85): " + get_grade(85))
+bandhig("  get_grade(75): " + get_grade(75))
+bandhig("  get_grade(65): " + get_grade(65))
+bandhig("  get_grade(55): " + get_grade(55))
 
 // Function that calls another function
-howl process_number(n) {
+hawl process_number(n) {
     door doubled = laban_jibbaar(n)
-    soo_celi "Processed: " + doubled
+    celi "Processed: " + doubled
 }
 
-qor("  Testing function that calls another function:")
-qor("  process_number(5): " + process_number(5))
+bandhig("  Testing function that calls another function:")
+bandhig("  process_number(5): " + process_number(5))

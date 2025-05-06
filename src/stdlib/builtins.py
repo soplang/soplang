@@ -3,7 +3,7 @@ from src.utils.errors import TypeError, ValueError
 
 class SoplangBuiltins:
     @staticmethod
-    def qor(message=""):
+    def bandhig(message=""):
         """
         Print a message to the console (equivalent to 'print' in many languages)
 
@@ -36,7 +36,7 @@ class SoplangBuiltins:
         elif isinstance(value, dict):
             return "shey"
         elif value is None:
-            return "waxba"
+            return "maran"
         else:
             return "aan la aqoon"
 
@@ -293,7 +293,7 @@ def get_builtin_functions():
     Returns a dictionary of all built-in functions
     """
     builtins = {
-        "qor": SoplangBuiltins.qor,
+        "bandhig": SoplangBuiltins.bandhig,
         "akhri": SoplangBuiltins.akhri,
         "nuuc": SoplangBuiltins.nuuc,
         "tiro": SoplangBuiltins.tiro,

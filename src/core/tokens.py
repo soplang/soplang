@@ -4,17 +4,17 @@ from enum import Enum
 class TokenType(Enum):
     # Existing
     DOOR = "door"
-    HOWL = "howl"
-    SOO_CELI = "soo_celi"
-    QOR = "qor"
+    HAWL = "hawl"
+    CELI = "celi"
+    BANDHIG = "bandhig"
     AKHRI = "akhri"
     HADDII = "haddii"
     HADDII_KALE = "haddii_kale"
     HADDII_KALENA = "haddii_kalena"
-    KU_CELI = "ku_celi"
+    kuceli = "kuceli"
     INTA_AY = "inta_ay"
     JOOJI = "jooji"        # break
-    SII_WAD = "sii_wad"    # continue
+    soco = "soco"    # continue
     ISKU_DAY = "isku_day"  # try
     QABO = "qabo"          # catch
     KA_KEEN = "ka_keen"    # import

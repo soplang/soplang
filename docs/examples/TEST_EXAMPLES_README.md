@@ -4,7 +4,7 @@ This directory contains various test examples for the Soplang programming langua
 
 ## Available Test Examples
 
-1. **01_basic_output.so** - Tests the basic output functionality using the `qor()` function.
+1. **01_basic_output.so** - Tests the basic output functionality using the `bandhig()` function.
    * Printing strings, numbers, and expressions
    * String concatenation
    * Printing boolean values
@@ -21,9 +21,9 @@ This directory contains various test examples for the Soplang programming langua
    * Nested conditionals
 
 4. **04_loops.so** - Tests loop constructs.
-   * Basic for loops (`ku_celi`)
+   * Basic for loops (`kuceli`)
    * Loops with break statements (`jooji`)
-   * Loops with continue statements (`sii_wad`)
+   * Loops with continue statements (`soco`)
    * Nested loops
    * While loops simulation (`inta_ay`)
 
