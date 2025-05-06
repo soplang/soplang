@@ -45,7 +45,7 @@ qor("  Employee with nested address: " + employee)
 qor("  Employee's district: " + employee.address.district)
 
 // Object keys
-door keys = person.furaha()
+door keys = person.fure()
 qor("  Object keys: " + keys)
 qor("  Type of keys: " + nuuc(keys))
 
@@ -55,10 +55,11 @@ haddii (keys.dherer() > 0) {
 }
 
 // Check if property exists
-bool has_job = person.haystaa("shaqo")
+
+bool has_job = person.leeyahay("shaqo")
 qor("  Does person have 'shaqo'? " + has_job)
 
-bool has_email = person.haystaa("email")
+bool has_email = person.leeyahay("email")
 qor("  Does person have 'email'? " + has_email)
 
 // Removing properties

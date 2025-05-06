@@ -42,7 +42,7 @@ qor("  Accessing nested element [1][0]: " + nested[1][0])
 
 // List iteration
 qor("  List iteration using for loop:")
-ku_celi i min 0 ilaa numbers.dherer() - 1 {
+kuceli i min 0 ilaa numbers.dherer() - 1 {
     qor("    Element " + i + ": " + numbers[i])
 }
 

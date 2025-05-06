@@ -105,7 +105,7 @@ class TestInterpreter(unittest.TestCase):
     def test_for_loop(self):
         """Test for loop execution."""
         source = '''
-        ku_celi i min 1 ilaa 3 {
+        kuceli i min 1 ilaa 3 {
             qor("Number: " + qoraal(i))
         }
         '''
@@ -116,8 +116,8 @@ class TestInterpreter(unittest.TestCase):
     def test_function_definition_and_call(self):
         """Test function definition and calling."""
         source = '''
-        howl add(a, b) {
-            soo_celi a + b
+        hawl add(a, b) {
+            celi a + b
         }
         door result = add(5, 7)
         qor("5 + 7 = " + qoraal(result))

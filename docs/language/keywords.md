@@ -12,7 +12,7 @@ This document provides a reference for all keywords in the Soplang programming l
 | `bool` | Boolean type                 | `bool`             | `boolwaaRun = true`               |
 | `shey`      | Object type                  | `object`           | `shey person = { "name": "Sharafdin" }` |
 | `liis`      | List/array type              | `array`            | `liis numbers = [1, 2, 3]`              |
-| `waxba`     | waxba value                  | `waxba`            | `door a = waxba`                        |
+| `maran`     | maran value                  | `maran`            | `door a = maran`                        |
 
 ## Control Flow Keywords
 
@@ -26,19 +26,19 @@ This document provides a reference for all keywords in the Soplang programming l
 
 | Keyword   | Meaning             | English Equivalent | Example                                 |
 | --------- | ------------------- | ------------------ | --------------------------------------- |
-| `ku_celi` | For loop            | `for`              | `ku_celi i min 1 ilaa 5 { qor(i) }`     |
+| `kuceli` | For loop            | `for`              | `kuceli i min 1 ilaa 5 { qor(i) }`     |
 | `inta_ay` | While loop          | `while`            | `inta_ay (x < 5) { qor(x); x = x + 1 }` |
 | `jooji`   | Break statement     | `break`            | `haddii (x == 3) { jooji }`             |
-| `sii_wad` | Continue statement  | `continue`         | `haddii (x == 3) { sii_wad }`           |
-| `min`     | From (in for loops) | `from`             | `ku_celi i min 1 ilaa 5 { qor(i) }`     |
-| `ilaa`    | To (in for loops)   | `to`               | `ku_celi i min 1 ilaa 5 { qor(i) }`     |
+| `soco` | Continue statement  | `continue`         | `haddii (x == 3) { soco }`           |
+| `min`     | From (in for loops) | `from`             | `kuceli i min 1 ilaa 5 { qor(i) }`     |
+| `ilaa`    | To (in for loops)   | `to`               | `kuceli i min 1 ilaa 5 { qor(i) }`     |
 
 ## Function Keywords
 
 | Keyword    | Meaning              | English Equivalent | Example                                |
 | ---------- | -------------------- | ------------------ | -------------------------------------- |
-| `howl`     | Function declaration | `function`         | `howl isuGee(a, b) { soo_celi a + b }` |
-| `soo_celi` | Return statement     | `return`           | `soo_celi x * 2`                       |
+| `hawl`     | Function declaration | `function`         | `hawl isuGee(a, b) { celi a + b }` |
+| `celi` | Return statement     | `return`           | `celi x * 2`                       |
 
 ## Error Handling Keywords
 
@@ -69,7 +69,7 @@ This document provides a reference for all keywords in the Soplang programming l
 | ------- | ------------- | ------------------ | ------------------------ |
 | `run`   | Boolean true  | `true`             | `bool check = run`  |
 | `been`  | Boolean false | `false`            | `bool check = been` |
-| `waxba` | Null value    | `null`             | `door empty = waxba`     |
+| `maran` | Null value    | `null`             | `door empty = maran`     |
 
 ## Operators
 
@@ -117,8 +117,8 @@ This document provides a reference for all keywords in the Soplang programming l
 
 | Method    | Meaning             | English Equivalent   | Example                               |
 | --------- | ------------------- | -------------------- | ------------------------------------- |
-| `furaha`  | Get object keys     | `keys`               | `door keys = myObj.furaha()`          |
-| `haystaa` | Check if key exists | `has/hasOwnProperty` | `door exists = myObj.haystaa("name")` |
+| `fure`  | Get object keys     | `keys`               | `door keys = myObj.fure()`          |
+| `leeyahay` | Check if key exists | `has/hasOwnProperty` | `door exists = myObj.leeyahay("name")` |
 | `tirtir`  | Remove property     | `delete`             | `myObj.tirtir("oldProp")`             |
 | `iskudar` | Merge objects       | `merge/assign`       | `door merged = obj1.iskudar(obj2)`    |
 

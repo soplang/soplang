@@ -1,23 +1,23 @@
 // Test: For Loops
 // This test checks if for loops work properly
 
-qor("Testing for loops (ku_celi):")
+qor("Testing for loops (kuceli):")
 
 // Simple for loop
 qor("  Simple for loop:")
-ku_celi i min 1 ilaa 5 {
+kuceli i min 1 ilaa 5 {
     qor("    Iteration: " + i)
 }
 
 // For loop with step
 qor("  For loop with custom step (every other number):")
-ku_celi j min 2 ilaa 10 by 2 {
+kuceli j min 2 ilaa 10 by 2 {
     qor("    Iteration: " + j)
 }
 
 // For loop with break
 qor("  For loop with break (jooji):")
-ku_celi i min 1 ilaa 10 {
+kuceli i min 1 ilaa 10 {
     haddii (i > 5) {
         jooji
     }
@@ -25,19 +25,19 @@ ku_celi i min 1 ilaa 10 {
 }
 
 // For loop with continue
-qor("  For loop with continue (sii_wad):")
-ku_celi i min 1 ilaa 5 {
+qor("  For loop with continue (soco):")
+kuceli i min 1 ilaa 5 {
     haddii (i % 2 == 0) {
-        sii_wad
+        soco
     }
     qor("    Odd number: " + i)
 }
 
 // Nested for loops
 qor("  Nested for loops:")
-ku_celi i min 1 ilaa 3 {
+kuceli i min 1 ilaa 3 {
     qor("    Outer loop: " + i)
-    ku_celi j min 1 ilaa 2 {
+    kuceli j min 1 ilaa 2 {
         qor("      Inner loop: " + j)
     }
 }
@@ -45,6 +45,6 @@ ku_celi i min 1 ilaa 3 {
 // For loop operating on a list
 liis numbers = [10, 20, 30, 40, 50]
 qor("  For loop iterating over a list with indices:")
-ku_celi i min 0 ilaa numbers.length() - 1 {
+kuceli i min 0 ilaa numbers.length() - 1 {
     qor("    Element at index " + i + ": " + numbers[i])
 }

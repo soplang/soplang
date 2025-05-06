@@ -114,7 +114,7 @@ class TestParser(unittest.TestCase):
     def test_for_loop_tokens(self):
         """Test tokenization of for loops."""
         source = '''
-        ku_celi i min 0 ilaa 5 {
+        kuceli i min 0 ilaa 5 {
             qor(i)
         }
         '''
@@ -123,7 +123,7 @@ class TestParser(unittest.TestCase):
         
         # Verify the tokens are generated correctly
         token_types = [token.type for token in tokens]
-        self.assertIn(TokenType.KU_CELI, token_types)
+        self.assertIn(TokenType.kuceli, token_types)
         self.assertIn(TokenType.IDENTIFIER, token_types)
         self.assertIn(TokenType.NUMBER, token_types)
         self.assertIn(TokenType.LEFT_BRACE, token_types)

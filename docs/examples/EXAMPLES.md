@@ -46,10 +46,10 @@ Demonstrates conditional statements and loops.
 - Else statements (`haddii_kalena`)
 - Nested conditionals
 - Complex conditions with logical operators
-- For loops (`ku_celi`)
+- For loops (`kuceli`)
 - While loops (`inta_ay`)
 - Break statements (`jooji`)
-- Continue statements (`sii_wad`)
+- Continue statements (`soco`)
 - Nested loops
 
 **Run with:**
@@ -62,10 +62,10 @@ Demonstrates conditional statements and loops.
 Demonstrates function definitions and usage.
 
 **Features tested:**
-- Basic function declaration with `howl`
+- Basic function declaration with `hawl`
 - Functions with parameters
 - Functions with multiple parameters
-- Return values with `soo_celi`
+- Return values with `celi`
 - Functions that compute values
 - Conditional returns
 - Functions working with complex data

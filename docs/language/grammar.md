@@ -59,7 +59,7 @@ StaticType ::= "tiro"      // Number
 ## Function Declarations
 
 ```ebnf
-FunctionDeclaration ::= "howl" Identifier "(" [ParameterList] ")" Block
+FunctionDeclaration ::= "hawl" Identifier "(" [ParameterList] ")" Block
 
 ParameterList ::= Identifier {"," Identifier}
 ```
@@ -90,19 +90,19 @@ ElseClause ::= "haddii_kalena" Block
 ## Loops
 
 ```ebnf
-LoopStatement ::= "ku_celi" Identifier "min" Expression "ilaa" Expression ["by" Expression] Block
+LoopStatement ::= "kuceli" Identifier "min" Expression "ilaa" Expression ["by" Expression] Block
 
 WhileStatement ::= "inta_ay" "(" Expression ")" Block
 
 BreakStatement ::= "jooji"
 
-ContinueStatement ::= "sii_wad"
+ContinueStatement ::= "soco"
 ```
 
 ## Return Statement
 
 ```ebnf
-ReturnStatement ::= "soo_celi" [Expression]
+ReturnStatement ::= "celi" [Expression]
 ```
 
 ## Throw Statement
@@ -200,7 +200,7 @@ StringLiteral ::= '"' {Character} '"' | "'" {Character} "'"
 
 BooleanLiteral ::= "true" | "false" | "run" | "been"
 
-NullLiteral ::= "null" | "waxba"
+NullLiteral ::= "null" | "maran"
 
 ListLiteral ::= "[" [Expression {"," Expression}] "]"
 
@@ -238,8 +238,8 @@ ListMethod ::= "kudar"       // push
 ## Object Methods
 
 ```ebnf
-ObjectMethod ::= "furaha"    // keys
-               | "haystaa"   // has
+ObjectMethod ::= "fure"    // keys
+               | "leeyahay"   // has
                | "tirtir"    // remove
                | "iskudar"   // merge
 ```

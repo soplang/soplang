@@ -36,7 +36,7 @@ class SoplangBuiltins:
         elif isinstance(value, dict):
             return "shey"
         elif value is None:
-            return "waxba"
+            return "maran"
         else:
             return "aan la aqoon"
 
@@ -311,8 +311,8 @@ def get_object_methods():
     Returns a dictionary of object methods
     """
     methods = {
-        "furaha": SoplangBuiltins.object_keys,
-        "haystaa": SoplangBuiltins.object_has,
+        "fure": SoplangBuiltins.object_keys,
+        "leeyahay": SoplangBuiltins.object_has,
         "tirtir": SoplangBuiltins.object_remove,
         "iskudar": SoplangBuiltins.object_merge
     }

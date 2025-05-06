@@ -339,7 +339,7 @@ class Interpreter:
             index += 1
 
     # -----------------------------
-    #  Loop Statement (for/ku_celi)
+    #  Loop Statement (for/kuceli)
     # -----------------------------
     def execute_loop_statement(self, node):
         # node.value = loop_var name
