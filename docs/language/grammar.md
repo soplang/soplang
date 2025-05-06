@@ -231,7 +231,7 @@ ListMethod ::= "kudar"       // push
              | "kasaar"      // pop
              | "dherer"      // length
              | "iskuxir"     // concat
-             | "ka_kooban"   // contains
+             | "leeyahay"   // contains
 ```
 
 ## Object Methods
