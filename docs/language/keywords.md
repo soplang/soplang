@@ -111,7 +111,7 @@ This document provides a reference for all keywords in the Soplang programming l
 | `kasaar`    | Remove last item     | `pop`               | `door lastItem = myList.kasaar()`      |
 | `dherer`    | Get list length      | `length/size`       | `door size = myList.dherer()`          |
 | `iskuxir`   | Concatenate lists    | `concat`            | `door combined = list1.iskuxir(list2)` |
-| `ka_kooban` | Check if item exists | `contains/includes` | `door exists = myList.ka_kooban(item)` |
+| `leeyahay` | Check if item exists | `contains/includes` | `door exists = myList.leeyahay(item)` |
 
 ## Object Methods
 
