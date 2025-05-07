@@ -45,6 +45,6 @@ kuceli i min 1 ilaa 3 {
 // For loop operating on a list
 liis numbers = [10, 20, 30, 40, 50]
 bandhig("  For loop iterating over a list with indices:")
-kuceli i min 0 ilaa numbers.length() - 1 {
+kuceli i min 0 ilaa numbers.dherer() - 1 {
     bandhig("    Element at index " + i + ": " + numbers[i])
 }

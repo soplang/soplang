@@ -64,7 +64,7 @@ class SoplangBuiltins:
                 # Simple JSON-like stringification for dictionaries
                 pairs = []
                 for k, v in value.items():
-                    pairs.append(f'"{k}": {SoplangBuiltins.qoraal(v)}')
+                    pairs.append(f"{k!r}: {SoplangBuiltins.qoraal(v)}")
                 return "{" + ", ".join(pairs) + "}"
             except Exception:
                 # Fallback for circular references
@@ -138,14 +138,20 @@ class SoplangBuiltins:
     def list_concat(lst1, lst2):
         """
         Concatenate two lists and return a new list
+        Or add a single item to a list if the second parameter is not a list
         """
         if not isinstance(lst1, list):
             raise TypeError("Qiimaha koowaad ma ahan liis (First value is not a list)")
-        if not isinstance(lst2, list):
-            raise TypeError("Qiimaha labaad ma ahan liis (Second value is not a list)")
 
-        # Create a new list with items from both lists
-        return lst1 + lst2
+        # If lst2 is a list, concatenate (without modifying original)
+        if isinstance(lst2, list):
+            # Create a new list with items from both lists
+            return lst1.copy() + lst2
+        # Otherwise, treat as push operation (modifies in-place)
+        else:
+            # Add the item to the list (modifies in-place)
+            lst1.append(lst2)
+            return lst1
 
     @staticmethod
     def list_contains(lst, item):
@@ -170,8 +176,10 @@ class SoplangBuiltins:
         if isinstance(index, str):
             try:
                 index = int(index)
-            except ValueError:
-                raise TypeError("Index waa inuu noqdaa tiro (Index must be a number)")
+            except ValueError as err:
+                raise TypeError(
+                    "Index waa inuu noqdaa tiro (Index must be a number)"
+                ) from err
 
         if not isinstance(index, (int, float)):
             raise TypeError("Index waa inuu noqdaa tiro (Index must be a number)")
@@ -197,8 +205,10 @@ class SoplangBuiltins:
         if isinstance(index, str):
             try:
                 index = int(index)
-            except ValueError:
-                raise TypeError("Index waa inuu noqdaa tiro (Index must be a number)")
+            except ValueError as err:
+                raise TypeError(
+                    "Index waa inuu noqdaa tiro (Index must be a number)"
+                ) from err
 
         if not isinstance(index, (int, float)):
             raise TypeError("Index waa inuu noqdaa tiro (Index must be a number)")
@@ -277,10 +287,12 @@ class SoplangBuiltins:
         """
         if not isinstance(obj1, dict):
             raise TypeError(
-                "Qiimaha koowaad ma ahan walax (First value is not an object)")
+                "Qiimaha koowaad ma ahan walax (First value is not an object)"
+            )
         if not isinstance(obj2, dict):
             raise TypeError(
-                "Qiimaha labaad ma ahan walax (Second value is not an object)")
+                "Qiimaha labaad ma ahan walax (Second value is not an object)"
+            )
 
         # Create a new dictionary with items from both objects
         result = obj1.copy()
@@ -314,7 +326,7 @@ def get_object_methods():
         "fure": SoplangBuiltins.object_keys,
         "leeyahay": SoplangBuiltins.object_has,
         "tirtir": SoplangBuiltins.object_remove,
-        "kudar": SoplangBuiltins.object_merge
+        "kudar": SoplangBuiltins.object_merge,
     }
 
     return methods
@@ -325,7 +337,6 @@ def get_list_methods():
     Returns a dictionary of list methods
     """
     methods = {
-        "kudar": SoplangBuiltins.list_push,
         "kasaar": SoplangBuiltins.list_pop,
         "dherer": SoplangBuiltins.list_length,
         "kudar": SoplangBuiltins.list_concat,
