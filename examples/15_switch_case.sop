@@ -1,0 +1,154 @@
+// Test: Switch-Case Statements
+// This test demonstrates the dooro/xaalad (switch/case) syntax
+
+bandhig("Testing switch-case (dooro/xaalad) statements:")
+
+// Simple switch-case with integers
+tiro number = 2
+bandhig("\n1. Simple switch with integer:")
+bandhig("  number = " + number)
+
+dooro (number) {
+  xaalad 1 {
+    bandhig("  Hal (One)")
+  }
+  xaalad 2 {
+    bandhig("  Laba (Two)")
+  }
+  xaalad 3 {
+    bandhig("  Saddex (Three)")
+  }
+  ugudambeyn {
+    bandhig("  Waa tiro kale (It's another number)")
+  }
+}
+
+// Switch with strings
+qoraal language = "Somali"
+bandhig("\n2. Switch with strings:")
+bandhig("  language = " + language)
+
+dooro (language) {
+  xaalad "English" {
+    bandhig("  Hello, World!")
+  }
+  xaalad "Somali" {
+    bandhig("  Salaan, Adduunka!")
+  }
+  xaalad "Spanish" {
+    bandhig("  ¡Hola, Mundo!")
+  }
+  ugudambeyn {
+    bandhig("  I don't know that language yet.")
+  }
+}
+
+// Switch with variable expressions
+tiro x = 10
+tiro y = 20
+bandhig("\n3. Switch with expressions:")
+bandhig("  x = " + x + ", y = " + y)
+
+dooro (x + y) {
+  xaalad 10 {
+    bandhig("  x + y equals 10")
+  }
+  xaalad 20 {
+    bandhig("  x + y equals 20")
+  }
+  xaalad 30 {
+    bandhig("  x + y equals 30")
+  }
+  ugudambeyn {
+    bandhig("  x + y equals " + (x + y))
+  }
+}
+
+// Switch with decimal values
+jajab decimal = 1.5
+bandhig("\n4. Switch with decimal values:")
+bandhig("  decimal = " + decimal)
+
+dooro (decimal) {
+  xaalad 1.0 {
+    bandhig("  decimal equals 1.0")
+  }
+  xaalad 1.5 {
+    bandhig("  decimal equals 1.5")
+  }
+  xaalad 2.0 {
+    bandhig("  decimal equals 2.0")
+  }
+  ugudambeyn {
+    bandhig("  Unrecognized decimal value")
+  }
+}
+
+// Nested switch statements
+tiro outer = 1
+tiro inner = 2
+bandhig("\n5. Nested switch statements:")
+bandhig("  outer = " + outer + ", inner = " + inner)
+
+dooro (outer) {
+  xaalad 1 {
+    bandhig("  Outer case is 1")
+    dooro (inner) {
+      xaalad 1 {
+        bandhig("  Inner case is 1")
+      }
+      xaalad 2 {
+        bandhig("  Inner case is 2")
+      }
+      ugudambeyn {
+        bandhig("  Inner case is something else")
+      }
+    }
+  }
+  xaalad 2 {
+    bandhig("  Outer case is 2")
+  }
+  ugudambeyn {
+    bandhig("  Outer case is something else")
+  }
+}
+
+// Function returning a value for switch
+hawl get_option() {
+  celi "B"
+}
+
+bandhig("\n6. Switch with function result:")
+qoraal option = get_option()
+bandhig("  option = " + option)
+
+dooro (option) {
+  xaalad "A" {
+    bandhig("  Option A selected")
+  }
+  xaalad "B" {
+    bandhig("  Option B selected")
+  }
+  xaalad "C" {
+    bandhig("  Option C selected")
+  }
+  ugudambeyn {
+    bandhig("  Unknown option selected")
+  }
+}
+
+// Testing boolean expressions
+bool is_active = run
+bandhig("\n7. Switch with boolean value:")
+bandhig("  is_active = " + is_active)
+
+dooro (is_active) {
+  xaalad run {
+    bandhig("  The system is active")
+  }
+  xaalad been {
+    bandhig("  The system is inactive")
+  }
+}
+
+bandhig("\nSwitch-case tests completed!")

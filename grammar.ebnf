@@ -18,6 +18,7 @@ Statement ::= VariableDeclaration
             | FunctionDeclaration
             | FunctionCall
             | IfStatement
+            | SwitchStatement
             | LoopStatement
             | WhileStatement
             | BreakStatement
@@ -39,11 +40,12 @@ DynamicDeclaration ::= "door" Identifier "=" Expression
 
 StaticDeclaration ::= StaticType Identifier "=" Expression
 
-StaticType ::= "tiro"      // Number
+StaticType ::= "tiro"      // Integer
+             | "jajab"     // Decimal
              | "qoraal"    // String
-             | "labadaran" // Boolean
+             | "bool"      // Boolean
              | "liis"      // List/Array
-             | "walax"      // Object
+             | "walax"     // Object
 
 // ===== FUNCTION DECLARATIONS =====
 FunctionDeclaration ::= "hawl" Identifier "(" [ParameterList] ")" Block
@@ -66,6 +68,13 @@ IfStatement ::= "haddii" "(" Expression ")" Block
 ElseIfClause ::= "haddii_kale" "(" Expression ")" Block
 
 ElseClause ::= "ugudambeyn" Block
+
+// ===== SWITCH STATEMENT =====
+SwitchStatement ::= "dooro" "(" Expression ")" "{" {CaseClause} [DefaultClause] "}"
+
+CaseClause ::= "xaalad" Expression Block
+
+DefaultClause ::= "ugudambeyn" Block
 
 // ===== LOOPS =====
 LoopStatement ::= "kuceli" "(" Identifier Expression "ilaa" Expression ["::" Expression] ")" Block

@@ -31,6 +31,8 @@ class Lexer:
             "haddii": TokenType.HADDII,
             "haddii_kale": TokenType.HADDII_KALE,
             "ugudambeyn": TokenType.UGUDAMBEYN,
+            "dooro": TokenType.DOORO,
+            "xaalad": TokenType.XAALAD,
             "kuceli": TokenType.kuceli,
             "intay": TokenType.INTAY,
             "jooji": TokenType.JOOJI,
