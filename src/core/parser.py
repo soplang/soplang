@@ -802,7 +802,7 @@ class Parser:
             self.advance()
             return ASTNode(NodeType.LITERAL, value=None)
         elif token.type == TokenType.IDENTIFIER or token.type in (
-            TokenType.QORAAL, TokenType.TIRO, TokenType.BOOL, TokenType.LIIS, TokenType.SHEY,
+            TokenType.QORAAL, TokenType.TIRO, TokenType.BOOL, TokenType.LIIS, TokenType.WALAX,
             TokenType.BANDHIG, TokenType.GELIN  # Added QOR and GELIN to handle them in expressions
         ):
             # Allow type names to be used as function names
