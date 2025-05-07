@@ -30,7 +30,11 @@ class SoplangBuiltins:
         elif isinstance(value, bool):
             return "bool"
         elif isinstance(value, (int, float)):
-            return "tiro"
+            # Distinguish between integers and floats
+            if isinstance(value, int) or value.is_integer():
+                return "tiro"
+            else:
+                return "jajab"
         elif isinstance(value, list):
             return "liis"
         elif isinstance(value, dict):
@@ -43,12 +47,22 @@ class SoplangBuiltins:
     @staticmethod
     def tiro(value):
         """
-        Convert a value to a number
+        Convert a value to an integer number
+        """
+        try:
+            return int(float(value))
+        except (ValueError, TypeError) as err:
+            raise TypeError(f"{value!r} ma badali karo tiro") from err
+
+    @staticmethod
+    def jajab(value):
+        """
+        Convert a value to a decimal/floating-point number
         """
         try:
             return float(value)
-        except (ValueError, TypeError):
-            raise TypeError(f"'{value}' ma badali karo tiro")
+        except (ValueError, TypeError) as err:
+            raise TypeError(f"{value!r} ma badali karo jajab") from err
 
     @staticmethod
     def qoraal(value):
@@ -309,6 +323,7 @@ def get_builtin_functions():
         "gelin": SoplangBuiltins.gelin,
         "nooc": SoplangBuiltins.nooc,
         "tiro": SoplangBuiltins.tiro,
+        "jajab": SoplangBuiltins.jajab,
         "qoraal": SoplangBuiltins.qoraal,
         "bool": SoplangBuiltins.bool,
         "liis": SoplangBuiltins.liis,

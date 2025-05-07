@@ -4,7 +4,8 @@
 bandhig("Testing type checking (nooc):")
 
 // Create variables of different types
-tiro number_var = 42
+tiro integer_var = 42
+jajab decimal_var = 3.14159
 qoraal string_var = "Soplang waa luqad wacan"
 bool bool_var = been
 liis list_var = [1, 2, 3, "afar", been]
@@ -15,7 +16,8 @@ walax object_var = {
 door dynamic_var = "dynamic"
 
 // Check types with nooc function
-bandhig("  Type of number_var: " + nooc(number_var))
+bandhig("  Type of integer_var: " + nooc(integer_var))
+bandhig("  Type of decimal_var: " + nooc(decimal_var))
 bandhig("  Type of string_var: " + nooc(string_var))
 bandhig("  Type of bool_var: " + nooc(bool_var))
 bandhig("  Type of list_var: " + nooc(list_var))
@@ -27,7 +29,8 @@ dynamic_var = 100
 bandhig("  Type of dynamic_var after change: " + nooc(dynamic_var))
 
 // Check type of literal values
-bandhig("  Type of literal number: " + nooc(123))
+bandhig("  Type of literal integer: " + nooc(123))
+bandhig("  Type of literal decimal: " + nooc(45.67))
 bandhig("  Type of literal string: " + nooc("test"))
 bandhig("  Type of literal boolean: " + nooc(run))
 bandhig("  Type of literal list: " + nooc([1, 2, 3]))

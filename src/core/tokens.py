@@ -13,22 +13,23 @@ class TokenType(Enum):
     UGUDAMBEYN = "ugudambeyn"
     kuceli = "kuceli"
     INTAY = "intay"
-    JOOJI = "jooji"        # break
-    soco = "soco"    # continue
+    JOOJI = "jooji"  # break
+    soco = "soco"  # continue
     ISKU_DAY = "isku_day"  # try
-    QABO = "qabo"          # catch
-    KA_KEEN = "ka_keen"    # import
-    FASALKA = "fasalka"    # class
+    QABO = "qabo"  # catch
+    KA_KEEN = "ka_keen"  # import
+    FASALKA = "fasalka"  # class
     KA_DHAXAL = "ka_dhaxal"  # extends
-    CUSUB = "cusub"        # new
-    NAFTA = "nafta"        # self/this
+    CUSUB = "cusub"  # new
+    NAFTA = "nafta"  # self/this
 
     # Static types
-    TIRO = "tiro"          # number
-    QORAAL = "qoraal"      # string
+    TIRO = "tiro"  # integer
+    JAJAB = "jajab"  # float/decimal
+    QORAAL = "qoraal"  # string
     BOOL = "bool"  # boolean
-    LIIS = "liis"          # list
-    WALAX = "walax"          # object/dict
+    LIIS = "liis"  # list
+    WALAX = "walax"  # object/dict
 
     # Data & Operators
     IDENTIFIER = "IDENTIFIER"
@@ -38,7 +39,7 @@ class TokenType(Enum):
     MINUS = "-"
     STAR = "*"
     SLASH = "/"
-    MODULO = "%"           # Added modulo operator for remainder
+    MODULO = "%"  # Added modulo operator for remainder
     EQUAL = "="
     NOT_EQUAL = "!="
     GREATER = ">"
@@ -58,11 +59,11 @@ class TokenType(Enum):
     RIGHT_BRACE = "}"
 
     # Added for lists and objects support
-    LEFT_BRACKET = "["    # For list literals
-    RIGHT_BRACKET = "]"   # For list literals
-    DOT = "."             # For object property access
-    TRUE = "true"         # Boolean literal
-    FALSE = "false"       # Boolean literal
-    NULL = "null"         # Null literal
+    LEFT_BRACKET = "["  # For list literals
+    RIGHT_BRACKET = "]"  # For list literals
+    DOT = "."  # For object property access
+    TRUE = "true"  # Boolean literal
+    FALSE = "false"  # Boolean literal
+    NULL = "null"  # Null literal
 
     EOF = "EOF"

@@ -1,73 +1,77 @@
 // Test: Conditional Statements
 // This test checks if conditional statements work properly
 
-bandhig("Testing conditional statements (haddii / haddii_kale / ugudambeyn):")
+bandhig("Testing conditional statements (haddii):")
 
-// Simple if-else
+// Simple if statement
 tiro age = 20
-bandhig("  Testing with age = " + age)
+bandhig("  age = " + age)
 
-haddii (age < 13) {
-    bandhig("  Result: Waa ilmo")
-} haddii_kale (age < 20) {
-    bandhig("  Result: Waa dhallinyaro")
-} ugudambeyn {
-    bandhig("  Result: Waa qof weyn")
+bandhig("  Simple if statement:")
+haddii (age >= 18) {
+    bandhig("    Person is an adult")
 }
 
-// Test with different age values
-age = 10
-bandhig("  Testing with age = " + age)
-haddii (age < 13) {
-    bandhig("  Result: Waa ilmo")
-} haddii_kale (age < 20) {
-    bandhig("  Result: Waa dhallinyaro")
+// If-else statement
+bandhig("  If-else statement:")
+haddii (age >= 21) {
+    bandhig("    Person can drink alcohol")
 } ugudambeyn {
-    bandhig("  Result: Waa qof weyn")
+    bandhig("    Person cannot drink alcohol")
 }
 
-// Multiple conditions
+// If-else if-else statement
 tiro score = 85
-bandhig("  Testing with score = " + score)
+bandhig("  score = " + score)
+bandhig("  If-else if-else statement:")
 haddii (score >= 90) {
-    bandhig("  Grade: A")
+    bandhig("    Grade: A")
 } haddii_kale (score >= 80) {
-    bandhig("  Grade: B")
+    bandhig("    Grade: B")
 } haddii_kale (score >= 70) {
-    bandhig("  Grade: C")
+    bandhig("    Grade: C")
 } haddii_kale (score >= 60) {
-    bandhig("  Grade: D")
+    bandhig("    Grade: D")
 } ugudambeyn {
-    bandhig("  Grade: F")
-}
-
-// Test with different score values
-score = 95
-bandhig("  Testing with score = " + score)
-haddii (score >= 90) {
-    bandhig("  Grade: A")
-} haddii_kale (score >= 80) {
-    bandhig("  Grade: B")
-} haddii_kale (score >= 70) {
-    bandhig("  Grade: C")
-} haddii_kale (score >= 60) {
-    bandhig("  Grade: D")
-} ugudambeyn {
-    bandhig("  Grade: F")
+    bandhig("    Grade: F")
 }
 
 // Nested if statements
+bandhig("  Nested if statements:")
+haddii (age >= 16) {
+    bandhig("    Person can drive")
+    haddii (age >= 18) {
+        bandhig("    Person can vote")
+        haddii (age >= 21) {
+            bandhig("    Person can drink alcohol")
+        }
+    }
+}
+
+// Using logical operators in conditions
 tiro x = 10
 tiro y = 20
+bandhig("  x = " + x + ", y = " + y)
 
-bandhig("  Testing nested conditions with x = " + x + " and y = " + y)
-haddii (x > 5) {
-    bandhig("  x is greater than 5")
-    haddii (y > 15) {
-        bandhig("  and y is greater than 15")
-    } ugudambeyn {
-        bandhig("  but y is not greater than 15")
-    }
+bandhig("  Using AND (&&) operator:")
+haddii (x > 5 && y < 30) {
+    bandhig("    Both conditions are true")
+}
+
+bandhig("  Using OR (||) operator:")
+haddii (x > 15 || y > 15) {
+    bandhig("    At least one condition is true")
+}
+
+// Testing with decimal values
+jajab temperature = 37.5
+bandhig("  temperature = " + temperature)
+
+bandhig("  Testing with decimal values:")
+haddii (temperature > 38.0) {
+    bandhig("    Person has a fever")
+} haddii_kale (temperature >= 37.5) {
+    bandhig("    Person has a slight temperature")
 } ugudambeyn {
-    bandhig("  x is not greater than 5")
+    bandhig("    Person's temperature is normal")
 }

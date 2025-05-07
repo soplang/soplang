@@ -52,6 +52,7 @@ class Lexer:
             "run": TokenType.TRUE,
             "been": TokenType.FALSE,
             "null": TokenType.NULL,
+            "jajab": TokenType.JAJAB,
         }
 
     def advance(self):
