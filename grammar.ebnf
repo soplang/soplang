@@ -43,7 +43,7 @@ StaticType ::= "tiro"      // Number
              | "qoraal"    // String
              | "labadaran" // Boolean
              | "liis"      // List/Array
-             | "shey"      // Object
+             | "walax"      // Object
 
 // ===== FUNCTION DECLARATIONS =====
 FunctionDeclaration ::= "hawl" Identifier "(" [ParameterList] ")" Block
@@ -70,7 +70,7 @@ ElseClause ::= "haddii_kalena" Block
 // ===== LOOPS =====
 LoopStatement ::= "kuceli" Identifier "min" Expression "ilaa" Expression ["by" Expression] Block
 
-WhileStatement ::= "inta_ay" "(" Expression ")" Block
+WhileStatement ::= "intay" "(" Expression ")" Block
 
 BreakStatement ::= "jooji"
 
@@ -188,7 +188,7 @@ Position ::= Digit {Digit}
 ListMethod ::= "kudar"       // push
              | "kasaar"      // pop
              | "dherer"      // length
-             | "iskuxir"     // concat
+             | "kudar"     // concat
              | "leeyahay"   // contains
 
 // ===== OBJECT METHODS =====

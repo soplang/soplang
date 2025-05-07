@@ -10,7 +10,7 @@ This document provides a reference for all keywords in the Soplang programming l
 | `tiro`      | Integer type                 | `int`              | `tiro da = 25`                          |
 | `qoraal`    | String type                  | `string`           | `qoraal magac = "Sharafdin"`            |
 | `bool` | Boolean type                 | `bool`             | `boolwaaRun = true`               |
-| `shey`      | Object type                  | `object`           | `shey person = { "name": "Sharafdin" }` |
+| `walax`      | Object type                  | `object`           | `walax person = { "name": "Sharafdin" }` |
 | `liis`      | List/array type              | `array`            | `liis numbers = [1, 2, 3]`              |
 | `maran`     | maran value                  | `maran`            | `door a = maran`                        |
 
@@ -27,7 +27,7 @@ This document provides a reference for all keywords in the Soplang programming l
 | Keyword   | Meaning             | English Equivalent | Example                                 |
 | --------- | ------------------- | ------------------ | --------------------------------------- |
 | `kuceli` | For loop            | `for`              | `kuceli i min 1 ilaa 5 { bandhig(i) }`     |
-| `inta_ay` | While loop          | `while`            | `inta_ay (x < 5) { bandhig(x); x = x + 1 }` |
+| `intay` | While loop          | `while`            | `intay (x < 5) { bandhig(x); x = x + 1 }` |
 | `jooji`   | Break statement     | `break`            | `haddii (x == 3) { jooji }`             |
 | `soco` | Continue statement  | `continue`         | `haddii (x == 3) { soco }`           |
 | `min`     | From (in for loops) | `from`             | `kuceli i min 1 ilaa 5 { bandhig(i) }`     |
@@ -94,14 +94,14 @@ This document provides a reference for all keywords in the Soplang programming l
 
 | Function    | Meaning              | English Equivalent | Example                                  |
 | ----------- | -------------------- | ------------------ | ---------------------------------------- |
-| `bandhig`       | Print to console     | `print`            | `bandhig("Salaan, Adduunka!")`               |
-| `akhri`     | Read input from user | `input`            | `door magac = akhri("Magacaaga geli: ")` |
-| `nuuc`      | Get type of variable | `typeof`           | `bandhig(nuuc(magac))`                       |
+| `bandhig`       | Print to console     | `print`            | `qor("Salaan, Adduunka!")`               |
+| `gelin`     | Read input from user | `input`            | `door magac = gelin("Magacaaga geli: ")` |
+| `nooc`      | Get type of variable | `typeof`           | `qor(nooc(magac))`                       |
 | `tiro`      | Convert to number    | `int`/`float`      | `door n = tiro("5")`                     |
 | `qoraal`    | Convert to string    | `str`              | `door s = qoraal(25)`                    |
 | `bool` | Convert to boolean   | `bool`             | `door b = bool(1)`                  |
 | `liis`      | Create a list        | `list/array`       | `door list = liis(1, 2, 3)`              |
-| `shey`      | Create an object     | `object/dict`      | `door obj = shey(name: "Ali", age: 25)`  |
+| `walax`      | Create an object     | `object/dict`      | `door obj = walax(name: "Ali", age: 25)`  |
 
 ## List Methods
 
@@ -110,7 +110,7 @@ This document provides a reference for all keywords in the Soplang programming l
 | `kudar`     | Add item to list     | `push/append`       | `myList.kudar(newItem)`                |
 | `kasaar`    | Remove last item     | `pop`               | `door lastItem = myList.kasaar()`      |
 | `dherer`    | Get list length      | `length/size`       | `door size = myList.dherer()`          |
-| `iskuxir`   | Concatenate lists    | `concat`            | `door combined = list1.iskuxir(list2)` |
+| `kudar`   | Concatenate lists    | `concat`            | `door combined = list1.kudar(list2)` |
 | `leeyahay` | Check if item exists | `contains/includes` | `door exists = myList.leeyahay(item)` |
 
 ## Object Methods
@@ -132,7 +132,7 @@ This document provides a reference for all keywords in the Soplang programming l
 | `lexer`     | Lexical analyzer   | `lexer`            | `Khalad lexer: Xaraf aan la filayn: @`                            |
 | `parser`    | Syntax analyzer    | `parser`           | `Khalad parser: Waxaa la filayay ')', laakiin waxaa la helay '+'` |
 | `runtime`   | Execution time     | `runtime`          | `Khalad runtime: Ma suurtogali karto qeybinta eber`               |
-| `nuuc`      | Type               | `type`             | `Khalad nuuc: Qiimaheeda '10' ma ahan qoraal`                     |
+| `nooc`      | Type               | `type`             | `Khalad nooc: Qiimaheeda '10' ma ahan qoraal`                     |
 
 ## Special Syntax
 

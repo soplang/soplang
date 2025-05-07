@@ -26,7 +26,7 @@ Demonstrates fundamental language features and operations.
 **Features tested:**
 - Dynamic typing with `door`
 - Static typing with `qoraal`, `tiro`, etc.
-- Type checking with `nuuc()`
+- Type checking with `nooc()`
 - Type conversion
 - Arithmetic operations
 - Type enforcement
@@ -47,7 +47,7 @@ Demonstrates conditional statements and loops.
 - Nested conditionals
 - Complex conditions with logical operators
 - For loops (`kuceli`)
-- While loops (`inta_ay`)
+- While loops (`intay`)
 - Break statements (`jooji`)
 - Continue statements (`soco`)
 - Nested loops
@@ -108,7 +108,7 @@ Demonstrates object operations and features.
 
 **Features tested:**
 - Dynamic object declaration
-- Static object declaration with `shey` type
+- Static object declaration with `walax` type
 - Empty objects
 - Objects with mixed value types
 - Nested objects

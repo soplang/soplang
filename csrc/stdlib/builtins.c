@@ -2531,7 +2531,7 @@ static const char __pyx_k_keys[] = "keys";
 static const char __pyx_k_liis[] = "liis";
 static const char __pyx_k_main[] = "__main__";
 static const char __pyx_k_name[] = "__name__";
-static const char __pyx_k_nuuc[] = "nuuc";
+static const char __pyx_k_nooc[] = "nooc";
 static const char __pyx_k_push[] = "push";
 static const char __pyx_k_shey[] = "shey";
 static const char __pyx_k_test[] = "__test__";
@@ -2590,7 +2590,7 @@ static const char __pyx_k_get_object_methods[] = "get_object_methods";
 static const char __pyx_k_SoplangBuiltins_bandhig[] = "SoplangBuiltins.bandhig";
 static const char __pyx_k_ma_badali_karo_tiro[] = "' ma badali karo tiro";
 static const char __pyx_k_SoplangBuiltins_liis[] = "SoplangBuiltins.liis";
-static const char __pyx_k_SoplangBuiltins_nuuc[] = "SoplangBuiltins.nuuc";
+static const char __pyx_k_SoplangBuiltins_nooc[] = "SoplangBuiltins.nooc";
 static const char __pyx_k_SoplangBuiltins_shey[] = "SoplangBuiltins.shey";
 static const char __pyx_k_SoplangBuiltins_tiro[] = "SoplangBuiltins.tiro";
 static const char __pyx_k_SoplangBuiltins_akhri[] = "SoplangBuiltins.akhri";
@@ -2607,14 +2607,14 @@ static const char __pyx_k_SoplangBuiltins_object_set[] = "SoplangBuiltins.object
 static const char __pyx_k_SoplangBuiltins_list_length[] = "SoplangBuiltins.list_length";
 static const char __pyx_k_SoplangBuiltins_object_keys[] = "SoplangBuiltins.object_keys";
 static const char __pyx_k_waa_ka_baxsan_xadka_liiska_Inde[] = " waa ka baxsan xadka liiska (Index out of range)";
-static const char __pyx_k_Index_waa_inuu_noqdaa_tiro_Index[] = "Index waa inuu noqdaa tiro (Index must be a number)";
+static const char __pyx_k_Index_waa_inoo_noqdaa_tiro_Index[] = "Index waa inoo noqdaa tiro (Index must be a number)";
 static const char __pyx_k_Ma_saari_kartid_liis_madhan_Cann[] = "Ma saari kartid liis madhan (Cannot pop from an empty list)";
 static const char __pyx_k_Qiimahu_ma_ahan_liis_Value_is_no[] = "Qiimahu ma ahan liis (Value is not a list)";
 static const char __pyx_k_Qiimahu_ma_ahan_shey_Value_is_no[] = "Qiimahu ma ahan shey (Value is not an object)";
 /* #### Code section: decls ### */
 static PyObject *__pyx_pf_3src_8builtins_15SoplangBuiltins_bandhig(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_message); /* proto */
 static PyObject *__pyx_pf_3src_8builtins_15SoplangBuiltins_2akhri(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_prompt); /* proto */
-static PyObject *__pyx_pf_3src_8builtins_15SoplangBuiltins_4nuuc(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_value); /* proto */
+static PyObject *__pyx_pf_3src_8builtins_15SoplangBuiltins_4nooc(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_value); /* proto */
 static PyObject *__pyx_pf_3src_8builtins_15SoplangBuiltins_6tiro(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_value); /* proto */
 static PyObject *__pyx_pf_3src_8builtins_15SoplangBuiltins_8qoraal(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_value); /* proto */
 static PyObject *__pyx_pf_3src_8builtins_15SoplangBuiltins_10labadaran(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_value); /* proto */
@@ -2665,7 +2665,7 @@ typedef struct {
   PyObject *__pyx_kp_u_;
   PyObject *__pyx_n_u_False;
   PyObject *__pyx_kp_u_Index;
-  PyObject *__pyx_kp_u_Index_waa_inuu_noqdaa_tiro_Index;
+  PyObject *__pyx_kp_u_Index_waa_inoo_noqdaa_tiro_Index;
   PyObject *__pyx_kp_u_Ma_saari_kartid_liis_madhan_Cann;
   PyObject *__pyx_kp_u_Qiimahu_ma_ahan_liis_Value_is_no;
   PyObject *__pyx_kp_u_Qiimahu_ma_ahan_shey_Value_is_no;
@@ -2678,7 +2678,7 @@ typedef struct {
   PyObject *__pyx_n_s_SoplangBuiltins_list_pop;
   PyObject *__pyx_n_s_SoplangBuiltins_list_push;
   PyObject *__pyx_n_s_SoplangBuiltins_list_set;
-  PyObject *__pyx_n_s_SoplangBuiltins_nuuc;
+  PyObject *__pyx_n_s_SoplangBuiltins_nooc;
   PyObject *__pyx_n_s_SoplangBuiltins_object_get;
   PyObject *__pyx_n_s_SoplangBuiltins_object_has;
   PyObject *__pyx_n_s_SoplangBuiltins_object_keys;
@@ -2747,8 +2747,8 @@ typedef struct {
   PyObject *__pyx_n_s_methods;
   PyObject *__pyx_n_s_module;
   PyObject *__pyx_n_s_name;
-  PyObject *__pyx_n_s_nuuc;
-  PyObject *__pyx_n_u_nuuc;
+  PyObject *__pyx_n_s_nooc;
+  PyObject *__pyx_n_u_nooc;
   PyObject *__pyx_n_s_obj;
   PyObject *__pyx_n_s_object_get;
   PyObject *__pyx_n_s_object_has;
@@ -2863,7 +2863,7 @@ static int __pyx_m_clear(PyObject *m) {
   Py_CLEAR(clear_module_state->__pyx_kp_u_);
   Py_CLEAR(clear_module_state->__pyx_n_u_False);
   Py_CLEAR(clear_module_state->__pyx_kp_u_Index);
-  Py_CLEAR(clear_module_state->__pyx_kp_u_Index_waa_inuu_noqdaa_tiro_Index);
+  Py_CLEAR(clear_module_state->__pyx_kp_u_Index_waa_inoo_noqdaa_tiro_Index);
   Py_CLEAR(clear_module_state->__pyx_kp_u_Ma_saari_kartid_liis_madhan_Cann);
   Py_CLEAR(clear_module_state->__pyx_kp_u_Qiimahu_ma_ahan_liis_Value_is_no);
   Py_CLEAR(clear_module_state->__pyx_kp_u_Qiimahu_ma_ahan_shey_Value_is_no);
@@ -2876,7 +2876,7 @@ static int __pyx_m_clear(PyObject *m) {
   Py_CLEAR(clear_module_state->__pyx_n_s_SoplangBuiltins_list_pop);
   Py_CLEAR(clear_module_state->__pyx_n_s_SoplangBuiltins_list_push);
   Py_CLEAR(clear_module_state->__pyx_n_s_SoplangBuiltins_list_set);
-  Py_CLEAR(clear_module_state->__pyx_n_s_SoplangBuiltins_nuuc);
+  Py_CLEAR(clear_module_state->__pyx_n_s_SoplangBuiltins_nooc);
   Py_CLEAR(clear_module_state->__pyx_n_s_SoplangBuiltins_object_get);
   Py_CLEAR(clear_module_state->__pyx_n_s_SoplangBuiltins_object_has);
   Py_CLEAR(clear_module_state->__pyx_n_s_SoplangBuiltins_object_keys);
@@ -2945,8 +2945,8 @@ static int __pyx_m_clear(PyObject *m) {
   Py_CLEAR(clear_module_state->__pyx_n_s_methods);
   Py_CLEAR(clear_module_state->__pyx_n_s_module);
   Py_CLEAR(clear_module_state->__pyx_n_s_name);
-  Py_CLEAR(clear_module_state->__pyx_n_s_nuuc);
-  Py_CLEAR(clear_module_state->__pyx_n_u_nuuc);
+  Py_CLEAR(clear_module_state->__pyx_n_s_nooc);
+  Py_CLEAR(clear_module_state->__pyx_n_u_nooc);
   Py_CLEAR(clear_module_state->__pyx_n_s_obj);
   Py_CLEAR(clear_module_state->__pyx_n_s_object_get);
   Py_CLEAR(clear_module_state->__pyx_n_s_object_has);
@@ -3039,7 +3039,7 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
   Py_VISIT(traverse_module_state->__pyx_kp_u_);
   Py_VISIT(traverse_module_state->__pyx_n_u_False);
   Py_VISIT(traverse_module_state->__pyx_kp_u_Index);
-  Py_VISIT(traverse_module_state->__pyx_kp_u_Index_waa_inuu_noqdaa_tiro_Index);
+  Py_VISIT(traverse_module_state->__pyx_kp_u_Index_waa_inoo_noqdaa_tiro_Index);
   Py_VISIT(traverse_module_state->__pyx_kp_u_Ma_saari_kartid_liis_madhan_Cann);
   Py_VISIT(traverse_module_state->__pyx_kp_u_Qiimahu_ma_ahan_liis_Value_is_no);
   Py_VISIT(traverse_module_state->__pyx_kp_u_Qiimahu_ma_ahan_shey_Value_is_no);
@@ -3052,7 +3052,7 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
   Py_VISIT(traverse_module_state->__pyx_n_s_SoplangBuiltins_list_pop);
   Py_VISIT(traverse_module_state->__pyx_n_s_SoplangBuiltins_list_push);
   Py_VISIT(traverse_module_state->__pyx_n_s_SoplangBuiltins_list_set);
-  Py_VISIT(traverse_module_state->__pyx_n_s_SoplangBuiltins_nuuc);
+  Py_VISIT(traverse_module_state->__pyx_n_s_SoplangBuiltins_nooc);
   Py_VISIT(traverse_module_state->__pyx_n_s_SoplangBuiltins_object_get);
   Py_VISIT(traverse_module_state->__pyx_n_s_SoplangBuiltins_object_has);
   Py_VISIT(traverse_module_state->__pyx_n_s_SoplangBuiltins_object_keys);
@@ -3121,8 +3121,8 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
   Py_VISIT(traverse_module_state->__pyx_n_s_methods);
   Py_VISIT(traverse_module_state->__pyx_n_s_module);
   Py_VISIT(traverse_module_state->__pyx_n_s_name);
-  Py_VISIT(traverse_module_state->__pyx_n_s_nuuc);
-  Py_VISIT(traverse_module_state->__pyx_n_u_nuuc);
+  Py_VISIT(traverse_module_state->__pyx_n_s_nooc);
+  Py_VISIT(traverse_module_state->__pyx_n_u_nooc);
   Py_VISIT(traverse_module_state->__pyx_n_s_obj);
   Py_VISIT(traverse_module_state->__pyx_n_s_object_get);
   Py_VISIT(traverse_module_state->__pyx_n_s_object_has);
@@ -3225,7 +3225,7 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
 #define __pyx_kp_u_ __pyx_mstate_global->__pyx_kp_u_
 #define __pyx_n_u_False __pyx_mstate_global->__pyx_n_u_False
 #define __pyx_kp_u_Index __pyx_mstate_global->__pyx_kp_u_Index
-#define __pyx_kp_u_Index_waa_inuu_noqdaa_tiro_Index __pyx_mstate_global->__pyx_kp_u_Index_waa_inuu_noqdaa_tiro_Index
+#define __pyx_kp_u_Index_waa_inoo_noqdaa_tiro_Index __pyx_mstate_global->__pyx_kp_u_Index_waa_inoo_noqdaa_tiro_Index
 #define __pyx_kp_u_Ma_saari_kartid_liis_madhan_Cann __pyx_mstate_global->__pyx_kp_u_Ma_saari_kartid_liis_madhan_Cann
 #define __pyx_kp_u_Qiimahu_ma_ahan_liis_Value_is_no __pyx_mstate_global->__pyx_kp_u_Qiimahu_ma_ahan_liis_Value_is_no
 #define __pyx_kp_u_Qiimahu_ma_ahan_shey_Value_is_no __pyx_mstate_global->__pyx_kp_u_Qiimahu_ma_ahan_shey_Value_is_no
@@ -3238,7 +3238,7 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
 #define __pyx_n_s_SoplangBuiltins_list_pop __pyx_mstate_global->__pyx_n_s_SoplangBuiltins_list_pop
 #define __pyx_n_s_SoplangBuiltins_list_push __pyx_mstate_global->__pyx_n_s_SoplangBuiltins_list_push
 #define __pyx_n_s_SoplangBuiltins_list_set __pyx_mstate_global->__pyx_n_s_SoplangBuiltins_list_set
-#define __pyx_n_s_SoplangBuiltins_nuuc __pyx_mstate_global->__pyx_n_s_SoplangBuiltins_nuuc
+#define __pyx_n_s_SoplangBuiltins_nooc __pyx_mstate_global->__pyx_n_s_SoplangBuiltins_nooc
 #define __pyx_n_s_SoplangBuiltins_object_get __pyx_mstate_global->__pyx_n_s_SoplangBuiltins_object_get
 #define __pyx_n_s_SoplangBuiltins_object_has __pyx_mstate_global->__pyx_n_s_SoplangBuiltins_object_has
 #define __pyx_n_s_SoplangBuiltins_object_keys __pyx_mstate_global->__pyx_n_s_SoplangBuiltins_object_keys
@@ -3307,8 +3307,8 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
 #define __pyx_n_s_methods __pyx_mstate_global->__pyx_n_s_methods
 #define __pyx_n_s_module __pyx_mstate_global->__pyx_n_s_module
 #define __pyx_n_s_name __pyx_mstate_global->__pyx_n_s_name
-#define __pyx_n_s_nuuc __pyx_mstate_global->__pyx_n_s_nuuc
-#define __pyx_n_u_nuuc __pyx_mstate_global->__pyx_n_u_nuuc
+#define __pyx_n_s_nooc __pyx_mstate_global->__pyx_n_s_nooc
+#define __pyx_n_u_nooc __pyx_mstate_global->__pyx_n_u_nooc
 #define __pyx_n_s_obj __pyx_mstate_global->__pyx_n_s_obj
 #define __pyx_n_s_object_get __pyx_mstate_global->__pyx_n_s_object_get
 #define __pyx_n_s_object_has __pyx_mstate_global->__pyx_n_s_object_has
@@ -3690,21 +3690,21 @@ static PyObject *__pyx_pf_3src_8builtins_15SoplangBuiltins_2akhri(CYTHON_UNUSED 
  *         return input(prompt)
  * 
  *     @staticmethod             # <<<<<<<<<<<<<<
- *     def nuuc(value):
+ *     def nooc(value):
  *         """
  */
 
 /* Python wrapper */
-static PyObject *__pyx_pw_3src_8builtins_15SoplangBuiltins_5nuuc(PyObject *__pyx_self, 
+static PyObject *__pyx_pw_3src_8builtins_15SoplangBuiltins_5nooc(PyObject *__pyx_self, 
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
 PyObject *__pyx_args, PyObject *__pyx_kwds
 #endif
 ); /*proto*/
-PyDoc_STRVAR(__pyx_doc_3src_8builtins_15SoplangBuiltins_4nuuc, "\n        Return the type of a value as a string\n        ");
-static PyMethodDef __pyx_mdef_3src_8builtins_15SoplangBuiltins_5nuuc = {"nuuc", (PyCFunction)(void*)(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_3src_8builtins_15SoplangBuiltins_5nuuc, __Pyx_METH_FASTCALL|METH_KEYWORDS, __pyx_doc_3src_8builtins_15SoplangBuiltins_4nuuc};
-static PyObject *__pyx_pw_3src_8builtins_15SoplangBuiltins_5nuuc(PyObject *__pyx_self, 
+PyDoc_STRVAR(__pyx_doc_3src_8builtins_15SoplangBuiltins_4nooc, "\n        Return the type of a value as a string\n        ");
+static PyMethodDef __pyx_mdef_3src_8builtins_15SoplangBuiltins_5nooc = {"nooc", (PyCFunction)(void*)(__Pyx_PyCFunction_FastCallWithKeywords)__pyx_pw_3src_8builtins_15SoplangBuiltins_5nooc, __Pyx_METH_FASTCALL|METH_KEYWORDS, __pyx_doc_3src_8builtins_15SoplangBuiltins_4nooc};
+static PyObject *__pyx_pw_3src_8builtins_15SoplangBuiltins_5nooc(PyObject *__pyx_self, 
 #if CYTHON_METH_FASTCALL
 PyObject *const *__pyx_args, Py_ssize_t __pyx_nargs, PyObject *__pyx_kwds
 #else
@@ -3722,7 +3722,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   int __pyx_clineno = 0;
   PyObject *__pyx_r = 0;
   __Pyx_RefNannyDeclarations
-  __Pyx_RefNannySetupContext("nuuc (wrapper)", 0);
+  __Pyx_RefNannySetupContext("nooc (wrapper)", 0);
   #if !CYTHON_METH_FASTCALL
   #if CYTHON_ASSUME_SAFE_MACROS
   __pyx_nargs = PyTuple_GET_SIZE(__pyx_args);
@@ -3753,7 +3753,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
       }
       if (unlikely(kw_args > 0)) {
         const Py_ssize_t kwd_pos_args = __pyx_nargs;
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "nuuc") < 0)) __PYX_ERR(0, 20, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "nooc") < 0)) __PYX_ERR(0, 20, __pyx_L3_error)
       }
     } else if (unlikely(__pyx_nargs != 1)) {
       goto __pyx_L5_argtuple_error;
@@ -3764,7 +3764,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   }
   goto __pyx_L6_skip;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("nuuc", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 20, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("nooc", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 20, __pyx_L3_error)
   __pyx_L6_skip:;
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -3774,11 +3774,11 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
       __Pyx_Arg_XDECREF_FASTCALL(values[__pyx_temp]);
     }
   }
-  __Pyx_AddTraceback("src.builtins.SoplangBuiltins.nuuc", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("src.builtins.SoplangBuiltins.nooc", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_3src_8builtins_15SoplangBuiltins_4nuuc(__pyx_self, __pyx_v_value);
+  __pyx_r = __pyx_pf_3src_8builtins_15SoplangBuiltins_4nooc(__pyx_self, __pyx_v_value);
 
   /* function exit code */
   {
@@ -3791,7 +3791,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_3src_8builtins_15SoplangBuiltins_4nuuc(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_value) {
+static PyObject *__pyx_pf_3src_8builtins_15SoplangBuiltins_4nooc(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_value) {
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   int __pyx_t_1;
@@ -3800,7 +3800,7 @@ static PyObject *__pyx_pf_3src_8builtins_15SoplangBuiltins_4nuuc(CYTHON_UNUSED P
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
-  __Pyx_RefNannySetupContext("nuuc", 1);
+  __Pyx_RefNannySetupContext("nooc", 1);
 
   /* "src/builtins.py":25
  *         Return the type of a value as a string
@@ -4017,14 +4017,14 @@ static PyObject *__pyx_pf_3src_8builtins_15SoplangBuiltins_4nuuc(CYTHON_UNUSED P
  *         return input(prompt)
  * 
  *     @staticmethod             # <<<<<<<<<<<<<<
- *     def nuuc(value):
+ *     def nooc(value):
  *         """
  */
 
   /* function exit code */
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_3);
-  __Pyx_AddTraceback("src.builtins.SoplangBuiltins.nuuc", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_AddTraceback("src.builtins.SoplangBuiltins.nooc", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XGIVEREF(__pyx_r);
@@ -6338,7 +6338,7 @@ static PyObject *__pyx_pf_3src_8builtins_15SoplangBuiltins_22list_get(CYTHON_UNU
  *                 index = int(index)
  *             except ValueError:             # <<<<<<<<<<<<<<
  *                 raise TypeError(
- *                     "Index waa inuu noqdaa tiro (Index must be a number)")
+ *                     "Index waa inoo noqdaa tiro (Index must be a number)")
  */
       __Pyx_ErrFetch(&__pyx_t_3, &__pyx_t_4, &__pyx_t_5);
       __Pyx_GetModuleGlobalName(__pyx_t_10, __pyx_n_s_ValueError); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 141, __pyx_L7_except_error)
@@ -6358,7 +6358,7 @@ static PyObject *__pyx_pf_3src_8builtins_15SoplangBuiltins_22list_get(CYTHON_UNU
  *                 index = int(index)
  *             except ValueError:
  *                 raise TypeError(             # <<<<<<<<<<<<<<
- *                     "Index waa inuu noqdaa tiro (Index must be a number)")
+ *                     "Index waa inoo noqdaa tiro (Index must be a number)")
  * 
  */
         __Pyx_GetModuleGlobalName(__pyx_t_12, __pyx_n_s_TypeError); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 142, __pyx_L7_except_error)
@@ -6378,7 +6378,7 @@ static PyObject *__pyx_pf_3src_8builtins_15SoplangBuiltins_22list_get(CYTHON_UNU
         }
         #endif
         {
-          PyObject *__pyx_callargs[2] = {__pyx_t_13, __pyx_kp_u_Index_waa_inuu_noqdaa_tiro_Index};
+          PyObject *__pyx_callargs[2] = {__pyx_t_13, __pyx_kp_u_Index_waa_inoo_noqdaa_tiro_Index};
           __pyx_t_10 = __Pyx_PyObject_FastCall(__pyx_t_12, __pyx_callargs+1-__pyx_t_6, 1+__pyx_t_6);
           __Pyx_XDECREF(__pyx_t_13); __pyx_t_13 = 0;
           if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 142, __pyx_L7_except_error)
@@ -6417,11 +6417,11 @@ static PyObject *__pyx_pf_3src_8builtins_15SoplangBuiltins_22list_get(CYTHON_UNU
   }
 
   /* "src/builtins.py":145
- *                     "Index waa inuu noqdaa tiro (Index must be a number)")
+ *                     "Index waa inoo noqdaa tiro (Index must be a number)")
  * 
  *         if not isinstance(index, (int, float)):             # <<<<<<<<<<<<<<
  *             raise TypeError(
- *                 "Index waa inuu noqdaa tiro (Index must be a number)")
+ *                 "Index waa inoo noqdaa tiro (Index must be a number)")
  */
   __pyx_t_1 = PyInt_Check(__pyx_v_index); 
   if (!__pyx_t_1) {
@@ -6439,7 +6439,7 @@ static PyObject *__pyx_pf_3src_8builtins_15SoplangBuiltins_22list_get(CYTHON_UNU
  * 
  *         if not isinstance(index, (int, float)):
  *             raise TypeError(             # <<<<<<<<<<<<<<
- *                 "Index waa inuu noqdaa tiro (Index must be a number)")
+ *                 "Index waa inoo noqdaa tiro (Index must be a number)")
  * 
  */
     __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_TypeError); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 146, __pyx_L1_error)
@@ -6459,7 +6459,7 @@ static PyObject *__pyx_pf_3src_8builtins_15SoplangBuiltins_22list_get(CYTHON_UNU
     }
     #endif
     {
-      PyObject *__pyx_callargs[2] = {__pyx_t_5, __pyx_kp_u_Index_waa_inuu_noqdaa_tiro_Index};
+      PyObject *__pyx_callargs[2] = {__pyx_t_5, __pyx_kp_u_Index_waa_inoo_noqdaa_tiro_Index};
       __pyx_t_3 = __Pyx_PyObject_FastCall(__pyx_t_4, __pyx_callargs+1-__pyx_t_6, 1+__pyx_t_6);
       __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
       if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 146, __pyx_L1_error)
@@ -6471,16 +6471,16 @@ static PyObject *__pyx_pf_3src_8builtins_15SoplangBuiltins_22list_get(CYTHON_UNU
     __PYX_ERR(0, 146, __pyx_L1_error)
 
     /* "src/builtins.py":145
- *                     "Index waa inuu noqdaa tiro (Index must be a number)")
+ *                     "Index waa inoo noqdaa tiro (Index must be a number)")
  * 
  *         if not isinstance(index, (int, float)):             # <<<<<<<<<<<<<<
  *             raise TypeError(
- *                 "Index waa inuu noqdaa tiro (Index must be a number)")
+ *                 "Index waa inoo noqdaa tiro (Index must be a number)")
  */
   }
 
   /* "src/builtins.py":149
- *                 "Index waa inuu noqdaa tiro (Index must be a number)")
+ *                 "Index waa inoo noqdaa tiro (Index must be a number)")
  * 
  *         index = int(index)  # Convert float to int if needed             # <<<<<<<<<<<<<<
  * 
@@ -6905,7 +6905,7 @@ static PyObject *__pyx_pf_3src_8builtins_15SoplangBuiltins_24list_set(CYTHON_UNU
  *                 index = int(index)
  *             except ValueError:             # <<<<<<<<<<<<<<
  *                 raise TypeError(
- *                     "Index waa inuu noqdaa tiro (Index must be a number)")
+ *                     "Index waa inoo noqdaa tiro (Index must be a number)")
  */
       __Pyx_ErrFetch(&__pyx_t_3, &__pyx_t_4, &__pyx_t_5);
       __Pyx_GetModuleGlobalName(__pyx_t_10, __pyx_n_s_ValueError); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 169, __pyx_L7_except_error)
@@ -6925,7 +6925,7 @@ static PyObject *__pyx_pf_3src_8builtins_15SoplangBuiltins_24list_set(CYTHON_UNU
  *                 index = int(index)
  *             except ValueError:
  *                 raise TypeError(             # <<<<<<<<<<<<<<
- *                     "Index waa inuu noqdaa tiro (Index must be a number)")
+ *                     "Index waa inoo noqdaa tiro (Index must be a number)")
  * 
  */
         __Pyx_GetModuleGlobalName(__pyx_t_12, __pyx_n_s_TypeError); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 170, __pyx_L7_except_error)
@@ -6945,7 +6945,7 @@ static PyObject *__pyx_pf_3src_8builtins_15SoplangBuiltins_24list_set(CYTHON_UNU
         }
         #endif
         {
-          PyObject *__pyx_callargs[2] = {__pyx_t_13, __pyx_kp_u_Index_waa_inuu_noqdaa_tiro_Index};
+          PyObject *__pyx_callargs[2] = {__pyx_t_13, __pyx_kp_u_Index_waa_inoo_noqdaa_tiro_Index};
           __pyx_t_10 = __Pyx_PyObject_FastCall(__pyx_t_12, __pyx_callargs+1-__pyx_t_6, 1+__pyx_t_6);
           __Pyx_XDECREF(__pyx_t_13); __pyx_t_13 = 0;
           if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 170, __pyx_L7_except_error)
@@ -6984,11 +6984,11 @@ static PyObject *__pyx_pf_3src_8builtins_15SoplangBuiltins_24list_set(CYTHON_UNU
   }
 
   /* "src/builtins.py":173
- *                     "Index waa inuu noqdaa tiro (Index must be a number)")
+ *                     "Index waa inoo noqdaa tiro (Index must be a number)")
  * 
  *         if not isinstance(index, (int, float)):             # <<<<<<<<<<<<<<
  *             raise TypeError(
- *                 "Index waa inuu noqdaa tiro (Index must be a number)")
+ *                 "Index waa inoo noqdaa tiro (Index must be a number)")
  */
   __pyx_t_1 = PyInt_Check(__pyx_v_index); 
   if (!__pyx_t_1) {
@@ -7006,7 +7006,7 @@ static PyObject *__pyx_pf_3src_8builtins_15SoplangBuiltins_24list_set(CYTHON_UNU
  * 
  *         if not isinstance(index, (int, float)):
  *             raise TypeError(             # <<<<<<<<<<<<<<
- *                 "Index waa inuu noqdaa tiro (Index must be a number)")
+ *                 "Index waa inoo noqdaa tiro (Index must be a number)")
  * 
  */
     __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_TypeError); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 174, __pyx_L1_error)
@@ -7026,7 +7026,7 @@ static PyObject *__pyx_pf_3src_8builtins_15SoplangBuiltins_24list_set(CYTHON_UNU
     }
     #endif
     {
-      PyObject *__pyx_callargs[2] = {__pyx_t_5, __pyx_kp_u_Index_waa_inuu_noqdaa_tiro_Index};
+      PyObject *__pyx_callargs[2] = {__pyx_t_5, __pyx_kp_u_Index_waa_inoo_noqdaa_tiro_Index};
       __pyx_t_3 = __Pyx_PyObject_FastCall(__pyx_t_4, __pyx_callargs+1-__pyx_t_6, 1+__pyx_t_6);
       __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
       if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 174, __pyx_L1_error)
@@ -7038,16 +7038,16 @@ static PyObject *__pyx_pf_3src_8builtins_15SoplangBuiltins_24list_set(CYTHON_UNU
     __PYX_ERR(0, 174, __pyx_L1_error)
 
     /* "src/builtins.py":173
- *                     "Index waa inuu noqdaa tiro (Index must be a number)")
+ *                     "Index waa inoo noqdaa tiro (Index must be a number)")
  * 
  *         if not isinstance(index, (int, float)):             # <<<<<<<<<<<<<<
  *             raise TypeError(
- *                 "Index waa inuu noqdaa tiro (Index must be a number)")
+ *                 "Index waa inoo noqdaa tiro (Index must be a number)")
  */
   }
 
   /* "src/builtins.py":177
- *                 "Index waa inuu noqdaa tiro (Index must be a number)")
+ *                 "Index waa inoo noqdaa tiro (Index must be a number)")
  * 
  *         index = int(index)  # Convert float to int if needed             # <<<<<<<<<<<<<<
  * 
@@ -8206,7 +8206,7 @@ static PyObject *__pyx_pf_3src_8builtins_get_builtin_functions(CYTHON_UNUSED PyO
  *     builtins = {
  *         "bandhig": SoplangBuiltins.bandhig,             # <<<<<<<<<<<<<<
  *         "akhri": SoplangBuiltins.akhri,
- *         "nuuc": SoplangBuiltins.nuuc,
+ *         "nooc": SoplangBuiltins.nooc,
  */
   __pyx_t_1 = __Pyx_PyDict_NewPresized(8); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 236, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
@@ -8222,7 +8222,7 @@ static PyObject *__pyx_pf_3src_8builtins_get_builtin_functions(CYTHON_UNUSED PyO
  *     builtins = {
  *         "bandhig": SoplangBuiltins.bandhig,
  *         "akhri": SoplangBuiltins.akhri,             # <<<<<<<<<<<<<<
- *         "nuuc": SoplangBuiltins.nuuc,
+ *         "nooc": SoplangBuiltins.nooc,
  *         "tiro": SoplangBuiltins.tiro,
  */
   __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_SoplangBuiltins); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 237, __pyx_L1_error)
@@ -8236,21 +8236,21 @@ static PyObject *__pyx_pf_3src_8builtins_get_builtin_functions(CYTHON_UNUSED PyO
   /* "src/builtins.py":238
  *         "bandhig": SoplangBuiltins.bandhig,
  *         "akhri": SoplangBuiltins.akhri,
- *         "nuuc": SoplangBuiltins.nuuc,             # <<<<<<<<<<<<<<
+ *         "nooc": SoplangBuiltins.nooc,             # <<<<<<<<<<<<<<
  *         "tiro": SoplangBuiltins.tiro,
  *         "qoraal": SoplangBuiltins.qoraal,
  */
   __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_SoplangBuiltins); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 238, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_nuuc); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 238, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_nooc); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 238, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_u_nuuc, __pyx_t_3) < 0) __PYX_ERR(0, 236, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_u_nooc, __pyx_t_3) < 0) __PYX_ERR(0, 236, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
   /* "src/builtins.py":239
  *         "akhri": SoplangBuiltins.akhri,
- *         "nuuc": SoplangBuiltins.nuuc,
+ *         "nooc": SoplangBuiltins.nooc,
  *         "tiro": SoplangBuiltins.tiro,             # <<<<<<<<<<<<<<
  *         "qoraal": SoplangBuiltins.qoraal,
  *         "labadaran": SoplangBuiltins.labadaran,
@@ -8264,7 +8264,7 @@ static PyObject *__pyx_pf_3src_8builtins_get_builtin_functions(CYTHON_UNUSED PyO
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
   /* "src/builtins.py":240
- *         "nuuc": SoplangBuiltins.nuuc,
+ *         "nooc": SoplangBuiltins.nooc,
  *         "tiro": SoplangBuiltins.tiro,
  *         "qoraal": SoplangBuiltins.qoraal,             # <<<<<<<<<<<<<<
  *         "labadaran": SoplangBuiltins.labadaran,
@@ -8601,7 +8601,7 @@ static int __Pyx_CreateStringTabAndInitStrings(void) {
     {&__pyx_kp_u_, __pyx_k_, sizeof(__pyx_k_), 0, 1, 0, 0},
     {&__pyx_n_u_False, __pyx_k_False, sizeof(__pyx_k_False), 0, 1, 0, 1},
     {&__pyx_kp_u_Index, __pyx_k_Index, sizeof(__pyx_k_Index), 0, 1, 0, 0},
-    {&__pyx_kp_u_Index_waa_inuu_noqdaa_tiro_Index, __pyx_k_Index_waa_inuu_noqdaa_tiro_Index, sizeof(__pyx_k_Index_waa_inuu_noqdaa_tiro_Index), 0, 1, 0, 0},
+    {&__pyx_kp_u_Index_waa_inoo_noqdaa_tiro_Index, __pyx_k_Index_waa_inoo_noqdaa_tiro_Index, sizeof(__pyx_k_Index_waa_inoo_noqdaa_tiro_Index), 0, 1, 0, 0},
     {&__pyx_kp_u_Ma_saari_kartid_liis_madhan_Cann, __pyx_k_Ma_saari_kartid_liis_madhan_Cann, sizeof(__pyx_k_Ma_saari_kartid_liis_madhan_Cann), 0, 1, 0, 0},
     {&__pyx_kp_u_Qiimahu_ma_ahan_liis_Value_is_no, __pyx_k_Qiimahu_ma_ahan_liis_Value_is_no, sizeof(__pyx_k_Qiimahu_ma_ahan_liis_Value_is_no), 0, 1, 0, 0},
     {&__pyx_kp_u_Qiimahu_ma_ahan_shey_Value_is_no, __pyx_k_Qiimahu_ma_ahan_shey_Value_is_no, sizeof(__pyx_k_Qiimahu_ma_ahan_shey_Value_is_no), 0, 1, 0, 0},
@@ -8614,7 +8614,7 @@ static int __Pyx_CreateStringTabAndInitStrings(void) {
     {&__pyx_n_s_SoplangBuiltins_list_pop, __pyx_k_SoplangBuiltins_list_pop, sizeof(__pyx_k_SoplangBuiltins_list_pop), 0, 0, 1, 1},
     {&__pyx_n_s_SoplangBuiltins_list_push, __pyx_k_SoplangBuiltins_list_push, sizeof(__pyx_k_SoplangBuiltins_list_push), 0, 0, 1, 1},
     {&__pyx_n_s_SoplangBuiltins_list_set, __pyx_k_SoplangBuiltins_list_set, sizeof(__pyx_k_SoplangBuiltins_list_set), 0, 0, 1, 1},
-    {&__pyx_n_s_SoplangBuiltins_nuuc, __pyx_k_SoplangBuiltins_nuuc, sizeof(__pyx_k_SoplangBuiltins_nuuc), 0, 0, 1, 1},
+    {&__pyx_n_s_SoplangBuiltins_nooc, __pyx_k_SoplangBuiltins_nooc, sizeof(__pyx_k_SoplangBuiltins_nooc), 0, 0, 1, 1},
     {&__pyx_n_s_SoplangBuiltins_object_get, __pyx_k_SoplangBuiltins_object_get, sizeof(__pyx_k_SoplangBuiltins_object_get), 0, 0, 1, 1},
     {&__pyx_n_s_SoplangBuiltins_object_has, __pyx_k_SoplangBuiltins_object_has, sizeof(__pyx_k_SoplangBuiltins_object_has), 0, 0, 1, 1},
     {&__pyx_n_s_SoplangBuiltins_object_keys, __pyx_k_SoplangBuiltins_object_keys, sizeof(__pyx_k_SoplangBuiltins_object_keys), 0, 0, 1, 1},
@@ -8683,8 +8683,8 @@ static int __Pyx_CreateStringTabAndInitStrings(void) {
     {&__pyx_n_s_methods, __pyx_k_methods, sizeof(__pyx_k_methods), 0, 0, 1, 1},
     {&__pyx_n_s_module, __pyx_k_module, sizeof(__pyx_k_module), 0, 0, 1, 1},
     {&__pyx_n_s_name, __pyx_k_name, sizeof(__pyx_k_name), 0, 0, 1, 1},
-    {&__pyx_n_s_nuuc, __pyx_k_nuuc, sizeof(__pyx_k_nuuc), 0, 0, 1, 1},
-    {&__pyx_n_u_nuuc, __pyx_k_nuuc, sizeof(__pyx_k_nuuc), 0, 1, 0, 1},
+    {&__pyx_n_s_nooc, __pyx_k_nooc, sizeof(__pyx_k_nooc), 0, 0, 1, 1},
+    {&__pyx_n_u_nooc, __pyx_k_nooc, sizeof(__pyx_k_nooc), 0, 1, 0, 1},
     {&__pyx_n_s_obj, __pyx_k_obj, sizeof(__pyx_k_obj), 0, 0, 1, 1},
     {&__pyx_n_s_object_get, __pyx_k_object_get, sizeof(__pyx_k_object_get), 0, 0, 1, 1},
     {&__pyx_n_s_object_has, __pyx_k_object_has, sizeof(__pyx_k_object_has), 0, 0, 1, 1},
@@ -8767,13 +8767,13 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  *         return input(prompt)
  * 
  *     @staticmethod             # <<<<<<<<<<<<<<
- *     def nuuc(value):
+ *     def nooc(value):
  *         """
  */
   __pyx_tuple__18 = PyTuple_Pack(1, __pyx_n_s_value); if (unlikely(!__pyx_tuple__18)) __PYX_ERR(0, 20, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__18);
   __Pyx_GIVEREF(__pyx_tuple__18);
-  __pyx_codeobj__19 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_src_builtins_py, __pyx_n_s_nuuc, 20, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__19)) __PYX_ERR(0, 20, __pyx_L1_error)
+  __pyx_codeobj__19 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_src_builtins_py, __pyx_n_s_nooc, 20, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__19)) __PYX_ERR(0, 20, __pyx_L1_error)
 
   /* "src/builtins.py":40
  *             return "aan la aqoon"
@@ -9402,15 +9402,15 @@ if (!__Pyx_RefNanny) {
  *         return input(prompt)
  * 
  *     @staticmethod             # <<<<<<<<<<<<<<
- *     def nuuc(value):
+ *     def nooc(value):
  *         """
  */
-  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_3src_8builtins_15SoplangBuiltins_5nuuc, __Pyx_CYFUNCTION_STATICMETHOD, __pyx_n_s_SoplangBuiltins_nuuc, NULL, __pyx_n_s_src_builtins, __pyx_d, ((PyObject *)__pyx_codeobj__19)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 20, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_3src_8builtins_15SoplangBuiltins_5nooc, __Pyx_CYFUNCTION_STATICMETHOD, __pyx_n_s_SoplangBuiltins_nooc, NULL, __pyx_n_s_src_builtins, __pyx_d, ((PyObject *)__pyx_codeobj__19)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 20, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_staticmethod, __pyx_t_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 20, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_nuuc, __pyx_t_4) < 0) __PYX_ERR(0, 20, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_nooc, __pyx_t_4) < 0) __PYX_ERR(0, 20, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
   /* "src/builtins.py":40

@@ -9,7 +9,7 @@ This directory contains various test examples for the Soplang programming langua
    * String concatenation
    * Printing boolean values
 
-2. **02_user_input.so** - Tests the user input functionality using the `akhri()` function.
+2. **02_user_input.so** - Tests the user input functionality using the `gelin()` function.
    * Reading user input and storing in variables
    * Converting input strings to numbers
    * Using input in expressions
@@ -25,12 +25,12 @@ This directory contains various test examples for the Soplang programming langua
    * Loops with break statements (`jooji`)
    * Loops with continue statements (`soco`)
    * Nested loops
-   * While loops simulation (`inta_ay`)
+   * While loops simulation (`intay`)
 
 5. **05_dynamic_typing.so** - Tests dynamic typing using the `door` keyword.
    * Variable initialization with different types
    * Type changes during runtime
-   * Type checking with `nuuc()`
+   * Type checking with `nooc()`
    * Using dynamic types in expressions
 
 6. **06_static_typing.so** - Tests static typing using type-specific keywords.
@@ -43,7 +43,7 @@ This directory contains various test examples for the Soplang programming langua
 7. **07_functions.so** - Tests function definitions and calls.
    * Functions with no parameters
    * Functions with parameters
-   * Functions with return values (`soo_celi`)
+   * Functions with return values (`celi`)
    * Conditional returns
    * Nested function calls
 

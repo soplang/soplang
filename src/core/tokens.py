@@ -7,12 +7,12 @@ class TokenType(Enum):
     HAWL = "hawl"
     CELI = "celi"
     BANDHIG = "bandhig"
-    AKHRI = "akhri"
+    GELIN = "gelin"
     HADDII = "haddii"
     HADDII_KALE = "haddii_kale"
     HADDII_KALENA = "haddii_kalena"
     kuceli = "kuceli"
-    INTA_AY = "inta_ay"
+    INTAY = "intay"
     JOOJI = "jooji"        # break
     soco = "soco"    # continue
     ISKU_DAY = "isku_day"  # try
@@ -28,7 +28,7 @@ class TokenType(Enum):
     QORAAL = "qoraal"      # string
     BOOL = "bool"  # boolean
     LIIS = "liis"          # list
-    SHEY = "shey"          # object/dict
+    WALAX = "walax"          # object/dict
 
     # Data & Operators
     IDENTIFIER = "IDENTIFIER"

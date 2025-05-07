@@ -57,14 +57,14 @@ docker run --rm -v "$(pwd):/scripts" soplang:latest examples/XX_example_name.so
 
 **Key Concepts**:
 - Dynamic variables can change type during execution
-- The `nuuc()` function shows the current type of a variable
+- The `nooc()` function shows the current type of a variable
 
 ### 02_static_typing.so
 
 **Purpose**: Demonstrates Soplang's static typing system with type-specific keywords.
 
 **Features Tested**:
-- Static variable declaration with `tiro`, `qoraal`, `bool`, `liis`, and `shey`
+- Static variable declaration with `tiro`, `qoraal`, `bool`, `liis`, and `walax`
 - Type enforcement at runtime
 - Error handling for type violations
 
@@ -211,7 +211,7 @@ docker run --rm -v "$(pwd):/scripts" soplang:latest examples/XX_example_name.so
 - List creation and initialization
 - Accessing elements by index
 - Modifying elements
-- List methods: `kudar` (push), `kasaar` (pop), `dherer` (length), `iskuxir` (concat), `leeyahay` (contains)
+- List methods: `kudar` (push), `kasaar` (pop), `dherer` (length), `kudar` (concat), `leeyahay` (contains)
 - List iteration
 - Nested lists
 
@@ -250,11 +250,11 @@ docker run --rm -v "$(pwd):/scripts" soplang:latest examples/XX_example_name.so
 - Boolean to number/string conversion
 - List to string conversion
 - Object to string conversion
-- Type detection with `nuuc()`
+- Type detection with `nooc()`
 
 **Key Concepts**:
 - The type conversion functions (`tiro`, `qoraal`, `bool`) convert values between types
-- The `nuuc()` function returns the type of a value as a string
+- The `nooc()` function returns the type of a value as a string
 
 ### 14_comparison_assignment.so
 
@@ -272,16 +272,16 @@ docker run --rm -v "$(pwd):/scripts" soplang:latest examples/XX_example_name.so
 
 ### 15_user_input.so
 
-**Purpose**: Demonstrates user input in Soplang using the `akhri` function.
+**Purpose**: Demonstrates user input in Soplang using the `gelin` function.
 
 **Features Tested**:
-- Basic input with `akhri`
+- Basic input with `gelin`
 - Displaying prompts
 - Processing user input
-- Type checking input with `nuuc()`
+- Type checking input with `nooc()`
 
 **Key Concepts**:
-- The `akhri` function gets input from the user
+- The `gelin` function gets input from the user
 - Input is always returned as a string
 - Input can be converted to other types as needed
 

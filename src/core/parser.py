@@ -51,12 +51,12 @@ class Parser:
             TokenType.HADDII_KALE: "keyword 'haddii_kale' (else if)",
             TokenType.HADDII_KALENA: "keyword 'haddii_kalena' (else)",
             TokenType.kuceli: "keyword 'kuceli' (for)",
-            TokenType.INTA_AY: "keyword 'inta_ay' (while)",
+            TokenType.INTAY: "keyword 'intay' (while)",
             TokenType.TIRO: "keyword 'tiro' (number type)",
             TokenType.QORAAL: "keyword 'qoraal' (string type)",
             TokenType.BOOL: "keyword 'bool' (boolean type)",
             TokenType.LIIS: "keyword 'liis' (list type)",
-            TokenType.SHEY: "keyword 'shey' (object type)",
+            TokenType.WALAX: "keyword 'walax' (object type)",
         }
 
         return token_descriptions.get(token_type, str(token_type))
@@ -111,16 +111,15 @@ class Parser:
             TokenType.QORAAL,
             TokenType.BOOL,
             TokenType.LIIS,
-            TokenType.SHEY,
+            TokenType.WALAX,
         ):
             return self.parse_variable_declaration(is_static=True)
 
         # Handle variable declaration with dynamic typing (door)
         elif token_type == TokenType.DOOR:
             return self.parse_variable_declaration(is_static=False)
-
         # Handle function definition (hawl)
-        elif token_type == TokenType.hawl:
+        elif token_type == TokenType.HAWL:
             return self.parse_function_definition()
 
         # Handle return statement (celi)
@@ -140,7 +139,7 @@ class Parser:
             )
 
         # Handle function calls
-        elif token_type == TokenType.BANDHIG or token_type == TokenType.AKHRI:
+        elif token_type == TokenType.BANDHIG or token_type == TokenType.GELIN:
             return self.parse_function_call()
 
         # Handle loops
@@ -148,7 +147,7 @@ class Parser:
             return self.parse_loop_statement()
 
         # Handle while loop
-        elif token_type == TokenType.INTA_AY:
+        elif token_type == TokenType.INTAY:
             return self.parse_while_statement()
 
         # Handle break statement
@@ -365,7 +364,7 @@ class Parser:
         )
 
     # -----------------------------
-    #  Function calls: bandhig("Hi") or akhri("Enter name:")
+    #  Function calls: bandhig("Hi") or gelin("Enter name:")
     # -----------------------------
     def parse_function_call(self):
         """Parse a function call like 'bandhig("Hello")'"""
@@ -375,12 +374,12 @@ class Parser:
             self.current_token.type
             not in (
                 TokenType.BANDHIG,
-                TokenType.AKHRI,
+                TokenType.GELIN,
                 TokenType.QORAAL,
                 TokenType.TIRO,
                 TokenType.BOOL,
                 TokenType.LIIS,
-                TokenType.SHEY,
+                TokenType.WALAX,
             )
         ):
             raise ParserError(
@@ -511,10 +510,10 @@ class Parser:
         return ASTNode(NodeType.LOOP_STATEMENT, value=loop_var, children=children)
 
     # -----------------------------
-    #  While loop: inta_ay (condition) { ... }
+    #  While loop: intay (condition) { ... }
     # -----------------------------
     def parse_while_statement(self):
-        self.expect(TokenType.INTA_AY)
+        self.expect(TokenType.INTAY)
         self.expect(TokenType.LEFT_PAREN)
         condition = self.parse_logical_expression()
         self.expect(TokenType.RIGHT_PAREN)
@@ -804,7 +803,7 @@ class Parser:
             return ASTNode(NodeType.LITERAL, value=None)
         elif token.type == TokenType.IDENTIFIER or token.type in (
             TokenType.QORAAL, TokenType.TIRO, TokenType.BOOL, TokenType.LIIS, TokenType.SHEY,
-            TokenType.BANDHIG, TokenType.AKHRI  # Added QOR and AKHRI to handle them in expressions
+            TokenType.BANDHIG, TokenType.GELIN  # Added QOR and GELIN to handle them in expressions
         ):
             # Allow type names to be used as function names
             token_value = token.value if token.type == TokenType.IDENTIFIER else token.type.value
