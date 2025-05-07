@@ -92,7 +92,7 @@ ElseClause ::= "haddii_kalena" Block
 ```ebnf
 LoopStatement ::= "kuceli" Identifier "min" Expression "ilaa" Expression ["by" Expression] Block
 
-WhileStatement ::= "inta_ay" "(" Expression ")" Block
+WhileStatement ::= "intay" "(" Expression ")" Block
 
 BreakStatement ::= "jooji"
 

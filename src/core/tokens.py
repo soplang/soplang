@@ -12,7 +12,7 @@ class TokenType(Enum):
     HADDII_KALE = "haddii_kale"
     HADDII_KALENA = "haddii_kalena"
     kuceli = "kuceli"
-    INTA_AY = "inta_ay"
+    INTAY = "intay"
     JOOJI = "jooji"        # break
     soco = "soco"    # continue
     ISKU_DAY = "isku_day"  # try

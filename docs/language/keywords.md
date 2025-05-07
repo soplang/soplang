@@ -27,7 +27,7 @@ This document provides a reference for all keywords in the Soplang programming l
 | Keyword   | Meaning             | English Equivalent | Example                                 |
 | --------- | ------------------- | ------------------ | --------------------------------------- |
 | `kuceli` | For loop            | `for`              | `kuceli i min 1 ilaa 5 { bandhig(i) }`     |
-| `inta_ay` | While loop          | `while`            | `inta_ay (x < 5) { bandhig(x); x = x + 1 }` |
+| `intay` | While loop          | `while`            | `intay (x < 5) { bandhig(x); x = x + 1 }` |
 | `jooji`   | Break statement     | `break`            | `haddii (x == 3) { jooji }`             |
 | `soco` | Continue statement  | `continue`         | `haddii (x == 3) { soco }`           |
 | `min`     | From (in for loops) | `from`             | `kuceli i min 1 ilaa 5 { bandhig(i) }`     |

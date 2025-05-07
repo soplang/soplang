@@ -51,7 +51,7 @@ class Parser:
             TokenType.HADDII_KALE: "keyword 'haddii_kale' (else if)",
             TokenType.HADDII_KALENA: "keyword 'haddii_kalena' (else)",
             TokenType.kuceli: "keyword 'kuceli' (for)",
-            TokenType.INTA_AY: "keyword 'inta_ay' (while)",
+            TokenType.INTAY: "keyword 'intay' (while)",
             TokenType.TIRO: "keyword 'tiro' (number type)",
             TokenType.QORAAL: "keyword 'qoraal' (string type)",
             TokenType.BOOL: "keyword 'bool' (boolean type)",
@@ -147,7 +147,7 @@ class Parser:
             return self.parse_loop_statement()
 
         # Handle while loop
-        elif token_type == TokenType.INTA_AY:
+        elif token_type == TokenType.INTAY:
             return self.parse_while_statement()
 
         # Handle break statement
@@ -510,10 +510,10 @@ class Parser:
         return ASTNode(NodeType.LOOP_STATEMENT, value=loop_var, children=children)
 
     # -----------------------------
-    #  While loop: inta_ay (condition) { ... }
+    #  While loop: intay (condition) { ... }
     # -----------------------------
     def parse_while_statement(self):
-        self.expect(TokenType.INTA_AY)
+        self.expect(TokenType.INTAY)
         self.expect(TokenType.LEFT_PAREN)
         condition = self.parse_logical_expression()
         self.expect(TokenType.RIGHT_PAREN)
