@@ -27,14 +27,14 @@ This document provides a reference for all keywords in the Soplang programming l
 
 ## Loop Keywords
 
-| Keyword  | Meaning             | English Equivalent | Example                                   |
-| -------- | ------------------- | ------------------ | ----------------------------------------- |
-| `kuceli` | For loop            | `for`              | `kuceli i min 1 ilaa 5 { bandhig(i) }`    |
-| `intay`  | While loop          | `while`            | `intay (x < 5) { bandhig(x); x = x + 1 }` |
-| `jooji`  | Break statement     | `break`            | `haddii (x == 3) { jooji }`               |
-| `soco`   | Continue statement  | `continue`         | `haddii (x == 3) { soco }`                |
-| `min`    | From (in for loops) | `from`             | `kuceli i min 1 ilaa 5 { bandhig(i) }`    |
-| `ilaa`   | To (in for loops)   | `to`               | `kuceli i min 1 ilaa 5 { bandhig(i) }`    |
+| Somali Keyword | English Equivalent | Description             | Example                                    |
+| -------------- | ------------------ | ----------------------- | ------------------------------------------ |
+| `kuceli`       | `for`              | For loop                | `kuceli (i 1 ilaa 5) { bandhig(i) }`       |
+| `ilaa`         | `to`               | Loop range end          | `kuceli (i 1 ilaa 5) { bandhig(i) }`       |
+| `::`           | `step`             | Loop increment step     | `kuceli (i 1 ilaa 10 :: 2) { bandhig(i) }` |
+| `intay`        | `while`            | While loop              | `intay (x < 5) { bandhig(x) }`             |
+| `jooji`        | `break`            | Exit from a loop        | `haddii (x == 3) { jooji }`                |
+| `soco`         | `continue`         | Skip one loop iteration | `haddii (x == 3) { soco }`                 |
 
 ## Function Keywords
 
@@ -68,32 +68,43 @@ This document provides a reference for all keywords in the Soplang programming l
 
 ## Special Values
 
-| Value   | Meaning       | English Equivalent | Example              |
-| ------- | ------------- | ------------------ | -------------------- |
-| `run`   | Boolean true  | `true`             | `bool check = run`   |
-| `been`  | Boolean false | `false`            | `bool check = been`  |
-| `maran` | Null value    | `null`             | `door empty = maran` |
+| Somali Value | English Equivalent | Description         | Example                  |
+| ------------ | ------------------ | ------------------- | ------------------------ |
+| `run`        | `true`             | Boolean true value  | `haddii (run) { ... }`   |
+| `been`       | `false`            | Boolean false value | `haddii (!been) { ... }` |
+| `maran`      | `null`             | Empty/null value    | `door val = maran`       |
+
+## Data Types
+
+| Somali Type | English Equivalent | Description     | Example                          |
+| ----------- | ------------------ | --------------- | -------------------------------- |
+| `tiro`      | `int`/`number`     | Integer numbers | `tiro age = 25`                  |
+| `jajab`     | `float`/`decimal`  | Decimal numbers | `jajab pi = 3.14`                |
+| `qoraal`    | `string`           | Text values     | `qoraal name = "Ahmed"`          |
+| `bool`      | `boolean`          | Truth values    | `bool isValid = run`             |
+| `liis`      | `list`/`array`     | List of items   | `liis numbers = [1, 2, 3]`       |
+| `walax`     | `object`           | Key-value pairs | `walax person = { name: "Ali" }` |
 
 ## Operators
 
-| Operator | Meaning                  | English Equivalent | Example                                    |
-| -------- | ------------------------ | ------------------ | ------------------------------------------ |
-| `+`      | Addition                 | `+`                | `x = a + b`                                |
-| `-`      | Subtraction              | `-`                | `x = a - b`                                |
-| `*`      | Multiplication           | `*`                | `x = a * b`                                |
-| `/`      | Division                 | `/`                | `x = a / b`                                |
-| `%`      | Modulus                  | `%`                | `x = a % b`                                |
-| `==`     | Equal to                 | `==`               | `haddii (a == b) { /* code */ }`           |
-| `!=`     | Not equal to             | `!=`               | `haddii (a != b) { /* code */ }`           |
-| `>`      | Greater than             | `>`                | `haddii (a > b) { /* code */ }`            |
-| `<`      | Less than                | `<`                | `haddii (a < b) { /* code */ }`            |
-| `>=`     | Greater than or equal to | `>=`               | `haddii (a >= b) { /* code */ }`           |
-| `<=`     | Less than or equal to    | `<=`               | `haddii (a <= b) { /* code */ }`           |
-| `&&`     | Logical AND              | `&&`               | `haddii (a > 0 && b > 0) { /* code */ }`   |
-| `\|\|`   | Logical OR               | `\|\|`             | `haddii (a > 0 \|\| b > 0) { /* code */ }` |
-| `!`      | Logical NOT              | `!`                | `haddii (!waaRun) { /* code */ }`          |
+| Somali Operator | English Equivalent | Description              | Example                   |
+| --------------- | ------------------ | ------------------------ | ------------------------- |
+| `+`             | `+`                | Addition                 | `x = a + b`               |
+| `-`             | `-`                | Subtraction              | `x = a - b`               |
+| `*`             | `*`                | Multiplication           | `x = a * b`               |
+| `/`             | `/`                | Division                 | `x = a / b`               |
+| `%`             | `%`                | Modulo                   | `x = a % b`               |
+| `==`            | `==`               | Equal to                 | `haddii (a == b) {...}`   |
+| `!=`            | `!=`               | Not equal to             | `haddii (a != b) {...}`   |
+| `>`             | `>`                | Greater than             | `haddii (a > b) {...}`    |
+| `<`             | `<`                | Less than                | `haddii (a < b) {...}`    |
+| `>=`            | `>=`               | Greater than or equal to | `haddii (a >= b) {...}`   |
+| `<=`            | `<=`               | Less than or equal to    | `haddii (a <= b) {...}`   |
+| `&&`            | `&&`               | Logical AND              | `haddii (a && b) {...}`   |
+| `\|\|`          | `\|\|`             | Logical OR               | `haddii (a \|\| b) {...}` |
+| `!`             | `!`                | Logical NOT              | `haddii (!a) {...}`       |
 
-> **Note:** Soplang supports the use of comparison operators directly in expressions without requiring additional parentheses. For example, you can write `door result = x > 10` or `dooro (score >= 90)` instead of needing to write them with extra parentheses.
+> **Note:** Soplang supports the use of comparison operators directly in expressions without requiring additional parentheses. For example, `door x = a > b` is valid syntax to store the result of a comparison in a variable.
 
 ## Built-in Functions
 
@@ -110,22 +121,22 @@ This document provides a reference for all keywords in the Soplang programming l
 
 ## List Methods
 
-| Method     | Meaning              | English Equivalent  | Example                               |
-| ---------- | -------------------- | ------------------- | ------------------------------------- |
-| `kudar`    | Add item to list     | `push/append`       | `myList.kudar(newItem)`               |
-| `kasaar`   | Remove last item     | `pop`               | `door lastItem = myList.kasaar()`     |
-| `dherer`   | Get list length      | `length/size`       | `door size = myList.dherer()`         |
-| `kudar`    | Concatenate lists    | `concat`            | `door combined = list1.kudar(list2)`  |
-| `leeyahay` | Check if item exists | `contains/includes` | `door exists = myList.leeyahay(item)` |
+| Method        | English Equivalent        | Description                 | Example                           |
+| ------------- | ------------------------- | --------------------------- | --------------------------------- |
+| `dherer()`    | `length()`                | Get list length             | `numbers.dherer()`                |
+| `kudar()`     | `push()` or `append()`    | Add item to end             | `numbers.kudar(5)`                |
+| `kasaar()`    | `pop()`                   | Remove and return last item | `door last = numbers.kasaar()`    |
+| `kudar(liis)` | `concat()`                | Concatenate lists           | `door all = list1.kudar(list2)`   |
+| `leeyahay(x)` | `contains()`/`includes()` | Check if item exists        | `haddii (list.leeyahay(x)) {...}` |
 
 ## Object Methods
 
-| Method     | Meaning             | English Equivalent   | Example                                |
-| ---------- | ------------------- | -------------------- | -------------------------------------- |
-| `fure`     | Get object keys     | `keys`               | `door keys = myObj.fure()`             |
-| `leeyahay` | Check if key exists | `has/hasOwnProperty` | `door exists = myObj.leeyahay("name")` |
-| `tirtir`   | Remove property     | `delete`             | `myObj.tirtir("oldProp")`              |
-| `kudar`    | Merge objects       | `merge/assign`       | `door merged = obj1.kudar(obj2)`       |
+| Method        | English Equivalent   | Description           | Example                               |
+| ------------- | -------------------- | --------------------- | ------------------------------------- |
+| `fure()`      | `keys()`             | Get all keys          | `door keys = obj.fure()`              |
+| `leeyahay(x)` | `hasOwnProperty()`   | Check if key exists   | `haddii (obj.leeyahay("name")) {...}` |
+| `tirtir(x)`   | `delete property`    | Delete a property     | `obj.tirtir("oldProp")`               |
+| `kudar(obj)`  | `merge()`/`assign()` | Merge/copy properties | `door merged = obj1.kudar(obj2)`      |
 
 ## Error Message Terminology
 
