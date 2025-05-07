@@ -49,11 +49,11 @@ DynamicDeclaration ::= "door" Identifier "=" Expression
 StaticDeclaration ::= StaticType Identifier "=" Expression
 
 StaticType ::= "tiro"      // Number
+             | "jajab"     // Decimal/Float
              | "qoraal"    // String
-             | "bool
-             " // Boolean
+             | "bool"      // Boolean
              | "liis"      // List/Array
-             | "shey"      // Object
+             | "walax"     // Object
 ```
 
 ## Function Declarations
@@ -117,7 +117,7 @@ dooro (language) {
 ## Loops
 
 ```ebnf
-LoopStatement ::= "kuceli" Identifier "min" Expression "ilaa" Expression ["by" Expression] Block
+LoopStatement ::= "kuceli" "(" Identifier Expression "ilaa" Expression ["::" Expression] ")" Block
 
 WhileStatement ::= "intay" "(" Expression ")" Block
 
