@@ -11,6 +11,8 @@ class TokenType(Enum):
     HADDII = "haddii"
     HADDII_KALE = "haddii_kale"
     UGUDAMBEYN = "ugudambeyn"
+    DOORO = "dooro"  # switch
+    XAALAD = "xaalad"  # case
     kuceli = "kuceli"
     INTAY = "intay"
     JOOJI = "jooji"  # break

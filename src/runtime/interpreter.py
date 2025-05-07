@@ -3,10 +3,10 @@ import os
 from src.core.ast import ASTNode, NodeType
 from src.core.tokens import TokenType
 from src.stdlib.builtins import (
+    SoplangBuiltins,
     get_builtin_functions,
     get_list_methods,
     get_object_methods,
-    SoplangBuiltins,
 )
 from src.utils.errors import (
     BreakSignal,
@@ -56,6 +56,8 @@ class Interpreter:
             return self.execute_function_call(node)
         elif node.type == NodeType.IF_STATEMENT:
             return self.execute_if_statement(node)
+        elif node.type == NodeType.SWITCH_STATEMENT:
+            return self.execute_switch_statement(node)
         elif node.type == NodeType.LOOP_STATEMENT:
             return self.execute_loop_statement(node)
         elif node.type == NodeType.WHILE_STATEMENT:
@@ -83,10 +85,15 @@ class Interpreter:
         elif node.type == NodeType.ASSIGNMENT:
             return self.execute_assignment(node)
         # Handle expressions that might be statements
-        elif node.type in (NodeType.BINARY_OPERATION, NodeType.UNARY_OPERATION,
-                           NodeType.PROPERTY_ACCESS, NodeType.METHOD_CALL,
-                           NodeType.INDEX_ACCESS, NodeType.IDENTIFIER,
-                           NodeType.LITERAL):
+        elif node.type in (
+            NodeType.BINARY_OPERATION,
+            NodeType.UNARY_OPERATION,
+            NodeType.PROPERTY_ACCESS,
+            NodeType.METHOD_CALL,
+            NodeType.INDEX_ACCESS,
+            NodeType.IDENTIFIER,
+            NodeType.LITERAL,
+        ):
             # Just evaluate the expression and discard the result
             self.evaluate(node)
             return None
@@ -117,53 +124,63 @@ class Interpreter:
     def validate_type(self, var_name, value, expected_type, node=None):
         """Validates that the value matches the expected static type"""
         # Get line and position from node if available
-        line = getattr(node, 'line', None)
-        position = getattr(node, 'position', None)
+        line = getattr(node, "line", None)
+        position = getattr(node, "position", None)
 
         if expected_type == TokenType.TIRO:
             if not isinstance(value, (int, float)):
-                raise TypeError("type_mismatch",
-                                var_name=var_name,
-                                value=value,
-                                expected_type="tiro",
-                                line=line,
-                                position=position)
+                raise TypeError(
+                    "type_mismatch",
+                    var_name=var_name,
+                    value=value,
+                    expected_type="tiro",
+                    line=line,
+                    position=position,
+                )
 
         elif expected_type == TokenType.QORAAL:
             if not isinstance(value, str):
-                raise TypeError("type_mismatch",
-                                var_name=var_name,
-                                value=value,
-                                expected_type="qoraal",
-                                line=line,
-                                position=position)
+                raise TypeError(
+                    "type_mismatch",
+                    var_name=var_name,
+                    value=value,
+                    expected_type="qoraal",
+                    line=line,
+                    position=position,
+                )
 
         elif expected_type == TokenType.BOOL:
             if not isinstance(value, bool):
-                raise TypeError("type_mismatch",
-                                var_name=var_name,
-                                value=value,
-                                expected_type="bool",
-                                line=line,
-                                position=position)
+                raise TypeError(
+                    "type_mismatch",
+                    var_name=var_name,
+                    value=value,
+                    expected_type="bool",
+                    line=line,
+                    position=position,
+                )
 
         elif expected_type == TokenType.LIIS:
             if not isinstance(value, list):
-                raise TypeError("type_mismatch",
-                                var_name=var_name,
-                                value=value,
-                                expected_type="liis",
-                                line=line,
-                                position=position)
+                raise TypeError(
+                    "type_mismatch",
+                    var_name=var_name,
+                    value=value,
+                    expected_type="liis",
+                    line=line,
+                    position=position,
+                )
 
         elif expected_type == TokenType.WALAX:
             if not isinstance(value, dict):
-                raise TypeError("type_mismatch",
-                                var_name=var_name,
-                                value=value,
-                                expected_type="walax",
-                                line=line,
-                                position=position)
+                raise TypeError(
+                    "type_mismatch",
+                    var_name=var_name,
+                    value=value,
+                    expected_type="walax",
+                    line=line,
+                    position=position,
+                )
 
     # -----------------------------
     #  Variable Assignment
@@ -171,15 +188,17 @@ class Interpreter:
     def assign_variable(self, var_name, value, line=None, position=None):
         """Assign a value to a variable, with type checking if it's statically typed"""
         if var_name not in self.variables:
-            raise RuntimeError("undefined_variable", name=var_name,
-                               line=line, position=position)
+            raise RuntimeError(
+                "undefined_variable", name=var_name, line=line, position=position
+            )
 
         # If it's a statically typed variable, validate the type
         if var_name in self.variable_types:
             # Create a temporary node with line/position for validation
             temp_node = ASTNode(NodeType.ASSIGNMENT, line=line, position=position)
             self.validate_type(
-                var_name, value, self.variable_types[var_name], temp_node)
+                var_name, value, self.variable_types[var_name], temp_node
+            )
 
         self.variables[var_name] = value
         return value
@@ -193,8 +212,8 @@ class Interpreter:
         value = self.evaluate(node.children[1])
 
         # Get line and position from node
-        line = getattr(node, 'line', None)
-        position = getattr(node, 'position', None)
+        line = getattr(node, "line", None)
+        position = getattr(node, "position", None)
 
         # Simple variable assignment
         if target.type == NodeType.IDENTIFIER:
@@ -204,8 +223,9 @@ class Interpreter:
         elif target.type == NodeType.PROPERTY_ACCESS:
             obj = self.evaluate(target.children[0])
             if not isinstance(obj, dict):
-                raise TypeError("property_access", prop=target.value,
-                                line=line, position=position)
+                raise TypeError(
+                    "property_access", prop=target.value, line=line, position=position
+                )
 
             prop_name = target.value
             obj[prop_name] = value
@@ -219,21 +239,30 @@ class Interpreter:
 
             idx = self.evaluate(target.children[1])
             if not isinstance(idx, (int, float)) or int(idx) != idx:
-                raise TypeError("invalid_operand", operator="[]",
-                                type_name="tiro", line=line, position=position)
+                raise TypeError(
+                    "invalid_operand",
+                    operator="[]",
+                    type_name="tiro",
+                    line=line,
+                    position=position,
+                )
 
             idx = int(idx)
             if idx < 0 or idx >= len(arr):
-                raise RuntimeError("index_out_of_range", index=idx,
-                                   line=line, position=position)
+                raise RuntimeError(
+                    "index_out_of_range", index=idx, line=line, position=position
+                )
 
             arr[idx] = value
             return value
 
         else:
             raise RuntimeError(
-                "invalid_syntax", detail=f"Invalid assignment target: {target.type}",
-                line=line, position=position)
+                "invalid_syntax",
+                detail=f"Invalid assignment target: {target.type}",
+                line=line,
+                position=position,
+            )
 
     # -----------------------------
     #  Function Call
@@ -293,7 +322,10 @@ class Interpreter:
                 return self.object_methods[method_name](obj, *args)
             else:
                 raise RuntimeError(
-                    "method_not_found", method_name=method_name, type_name=SoplangBuiltins.nooc(obj))
+                    "method_not_found",
+                    method_name=method_name,
+                    type_name=SoplangBuiltins.nooc(obj),
+                )
         else:
             raise RuntimeError("undefined_function", name=func_name)
 
@@ -339,6 +371,54 @@ class Interpreter:
             index += 1
 
     # -----------------------------
+    #  Switch Statement
+    # -----------------------------
+    def execute_switch_statement(self, node):
+        # First child is the switch expression
+        switch_value = self.evaluate(node.children[0])
+
+        # Remaining children are the cases and default case
+        found_match = False
+        default_case = None
+
+        # Find the matching case or default case
+        for i in range(1, len(node.children)):
+            case_node = node.children[i]
+
+            # Skip empty cases
+            if len(case_node.children) == 0:
+                continue
+
+            # In our parser implementation, default cases can be identified by checking
+            # if they don't have a case value child at the beginning
+            # (since the parser puts the case value as the first child of each case node)
+            is_default = False
+
+            # Check if this might be a default case - no values to compare
+            if case_node.children and case_node.children[0].type == NodeType.BLOCK:
+                # This is likely a default case since it has no value to compare
+                default_case = case_node
+                is_default = True
+
+            if not is_default:
+                # For regular cases, evaluate the case value and compare
+                case_value = self.evaluate(case_node.children[0])
+
+                # If the switch value matches this case value
+                if switch_value == case_value:
+                    # Execute this case
+                    for stmt in case_node.children[1:]:
+                        self.execute(stmt)
+                    found_match = True
+                    break
+
+        # If no matching case found and we have a default case, execute it
+        if not found_match and default_case is not None:
+            # For a default block, execute all its children
+            for stmt in default_case.children:
+                self.execute(stmt)
+
+    # -----------------------------
     #  Loop Statement (for/kuceli)
     # -----------------------------
     def execute_loop_statement(self, node):
@@ -357,18 +437,18 @@ class Interpreter:
 
         # If we have at least 3 children before the body, the 3rd one is the step
         if len(node.children) > 2 and (
-            node.children[2].type == NodeType.LITERAL or
-            node.children[2].type == NodeType.IDENTIFIER or
-            node.children[2].type == NodeType.BINARY_OPERATION
+            node.children[2].type == NodeType.LITERAL
+            or node.children[2].type == NodeType.IDENTIFIER
+            or node.children[2].type == NodeType.BINARY_OPERATION
         ):
             step_value = self.evaluate(node.children[2])
             body_start_index = 3
 
         # Ensure all values are numbers
         if (
-            not isinstance(start_value, (int, float)) or
-            not isinstance(end_value, (int, float)) or
-            not isinstance(step_value, (int, float))
+            not isinstance(start_value, (int, float))
+            or not isinstance(end_value, (int, float))
+            or not isinstance(step_value, (int, float))
         ):
             raise TypeError("invalid_for_loop")
 
@@ -513,8 +593,8 @@ class Interpreter:
     # -----------------------------
     def evaluate(self, node):
         # Get line and position from node
-        line = getattr(node, 'line', None)
-        position = getattr(node, 'position', None)
+        line = getattr(node, "line", None)
+        position = getattr(node, "position", None)
 
         if node.type == NodeType.LITERAL:
             return node.value
@@ -522,8 +602,9 @@ class Interpreter:
             if node.value in self.variables:
                 return self.variables[node.value]
             else:
-                raise RuntimeError("undefined_variable",
-                                   name=node.value, line=line, position=position)
+                raise RuntimeError(
+                    "undefined_variable", name=node.value, line=line, position=position
+                )
         if node.type == NodeType.BINARY_OPERATION:
             left_val = self.evaluate(node.children[0])
             right_val = self.evaluate(node.children[1])
@@ -535,8 +616,12 @@ class Interpreter:
             if node.value == "!":
                 return not bool(operand_val)
             else:
-                raise RuntimeError("unknown_operator",
-                                   operator=node.value, line=line, position=position)
+                raise RuntimeError(
+                    "unknown_operator",
+                    operator=node.value,
+                    line=line,
+                    position=position,
+                )
         if node.type == NodeType.LIST_LITERAL:
             # Evaluate each element in the list
             return [self.evaluate(element) for element in node.children]
@@ -552,14 +637,19 @@ class Interpreter:
             # Evaluate the object expression
             obj = self.evaluate(node.children[0])
             if not isinstance(obj, dict):
-                raise TypeError("property_access", prop=node.value,
-                                line=line, position=position)
+                raise TypeError(
+                    "property_access", prop=node.value, line=line, position=position
+                )
 
             # Get the property name and return the value
             prop_name = node.value
             if prop_name not in obj:
-                raise RuntimeError("property_not_found",
-                                   prop_name=prop_name, line=line, position=position)
+                raise RuntimeError(
+                    "property_not_found",
+                    prop_name=prop_name,
+                    line=line,
+                    position=position,
+                )
 
             return obj[prop_name]
         if node.type == NodeType.METHOD_CALL:
@@ -586,8 +676,11 @@ class Interpreter:
                     args = [self.evaluate(arg) for arg in node.children[1:]]
                     return obj[method_name](*args)
 
-            raise RuntimeError("method_not_found", method_name=method_name,
-                               type_name=SoplangBuiltins.nooc(obj))
+            raise RuntimeError(
+                "method_not_found",
+                method_name=method_name,
+                type_name=SoplangBuiltins.nooc(obj),
+            )
 
         if node.type == NodeType.INDEX_ACCESS:
             # Evaluate the array expression
@@ -598,13 +691,19 @@ class Interpreter:
             # Evaluate the index expression
             idx = self.evaluate(node.children[1])
             if not isinstance(idx, (int, float)) or int(idx) != idx:
-                raise TypeError("invalid_operand", operator="[]",
-                                type_name="tiro", line=line, position=position)
+                raise TypeError(
+                    "invalid_operand",
+                    operator="[]",
+                    type_name="tiro",
+                    line=line,
+                    position=position,
+                )
 
             idx = int(idx)
             if idx < 0 or idx >= len(arr):
-                raise RuntimeError("index_out_of_range", index=idx,
-                                   line=line, position=position)
+                raise RuntimeError(
+                    "index_out_of_range", index=idx, line=line, position=position
+                )
 
             return arr[idx]
         if node.type == NodeType.FUNCTION_CALL:
@@ -618,7 +717,8 @@ class Interpreter:
             classNameNode = node.children[0]
             if classNameNode.type != NodeType.IDENTIFIER:
                 raise RuntimeError(
-                    "invalid_syntax", detail="Expected class name after 'cusub'")
+                    "invalid_syntax", detail="Expected class name after 'cusub'"
+                )
 
             className = classNameNode.value
             if className not in self.classes:
@@ -631,8 +731,9 @@ class Interpreter:
             }
             return instance
 
-        raise RuntimeError("unknown_node_type", node_type=node.type,
-                           line=line, position=position)
+        raise RuntimeError(
+            "unknown_node_type", node_type=node.type, line=line, position=position
+        )
 
     def apply_operator(self, operator, left, right):
         """Apply an operator to two values."""
@@ -680,7 +781,8 @@ class Interpreter:
     def define_function(self, node):
         if node.type != NodeType.FUNCTION_DEFINITION:
             raise RuntimeError(
-                "invalid_syntax", detail="Expected function definition node")
+                "invalid_syntax", detail="Expected function definition node"
+            )
 
         # Extract function name and parameters
         func_name = node.value
@@ -724,20 +826,30 @@ class Interpreter:
         if method is None:
             if isinstance(obj, dict) or isinstance(obj, list):
                 raise RuntimeError(
-                    "method_not_found", method_name=method_name, type_name=SoplangBuiltins.nooc(obj))
+                    "method_not_found",
+                    method_name=method_name,
+                    type_name=SoplangBuiltins.nooc(obj),
+                )
             else:
-                raise TypeError("invalid_method", method=method_name,
-                                type_name=SoplangBuiltins.nooc(obj))
+                raise TypeError(
+                    "invalid_method",
+                    method=method_name,
+                    type_name=SoplangBuiltins.nooc(obj),
+                )
 
     def execute_list_method(self, method_name, obj, args):
         """Execute a list method"""
         if not isinstance(obj, list):
-            raise TypeError("invalid_method", method=method_name,
-                            type_name=SoplangBuiltins.nooc(obj))
+            raise TypeError(
+                "invalid_method",
+                method=method_name,
+                type_name=SoplangBuiltins.nooc(obj),
+            )
 
         if method_name not in self.list_methods:
-            raise RuntimeError("method_not_found",
-                               method_name=method_name, type_name="liis")
+            raise RuntimeError(
+                "method_not_found", method_name=method_name, type_name="liis"
+            )
 
         method = self.list_methods[method_name]
         args.insert(0, obj)  # Insert the list as the first argument
@@ -746,12 +858,16 @@ class Interpreter:
     def execute_object_method(self, method_name, obj, args):
         """Execute an object method"""
         if not isinstance(obj, dict):
-            raise TypeError("invalid_method", method=method_name,
-                            type_name=SoplangBuiltins.nooc(obj))
+            raise TypeError(
+                "invalid_method",
+                method=method_name,
+                type_name=SoplangBuiltins.nooc(obj),
+            )
 
         if method_name not in self.object_methods:
-            raise RuntimeError("method_not_found",
-                               method_name=method_name, type_name="walax")
+            raise RuntimeError(
+                "method_not_found", method_name=method_name, type_name="walax"
+            )
 
         method = self.object_methods[method_name]
         args.insert(0, obj)  # Insert the object as the first argument

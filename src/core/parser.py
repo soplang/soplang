@@ -50,6 +50,8 @@ class Parser:
             TokenType.HADDII: "keyword 'haddii' (if)",
             TokenType.HADDII_KALE: "keyword 'haddii_kale' (else if)",
             TokenType.UGUDAMBEYN: "keyword 'ugudambeyn' (else)",
+            TokenType.DOORO: "keyword 'dooro' (switch)",
+            TokenType.XAALAD: "keyword 'xaalad' (case)",
             TokenType.kuceli: "keyword 'kuceli' (for)",
             TokenType.INTAY: "keyword 'intay' (while)",
             TokenType.TIRO: "keyword 'tiro' (integer type)",
@@ -105,6 +107,10 @@ class Parser:
         # Handle haddii (if statement)
         if token_type == TokenType.HADDII:
             return self.parse_if_statement()
+
+        # Handle dooro (switch statement)
+        elif token_type == TokenType.DOORO:
+            return self.parse_switch_statement()
 
         # Handle variable declarations with static typing
         elif token_type in (
@@ -970,3 +976,61 @@ class Parser:
         return ASTNode(
             node_type, value=value, children=children, line=line, position=position
         )
+
+    # -----------------------------
+    #  Switch statement:
+    #  dooro (x) {
+    #    xaalad 1 { ... }
+    #    xaalad 2 { ... }
+    #    ugudambeyn { ... }
+    #  }
+    # -----------------------------
+    def parse_switch_statement(self):
+        self.expect(TokenType.DOORO)
+        self.expect(TokenType.LEFT_PAREN)
+        switch_expr = self.parse_expression()
+        self.expect(TokenType.RIGHT_PAREN)
+        self.expect(TokenType.LEFT_BRACE)
+
+        # The main node will have the switch expression as its first child
+        children = [switch_expr]
+
+        # Parse each case
+        while self.current_token.type != TokenType.RIGHT_BRACE:
+            if self.current_token.type == TokenType.XAALAD:
+                self.advance()  # Consume 'xaalad'
+                case_value = self.parse_expression()
+                self.expect(TokenType.LEFT_BRACE)
+
+                case_body = []
+                while self.current_token.type != TokenType.RIGHT_BRACE:
+                    case_body.append(self.parse_statement())
+                self.expect(TokenType.RIGHT_BRACE)
+
+                # Create a block node for this case
+                case_node = ASTNode(NodeType.BLOCK, children=[case_value] + case_body)
+                children.append(case_node)
+            elif self.current_token.type == TokenType.UGUDAMBEYN:
+                self.advance()  # Consume 'ugudambeyn'
+                self.expect(TokenType.LEFT_BRACE)
+
+                default_body = []
+                while self.current_token.type != TokenType.RIGHT_BRACE:
+                    default_body.append(self.parse_statement())
+                self.expect(TokenType.RIGHT_BRACE)
+
+                # Create a block node for the default case (without a case value)
+                default_node = ASTNode(NodeType.BLOCK, children=default_body)
+                children.append(default_node)
+            else:
+                raise ParserError(
+                    "expected_token",
+                    expected="'xaalad' or 'ugudambeyn'",
+                    found=self.get_friendly_token_name(self.current_token.type),
+                    token=self.current_token,
+                    line=getattr(self.current_token, "line", None),
+                    position=getattr(self.current_token, "position", None),
+                )
+
+        self.expect(TokenType.RIGHT_BRACE)
+        return ASTNode(NodeType.SWITCH_STATEMENT, children=children)
