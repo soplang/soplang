@@ -77,7 +77,7 @@ bandhig("Exiting loop")
 // Debug conditional branches
 haddii (condition) {
     bandhig("Condition is true")
-} haddii_kalena {
+} ugudambeyn {
     bandhig("Condition is false")
 }
 ```

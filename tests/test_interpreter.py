@@ -81,7 +81,7 @@ class TestInterpreter(unittest.TestCase):
         door x = 15
         haddii (x > 10) {
             bandhig("x is greater than 10")
-        } haddii_kalena {
+        } ugudambeyn {
             bandhig("x is not greater than 10")
         }
         '''
@@ -95,7 +95,7 @@ class TestInterpreter(unittest.TestCase):
         door x = 5
         haddii (x > 10) {
             bandhig("x is greater than 10")
-        } haddii_kalena {
+        } ugudambeyn {
             bandhig("x is not greater than 10")
         }
         '''

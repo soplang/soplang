@@ -35,7 +35,7 @@ haddii (5 > 3 {
 
 // Example 7: Invalid if-else structure
 // This will cause an error because haddii_kalena requires a preceding haddii
-// haddii_kalena {
+// ugudambeyn {
 //     bandhig("Invalid if-else structure")
 // }
 

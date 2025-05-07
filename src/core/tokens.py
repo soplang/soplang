@@ -10,7 +10,7 @@ class TokenType(Enum):
     GELIN = "gelin"
     HADDII = "haddii"
     HADDII_KALE = "haddii_kale"
-    HADDII_KALENA = "haddii_kalena"
+    UGUDAMBEYN = "ugudambeyn"
     kuceli = "kuceli"
     INTAY = "intay"
     JOOJI = "jooji"        # break

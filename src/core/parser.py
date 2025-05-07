@@ -49,7 +49,7 @@ class Parser:
             TokenType.BANDHIG: "keyword 'bandhig' (print)",
             TokenType.HADDII: "keyword 'haddii' (if)",
             TokenType.HADDII_KALE: "keyword 'haddii_kale' (else if)",
-            TokenType.HADDII_KALENA: "keyword 'haddii_kalena' (else)",
+            TokenType.UGUDAMBEYN: "keyword 'ugudambeyn' (else)",
             TokenType.kuceli: "keyword 'kuceli' (for)",
             TokenType.INTAY: "keyword 'intay' (while)",
             TokenType.TIRO: "keyword 'tiro' (number type)",
@@ -273,8 +273,8 @@ class Parser:
             # Just a variable reference
             return ASTNode(NodeType.IDENTIFIER, value=identifier_value)
 
-        # Top-level 'haddii_kale', 'haddii_kalena' are invalid
-        if token_type in (TokenType.HADDII_KALE, TokenType.HADDII_KALENA):
+        # Top-level 'haddii_kale', 'ugudambeyn' are invalid
+        if token_type in (TokenType.HADDII_KALE, TokenType.UGUDAMBEYN):
             raise ParserError(
                 "unexpected_token",
                 token=self.get_friendly_token_name(token_type),
@@ -427,7 +427,7 @@ class Parser:
     #  If statement:
     #  haddii (cond) { ... }
     #  [haddii_kale (cond2) { ... }]
-    #  [haddii_kalena { ... }]
+    #  [ugudambeyn { ... }]
     # -----------------------------
     def parse_if_statement(self):
         self.expect(TokenType.HADDII)
@@ -459,8 +459,8 @@ class Parser:
             )
             children.append(elif_node)
 
-        # Optionally parse 'haddii_kalena'
-        if self.current_token.type == TokenType.HADDII_KALENA:
+        # Optionally parse 'ugudambeyn'
+        if self.current_token.type == TokenType.UGUDAMBEYN:
             self.advance()
             self.expect(TokenType.LEFT_BRACE)
             else_body = []

@@ -1,7 +1,7 @@
 // Test: Conditional Statements
 // This test checks if conditional statements work properly
 
-bandhig("Testing conditional statements (haddii / haddii_kale / haddii_kalena):")
+bandhig("Testing conditional statements (haddii / haddii_kale / ugudambeyn):")
 
 // Simple if-else
 tiro age = 20
@@ -11,7 +11,7 @@ haddii (age < 13) {
     bandhig("  Result: Waa ilmo")
 } haddii_kale (age < 20) {
     bandhig("  Result: Waa dhallinyaro")
-} haddii_kalena {
+} ugudambeyn {
     bandhig("  Result: Waa qof weyn")
 }
 
@@ -22,7 +22,7 @@ haddii (age < 13) {
     bandhig("  Result: Waa ilmo")
 } haddii_kale (age < 20) {
     bandhig("  Result: Waa dhallinyaro")
-} haddii_kalena {
+} ugudambeyn {
     bandhig("  Result: Waa qof weyn")
 }
 
@@ -37,7 +37,7 @@ haddii (score >= 90) {
     bandhig("  Grade: C")
 } haddii_kale (score >= 60) {
     bandhig("  Grade: D")
-} haddii_kalena {
+} ugudambeyn {
     bandhig("  Grade: F")
 }
 
@@ -52,7 +52,7 @@ haddii (score >= 90) {
     bandhig("  Grade: C")
 } haddii_kale (score >= 60) {
     bandhig("  Grade: D")
-} haddii_kalena {
+} ugudambeyn {
     bandhig("  Grade: F")
 }
 
@@ -65,9 +65,9 @@ haddii (x > 5) {
     bandhig("  x is greater than 5")
     haddii (y > 15) {
         bandhig("  and y is greater than 15")
-    } haddii_kalena {
+    } ugudambeyn {
         bandhig("  but y is not greater than 15")
     }
-} haddii_kalena {
+} ugudambeyn {
     bandhig("  x is not greater than 5")
 }

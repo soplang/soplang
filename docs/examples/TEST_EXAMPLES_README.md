@@ -17,7 +17,7 @@ This directory contains various test examples for the Soplang programming langua
 3. **03_conditionals.so** - Tests conditional statements.
    * Basic if statements (`haddii`)
    * If-else statements (`haddii`, `haddii_kale`)
-   * If-elseif-else statements (`haddii`, `haddii_kale`, `haddii_kalena`)
+   * If-elseif-else statements (`haddii`, `haddii_kale`, `ugudambeyn`)
    * Nested conditionals
 
 4. **04_loops.so** - Tests loop constructs.
