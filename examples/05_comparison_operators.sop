@@ -23,10 +23,10 @@ bandhig("  Less than or equal (a <= c): " + (a <= c))
 bandhig("  Less than or equal (a <= b): " + (a <= b))
 
 // Test comparisons in assignments
-door result1 = a > b
+door result1 = (a > b)
 bandhig("  Assignment of comparison (result1 = a > b): " + result1)
 
-door result2 = a == c
+door result2 = (a == c)
 bandhig("  Assignment of equality (result2 = a == c): " + result2)
 
 // Test with different types
