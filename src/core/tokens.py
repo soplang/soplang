@@ -6,15 +6,15 @@ class TokenType(Enum):
     DOOR = "door"
     HAWL = "hawl"
     CELI = "celi"
-    QOR = "qor"
-    AKHRI = "akhri"
+    BANDHIG = "bandhig"
+    GELIN = "gelin"
     HADDII = "haddii"
     HADDII_KALE = "haddii_kale"
     UGUDAMBEYN = "ugudambeyn"
-    KU_CELI = "ku_celi"
-    INTA_AY = "inta_ay"
+    kuceli = "kuceli"
+    INTAY = "intay"
     JOOJI = "jooji"        # break
-    SII_WAD = "sii_wad"    # continue
+    soco = "soco"    # continue
     ISKU_DAY = "isku_day"  # try
     QABO = "qabo"          # catch
     KA_KEEN = "ka_keen"    # import
@@ -26,9 +26,9 @@ class TokenType(Enum):
     # Static types
     TIRO = "tiro"          # number
     QORAAL = "qoraal"      # string
-    LABADARAN = "labadaran"  # boolean
+    BOOL = "bool"  # boolean
     LIIS = "liis"          # list
-    SHEY = "shey"          # object/dict
+    WALAX = "walax"          # object/dict
 
     # Data & Operators
     IDENTIFIER = "IDENTIFIER"

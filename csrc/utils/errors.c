@@ -2158,7 +2158,7 @@ static const char __pyx_k_is_coroutine[] = "_is_coroutine";
 static const char __pyx_k_init_subclass[] = "__init_subclass__";
 static const char __pyx_k_src_errors_py[] = "src/errors.py";
 static const char __pyx_k_ContinueSignal[] = "ContinueSignal";
-static const char __pyx_k_Khalad_nuuca_ah[] = "Khalad nuuca ah: ";
+static const char __pyx_k_Khalad_nooca_ah[] = "Khalad nooca ah: ";
 static const char __pyx_k_Khalad_magaca_ah[] = "Khalad magaca ah: '";
 static const char __pyx_k_NameError___init[] = "NameError.__init__";
 static const char __pyx_k_TypeError___init[] = "TypeError.__init__";
@@ -2227,7 +2227,7 @@ typedef struct {
   PyObject *__pyx_kp_u_Khalad_magaca_ah;
   PyObject *__pyx_kp_u_Khalad_markii_la_falanqaynayay;
   PyObject *__pyx_kp_u_Khalad_markii_loo_qaybinayay;
-  PyObject *__pyx_kp_u_Khalad_nuuca_ah;
+  PyObject *__pyx_kp_u_Khalad_nooca_ah;
   PyObject *__pyx_kp_u_Khalad_qiimaha_ah;
   PyObject *__pyx_kp_u_Khalad_soo_dejinta_ah_Ma_soo_dej;
   PyObject *__pyx_n_s_LexerError;
@@ -2345,7 +2345,7 @@ static int __pyx_m_clear(PyObject *m) {
   Py_CLEAR(clear_module_state->__pyx_kp_u_Khalad_magaca_ah);
   Py_CLEAR(clear_module_state->__pyx_kp_u_Khalad_markii_la_falanqaynayay);
   Py_CLEAR(clear_module_state->__pyx_kp_u_Khalad_markii_loo_qaybinayay);
-  Py_CLEAR(clear_module_state->__pyx_kp_u_Khalad_nuuca_ah);
+  Py_CLEAR(clear_module_state->__pyx_kp_u_Khalad_nooca_ah);
   Py_CLEAR(clear_module_state->__pyx_kp_u_Khalad_qiimaha_ah);
   Py_CLEAR(clear_module_state->__pyx_kp_u_Khalad_soo_dejinta_ah_Ma_soo_dej);
   Py_CLEAR(clear_module_state->__pyx_n_s_LexerError);
@@ -2441,7 +2441,7 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
   Py_VISIT(traverse_module_state->__pyx_kp_u_Khalad_magaca_ah);
   Py_VISIT(traverse_module_state->__pyx_kp_u_Khalad_markii_la_falanqaynayay);
   Py_VISIT(traverse_module_state->__pyx_kp_u_Khalad_markii_loo_qaybinayay);
-  Py_VISIT(traverse_module_state->__pyx_kp_u_Khalad_nuuca_ah);
+  Py_VISIT(traverse_module_state->__pyx_kp_u_Khalad_nooca_ah);
   Py_VISIT(traverse_module_state->__pyx_kp_u_Khalad_qiimaha_ah);
   Py_VISIT(traverse_module_state->__pyx_kp_u_Khalad_soo_dejinta_ah_Ma_soo_dej);
   Py_VISIT(traverse_module_state->__pyx_n_s_LexerError);
@@ -2547,7 +2547,7 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
 #define __pyx_kp_u_Khalad_magaca_ah __pyx_mstate_global->__pyx_kp_u_Khalad_magaca_ah
 #define __pyx_kp_u_Khalad_markii_la_falanqaynayay __pyx_mstate_global->__pyx_kp_u_Khalad_markii_la_falanqaynayay
 #define __pyx_kp_u_Khalad_markii_loo_qaybinayay __pyx_mstate_global->__pyx_kp_u_Khalad_markii_loo_qaybinayay
-#define __pyx_kp_u_Khalad_nuuca_ah __pyx_mstate_global->__pyx_kp_u_Khalad_nuuca_ah
+#define __pyx_kp_u_Khalad_nooca_ah __pyx_mstate_global->__pyx_kp_u_Khalad_nooca_ah
 #define __pyx_kp_u_Khalad_qiimaha_ah __pyx_mstate_global->__pyx_kp_u_Khalad_qiimaha_ah
 #define __pyx_kp_u_Khalad_soo_dejinta_ah_Ma_soo_dej __pyx_mstate_global->__pyx_kp_u_Khalad_soo_dejinta_ah_Ma_soo_dej
 #define __pyx_n_s_LexerError __pyx_mstate_global->__pyx_n_s_LexerError
@@ -3177,7 +3177,7 @@ static PyObject *__pyx_pf_3src_6errors_11ParserError___init__(CYTHON_UNUSED PyOb
  * 
  * class TypeError(SoplangError):
  *     def __init__(self, message):             # <<<<<<<<<<<<<<
- *         self.message = f"Khalad nuuca ah: {message}"
+ *         self.message = f"Khalad nooca ah: {message}"
  *         super().__init__(self.message)
  */
 
@@ -3308,13 +3308,13 @@ static PyObject *__pyx_pf_3src_6errors_9TypeError___init__(CYTHON_UNUSED PyObjec
   /* "src/errors.py":24
  * class TypeError(SoplangError):
  *     def __init__(self, message):
- *         self.message = f"Khalad nuuca ah: {message}"             # <<<<<<<<<<<<<<
+ *         self.message = f"Khalad nooca ah: {message}"             # <<<<<<<<<<<<<<
  *         super().__init__(self.message)
  * 
  */
   __pyx_t_1 = __Pyx_PyObject_FormatSimple(__pyx_v_message, __pyx_empty_unicode); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 24, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyUnicode_Concat(__pyx_kp_u_Khalad_nuuca_ah, __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 24, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyUnicode_Concat(__pyx_kp_u_Khalad_nooca_ah, __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 24, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_message, __pyx_t_2) < 0) __PYX_ERR(0, 24, __pyx_L1_error)
@@ -3322,7 +3322,7 @@ static PyObject *__pyx_pf_3src_6errors_9TypeError___init__(CYTHON_UNUSED PyObjec
 
   /* "src/errors.py":25
  *     def __init__(self, message):
- *         self.message = f"Khalad nuuca ah: {message}"
+ *         self.message = f"Khalad nooca ah: {message}"
  *         super().__init__(self.message)             # <<<<<<<<<<<<<<
  * 
  * 
@@ -3375,7 +3375,7 @@ static PyObject *__pyx_pf_3src_6errors_9TypeError___init__(CYTHON_UNUSED PyObjec
  * 
  * class TypeError(SoplangError):
  *     def __init__(self, message):             # <<<<<<<<<<<<<<
- *         self.message = f"Khalad nuuca ah: {message}"
+ *         self.message = f"Khalad nooca ah: {message}"
  *         super().__init__(self.message)
  */
 
@@ -4556,7 +4556,7 @@ static int __Pyx_CreateStringTabAndInitStrings(void) {
     {&__pyx_kp_u_Khalad_magaca_ah, __pyx_k_Khalad_magaca_ah, sizeof(__pyx_k_Khalad_magaca_ah), 0, 1, 0, 0},
     {&__pyx_kp_u_Khalad_markii_la_falanqaynayay, __pyx_k_Khalad_markii_la_falanqaynayay, sizeof(__pyx_k_Khalad_markii_la_falanqaynayay), 0, 1, 0, 0},
     {&__pyx_kp_u_Khalad_markii_loo_qaybinayay, __pyx_k_Khalad_markii_loo_qaybinayay, sizeof(__pyx_k_Khalad_markii_loo_qaybinayay), 0, 1, 0, 0},
-    {&__pyx_kp_u_Khalad_nuuca_ah, __pyx_k_Khalad_nuuca_ah, sizeof(__pyx_k_Khalad_nuuca_ah), 0, 1, 0, 0},
+    {&__pyx_kp_u_Khalad_nooca_ah, __pyx_k_Khalad_nooca_ah, sizeof(__pyx_k_Khalad_nooca_ah), 0, 1, 0, 0},
     {&__pyx_kp_u_Khalad_qiimaha_ah, __pyx_k_Khalad_qiimaha_ah, sizeof(__pyx_k_Khalad_qiimaha_ah), 0, 1, 0, 0},
     {&__pyx_kp_u_Khalad_soo_dejinta_ah_Ma_soo_dej, __pyx_k_Khalad_soo_dejinta_ah_Ma_soo_dej, sizeof(__pyx_k_Khalad_soo_dejinta_ah_Ma_soo_dej), 0, 1, 0, 0},
     {&__pyx_n_s_LexerError, __pyx_k_LexerError, sizeof(__pyx_k_LexerError), 0, 0, 1, 1},
@@ -4655,7 +4655,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  * 
  * class TypeError(SoplangError):
  *     def __init__(self, message):             # <<<<<<<<<<<<<<
- *         self.message = f"Khalad nuuca ah: {message}"
+ *         self.message = f"Khalad nooca ah: {message}"
  *         super().__init__(self.message)
  */
   __pyx_tuple__7 = PyTuple_Pack(2, __pyx_n_s_self, __pyx_n_s_message); if (unlikely(!__pyx_tuple__7)) __PYX_ERR(0, 23, __pyx_L1_error)
@@ -5236,7 +5236,7 @@ if (!__Pyx_RefNanny) {
  * 
  * class TypeError(SoplangError):             # <<<<<<<<<<<<<<
  *     def __init__(self, message):
- *         self.message = f"Khalad nuuca ah: {message}"
+ *         self.message = f"Khalad nooca ah: {message}"
  */
   __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_SoplangError); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 22, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
@@ -5262,7 +5262,7 @@ if (!__Pyx_RefNanny) {
  * 
  * class TypeError(SoplangError):
  *     def __init__(self, message):             # <<<<<<<<<<<<<<
- *         self.message = f"Khalad nuuca ah: {message}"
+ *         self.message = f"Khalad nooca ah: {message}"
  *         super().__init__(self.message)
  */
   __pyx_t_5 = __Pyx_CyFunction_New(&__pyx_mdef_3src_6errors_9TypeError_1__init__, 0, __pyx_n_s_TypeError___init, NULL, __pyx_n_s_src_errors, __pyx_d, ((PyObject *)__pyx_codeobj__8)); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 23, __pyx_L1_error)
@@ -5278,7 +5278,7 @@ if (!__Pyx_RefNanny) {
  * 
  * class TypeError(SoplangError):             # <<<<<<<<<<<<<<
  *     def __init__(self, message):
- *         self.message = f"Khalad nuuca ah: {message}"
+ *         self.message = f"Khalad nooca ah: {message}"
  */
   __pyx_t_5 = __Pyx_Py3ClassCreate(__pyx_t_6, __pyx_n_s_TypeError, __pyx_t_3, __pyx_t_4, NULL, 0, 0); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 22, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);

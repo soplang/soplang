@@ -1,54 +1,54 @@
 // Test: Type Conversion
 // This test checks if type conversion functions work properly
 
-qor("Testing type conversion:")
+bandhig("Testing type conversion:")
 
 // Number to string conversion
 tiro num_value = 42
 qoraal string_value = qoraal(num_value)
-qor("  Number to string: " + string_value + " (Type: " + nuuc(string_value) + ")")
+bandhig("  Number to string: " + string_value + " (Type: " + nooc(string_value) + ")")
 
 // String to number conversion
 qoraal num_string = "123"
 tiro converted_num = tiro(num_string)
-qor("  String to number: " + converted_num + " (Type: " + nuuc(converted_num) + ")")
+bandhig("  String to number: " + converted_num + " (Type: " + nooc(converted_num) + ")")
 
 // Boolean to number conversion
 tiro bool_num_t = tiro(been)
 tiro bool_num_f = tiro(run)
-qor("  Boolean (been) to number: " + bool_num_t)
-qor("  Boolean (run) to number: " + bool_num_f)
+bandhig("  Boolean (been) to number: " + bool_num_t)
+bandhig("  Boolean (run) to number: " + bool_num_f)
 
 // String to boolean conversion
-labadaran str_bool_t = labadaran("been")
-labadaran str_bool_f = labadaran("run")
-qor("  String 'been' to boolean: " + str_bool_t)
-qor("  String 'run' to boolean: " + str_bool_f)
+bool str_bool_t = bool("been")
+bool str_bool_f = bool("run")
+bandhig("  String 'been' to boolean: " + str_bool_t)
+bandhig("  String 'run' to boolean: " + str_bool_f)
 
 // Number to boolean conversion
-labadaran num_bool_0 = labadaran(0)
-labadaran num_bool_1 = labadaran(1)
-labadaran num_bool_42 = labadaran(42)
-qor("  Number 0 to boolean: " + num_bool_0)
-qor("  Number 1 to boolean: " + num_bool_1)
-qor("  Number 42 to boolean: " + num_bool_42)
+bool num_bool_0 = bool(0)
+bool num_bool_1 = bool(1)
+bool num_bool_42 = bool(42)
+bandhig("  Number 0 to boolean: " + num_bool_0)
+bandhig("  Number 1 to boolean: " + num_bool_1)
+bandhig("  Number 42 to boolean: " + num_bool_42)
 
 // Boolean to string conversion
 qoraal bool_str_t = qoraal(been)
 qoraal bool_str_f = qoraal(run)
-qor("  Boolean (been) to string: " + bool_str_t)
-qor("  Boolean (run) to string: " + bool_str_f)
+bandhig("  Boolean (been) to string: " + bool_str_t)
+bandhig("  Boolean (run) to string: " + bool_str_f)
 
 // List to string conversion
 liis test_list = [1, 2, 3]
 qoraal list_str = qoraal(test_list)
-qor("  List to string: " + list_str)
+bandhig("  List to string: " + list_str)
 
 // Object to string conversion
-shey test_obj = {name: "Test", value: 42}
+walax test_obj = {name: "Test", value: 42}
 qoraal obj_str = qoraal(test_obj)
-qor("  Object to string: " + obj_str)
+bandhig("  Object to string: " + obj_str)
 
 // Invalid conversions (these should fail or return defaults)
-// qor("  Invalid string to number: " + tiro("not a number"))
-// qor("  Invalid string to boolean: " + labadaran("not a boolean"))
+// bandhig("  Invalid string to number: " + tiro("not a number"))
+// bandhig("  Invalid string to boolean: " + bool("not a boolean"))

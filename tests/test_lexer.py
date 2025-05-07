@@ -6,12 +6,12 @@ from src.core.tokens import TokenType
 class TestLexer(unittest.TestCase):
     def test_basic_tokens(self):
         """Test basic token recognition."""
-        source = 'qor("Hello World")'
+        source = 'bandhig("Hello World")'
         lexer = Lexer(source)
         tokens = lexer.tokenize()
         
         # Check if tokens are generated correctly
-        self.assertEqual(tokens[0].type, TokenType.QOR)
+        self.assertEqual(tokens[0].type, TokenType.BANDHIG)
         self.assertEqual(tokens[1].type, TokenType.LEFT_PAREN)
         self.assertEqual(tokens[2].type, TokenType.STRING)
         self.assertEqual(tokens[2].value, "Hello World")

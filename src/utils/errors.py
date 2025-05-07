@@ -15,7 +15,7 @@ class ErrorMessageManager:
     ERROR_PREFIXES = {
         "lexer": "Khalad lexer",
         "parser": "Khalad parser",
-        "type": "Khalad nuuc",
+        "type": "Khalad nooc",
         "runtime": "Khalad runtime",
         "import": "Khalad import",
     }
@@ -42,7 +42,7 @@ class ErrorMessageManager:
         "type_mismatch": "'{var_name}' waa {expected_type} laakin qiimaheeda '{value}' ma ahan {expected_type}",
         "cannot_convert": "'{value}' ma badali karo {target_type}",
         "invalid_operand": "Ma isticmaali karo '{operator}' oo ku shaqeeya {type_name}",
-        "property_access": "Ma heli karo astaanta '{prop}' ee qiimaha aan ahayn shey",
+        "property_access": "Ma heli karo astaanta '{prop}' ee qiimaha aan ahayn walax",
         "index_access": "Ma heli karo tirooyinka ee qiimaha aan ahayn liis",
         "invalid_method": "Ma wici karo habka '{method}' ee qiimaha {type_name}",
     }
@@ -54,14 +54,14 @@ class ErrorMessageManager:
         "division_by_zero": "Ma suurtogali karto qeybinta eber",
         "modulo_by_zero": "Ma suurtogali karto modulo eber",
         "index_out_of_range": "Tirada fihris-ku waa ka baxsan xadka: {index}",
-        "property_not_found": "Astaanta '{prop_name}' kuma jirto sheyga",
+        "property_not_found": "Astaanta '{prop_name}' kuma jirto walaxga",
         "method_not_found": "Habka '{method_name}' kuma jirto {type_name}",
         "missing_argument": "Howsha '{func_name}' waxay u baahan tahay {expected} dood, laakiin waxaa la siiyay {provided}",
         "parent_class_not_found": "Fasalka waalidka '{parent_name}' ma jiro",
         "break_outside_loop": "Jooji waa in ay ku jiraan xalqad",
-        "continue_outside_loop": "Sii_wad waa in ay ku jiraan xalqad",
+        "continue_outside_loop": "soco waa in ay ku jiraan xalqad",
         "return_outside_function": "celi waa in ay ku jirto hawl",
-        "invalid_for_loop": "Ku_celi billowga, dhamaadka iyo tallaabada waa in ay yihiin tiro",
+        "invalid_for_loop": "kuceli billowga, dhamaadka iyo tallaabada waa in ay yihiin tiro",
         "unknown_node_type": "Nooca cladka aan la aqoon: {node_type}",
         "unknown_operator": "Hawl-gal aan la aqoon: {operator}",
     }
@@ -160,7 +160,7 @@ class ErrorMessageManager:
         if error_code in cls.TYPE_ERRORS:
             message = cls.TYPE_ERRORS[error_code]
             return cls.format_error("type", message, **kwargs)
-        return f"Khalad nuuca ah: {error_code}"
+        return f"Khalad nooca ah: {error_code}"
 
     @classmethod
     def get_runtime_error(cls, error_code, **kwargs):

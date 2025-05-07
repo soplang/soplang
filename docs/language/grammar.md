@@ -50,7 +50,8 @@ StaticDeclaration ::= StaticType Identifier "=" Expression
 
 StaticType ::= "tiro"      // Number
              | "qoraal"    // String
-             | "labadaran" // Boolean
+             | "bool
+             " // Boolean
              | "liis"      // List/Array
              | "shey"      // Object
 ```
@@ -89,13 +90,13 @@ ElseClause ::= "ugudambeyn" Block
 ## Loops
 
 ```ebnf
-LoopStatement ::= "ku_celi" Identifier "min" Expression "ilaa" Expression ["by" Expression] Block
+LoopStatement ::= "kuceli" Identifier "min" Expression "ilaa" Expression ["by" Expression] Block
 
-WhileStatement ::= "inta_ay" "(" Expression ")" Block
+WhileStatement ::= "intay" "(" Expression ")" Block
 
 BreakStatement ::= "jooji"
 
-ContinueStatement ::= "sii_wad"
+ContinueStatement ::= "soco"
 ```
 
 ## Return Statement
@@ -199,7 +200,7 @@ StringLiteral ::= '"' {Character} '"' | "'" {Character} "'"
 
 BooleanLiteral ::= "true" | "false" | "run" | "been"
 
-NullLiteral ::= "null" | "waxba"
+NullLiteral ::= "null" | "maran"
 
 ListLiteral ::= "[" [Expression {"," Expression}] "]"
 
@@ -230,17 +231,17 @@ Whitespace ::= ' ' | '\t' | '\n' | '\r'
 ListMethod ::= "kudar"       // push
              | "kasaar"      // pop
              | "dherer"      // length
-             | "iskuxir"     // concat
-             | "ka_kooban"   // contains
+             | "kudar"     // concat
+             | "leeyahay"   // contains
 ```
 
 ## Object Methods
 
 ```ebnf
-ObjectMethod ::= "furaha"    // keys
-               | "haystaa"   // has
+ObjectMethod ::= "fure"    // keys
+               | "leeyahay"   // has
                | "tirtir"    // remove
-               | "iskudar"   // merge
+               | "kudar"   // merge
 ```
 
 ## Error Messages

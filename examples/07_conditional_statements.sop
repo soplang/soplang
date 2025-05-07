@@ -1,73 +1,73 @@
 // Test: Conditional Statements
 // This test checks if conditional statements work properly
 
-qor("Testing conditional statements (haddii / haddii_kale / ugudambeyn):")
+bandhig("Testing conditional statements (haddii / haddii_kale / ugudambeyn):")
 
 // Simple if-else
 tiro age = 20
-qor("  Testing with age = " + age)
+bandhig("  Testing with age = " + age)
 
 haddii (age < 13) {
-    qor("  Result: Waa ilmo")
+    bandhig("  Result: Waa ilmo")
 } haddii_kale (age < 20) {
-    qor("  Result: Waa dhallinyaro")
+    bandhig("  Result: Waa dhallinyaro")
 } ugudambeyn {
-    qor("  Result: Waa qof weyn")
+    bandhig("  Result: Waa qof weyn")
 }
 
 // Test with different age values
 age = 10
-qor("  Testing with age = " + age)
+bandhig("  Testing with age = " + age)
 haddii (age < 13) {
-    qor("  Result: Waa ilmo")
+    bandhig("  Result: Waa ilmo")
 } haddii_kale (age < 20) {
-    qor("  Result: Waa dhallinyaro")
+    bandhig("  Result: Waa dhallinyaro")
 } ugudambeyn {
-    qor("  Result: Waa qof weyn")
+    bandhig("  Result: Waa qof weyn")
 }
 
 // Multiple conditions
 tiro score = 85
-qor("  Testing with score = " + score)
+bandhig("  Testing with score = " + score)
 haddii (score >= 90) {
-    qor("  Grade: A")
+    bandhig("  Grade: A")
 } haddii_kale (score >= 80) {
-    qor("  Grade: B")
+    bandhig("  Grade: B")
 } haddii_kale (score >= 70) {
-    qor("  Grade: C")
+    bandhig("  Grade: C")
 } haddii_kale (score >= 60) {
-    qor("  Grade: D")
+    bandhig("  Grade: D")
 } ugudambeyn {
-    qor("  Grade: F")
+    bandhig("  Grade: F")
 }
 
 // Test with different score values
 score = 95
-qor("  Testing with score = " + score)
+bandhig("  Testing with score = " + score)
 haddii (score >= 90) {
-    qor("  Grade: A")
+    bandhig("  Grade: A")
 } haddii_kale (score >= 80) {
-    qor("  Grade: B")
+    bandhig("  Grade: B")
 } haddii_kale (score >= 70) {
-    qor("  Grade: C")
+    bandhig("  Grade: C")
 } haddii_kale (score >= 60) {
-    qor("  Grade: D")
+    bandhig("  Grade: D")
 } ugudambeyn {
-    qor("  Grade: F")
+    bandhig("  Grade: F")
 }
 
 // Nested if statements
 tiro x = 10
 tiro y = 20
 
-qor("  Testing nested conditions with x = " + x + " and y = " + y)
+bandhig("  Testing nested conditions with x = " + x + " and y = " + y)
 haddii (x > 5) {
-    qor("  x is greater than 5")
+    bandhig("  x is greater than 5")
     haddii (y > 15) {
-        qor("  and y is greater than 15")
+        bandhig("  and y is greater than 15")
     } ugudambeyn {
-        qor("  but y is not greater than 15")
+        bandhig("  but y is not greater than 15")
     }
 } ugudambeyn {
-    qor("  x is not greater than 5")
+    bandhig("  x is not greater than 5")
 }

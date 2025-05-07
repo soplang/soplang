@@ -1,10 +1,10 @@
 // Soplang Control Flow Errors
 // Demonstrates errors related to control flow statements
 
-qor("Soplang Control Flow Error Examples")
-qor("=================================")
-qor("Uncomment examples one at a time to see specific errors")
-qor()
+bandhig("Soplang Control Flow Error Examples")
+bandhig("=================================")
+bandhig("Uncomment examples one at a time to see specific errors")
+bandhig()
 
 // Example 1: Return outside function
 // This will cause an error because return statements are only valid inside functions
@@ -16,35 +16,35 @@ qor()
 
 // Example 3: Continue outside loop
 // This will cause an error because continue statements are only valid inside loops
-// sii_wad
+// soco
 
 // Example 4: Invalid for loop parameters
 // This will cause an error because for loop parameters must be numeric
-// ku_celi i min "start" ilaa "end" {
-//     qor(i)
+// kuceli i min "start" ilaa "end" {
+//     bandhig(i)
 // }
 
 // Example 5: Unreachable code after return
 // This code will execute but the line after return won't be reached
 // hawl testReturn() {
 //     celi "Returned value"
-//     qor("This line is unreachable")  // This warning would be detected in more advanced languages
+//     bandhig("This line is unreachable")  // This warning would be detected in more advanced languages
 // }
 // testReturn()
 
 // Example 6: Break in nested loop only breaks inner loop
 // This demonstrates how break only affects the innermost loop (not an error but important behavior)
-qor("Demonstrating break in nested loops:")
-ku_celi i min 1 ilaa 3 {
-    qor("Outer loop: " + i)
-    ku_celi j min 1 ilaa 3 {
-        qor("  Inner loop: " + j)
+bandhig("Demonstrating break in nested loops:")
+kuceli i min 1 ilaa 3 {
+    bandhig("Outer loop: " + i)
+    kuceli j min 1 ilaa 3 {
+        bandhig("  Inner loop: " + j)
         haddii (j == 2) {
-            qor("  Breaking inner loop")
+            bandhig("  Breaking inner loop")
             jooji
         }
     }
-    qor("Outer loop continues")
+    bandhig("Outer loop continues")
 }
 
 // Valid example of proper function return
@@ -52,4 +52,4 @@ hawl add(a, b) {
     celi a + b
 }
 door result = add(5, 3)
-qor("Function result: " + result)
+bandhig("Function result: " + result)

@@ -7,7 +7,7 @@ This document describes each example program available in the Soplang programmin
 A simple introduction to Soplang syntax and basic features.
 
 **Features tested:**
-- Basic output with `qor()`
+- Basic output with `bandhig()`
 - Variable declarations (dynamic and static)
 - String concatenation
 - Function definition and calls
@@ -26,7 +26,7 @@ Demonstrates fundamental language features and operations.
 **Features tested:**
 - Dynamic typing with `door`
 - Static typing with `qoraal`, `tiro`, etc.
-- Type checking with `nuuc()`
+- Type checking with `nooc()`
 - Type conversion
 - Arithmetic operations
 - Type enforcement
@@ -46,10 +46,10 @@ Demonstrates conditional statements and loops.
 - Else statements (`ugudambeyn`)
 - Nested conditionals
 - Complex conditions with logical operators
-- For loops (`ku_celi`)
-- While loops (`inta_ay`)
+- For loops (`kuceli`)
+- While loops (`intay`)
 - Break statements (`jooji`)
-- Continue statements (`sii_wad`)
+- Continue statements (`soco`)
 - Nested loops
 
 **Run with:**
@@ -108,7 +108,7 @@ Demonstrates object operations and features.
 
 **Features tested:**
 - Dynamic object declaration
-- Static object declaration with `shey` type
+- Static object declaration with `walax` type
 - Empty objects
 - Objects with mixed value types
 - Nested objects

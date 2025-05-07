@@ -1,64 +1,64 @@
 // Test: List Operations
 // This test checks if list operations work properly
 
-qor("Testing list operations:")
+bandhig("Testing list operations:")
 
 // Creating lists
 liis empty_list = []
 liis numbers = [10, 20, 30, 40, 50]
 liis mixed = [1, "two", been, [1, 2], {name: "something"}]
 
-qor("  Empty list: " + empty_list)
-qor("  Numbers list: " + numbers)
-qor("  Mixed list: " + mixed)
+bandhig("  Empty list: " + empty_list)
+bandhig("  Numbers list: " + numbers)
+bandhig("  Mixed list: " + mixed)
 
 // Accessing elements
-qor("  First element of numbers: " + numbers[0])
-qor("  Third element of numbers: " + numbers[2])
-qor("  Last element of numbers: " + numbers[4])
+bandhig("  First element of numbers: " + numbers[0])
+bandhig("  Third element of numbers: " + numbers[2])
+bandhig("  Last element of numbers: " + numbers[4])
 
 // Modifying elements
 numbers[1] = 25
-qor("  After changing second element: " + numbers)
+bandhig("  After changing second element: " + numbers)
 
 // List length
-qor("  List length: " + numbers.dherer())
+bandhig("  List length: " + numbers.dherer())
 
 // Push operation
 numbers.kudar(60)
-qor("  After push: " + numbers)
+bandhig("  After push: " + numbers)
 numbers.kudar(70)
-qor("  After another push: " + numbers)
+bandhig("  After another push: " + numbers)
 
 // Pop operation
 door popped = numbers.kasaar()
-qor("  Popped value: " + popped)
-qor("  List after pop: " + numbers)
+bandhig("  Popped value: " + popped)
+bandhig("  List after pop: " + numbers)
 
 // Nested list access
 liis nested = [[1, 2], [3, 4]]
-qor("  Nested list: " + nested)
-qor("  Accessing nested element [1][0]: " + nested[1][0])
+bandhig("  Nested list: " + nested)
+bandhig("  Accessing nested element [1][0]: " + nested[1][0])
 
 // List iteration
-qor("  List iteration using for loop:")
-ku_celi i min 0 ilaa numbers.dherer() - 1 {
-    qor("    Element " + i + ": " + numbers[i])
+bandhig("  List iteration using for loop:")
+kuceli i min 0 ilaa numbers.dherer() - 1 {
+    bandhig("    Element " + i + ": " + numbers[i])
 }
 
 // List concatenation
 liis list1 = [1, 2, 3]
 liis list2 = [4, 5, 6]
-liis combined = list1.iskuxir(list2)
-qor("  List1: " + list1)
-qor("  List2: " + list2)
-qor("  Combined list: " + combined)
+liis combined = list1.kudar(list2)
+bandhig("  List1: " + list1)
+bandhig("  List2: " + list2)
+bandhig("  Combined list: " + combined)
 
 // Check if element exists in list
 tiro search_value = 30
-labadaran contains = numbers.ka_kooban(search_value)
-qor("  Does numbers contain " + search_value + "? " + contains)
+bool contains = numbers.leeyahay(search_value)
+bandhig("  Does numbers contain " + search_value + "? " + contains)
 
 search_value = 100
-contains = numbers.ka_kooban(search_value)
-qor("  Does numbers contain " + search_value + "? " + contains)
+contains = numbers.leeyahay(search_value)
+bandhig("  Does numbers contain " + search_value + "? " + contains)

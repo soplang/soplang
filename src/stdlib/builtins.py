@@ -3,7 +3,7 @@ from src.utils.errors import TypeError, ValueError
 
 class SoplangBuiltins:
     @staticmethod
-    def qor(message=""):
+    def bandhig(message=""):
         """
         Print a message to the console (equivalent to 'print' in many languages)
 
@@ -14,29 +14,29 @@ class SoplangBuiltins:
         return message
 
     @staticmethod
-    def akhri(prompt=""):
+    def gelin(prompt=""):
         """
         Read input from the user (equivalent to input/prompt)
         """
         return input(prompt)
 
     @staticmethod
-    def nuuc(value):
+    def nooc(value):
         """
         Return the type of a value as a string
         """
         if isinstance(value, str):
             return "qoraal"
         elif isinstance(value, bool):
-            return "labadaran"
+            return "bool"
         elif isinstance(value, (int, float)):
             return "tiro"
         elif isinstance(value, list):
             return "liis"
         elif isinstance(value, dict):
-            return "shey"
+            return "walax"
         elif value is None:
-            return "waxba"
+            return "maran"
         else:
             return "aan la aqoon"
 
@@ -80,7 +80,7 @@ class SoplangBuiltins:
         return str(value)
 
     @staticmethod
-    def labadaran(value):
+    def bool(value):
         """
         Convert a value to a boolean
         """
@@ -96,7 +96,7 @@ class SoplangBuiltins:
         return list(args)
 
     @staticmethod
-    def shey(**kwargs):
+    def walax(**kwargs):
         """
         Create a dictionary from keyword arguments
         """
@@ -219,7 +219,7 @@ class SoplangBuiltins:
         Get a property from an object
         """
         if not isinstance(obj, dict):
-            raise TypeError("Qiimahu ma ahan shey (Value is not an object)")
+            raise TypeError("Qiimahu ma ahan walax (Value is not an object)")
 
         if key not in obj:
             return None
@@ -232,7 +232,7 @@ class SoplangBuiltins:
         Set a property on an object
         """
         if not isinstance(obj, dict):
-            raise TypeError("Qiimahu ma ahan shey (Value is not an object)")
+            raise TypeError("Qiimahu ma ahan walax (Value is not an object)")
 
         obj[key] = value
         return value
@@ -243,7 +243,7 @@ class SoplangBuiltins:
         Get all keys from an object as a list
         """
         if not isinstance(obj, dict):
-            raise TypeError("Qiimahu ma ahan shey (Value is not an object)")
+            raise TypeError("Qiimahu ma ahan walax (Value is not an object)")
 
         return list(obj.keys())
 
@@ -253,7 +253,7 @@ class SoplangBuiltins:
         Check if an object has a specific property
         """
         if not isinstance(obj, dict):
-            raise TypeError("Qiimahu ma ahan shey (Value is not an object)")
+            raise TypeError("Qiimahu ma ahan walax (Value is not an object)")
 
         return key in obj
 
@@ -263,7 +263,7 @@ class SoplangBuiltins:
         Remove a property from an object
         """
         if not isinstance(obj, dict):
-            raise TypeError("Qiimahu ma ahan shey (Value is not an object)")
+            raise TypeError("Qiimahu ma ahan walax (Value is not an object)")
 
         if key in obj:
             del obj[key]
@@ -277,10 +277,10 @@ class SoplangBuiltins:
         """
         if not isinstance(obj1, dict):
             raise TypeError(
-                "Qiimaha koowaad ma ahan shey (First value is not an object)")
+                "Qiimaha koowaad ma ahan walax (First value is not an object)")
         if not isinstance(obj2, dict):
             raise TypeError(
-                "Qiimaha labaad ma ahan shey (Second value is not an object)")
+                "Qiimaha labaad ma ahan walax (Second value is not an object)")
 
         # Create a new dictionary with items from both objects
         result = obj1.copy()
@@ -293,14 +293,14 @@ def get_builtin_functions():
     Returns a dictionary of all built-in functions
     """
     builtins = {
-        "qor": SoplangBuiltins.qor,
-        "akhri": SoplangBuiltins.akhri,
-        "nuuc": SoplangBuiltins.nuuc,
+        "bandhig": SoplangBuiltins.bandhig,
+        "gelin": SoplangBuiltins.gelin,
+        "nooc": SoplangBuiltins.nooc,
         "tiro": SoplangBuiltins.tiro,
         "qoraal": SoplangBuiltins.qoraal,
-        "labadaran": SoplangBuiltins.labadaran,
+        "bool": SoplangBuiltins.bool,
         "liis": SoplangBuiltins.liis,
-        "shey": SoplangBuiltins.shey,
+        "walax": SoplangBuiltins.walax,
     }
 
     return builtins
@@ -311,10 +311,10 @@ def get_object_methods():
     Returns a dictionary of object methods
     """
     methods = {
-        "furaha": SoplangBuiltins.object_keys,
-        "haystaa": SoplangBuiltins.object_has,
+        "fure": SoplangBuiltins.object_keys,
+        "leeyahay": SoplangBuiltins.object_has,
         "tirtir": SoplangBuiltins.object_remove,
-        "iskudar": SoplangBuiltins.object_merge
+        "kudar": SoplangBuiltins.object_merge
     }
 
     return methods
@@ -328,8 +328,8 @@ def get_list_methods():
         "kudar": SoplangBuiltins.list_push,
         "kasaar": SoplangBuiltins.list_pop,
         "dherer": SoplangBuiltins.list_length,
-        "iskuxir": SoplangBuiltins.list_concat,
-        "ka_kooban": SoplangBuiltins.list_contains,
+        "kudar": SoplangBuiltins.list_concat,
+        "leeyahay": SoplangBuiltins.list_contains,
     }
 
     return methods

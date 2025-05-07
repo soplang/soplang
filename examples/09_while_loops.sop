@@ -1,21 +1,21 @@
 // Test: While Loops
 // This test checks if while loops work properly
 
-qor("Testing while loops (inta_ay):")
+bandhig("Testing while loops (intay):")
 
 // Simple while loop
 tiro counter = 1
-qor("  Simple while loop:")
-inta_ay (counter <= 5) {
-    qor("    Count: " + counter)
+bandhig("  Simple while loop:")
+intay (counter <= 5) {
+    bandhig("    Count: " + counter)
     counter = counter + 1
 }
 
 // While loop with break
-qor("  While loop with break:")
+bandhig("  While loop with break:")
 counter = 1
-inta_ay (been) {  // Infinite loop with break condition
-    qor("    Count: " + counter)
+intay (been) {  // Infinite loop with break condition
+    bandhig("    Count: " + counter)
     counter = counter + 1
     haddii (counter > 3) {
         jooji
@@ -23,35 +23,35 @@ inta_ay (been) {  // Infinite loop with break condition
 }
 
 // While loop with continue
-qor("  While loop with continue:")
+bandhig("  While loop with continue:")
 counter = 0
-inta_ay (counter < 5) {
+intay (counter < 5) {
     counter = counter + 1
     haddii (counter % 2 == 0) {
-        sii_wad
+        soco
     }
-    qor("    Odd count: " + counter)
+    bandhig("    Odd count: " + counter)
 }
 
 // Nested while loops
-qor("  Nested while loops:")
+bandhig("  Nested while loops:")
 tiro i = 1
-inta_ay (i <= 3) {
-    qor("    Outer loop: " + i)
+intay (i <= 3) {
+    bandhig("    Outer loop: " + i)
     tiro j = 1
-    inta_ay (j <= 2) {
-        qor("      Inner loop: " + j)
+    intay (j <= 2) {
+        bandhig("      Inner loop: " + j)
         j = j + 1
     }
     i = i + 1
 }
 
 // Complex condition
-qor("  While loop with complex condition:")
+bandhig("  While loop with complex condition:")
 tiro a = 5
 tiro b = 10
-inta_ay (a < b && a > 0) {
-    qor("    a = " + a + ", b = " + b)
+intay (a < b && a > 0) {
+    bandhig("    a = " + a + ", b = " + b)
     a = a + 1
     b = b - 1
 }

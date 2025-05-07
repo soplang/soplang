@@ -1,55 +1,55 @@
 // Test: Comparison Assignment
 // This test focuses on assigning the results of comparison operations to variables
 
-qor("Testing comparison operations in assignments:")
+bandhig("Testing comparison operations in assignments:")
 
 tiro a = 5
 tiro b = 3
-qor("  a = " + a + ", b = " + b)
+bandhig("  a = " + a + ", b = " + b)
 
 // Direct comparison assignments with door type
 door result1 = a > b
-qor("  door result1 = a > b: " + result1)
+bandhig("  door result1 = a > b: " + result1)
 
 door result2 = a < b
-qor("  door result2 = a < b: " + result2)
+bandhig("  door result2 = a < b: " + result2)
 
 door result3 = a == b
-qor("  door result3 = a == b: " + result3)
+bandhig("  door result3 = a == b: " + result3)
 
 door result4 = a != b
-qor("  door result4 = a != b: " + result4)
+bandhig("  door result4 = a != b: " + result4)
 
 door result5 = a >= b
-qor("  door result5 = a >= b: " + result5)
+bandhig("  door result5 = a >= b: " + result5)
 
 door result6 = a <= b
-qor("  door result6 = a <= b: " + result6)
+bandhig("  door result6 = a <= b: " + result6)
 
-// Test with labadaran (boolean) type
-labadaran isGreater = a > b
-qor("  labadaran isGreater = a > b: " + isGreater)
+// Test with bool (boolean) type
+bool isGreater = a > b
+bandhig("  bool isGreater = a > b: " + isGreater)
 
-labadaran isLess = a < b
-qor("  labadaran isLess = a < b: " + isLess)
+bool isLess = a < b
+bandhig("  bool isLess = a < b: " + isLess)
 
-labadaran isEqual = a == b
-qor("  labadaran isEqual = a == b: " + isEqual)
+bool isEqual = a == b
+bandhig("  bool isEqual = a == b: " + isEqual)
 
-labadaran isNotEqual = a != b
-qor("  labadaran isNotEqual = a != b: " + isNotEqual)
+bool isNotEqual = a != b
+bandhig("  bool isNotEqual = a != b: " + isNotEqual)
 
 // Test with complex expressions
 door complex1 = (a > b) && (a != b)
-qor("  door complex1 = (a > b) && (a != b): " + complex1)
+bandhig("  door complex1 = (a > b) && (a != b): " + complex1)
 
 door complex2 = (a < b) || (a == 5)
-qor("  door complex2 = (a < b) || (a == 5): " + complex2)
+bandhig("  door complex2 = (a < b) || (a == 5): " + complex2)
 
 // Test with variable reassignment
 door test = been
-qor("  Initial test value: " + test)
+bandhig("  Initial test value: " + test)
 test = a > b
-qor("  After test = a > b: " + test)
+bandhig("  After test = a > b: " + test)
 test = a < b
-qor("  After test = a < b: " + test)
+bandhig("  After test = a < b: " + test)
