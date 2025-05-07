@@ -228,10 +228,10 @@ class Parser:
                             self.advance()  # Consume left paren
 
                             if self.current_token.type != TokenType.RIGHT_PAREN:
-                                args.append(self.parse_expression())
+                                args.append(self.parse_logical_expression())
                                 while self.current_token.type == TokenType.COMMA:
                                     self.advance()
-                                    args.append(self.parse_expression())
+                                    args.append(self.parse_logical_expression())
 
                             self.expect(TokenType.RIGHT_PAREN)
                             left = ASTNode(
@@ -250,7 +250,7 @@ class Parser:
                     elif self.current_token.type == TokenType.LEFT_BRACKET:
                         # Handle array indexing (arr[idx])
                         self.advance()  # Consume left bracket
-                        index = self.parse_expression()
+                        index = self.parse_logical_expression()
                         self.expect(TokenType.RIGHT_BRACKET)
                         left = ASTNode(NodeType.INDEX_ACCESS, children=[left, index])
 
@@ -269,10 +269,10 @@ class Parser:
                 self.advance()  # Consume left paren
 
                 if self.current_token.type != TokenType.RIGHT_PAREN:
-                    args.append(self.parse_expression())
+                    args.append(self.parse_logical_expression())
                     while self.current_token.type == TokenType.COMMA:
                         self.advance()
-                        args.append(self.parse_expression())
+                        args.append(self.parse_logical_expression())
 
                 self.expect(TokenType.RIGHT_PAREN)
                 return ASTNode(
@@ -340,7 +340,7 @@ class Parser:
         self.expect(TokenType.EQUAL)
 
         # Parse the expression to assign to the variable
-        expression = self.parse_expression()
+        expression = self.parse_logical_expression()
 
         # Create variable declaration node
         var_node = ASTNode(
@@ -391,8 +391,8 @@ class Parser:
         """Parse a function call like 'bandhig("Hello")'"""
         func_name = self.current_token.value
         if (
-            self.current_token.type != TokenType.IDENTIFIER
-            and self.current_token.type
+            self.current_token.type != TokenType.IDENTIFIER and
+            self.current_token.type
             not in (
                 TokenType.BANDHIG,
                 TokenType.GELIN,
@@ -655,7 +655,7 @@ class Parser:
 
         elements = []
         while self.current_token.type != TokenType.RIGHT_BRACKET:
-            elements.append(self.parse_expression())
+            elements.append(self.parse_logical_expression())
             if self.current_token.type == TokenType.COMMA:
                 self.advance()
             else:
@@ -674,8 +674,8 @@ class Parser:
         while self.current_token.type != TokenType.RIGHT_BRACE:
             # Property key
             if (
-                self.current_token.type == TokenType.IDENTIFIER
-                or self.current_token.type == TokenType.STRING
+                self.current_token.type == TokenType.IDENTIFIER or
+                self.current_token.type == TokenType.STRING
             ):
                 key = self.current_token.value
                 self.advance()
@@ -692,8 +692,8 @@ class Parser:
             # Colon separator
             self.expect(TokenType.COLON)
 
-            # Property value
-            value = self.parse_expression()
+            # Property value - use logical expressions for more flexibility
+            value = self.parse_logical_expression()
 
             # Create a property node with key as value and expression as child
             property_node = ASTNode(NodeType.LITERAL, value=key, children=[value])
@@ -782,8 +782,8 @@ class Parser:
 
         # Handle property access (obj.prop), method calls (obj.method()), and array indexing (array[index])
         while (
-            self.current_token.type == TokenType.DOT
-            or self.current_token.type == TokenType.LEFT_BRACKET
+            self.current_token.type == TokenType.DOT or
+            self.current_token.type == TokenType.LEFT_BRACKET
         ):
             if self.current_token.type == TokenType.DOT:
                 # Property access
@@ -808,10 +808,10 @@ class Parser:
                     self.advance()  # Consume the left paren
 
                     if self.current_token.type != TokenType.RIGHT_PAREN:
-                        args.append(self.parse_expression())
+                        args.append(self.parse_logical_expression())
                         while self.current_token.type == TokenType.COMMA:
                             self.advance()
-                            args.append(self.parse_expression())
+                            args.append(self.parse_logical_expression())
 
                     self.expect(TokenType.RIGHT_PAREN)
                     expr = ASTNode(
@@ -828,7 +828,7 @@ class Parser:
             elif self.current_token.type == TokenType.LEFT_BRACKET:
                 # Array indexing (array[index])
                 self.advance()  # Consume the left bracket
-                index = self.parse_expression()
+                index = self.parse_logical_expression()
                 self.expect(TokenType.RIGHT_BRACKET)
                 expr = ASTNode(NodeType.INDEX_ACCESS, children=[expr, index])
 
@@ -899,10 +899,10 @@ class Parser:
 
         # Parse arguments
         if self.current_token.type != TokenType.RIGHT_PAREN:
-            args.append(self.parse_expression())
+            args.append(self.parse_logical_expression())
             while self.current_token.type == TokenType.COMMA:
                 self.advance()
-                args.append(self.parse_expression())
+                args.append(self.parse_logical_expression())
 
         self.expect(TokenType.RIGHT_PAREN)
 
@@ -945,8 +945,8 @@ class Parser:
             self.advance()
 
             if (
-                op_token.type == TokenType.EQUAL
-                and self.current_token.type == TokenType.EQUAL
+                op_token.type == TokenType.EQUAL and
+                self.current_token.type == TokenType.EQUAL
             ):
                 operator_value = "=="
                 self.advance()
@@ -988,7 +988,7 @@ class Parser:
     def parse_switch_statement(self):
         self.expect(TokenType.DOORO)
         self.expect(TokenType.LEFT_PAREN)
-        switch_expr = self.parse_expression()
+        switch_expr = self.parse_logical_expression()
         self.expect(TokenType.RIGHT_PAREN)
         self.expect(TokenType.LEFT_BRACE)
 
@@ -999,7 +999,7 @@ class Parser:
         while self.current_token.type != TokenType.RIGHT_BRACE:
             if self.current_token.type == TokenType.XAALAD:
                 self.advance()  # Consume 'xaalad'
-                case_value = self.parse_expression()
+                case_value = self.parse_logical_expression()
                 self.expect(TokenType.LEFT_BRACE)
 
                 case_body = []
@@ -1034,3 +1034,16 @@ class Parser:
 
         self.expect(TokenType.RIGHT_BRACE)
         return ASTNode(NodeType.SWITCH_STATEMENT, children=children)
+
+    def execute_assignment(self, node):
+        """Execute an assignment node (identifier = expression)"""
+        target = node.children[0]  # Target of assignment
+        value = self.evaluate(node.children[1])
+
+        # Get line and position from node
+        line = getattr(node, "line", None)
+        position = getattr(node, "position", None)
+
+        # Simple variable assignment
+        if target.type == NodeType.IDENTIFIER:
+            return self.assign_variable(target.value, value, line, position)
