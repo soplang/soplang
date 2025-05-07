@@ -30,7 +30,7 @@ class Lexer:
             "gelin": TokenType.GELIN,
             "haddii": TokenType.HADDII,
             "haddii_kale": TokenType.HADDII_KALE,
-            "ugudambeyn": TokenType.HADDII_KALENA,
+            "ugudambeyn": TokenType.UGUDAMBEYN,
             "kuceli": TokenType.kuceli,
             "intay": TokenType.INTAY,
             "jooji": TokenType.JOOJI,
@@ -56,7 +56,7 @@ class Lexer:
 
     def advance(self):
         # Update line and column tracking
-        if self.current_char == '\n':
+        if self.current_char == "\n":
             self.line += 1
             self.column = 1
         else:
@@ -101,8 +101,9 @@ class Lexer:
                 self.advance()
 
             # If we reach here, the comment was not properly closed
-            raise LexerError("unterminated_comment",
-                             position=self.column, line=self.line)
+            raise LexerError(
+                "unterminated_comment", position=self.column, line=self.line
+            )
 
         return False
 
@@ -136,7 +137,9 @@ class Lexer:
         ):
             number += self.current_char
             self.advance()
-        return Token(TokenType.NUMBER, float(number), line=start_line, position=start_position)
+        return Token(
+            TokenType.NUMBER, float(number), line=start_line, position=start_position
+        )
 
     def tokenize_string(self):
         quote_char = self.current_char
@@ -151,7 +154,9 @@ class Lexer:
 
         if self.current_char == quote_char:
             self.advance()
-            return Token(TokenType.STRING, string_value, line=start_line, position=start_position)
+            return Token(
+                TokenType.STRING, string_value, line=start_line, position=start_position
+            )
         raise LexerError("unterminated_string", position=self.column, line=self.line)
 
     def next_token(self):
@@ -181,91 +186,181 @@ class Lexer:
 
             if self.current_char == "+":
                 self.advance()
-                return Token(TokenType.PLUS, "+", line=current_line, position=current_position)
+                return Token(
+                    TokenType.PLUS, "+", line=current_line, position=current_position
+                )
             if self.current_char == "-":
                 self.advance()
-                return Token(TokenType.MINUS, "-", line=current_line, position=current_position)
+                return Token(
+                    TokenType.MINUS, "-", line=current_line, position=current_position
+                )
             if self.current_char == "*":
                 self.advance()
-                return Token(TokenType.STAR, "*", line=current_line, position=current_position)
+                return Token(
+                    TokenType.STAR, "*", line=current_line, position=current_position
+                )
             if self.current_char == "/":
                 self.advance()
-                return Token(TokenType.SLASH, "/", line=current_line, position=current_position)
+                return Token(
+                    TokenType.SLASH, "/", line=current_line, position=current_position
+                )
             if self.current_char == "%":
                 self.advance()
-                return Token(TokenType.MODULO, "%", line=current_line, position=current_position)
+                return Token(
+                    TokenType.MODULO, "%", line=current_line, position=current_position
+                )
             if self.current_char == "=":
                 self.advance()
-                return Token(TokenType.EQUAL, "=", line=current_line, position=current_position)
+                return Token(
+                    TokenType.EQUAL, "=", line=current_line, position=current_position
+                )
             if self.current_char == "(":
                 self.advance()
-                return Token(TokenType.LEFT_PAREN, "(", line=current_line, position=current_position)
+                return Token(
+                    TokenType.LEFT_PAREN,
+                    "(",
+                    line=current_line,
+                    position=current_position,
+                )
             if self.current_char == ")":
                 self.advance()
-                return Token(TokenType.RIGHT_PAREN, ")", line=current_line, position=current_position)
+                return Token(
+                    TokenType.RIGHT_PAREN,
+                    ")",
+                    line=current_line,
+                    position=current_position,
+                )
             if self.current_char == "{":
                 self.advance()
-                return Token(TokenType.LEFT_BRACE, "{", line=current_line, position=current_position)
+                return Token(
+                    TokenType.LEFT_BRACE,
+                    "{",
+                    line=current_line,
+                    position=current_position,
+                )
             if self.current_char == "}":
                 self.advance()
-                return Token(TokenType.RIGHT_BRACE, "}", line=current_line, position=current_position)
+                return Token(
+                    TokenType.RIGHT_BRACE,
+                    "}",
+                    line=current_line,
+                    position=current_position,
+                )
             if self.current_char == ">":
                 self.advance()
                 if self.current_char == "=":
                     self.advance()
-                    return Token(TokenType.GREATER_EQUAL, ">=", line=current_line, position=current_position)
-                return Token(TokenType.GREATER, ">", line=current_line, position=current_position)
+                    return Token(
+                        TokenType.GREATER_EQUAL,
+                        ">=",
+                        line=current_line,
+                        position=current_position,
+                    )
+                return Token(
+                    TokenType.GREATER, ">", line=current_line, position=current_position
+                )
             if self.current_char == "<":
                 self.advance()
                 if self.current_char == "=":
                     self.advance()
-                    return Token(TokenType.LESS_EQUAL, "<=", line=current_line, position=current_position)
-                return Token(TokenType.LESS, "<", line=current_line, position=current_position)
+                    return Token(
+                        TokenType.LESS_EQUAL,
+                        "<=",
+                        line=current_line,
+                        position=current_position,
+                    )
+                return Token(
+                    TokenType.LESS, "<", line=current_line, position=current_position
+                )
             if self.current_char == "!":
                 self.advance()
                 if self.current_char == "=":
                     self.advance()
-                    return Token(TokenType.NOT_EQUAL, "!=", line=current_line, position=current_position)
-                return Token(TokenType.NOT, "!", line=current_line, position=current_position)
+                    return Token(
+                        TokenType.NOT_EQUAL,
+                        "!=",
+                        line=current_line,
+                        position=current_position,
+                    )
+                return Token(
+                    TokenType.NOT, "!", line=current_line, position=current_position
+                )
             if self.current_char == "&":
                 self.advance()
                 if self.current_char == "&":
                     self.advance()
-                    return Token(TokenType.AND, "&&", line=current_line, position=current_position)
+                    return Token(
+                        TokenType.AND,
+                        "&&",
+                        line=current_line,
+                        position=current_position,
+                    )
                 raise LexerError(
-                    "unexpected_char", position=current_position, line=current_line, char="&"
+                    "unexpected_char",
+                    position=current_position,
+                    line=current_line,
+                    char="&",
                 )
             if self.current_char == "|":
                 self.advance()
                 if self.current_char == "|":
                     self.advance()
-                    return Token(TokenType.OR, "||", line=current_line, position=current_position)
+                    return Token(
+                        TokenType.OR, "||", line=current_line, position=current_position
+                    )
                 raise LexerError(
-                    "unexpected_char", position=current_position, line=current_line, char="|"
+                    "unexpected_char",
+                    position=current_position,
+                    line=current_line,
+                    char="|",
                 )
             if self.current_char == ",":
                 self.advance()
-                return Token(TokenType.COMMA, ",", line=current_line, position=current_position)
+                return Token(
+                    TokenType.COMMA, ",", line=current_line, position=current_position
+                )
             if self.current_char == ":":
                 self.advance()
-                return Token(TokenType.COLON, ":", line=current_line, position=current_position)
+                return Token(
+                    TokenType.COLON, ":", line=current_line, position=current_position
+                )
             if self.current_char == ";":
                 self.advance()
-                return Token(TokenType.SEMICOLON, ";", line=current_line, position=current_position)
+                return Token(
+                    TokenType.SEMICOLON,
+                    ";",
+                    line=current_line,
+                    position=current_position,
+                )
 
             # New tokens for lists and objects
             if self.current_char == "[":
                 self.advance()
-                return Token(TokenType.LEFT_BRACKET, "[", line=current_line, position=current_position)
+                return Token(
+                    TokenType.LEFT_BRACKET,
+                    "[",
+                    line=current_line,
+                    position=current_position,
+                )
             if self.current_char == "]":
                 self.advance()
-                return Token(TokenType.RIGHT_BRACKET, "]", line=current_line, position=current_position)
+                return Token(
+                    TokenType.RIGHT_BRACKET,
+                    "]",
+                    line=current_line,
+                    position=current_position,
+                )
             if self.current_char == ".":
                 self.advance()
-                return Token(TokenType.DOT, ".", line=current_line, position=current_position)
+                return Token(
+                    TokenType.DOT, ".", line=current_line, position=current_position
+                )
 
             raise LexerError(
-                "unexpected_char", position=current_position, line=current_line, char=self.current_char
+                "unexpected_char",
+                position=current_position,
+                line=current_line,
+                char=self.current_char,
             )
 
         return Token(TokenType.EOF, None, line=self.line, position=self.column)
