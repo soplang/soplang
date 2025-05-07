@@ -3,9 +3,13 @@
 
 bandhig("Testing static typing:")
 
-// Number (tiro)
-tiro number_var = 42
-bandhig("  Number (tiro): " + number_var)
+// Integer (tiro)
+tiro integer_var = 42
+bandhig("  Integer (tiro): " + integer_var)
+
+// Decimal (jajab)
+jajab decimal_var = 3.14159
+bandhig("  Decimal (jajab): " + decimal_var)
 
 // String (qoraal)
 qoraal string_var = "Soplang waa luqad wacan"
@@ -21,12 +25,15 @@ bandhig("  List (liis): " + list_var)
 // Object (walax)
 walax object_var = {
     magac: "Ahmed",
-    da: 25
+    da: 25,
+    miisaan: 72.5
 }
 bandhig("  Object (walax): " + object_var)
 
 // Try to assign incompatible types (should fail)
 // Uncomment these lines to test type enforcement
-// number_var = "this should fail"
+// integer_var = "this should fail"
+// integer_var = 3.14  // should fail (no implicit conversion)
+// decimal_var = "not a number"
 // string_var = 123
 // bool_var = "not a boolean"

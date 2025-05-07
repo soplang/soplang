@@ -52,7 +52,8 @@ class Parser:
             TokenType.UGUDAMBEYN: "keyword 'ugudambeyn' (else)",
             TokenType.kuceli: "keyword 'kuceli' (for)",
             TokenType.INTAY: "keyword 'intay' (while)",
-            TokenType.TIRO: "keyword 'tiro' (number type)",
+            TokenType.TIRO: "keyword 'tiro' (integer type)",
+            TokenType.JAJAB: "keyword 'jajab' (decimal type)",
             TokenType.QORAAL: "keyword 'qoraal' (string type)",
             TokenType.BOOL: "keyword 'bool' (boolean type)",
             TokenType.LIIS: "keyword 'liis' (list type)",
@@ -108,6 +109,7 @@ class Parser:
         # Handle variable declarations with static typing
         elif token_type in (
             TokenType.TIRO,
+            TokenType.JAJAB,
             TokenType.QORAAL,
             TokenType.BOOL,
             TokenType.LIIS,
@@ -383,13 +385,14 @@ class Parser:
         """Parse a function call like 'bandhig("Hello")'"""
         func_name = self.current_token.value
         if (
-            self.current_token.type != TokenType.IDENTIFIER and
-            self.current_token.type
+            self.current_token.type != TokenType.IDENTIFIER
+            and self.current_token.type
             not in (
                 TokenType.BANDHIG,
                 TokenType.GELIN,
                 TokenType.QORAAL,
                 TokenType.TIRO,
+                TokenType.JAJAB,
                 TokenType.BOOL,
                 TokenType.LIIS,
                 TokenType.WALAX,
@@ -665,8 +668,8 @@ class Parser:
         while self.current_token.type != TokenType.RIGHT_BRACE:
             # Property key
             if (
-                self.current_token.type == TokenType.IDENTIFIER or
-                self.current_token.type == TokenType.STRING
+                self.current_token.type == TokenType.IDENTIFIER
+                or self.current_token.type == TokenType.STRING
             ):
                 key = self.current_token.value
                 self.advance()
@@ -773,8 +776,8 @@ class Parser:
 
         # Handle property access (obj.prop), method calls (obj.method()), and array indexing (array[index])
         while (
-            self.current_token.type == TokenType.DOT or
-            self.current_token.type == TokenType.LEFT_BRACKET
+            self.current_token.type == TokenType.DOT
+            or self.current_token.type == TokenType.LEFT_BRACKET
         ):
             if self.current_token.type == TokenType.DOT:
                 # Property access
@@ -847,6 +850,7 @@ class Parser:
         elif token.type == TokenType.IDENTIFIER or token.type in (
             TokenType.QORAAL,
             TokenType.TIRO,
+            TokenType.JAJAB,
             TokenType.BOOL,
             TokenType.LIIS,
             TokenType.WALAX,
@@ -935,8 +939,8 @@ class Parser:
             self.advance()
 
             if (
-                op_token.type == TokenType.EQUAL and
-                self.current_token.type == TokenType.EQUAL
+                op_token.type == TokenType.EQUAL
+                and self.current_token.type == TokenType.EQUAL
             ):
                 operator_value = "=="
                 self.advance()

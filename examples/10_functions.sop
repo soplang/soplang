@@ -11,32 +11,52 @@ hawl salaan() {
 bandhig("  Calling salaan function:")
 salaan()
 
-// Function with parameters
-hawl isku_dar(x, y) {
+// Function with integer parameters
+hawl isku_dar_integers(x, y) {
     celi x + y
 }
 
-bandhig("  Testing function with parameters:")
-bandhig("  isku_dar(5, 7): " + isku_dar(5, 7))
-bandhig("  isku_dar(10, 20): " + isku_dar(10, 20))
-bandhig("  isku_dar('Magac', 'Danbe'): " + isku_dar("Magac", "Danbe"))
+bandhig("  Testing function with integer parameters:")
+bandhig("  isku_dar_integers(5, 7): " + isku_dar_integers(5, 7))
+bandhig("  isku_dar_integers(10, 20): " + isku_dar_integers(10, 20))
 
-// Function with return value
-hawl laban_jibbaar(num) {
+// Function with decimal parameters
+hawl isku_dar_decimals(x, y) {
+    celi x + y
+}
+
+bandhig("  Testing function with decimal parameters:")
+bandhig("  isku_dar_decimals(5.5, 7.25): " + isku_dar_decimals(5.5, 7.25))
+bandhig("  isku_dar_decimals(10.1, 20.2): " + isku_dar_decimals(10.1, 20.2))
+
+// Function with string concatenation
+hawl isku_dar_strings(str1, str2) {
+    celi str1 + str2
+}
+
+bandhig("  Testing function with string parameters:")
+bandhig("  isku_dar_strings('Magac', 'Danbe'): " + isku_dar_strings("Magac", "Danbe"))
+
+// Function that doubles an integer
+hawl laban_jibbaar_integer(tiro num) {
     celi num * 2
 }
 
-bandhig("  Testing function with return value:")
-bandhig("  laban_jibbaar(8): " + laban_jibbaar(8))
-door result = laban_jibbaar(15)
-bandhig("  laban_jibbaar(15) stored in variable: " + result)
+// Function that doubles a decimal
+hawl laban_jibbaar_decimal(jajab num) {
+    celi num * 2
+}
+
+bandhig("  Testing functions with specific return types:")
+bandhig("  laban_jibbaar_integer(8): " + laban_jibbaar_integer(8))
+bandhig("  laban_jibbaar_decimal(8.5): " + laban_jibbaar_decimal(8.5))
 
 // Function with type checking
-hawl check_even(num) {
+hawl check_even(tiro num) {
     haddii (num % 2 == 0) {
-        celi been
-    } ugudambeyn {
         celi run
+    } ugudambeyn {
+        celi been
     }
 }
 
@@ -44,8 +64,18 @@ bandhig("  Testing function with type checking:")
 bandhig("  check_even(4): " + check_even(4))
 bandhig("  check_even(7): " + check_even(7))
 
+// Function with decimal rounding
+hawl round_decimal(jajab num) {
+    tiro rounded = tiro(num)
+    celi rounded
+}
+
+bandhig("  Testing decimal rounding function:")
+bandhig("  round_decimal(4.7): " + round_decimal(4.7))
+bandhig("  round_decimal(9.2): " + round_decimal(9.2))
+
 // Function with conditional return
-hawl get_grade(score) {
+hawl get_grade(tiro score) {
     haddii (score >= 90) {
         celi "A"
     } haddii_kale (score >= 80) {
@@ -66,11 +96,17 @@ bandhig("  get_grade(75): " + get_grade(75))
 bandhig("  get_grade(65): " + get_grade(65))
 bandhig("  get_grade(55): " + get_grade(55))
 
-// Function that calls another function
-hawl process_number(n) {
-    door doubled = laban_jibbaar(n)
-    celi "Processed: " + doubled
+// Function that works with both integers and decimals
+hawl calculate_area(shape, a, b) {
+    haddii (shape == "rectangle") {
+        celi a * b
+    } haddii_kale (shape == "triangle") {
+        celi 0.5 * a * b
+    } ugudambeyn {
+        celi 0
+    }
 }
 
-bandhig("  Testing function that calls another function:")
-bandhig("  process_number(5): " + process_number(5))
+bandhig("  Testing generic calculation function:")
+bandhig("  Rectangle area (integers) calculate_area('rectangle', 5, 10): " + calculate_area("rectangle", 5, 10))
+bandhig("  Triangle area (decimals) calculate_area('triangle', 5.5, 10.5): " + calculate_area("triangle", 5.5, 10.5))

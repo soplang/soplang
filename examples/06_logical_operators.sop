@@ -3,6 +3,7 @@
 
 bandhig("Testing logical operators:")
 
+// Boolean values
 bool c = been
 bool d = run
 bandhig("  c = " + c + ", d = " + d)
@@ -19,13 +20,27 @@ bandhig("  Compound OR (!c || d): " + (!c || d))
 bandhig("  Complex expression (c && (d || !d)): " + (c && (d || !d)))
 bandhig("  Complex expression ((c || d) && (c || !d)): " + ((c || d) && (c || !d)))
 
-// Using comparison results in logical operations
+// Using integer values in logical operations
 tiro x = 10
 tiro y = 20
+bandhig("\nLogical operations with integers:")
 bandhig("  x = " + x + ", y = " + y)
 bandhig("  Comparison in logical expression ((x > 5) && (y < 30)): " + ((x > 5) && (y < 30)))
 bandhig("  Comparison in logical expression ((x > 15) || (y < 30)): " + ((x > 15) || (y < 30)))
 
+// Using decimal values in logical operations
+jajab a = 10.5
+jajab b = 20.25
+bandhig("\nLogical operations with decimals:")
+bandhig("  a = " + a + ", b = " + b)
+bandhig("  Comparison in logical expression ((a > 5.5) && (b < 30.5)): " + ((a > 5.5) && (b < 30.5)))
+bandhig("  Comparison in logical expression ((a > 15.5) || (b < 30.5)): " + ((a > 15.5) || (b < 30.5)))
+
+// Mixed integer and decimal comparisons
+bandhig("\nLogical operations with mixed types:")
+bandhig("  Integer vs. Decimal ((x < a) && (y > b)): " + ((x < a) && (y > b)))
+bandhig("  Integer vs. Decimal ((x > a) || (y > b)): " + ((x > a) || (y > b)))
+
 // Assignment of logical operations
 door result = ((x < y) && (c || d))
-bandhig("  Assignment of logical operation (result = (x < y) && (c || d)): " + result)
+bandhig("\nAssignment of logical operation (result = (x < y) && (c || d)): " + result)
