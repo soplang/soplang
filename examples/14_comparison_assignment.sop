@@ -8,42 +8,42 @@ tiro b = 3
 bandhig("  a = " + a + ", b = " + b)
 
 // Direct comparison assignments with door type
-door result1 = a > b
+door result1 = (a > b)
 bandhig("  door result1 = a > b: " + result1)
 
-door result2 = a < b
+door result2 = (a < b)
 bandhig("  door result2 = a < b: " + result2)
 
-door result3 = a == b
+door result3 = (a == b)
 bandhig("  door result3 = a == b: " + result3)
 
-door result4 = a != b
+door result4 = (a != b)
 bandhig("  door result4 = a != b: " + result4)
 
-door result5 = a >= b
+door result5 = (a >= b)
 bandhig("  door result5 = a >= b: " + result5)
 
-door result6 = a <= b
+door result6 = (a <= b)
 bandhig("  door result6 = a <= b: " + result6)
 
 // Test with bool (boolean) type
-bool isGreater = a > b
+bool isGreater = (a > b)
 bandhig("  bool isGreater = a > b: " + isGreater)
 
-bool isLess = a < b
+bool isLess = (a < b)
 bandhig("  bool isLess = a < b: " + isLess)
 
-bool isEqual = a == b
+bool isEqual = (a == b)
 bandhig("  bool isEqual = a == b: " + isEqual)
 
-bool isNotEqual = a != b
+bool isNotEqual = (a != b)
 bandhig("  bool isNotEqual = a != b: " + isNotEqual)
 
 // Test with complex expressions
-door complex1 = (a > b) && (a != b)
+door complex1 = ((a > b) && (a != b))
 bandhig("  door complex1 = (a > b) && (a != b): " + complex1)
 
-door complex2 = (a < b) || (a == 5)
+door complex2 = ((a < b) || (a == 5))
 bandhig("  door complex2 = (a < b) || (a == 5): " + complex2)
 
 // Test with variable reassignment
