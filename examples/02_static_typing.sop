@@ -12,7 +12,7 @@ qoraal string_var = "Soplang waa luqad wacan"
 bandhig("  String (qoraal): " + string_var)
 // Boolean (bool)
 bool bool_var = been
-bandhig("  Boolean (labadaran): " + bool_var)
+bandhig("  Boolean (bool): " + bool_var)
 
 // List (liis)
 liis list_var = [1, 2, 3, "afar", been]

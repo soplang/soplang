@@ -19,4 +19,4 @@ bandhig("The type of your input is: " + nooc(magac))
 bandhig("Your name has several characters.")
 
 // Thank the user
-bandhig("Thank you for gelin akhri in Soplang!")
+bandhig("Thank you for trying gelin in Soplang!")
