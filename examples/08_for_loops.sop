@@ -11,7 +11,7 @@ kuceli (i 1 ilaa 5) {
 
 // For loop with step
 bandhig("  For loop with custom step (every other number):")
-kuceli (j 2 ilaa 10 by 2) {
+kuceli (j 2 ilaa 10 :: 2) {
     bandhig("    Iteration: " + j)
 }
 

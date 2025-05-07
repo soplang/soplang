@@ -509,14 +509,23 @@ class Parser:
         # Parse the end expression
         end_expr = self.parse_expression()
 
-        # Check for optional step parameter
+        # Check for optional step parameter with '::' syntax
         step_expr = None
-        if (
-            self.current_token.type == TokenType.IDENTIFIER and
-            self.current_token.value == "by"
-        ):
-            self.advance()  # consume "by"
-            step_expr = self.parse_expression()
+        if self.current_token.type == TokenType.COLON:
+            self.advance()  # consume first ":"
+            if self.current_token.type == TokenType.COLON:
+                self.advance()  # consume second ":"
+                step_expr = self.parse_expression()
+            else:
+                # If we see just one colon, raise an error expecting the second one
+                raise ParserError(
+                    "expected_token",
+                    expected="':'",
+                    found=self.get_friendly_token_name(self.current_token.type),
+                    token=self.current_token,
+                    line=getattr(self.current_token, "line", None),
+                    position=getattr(self.current_token, "position", None),
+                )
 
         # Expect a closing parenthesis
         self.expect(TokenType.RIGHT_PAREN)
