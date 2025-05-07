@@ -68,7 +68,7 @@ ElseIfClause ::= "haddii_kale" "(" Expression ")" Block
 ElseClause ::= "ugudambeyn" Block
 
 // ===== LOOPS =====
-LoopStatement ::= "kuceli" Identifier "min" Expression "ilaa" Expression ["by" Expression] Block
+LoopStatement ::= "kuceli" "(" Identifier Expression "ilaa" Expression ["by" Expression] ")" Block
 
 WhileStatement ::= "intay" "(" Expression ")" Block
 
