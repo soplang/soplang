@@ -68,7 +68,7 @@ bandhig("  After removing job: " + person)
 // Merging objects
 walax obj1 = {a: 1, b: 2}
 walax obj2 = {c: 3, d: 4}
-walax merged = obj1.iskudar(obj2)
+walax merged = obj1.kudar(obj2)
 bandhig("  obj1: " + obj1)
 bandhig("  obj2: " + obj2)
 bandhig("  Merged object: " + merged)

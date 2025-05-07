@@ -241,7 +241,7 @@ ListMethod ::= "kudar"       // push
 ObjectMethod ::= "fure"    // keys
                | "leeyahay"   // has
                | "tirtir"    // remove
-               | "iskudar"   // merge
+               | "kudar"   // merge
 ```
 
 ## Error Messages
