@@ -383,8 +383,8 @@ class Parser:
         """Parse a function call like 'bandhig("Hello")'"""
         func_name = self.current_token.value
         if (
-            self.current_token.type != TokenType.IDENTIFIER
-            and self.current_token.type
+            self.current_token.type != TokenType.IDENTIFIER and
+            self.current_token.type
             not in (
                 TokenType.BANDHIG,
                 TokenType.GELIN,
@@ -487,26 +487,39 @@ class Parser:
         return ASTNode(NodeType.IF_STATEMENT, children=children)
 
     # -----------------------------
-    #  Loops: kuceli i min 1 ilaa 5 { ... }
-    #  or with step: kuceli i min 1 ilaa 5 by 2 { ... }
+    #  Loops: kuceli (i 1 ilaa 5) { ... }
+    #  or with step: kuceli (i 1 ilaa 5 by 2) { ... }
     # -----------------------------
     def parse_loop_statement(self):
         self.expect(TokenType.kuceli)
+
+        # Expect an opening parenthesis
+        self.expect(TokenType.LEFT_PAREN)
+
+        # Get the loop variable
         loop_var = self.current_token.value
         self.expect(TokenType.IDENTIFIER)  # e.g. i
-        self.expect(TokenType.IDENTIFIER)  # "min"
+
+        # Parse the start expression
         start_expr = self.parse_expression()
+
+        # Expect 'ilaa' keyword
         self.expect(TokenType.IDENTIFIER)  # "ilaa"
+
+        # Parse the end expression
         end_expr = self.parse_expression()
 
         # Check for optional step parameter
         step_expr = None
         if (
-            self.current_token.type == TokenType.IDENTIFIER
-            and self.current_token.value == "by"
+            self.current_token.type == TokenType.IDENTIFIER and
+            self.current_token.value == "by"
         ):
             self.advance()  # consume "by"
             step_expr = self.parse_expression()
+
+        # Expect a closing parenthesis
+        self.expect(TokenType.RIGHT_PAREN)
 
         self.expect(TokenType.LEFT_BRACE)
 
@@ -643,8 +656,8 @@ class Parser:
         while self.current_token.type != TokenType.RIGHT_BRACE:
             # Property key
             if (
-                self.current_token.type == TokenType.IDENTIFIER
-                or self.current_token.type == TokenType.STRING
+                self.current_token.type == TokenType.IDENTIFIER or
+                self.current_token.type == TokenType.STRING
             ):
                 key = self.current_token.value
                 self.advance()
@@ -751,8 +764,8 @@ class Parser:
 
         # Handle property access (obj.prop), method calls (obj.method()), and array indexing (array[index])
         while (
-            self.current_token.type == TokenType.DOT
-            or self.current_token.type == TokenType.LEFT_BRACKET
+            self.current_token.type == TokenType.DOT or
+            self.current_token.type == TokenType.LEFT_BRACKET
         ):
             if self.current_token.type == TokenType.DOT:
                 # Property access
@@ -913,8 +926,8 @@ class Parser:
             self.advance()
 
             if (
-                op_token.type == TokenType.EQUAL
-                and self.current_token.type == TokenType.EQUAL
+                op_token.type == TokenType.EQUAL and
+                self.current_token.type == TokenType.EQUAL
             ):
                 operator_value = "=="
                 self.advance()

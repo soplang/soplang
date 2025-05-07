@@ -5,19 +5,19 @@ bandhig("Testing for loops (kuceli):")
 
 // Simple for loop
 bandhig("  Simple for loop:")
-kuceli i min 1 ilaa 5 {
+kuceli (i 1 ilaa 5) {
     bandhig("    Iteration: " + i)
 }
 
 // For loop with step
 bandhig("  For loop with custom step (every other number):")
-kuceli j min 2 ilaa 10 by 2 {
+kuceli (j 2 ilaa 10 by 2) {
     bandhig("    Iteration: " + j)
 }
 
 // For loop with break
 bandhig("  For loop with break (jooji):")
-kuceli i min 1 ilaa 10 {
+kuceli (i 1 ilaa 10) {
     haddii (i > 5) {
         jooji
     }
@@ -26,7 +26,7 @@ kuceli i min 1 ilaa 10 {
 
 // For loop with continue
 bandhig("  For loop with continue (soco):")
-kuceli i min 1 ilaa 5 {
+kuceli (i 1 ilaa 5) {
     haddii (i % 2 == 0) {
         soco
     }
@@ -35,9 +35,9 @@ kuceli i min 1 ilaa 5 {
 
 // Nested for loops
 bandhig("  Nested for loops:")
-kuceli i min 1 ilaa 3 {
+kuceli (i 1 ilaa 3) {
     bandhig("    Outer loop: " + i)
-    kuceli j min 1 ilaa 2 {
+    kuceli (j 1 ilaa 2) {
         bandhig("      Inner loop: " + j)
     }
 }
@@ -45,6 +45,6 @@ kuceli i min 1 ilaa 3 {
 // For loop operating on a list
 liis numbers = [10, 20, 30, 40, 50]
 bandhig("  For loop iterating over a list with indices:")
-kuceli i min 0 ilaa numbers.dherer() - 1 {
+kuceli (i 0 ilaa numbers.dherer() - 1) {
     bandhig("    Element at index " + i + ": " + numbers[i])
 }

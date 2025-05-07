@@ -42,7 +42,7 @@ bandhig("  Accessing nested element [1][0]: " + nested[1][0])
 
 // List iteration
 bandhig("  List iteration using for loop:")
-kuceli i min 0 ilaa numbers.dherer() - 1 {
+kuceli (i 0 ilaa numbers.dherer() - 1) {
     bandhig("    Element " + i + ": " + numbers[i])
 }
 
