@@ -27,5 +27,5 @@ bandhig("  Comparison in logical expression ((x > 5) && (y < 30)): " + ((x > 5) 
 bandhig("  Comparison in logical expression ((x > 15) || (y < 30)): " + ((x > 15) || (y < 30)))
 
 // Assignment of logical operations
-door result = (x < y) && (c || d)
+door result = ((x < y) && (c || d))
 bandhig("  Assignment of logical operation (result = (x < y) && (c || d)): " + result)
