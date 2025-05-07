@@ -82,8 +82,8 @@ class Parser:
                 expected=expected_description,
                 found=found_description,
                 token=self.current_token,
-                line=getattr(self.current_token, 'line', None),
-                position=getattr(self.current_token, 'position', None)
+                line=getattr(self.current_token, "line", None),
+                position=getattr(self.current_token, "position", None),
             )
 
     def parse(self):
@@ -98,8 +98,8 @@ class Parser:
         """
         token = self.current_token
         token_type = token.type
-        line = getattr(token, 'line', None)
-        position = getattr(token, 'position', None)
+        line = getattr(token, "line", None)
+        position = getattr(token, "position", None)
 
         # Handle haddii (if statement)
         if token_type == TokenType.HADDII:
@@ -135,7 +135,7 @@ class Parser:
                 value="bandhig",
                 children=[self.parse_expression()],
                 line=line,
-                position=position
+                position=position,
             )
 
         # Handle function calls
@@ -193,7 +193,10 @@ class Parser:
                 left = ASTNode(NodeType.IDENTIFIER, value=identifier_value)
 
                 # Parse any chain of property accesses or array indexing
-                while self.current_token.type in (TokenType.DOT, TokenType.LEFT_BRACKET):
+                while self.current_token.type in (
+                    TokenType.DOT,
+                    TokenType.LEFT_BRACKET,
+                ):
                     if self.current_token.type == TokenType.DOT:
                         # Handle property access (obj.prop)
                         self.advance()  # Consume the dot
@@ -204,8 +207,8 @@ class Parser:
                                 expected="IDENTIFIER",
                                 found=self.current_token.type,
                                 token=self.current_token,
-                                line=getattr(self.current_token, 'line', None),
-                                position=getattr(self.current_token, 'position', None)
+                                line=getattr(self.current_token, "line", None),
+                                position=getattr(self.current_token, "position", None),
                             )
 
                         prop_name = self.current_token.value
@@ -223,12 +226,18 @@ class Parser:
                                     args.append(self.parse_expression())
 
                             self.expect(TokenType.RIGHT_PAREN)
-                            left = ASTNode(NodeType.METHOD_CALL,
-                                           value=prop_name, children=[left] + args)
+                            left = ASTNode(
+                                NodeType.METHOD_CALL,
+                                value=prop_name,
+                                children=[left] + args,
+                            )
                         else:
                             # Regular property access (obj.prop)
-                            left = ASTNode(NodeType.PROPERTY_ACCESS,
-                                           value=prop_name, children=[left])
+                            left = ASTNode(
+                                NodeType.PROPERTY_ACCESS,
+                                value=prop_name,
+                                children=[left],
+                            )
 
                     elif self.current_token.type == TokenType.LEFT_BRACKET:
                         # Handle array indexing (arr[idx])
@@ -258,7 +267,9 @@ class Parser:
                         args.append(self.parse_expression())
 
                 self.expect(TokenType.RIGHT_PAREN)
-                return ASTNode(NodeType.FUNCTION_CALL, value=identifier_value, children=args)
+                return ASTNode(
+                    NodeType.FUNCTION_CALL, value=identifier_value, children=args
+                )
 
             # Handle simple variable assignment (var = value)
             elif self.current_token.type == TokenType.EQUAL:
@@ -266,8 +277,10 @@ class Parser:
                 value = self.parse_logical_expression()
                 return ASTNode(
                     NodeType.ASSIGNMENT,
-                    children=[ASTNode(NodeType.IDENTIFIER,
-                                      value=identifier_value), value]
+                    children=[
+                        ASTNode(NodeType.IDENTIFIER, value=identifier_value),
+                        value,
+                    ],
                 )
 
             # Just a variable reference
@@ -278,15 +291,15 @@ class Parser:
             raise ParserError(
                 "unexpected_token",
                 token=self.get_friendly_token_name(token_type),
-                line=getattr(token, 'line', None),
-                position=getattr(token, 'position', None)
+                line=getattr(token, "line", None),
+                position=getattr(token, "position", None),
             )
 
         raise ParserError(
             "unexpected_token",
             token=self.get_friendly_token_name(token_type),
-            line=getattr(token, 'line', None),
-            position=getattr(token, 'position', None)
+            line=getattr(token, "line", None),
+            position=getattr(token, "position", None),
         )
 
     # -----------------------------
@@ -296,8 +309,8 @@ class Parser:
     def parse_variable_declaration(self, is_static=False):
         # Get the variable type (for static typing)
         var_type = self.current_token.type if is_static else None
-        token_line = getattr(self.current_token, 'line', None)
-        token_position = getattr(self.current_token, 'position', None)
+        token_line = getattr(self.current_token, "line", None)
+        token_position = getattr(self.current_token, "position", None)
 
         self.advance()  # Consume type/door token
 
@@ -308,8 +321,8 @@ class Parser:
                 expected="identifier",
                 found=self.get_friendly_token_name(self.current_token.type),
                 token=self.current_token,
-                line=getattr(self.current_token, 'line', None),
-                position=getattr(self.current_token, 'position', None)
+                line=getattr(self.current_token, "line", None),
+                position=getattr(self.current_token, "position", None),
             )
 
         var_name = self.current_token.value
@@ -327,7 +340,7 @@ class Parser:
             value=var_name,
             children=[expression],
             line=token_line,
-            position=token_position
+            position=token_position,
         )
         var_node.var_type = var_type  # Store type for static typing
 
@@ -370,8 +383,8 @@ class Parser:
         """Parse a function call like 'bandhig("Hello")'"""
         func_name = self.current_token.value
         if (
-            self.current_token.type != TokenType.IDENTIFIER and
-            self.current_token.type
+            self.current_token.type != TokenType.IDENTIFIER
+            and self.current_token.type
             not in (
                 TokenType.BANDHIG,
                 TokenType.GELIN,
@@ -387,8 +400,8 @@ class Parser:
                 expected="function name",
                 found=self.get_friendly_token_name(self.current_token.type),
                 token=self.current_token,
-                line=getattr(self.current_token, 'line', None),
-                position=getattr(self.current_token, 'position', None)
+                line=getattr(self.current_token, "line", None),
+                position=getattr(self.current_token, "position", None),
             )
 
         # For non-identifier function names (like type names), get the value from the type
@@ -416,8 +429,8 @@ class Parser:
                 expected="string for file path",
                 found=self.get_friendly_token_name(self.current_token.type),
                 token=self.current_token,
-                line=getattr(self.current_token, 'line', None),
-                position=getattr(self.current_token, 'position', None)
+                line=getattr(self.current_token, "line", None),
+                position=getattr(self.current_token, "position", None),
             )
         filename = self.current_token.value
         self.advance()  # consume the STRING
@@ -489,8 +502,8 @@ class Parser:
         # Check for optional step parameter
         step_expr = None
         if (
-            self.current_token.type == TokenType.IDENTIFIER and
-            self.current_token.value == "by"
+            self.current_token.type == TokenType.IDENTIFIER
+            and self.current_token.value == "by"
         ):
             self.advance()  # consume "by"
             step_expr = self.parse_expression()
@@ -630,8 +643,8 @@ class Parser:
         while self.current_token.type != TokenType.RIGHT_BRACE:
             # Property key
             if (
-                self.current_token.type == TokenType.IDENTIFIER or
-                self.current_token.type == TokenType.STRING
+                self.current_token.type == TokenType.IDENTIFIER
+                or self.current_token.type == TokenType.STRING
             ):
                 key = self.current_token.value
                 self.advance()
@@ -641,8 +654,8 @@ class Parser:
                     expected="property name (identifier or string)",
                     found=self.get_friendly_token_name(self.current_token.type),
                     token=self.current_token,
-                    line=getattr(self.current_token, 'line', None),
-                    position=getattr(self.current_token, 'position', None)
+                    line=getattr(self.current_token, "line", None),
+                    position=getattr(self.current_token, "position", None),
                 )
 
             # Colon separator
@@ -714,12 +727,16 @@ class Parser:
             # For unary minus
             if op.type == TokenType.MINUS:
                 # Create a negative number directly if it's a literal
-                if factor.type == NodeType.LITERAL and isinstance(factor.value, (int, float)):
+                if factor.type == NodeType.LITERAL and isinstance(
+                    factor.value, (int, float)
+                ):
                     return ASTNode(NodeType.LITERAL, value=-factor.value)
 
                 # Otherwise create a binary operation
                 minus_one = ASTNode(NodeType.LITERAL, value=-1)
-                return ASTNode(NodeType.BINARY_OPERATION, value="*", children=[minus_one, factor])
+                return ASTNode(
+                    NodeType.BINARY_OPERATION, value="*", children=[minus_one, factor]
+                )
 
             # For NOT operator
             if op.type == TokenType.NOT:
@@ -734,8 +751,8 @@ class Parser:
 
         # Handle property access (obj.prop), method calls (obj.method()), and array indexing (array[index])
         while (
-            self.current_token.type == TokenType.DOT or
-            self.current_token.type == TokenType.LEFT_BRACKET
+            self.current_token.type == TokenType.DOT
+            or self.current_token.type == TokenType.LEFT_BRACKET
         ):
             if self.current_token.type == TokenType.DOT:
                 # Property access
@@ -747,8 +764,8 @@ class Parser:
                         expected="property name",
                         found=self.get_friendly_token_name(self.current_token.type),
                         token=self.current_token,
-                        line=getattr(self.current_token, 'line', None),
-                        position=getattr(self.current_token, 'position', None)
+                        line=getattr(self.current_token, "line", None),
+                        position=getattr(self.current_token, "position", None),
                     )
 
                 property_name = self.current_token.value
@@ -766,12 +783,16 @@ class Parser:
                             args.append(self.parse_expression())
 
                     self.expect(TokenType.RIGHT_PAREN)
-                    expr = ASTNode(NodeType.METHOD_CALL,
-                                   value=property_name, children=[expr] + args)
+                    expr = ASTNode(
+                        NodeType.METHOD_CALL,
+                        value=property_name,
+                        children=[expr] + args,
+                    )
                 else:
                     # Regular property access (obj.prop)
-                    expr = ASTNode(NodeType.PROPERTY_ACCESS,
-                                   value=property_name, children=[expr])
+                    expr = ASTNode(
+                        NodeType.PROPERTY_ACCESS, value=property_name, children=[expr]
+                    )
 
             elif self.current_token.type == TokenType.LEFT_BRACKET:
                 # Array indexing (array[index])
@@ -802,11 +823,18 @@ class Parser:
             self.advance()
             return ASTNode(NodeType.LITERAL, value=None)
         elif token.type == TokenType.IDENTIFIER or token.type in (
-            TokenType.QORAAL, TokenType.TIRO, TokenType.BOOL, TokenType.LIIS, TokenType.WALAX,
-            TokenType.BANDHIG, TokenType.GELIN  # Added QOR and GELIN to handle them in expressions
+            TokenType.QORAAL,
+            TokenType.TIRO,
+            TokenType.BOOL,
+            TokenType.LIIS,
+            TokenType.WALAX,
+            TokenType.BANDHIG,
+            TokenType.GELIN,  # Added QOR and GELIN to handle them in expressions
         ):
             # Allow type names to be used as function names
-            token_value = token.value if token.type == TokenType.IDENTIFIER else token.type.value
+            token_value = (
+                token.value if token.type == TokenType.IDENTIFIER else token.type.value
+            )
             self.advance()
 
             # Check if this is a function call (followed by left parenthesis)
@@ -828,8 +856,8 @@ class Parser:
             raise ParserError(
                 "unexpected_token",
                 token=self.get_friendly_token_name(token.type),
-                line=getattr(token, 'line', None),
-                position=getattr(token, 'position', None)
+                line=getattr(token, "line", None),
+                position=getattr(token, "position", None),
             )
 
     def parse_function_call_helper(self, func_name):
@@ -885,8 +913,8 @@ class Parser:
             self.advance()
 
             if (
-                op_token.type == TokenType.EQUAL and
-                self.current_token.type == TokenType.EQUAL
+                op_token.type == TokenType.EQUAL
+                and self.current_token.type == TokenType.EQUAL
             ):
                 operator_value = "=="
                 self.advance()
@@ -911,6 +939,8 @@ class Parser:
 
     def create_node(self, node_type, value=None, children=None):
         """Create an AST node with current token's line and position information"""
-        line = getattr(self.current_token, 'line', None)
-        position = getattr(self.current_token, 'position', None)
-        return ASTNode(node_type, value=value, children=children, line=line, position=position)
+        line = getattr(self.current_token, "line", None)
+        position = getattr(self.current_token, "position", None)
+        return ASTNode(
+            node_type, value=value, children=children, line=line, position=position
+        )
