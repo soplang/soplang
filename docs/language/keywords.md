@@ -4,49 +4,52 @@ This document provides a reference for all keywords in the Soplang programming l
 
 ## Variable Declaration Keywords
 
-| Keyword     | Meaning                      | English Equivalent | Example                                 |
-| ----------- | ---------------------------- | ------------------ | --------------------------------------- |
-| `door`      | Dynamic variable declaration | `var`/`let`        | `door magac = "Sharafdin"`              |
-| `tiro`      | Integer type                 | `int`              | `tiro da = 25`                          |
-| `qoraal`    | String type                  | `string`           | `qoraal magac = "Sharafdin"`            |
-| `bool` | Boolean type                 | `bool`             | `boolwaaRun = true`               |
-| `walax`      | Object type                  | `object`           | `walax person = { "name": "Sharafdin" }` |
-| `liis`      | List/array type              | `array`            | `liis numbers = [1, 2, 3]`              |
-| `maran`     | maran value                  | `maran`            | `door a = maran`                        |
+| Keyword  | Meaning                      | English Equivalent | Example                                |
+| -------- | ---------------------------- | ------------------ | -------------------------------------- |
+| `door`   | Dynamic variable declaration | `var`/`let`        | `door magac = "Sharafdin"`             |
+| `tiro`   | Integer type                 | `int`              | `tiro da = 25`                         |
+| `jajab`  | Decimal/float type           | `float`/`double`   | `jajab qiimo = 3.14`                   |
+| `qoraal` | String type                  | `string`           | `qoraal magac = "Sharafdin"`           |
+| `bool`   | Boolean type                 | `bool`             | `bool waaRun = run`                    |
+| `walax`  | Object type                  | `object`           | `walax person = { name: "Sharafdin" }` |
+| `liis`   | List/array type              | `array`            | `liis numbers = [1, 2, 3]`             |
+| `maran`  | Null value                   | `null`             | `door a = maran`                       |
 
 ## Control Flow Keywords
 
-| Keyword         | Meaning           | English Equivalent | Example                                  |
-| --------------- | ----------------- | ------------------ | ---------------------------------------- |
-| `haddii`        | If statement      | `if`               | `haddii (x > 10) { bandhig("Weyn") }`        |
-| `haddii_kale`   | Else if statement | `else if`          | `haddii_kale (x == 10) { bandhig("Dhexe") }` |
-| `ugudambeyn` | Else statement    | `else`             | `ugudambeyn { bandhig("Yar") }`           |
+| Keyword       | Meaning           | English Equivalent | Example                                      |
+| ------------- | ----------------- | ------------------ | -------------------------------------------- |
+| `haddii`      | If statement      | `if`               | `haddii (x > 10) { bandhig("Weyn") }`        |
+| `haddii_kale` | Else if statement | `else if`          | `haddii_kale (x == 10) { bandhig("Dhexe") }` |
+| `ugudambeyn`  | Else statement    | `else`             | `ugudambeyn { bandhig("Yar") }`              |
+| `dooro`       | Switch statement  | `switch`           | `dooro (x) { xaalad 1 { bandhig("Hal") } }`  |
+| `xaalad`      | Case clause       | `case`             | `xaalad "A" { bandhig("Case A") }`           |
 
 ## Loop Keywords
 
-| Keyword   | Meaning             | English Equivalent | Example                                 |
-| --------- | ------------------- | ------------------ | --------------------------------------- |
-| `kuceli` | For loop            | `for`              | `kuceli i min 1 ilaa 5 { bandhig(i) }`     |
-| `intay` | While loop          | `while`            | `intay (x < 5) { bandhig(x); x = x + 1 }` |
-| `jooji`   | Break statement     | `break`            | `haddii (x == 3) { jooji }`             |
-| `soco` | Continue statement  | `continue`         | `haddii (x == 3) { soco }`           |
-| `min`     | From (in for loops) | `from`             | `kuceli i min 1 ilaa 5 { bandhig(i) }`     |
-| `ilaa`    | To (in for loops)   | `to`               | `kuceli i min 1 ilaa 5 { bandhig(i) }`     |
+| Keyword  | Meaning             | English Equivalent | Example                                   |
+| -------- | ------------------- | ------------------ | ----------------------------------------- |
+| `kuceli` | For loop            | `for`              | `kuceli i min 1 ilaa 5 { bandhig(i) }`    |
+| `intay`  | While loop          | `while`            | `intay (x < 5) { bandhig(x); x = x + 1 }` |
+| `jooji`  | Break statement     | `break`            | `haddii (x == 3) { jooji }`               |
+| `soco`   | Continue statement  | `continue`         | `haddii (x == 3) { soco }`                |
+| `min`    | From (in for loops) | `from`             | `kuceli i min 1 ilaa 5 { bandhig(i) }`    |
+| `ilaa`   | To (in for loops)   | `to`               | `kuceli i min 1 ilaa 5 { bandhig(i) }`    |
 
 ## Function Keywords
 
-| Keyword    | Meaning              | English Equivalent | Example                                |
-| ---------- | -------------------- | ------------------ | -------------------------------------- |
-| `hawl`     | Function declaration | `function`         | `hawl isuGee(a, b) { celi a + b }` |
-| `celi` | Return statement     | `return`           | `celi x * 2`                       |
+| Keyword | Meaning              | English Equivalent | Example                            |
+| ------- | -------------------- | ------------------ | ---------------------------------- |
+| `hawl`  | Function declaration | `function`         | `hawl isuGee(a, b) { celi a + b }` |
+| `celi`  | Return statement     | `return`           | `celi x * 2`                       |
 
 ## Error Handling Keywords
 
-| Keyword    | Meaning            | English Equivalent | Example                         |
-| ---------- | ------------------ | ------------------ | ------------------------------- |
-| `isku_day` | Try block          | `try`              | `isku_day { /* code */ }`       |
+| Keyword    | Meaning            | English Equivalent | Example                             |
+| ---------- | ------------------ | ------------------ | ----------------------------------- |
+| `isku_day` | Try block          | `try`              | `isku_day { /* code */ }`           |
 | `qabo`     | Catch block        | `catch`            | `qabo (khalad) { bandhig(khalad) }` |
-| `throw`    | Throw an exception | `throw`            | `throw "Error message"`         |
+| `throw`    | Throw an exception | `throw`            | `throw "Error message"`             |
 
 ## Object-Oriented Programming Keywords
 
@@ -65,11 +68,11 @@ This document provides a reference for all keywords in the Soplang programming l
 
 ## Special Values
 
-| Value   | Meaning       | English Equivalent | Example                  |
-| ------- | ------------- | ------------------ | ------------------------ |
-| `run`   | Boolean true  | `true`             | `bool check = run`  |
-| `been`  | Boolean false | `false`            | `bool check = been` |
-| `maran` | Null value    | `null`             | `door empty = maran`     |
+| Value   | Meaning       | English Equivalent | Example              |
+| ------- | ------------- | ------------------ | -------------------- |
+| `run`   | Boolean true  | `true`             | `bool check = run`   |
+| `been`  | Boolean false | `false`            | `bool check = been`  |
+| `maran` | Null value    | `null`             | `door empty = maran` |
 
 ## Operators
 
@@ -90,37 +93,39 @@ This document provides a reference for all keywords in the Soplang programming l
 | `\|\|`   | Logical OR               | `\|\|`             | `haddii (a > 0 \|\| b > 0) { /* code */ }` |
 | `!`      | Logical NOT              | `!`                | `haddii (!waaRun) { /* code */ }`          |
 
+> **Note:** Soplang supports the use of comparison operators directly in expressions without requiring additional parentheses. For example, you can write `door result = x > 10` or `dooro (score >= 90)` instead of needing to write them with extra parentheses.
+
 ## Built-in Functions
 
-| Function    | Meaning              | English Equivalent | Example                                  |
-| ----------- | -------------------- | ------------------ | ---------------------------------------- |
-| `bandhig`       | Print to console     | `print`            | `qor("Salaan, Adduunka!")`               |
-| `gelin`     | Read input from user | `input`            | `door magac = gelin("Magacaaga geli: ")` |
-| `nooc`      | Get type of variable | `typeof`           | `qor(nooc(magac))`                       |
-| `tiro`      | Convert to number    | `int`/`float`      | `door n = tiro("5")`                     |
-| `qoraal`    | Convert to string    | `str`              | `door s = qoraal(25)`                    |
-| `bool` | Convert to boolean   | `bool`             | `door b = bool(1)`                  |
-| `liis`      | Create a list        | `list/array`       | `door list = liis(1, 2, 3)`              |
-| `walax`      | Create an object     | `object/dict`      | `door obj = walax(name: "Ali", age: 25)`  |
+| Function  | Meaning              | English Equivalent | Example                                  |
+| --------- | -------------------- | ------------------ | ---------------------------------------- |
+| `bandhig` | Print to console     | `print`            | `qor("Salaan, Adduunka!")`               |
+| `gelin`   | Read input from user | `input`            | `door magac = gelin("Magacaaga geli: ")` |
+| `nooc`    | Get type of variable | `typeof`           | `qor(nooc(magac))`                       |
+| `tiro`    | Convert to number    | `int`/`float`      | `door n = tiro("5")`                     |
+| `qoraal`  | Convert to string    | `str`              | `door s = qoraal(25)`                    |
+| `bool`    | Convert to boolean   | `bool`             | `door b = bool(1)`                       |
+| `liis`    | Create a list        | `list/array`       | `door list = liis(1, 2, 3)`              |
+| `walax`   | Create an object     | `object/dict`      | `door obj = walax(name: "Ali", age: 25)` |
 
 ## List Methods
 
-| Method      | Meaning              | English Equivalent  | Example                                |
-| ----------- | -------------------- | ------------------- | -------------------------------------- |
-| `kudar`     | Add item to list     | `push/append`       | `myList.kudar(newItem)`                |
-| `kasaar`    | Remove last item     | `pop`               | `door lastItem = myList.kasaar()`      |
-| `dherer`    | Get list length      | `length/size`       | `door size = myList.dherer()`          |
-| `kudar`   | Concatenate lists    | `concat`            | `door combined = list1.kudar(list2)` |
+| Method     | Meaning              | English Equivalent  | Example                               |
+| ---------- | -------------------- | ------------------- | ------------------------------------- |
+| `kudar`    | Add item to list     | `push/append`       | `myList.kudar(newItem)`               |
+| `kasaar`   | Remove last item     | `pop`               | `door lastItem = myList.kasaar()`     |
+| `dherer`   | Get list length      | `length/size`       | `door size = myList.dherer()`         |
+| `kudar`    | Concatenate lists    | `concat`            | `door combined = list1.kudar(list2)`  |
 | `leeyahay` | Check if item exists | `contains/includes` | `door exists = myList.leeyahay(item)` |
 
 ## Object Methods
 
-| Method    | Meaning             | English Equivalent   | Example                               |
-| --------- | ------------------- | -------------------- | ------------------------------------- |
-| `fure`  | Get object keys     | `keys`               | `door keys = myObj.fure()`          |
+| Method     | Meaning             | English Equivalent   | Example                                |
+| ---------- | ------------------- | -------------------- | -------------------------------------- |
+| `fure`     | Get object keys     | `keys`               | `door keys = myObj.fure()`             |
 | `leeyahay` | Check if key exists | `has/hasOwnProperty` | `door exists = myObj.leeyahay("name")` |
-| `tirtir`  | Remove property     | `delete`             | `myObj.tirtir("oldProp")`             |
-| `kudar` | Merge objects       | `merge/assign`       | `door merged = obj1.kudar(obj2)`    |
+| `tirtir`   | Remove property     | `delete`             | `myObj.tirtir("oldProp")`              |
+| `kudar`    | Merge objects       | `merge/assign`       | `door merged = obj1.kudar(obj2)`       |
 
 ## Error Message Terminology
 
@@ -136,11 +141,11 @@ This document provides a reference for all keywords in the Soplang programming l
 
 ## Special Syntax
 
-| Syntax  | Meaning             | English Equivalent | Example                           |
-| ------- | ------------------- | ------------------ | --------------------------------- |
-| `//`    | Single-line comment | `//`               | `// Tani waa comment`             |
-| `/* */` | Multi-line comment  | `/* */`            | `/* Tani waa comment dheer */`    |
+| Syntax  | Meaning             | English Equivalent | Example                               |
+| ------- | ------------------- | ------------------ | ------------------------------------- |
+| `//`    | Single-line comment | `//`               | `// Tani waa comment`                 |
+| `/* */` | Multi-line comment  | `/* */`            | `/* Tani waa comment dheer */`        |
 | `{ }`   | Code block          | `{ }`              | `haddii (x > 10) { bandhig("Weyn") }` |
-| `( )`   | Expression grouping | `( )`              | `(a + b) * c`                     |
-| `[ ]`   | List/array access   | `[ ]`              | `numbers[0]`                      |
-| `.`     | Property access     | `.`                | `person.name`                     |
+| `( )`   | Expression grouping | `( )`              | `(a + b) * c`                         |
+| `[ ]`   | List/array access   | `[ ]`              | `numbers[0]`                          |
+| `.`     | Property access     | `.`                | `person.name`                         |

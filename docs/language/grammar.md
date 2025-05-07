@@ -87,6 +87,33 @@ ElseIfClause ::= "haddii_kale" "(" Expression ")" Block
 ElseClause ::= "ugudambeyn" Block
 ```
 
+## Switch Statement
+
+```ebnf
+SwitchStatement ::= "dooro" "(" Expression ")" "{" {CaseClause} [DefaultClause] "}"
+
+CaseClause ::= "xaalad" Expression Block
+
+DefaultClause ::= "ugudambeyn" Block
+```
+
+The `dooro` statement evaluates an expression and matches its value against different `xaalad` clauses. If a match is found, the code block associated with that case is executed. The optional `ugudambeyn` clause acts as a default case that executes when no other cases match.
+
+Example:
+```
+dooro (language) {
+  xaalad "Somali" {
+    bandhig("Salaan, Adduunka!")
+  }
+  xaalad "English" {
+    bandhig("Hello, World!")
+  }
+  ugudambeyn {
+    bandhig("Unknown language")
+  }
+}
+```
+
 ## Loops
 
 ```ebnf
@@ -169,6 +196,36 @@ Factor ::= NumberLiteral
         | NewExpression
         | "(" Expression ")"
         | UnaryOperator Factor
+```
+
+### Expression Evaluation Rules
+
+1. Expressions can include comparison operators (`>`, `<`, `>=`, `<=`, `==`, `!=`) without requiring additional parentheses
+2. Logical expressions with `&&` (AND) and `||` (OR) can be used directly in assignments and conditions
+3. Complex expressions can be used in any context where a value is expected:
+   - Variable assignments: `door x = a > b`
+   - Function arguments: `my_function(a >= 10)`
+   - Switch conditions: `dooro (score >= 80)`
+   - Array indices: `my_list[i > 0 ? 1 : 0]`
+   - Object property values: `walax obj = { is_valid: x == 10 }`
+
+Example of a complex expression in an assignment:
+
+```
+door is_adult = age >= 18 && has_id == run
+```
+
+Example of a comparison expression in a switch statement:
+
+```
+dooro (score >= 90) {
+  xaalad run {
+    bandhig("Excellent!")
+  }
+  xaalad been {
+    bandhig("Keep trying!")
+  }
+}
 ```
 
 ## New Expression
