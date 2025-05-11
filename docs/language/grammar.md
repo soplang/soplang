@@ -292,6 +292,7 @@ ListMethod ::= "kudar"       // push
              | "leeyahay"   // contains
              | "nuqul"      // copy
              | "nadiifi"    // clear
+             | "rog"        // reverse
 ```
 
 ## Object Methods

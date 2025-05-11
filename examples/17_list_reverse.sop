@@ -1,0 +1,45 @@
+// Test: List Reverse
+// This test checks if the rog() method correctly reverses lists in-place
+
+bandhig("Testing list reverse (rog) method:")
+
+// Simple list reversal
+liis magacyo = ["Ayaan", "Barwaaqo", "Cali"]
+bandhig("  Original list: " + magacyo)
+magacyo.rog()
+bandhig("  After rog(): " + magacyo)  // Should output: ["Cali", "Barwaaqo", "Ayaan"]
+
+// Reversal of a numeric list
+liis numbers = [1, 2, 3, 4, 5]
+bandhig("  Original numeric list: " + numbers)
+numbers.rog()
+bandhig("  After rog(): " + numbers)  // Should output: [5, 4, 3, 2, 1]
+
+// Verify the list is mutated (same reference)
+liis original = [10, 20, 30]
+bandhig("  Original list: " + original)
+door reference = original
+reference.rog()
+bandhig("  After rog() via reference: " + original)  // Should show the reversed list
+bandhig("  Proving it's the same reference: " + reference)  // Should be identical to original
+
+// Empty list
+liis empty = []
+bandhig("  Empty list: " + empty)
+empty.rog()
+bandhig("  After rog() on empty list: " + empty)  // Should still be empty
+
+// Single element list
+liis single = ["Solo"]
+bandhig("  Single element list: " + single)
+single.rog()
+bandhig("  After rog() on single element list: " + single)  // Should be unchanged
+
+// Method chaining
+liis chain = [1, 2, 3]
+bandhig("  Method chaining:")
+bandhig("  Original list: " + chain)
+chain.rog().kudar(4)
+bandhig("  After rog().kudar(4): " + chain)  // Should be [3, 2, 1, 4]
+
+bandhig("List reverse (rog) tests completed!")
