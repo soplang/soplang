@@ -131,6 +131,7 @@ This document provides a reference for all keywords in the Soplang programming l
 | `nuqul()`     | `copy()`                  | Create a shallow copy       | `door copy = list.nuqul()`        |
 | `nadiifi()`   | `clear()`                 | Remove all items from list  | `list.nadiifi()`                  |
 | `rog()`       | `reverse()`               | Reverse the list in-place   | `list.rog()`                      |
+| `habee()`     | `sort()`                  | Sort the list in-place      | `list.habee()`                    |
 
 ## Object Methods
 
