@@ -437,18 +437,18 @@ class Interpreter:
 
         # If we have at least 3 children before the body, the 3rd one is the step
         if len(node.children) > 2 and (
-            node.children[2].type == NodeType.LITERAL
-            or node.children[2].type == NodeType.IDENTIFIER
-            or node.children[2].type == NodeType.BINARY_OPERATION
+            node.children[2].type == NodeType.LITERAL or
+            node.children[2].type == NodeType.IDENTIFIER or
+            node.children[2].type == NodeType.BINARY_OPERATION
         ):
             step_value = self.evaluate(node.children[2])
             body_start_index = 3
 
         # Ensure all values are numbers
         if (
-            not isinstance(start_value, (int, float))
-            or not isinstance(end_value, (int, float))
-            or not isinstance(step_value, (int, float))
+            not isinstance(start_value, (int, float)) or
+            not isinstance(end_value, (int, float)) or
+            not isinstance(step_value, (int, float))
         ):
             raise TypeError("invalid_for_loop")
 
@@ -660,14 +660,28 @@ class Interpreter:
             # For built-in list methods
             if isinstance(obj, list) and method_name in self.list_methods:
                 # Arguments start from the second child
-                args = [self.evaluate(arg) for arg in node.children[1:]]
-                return self.list_methods[method_name](obj, *args)
+                args = []
+                for arg in node.children[1:]:
+                    # Special handling for identifiers that might be function references
+                    if method_name == "shaandhee" and arg.type == NodeType.IDENTIFIER:
+                        func_name = arg.value
+                        if func_name in self.functions:
+                            # If the function exists, we'll pass the name and handle it in execute_list_method
+                            args.append(func_name)
+                        else:
+                            # Otherwise evaluate normally
+                            args.append(self.evaluate(arg))
+                    else:
+                        # Normal argument evaluation
+                        args.append(self.evaluate(arg))
+
+                return self.execute_list_method(method_name, obj, args)
 
             # For built-in object methods
             elif isinstance(obj, dict) and method_name in self.object_methods:
                 # Arguments start from the second child
                 args = [self.evaluate(arg) for arg in node.children[1:]]
-                return self.object_methods[method_name](obj, *args)
+                return self.execute_object_method(method_name, obj, args)
 
             # For user-defined object methods
             elif isinstance(obj, dict) and method_name in obj:
@@ -850,6 +864,37 @@ class Interpreter:
             raise RuntimeError(
                 "method_not_found", method_name=method_name, type_name="liis"
             )
+
+        # Special handling for list methods that take function arguments
+        if method_name == "shaandhee" and len(args) > 0:
+            # If the argument is a string (function name), resolve it to the actual function
+            if isinstance(args[0], str) and args[0] in self.functions:
+                func_name = args[0]
+                if callable(self.functions[func_name]):
+                    # Built-in function (Python function)
+                    args[0] = self.functions[func_name]
+                else:
+                    # User-defined function (Soplang function)
+                    user_func = self.functions[func_name]
+                    # Create a wrapper function that calls the Soplang function
+
+                    def user_func_wrapper(arg):
+                        # Save current variables
+                        old_vars = self.variables.copy()
+                        # Set up the parameter
+                        self.variables[user_func["params"][0]] = arg
+                        # Execute function body
+                        result = None
+                        try:
+                            for statement in user_func["body"]:
+                                result = self.execute(statement)
+                        except ReturnSignal as ret:
+                            result = ret.value
+                        # Restore variables
+                        self.variables = old_vars
+                        return result
+
+                    args[0] = user_func_wrapper
 
         method = self.list_methods[method_name]
         args.insert(0, obj)  # Insert the list as the first argument
