@@ -69,7 +69,7 @@ bandhig("Debug - y: " + y)
 
 // Debug control flow
 bandhig("Entering loop")
-kuceli i min 0 ilaa 5 {
+kuceli i 0 ilaa 5 {
     bandhig("  Loop iteration: " + i)
 }
 bandhig("Exiting loop")

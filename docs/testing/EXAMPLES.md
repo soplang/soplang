@@ -181,7 +181,7 @@ docker run --rm -v "$(pwd):/scripts" soplang:latest examples/XX_example_name.so
 - Nested while loops
 
 **Key Concepts**:
-- The `inta_ay` statement executes as long as a condition is true
+- The `intay` statement executes as long as a condition is true
 - Proper loop control prevents infinite loops
 
 ## Functions and Objects
