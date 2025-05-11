@@ -521,7 +521,7 @@ hawl xisaabi_darajada(tiro dhibcaha) {
         celi "C"
     } haddii_kale (dhibcaha >= 60) {
         celi "D"
-    } haddii_kalena {
+    } ugudambeyn {
         celi "F"
     }
 }
@@ -537,7 +537,7 @@ bandhig("Fadlan gali tirada ardayda:")
 door tirada_ardayda = tiro(gelin())
 
 // Input loop
-kuceli i min 1 ilaa tirada_ardayda {
+kuceli i  1 ilaa tirada_ardayda {
     bandhig("\nArday #" + i)
     bandhig("Fadlan gali magaca ardayga:")
     door magac = gelin()
@@ -546,7 +546,7 @@ kuceli i min 1 ilaa tirada_ardayda {
     door dhibco = tiro(gelin())
 
     // Validate score
-    inta_ay (dhibco < 0 || dhibco > 100) {
+    intay (dhibco < 0 || dhibco > 100) {
         bandhig("Dhibcaha waa inay u dhexeeyaan 0 iyo 100. Fadlan mar kale gali:")
         dhibco = tiro(gelin())
     }
@@ -571,7 +571,7 @@ bandhig("\n=== Natiijooyinka Ardayda ===")
 door wadarta_dhibcaha = 0
 door tirada_guulaystay = 0
 
-kuceli i min 0 ilaa ardayda.dherer() - 1 {
+kuceli i  0 ilaa ardayda.dherer() - 1 {
     door arday = ardayda[i]
 
     bandhig("Magaca: " + arday.magac)
@@ -581,7 +581,7 @@ kuceli i min 0 ilaa ardayda.dherer() - 1 {
     haddii (arday.dhibco >= 60) {
         bandhig("Xaaladda: Guulaystay!")
         tirada_guulaystay = tirada_guulaystay + 1
-    } haddii_kalena {
+    } ugudambeyn {
         bandhig("Xaaladda: Ku dhacay")
     }
 
