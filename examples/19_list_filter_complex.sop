@@ -5,7 +5,7 @@ bandhig("Testing list filter (shaandhee) with complex conditions:")
 
 // Test 1: Filter numbers based on a calculation
 hawl is_divisible_by_three(n) {
-  celi (n % 3 == 0)
+  celi n % 3 == 0
 }
 
 liis numbers = [3, 5, 6, 9, 10, 12, 15, 18]
@@ -17,7 +17,7 @@ bandhig("Numbers divisible by 3: " + divisible_by_three)
 // In Soplang, we don't have a string length method, so we use a different approach
 hawl has_letter_e(s) {
   // This is a simple approximation since we don't have string search in Soplang
-  celi (s == "hello" || s == "welcome" || s == "greetings")
+  celi s == "hello" || s == "welcome" || s == "greetings"
 }
 
 liis words = ["hello", "hi", "welcome", "bye", "greetings", "ok"]
@@ -27,7 +27,7 @@ bandhig("Words containing 'e': " + words_with_e)
 
 // Test 3: Filter by a more complex condition with multiple operators
 hawl is_special_number(n) {
-  celi (n > 10 && n % 2 == 1)
+  celi n > 10 && n % 2 == 1
 }
 
 liis more_numbers = [5, 8, 11, 14, 15, 18, 21]

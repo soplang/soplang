@@ -367,6 +367,28 @@ class SoplangBuiltins:
         lst.sort()
         return lst
 
+    @staticmethod
+    def list_filter(lst, condition_func):
+        """
+        Filter a list based on a condition function and return a new list
+        with only the items that satisfy the condition
+        """
+        if not isinstance(lst, list):
+            raise TypeError("Qiimahu ma ahan liis (Value is not a list)")
+
+        if not callable(condition_func):
+            raise TypeError(
+                "Qiimaha labaad ma ahan hawl (Second argument is not a function)")
+
+        # Create a new list with items that satisfy the condition
+        result = []
+        for item in lst:
+            # Call the condition function for each item
+            if condition_func(item):
+                result.append(item)
+
+        return result
+
 
 def get_builtin_functions():
     """
@@ -414,6 +436,7 @@ def get_list_methods():
         "nadiifi": SoplangBuiltins.list_clear,
         "rog": SoplangBuiltins.list_reverse,
         "habee": SoplangBuiltins.list_sort,
+        "shaandhee": SoplangBuiltins.list_filter,
     }
 
     return methods
