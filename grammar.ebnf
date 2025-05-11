@@ -200,6 +200,7 @@ ListMethod ::= "kudar"       // push
              | "kudar"     // concat
              | "leeyahay"   // contains
              | "nuqul"      // copy
+             | "nadiifi"    // clear
 
 // ===== OBJECT METHODS =====
 ObjectMethod ::= "fure"    // keys

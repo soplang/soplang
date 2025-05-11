@@ -190,6 +190,18 @@ class SoplangBuiltins:
         return lst.copy()
 
     @staticmethod
+    def list_clear(lst):
+        """
+        Remove all items from the list (in-place)
+        """
+        if not isinstance(lst, list):
+            raise TypeError("Qiimahu ma ahan liis (Value is not a list)")
+
+        # Clear all items from the list
+        lst.clear()
+        return lst
+
+    @staticmethod
     def list_get(lst, index):
         """
         Get an item from a list at the specified index
@@ -368,6 +380,7 @@ def get_list_methods():
         "kudar": SoplangBuiltins.list_concat,
         "leeyahay": SoplangBuiltins.list_contains,
         "nuqul": SoplangBuiltins.list_copy,
+        "nadiifi": SoplangBuiltins.list_clear,
     }
 
     return methods
