@@ -24,6 +24,7 @@ class Lexer:
         self.KEYWORDS = {
             # Dynamic and control flow
             "door": TokenType.DOOR,
+            "madoor": TokenType.MADOOR,
             "hawl": TokenType.HAWL,
             "celi": TokenType.CELI,
             "bandhig": TokenType.BANDHIG,

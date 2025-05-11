@@ -126,6 +126,63 @@ class Parser:
         # Handle variable declaration with dynamic typing (door)
         elif token_type == TokenType.DOOR:
             return self.parse_variable_declaration(is_static=False)
+
+        # Handle constant variable declaration with dynamic typing (madoor)
+        elif token_type == TokenType.MADOOR:
+            self.advance()  # Consume madoor token
+
+            # Check if the next token is a type token
+            is_static = False
+            var_type = None
+
+            if self.current_token.type in (
+                TokenType.TIRO,
+                TokenType.JAJAB,
+                TokenType.QORAAL,
+                TokenType.BOOL,
+                TokenType.LIIS,
+                TokenType.WALAX,
+            ):
+                is_static = True
+                var_type = self.current_token.type
+                self.advance()  # Consume type token
+
+            # Get the variable name
+            if self.current_token.type != TokenType.IDENTIFIER:
+                raise ParserError(
+                    "expected_token",
+                    expected="identifier",
+                    found=self.get_friendly_token_name(self.current_token.type),
+                    token=self.current_token,
+                    line=getattr(self.current_token, "line", None),
+                    position=getattr(self.current_token, "position", None),
+                )
+
+            var_name = self.current_token.value
+            self.advance()  # Consume identifier
+
+            # Expect equals sign
+            self.expect(TokenType.EQUAL)
+
+            # Parse the expression to assign to the variable
+            expression = self.parse_logical_expression()
+
+            # Create variable declaration node
+            var_node = ASTNode(
+                NodeType.VARIABLE_DECLARATION,
+                value=var_name,
+                children=[expression],
+                line=line,
+                position=position,
+            )
+
+            var_node.is_constant = True
+
+            if is_static:
+                var_node.var_type = var_type
+
+            return var_node
+
         # Handle function definition (hawl)
         elif token_type == TokenType.HAWL:
             return self.parse_function_definition()
@@ -258,7 +315,7 @@ class Parser:
                 if self.current_token.type == TokenType.EQUAL:
                     self.advance()  # Consume equals
                     value = self.parse_logical_expression()
-                    return ASTNode(NodeType.ASSIGNMENT, children=[left, value])
+                    return ASTNode(NodeType.ASSIGNMENT, children=[left, value], line=line, position=position)
 
                 # If not an assignment, just return the property access or method call
                 return left
@@ -289,6 +346,8 @@ class Parser:
                         ASTNode(NodeType.IDENTIFIER, value=identifier_value),
                         value,
                     ],
+                    line=line,
+                    position=position,
                 )
 
             # Just a variable reference
@@ -314,13 +373,16 @@ class Parser:
     #  door x = 5  (dynamic typing)
     #  tiro y = 10 (static typing)
     # -----------------------------
-    def parse_variable_declaration(self, is_static=False):
+    def parse_variable_declaration(self, is_static=False, is_constant=False):
         # Get the variable type (for static typing)
         var_type = self.current_token.type if is_static else None
         token_line = getattr(self.current_token, "line", None)
         token_position = getattr(self.current_token, "position", None)
 
-        self.advance()  # Consume type/door token
+        # Only consume the token if we're being called directly from parse_statement
+        # If we're called from the MADOOR handler, the token is already consumed
+        if not is_constant or (is_constant and is_static):
+            self.advance()  # Consume type/door token
 
         # Get the variable name
         if self.current_token.type != TokenType.IDENTIFIER:
@@ -351,6 +413,7 @@ class Parser:
             position=token_position,
         )
         var_node.var_type = var_type  # Store type for static typing
+        var_node.is_constant = is_constant  # Store constant flag
 
         return var_node
 
@@ -391,8 +454,8 @@ class Parser:
         """Parse a function call like 'bandhig("Hello")'"""
         func_name = self.current_token.value
         if (
-            self.current_token.type != TokenType.IDENTIFIER
-            and self.current_token.type
+            self.current_token.type != TokenType.IDENTIFIER and
+            self.current_token.type
             not in (
                 TokenType.BANDHIG,
                 TokenType.GELIN,
@@ -674,8 +737,8 @@ class Parser:
         while self.current_token.type != TokenType.RIGHT_BRACE:
             # Property key
             if (
-                self.current_token.type == TokenType.IDENTIFIER
-                or self.current_token.type == TokenType.STRING
+                self.current_token.type == TokenType.IDENTIFIER or
+                self.current_token.type == TokenType.STRING
             ):
                 key = self.current_token.value
                 self.advance()
@@ -782,8 +845,8 @@ class Parser:
 
         # Handle property access (obj.prop), method calls (obj.method()), and array indexing (array[index])
         while (
-            self.current_token.type == TokenType.DOT
-            or self.current_token.type == TokenType.LEFT_BRACKET
+            self.current_token.type == TokenType.DOT or
+            self.current_token.type == TokenType.LEFT_BRACKET
         ):
             if self.current_token.type == TokenType.DOT:
                 # Property access
@@ -945,8 +1008,8 @@ class Parser:
             self.advance()
 
             if (
-                op_token.type == TokenType.EQUAL
-                and self.current_token.type == TokenType.EQUAL
+                op_token.type == TokenType.EQUAL and
+                self.current_token.type == TokenType.EQUAL
             ):
                 operator_value = "=="
                 self.advance()
