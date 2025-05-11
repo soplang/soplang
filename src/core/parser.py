@@ -391,8 +391,8 @@ class Parser:
         """Parse a function call like 'bandhig("Hello")'"""
         func_name = self.current_token.value
         if (
-            self.current_token.type != TokenType.IDENTIFIER and
-            self.current_token.type
+            self.current_token.type != TokenType.IDENTIFIER
+            and self.current_token.type
             not in (
                 TokenType.BANDHIG,
                 TokenType.GELIN,
@@ -674,8 +674,8 @@ class Parser:
         while self.current_token.type != TokenType.RIGHT_BRACE:
             # Property key
             if (
-                self.current_token.type == TokenType.IDENTIFIER or
-                self.current_token.type == TokenType.STRING
+                self.current_token.type == TokenType.IDENTIFIER
+                or self.current_token.type == TokenType.STRING
             ):
                 key = self.current_token.value
                 self.advance()
@@ -782,8 +782,8 @@ class Parser:
 
         # Handle property access (obj.prop), method calls (obj.method()), and array indexing (array[index])
         while (
-            self.current_token.type == TokenType.DOT or
-            self.current_token.type == TokenType.LEFT_BRACKET
+            self.current_token.type == TokenType.DOT
+            or self.current_token.type == TokenType.LEFT_BRACKET
         ):
             if self.current_token.type == TokenType.DOT:
                 # Property access
@@ -945,8 +945,8 @@ class Parser:
             self.advance()
 
             if (
-                op_token.type == TokenType.EQUAL and
-                self.current_token.type == TokenType.EQUAL
+                op_token.type == TokenType.EQUAL
+                and self.current_token.type == TokenType.EQUAL
             ):
                 operator_value = "=="
                 self.advance()
@@ -964,7 +964,7 @@ class Parser:
         self.expect(TokenType.CELI)
         # If there is an expression after celi, parse it
         if self.current_token.type != TokenType.SEMICOLON:
-            expr = self.parse_expression()
+            expr = self.parse_logical_expression()
             return ASTNode(NodeType.RETURN_STATEMENT, children=[expr])
         # Otherwise, it's a return with no value
         return ASTNode(NodeType.RETURN_STATEMENT)
