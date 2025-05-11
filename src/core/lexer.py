@@ -135,13 +135,21 @@ class Lexer:
         number = ""
         start_position = self.column
         start_line = self.line
+        has_decimal = False
+
         while self.current_char and (
             self.current_char.isdigit() or self.current_char == "."
         ):
+            if self.current_char == ".":
+                has_decimal = True
             number += self.current_char
             self.advance()
+
+        # Convert to integer if no decimal point, otherwise float
+        value = int(number) if not has_decimal else float(number)
+
         return Token(
-            TokenType.NUMBER, float(number), line=start_line, position=start_position
+            TokenType.NUMBER, value, line=start_line, position=start_position
         )
 
     def tokenize_string(self):

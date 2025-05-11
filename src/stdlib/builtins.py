@@ -31,7 +31,7 @@ class SoplangBuiltins:
             return "bool"
         elif isinstance(value, (int, float)):
             # Distinguish between integers and floats
-            if isinstance(value, int) or value.is_integer():
+            if isinstance(value, int):
                 return "tiro"
             else:
                 return "jajab"
@@ -72,6 +72,13 @@ class SoplangBuiltins:
         # Convert boolean values to Soplang equivalents
         if isinstance(value, bool):
             return "run" if value else "been"
+
+        # Handle numeric values
+        if isinstance(value, (int, float)):
+            if isinstance(value, int):
+                return str(value)  # Integer without decimal point
+            else:
+                return str(value)  # Float (always with decimal point)
 
         if isinstance(value, dict):
             try:
