@@ -4,6 +4,7 @@ from enum import Enum
 class TokenType(Enum):
     # Existing
     DOOR = "door"
+    MADOOR = "madoor"  # Constant variable
     HAWL = "hawl"
     CELI = "celi"
     BANDHIG = "bandhig"

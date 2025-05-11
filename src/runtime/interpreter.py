@@ -204,8 +204,7 @@ class Interpreter:
                 "constant_reassignment",
                 name=var_name,
                 line=line,
-                position=position,
-                detail=f"Cannot reassign constant variable '{var_name}'"
+                position=position
             )
 
         # If it's a statically typed variable, validate the type

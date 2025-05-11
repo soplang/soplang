@@ -1,17 +1,19 @@
-// Test: Constant Type Error
-// This test deliberately triggers type errors with constants
+// Test: Constant Error Messages
+// This test checks the error messages for constants
 
-bandhig("Testing constant type errors:")
+bandhig("Testing constant error messages:")
 
-// Type error examples - testing one at a time:
+// Test 1: Constant reassignment error
+bandhig("\n1. Testing constant reassignment error:")
+madoor bool TEST_CONSTANT = run
+bandhig("  Original constant value: " + TEST_CONSTANT)
 
-// Define a string constant but try to assign a number
-// madoor qoraal STRING_CONST = 123
+// Try to reassign the constant (should generate a clear Somali error message)
+bandhig("  Attempting to reassign a constant (should show error in Somali):")
+    TEST_CONSTANT = been  // This should trigger constant_reassignment error with position info
 
-// Define an integer constant but try to assign a string
-// madoor tiro INT_CONST = "not a number"
+// The code below should not execute due to the error above
+bandhig("\n2. Testing constant type error:")
+madoor qoraal STRING_CONST = 123  // This should trigger type_mismatch error
 
-// Define a boolean constant but try to assign a number
-madoor bool BOOL_CONST = 1
-
-bandhig("If you see this message, the type error was not enforced properly")
+bandhig("If you see this message, the constant was incorrectly reassigned")

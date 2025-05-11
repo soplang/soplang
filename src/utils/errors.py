@@ -64,6 +64,7 @@ class ErrorMessageManager:
         "invalid_for_loop": "kuceli billowga, dhamaadka iyo tallaabada waa in ay yihiin tiro",
         "unknown_node_type": "Nooca cladka aan la aqoon: {node_type}",
         "unknown_operator": "Hawl-gal aan la aqoon: {operator}",
+        "constant_reassignment": "Ma bedeli kartid qiimaha doorsamaha madoor '{name}'. Doorsooyin madoor ah ma dib loo qiimeyn karo.",
     }
 
     # Import errors

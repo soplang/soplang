@@ -315,7 +315,7 @@ class Parser:
                 if self.current_token.type == TokenType.EQUAL:
                     self.advance()  # Consume equals
                     value = self.parse_logical_expression()
-                    return ASTNode(NodeType.ASSIGNMENT, children=[left, value])
+                    return ASTNode(NodeType.ASSIGNMENT, children=[left, value], line=line, position=position)
 
                 # If not an assignment, just return the property access or method call
                 return left
@@ -346,6 +346,8 @@ class Parser:
                         ASTNode(NodeType.IDENTIFIER, value=identifier_value),
                         value,
                     ],
+                    line=line,
+                    position=position,
                 )
 
             # Just a variable reference
