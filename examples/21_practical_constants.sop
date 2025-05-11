@@ -1,0 +1,63 @@
+// Test: Practical Constants
+// This test demonstrates practical uses of constants in a small application
+
+bandhig("Practical uses of constants (madoor):")
+
+// Application configuration constants
+madoor qoraal APP_VERSION = "1.0.0"
+madoor qoraal API_ENDPOINT = "https://api.example.com/v1"
+madoor tiro TIMEOUT_MS = 5000
+madoor tiro MAX_RETRIES = 3
+madoor tiro MAX_ITEMS_PER_PAGE = 25
+
+// Math constants
+madoor jajab PI = 3.14159
+madoor jajab E = 2.71828
+
+// Status codes
+madoor tiro STATUS_OK = 200
+madoor tiro STATUS_NOT_FOUND = 404
+madoor tiro STATUS_ERROR = 500
+
+bandhig("Application Configuration:")
+bandhig("  App Version: " + APP_VERSION)
+bandhig("  API Endpoint: " + API_ENDPOINT)
+bandhig("  Timeout: " + TIMEOUT_MS + "ms")
+bandhig("  Max Retries: " + MAX_RETRIES)
+bandhig("  Items Per Page: " + MAX_ITEMS_PER_PAGE)
+
+// Simulate a function that uses these constants
+hawl make_api_request(endpoint, timeout_ms) {
+    bandhig("Simulating API request:")
+    bandhig("  Endpoint: " + endpoint)
+    bandhig("  Timeout: " + timeout_ms + "ms")
+    bandhig("  Max Retries: " + MAX_RETRIES)
+
+    // Simulate response
+    bandhig("  Response Status: " + STATUS_OK)
+
+    celi STATUS_OK
+}
+
+// Use the constants in calculations and functions
+tiro response = make_api_request(API_ENDPOINT, TIMEOUT_MS)
+
+// Calculate area and volume using constants
+jajab radius = 10
+jajab area = PI * radius * radius
+jajab volume = (4/3) * PI * radius * radius * radius
+
+bandhig("Geometric Calculations (radius = " + radius + "):")
+bandhig("  Circle Area: " + area)
+bandhig("  Sphere Volume: " + volume)
+
+// Simulate pagination
+tiro total_items = 127
+tiro total_pages = (total_items + MAX_ITEMS_PER_PAGE - 1) / MAX_ITEMS_PER_PAGE  // Ceiling division
+
+bandhig("Pagination:")
+bandhig("  Total Items: " + total_items)
+bandhig("  Items Per Page: " + MAX_ITEMS_PER_PAGE)
+bandhig("  Total Pages: " + total_pages)
+
+bandhig("Practical constants test completed!")

@@ -22,6 +22,7 @@ class Interpreter:
     def __init__(self):
         self.variables = {}  # Global variables
         self.variable_types = {}  # Store static types
+        self.constant_variables = set()  # Keep track of which variables are constants
         self.functions = get_builtin_functions()  # Built-in functions
         self.list_methods = get_list_methods()
         self.object_methods = get_object_methods()
@@ -115,6 +116,11 @@ class Interpreter:
             # Validate the value against the declared type
             self.validate_type(var_name, var_value, node.var_type, node)
 
+        # Check if this is a constant variable (madoor)
+        if hasattr(node, "is_constant") and node.is_constant:
+            # Add to the set of constant variables
+            self.constant_variables.add(var_name)
+
         self.variables[var_name] = var_value
         return var_value
 
@@ -190,6 +196,16 @@ class Interpreter:
         if var_name not in self.variables:
             raise RuntimeError(
                 "undefined_variable", name=var_name, line=line, position=position
+            )
+
+        # Check if trying to reassign a constant
+        if var_name in self.constant_variables:
+            raise RuntimeError(
+                "constant_reassignment",
+                name=var_name,
+                line=line,
+                position=position,
+                detail=f"Cannot reassign constant variable '{var_name}'"
             )
 
         # If it's a statically typed variable, validate the type

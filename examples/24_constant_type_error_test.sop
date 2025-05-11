@@ -1,0 +1,17 @@
+// Test: Constant Type Error
+// This test deliberately triggers type errors with constants
+
+bandhig("Testing constant type errors:")
+
+// Type error examples - testing one at a time:
+
+// Define a string constant but try to assign a number
+// madoor qoraal STRING_CONST = 123
+
+// Define an integer constant but try to assign a string
+// madoor tiro INT_CONST = "not a number"
+
+// Define a boolean constant but try to assign a number
+madoor bool BOOL_CONST = 1
+
+bandhig("If you see this message, the type error was not enforced properly")
