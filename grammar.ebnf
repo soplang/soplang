@@ -202,6 +202,7 @@ ListMethod ::= "kudar"       // push
              | "nuqul"      // copy
              | "nadiifi"    // clear
              | "rog"        // reverse
+             | "habee"      // sort
 
 // ===== OBJECT METHODS =====
 ObjectMethod ::= "fure"    // keys

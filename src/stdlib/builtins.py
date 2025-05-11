@@ -348,6 +348,18 @@ class SoplangBuiltins:
         lst.reverse()
         return lst
 
+    @staticmethod
+    def list_sort(lst):
+        """
+        Sort a list in-place (ascending order)
+        """
+        if not isinstance(lst, list):
+            raise TypeError("Qiimahu ma ahan liis (Value is not a list)")
+
+        # Sort the list in-place (ascending order)
+        lst.sort()
+        return lst
+
 
 def get_builtin_functions():
     """
@@ -394,6 +406,7 @@ def get_list_methods():
         "nuqul": SoplangBuiltins.list_copy,
         "nadiifi": SoplangBuiltins.list_clear,
         "rog": SoplangBuiltins.list_reverse,
+        "habee": SoplangBuiltins.list_sort,
     }
 
     return methods
