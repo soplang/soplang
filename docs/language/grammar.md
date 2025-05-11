@@ -290,6 +290,7 @@ ListMethod ::= "kudar"       // push
              | "dherer"      // length
              | "kudar"     // concat
              | "leeyahay"   // contains
+             | "nuqul"      // copy
 ```
 
 ## Object Methods
