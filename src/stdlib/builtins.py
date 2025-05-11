@@ -336,6 +336,18 @@ class SoplangBuiltins:
         result.update(obj2)
         return result
 
+    @staticmethod
+    def list_reverse(lst):
+        """
+        Reverse a list in-place
+        """
+        if not isinstance(lst, list):
+            raise TypeError("Qiimahu ma ahan liis (Value is not a list)")
+
+        # Reverse the list in-place
+        lst.reverse()
+        return lst
+
 
 def get_builtin_functions():
     """
@@ -381,6 +393,7 @@ def get_list_methods():
         "leeyahay": SoplangBuiltins.list_contains,
         "nuqul": SoplangBuiltins.list_copy,
         "nadiifi": SoplangBuiltins.list_clear,
+        "rog": SoplangBuiltins.list_reverse,
     }
 
     return methods

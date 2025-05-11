@@ -130,6 +130,7 @@ This document provides a reference for all keywords in the Soplang programming l
 | `leeyahay(x)` | `contains()`/`includes()` | Check if item exists        | `haddii (list.leeyahay(x)) {...}` |
 | `nuqul()`     | `copy()`                  | Create a shallow copy       | `door copy = list.nuqul()`        |
 | `nadiifi()`   | `clear()`                 | Remove all items from list  | `list.nadiifi()`                  |
+| `rog()`       | `reverse()`               | Reverse the list in-place   | `list.rog()`                      |
 
 ## Object Methods
 
