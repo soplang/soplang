@@ -128,6 +128,7 @@ This document provides a reference for all keywords in the Soplang programming l
 | `kasaar()`    | `pop()`                   | Remove and return last item | `door last = numbers.kasaar()`    |
 | `kudar(liis)` | `concat()`                | Concatenate lists           | `door all = list1.kudar(list2)`   |
 | `leeyahay(x)` | `contains()`/`includes()` | Check if item exists        | `haddii (list.leeyahay(x)) {...}` |
+| `nuqul()`     | `copy()`                  | Create a shallow copy       | `door copy = list.nuqul()`        |
 
 ## Object Methods
 

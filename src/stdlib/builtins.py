@@ -179,6 +179,17 @@ class SoplangBuiltins:
         return item in lst
 
     @staticmethod
+    def list_copy(lst):
+        """
+        Return a shallow copy of the list
+        """
+        if not isinstance(lst, list):
+            raise TypeError("Qiimahu ma ahan liis (Value is not a list)")
+
+        # Create a new list that is a shallow copy of the original
+        return lst.copy()
+
+    @staticmethod
     def list_get(lst, index):
         """
         Get an item from a list at the specified index
@@ -356,6 +367,7 @@ def get_list_methods():
         "dherer": SoplangBuiltins.list_length,
         "kudar": SoplangBuiltins.list_concat,
         "leeyahay": SoplangBuiltins.list_contains,
+        "nuqul": SoplangBuiltins.list_copy,
     }
 
     return methods
