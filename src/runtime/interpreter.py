@@ -201,10 +201,7 @@ class Interpreter:
         # Check if trying to reassign a constant
         if var_name in self.constant_variables:
             raise RuntimeError(
-                "constant_reassignment",
-                name=var_name,
-                line=line,
-                position=position
+                "constant_reassignment", name=var_name, line=line, position=position
             )
 
         # If it's a statically typed variable, validate the type
@@ -263,6 +260,10 @@ class Interpreter:
                 )
 
             idx = int(idx)
+            # Support negative indexing (e.g., -1 for last element)
+            if idx < 0:
+                idx = len(arr) + idx
+
             if idx < 0 or idx >= len(arr):
                 raise RuntimeError(
                     "index_out_of_range", index=idx, line=line, position=position
@@ -452,18 +453,18 @@ class Interpreter:
 
         # If we have at least 3 children before the body, the 3rd one is the step
         if len(node.children) > 2 and (
-            node.children[2].type == NodeType.LITERAL or
-            node.children[2].type == NodeType.IDENTIFIER or
-            node.children[2].type == NodeType.BINARY_OPERATION
+            node.children[2].type == NodeType.LITERAL
+            or node.children[2].type == NodeType.IDENTIFIER
+            or node.children[2].type == NodeType.BINARY_OPERATION
         ):
             step_value = self.evaluate(node.children[2])
             body_start_index = 3
 
         # Ensure all values are numbers
         if (
-            not isinstance(start_value, (int, float)) or
-            not isinstance(end_value, (int, float)) or
-            not isinstance(step_value, (int, float))
+            not isinstance(start_value, (int, float))
+            or not isinstance(end_value, (int, float))
+            or not isinstance(step_value, (int, float))
         ):
             raise TypeError("invalid_for_loop")
 
@@ -729,6 +730,10 @@ class Interpreter:
                 )
 
             idx = int(idx)
+            # Support negative indexing (e.g., -1 for last element)
+            if idx < 0:
+                idx = len(arr) + idx
+
             if idx < 0 or idx >= len(arr):
                 raise RuntimeError(
                     "index_out_of_range", index=idx, line=line, position=position
