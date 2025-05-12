@@ -432,6 +432,36 @@ class SoplangBuiltins:
         # Create a new list with the sliced elements
         return lst[start:end]
 
+    @staticmethod
+    def list_map(lst, transform_func):
+        """
+        Transform a list by applying a function to each item and return a new list
+        with the transformed values. Similar to map() in many languages.
+
+        Args:
+            lst: The list to transform
+            transform_func: A function that takes an item and returns a transformed value
+
+        Returns:
+            A new list containing the transformed values
+        """
+        if not isinstance(lst, list):
+            raise TypeError("Qiimahu ma ahan liis (Value is not a list)")
+
+        if not callable(transform_func):
+            raise TypeError(
+                "Qiimaha labaad ma ahan hawl (Second argument is not a function)"
+            )
+
+        # Create a new list with transformed items
+        result = []
+        for item in lst:
+            # Apply the transform function to each item
+            transformed = transform_func(item)
+            result.append(transformed)
+
+        return result
+
 
 def get_builtin_functions():
     """
@@ -481,6 +511,7 @@ def get_list_methods():
         "habee": SoplangBuiltins.list_sort,
         "shaandhee": SoplangBuiltins.list_filter,
         "jar": SoplangBuiltins.list_jar,
+        "aaddin": SoplangBuiltins.list_map,
     }
 
     return methods

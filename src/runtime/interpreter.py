@@ -881,7 +881,7 @@ class Interpreter:
             )
 
         # Special handling for list methods that take function arguments
-        if method_name == "shaandhee" and len(args) > 0:
+        if method_name in ["shaandhee", "aaddin"] and len(args) > 0:
             # If the argument is a string (function name), resolve it to the actual function
             if isinstance(args[0], str) and args[0] in self.functions:
                 func_name = args[0]
