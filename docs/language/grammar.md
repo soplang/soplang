@@ -310,6 +310,7 @@ ObjectMethod ::= "fure"      // keys
                | "tirtir"    // remove
                | "kudar"     // merge
                | "nuqul"     // copy
+               | "nadiifi"   // clear
 ```
 
 ## Error Messages
