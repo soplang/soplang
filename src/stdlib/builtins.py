@@ -344,6 +344,17 @@ class SoplangBuiltins:
         return result
 
     @staticmethod
+    def object_copy(obj):
+        """
+        Return a shallow copy of the object
+        """
+        if not isinstance(obj, dict):
+            raise TypeError("Qiimahu ma ahan walax (Value is not an object)")
+
+        # Create a new dictionary that is a shallow copy of the original
+        return obj.copy()
+
+    @staticmethod
     def list_reverse(lst):
         """
         Reverse a list in-place
@@ -515,6 +526,7 @@ def get_object_methods():
         "leeyahay": SoplangBuiltins.object_has,
         "tirtir": SoplangBuiltins.object_remove,
         "kudar": SoplangBuiltins.object_merge,
+        "nuqul": SoplangBuiltins.object_copy,
     }
 
     return methods
