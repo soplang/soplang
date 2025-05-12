@@ -462,6 +462,30 @@ class SoplangBuiltins:
 
         return result
 
+    @staticmethod
+    def list_raadso(lst, item):
+        """
+        Find the index of an item in a list
+        Returns the index of the first matching item or maran if not found
+
+        Args:
+            lst: The list to search in
+            item: The item to search for
+
+        Returns:
+            The index of the first occurrence of the item, or None (maran in Soplang) if not found
+        """
+        if not isinstance(lst, list):
+            raise TypeError("Qiimahu ma ahan liis (Value is not a list)")
+
+        # Manually search for the item to avoid using list.index() which throws an exception
+        for i in range(len(lst)):
+            if lst[i] == item:
+                return i
+
+        # Return None (maran in Soplang) if the item is not in the list
+        return None
+
 
 def get_builtin_functions():
     """
@@ -512,6 +536,7 @@ def get_list_methods():
         "shaandhee": SoplangBuiltins.list_filter,
         "jar": SoplangBuiltins.list_jar,
         "aaddin": SoplangBuiltins.list_map,
+        "raadso": SoplangBuiltins.list_raadso,
     }
 
     return methods
