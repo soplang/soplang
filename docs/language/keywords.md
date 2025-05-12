@@ -138,31 +138,9 @@ This document provides a reference for all keywords in the Soplang programming l
 | Method        | English Equivalent   | Description           | Example                               |
 | ------------- | -------------------- | --------------------- | ------------------------------------- |
 | `fure()`      | `keys()`             | Get all keys          | `door keys = obj.fure()`              |
+| `qiime()`     | `values()`           | Get all values        | `door values = obj.qiime()`           |
 | `leeyahay(x)` | `hasOwnProperty()`   | Check if key exists   | `haddii (obj.leeyahay("name")) {...}` |
 | `tirtir(x)`   | `delete property`    | Delete a property     | `obj.tirtir("oldProp")`               |
 | `kudar(obj)`  | `merge()`/`assign()` | Merge/copy properties | `door merged = obj1.kudar(obj2)`      |
 | `nuqul()`     | `copy()`             | Create a shallow copy | `door copy = obj.nuqul()`             |
 | `nadiifi()`   | `clear()`            | Remove all properties | `obj.nadiifi()`                       |
-
-## Error Message Terminology
-
-| Somali Term | Meaning            | English Equivalent | Example Usage                                                     |
-| ----------- | ------------------ | ------------------ | ----------------------------------------------------------------- |
-| `Khalad`    | Error              | `Error`            | `Khalad lexer: Xaraf aan la filayn: @`                            |
-| `sadar`     | Line (in code)     | `line`             | `ee sadar 12, goobta 18`                                          |
-| `goobta`    | Position (in code) | `position`         | `ee sadar 12, goobta 18`                                          |
-| `lexer`     | Lexical analyzer   | `lexer`            | `Khalad lexer: Xaraf aan la filayn: @`                            |
-| `parser`    | Syntax analyzer    | `parser`           | `Khalad parser: Waxaa la filayay ')', laakiin waxaa la helay '+'` |
-| `runtime`   | Execution time     | `runtime`          | `Khalad runtime: Ma suurtogali karto qeybinta eber`               |
-| `nooc`      | Type               | `type`             | `Khalad nooc: Qiimaheeda '10' ma ahan qoraal`                     |
-
-## Special Syntax
-
-| Syntax  | Meaning             | English Equivalent | Example                               |
-| ------- | ------------------- | ------------------ | ------------------------------------- |
-| `//`    | Single-line comment | `//`               | `// Tani waa comment`                 |
-| `/* */` | Multi-line comment  | `/* */`            | `/* Tani waa comment dheer */`        |
-| `{ }`   | Code block          | `{ }`              | `haddii (x > 10) { bandhig("Weyn") }` |
-| `( )`   | Expression grouping | `( )`              | `(a + b) * c`                         |
-| `[ ]`   | List/array access   | `[ ]`              | `numbers[0]`                          |
-| `.`     | Property access     | `.`                | `person.name`                         |

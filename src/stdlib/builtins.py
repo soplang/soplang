@@ -509,6 +509,17 @@ class SoplangBuiltins:
         # Return None (maran in Soplang) if the item is not in the list
         return None
 
+    @staticmethod
+    def object_values(obj):
+        """
+        Get all values from an object as a list
+        """
+        if not isinstance(obj, dict):
+            raise TypeError("Qiimahu ma ahan walax (Value is not an object)")
+
+        # Return all values as a list
+        return list(obj.values())
+
 
 def get_builtin_functions():
     """
@@ -540,6 +551,7 @@ def get_object_methods():
         "kudar": SoplangBuiltins.object_merge,
         "nuqul": SoplangBuiltins.object_copy,
         "nadiifi": SoplangBuiltins.object_clear,
+        "qiime": SoplangBuiltins.object_values,
     }
 
     return methods

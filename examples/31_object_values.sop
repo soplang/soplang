@@ -1,0 +1,81 @@
+// Test: Object Values (qiime)
+// This test demonstrates the qiime() method for walax (objects)
+
+bandhig("Testing walax.qiime() (object values):")
+
+// Create a test object with various types of values
+walax qof = {
+    magac: "Ayaan",
+    da: 21,
+    shaqo: "macallin",
+    waa_arday: been,
+    hiwayado: ["buugag", "ciyaaro", "safar"],
+    cinwaanka: {
+        magaalo: "Muqdisho",
+        xaafad: "Hodan"
+    }
+}
+
+// Display the original object
+bandhig("Original object:")
+bandhig("  qof = " + qof)
+
+// Get all keys for comparison
+liis fureyaasha = qof.fure()
+bandhig("\nKeys using fure():")
+bandhig("  " + fureyaasha)
+
+// Get all values using qiime()
+liis qiimooyinka = qof.qiime()
+bandhig("\nValues using qiime():")
+bandhig("  " + qiimooyinka)
+
+// Verify values correspond to keys in same order
+bandhig("\nVerifying individual values match keys:")
+kuceli (i 0 ilaa fureyaasha.dherer() - 1) {
+    door fure = fureyaasha[i]
+    door qiime = qiimooyinka[i]
+    bandhig("  " + fure + ": " + qiime)
+}
+
+// Testing empty object
+walax maran = {}
+bandhig("\nTesting empty object:")
+bandhig("  Empty object values: " + maran.qiime())
+bandhig("  Values count: " + maran.qiime().dherer())
+
+// Testing object with numbers as values
+walax numbers = {
+    hal: 1,
+    laba: 2,
+    saddex: 3,
+    afar: 4
+}
+bandhig("\nObject with numeric values:")
+bandhig("  Values: " + numbers.qiime())
+
+// Modifying values and getting updated values
+bandhig("\nModifying object values:")
+qof.da = 22
+qof.hiwayado.kudar("daawasho")
+bandhig("  After changing age and adding to hobbies:")
+bandhig("  Updated values: " + qof.qiime())
+
+// Using with type functions
+liis loogay_qoraal = {
+    a: "one",
+    b: "two",
+    c: "three"
+}.qiime()
+bandhig("\nUsing values with other functions:")
+bandhig("  All values are strings: " + (loogay_qoraal[0] == "one" && loogay_qoraal[1] == "two" && loogay_qoraal[2] == "three"))
+
+// Converting all values to strings
+bandhig("\nConverting all values to strings:")
+liis qoraal_values = []
+kuceli (i 0 ilaa qiimooyinka.dherer() - 1) {
+    qoraal_values.kudar(qoraal(qiimooyinka[i]))
+}
+bandhig("  String values: " + qoraal_values)
+
+bandhig("\nTest completed: walax.qiime() returns all values from an object")
