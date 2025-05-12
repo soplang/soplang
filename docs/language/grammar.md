@@ -305,10 +305,11 @@ ListMethod ::= "kudar"       // push
 ## Object Methods
 
 ```ebnf
-ObjectMethod ::= "fure"    // keys
-               | "leeyahay"   // has
+ObjectMethod ::= "fure"      // keys
+               | "leeyahay"  // has
                | "tirtir"    // remove
-               | "kudar"   // merge
+               | "kudar"     // merge
+               | "nuqul"     // copy
 ```
 
 ## Error Messages

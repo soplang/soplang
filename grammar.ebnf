@@ -211,7 +211,8 @@ ListMethod ::= "kudar"       // push
              | "raadso"      // find index
 
 // ===== OBJECT METHODS =====
-ObjectMethod ::= "fure"    // keys
-               | "leeyahay"   // has
+ObjectMethod ::= "fure"      // keys
+               | "leeyahay"  // has
                | "tirtir"    // remove
-               | "kudar"   // merge
+               | "kudar"     // merge
+               | "nuqul"     // copy
