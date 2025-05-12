@@ -1,0 +1,73 @@
+// Test: Object Entries (lamaane)
+// This test demonstrates the walax.lamaane() method which returns key-value pairs
+
+bandhig("Testing walax.lamaane() (object entries):")
+
+// Create a test object with various properties
+walax qof = {
+  magac: "Ayaan",
+  da: 21,
+  shaqo: "macallin",
+  waa_arday: been
+}
+
+// Display the original object
+bandhig("\nOriginal object:")
+bandhig("  qof = " + qof)
+
+// Get entries (key-value pairs) using lamaane()
+liis pairs = qof.lamaane()
+bandhig("\nEntries using lamaane():")
+bandhig("  " + pairs)
+
+// Iterate through the entries and display them
+bandhig("\nIterating through entries:")
+kuceli (i 0 ilaa pairs.dherer() - 1) {
+  bandhig("  " + pairs[i][0] + ": " + pairs[i][1])
+}
+
+// Test with empty object
+walax empty = {}
+bandhig("\nTesting empty object:")
+bandhig("  Empty object entries: " + empty.lamaane())
+bandhig("  Entries count: " + empty.lamaane().dherer())
+
+// Test with object containing nested values
+walax complex = {
+  name: "Complex",
+  data: [1, 2, 3],
+  nested: {a: 1, b: 2},
+  active: run
+}
+bandhig("\nTesting object with nested values:")
+liis complex_entries = complex.lamaane()
+bandhig("  Entries: " + complex_entries)
+
+// Demonstrate transforming entries
+bandhig("\nTransforming entries to formatted strings:")
+liis formatted = []
+kuceli (i 0 ilaa complex_entries.dherer() - 1) {
+  door key = complex_entries[i][0]
+  door value = complex_entries[i][1]
+  door type = nooc(value)
+  formatted.kudar(key + " (" + type + "): " + qoraal(value))
+}
+bandhig("  Formatted entries:")
+kuceli (i 0 ilaa formatted.dherer() - 1) {
+  bandhig("  - " + formatted[i])
+}
+
+// Demonstrate updating values through entries
+bandhig("\nUpdating values through entries:")
+liis qof_entries = qof.lamaane()
+kuceli (i 0 ilaa qof_entries.dherer() - 1) {
+  // Find the age entry and update the object
+  haddii (qof_entries[i][0] == "da") {
+    door new_age = qof_entries[i][1] + 1
+    qof.da = new_age
+    bandhig("  Updated age: " + new_age)
+  }
+}
+bandhig("  Updated object: " + qof)
+
+bandhig("\nTest completed: walax.lamaane() returns key-value pairs from an object")

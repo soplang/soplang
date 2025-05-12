@@ -139,6 +139,7 @@ This document provides a reference for all keywords in the Soplang programming l
 | ------------- | -------------------- | --------------------- | ------------------------------------- |
 | `fure()`      | `keys()`             | Get all keys          | `door keys = obj.fure()`              |
 | `qiime()`     | `values()`           | Get all values        | `door values = obj.qiime()`           |
+| `lamaane()`   | `entries()`          | Get key-value pairs   | `door pairs = obj.lamaane()`          |
 | `leeyahay(x)` | `hasOwnProperty()`   | Check if key exists   | `haddii (obj.leeyahay("name")) {...}` |
 | `tirtir(x)`   | `delete property`    | Delete a property     | `obj.tirtir("oldProp")`               |
 | `kudar(obj)`  | `merge()`/`assign()` | Merge/copy properties | `door merged = obj1.kudar(obj2)`      |

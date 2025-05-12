@@ -520,6 +520,17 @@ class SoplangBuiltins:
         # Return all values as a list
         return list(obj.values())
 
+    @staticmethod
+    def object_entries(obj):
+        """
+        Get all key-value pairs from an object as a list of [key, value] pairs
+        """
+        if not isinstance(obj, dict):
+            raise TypeError("Qiimahu ma ahan walax (Value is not an object)")
+
+        # Return all key-value pairs as a list of [key, value] lists
+        return [[key, value] for key, value in obj.items()]
+
 
 def get_builtin_functions():
     """
@@ -552,6 +563,7 @@ def get_object_methods():
         "nuqul": SoplangBuiltins.object_copy,
         "nadiifi": SoplangBuiltins.object_clear,
         "qiime": SoplangBuiltins.object_values,
+        "lamaane": SoplangBuiltins.object_entries,
     }
 
     return methods
