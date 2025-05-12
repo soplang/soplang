@@ -307,6 +307,7 @@ ListMethod ::= "kudar"       // push
 ```ebnf
 ObjectMethod ::= "fure"      // keys
                | "qiime"     // values
+               | "lamaane"   // entries
                | "leeyahay"  // has
                | "tirtir"    // remove
                | "kudar"     // merge
