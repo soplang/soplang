@@ -378,7 +378,8 @@ class SoplangBuiltins:
 
         if not callable(condition_func):
             raise TypeError(
-                "Qiimaha labaad ma ahan hawl (Second argument is not a function)")
+                "Qiimaha labaad ma ahan hawl (Second argument is not a function)"
+            )
 
         # Create a new list with items that satisfy the condition
         result = []
@@ -388,6 +389,48 @@ class SoplangBuiltins:
                 result.append(item)
 
         return result
+
+    @staticmethod
+    def list_jar(lst, start, end):
+        """
+        Return a new list containing items from the start index up to (but not including) the end index.
+        Similar to JavaScript's array.slice() or Python's list slicing.
+
+        Args:
+            lst: The list to slice
+            start: The starting index (inclusive)
+            end: The ending index (exclusive)
+
+        Returns:
+            A new list containing elements from start to end (exclusive)
+        """
+        if not isinstance(lst, list):
+            raise TypeError("Qiimahu ma ahan liis (Value is not a list)")
+
+        # Convert indices to integers
+        if not isinstance(start, (int, float)) or not isinstance(end, (int, float)):
+            raise TypeError(
+                "Bilowga iyo dhamaadka waa inay noqdaan tiro (Start and end must be numbers)"
+            )
+
+        start = int(start)
+        end = int(end)
+
+        # Handle out-of-range indices
+        # If start is negative, count from the end of the list
+        if start < 0:
+            start = max(0, len(lst) + start)
+        # Make sure start is within bounds
+        start = min(start, len(lst))
+
+        # If end is negative, count from the end of the list
+        if end < 0:
+            end = max(0, len(lst) + end)
+        # Make sure end is within bounds
+        end = min(end, len(lst))
+
+        # Create a new list with the sliced elements
+        return lst[start:end]
 
 
 def get_builtin_functions():
@@ -437,6 +480,7 @@ def get_list_methods():
         "rog": SoplangBuiltins.list_reverse,
         "habee": SoplangBuiltins.list_sort,
         "shaandhee": SoplangBuiltins.list_filter,
+        "jar": SoplangBuiltins.list_jar,
     }
 
     return methods
