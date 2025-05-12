@@ -355,6 +355,18 @@ class SoplangBuiltins:
         return obj.copy()
 
     @staticmethod
+    def object_clear(obj):
+        """
+        Remove all properties from the object (in-place)
+        """
+        if not isinstance(obj, dict):
+            raise TypeError("Qiimahu ma ahan walax (Value is not an object)")
+
+        # Clear all keys from the object
+        obj.clear()
+        return obj
+
+    @staticmethod
     def list_reverse(lst):
         """
         Reverse a list in-place
@@ -527,6 +539,7 @@ def get_object_methods():
         "tirtir": SoplangBuiltins.object_remove,
         "kudar": SoplangBuiltins.object_merge,
         "nuqul": SoplangBuiltins.object_copy,
+        "nadiifi": SoplangBuiltins.object_clear,
     }
 
     return methods

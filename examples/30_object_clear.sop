@@ -1,0 +1,80 @@
+// Test: Object Clear (nadiifi)
+// This test demonstrates the nadiifi() method for clearing walax (objects)
+
+bandhig("Testing walax.nadiifi() (object clear):")
+
+// Create a test object with several properties
+walax xog = {
+    magac: "Ayaan",
+    da: 30,
+    degaan: "Muqdisho",
+    waxbarasho: "Jaamacad",
+    hiwayado: ["ciyaaro", "buugagta", "safar"]
+}
+
+// Display the original object
+bandhig("Original object:")
+bandhig("  Keys: " + xog.fure())
+bandhig("  Values:")
+bandhig("    magac: " + xog.magac)
+bandhig("    da: " + xog.da)
+bandhig("    degaan: " + xog.degaan)
+bandhig("    waxbarasho: " + xog.waxbarasho)
+bandhig("    hiwayado: " + xog.hiwayado)
+
+// Create a reference to the same object
+walax tixraac = xog
+bandhig("\nCreated a reference to the same object")
+
+// Clear the object using nadiifi()
+bandhig("\nClearing object using nadiifi()...")
+xog.nadiifi()
+
+// Verify all keys are gone
+bandhig("\nAfter clearing:")
+bandhig("  Keys: " + xog.fure())
+bandhig("  Object is empty: " + (xog.fure().dherer() == 0))
+
+// Verify that the reference still points to the same (now empty) object
+bandhig("\nVerify reference still points to the same object (now empty):")
+bandhig("  Reference keys: " + tixraac.fure())
+bandhig("  Reference is empty: " + (tixraac.fure().dherer() == 0))
+
+// Add a new property to verify the object can still be used
+xog.qiimo_cusub = "Qiimo cusub"
+bandhig("\nAdding a new property after clearing:")
+bandhig("  Keys: " + xog.fure())
+haddii (xog.leeyahay("qiimo_cusub")) {
+    bandhig("  New property value: " + xog.qiimo_cusub)
+}
+
+// Comparison with tirtir (manually removing individual properties)
+bandhig("\nComparison with tirtir (manual property removal):")
+walax xog2 = {
+    a: 1,
+    b: 2,
+    c: 3
+}
+bandhig("  Original object2 keys: " + xog2.fure())
+
+// Remove each property manually
+xog2.tirtir("a")
+xog2.tirtir("b")
+xog2.tirtir("c")
+bandhig("  After manual removal: " + xog2.fure())
+bandhig("  Object2 is empty: " + (xog2.fure().dherer() == 0))
+
+// Demonstrate nadiifi is more efficient than calling tirtir repeatedly
+walax xog3 = {
+    one: 1,
+    two: 2,
+    three: 3,
+    four: 4,
+    five: 5
+}
+bandhig("\nUsing nadiifi for object with multiple properties:")
+bandhig("  Before clearing: " + xog3.fure())
+xog3.nadiifi()
+bandhig("  After nadiifi: " + xog3.fure())
+
+bandhig("\nTest completed: walax.nadiifi() removes all properties from an object")

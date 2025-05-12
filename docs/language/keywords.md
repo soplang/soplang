@@ -142,6 +142,7 @@ This document provides a reference for all keywords in the Soplang programming l
 | `tirtir(x)`   | `delete property`    | Delete a property     | `obj.tirtir("oldProp")`               |
 | `kudar(obj)`  | `merge()`/`assign()` | Merge/copy properties | `door merged = obj1.kudar(obj2)`      |
 | `nuqul()`     | `copy()`             | Create a shallow copy | `door copy = obj.nuqul()`             |
+| `nadiifi()`   | `clear()`            | Remove all properties | `obj.nadiifi()`                       |
 
 ## Error Message Terminology
 
