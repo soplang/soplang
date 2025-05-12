@@ -34,11 +34,13 @@ Statement ::= VariableDeclaration
 Block ::= "{" {Statement} "}"
 
 // ===== VARIABLE DECLARATIONS =====
-VariableDeclaration ::= DynamicDeclaration | StaticDeclaration
+VariableDeclaration ::= DynamicDeclaration | StaticDeclaration | ConstantDeclaration
 
 DynamicDeclaration ::= "door" Identifier "=" Expression
 
 StaticDeclaration ::= StaticType Identifier "=" Expression
+
+ConstantDeclaration ::= "madoor" [StaticType] Identifier "=" Expression
 
 StaticType ::= "tiro"      // Integer
              | "jajab"     // Decimal
@@ -197,12 +199,16 @@ Position ::= Digit {Digit}
 ListMethod ::= "kudar"       // push
              | "kasaar"      // pop
              | "dherer"      // length
-             | "kudar"     // concat
-             | "leeyahay"   // contains
-             | "nuqul"      // copy
-             | "nadiifi"    // clear
-             | "rog"        // reverse
-             | "habee"      // sort
+             | "kudar"       // concat
+             | "leeyahay"    // contains
+             | "nuqul"       // copy
+             | "nadiifi"     // clear
+             | "rog"         // reverse
+             | "habee"       // sort
+             | "jar"         // slice
+             | "aaddin"      // map/transform
+             | "shaandhee"   // filter
+             | "raadso"      // find index
 
 // ===== OBJECT METHODS =====
 ObjectMethod ::= "fure"    // keys

@@ -4,37 +4,33 @@ This document provides a reference for all keywords in the Soplang programming l
 
 ## Variable Declaration Keywords
 
-| Keyword  | Meaning                      | English Equivalent | Example                                |
-| -------- | ---------------------------- | ------------------ | -------------------------------------- |
-| `door`   | Dynamic variable declaration | `var`/`let`        | `door magac = "Sharafdin"`             |
-| `tiro`   | Integer type                 | `int`              | `tiro da = 25`                         |
-| `jajab`  | Decimal/float type           | `float`/`double`   | `jajab qiimo = 3.14`                   |
-| `qoraal` | String type                  | `string`           | `qoraal magac = "Sharafdin"`           |
-| `bool`   | Boolean type                 | `bool`             | `bool waaRun = run`                    |
-| `walax`  | Object type                  | `object`           | `walax person = { name: "Sharafdin" }` |
-| `liis`   | List/array type              | `array`            | `liis numbers = [1, 2, 3]`             |
-| `maran`  | Null value                   | `null`             | `door a = maran`                       |
+| Keyword  | Meaning                       | English Equivalent | Example                                |
+| -------- | ----------------------------- | ------------------ | -------------------------------------- |
+| `door`   | Dynamic variable declaration  | `var`/`let`        | `door magac = "Sharafdin"`             |
+| `madoor` | Constant variable declaration | `const`            | `madoor PI = 3.14159`                  |
+| `tiro`   | Integer type                  | `int`              | `tiro da = 25`                         |
+| `jajab`  | Decimal/float type            | `float`/`double`   | `jajab qiimo = 3.14`                   |
+| `qoraal` | String type                   | `string`           | `qoraal magac = "Sharafdin"`           |
+| `bool`   | Boolean type                  | `bool`             | `bool waaRun = run`                    |
+| `walax`  | Object type                   | `object`           | `walax person = { name: "Sharafdin" }` |
+| `liis`   | List/array type               | `array`            | `liis numbers = [1, 2, 3]`             |
+| `maran`  | Null value                    | `null`             | `door a = maran`                       |
 
 ## Control Flow Keywords
 
-| Keyword       | Meaning           | English Equivalent | Example                                      |
-| ------------- | ----------------- | ------------------ | -------------------------------------------- |
-| `haddii`      | If statement      | `if`               | `haddii (x > 10) { bandhig("Weyn") }`        |
-| `haddii_kale` | Else if statement | `else if`          | `haddii_kale (x == 10) { bandhig("Dhexe") }` |
-| `ugudambeyn`  | Else statement    | `else`             | `ugudambeyn { bandhig("Yar") }`              |
-| `dooro`       | Switch statement  | `switch`           | `dooro (x) { xaalad 1 { bandhig("Hal") } }`  |
-| `xaalad`      | Case clause       | `case`             | `xaalad "A" { bandhig("Case A") }`           |
-
-## Loop Keywords
-
-| Somali Keyword | English Equivalent | Description             | Example                                    |
-| -------------- | ------------------ | ----------------------- | ------------------------------------------ |
-| `kuceli`       | `for`              | For loop                | `kuceli (i 1 ilaa 5) { bandhig(i) }`       |
-| `ilaa`         | `to`               | Loop range end          | `kuceli (i 1 ilaa 5) { bandhig(i) }`       |
-| `::`           | `step`             | Loop increment step     | `kuceli (i 1 ilaa 10 :: 2) { bandhig(i) }` |
-| `intay`        | `while`            | While loop              | `intay (x < 5) { bandhig(x) }`             |
-| `jooji`        | `break`            | Exit from a loop        | `haddii (x == 3) { jooji }`                |
-| `soco`         | `continue`         | Skip one loop iteration | `haddii (x == 3) { soco }`                 |
+| Keyword       | Meaning            | English Equivalent | Example                                      |
+| ------------- | ------------------ | ------------------ | -------------------------------------------- |
+| `haddii`      | If statement       | `if`               | `haddii (x > 10) { bandhig("Weyn") }`        |
+| `haddii_kale` | Else if statement  | `else if`          | `haddii_kale (x == 10) { bandhig("Dhexe") }` |
+| `ugudambeyn`  | Else statement     | `else`             | `ugudambeyn { bandhig("Yar") }`              |
+| `dooro`       | Switch statement   | `switch`           | `dooro (x) { xaalad 1 { bandhig("Hal") } }`  |
+| `xaalad`      | Case clause        | `case`             | `xaalad "A" { bandhig("Case A") }`           |
+| `kuceli`      | For loop           | `for`              | `kuceli (i 1 ilaa 5) { bandhig(i) }`         |
+| `ilaa`        | Loop range end     | `to`               | `kuceli (i 1 ilaa 5) { bandhig(i) }`         |
+| `::`          | Loop increment     | `step`             | `kuceli (i 1 ilaa 10 :: 2) { bandhig(i) }`   |
+| `intay`       | While loop         | `while`            | `intay (x < 5) { bandhig(x) }`               |
+| `jooji`       | Break statement    | `break`            | `haddii (x == 3) { jooji }`                  |
+| `soco`        | Continue statement | `continue`         | `haddii (x == 3) { soco }`                   |
 
 ## Function Keywords
 
@@ -121,17 +117,21 @@ This document provides a reference for all keywords in the Soplang programming l
 
 ## List Methods
 
-| Method        | English Equivalent        | Description                 | Example                           |
-| ------------- | ------------------------- | --------------------------- | --------------------------------- |
-| `dherer()`    | `length()`                | Get list length             | `numbers.dherer()`                |
-| `kudar()`     | `push()` or `append()`    | Add item to end             | `numbers.kudar(5)`                |
-| `kasaar()`    | `pop()`                   | Remove and return last item | `door last = numbers.kasaar()`    |
-| `kudar(liis)` | `concat()`                | Concatenate lists           | `door all = list1.kudar(list2)`   |
-| `leeyahay(x)` | `contains()`/`includes()` | Check if item exists        | `haddii (list.leeyahay(x)) {...}` |
-| `nuqul()`     | `copy()`                  | Create a shallow copy       | `door copy = list.nuqul()`        |
-| `nadiifi()`   | `clear()`                 | Remove all items from list  | `list.nadiifi()`                  |
-| `rog()`       | `reverse()`               | Reverse the list in-place   | `list.rog()`                      |
-| `habee()`     | `sort()`                  | Sort the list in-place      | `list.habee()`                    |
+| Method            | English Equivalent        | Description                   | Example                                 |
+| ----------------- | ------------------------- | ----------------------------- | --------------------------------------- |
+| `dherer()`        | `length()`                | Get list length               | `numbers.dherer()`                      |
+| `kudar()`         | `push()` or `append()`    | Add item to end               | `numbers.kudar(5)`                      |
+| `kasaar()`        | `pop()`                   | Remove and return last item   | `door last = numbers.kasaar()`          |
+| `kudar(liis)`     | `concat()`                | Concatenate lists             | `door all = list1.kudar(list2)`         |
+| `leeyahay(x)`     | `contains()`/`includes()` | Check if item exists          | `haddii (list.leeyahay(x)) {...}`       |
+| `nuqul()`         | `copy()`                  | Create a shallow copy         | `door copy = list.nuqul()`              |
+| `nadiifi()`       | `clear()`                 | Remove all items from list    | `list.nadiifi()`                        |
+| `rog()`           | `reverse()`               | Reverse the list in-place     | `list.rog()`                            |
+| `habee()`         | `sort()`                  | Sort the list in-place        | `list.habee()`                          |
+| `jar(a, b)`       | `slice(a, b)`             | Return sublist from a to b    | `door subset = numbers.jar(1, 3)`       |
+| `aaddin(func)`    | `map(func)`               | Transform items with function | `door doubled = nums.aaddin("laban")`   |
+| `shaandhee(func)` | `filter(func)`            | Filter items with function    | `door evens = nums.shaandhee("isEven")` |
+| `raadso(item)`    | `indexOf(item)`           | Find index of item            | `door idx = nums.raadso(5)`             |
 
 ## Object Methods
 

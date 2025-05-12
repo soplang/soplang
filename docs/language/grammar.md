@@ -42,11 +42,13 @@ Block ::= "{" {Statement} "}"
 ## Variable Declarations
 
 ```ebnf
-VariableDeclaration ::= DynamicDeclaration | StaticDeclaration
+VariableDeclaration ::= DynamicDeclaration | StaticDeclaration | ConstantDeclaration
 
 DynamicDeclaration ::= "door" Identifier "=" Expression
 
 StaticDeclaration ::= StaticType Identifier "=" Expression
+
+ConstantDeclaration ::= "madoor" [StaticType] Identifier "=" Expression
 
 StaticType ::= "tiro"      // Number
              | "jajab"     // Decimal/Float
@@ -205,7 +207,7 @@ Factor ::= NumberLiteral
 3. Complex expressions can be used in any context where a value is expected:
    - Variable assignments: `door x = a > b`
    - Function arguments: `my_function(a >= 10)`
-   - Switch conditions: `dooro (score >= 80)`
+   | Switch conditions: `dooro (score >= 80)`
    - Array indices: `my_list[i > 0 ? 1 : 0]`
    - Object property values: `walax obj = { is_valid: x == 10 }`
 
@@ -288,12 +290,16 @@ Whitespace ::= ' ' | '\t' | '\n' | '\r'
 ListMethod ::= "kudar"       // push
              | "kasaar"      // pop
              | "dherer"      // length
-             | "kudar"     // concat
-             | "leeyahay"   // contains
-             | "nuqul"      // copy
-             | "nadiifi"    // clear
-             | "rog"        // reverse
-             | "habee"      // sort
+             | "kudar"       // concat
+             | "leeyahay"    // contains
+             | "nuqul"       // copy
+             | "nadiifi"     // clear
+             | "rog"         // reverse
+             | "habee"       // sort
+             | "jar"         // slice
+             | "aaddin"      // map/transform
+             | "shaandhee"   // filter
+             | "raadso"      // find index
 ```
 
 ## Object Methods
