@@ -203,6 +203,7 @@ ObjectMethod ::= "fure"      // keys
 // ===== STRING METHODS =====
 StringMethod ::= "qeybi"     // split
               | "leeyahay"   // contains
+              | "dhamaad"    // endsWith
 
 // ===== BUILT-IN FUNCTIONS =====
 BuiltInFunction ::= "bandhig"  // print

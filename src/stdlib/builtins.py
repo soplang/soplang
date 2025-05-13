@@ -608,6 +608,27 @@ class SoplangBuiltins:
 
         return substring in s
 
+    @staticmethod
+    def string_endswith(s, suffix):
+        """
+        Check if a string ends with a specified suffix.
+        Similar to 'endsWith()' in JavaScript or 'endswith()' in Python.
+
+        Args:
+            s: The string to check
+            suffix: The suffix to check for
+
+        Returns:
+            Boolean: True if the string ends with the specified suffix, False otherwise
+        """
+        if not isinstance(s, str):
+            raise TypeError("Qiimahu ma ahan qoraal (Value is not a string)")
+
+        if not isinstance(suffix, str):
+            raise TypeError("Suffix-ka ma ahan qoraal (Suffix is not a string)")
+
+        return s.endswith(suffix)
+
 
 def get_builtin_functions():
     """
@@ -677,6 +698,7 @@ def get_string_methods():
     methods = {
         "qeybi": SoplangBuiltins.string_split,
         "leeyahay": SoplangBuiltins.string_contains,
+        "dhamaad": SoplangBuiltins.string_endswith,
     }
 
     return methods
