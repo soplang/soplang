@@ -51,7 +51,7 @@ FunctionDeclaration ::= "hawl" Identifier "(" [ParameterList] ")" Block
 ParameterList ::= Identifier {"," Identifier}
 
 // ===== FUNCTION CALLS =====
-FunctionCall ::= Identifier "(" [ArgumentList] ")"
+FunctionCall ::= (Identifier | BuiltInFunction) "(" [ArgumentList] ")"
                | MethodCall
 
 MethodCall ::= ObjectProperty "(" [ArgumentList] ")"
@@ -202,3 +202,16 @@ ObjectMethod ::= "fure"      // keys
 
 // ===== STRING METHODS =====
 StringMethod ::= "qeybi"     // split
+              | "leeyahay"   // contains
+
+// ===== BUILT-IN FUNCTIONS =====
+BuiltInFunction ::= "bandhig"  // print
+                  | "gelin"    // input
+                  | "nooc"     // typeof
+                  | "tiro"     // to integer
+                  | "jajab"    // to float
+                  | "qoraal"   // to string
+                  | "bool"     // to boolean
+                  | "liis"     // create list
+                  | "walax"    // create object
+                  | "daji"     // math.floor
