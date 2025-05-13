@@ -122,3 +122,9 @@ This document provides a reference for all keywords in the Soplang programming l
 | `kudar(obj)`  | `merge()`/`assign()` | Merge/copy properties | `door merged = obj1.kudar(obj2)`      |
 | `nuqul()`     | `copy()`             | Create a shallow copy | `door copy = obj.nuqul()`             |
 | `nadiifi()`   | `clear()`            | Remove all properties | `obj.nadiifi()`                       |
+
+## String Methods
+
+| Method         | English Equivalent | Description               | Example                        |
+| -------------- | ------------------ | ------------------------- | ------------------------------ |
+| `qeybi(delim)` | `split()`          | Split string by delimiter | `door parts = text.qeybi(",")` |
