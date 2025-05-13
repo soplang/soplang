@@ -752,6 +752,32 @@ class SoplangBuiltins:
         # Return the substring
         return s[start:end]
 
+    @staticmethod
+    def dherer(value):
+        """
+        Return the length of a value (list, string, or object).
+        Similar to len() in Python or .length in JavaScript.
+
+        Args:
+            value: The value to get the length of (list, string, or object)
+
+        Returns:
+            Integer: The length of the value
+
+        Raises:
+            TypeError: If the value is not a list, string, or object
+        """
+        if isinstance(value, list):
+            return len(value)  # Number of items in the list
+        elif isinstance(value, str):
+            return len(value)  # Number of characters in the string
+        elif isinstance(value, dict):
+            return len(value)  # Number of key-value pairs in the object
+        else:
+            raise TypeError(
+                "Qiimaha ma ahan liis, qoraal, ama walax (Value is not a list, string, or object)"
+            )
+
 
 def get_builtin_functions():
     """
@@ -769,6 +795,7 @@ def get_builtin_functions():
         "walax": SoplangBuiltins.walax,
         "daji": SoplangBuiltins.daji,
         "kor": SoplangBuiltins.kor,
+        "dherer": SoplangBuiltins.dherer,
     }
 
     return builtins

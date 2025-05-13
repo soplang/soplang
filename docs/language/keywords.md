@@ -93,6 +93,7 @@ This document provides a reference for all keywords in the Soplang programming l
 | `walax`   | Create an object      | `object/dict`      | `door obj = walax(name: "Ali", age: 25)` |
 | `daji`    | Round down to integer | `Math.floor()`     | `door n = daji(4.7)`                     |
 | `kor`     | Round up to integer   | `Math.ceil()`      | `door n = kor(4.2)`                      |
+| `dherer`  | Get length of value   | `len()`/`.length`  | `door n = dherer(qoraal)`                |
 
 ## List Methods
 
