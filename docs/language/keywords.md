@@ -81,16 +81,17 @@ This document provides a reference for all keywords in the Soplang programming l
 
 ## Built-in Functions
 
-| Function  | Meaning              | English Equivalent | Example                                  |
-| --------- | -------------------- | ------------------ | ---------------------------------------- |
-| `bandhig` | Print to console     | `print`            | `bandhig("Salaan, Adduunka!")`           |
-| `gelin`   | Read input from user | `input`            | `door magac = gelin("Magacaaga geli: ")` |
-| `nooc`    | Get type of variable | `typeof`           | `bandhig(nooc(magac))`                   |
-| `tiro`    | Convert to number    | `int`/`float`      | `door n = tiro("5")`                     |
-| `qoraal`  | Convert to string    | `str`              | `door s = qoraal(25)`                    |
-| `bool`    | Convert to boolean   | `bool`             | `door b = bool(1)`                       |
-| `liis`    | Create a list        | `list/array`       | `door list = liis(1, 2, 3)`              |
-| `walax`   | Create an object     | `object/dict`      | `door obj = walax(name: "Ali", age: 25)` |
+| Function  | Meaning               | English Equivalent | Example                                  |
+| --------- | --------------------- | ------------------ | ---------------------------------------- |
+| `bandhig` | Print to console      | `print`            | `bandhig("Salaan, Adduunka!")`           |
+| `gelin`   | Read input from user  | `input`            | `door magac = gelin("Magacaaga geli: ")` |
+| `nooc`    | Get type of variable  | `typeof`           | `bandhig(nooc(magac))`                   |
+| `tiro`    | Convert to number     | `int`/`float`      | `door n = tiro("5")`                     |
+| `qoraal`  | Convert to string     | `str`              | `door s = qoraal(25)`                    |
+| `bool`    | Convert to boolean    | `bool`             | `door b = bool(1)`                       |
+| `liis`    | Create a list         | `list/array`       | `door list = liis(1, 2, 3)`              |
+| `walax`   | Create an object      | `object/dict`      | `door obj = walax(name: "Ali", age: 25)` |
+| `daji`    | Round down to integer | `Math.floor()`     | `door n = daji(4.7)`                     |
 
 ## List Methods
 
