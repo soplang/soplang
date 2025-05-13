@@ -1,0 +1,72 @@
+// Test: String endsWith Method (dhamaad)
+// This test demonstrates the dhamaad() method which checks if a string ends with a given substring
+
+bandhig("Testing string endsWith method (dhamaad):")
+
+// Basic example from task definition
+door magac = "Barwaaqo"
+door x = magac.dhamaad("q")     // been
+door y = magac.dhamaad("aaqo")  // run
+
+bandhig("")
+bandhig("Basic example:")
+bandhig("  magac = Barwaaqo")
+bandhig("  magac.dhamaad(q) = " + x)      // Should be been
+bandhig("  magac.dhamaad(aaqo) = " + y)   // Should be run
+
+// More test cases
+bandhig("")
+bandhig("More test cases:")
+
+// Complete string match
+door text1 = "Hello"
+bandhig("  Hello.dhamaad(Hello) = " + text1.dhamaad("Hello"))   // Should be run
+
+// Case sensitivity
+door text2 = "Hello World"
+bandhig("  Hello World.dhamaad(world) = " + text2.dhamaad("world"))     // Should be been (case sensitive)
+bandhig("  Hello World.dhamaad(World) = " + text2.dhamaad("World"))     // Should be run
+
+// Empty strings (edge cases)
+door text3 = ""
+door text4 = "Something"
+bandhig("")
+bandhig("Empty string edge cases:")
+bandhig("  Empty string.dhamaad(empty) = " + text3.dhamaad(""))      // Should be run (empty string ends with empty string)
+bandhig("  Something.dhamaad(empty) = " + text4.dhamaad(""))        // Should be run (any string ends with empty string)
+bandhig("  Empty string.dhamaad(x) = " + text3.dhamaad("x"))        // Should be been (empty string doesn't end with non-empty)
+
+// Practical examples
+bandhig("")
+bandhig("Practical examples:")
+
+// Check file extensions
+door filename1 = "document.pdf"
+door filename2 = "image.JPG"
+door filename3 = "script.js"
+
+bandhig("  Checking file extensions:")
+bandhig("  document.pdf is PDF? " + filename1.dhamaad(".pdf"))
+bandhig("  image.JPG is JPG? " + filename2.dhamaad(".JPG"))
+bandhig("  script.js is Python? " + filename3.dhamaad(".py"))
+
+// Email validation example
+door email = "user@example.com"
+bandhig("")
+bandhig("  Email domain validation:")
+haddii (email.dhamaad(".com")) {
+    bandhig("  user@example.com ends with .com: run")
+} ugudambeyn {
+    bandhig("  user@example.com does not end with .com")
+}
+
+// URL validation - simplified without loop
+door url1 = "https://example.com/"
+door url2 = "http://test.org"
+bandhig("")
+bandhig("  URL path ending validation:")
+bandhig("  https://example.com/ ends with slash? " + url1.dhamaad("/"))
+bandhig("  http://test.org ends with slash? " + url2.dhamaad("/"))
+
+bandhig("")
+bandhig("String endsWith tests completed!")
