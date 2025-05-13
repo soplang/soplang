@@ -531,6 +531,27 @@ class SoplangBuiltins:
         # Return all key-value pairs as a list of [key, value] lists
         return [[key, value] for key, value in obj.items()]
 
+    @staticmethod
+    def string_split(s, delimiter):
+        """
+        Split a string by a delimiter and return a list of substrings.
+        Similar to split() in Python or JavaScript.
+
+        Args:
+            s: The string to split
+            delimiter: The delimiter to split by
+
+        Returns:
+            A list of substrings
+        """
+        if not isinstance(s, str):
+            raise TypeError("Qiimahu ma ahan qoraal (Value is not a string)")
+
+        if not isinstance(delimiter, str):
+            raise TypeError("Kala qeybiyuhu ma ahan qoraal (Delimiter is not a string)")
+
+        return s.split(delimiter)
+
 
 def get_builtin_functions():
     """
@@ -586,6 +607,17 @@ def get_list_methods():
         "jar": SoplangBuiltins.list_jar,
         "aaddin": SoplangBuiltins.list_map,
         "raadso": SoplangBuiltins.list_raadso,
+    }
+
+    return methods
+
+
+def get_string_methods():
+    """
+    Returns a dictionary of string methods
+    """
+    methods = {
+        "qeybi": SoplangBuiltins.string_split,
     }
 
     return methods

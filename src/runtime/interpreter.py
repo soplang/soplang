@@ -7,6 +7,7 @@ from src.stdlib.builtins import (
     get_builtin_functions,
     get_list_methods,
     get_object_methods,
+    get_string_methods,
 )
 from src.utils.errors import (
     BreakSignal,
@@ -26,6 +27,7 @@ class Interpreter:
         self.functions = get_builtin_functions()  # Built-in functions
         self.list_methods = get_list_methods()
         self.object_methods = get_object_methods()
+        self.string_methods = get_string_methods()  # String methods
         self.classes = {}  # Store class definitions
         self.call_stack = []  # Track function calls if needed
 
@@ -336,6 +338,9 @@ class Interpreter:
             elif isinstance(obj, dict) and method_name in self.object_methods:
                 # Call object method
                 return self.object_methods[method_name](obj, *args)
+            elif isinstance(obj, str) and method_name in self.string_methods:
+                # Call string method
+                return self.string_methods[method_name](obj, *args)
             else:
                 raise RuntimeError(
                     "method_not_found",
@@ -453,18 +458,18 @@ class Interpreter:
 
         # If we have at least 3 children before the body, the 3rd one is the step
         if len(node.children) > 2 and (
-            node.children[2].type == NodeType.LITERAL
-            or node.children[2].type == NodeType.IDENTIFIER
-            or node.children[2].type == NodeType.BINARY_OPERATION
+            node.children[2].type == NodeType.LITERAL or
+            node.children[2].type == NodeType.IDENTIFIER or
+            node.children[2].type == NodeType.BINARY_OPERATION
         ):
             step_value = self.evaluate(node.children[2])
             body_start_index = 3
 
         # Ensure all values are numbers
         if (
-            not isinstance(start_value, (int, float))
-            or not isinstance(end_value, (int, float))
-            or not isinstance(step_value, (int, float))
+            not isinstance(start_value, (int, float)) or
+            not isinstance(end_value, (int, float)) or
+            not isinstance(step_value, (int, float))
         ):
             raise TypeError("invalid_for_loop")
 
@@ -698,6 +703,12 @@ class Interpreter:
                 # Arguments start from the second child
                 args = [self.evaluate(arg) for arg in node.children[1:]]
                 return self.execute_object_method(method_name, obj, args)
+
+            # For built-in string methods
+            elif isinstance(obj, str) and method_name in self.string_methods:
+                # Arguments start from the second child
+                args = [self.evaluate(arg) for arg in node.children[1:]]
+                return self.execute_string_method(method_name, obj, args)
 
             # For user-defined object methods
             elif isinstance(obj, dict) and method_name in obj:
@@ -936,4 +947,22 @@ class Interpreter:
 
         method = self.object_methods[method_name]
         args.insert(0, obj)  # Insert the object as the first argument
+        return method(*args)
+
+    def execute_string_method(self, method_name, obj, args):
+        """Execute a string method"""
+        if not isinstance(obj, str):
+            raise TypeError(
+                "invalid_method",
+                method=method_name,
+                type_name=SoplangBuiltins.nooc(obj),
+            )
+
+        if method_name not in self.string_methods:
+            raise RuntimeError(
+                "method_not_found", method_name=method_name, type_name="qoraal"
+            )
+
+        method = self.string_methods[method_name]
+        args.insert(0, obj)  # Insert the string as the first argument
         return method(*args)

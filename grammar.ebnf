@@ -199,3 +199,6 @@ ObjectMethod ::= "fure"      // keys
                | "kudar"     // merge
                | "nuqul"     // copy
                | "nadiifi"   // clear
+
+// ===== STRING METHODS =====
+StringMethod ::= "qeybi"     // split
