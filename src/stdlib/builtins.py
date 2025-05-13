@@ -1,4 +1,5 @@
 from src.utils.errors import TypeError, ValueError
+import math
 
 
 class SoplangBuiltins:
@@ -553,6 +554,21 @@ class SoplangBuiltins:
         return s.split(delimiter)
 
     @staticmethod
+    def daji(value):
+        """
+        Round a number down to the nearest integer (floor function).
+        Similar to Math.floor() in JavaScript or math.floor() in Python.
+
+        Args:
+            value: The number to round down
+
+        Returns:
+            The largest integer less than or equal to the input
+        """
+        if not isinstance(value, (int, float)):
+            raise TypeError("Qiimaha ma ahan tiro ama jajab (Value is not a number)")
+
+        return math.floor(value)
     def string_contains(s, substring):
         """
         Check if a string contains a substring.
@@ -573,7 +589,6 @@ class SoplangBuiltins:
 
         return substring in s
 
-
 def get_builtin_functions():
     """
     Returns a dictionary of all built-in functions
@@ -588,6 +603,7 @@ def get_builtin_functions():
         "bool": SoplangBuiltins.bool,
         "liis": SoplangBuiltins.liis,
         "walax": SoplangBuiltins.walax,
+        "daji": SoplangBuiltins.daji,
     }
 
     return builtins
