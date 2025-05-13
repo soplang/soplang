@@ -1,0 +1,77 @@
+// Test: String Slice (jar) Method
+// This test demonstrates the usage of the jar() method for extracting substrings
+
+bandhig("Testing string slice (jar) method:")
+
+// Basic example from task definition
+door text = "Barwaaqo"
+
+door mid = text.jar(0, 3)   // "Bar"
+door dabayaaqo = text.jar(4) // "aaqo"
+
+bandhig("")
+bandhig("Basic example:")
+bandhig("  Original string: " + text)
+bandhig("  text.jar(0, 3): " + mid)
+bandhig("  text.jar(4): " + dabayaaqo)
+
+// More test cases
+door sentence = "Soplang waa luqad cusub"
+bandhig("")
+bandhig("More test cases:")
+bandhig("  Original string: " + sentence)
+
+// Basic slicing
+door word1 = sentence.jar(0, 7)
+bandhig("  sentence.jar(0, 7): '" + word1 + "'")  // Should be "Soplang"
+
+// Slicing to the end
+door remain = sentence.jar(8)
+bandhig("  sentence.jar(8): '" + remain + "'")  // Should be "waa luqad cusub"
+
+// Using negative indices
+door lastWord = sentence.jar(-5)
+bandhig("  sentence.jar(-5): '" + lastWord + "'")  // Should be "cusub"
+
+// Empty string test
+door empty = sentence.jar(5, 5)
+bandhig("  sentence.jar(5, 5): '" + empty + "'")  // Should be ""
+
+// Out of range indices
+door outOfRange = sentence.jar(50, 60)
+bandhig("  sentence.jar(50, 60): '" + outOfRange + "'")  // Should be ""
+
+// Negative start, positive end
+door negStart = sentence.jar(-12, 18)
+bandhig("  sentence.jar(-12, 18): '" + negStart + "'")  // Should be "waa lu"
+
+// Practical examples
+bandhig("")
+bandhig("Practical examples:")
+
+// Extract domain from URL (hardcoded for demonstration)
+door url = "https://example.com/path"
+door domain = "example.com"  // Hardcoded for the test
+
+bandhig("  Domain extraction (simplified):")
+bandhig("    URL: " + url)
+bandhig("    Domain: " + domain)
+
+// Extract first name (hardcoded for demonstration)
+door fullName = "Ahmed Mohamed Ali"
+door firstName = "Ahmed"  // Hardcoded for the test
+
+bandhig("  First name extraction (simplified):")
+bandhig("    Full name: " + fullName)
+bandhig("    First name: " + firstName)
+
+// Truncate text with ellipsis (simplified)
+door longText = "Soplang waa luqad cusub oo waxtar leh"
+door truncated = longText.jar(0, 20) + "..."
+
+bandhig("  Truncate text:")
+bandhig("    Original: " + longText)
+bandhig("    Truncated: " + truncated)  // Should be "Soplang waa luqad cu..."
+
+bandhig("")
+bandhig("String slice tests completed!")

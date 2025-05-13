@@ -207,6 +207,7 @@ StringMethod ::= "qeybi"     // split
               | "bilow"      // startsWith
               | "beddel"     // replace
               | "kudar"      // join
+              | "jar"        // slice
 
 // ===== BUILT-IN FUNCTIONS =====
 BuiltInFunction ::= "bandhig"  // print

@@ -705,6 +705,53 @@ class SoplangBuiltins:
 
         return separator.join(string_items)
 
+    @staticmethod
+    def string_jar(s, start, end=None):
+        """
+        Extract a substring from start index up to (but not including) end index.
+        Similar to JavaScript's string.slice() or Python's string slicing.
+
+        Args:
+            s: The string to slice
+            start: The starting index (inclusive)
+            end: The ending index (exclusive), optional (defaults to end of string)
+
+        Returns:
+            String: A substring containing characters from start to end (exclusive)
+        """
+        if not isinstance(s, str):
+            raise TypeError("Qiimahu ma ahan qoraal (Value is not a string)")
+
+        # Convert indices to integers
+        if not isinstance(start, (int, float)):
+            raise TypeError(
+                "Bilowga waa inuu noqdaa tiro (Start must be a number)"
+            )
+
+        start = int(start)
+
+        # Handle optional end parameter
+        if end is None:
+            end = len(s)
+        elif not isinstance(end, (int, float)):
+            raise TypeError(
+                "Dhamaadka waa inuu noqdaa tiro (End must be a number)"
+            )
+        else:
+            end = int(end)
+
+        # Handle negative indexing
+        if start < 0:
+            start = max(0, len(s) + start)
+        start = min(start, len(s))
+
+        if end < 0:
+            end = max(0, len(s) + end)
+        end = min(end, len(s))
+
+        # Return the substring
+        return s[start:end]
+
 
 def get_builtin_functions():
     """
@@ -778,6 +825,7 @@ def get_string_methods():
         "bilow": SoplangBuiltins.string_startswith,
         "beddel": SoplangBuiltins.string_replace,
         "kudar": SoplangBuiltins.string_join,
+        "jar": SoplangBuiltins.string_jar,
     }
 
     return methods
