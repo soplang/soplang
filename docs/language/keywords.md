@@ -39,29 +39,6 @@ This document provides a reference for all keywords in the Soplang programming l
 | `hawl`  | Function declaration | `function`         | `hawl isuGee(a, b) { celi a + b }` |
 | `celi`  | Return statement     | `return`           | `celi x * 2`                       |
 
-## Error Handling Keywords
-
-| Keyword    | Meaning            | English Equivalent | Example                             |
-| ---------- | ------------------ | ------------------ | ----------------------------------- |
-| `isku_day` | Try block          | `try`              | `isku_day { /* code */ }`           |
-| `qabo`     | Catch block        | `catch`            | `qabo (khalad) { bandhig(khalad) }` |
-| `throw`    | Throw an exception | `throw`            | `throw "Error message"`             |
-
-## Object-Oriented Programming Keywords
-
-| Keyword     | Meaning                       | English Equivalent | Example                                              |
-| ----------- | ----------------------------- | ------------------ | ---------------------------------------------------- |
-| `fasalka`   | Class declaration             | `class`            | `fasalka Qof { /* properties and methods */ }`       |
-| `nafta`     | Reference to current instance | `this`             | `nafta.magac = magac`                                |
-| `ka_dhaxal` | Inheritance                   | `extends`          | `fasalka Ardayga ka_dhaxal Qof { /* class body */ }` |
-| `cusub`     | New object instantiation      | `new`              | `door ardayga = cusub Ardayga()`                     |
-
-## Module Keywords
-
-| Keyword   | Meaning          | English Equivalent | Example                 |
-| --------- | ---------------- | ------------------ | ----------------------- |
-| `ka_keen` | Import statement | `import`           | `ka_keen "math_lib.so"` |
-
 ## Special Values
 
 | Somali Value | English Equivalent | Description         | Example                  |

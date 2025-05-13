@@ -24,12 +24,8 @@ Statement ::= VariableDeclaration
             | BreakStatement
             | ContinueStatement
             | ReturnStatement
-            | TryCatchStatement
-            | ImportStatement
-            | ClassDeclaration
             | AssignmentStatement
             | Block
-            | ThrowStatement
 
 Block ::= "{" {Statement} "}"
 
@@ -90,18 +86,6 @@ ContinueStatement ::= "soco"
 // ===== RETURN STATEMENT =====
 ReturnStatement ::= "celi" [Expression]
 
-// ===== THROW STATEMENT =====
-ThrowStatement ::= "throw" Expression
-
-// ===== TRY-CATCH =====
-TryCatchStatement ::= "isku_day" Block "qabo" "(" Identifier ")" Block
-
-// ===== IMPORT =====
-ImportStatement ::= "ka_keen" StringLiteral
-
-// ===== CLASSES =====
-ClassDeclaration ::= "fasalka" Identifier ["ka_dhaxal" Identifier] Block
-
 // ===== OBJECT ORIENTED =====
 ObjectProperty ::= Expression "." Identifier
 
@@ -131,12 +115,8 @@ Factor ::= NumberLiteral
         | IndexAccess
         | ListLiteral
         | ObjectLiteral
-        | NewExpression
         | "(" Expression ")"
         | UnaryOperator Factor
-
-// ===== NEW EXPRESSION =====
-NewExpression ::= "cusub" Identifier "(" [ArgumentList] ")"
 
 // ===== OPERATORS =====
 LogicalOperator ::= "&&" | "||"
