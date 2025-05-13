@@ -569,6 +569,25 @@ class SoplangBuiltins:
             raise TypeError("Qiimaha ma ahan tiro ama jajab (Value is not a number)")
 
         return math.floor(value)
+
+    @staticmethod
+    def kor(value):
+        """
+        Round a number up to the nearest integer (ceiling function).
+        Similar to Math.ceil() in JavaScript or math.ceil() in Python.
+
+        Args:
+            value: The number to round up
+
+        Returns:
+            The smallest integer greater than or equal to the input
+        """
+        if not isinstance(value, (int, float)):
+            raise TypeError("Qiimaha ma ahan tiro ama jajab (Value is not a number)")
+
+        return math.ceil(value)
+
+    @staticmethod
     def string_contains(s, substring):
         """
         Check if a string contains a substring.
@@ -589,6 +608,7 @@ class SoplangBuiltins:
 
         return substring in s
 
+
 def get_builtin_functions():
     """
     Returns a dictionary of all built-in functions
@@ -604,6 +624,7 @@ def get_builtin_functions():
         "liis": SoplangBuiltins.liis,
         "walax": SoplangBuiltins.walax,
         "daji": SoplangBuiltins.daji,
+        "kor": SoplangBuiltins.kor,
     }
 
     return builtins
