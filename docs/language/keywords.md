@@ -134,3 +134,4 @@ This document provides a reference for all keywords in the Soplang programming l
 | `dhamaad(sub)`  | `endsWith()`       | Check if string ends with substring   | `haddii (text.dhamaad("ing")) {...}`     |
 | `bilow(sub)`    | `startsWith()`     | Check if string starts with substring | `haddii (text.bilow("http")) {...}`      |
 | `beddel(x, y)`  | `replace()`        | Replace substring x with y            | `door new = text.beddel("old", "new")`   |
+| `kudar(liis)`   | `join()`           | Join list of strings with separator   | `door text = ", ".kudar(names)`          |

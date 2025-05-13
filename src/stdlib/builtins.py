@@ -676,6 +676,35 @@ class SoplangBuiltins:
         # Replace only the first occurrence (1 is the count parameter)
         return s.replace(target, replacement, 1)
 
+    @staticmethod
+    def string_join(separator, items):
+        """
+        Join a list of strings using the specified separator.
+        Similar to 'sep.join(list)' in Python or 'array.join(sep)' in JavaScript.
+
+        Args:
+            separator: The string to use as a separator
+            items: A list of strings to join
+
+        Returns:
+            String: A single string containing all items joined by the separator
+        """
+        if not isinstance(separator, str):
+            raise TypeError("Qiimahu ma ahan qoraal (Value is not a string)")
+
+        if not isinstance(items, list):
+            raise TypeError("Qiimaha labaad ma ahan liis (Second value is not a list)")
+
+        # Convert all items to strings before joining
+        string_items = []
+        for item in items:
+            if not isinstance(item, str):
+                raise TypeError(
+                    "Liiska mid ka mid ah qiimihiisa ma ahan qoraal (One of the list items is not a string)")
+            string_items.append(item)
+
+        return separator.join(string_items)
+
 
 def get_builtin_functions():
     """
@@ -748,6 +777,7 @@ def get_string_methods():
         "dhamaad": SoplangBuiltins.string_endswith,
         "bilow": SoplangBuiltins.string_startswith,
         "beddel": SoplangBuiltins.string_replace,
+        "kudar": SoplangBuiltins.string_join,
     }
 
     return methods
