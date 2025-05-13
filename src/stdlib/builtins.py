@@ -629,6 +629,27 @@ class SoplangBuiltins:
 
         return s.endswith(suffix)
 
+    @staticmethod
+    def string_startswith(s, prefix):
+        """
+        Check if a string starts with a specified prefix.
+        Similar to 'startsWith()' in JavaScript or 'startswith()' in Python.
+
+        Args:
+            s: The string to check
+            prefix: The prefix to check for
+
+        Returns:
+            Boolean: True if the string starts with the specified prefix, False otherwise
+        """
+        if not isinstance(s, str):
+            raise TypeError("Qiimahu ma ahan qoraal (Value is not a string)")
+
+        if not isinstance(prefix, str):
+            raise TypeError("Prefix-ka ma ahan qoraal (Prefix is not a string)")
+
+        return s.startswith(prefix)
+
 
 def get_builtin_functions():
     """
@@ -699,6 +720,7 @@ def get_string_methods():
         "qeybi": SoplangBuiltins.string_split,
         "leeyahay": SoplangBuiltins.string_contains,
         "dhamaad": SoplangBuiltins.string_endswith,
+        "bilow": SoplangBuiltins.string_startswith,
     }
 
     return methods

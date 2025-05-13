@@ -1,0 +1,70 @@
+// Test: String startsWith Method (bilow)
+// This test demonstrates the bilow() method which checks if a string starts with a given substring
+
+bandhig("Testing string startsWith method (bilow):")
+
+// Basic example from task definition
+door magac = "Barwaaqo"
+door x = magac.bilow("Bar")    // run
+door y = magac.bilow("waa")    // been
+
+bandhig("")
+bandhig("Basic example:")
+bandhig("  magac = Barwaaqo")
+bandhig("  magac.bilow(Bar) = " + x)      // Should be run
+bandhig("  magac.bilow(waa) = " + y)      // Should be been
+
+// More test cases
+bandhig("")
+bandhig("More test cases:")
+
+// Complete string match
+door text1 = "Hello"
+bandhig("  Hello.bilow(Hello) = " + text1.bilow("Hello"))   // Should be run
+
+// Case sensitivity
+door text2 = "Hello World"
+bandhig("  Hello World.bilow(hello) = " + text2.bilow("hello"))     // Should be been (case sensitive)
+bandhig("  Hello World.bilow(Hello) = " + text2.bilow("Hello"))     // Should be run
+
+// Empty strings (edge cases)
+door text3 = ""
+door text4 = "Something"
+bandhig("")
+bandhig("Empty string edge cases:")
+bandhig("  Empty string.bilow(empty) = " + text3.bilow(""))      // Should be run (empty string starts with empty string)
+bandhig("  Something.bilow(empty) = " + text4.bilow(""))        // Should be run (any string starts with empty string)
+bandhig("  Empty string.bilow(x) = " + text3.bilow("x"))        // Should be been (empty string doesn't start with non-empty)
+
+// Practical examples
+bandhig("")
+bandhig("Practical examples:")
+
+// Check URL protocols
+door url1 = "https://example.com"
+door url2 = "http://example.org"
+door url3 = "ftp://files.net"
+
+bandhig("  URL protocol checking:")
+bandhig("  " + url1 + " starts with https:// " + url1.bilow("https://"))
+bandhig("  " + url2 + " starts with https:// " + url2.bilow("https://"))
+bandhig("  " + url3 + " starts with ftp:// " + url3.bilow("ftp://"))
+
+// Email domain validation
+door email1 = "user@example.com"
+door email2 = "admin@company.org"
+bandhig("")
+bandhig("  Email username checking:")
+bandhig("  " + email1 + " starts with user@ " + email1.bilow("user@"))
+bandhig("  " + email2 + " starts with admin@ " + email2.bilow("admin@"))
+
+// File extension checking (negative examples)
+door filename1 = "document.pdf"
+door filename2 = "image.jpg"
+bandhig("")
+bandhig("  Filename prefix checking:")
+bandhig("  " + filename1 + " starts with doc " + filename1.bilow("doc"))
+bandhig("  " + filename2 + " starts with img " + filename2.bilow("img"))
+
+bandhig("")
+bandhig("String startsWith tests completed!")

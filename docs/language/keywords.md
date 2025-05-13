@@ -127,8 +127,9 @@ This document provides a reference for all keywords in the Soplang programming l
 
 ## String Methods
 
-| Method          | English Equivalent | Description                         | Example                                  |
-| --------------- | ------------------ | ----------------------------------- | ---------------------------------------- |
-| `qeybi(delim)`  | `split()`          | Split string by delimiter           | `door parts = text.qeybi(",")`           |
-| `leeyahay(sub)` | `includes()`       | Check if string contains substring  | `haddii (text.leeyahay("search")) {...}` |
-| `dhamaad(sub)`  | `endsWith()`       | Check if string ends with substring | `haddii (text.dhamaad("ing")) {...}`     |
+| Method          | English Equivalent | Description                           | Example                                  |
+| --------------- | ------------------ | ------------------------------------- | ---------------------------------------- |
+| `qeybi(delim)`  | `split()`          | Split string by delimiter             | `door parts = text.qeybi(",")`           |
+| `leeyahay(sub)` | `includes()`       | Check if string contains substring    | `haddii (text.leeyahay("search")) {...}` |
+| `dhamaad(sub)`  | `endsWith()`       | Check if string ends with substring   | `haddii (text.dhamaad("ing")) {...}`     |
+| `bilow(sub)`    | `startsWith()`     | Check if string starts with substring | `haddii (text.bilow("http")) {...}`      |
