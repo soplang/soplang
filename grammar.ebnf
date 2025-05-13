@@ -202,3 +202,4 @@ ObjectMethod ::= "fure"      // keys
 
 // ===== STRING METHODS =====
 StringMethod ::= "qeybi"     // split
+               | "leeyahay"  // contains

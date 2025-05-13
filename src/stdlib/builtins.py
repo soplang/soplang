@@ -569,7 +569,25 @@ class SoplangBuiltins:
             raise TypeError("Qiimaha ma ahan tiro ama jajab (Value is not a number)")
 
         return math.floor(value)
+    def string_contains(s, substring):
+        """
+        Check if a string contains a substring.
+        Similar to 'includes()' in JavaScript or 'in' operator in Python.
 
+        Args:
+            s: The string to check
+            substring: The substring to look for
+
+        Returns:
+            Boolean: True if the substring is found, False otherwise
+        """
+        if not isinstance(s, str):
+            raise TypeError("Qiimahu ma ahan qoraal (Value is not a string)")
+
+        if not isinstance(substring, str):
+            raise TypeError("Substring-ka ma ahan qoraal (Substring is not a string)")
+
+        return substring in s
 
 def get_builtin_functions():
     """
@@ -637,6 +655,7 @@ def get_string_methods():
     """
     methods = {
         "qeybi": SoplangBuiltins.string_split,
+        "leeyahay": SoplangBuiltins.string_contains,
     }
 
     return methods
