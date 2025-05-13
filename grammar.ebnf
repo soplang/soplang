@@ -215,3 +215,4 @@ BuiltInFunction ::= "bandhig"  // print
                   | "liis"     // create list
                   | "walax"    // create object
                   | "daji"     // math.floor
+                  | "kor"      // math.ceil
