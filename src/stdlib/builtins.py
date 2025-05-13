@@ -650,6 +650,32 @@ class SoplangBuiltins:
 
         return s.startswith(prefix)
 
+    @staticmethod
+    def string_replace(s, target, replacement):
+        """
+        Replace the first occurrence of a substring with another string.
+        Similar to 'replace()' in JavaScript or 'replace()' in Python.
+
+        Args:
+            s: The original string
+            target: The substring to replace
+            replacement: The string to substitute in place of the target
+
+        Returns:
+            String: A new string with the first occurrence of target replaced by replacement
+        """
+        if not isinstance(s, str):
+            raise TypeError("Qiimahu ma ahan qoraal (Value is not a string)")
+
+        if not isinstance(target, str):
+            raise TypeError("Target-ka ma ahan qoraal (Target is not a string)")
+
+        if not isinstance(replacement, str):
+            raise TypeError("Baddalka ma ahan qoraal (Replacement is not a string)")
+
+        # Replace only the first occurrence (1 is the count parameter)
+        return s.replace(target, replacement, 1)
+
 
 def get_builtin_functions():
     """
@@ -721,6 +747,7 @@ def get_string_methods():
         "leeyahay": SoplangBuiltins.string_contains,
         "dhamaad": SoplangBuiltins.string_endswith,
         "bilow": SoplangBuiltins.string_startswith,
+        "beddel": SoplangBuiltins.string_replace,
     }
 
     return methods

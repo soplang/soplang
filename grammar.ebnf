@@ -205,6 +205,7 @@ StringMethod ::= "qeybi"     // split
               | "leeyahay"   // contains
               | "dhamaad"    // endsWith
               | "bilow"      // startsWith
+              | "beddel"     // replace
 
 // ===== BUILT-IN FUNCTIONS =====
 BuiltInFunction ::= "bandhig"  // print

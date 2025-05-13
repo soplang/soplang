@@ -133,3 +133,4 @@ This document provides a reference for all keywords in the Soplang programming l
 | `leeyahay(sub)` | `includes()`       | Check if string contains substring    | `haddii (text.leeyahay("search")) {...}` |
 | `dhamaad(sub)`  | `endsWith()`       | Check if string ends with substring   | `haddii (text.dhamaad("ing")) {...}`     |
 | `bilow(sub)`    | `startsWith()`     | Check if string starts with substring | `haddii (text.bilow("http")) {...}`      |
+| `beddel(x, y)`  | `replace()`        | Replace substring x with y            | `door new = text.beddel("old", "new")`   |
