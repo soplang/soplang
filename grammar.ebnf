@@ -222,3 +222,4 @@ BuiltInFunction ::= "bandhig"  // print
                   | "daji"     // math.floor
                   | "kor"      // math.ceil
                   | "dherer"   // length
+                  | "kudhow"   // random
