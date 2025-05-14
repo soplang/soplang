@@ -1,5 +1,6 @@
 from src.utils.errors import TypeError, ValueError
 import math
+import random
 
 
 class SoplangBuiltins:
@@ -778,6 +779,61 @@ class SoplangBuiltins:
                 "Qiimaha ma ahan liis, qoraal, ama walax (Value is not a list, string, or object)"
             )
 
+    @staticmethod
+    def kudhow(*args):
+        """
+        Generate random numbers or select random items from a list.
+
+        Behavior depends on arguments:
+        - No args: Returns random float between 0.0 and 1.0
+        - Two numbers: Returns random number between a and b (inclusive)
+        - One list: Returns random item from the list
+
+        Args:
+            *args: Variable arguments based on the desired behavior
+
+        Returns:
+            Random float, integer, or list item based on arguments
+
+        Raises:
+            TypeError: If the arguments are of invalid types
+            ValueError: If the arguments are invalid (e.g., a > b)
+        """
+        # Case 1: No arguments - return random float between 0.0 and 1.0
+        if len(args) == 0:
+            return random.random()
+
+        # Case 2: One argument - must be a list
+        elif len(args) == 1:
+            if not isinstance(args[0], list):
+                raise TypeError("Qiimaha ma ahan liis (Value is not a list)")
+
+            if len(args[0]) == 0:
+                raise ValueError("Liiska waa madhan (List is empty)")
+
+            return random.choice(args[0])
+
+        # Case 3: Two arguments - must be numbers
+        elif len(args) == 2:
+            a, b = args
+
+            if not isinstance(a, (int, float)) or not isinstance(b, (int, float)):
+                raise TypeError("Qiimayaasha waa inay noqdaan tiro ama jajab (Values must be numbers)")
+
+            if a > b:
+                raise ValueError("Qiimaha koowaad waa in uu ka yar yahay ama la mid yahay qiimaha labaad (First value must be less than or equal to second value)")
+
+            # If both are integers, return an integer
+            if isinstance(a, int) and isinstance(b, int):
+                return random.randint(a, b)
+
+            # Otherwise, return a float
+            return random.uniform(a, b)
+
+        # Case 4: More than two arguments - error
+        else:
+            raise TypeError("kudhow() waxay qaadataa 0, 1, ama 2 qiimo (kudhow() takes 0, 1, or 2 arguments)")
+
 
 def get_builtin_functions():
     """
@@ -796,6 +852,7 @@ def get_builtin_functions():
         "daji": SoplangBuiltins.daji,
         "kor": SoplangBuiltins.kor,
         "dherer": SoplangBuiltins.dherer,
+        "kudhow": SoplangBuiltins.kudhow,
     }
 
     return builtins

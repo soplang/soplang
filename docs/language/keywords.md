@@ -94,6 +94,7 @@ This document provides a reference for all keywords in the Soplang programming l
 | `daji`    | Round down to integer | `Math.floor()`     | `door n = daji(4.7)`                     |
 | `kor`     | Round up to integer   | `Math.ceil()`      | `door n = kor(4.2)`                      |
 | `dherer`  | Get length of value   | `len()`/`.length`  | `door n = dherer(qoraal)`                |
+| `kudhow`  | Get random value      | `random()`         | `door n = kudhow(1, 6)`                  |
 
 ## List Methods
 
