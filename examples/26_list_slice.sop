@@ -56,8 +56,8 @@ qor("  Is it a new list (not the same reference)? " + (qayb9 != magacyo))
 // Practical example: pagination
 qor("Practical example: pagination")
 liis titirada = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
-tiro bogag = 3  // items per page
-tiro bogNumber = 2  // page 2 (0-indexed)
+abn bogag = 3  // items per page
+abn bogNumber = 2  // page 2 (0-indexed)
 
 liis bogHada = titirada.jar(bogNumber * bogag, (bogNumber + 1) * bogag)
 qor("  Items per page: " + bogag)

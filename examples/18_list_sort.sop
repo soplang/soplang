@@ -4,10 +4,10 @@
 qor("Testing list sort (habee) method:")
 
 // Simple list sorting (numbers)
-liis tirooyin = [5, 1, 3, 4, 2]
-qor("  Original number list: " + tirooyin)
-tirooyin.habee()
-qor("  After habee(): " + tirooyin)  // Should output: [1, 2, 3, 4, 5]
+liis abnoyin = [5, 1, 3, 4, 2]
+qor("  Original number list: " + abnoyin)
+abnoyin.habee()
+qor("  After habee(): " + abnoyin)  // Should output: [1, 2, 3, 4, 5]
 
 // Sorting strings (alphabetical order)
 liis magacyo = ["Zaynab", "Cabdi", "Faadumo", "Axmed", "Xaliimo"]

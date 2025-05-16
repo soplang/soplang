@@ -4,7 +4,7 @@
 qor("Testing type checking (nooc):")
 
 // Create variables of different types
-tiro integer_var = 42
+abn integer_var = 42
 jajab decimal_var = 3.14159
 qoraal string_var = "Soplang waa luqad wacan"
 bool bool_var = been

@@ -7,7 +7,7 @@ qor("=====================================")
 
 // Example 1: Basic switch with integer
 qor("\n1. Basic switch with integer:")
-tiro number = 2
+abn number = 2
 qor("Testing with number = " + number)
 
 dooro (number) {
@@ -21,7 +21,7 @@ dooro (number) {
     qor("Saddex (Three)")
   }
   ugudambeyn {
-    qor("Tiro kale (Another number)")
+    qor("abn kale (Another number)")
   }
 }
 
@@ -47,8 +47,8 @@ dooro (language) {
 
 // Example 3: Switch with expressions
 qor("\n3. Switch with expressions:")
-tiro x = 10
-tiro y = 20
+abn x = 10
+abn y = 20
 qor("Testing with x = " + x + " and y = " + y)
 
 dooro (x + y) {
@@ -88,8 +88,8 @@ dooro (price) {
 
 // Example 5: Nested switch statements
 qor("\n5. Nested switch statements:")
-tiro department = 1
-tiro level = 2
+abn department = 1
+abn level = 2
 qor("Testing with department = " + department + " and level = " + level)
 
 dooro (department) {
@@ -117,7 +117,7 @@ dooro (department) {
 
 // Example 6: Switch with boolean expression
 qor("\n6. Switch with boolean expression:")
-tiro score = 85
+abn score = 85
 qor("Testing with score = " + score)
 
 dooro (score >= 80) {

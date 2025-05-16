@@ -57,7 +57,7 @@ Soplang provides both dynamic typing (variables can change types) and static typ
 | Somali Keyword | English Equivalent | Description                  | Example                                |
 | -------------- | ------------------ | ---------------------------- | -------------------------------------- |
 | `door`         | `var`/`let`        | Dynamic variable declaration | `door magac = "Ahmed"`                 |
-| `tiro`         | `int`/`number`     | Static number type           | `tiro da = 25`                         |
+| `abn`         | `int`/`number`     | Static number type           | `abn da = 25`                         |
 | `jajab`        | `float`/`decimal`  | Static decimal type          | `jajab qiimo = 3.14`                   |
 | `qoraal`       | `string`           | Static string type           | `qoraal magac = "Sharafdin"`           |
 | `bool`         | `bool`/`boolean`   | Static boolean type          | `bool waaRun = run`                    |
@@ -73,12 +73,12 @@ door da = 30
 da = "soddon"      // Valid: type can change with 'door'
 
 // Static typing (type is fixed)
-tiro tirada = 42
+abn tirada = 42
 qoraal cinwaan = "Xamar"
 bool waa_run = run
 
 // This would cause an error:
-// tirada = "42" // Error: Cannot assign string to tiro
+// tirada = "42" // Error: Cannot assign string to abn
 ```
 
 ## Control Flow Statements
@@ -190,7 +190,7 @@ Functions allow you to organize and reuse code.
 
 ```
 // Function that returns the sum of two numbers
-hawl isuDar(tiro a, tiro b) {
+hawl isuDar(abn a, abn b) {
     celi a + b
 }
 
@@ -216,7 +216,7 @@ Soplang supports various data types and special values.
 
 | Somali Keyword/Value | English Equivalent | Description         | Example                    |
 | -------------------- | ------------------ | ------------------- | -------------------------- |
-| `tiro`               | `number`/`int`     | Integer type        | `tiro x = 42`              |
+| `abn`               | `number`/`int`     | Integer type        | `abn x = 42`              |
 | `jajab`              | `decimal`/`float`  | Decimal type        | `jajab x = 3.14`           |
 | `qoraal`             | `string`           | Text type           | `qoraal s = "soplang"`     |
 | `bool`               | `boolean`          | Truth value type    | `bool b = run`             |
@@ -230,7 +230,7 @@ Soplang supports various data types and special values.
 
 ```
 // Number
-tiro da = 25
+abn da = 25
 
 // Decimal
 jajab qiimo = 3.14
@@ -242,7 +242,7 @@ qoraal magac = "Sharafdin"
 bool waa_arday = run
 
 // List/Array
-liis tirooyin = [1, 2, 3, 4, 5]
+liis abnoyin = [1, 2, 3, 4, 5]
 
 // Object
 walax qof = {
@@ -345,7 +345,7 @@ Soplang provides several built-in functions for common operations.
 | `qor` | `print`            | Output to console  | `qor("Salaam, Adduunka!")`           |
 | `gelin`   | `input`            | Get user input     | `door magac = gelin("Magacaaga: ")`      |
 | `nooc`    | `typeof`           | Get variable type  | `qor(nooc(x))`                       |
-| `tiro`    | `int`              | Convert to integer | `door n = tiro("42")`                    |
+| `abn`    | `int`              | Convert to integer | `door n = abn("42")`                    |
 | `jajab`   | `float`/`decimal`  | Convert to decimal | `door n = jajab("3.14")`                 |
 | `qoraal`  | `str`              | Convert to string  | `door s = qoraal(42)`                    |
 | `bool`    | `bool`             | Convert to boolean | `door b = bool(1)`                       |
@@ -365,13 +365,13 @@ qor("Salaam, " + magac + "!")
 
 // Type conversion
 door number_string = "42"
-door actual_number = tiro(number_string)
+door actual_number = abn(number_string)
 door result = actual_number + 8    // 50
 
 // Getting type
 door x = 42
 door y = "hello"
-qor(nooc(x))    // "tiro"
+qor(nooc(x))    // "abn"
 qor(nooc(y))    // "qoraal"
 ```
 
@@ -512,7 +512,7 @@ Here's a complete example program that demonstrates the key features of Soplang:
 */
 
 // Function to calculate the grade
-hawl xisaabi_darajada(tiro dhibcaha) {
+hawl xisaabi_darajada(abn dhibcaha) {
     haddii (dhibcaha >= 90) {
         celi "A"
     } haddii_kale (dhibcaha >= 80) {
@@ -534,7 +534,7 @@ liis ardayda = []
 
 // Get number of students
 qor("Fadlan gali tirada ardayda:")
-door tirada_ardayda = tiro(gelin())
+door tirada_ardayda = abn(gelin())
 
 // Input loop
 kuceli i  1 ilaa tirada_ardayda {
@@ -543,12 +543,12 @@ kuceli i  1 ilaa tirada_ardayda {
     door magac = gelin()
 
     qor("Fadlan gali dhibcaha ardayga (0-100):")
-    door dhibco = tiro(gelin())
+    door dhibco = abn(gelin())
 
     // Validate score
     intay (dhibco < 0 || dhibco > 100) {
         qor("Dhibcaha waa inay u dhexeeyaan 0 iyo 100. Fadlan mar kale gali:")
-        dhibco = tiro(gelin())
+        dhibco = abn(gelin())
     }
 
     // Calculate grade

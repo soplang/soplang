@@ -3,9 +3,9 @@
 
 qor("Testing static typing:")
 
-// Integer (tiro)
-tiro integer_var = 42
-qor("  Integer (tiro): " + integer_var)
+// Integer (abn)
+abn integer_var = 42
+qor("  Integer (abn): " + integer_var)
 
 // Decimal (jajab)
 jajab decimal_var = 3.14159

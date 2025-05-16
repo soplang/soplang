@@ -34,7 +34,7 @@ class SoplangBuiltins:
         elif isinstance(value, (int, float)):
             # Distinguish between integers and floats
             if isinstance(value, int):
-                return "tiro"
+                return "abn"
             else:
                 return "jajab"
         elif isinstance(value, list):
@@ -47,14 +47,14 @@ class SoplangBuiltins:
             return "aan la aqoon"
 
     @staticmethod
-    def tiro(value):
+    def abn(value):
         """
         Convert a value to an integer number
         """
         try:
             return int(float(value))
         except (ValueError, TypeError) as err:
-            raise TypeError(f"{value!r} ma badali karo tiro") from err
+            raise TypeError(f"{value!r} ma badali karo abn") from err
 
     @staticmethod
     def jajab(value):
@@ -224,11 +224,11 @@ class SoplangBuiltins:
                 index = int(index)
             except ValueError as err:
                 raise TypeError(
-                    "Index waa inuu noqdaa tiro (Index must be a number)"
+                    "Index waa inuu noqdaa abn (Index must be a number)"
                 ) from err
 
         if not isinstance(index, (int, float)):
-            raise TypeError("Index waa inuu noqdaa tiro (Index must be a number)")
+            raise TypeError("Index waa inuu noqdaa abn (Index must be a number)")
 
         index = int(index)  # Convert float to int if needed
 
@@ -253,11 +253,11 @@ class SoplangBuiltins:
                 index = int(index)
             except ValueError as err:
                 raise TypeError(
-                    "Index waa inuu noqdaa tiro (Index must be a number)"
+                    "Index waa inuu noqdaa abn (Index must be a number)"
                 ) from err
 
         if not isinstance(index, (int, float)):
-            raise TypeError("Index waa inuu noqdaa tiro (Index must be a number)")
+            raise TypeError("Index waa inuu noqdaa abn (Index must be a number)")
 
         index = int(index)  # Convert float to int if needed
 
@@ -435,7 +435,7 @@ class SoplangBuiltins:
         # Convert indices to integers
         if not isinstance(start, (int, float)) or not isinstance(end, (int, float)):
             raise TypeError(
-                "Bilowga iyo dhamaadka waa inay noqdaan tiro (Start and end must be numbers)"
+                "Bilowga iyo dhamaadka waa inay noqdaan abn (Start and end must be numbers)"
             )
 
         start = int(start)
@@ -567,7 +567,7 @@ class SoplangBuiltins:
             The largest integer less than or equal to the input
         """
         if not isinstance(value, (int, float)):
-            raise TypeError("Qiimaha ma ahan tiro ama jajab (Value is not a number)")
+            raise TypeError("Qiimaha ma ahan abn ama jajab (Value is not a number)")
 
         return math.floor(value)
 
@@ -584,7 +584,7 @@ class SoplangBuiltins:
             The smallest integer greater than or equal to the input
         """
         if not isinstance(value, (int, float)):
-            raise TypeError("Qiimaha ma ahan tiro ama jajab (Value is not a number)")
+            raise TypeError("Qiimaha ma ahan abn ama jajab (Value is not a number)")
 
         return math.ceil(value)
 
@@ -726,7 +726,7 @@ class SoplangBuiltins:
         # Convert indices to integers
         if not isinstance(start, (int, float)):
             raise TypeError(
-                "Bilowga waa inuu noqdaa tiro (Start must be a number)"
+                "Bilowga waa inuu noqdaa abn (Start must be a number)"
             )
 
         start = int(start)
@@ -736,7 +736,7 @@ class SoplangBuiltins:
             end = len(s)
         elif not isinstance(end, (int, float)):
             raise TypeError(
-                "Dhamaadka waa inuu noqdaa tiro (End must be a number)"
+                "Dhamaadka waa inuu noqdaa abn (End must be a number)"
             )
         else:
             end = int(end)
@@ -818,7 +818,7 @@ class SoplangBuiltins:
             a, b = args
 
             if not isinstance(a, (int, float)) or not isinstance(b, (int, float)):
-                raise TypeError("Qiimayaasha waa inay noqdaan tiro ama jajab (Values must be numbers)")
+                raise TypeError("Qiimayaasha waa inay noqdaan abn ama jajab (Values must be numbers)")
 
             if a > b:
                 raise ValueError("Qiimaha koowaad waa in uu ka yar yahay ama la mid yahay qiimaha labaad (First value must be less than or equal to second value)")
@@ -843,7 +843,7 @@ def get_builtin_functions():
         "qor": SoplangBuiltins.qor,
         "gelin": SoplangBuiltins.gelin,
         "nooc": SoplangBuiltins.nooc,
-        "tiro": SoplangBuiltins.tiro,
+        "abn": SoplangBuiltins.abn,
         "jajab": SoplangBuiltins.jajab,
         "qoraal": SoplangBuiltins.qoraal,
         "bool": SoplangBuiltins.bool,

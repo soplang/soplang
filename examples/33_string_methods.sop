@@ -40,7 +40,7 @@ kuceli (i 0 ilaa numbers.dherer() - 1) {
 // Converting split numeric strings to numbers
 qor("\nConverting split strings to numbers:")
 kuceli (i 0 ilaa numbers.dherer() - 1) {
-    tiro num = tiro(numbers[i])
+    abn num = abn(numbers[i])
     qor("  Number " + i + ": " + num + " (type: " + nooc(num) + ")")
 }
 

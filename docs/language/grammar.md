@@ -48,7 +48,7 @@ DynamicDeclaration ::= "door" Identifier "=" Expression
 
 StaticDeclaration ::= StaticType Identifier "=" Expression
 
-StaticType ::= "tiro"      // Number
+StaticType ::= "abn"      // Number
              | "qoraal"    // String
              | "labadaran" // Boolean
              | "liis"      // List/Array

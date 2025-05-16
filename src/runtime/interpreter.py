@@ -135,13 +135,13 @@ class Interpreter:
         line = getattr(node, "line", None)
         position = getattr(node, "position", None)
 
-        if expected_type == TokenType.TIRO:
+        if expected_type == TokenType.ABN:
             if not isinstance(value, (int, float)):
                 raise TypeError(
                     "type_mismatch",
                     var_name=var_name,
                     value=value,
-                    expected_type="tiro",
+                    expected_type="abn",
                     line=line,
                     position=position,
                 )
@@ -256,7 +256,7 @@ class Interpreter:
                 raise TypeError(
                     "invalid_operand",
                     operator="[]",
-                    type_name="tiro",
+                    type_name="abn",
                     line=line,
                     position=position,
                 )
@@ -735,7 +735,7 @@ class Interpreter:
                 raise TypeError(
                     "invalid_operand",
                     operator="[]",
-                    type_name="tiro",
+                    type_name="abn",
                     line=line,
                     position=position,
                 )

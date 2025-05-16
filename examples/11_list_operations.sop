@@ -55,7 +55,7 @@ qor("  List2: " + list2)
 qor("  Combined list: " + combined)
 
 // Check if element exists in list
-tiro search_value = 30
+abn search_value = 30
 bool contains = numbers.leeyahay(search_value)
 qor("  Does numbers contain " + search_value + "? " + contains)
 

@@ -4,7 +4,7 @@
 qor("Testing type conversion:")
 
 // Integer to string conversion
-tiro int_value = 42
+abn int_value = 42
 qoraal int_str = qoraal(int_value)
 qor("  Integer to string: " + int_str + " (Type: " + nooc(int_str) + ")")
 
@@ -15,7 +15,7 @@ qor("  Decimal to string: " + decimal_str + " (Type: " + nooc(decimal_str) + ")"
 
 // String to integer conversion
 qoraal int_string = "123"
-tiro converted_int = tiro(int_string)
+abn converted_int = abn(int_string)
 qor("  String to integer: " + converted_int + " (Type: " + nooc(converted_int) + ")")
 
 // String to decimal conversion
@@ -24,18 +24,18 @@ jajab converted_decimal = jajab(decimal_string)
 qor("  String to decimal: " + converted_decimal + " (Type: " + nooc(converted_decimal) + ")")
 
 // Integer to decimal conversion
-tiro int_num = 42
+abn int_num = 42
 jajab decimal_from_int = jajab(int_num)
 qor("  Integer to decimal: " + decimal_from_int + " (Type: " + nooc(decimal_from_int) + ")")
 
 // Decimal to integer conversion (truncation)
 jajab decimal_num = 42.75
-tiro int_from_decimal = tiro(decimal_num)
+abn int_from_decimal = abn(decimal_num)
 qor("  Decimal to integer (truncation): " + int_from_decimal + " (Type: " + nooc(int_from_decimal) + ")")
 
 // Boolean to number conversion
-tiro bool_int_f = tiro(been)
-tiro bool_int_t = tiro(run)
+abn bool_int_f = abn(been)
+abn bool_int_t = abn(run)
 qor("  Boolean (been) to integer: " + bool_int_f)
 qor("  Boolean (run) to integer: " + bool_int_t)
 
@@ -80,6 +80,6 @@ qoraal obj_str = qoraal(test_obj)
 qor("  Object to string: " + obj_str)
 
 // Invalid conversions (these should fail or return defaults)
-// qor("  Invalid string to integer: " + tiro("not a number"))
+// qor("  Invalid string to integer: " + abn("not a number"))
 // qor("  Invalid string to decimal: " + jajab("not a number"))
 // qor("  Invalid string to boolean: " + bool("not a boolean"))

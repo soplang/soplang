@@ -6,18 +6,18 @@ qor("Practical uses of constants (madoor):")
 // Application configuration constants
 madoor qoraal APP_VERSION = "1.0.0"
 madoor qoraal API_ENDPOINT = "https://api.example.com/v1"
-madoor tiro TIMEOUT_MS = 5000
-madoor tiro MAX_RETRIES = 3
-madoor tiro MAX_ITEMS_PER_PAGE = 25
+madoor abn TIMEOUT_MS = 5000
+madoor abn MAX_RETRIES = 3
+madoor abn MAX_ITEMS_PER_PAGE = 25
 
 // Math constants
 madoor jajab PI = 3.14159
 madoor jajab E = 2.71828
 
 // Status codes
-madoor tiro STATUS_OK = 200
-madoor tiro STATUS_NOT_FOUND = 404
-madoor tiro STATUS_ERROR = 500
+madoor abn STATUS_OK = 200
+madoor abn STATUS_NOT_FOUND = 404
+madoor abn STATUS_ERROR = 500
 
 qor("Application Configuration:")
 qor("  App Version: " + APP_VERSION)
@@ -40,7 +40,7 @@ hawl make_api_request(endpoint, timeout_ms) {
 }
 
 // Use the constants in calculations and functions
-tiro response = make_api_request(API_ENDPOINT, TIMEOUT_MS)
+abn response = make_api_request(API_ENDPOINT, TIMEOUT_MS)
 
 // Calculate area and volume using constants
 jajab radius = 10
@@ -52,8 +52,8 @@ qor("  Circle Area: " + area)
 qor("  Sphere Volume: " + volume)
 
 // Simulate pagination
-tiro total_items = 127
-tiro total_pages = (total_items + MAX_ITEMS_PER_PAGE - 1) / MAX_ITEMS_PER_PAGE  // Ceiling division
+abn total_items = 127
+abn total_pages = (total_items + MAX_ITEMS_PER_PAGE - 1) / MAX_ITEMS_PER_PAGE  // Ceiling division
 
 qor("Pagination:")
 qor("  Total Items: " + total_items)

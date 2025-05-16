@@ -7,7 +7,7 @@ hawl laban(x) {
 }
 
 hawl ku_badal_qoraal(x) {
-  celi "Tiro_" + x
+  celi "Abn_" + x
 }
 
 hawl kent_juft(x) {
@@ -33,7 +33,7 @@ qor("After numbers.aaddin('laban'): " + result1)  // Should be [2, 4, 6, 8, 10]
 
 // Apply string transformation (adding prefix)
 liis result2 = numbers.aaddin("ku_badal_qoraal")
-qor("After numbers.aaddin('ku_badal_qoraal'): " + result2)  // Should be ["Tiro_1", "Tiro_2", ...]
+qor("After numbers.aaddin('ku_badal_qoraal'): " + result2)  // Should be ["Abn_1", "Abn_2", ...]
 
 // Apply conditional transformation (even/odd)
 liis result3 = numbers.aaddin("kent_juft")

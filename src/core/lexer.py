@@ -46,7 +46,7 @@ class Lexer:
             "cusub": TokenType.CUSUB,
             "nafta": TokenType.NAFTA,
             # Static types
-            "tiro": TokenType.TIRO,
+            "abn": TokenType.ABN,
             "qoraal": TokenType.QORAAL,
             "bool": TokenType.BOOL,
             "liis": TokenType.LIIS,

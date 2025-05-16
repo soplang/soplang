@@ -4,9 +4,9 @@
 qor("Testing comparison operators:")
 
 // Integer comparisons
-tiro a = 15
-tiro b = 5
-tiro c = 15
+abn a = 15
+abn b = 5
+abn c = 15
 qor("  a = " + a + ", b = " + b + ", c = " + c)
 
 qor("Integer comparisons:")

@@ -8,7 +8,7 @@ Soplang is a programming language with syntax inspired by Somali language, makin
 
 ## Features
 
-- **Powerful type system** - Combines both static typing (`tiro`, `qoraal`, etc.) and dynamic typing (`door`) in one language
+- **Powerful type system** - Combines both static typing (`abn`, `qoraal`, etc.) and dynamic typing (`door`) in one language
 - **Somali-based syntax** - programming concepts expressed in Somali
 - **Modern paradigms** - supports functional, procedural, and object-oriented programming
 - **Type safety** - enforces type checking at runtime
@@ -31,7 +31,7 @@ num = "new value"         // Valid: dynamic variables can change types
 
 // Static typing examples
 qoraal name = "Sharafdin" // Static typing - string only
-tiro age = 25             // Static typing - number only
+abn age = 25             // Static typing - number only
 
 // Type safety enforcement
 // age = "25"             // Would cause runtime error - type mismatch

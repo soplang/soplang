@@ -54,7 +54,7 @@ class Parser:
             TokenType.XAALAD: "keyword 'xaalad' (case)",
             TokenType.kuceli: "keyword 'kuceli' (for)",
             TokenType.INTAY: "keyword 'intay' (while)",
-            TokenType.TIRO: "keyword 'tiro' (integer type)",
+            TokenType.ABN: "keyword 'abn' (integer type)",
             TokenType.JAJAB: "keyword 'jajab' (decimal type)",
             TokenType.QORAAL: "keyword 'qoraal' (string type)",
             TokenType.BOOL: "keyword 'bool' (boolean type)",
@@ -114,7 +114,7 @@ class Parser:
 
         # Handle variable declarations with static typing
         elif token_type in (
-            TokenType.TIRO,
+            TokenType.ABN,
             TokenType.JAJAB,
             TokenType.QORAAL,
             TokenType.BOOL,
@@ -136,7 +136,7 @@ class Parser:
             var_type = None
 
             if self.current_token.type in (
-                TokenType.TIRO,
+                TokenType.ABN,
                 TokenType.JAJAB,
                 TokenType.QORAAL,
                 TokenType.BOOL,
@@ -371,7 +371,7 @@ class Parser:
 
     # -----------------------------
     #  door x = 5  (dynamic typing)
-    #  tiro y = 10 (static typing)
+    #  abn y = 10 (static typing)
     # -----------------------------
     def parse_variable_declaration(self, is_static=False, is_constant=False):
         # Get the variable type (for static typing)
@@ -460,7 +460,7 @@ class Parser:
                 TokenType.QOR,
                 TokenType.GELIN,
                 TokenType.QORAAL,
-                TokenType.TIRO,
+                TokenType.ABN,
                 TokenType.JAJAB,
                 TokenType.BOOL,
                 TokenType.LIIS,
@@ -918,7 +918,7 @@ class Parser:
             return ASTNode(NodeType.LITERAL, value=None)
         elif token.type == TokenType.IDENTIFIER or token.type in (
             TokenType.QORAAL,
-            TokenType.TIRO,
+            TokenType.ABN,
             TokenType.JAJAB,
             TokenType.BOOL,
             TokenType.LIIS,

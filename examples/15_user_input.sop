@@ -19,4 +19,4 @@ qor("The type of your input is: " + nooc(magac))
 qor("Your name has several characters.")
 
 // Thank the user
-bandhig("Thank you for trying gelin in Soplang!")
+qor("Thank you for trying gelin in Soplang!")

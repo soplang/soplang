@@ -3,7 +3,7 @@
 qor("Testing operator parsing:")
 
 // Test comparison operators in assignments
-tiro score = 85
+abn score = 85
 qor("score = " + score)
 
 // This should now work without parentheses
