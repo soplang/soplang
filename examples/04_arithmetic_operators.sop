@@ -1,52 +1,52 @@
 // Test: Arithmetic Operators
 // This test checks if arithmetic operators work properly
 
-bandhig("Testing arithmetic operators:")
+qor("Testing arithmetic operators:")
 
 // Integer operations
-bandhig("Integer operations:")
+qor("Integer operations:")
 tiro a = 15
 tiro b = 5
-bandhig("  a = " + a + ", b = " + b)
+qor("  a = " + a + ", b = " + b)
 
 // Basic operations with integers
-bandhig("  Addition (a + b): " + (a + b))
-bandhig("  Subtraction (a - b): " + (a - b))
-bandhig("  Multiplication (a * b): " + (a * b))
-bandhig("  Division (a / b): " + (a / b))
-bandhig("  Modulus (a % b): " + (a % b))
+qor("  Addition (a + b): " + (a + b))
+qor("  Subtraction (a - b): " + (a - b))
+qor("  Multiplication (a * b): " + (a * b))
+qor("  Division (a / b): " + (a / b))
+qor("  Modulus (a % b): " + (a % b))
 
 // Test with negative integers
 tiro negative = -10
-bandhig("  negative = " + negative)
-bandhig("  Addition with negative (a + negative): " + (a + negative))
-bandhig("  Negative multiplication (negative * b): " + (negative * b))
+qor("  negative = " + negative)
+qor("  Addition with negative (a + negative): " + (a + negative))
+qor("  Negative multiplication (negative * b): " + (negative * b))
 
 // Decimal operations
-bandhig("\nDecimal operations:")
+qor("\nDecimal operations:")
 jajab x = 15.5
 jajab y = 5.25
-bandhig("  x = " + x + ", y = " + y)
+qor("  x = " + x + ", y = " + y)
 
 // Basic operations with decimals
-bandhig("  Addition (x + y): " + (x + y))
-bandhig("  Subtraction (x - y): " + (x - y))
-bandhig("  Multiplication (x * y): " + (x * y))
-bandhig("  Division (x / y): " + (x / y))
+qor("  Addition (x + y): " + (x + y))
+qor("  Subtraction (x - y): " + (x - y))
+qor("  Multiplication (x * y): " + (x * y))
+qor("  Division (x / y): " + (x / y))
 
 // Mixed operations (integers and decimals)
-bandhig("\nMixed integer and decimal operations:")
-bandhig("  Integer + Decimal (a + y): " + (a + y))
-bandhig("  Decimal * Integer (x * b): " + (x * b))
+qor("\nMixed integer and decimal operations:")
+qor("  Integer + Decimal (a + y): " + (a + y))
+qor("  Decimal * Integer (x * b): " + (x * b))
 
 // Operator precedence
-bandhig("\nOperator precedence:")
-bandhig("  Operator precedence (2 + 3 * 4): " + (2 + 3 * 4))
-bandhig("  Using parentheses ((2 + 3) * 4): " + ((2 + 3) * 4))
+qor("\nOperator precedence:")
+qor("  Operator precedence (2 + 3 * 4): " + (2 + 3 * 4))
+qor("  Using parentheses ((2 + 3) * 4): " + ((2 + 3) * 4))
 
 // Complex expressions
 tiro complex_int = (a + b) * 2 - 10 / 2
 jajab complex_dec = (x + y) * 2.5 - 10.5 / 2.1
-bandhig("\nComplex expressions:")
-bandhig("  Integer expression ((a + b) * 2 - 10 / 2): " + complex_int)
-bandhig("  Decimal expression ((x + y) * 2.5 - 10.5 / 2.1): " + complex_dec)
+qor("\nComplex expressions:")
+qor("  Integer expression ((a + b) * 2 - 10 / 2): " + complex_int)
+qor("  Decimal expression ((x + y) * 2.5 - 10.5 / 2.1): " + complex_dec)

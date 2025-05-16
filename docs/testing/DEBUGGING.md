@@ -4,18 +4,28 @@ This document provides guidance on debugging both the Soplang interpreter itself
 
 ## Table of Contents
 
-- [Debugging Soplang Programs](#debugging-soplang-programs)
-  - [Understanding Error Messages](#understanding-error-messages)
-  - [Adding Debug Output](#adding-debug-output)
-  - [Step-by-Step Debugging](#step-by-step-debugging)
-  - [Common Runtime Errors](#common-runtime-errors)
-
-- [Debugging the Interpreter](#debugging-the-interpreter)
-  - [Debugging the Lexer](#debugging-the-lexer)
-  - [Debugging the Parser](#debugging-the-parser)
-  - [Debugging the Interpreter](#debugging-the-interpreter-1)
-  - [Using Logging](#using-logging)
-  - [Advanced Debugging Techniques](#advanced-debugging-techniques)
+- [Debugging Soplang](#debugging-soplang)
+  - [Table of Contents](#table-of-contents)
+  - [Debugging Soplang Programs](#debugging-soplang-programs)
+    - [Understanding Error Messages](#understanding-error-messages)
+      - [Example Error Messages](#example-error-messages)
+    - [Adding Debug Output](#adding-debug-output)
+    - [Step-by-Step Debugging](#step-by-step-debugging)
+    - [Common Runtime Errors](#common-runtime-errors)
+      - [1. Type Errors](#1-type-errors)
+      - [2. Undefined Variables](#2-undefined-variables)
+      - [3. Invalid Operations](#3-invalid-operations)
+      - [4. Scope Issues](#4-scope-issues)
+  - [Debugging the Interpreter](#debugging-the-interpreter)
+    - [Debugging the Lexer](#debugging-the-lexer)
+    - [Debugging the Parser](#debugging-the-parser)
+    - [Debugging the Interpreter](#debugging-the-interpreter-1)
+    - [Using Logging](#using-logging)
+    - [Advanced Debugging Techniques](#advanced-debugging-techniques)
+      - [1. Python Debugger (pdb)](#1-python-debugger-pdb)
+      - [2. AST Visualization](#2-ast-visualization)
+      - [3. Performance Profiling](#3-performance-profiling)
+  - [Conclusion](#conclusion)
 
 ## Debugging Soplang Programs
 
@@ -60,25 +70,25 @@ Where:
 
 ### Adding Debug Output
 
-The most straightforward way to debug Soplang programs is to add debug output using the `bandhig()` function:
+The most straightforward way to debug Soplang programs is to add debug output using the `qor()` function:
 
 ```
 // Debug variable values
-bandhig("Debug - x: " + x)
-bandhig("Debug - y: " + y)
+qor("Debug - x: " + x)
+qor("Debug - y: " + y)
 
 // Debug control flow
-bandhig("Entering loop")
+qor("Entering loop")
 kuceli i 0 ilaa 5 {
-    bandhig("  Loop iteration: " + i)
+    qor("  Loop iteration: " + i)
 }
-bandhig("Exiting loop")
+qor("Exiting loop")
 
 // Debug conditional branches
 haddii (condition) {
-    bandhig("Condition is true")
+    qor("Condition is true")
 } ugudambeyn {
-    bandhig("Condition is false")
+    qor("Condition is false")
 }
 ```
 
@@ -98,7 +108,7 @@ For complex issues, use step-by-step execution:
 
 2. Add debug points between sections:
    ```
-   bandhig("Debug: After initialization, x=" + x + ", y=" + y)
+   qor("Debug: After initialization, x=" + x + ", y=" + y)
    ```
 
 3. Comment out subsequent sections to isolate problems:
@@ -106,7 +116,7 @@ For complex issues, use step-by-step execution:
    // ==== SECTION 1: Initialize variables ====
    door x = 10
    door y = 20
-   bandhig("Debug: x=" + x + ", y=" + y)
+   qor("Debug: x=" + x + ", y=" + y)
 
    /* // Temporarily comment out
    // ==== SECTION 2: Calculate result ====
@@ -132,7 +142,7 @@ tiro num = tiro(userInput)  // Convert string to number
 **Solution**: Make sure the variable is declared before use and check for typos:
 ```
 door myVar = 10  // Declare first
-bandhig(myVar)       // Then use
+qor(myVar)       // Then use
 ```
 
 #### 3. Invalid Operations
@@ -154,7 +164,7 @@ bandhig(myVar)       // Then use
 haddii (condition) {
     door x = 10  // Only visible inside this block
 }
-// bandhig(x)  // Error: x is not defined here
+// qor(x)  // Error: x is not defined here
 ```
 
 ## Debugging the Interpreter
@@ -292,6 +302,6 @@ stats 10
 
 Effective debugging is essential for both developing the Soplang interpreter and writing Soplang programs. By understanding error messages, using debug output, and leveraging debugging tools, you can quickly identify and fix issues in your code.
 
-Remember that the most powerful debugging technique is often the simplest: adding strategic debug output with `bandhig()` can help track program state and identify where problems occur.
+Remember that the most powerful debugging technique is often the simplest: adding strategic debug output with `qor()` can help track program state and identify where problems occur.
 
 For more information on Soplang's testing methodology, see [TEST_METHODOLOGY.md](TEST_METHODOLOGY.md), and for details on example programs, see [EXAMPLES.md](EXAMPLES.md).
