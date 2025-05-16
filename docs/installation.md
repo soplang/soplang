@@ -12,21 +12,32 @@ For the fastest way to get started:
 
 ## Table of Contents
 
-- [Universal Installation Method](#universal-installation-method)
-- [Windows Installation](#windows-installation)
-  - [Using the Installer](#using-the-installer)
-  - [Building from Source on Windows](#building-from-source-on-windows)
-  - [Troubleshooting Windows Installation](#troubleshooting-windows-installation)
-- [Linux Installation](#linux-installation)
-  - [Using Package Manager](#using-package-manager)
-  - [Building from Source on Linux](#building-from-source-on-linux)
-  - [Troubleshooting Linux Installation](#troubleshooting-linux-installation)
-- [macOS Installation](#macos-installation)
-  - [Using the DMG Image](#using-the-dmg-image)
-  - [Building from Source on macOS](#building-from-source-on-macos)
-  - [Troubleshooting macOS Installation](#troubleshooting-macos-installation)
-- [Verifying Your Installation](#verifying-your-installation)
-- [Next Steps](#next-steps)
+- [Soplang Installation Guide](#soplang-installation-guide)
+  - [Quick Start](#quick-start)
+  - [Table of Contents](#table-of-contents)
+  - [Universal Installation Method](#universal-installation-method)
+  - [Windows Installation](#windows-installation)
+    - [Using the Installer](#using-the-installer)
+    - [Building from Source on Windows](#building-from-source-on-windows)
+      - [Prerequisites](#prerequisites)
+      - [Build Steps](#build-steps)
+    - [Troubleshooting Windows Installation](#troubleshooting-windows-installation)
+  - [Linux Installation](#linux-installation)
+    - [Using Package Manager](#using-package-manager)
+      - [Debian/Ubuntu and Derivatives](#debianubuntu-and-derivatives)
+      - [Fedora/RHEL and Derivatives](#fedorarhel-and-derivatives)
+    - [Building from Source on Linux](#building-from-source-on-linux)
+      - [Prerequisites](#prerequisites-1)
+      - [Build Steps](#build-steps-1)
+    - [Troubleshooting Linux Installation](#troubleshooting-linux-installation)
+  - [macOS Installation](#macos-installation)
+    - [Using the DMG Image](#using-the-dmg-image)
+    - [Building from Source on macOS](#building-from-source-on-macos)
+      - [Prerequisites](#prerequisites-2)
+      - [Build Steps](#build-steps-2)
+    - [Troubleshooting macOS Installation](#troubleshooting-macos-installation)
+  - [Verifying Your Installation](#verifying-your-installation)
+  - [Next Steps](#next-steps)
 
 ## Universal Installation Method
 
@@ -268,7 +279,7 @@ After installing Soplang, verify that it's working properly:
 
 2. Run a simple Soplang program:
    ```bash
-   soplang -c 'bandhig("Hello from Soplang!")'
+   soplang -c 'qor("Hello from Soplang!")'
    ```
    You should see the output: `Hello from Soplang!`
 
