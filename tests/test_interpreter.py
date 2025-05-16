@@ -31,8 +31,8 @@ class TestInterpreter(unittest.TestCase):
     def test_print_statement(self):
         """Test simple print statement execution."""
         try:
-            # Direct way to test qor without using the parser
-            self.interpreter.functions["qor"]("Hello, World!")
+            # Direct way to test bandhig without using the parser
+            self.interpreter.functions["bandhig"]("Hello, World!")
             output = self.captured_output.getvalue().strip()
             self.assertEqual(output, "Hello, World!")
         except Exception as e:
@@ -42,7 +42,7 @@ class TestInterpreter(unittest.TestCase):
         """Test variable declaration and usage."""
         source = '''
         door x = 42
-        qor("Value: " + qoraal(x))
+        bandhig("Value: " + qoraal(x))
         '''
         output = self._execute_code(source)
         self.assertEqual(output, "Value: 42.0")
@@ -53,7 +53,7 @@ class TestInterpreter(unittest.TestCase):
         source = '''
         tiro num = 10
         qoraal str = "Hello"
-        qor(qoraal(num) + " " + str)
+        bandhig(qoraal(num) + " " + str)
         '''
         output = self._execute_code(source)
         self.assertEqual(output, "10.0 Hello")
@@ -65,11 +65,11 @@ class TestInterpreter(unittest.TestCase):
         source = '''
         door a = 10
         door b = 5
-        qor("a + b = " + qoraal(a + b))
-        qor("a - b = " + qoraal(a - b))
-        qor("a * b = " + qoraal(a * b))
-        qor("a / b = " + qoraal(a / b))
-        qor("a % b = " + qoraal(a % b))
+        bandhig("a + b = " + qoraal(a + b))
+        bandhig("a - b = " + qoraal(a - b))
+        bandhig("a * b = " + qoraal(a * b))
+        bandhig("a / b = " + qoraal(a / b))
+        bandhig("a % b = " + qoraal(a % b))
         '''
         output = self._execute_code(source)
         expected = "a + b = 15.0\na - b = 5.0\na * b = 50.0\na / b = 2.0\na % b = 0.0"
@@ -80,9 +80,9 @@ class TestInterpreter(unittest.TestCase):
         source = '''
         door x = 15
         haddii (x > 10) {
-            qor("x is greater than 10")
-        } haddii_kalena {
-            qor("x is not greater than 10")
+            bandhig("x is greater than 10")
+        } ugudambeyn {
+            bandhig("x is not greater than 10")
         }
         '''
         output = self._execute_code(source)
@@ -94,9 +94,9 @@ class TestInterpreter(unittest.TestCase):
         source = '''
         door x = 5
         haddii (x > 10) {
-            qor("x is greater than 10")
-        } haddii_kalena {
-            qor("x is not greater than 10")
+            bandhig("x is greater than 10")
+        } ugudambeyn {
+            bandhig("x is not greater than 10")
         }
         '''
         output = self._execute_code(source)
@@ -105,8 +105,8 @@ class TestInterpreter(unittest.TestCase):
     def test_for_loop(self):
         """Test for loop execution."""
         source = '''
-        ku_celi i min 1 ilaa 3 {
-            qor("Number: " + qoraal(i))
+        kuceli i min 1 ilaa 3 {
+            bandhig("Number: " + qoraal(i))
         }
         '''
         output = self._execute_code(source)
@@ -116,11 +116,11 @@ class TestInterpreter(unittest.TestCase):
     def test_function_definition_and_call(self):
         """Test function definition and calling."""
         source = '''
-        howl add(a, b) {
-            soo_celi a + b
+        hawl add(a, b) {
+            celi a + b
         }
         door result = add(5, 7)
-        qor("5 + 7 = " + qoraal(result))
+        bandhig("5 + 7 = " + qoraal(result))
         '''
         output = self._execute_code(source)
         self.assertEqual(output, "5 + 7 = 12.0")
@@ -131,8 +131,8 @@ class TestInterpreter(unittest.TestCase):
         source = '''
         door numbers = [1, 2, 3]
         numbers.push(4)
-        qor("List: " + qoraal(numbers))
-        qor("Length: " + qoraal(numbers.length()))
+        bandhig("List: " + qoraal(numbers))
+        bandhig("Length: " + qoraal(numbers.length()))
         '''
         output = self._execute_code(source)
         expected = "List: [1.0, 2.0, 3.0, 4.0]\nLength: 4"

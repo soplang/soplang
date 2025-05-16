@@ -1,0 +1,59 @@
+// Test: Math Floor Function (daji)
+// This test demonstrates the daji() function which rounds down to the nearest integer
+
+bandhig("Testing math floor function (daji):")
+
+// Basic positive numbers
+bandhig("\nPositive numbers:")
+bandhig("  daji(3.8) = " + daji(3.8))       // Should be 3
+bandhig("  daji(5.1) = " + daji(5.1))       // Should be 5
+bandhig("  daji(7.999) = " + daji(7.999))   // Should be 7
+
+// Integers (should remain the same)
+bandhig("\nIntegers:")
+bandhig("  daji(5) = " + daji(5))           // Should be 5
+bandhig("  daji(0) = " + daji(0))           // Should be 0
+
+// Negative numbers (important edge case!)
+bandhig("\nNegative numbers:")
+bandhig("  daji(-2.4) = " + daji(-2.4))     // Should be -3
+bandhig("  daji(-1.01) = " + daji(-1.01))   // Should be -2
+bandhig("  daji(-5.9) = " + daji(-5.9))     // Should be -6
+
+// Edge cases
+bandhig("\nEdge cases:")
+bandhig("  daji(0.1) = " + daji(0.1))       // Should be 0
+bandhig("  daji(-0.1) = " + daji(-0.1))     // Should be -1
+bandhig("  daji(0.999) = " + daji(0.999))   // Should be 0
+
+// Dynamic variables
+bandhig("\nWith variables:")
+door x = 4.7
+door y = -3.2
+bandhig("  x = " + x)
+bandhig("  y = " + y)
+bandhig("  daji(x) = " + daji(x))           // Should be 4
+bandhig("  daji(y) = " + daji(y))           // Should be -4
+
+// Practical examples
+bandhig("\nPractical examples:")
+
+// Example: calculating how many whole days in a number of hours
+door hours = 50.5
+door days = daji(hours / 24)
+bandhig("  " + hours + " hours = " + days + " whole days")
+
+// Example: calculating how many full pages needed for n items with k items per page
+door items = 27
+door itemsPerPage = 5
+door remain = items % itemsPerPage
+door extra = 0
+
+haddii (remain > 0) {
+    extra = 1
+}
+
+door pages = daji(items / itemsPerPage) + extra
+bandhig("  " + items + " items with " + itemsPerPage + " per page = " + pages + " pages")
+
+bandhig("\nMath floor tests completed!")

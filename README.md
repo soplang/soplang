@@ -22,7 +22,7 @@ Soplang is a programming language with syntax inspired by Somali language, makin
 
 ```js
 // Hello World
-qor("Salaan, Adduunka!")  // Prints: Hello, World!
+bandhig("Salaan, Adduunka!")  // Prints: Hello, World!
 
 // Variables with dual type system in action
 door magac = "Sharafdin"  // Dynamic typing - can change type later
@@ -38,16 +38,16 @@ tiro age = 25             // Static typing - number only
 
 // Control flow
 haddii (age > 18) {
-    qor("Waa qof weyn")   // Is an adult
-} haddii_kalena {
-    qor("Waa qof yar")    // Is a child
+    bandhig("Waa qof weyn")   // Is an adult
+} ugudambeyn {
+    bandhig("Waa qof yar")    // Is a child
 }
 
 // Functions
-howl salaam(qof) {
-    soo_celi "Salaan, " + qof + "!"
+hawl salaam(qof) {
+    celi "Salaan, " + qof + "!"
 }
-qor(salaam(magac))        // Prints: Salaan, Sharafdin!
+bandhig(salaam(magac))        // Prints: Salaan, Sharafdin!
 ```
 
 ## Documentation

@@ -7,6 +7,7 @@ class NodeType(Enum):
     FUNCTION_DEFINITION = "FUNCTION_DEFINITION"
     FUNCTION_CALL = "FUNCTION_CALL"
     IF_STATEMENT = "IF_STATEMENT"
+    SWITCH_STATEMENT = "SWITCH_STATEMENT"
     LOOP_STATEMENT = "LOOP_STATEMENT"
     WHILE_STATEMENT = "WHILE_STATEMENT"
     BLOCK = "BLOCK"
@@ -22,11 +23,11 @@ class NodeType(Enum):
     RETURN_STATEMENT = "RETURN_STATEMENT"
 
     # New node types for lists and objects
-    LIST_LITERAL = "LIST_LITERAL"          # For list creation [1, 2, 3]
-    OBJECT_LITERAL = "OBJECT_LITERAL"      # For object creation {a: 1, b: 2}
-    PROPERTY_ACCESS = "PROPERTY_ACCESS"    # For object.property
-    METHOD_CALL = "METHOD_CALL"            # For object.method()
-    INDEX_ACCESS = "INDEX_ACCESS"          # For list[index]
+    LIST_LITERAL = "LIST_LITERAL"  # For list creation [1, 2, 3]
+    OBJECT_LITERAL = "OBJECT_LITERAL"  # For object creation {a: 1, b: 2}
+    PROPERTY_ACCESS = "PROPERTY_ACCESS"  # For object.property
+    METHOD_CALL = "METHOD_CALL"  # For object.method()
+    INDEX_ACCESS = "INDEX_ACCESS"  # For list[index]
     # For explicit assignment (separate from declaration)
     ASSIGNMENT = "ASSIGNMENT"
 
@@ -37,13 +38,23 @@ class ASTNode:
         self.value = value
         self.children = children if children else []
         self.var_type = None  # For static typing
+        self.is_constant = False  # For constant variables (madoor)
         self.line = line  # Store line number
         self.position = position  # Store position/column number
 
     def __repr__(self):
         type_info = ""
-        if self.type == NodeType.VARIABLE_DECLARATION and hasattr(self, 'var_type') and self.var_type is not None:
+        if (
+            self.type == NodeType.VARIABLE_DECLARATION and
+            hasattr(self, "var_type") and
+            self.var_type is not None
+        ):
             type_info = f", var_type={self.var_type}"
+            if self.is_constant:
+                type_info += ", constant=True"
+        elif self.type == NodeType.VARIABLE_DECLARATION and self.is_constant:
+            type_info = ", constant=True"
+
         line_pos = ""
         if self.line is not None:
             line_pos = f", line={self.line}"

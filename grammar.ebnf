@@ -18,40 +18,40 @@ Statement ::= VariableDeclaration
             | FunctionDeclaration
             | FunctionCall
             | IfStatement
+            | SwitchStatement
             | LoopStatement
             | WhileStatement
             | BreakStatement
             | ContinueStatement
             | ReturnStatement
-            | TryCatchStatement
-            | ImportStatement
-            | ClassDeclaration
             | AssignmentStatement
             | Block
-            | ThrowStatement
 
 Block ::= "{" {Statement} "}"
 
 // ===== VARIABLE DECLARATIONS =====
-VariableDeclaration ::= DynamicDeclaration | StaticDeclaration
+VariableDeclaration ::= DynamicDeclaration | StaticDeclaration | ConstantDeclaration
 
 DynamicDeclaration ::= "door" Identifier "=" Expression
 
 StaticDeclaration ::= StaticType Identifier "=" Expression
 
-StaticType ::= "tiro"      // Number
+ConstantDeclaration ::= "madoor" [StaticType] Identifier "=" Expression
+
+StaticType ::= "tiro"      // Integer
+             | "jajab"     // Decimal
              | "qoraal"    // String
-             | "labadaran" // Boolean
+             | "bool"      // Boolean
              | "liis"      // List/Array
-             | "shey"      // Object
+             | "walax"     // Object
 
 // ===== FUNCTION DECLARATIONS =====
-FunctionDeclaration ::= "howl" Identifier "(" [ParameterList] ")" Block
+FunctionDeclaration ::= "hawl" Identifier "(" [ParameterList] ")" Block
 
 ParameterList ::= Identifier {"," Identifier}
 
 // ===== FUNCTION CALLS =====
-FunctionCall ::= Identifier "(" [ArgumentList] ")"
+FunctionCall ::= (Identifier | BuiltInFunction) "(" [ArgumentList] ")"
                | MethodCall
 
 MethodCall ::= ObjectProperty "(" [ArgumentList] ")"
@@ -65,31 +65,26 @@ IfStatement ::= "haddii" "(" Expression ")" Block
 
 ElseIfClause ::= "haddii_kale" "(" Expression ")" Block
 
-ElseClause ::= "haddii_kalena" Block
+ElseClause ::= "ugudambeyn" Block
+
+// ===== SWITCH STATEMENT =====
+SwitchStatement ::= "dooro" "(" Expression ")" "{" {CaseClause} [DefaultClause] "}"
+
+CaseClause ::= "xaalad" Expression Block
+
+DefaultClause ::= "ugudambeyn" Block
 
 // ===== LOOPS =====
-LoopStatement ::= "ku_celi" Identifier "min" Expression "ilaa" Expression ["by" Expression] Block
+LoopStatement ::= "kuceli" "(" Identifier Expression "ilaa" Expression ["::" Expression] ")" Block
 
-WhileStatement ::= "inta_ay" "(" Expression ")" Block
+WhileStatement ::= "intay" "(" Expression ")" Block
 
 BreakStatement ::= "jooji"
 
-ContinueStatement ::= "sii_wad"
+ContinueStatement ::= "soco"
 
 // ===== RETURN STATEMENT =====
-ReturnStatement ::= "soo_celi" [Expression]
-
-// ===== THROW STATEMENT =====
-ThrowStatement ::= "throw" Expression
-
-// ===== TRY-CATCH =====
-TryCatchStatement ::= "isku_day" Block "qabo" "(" Identifier ")" Block
-
-// ===== IMPORT =====
-ImportStatement ::= "ka_keen" StringLiteral
-
-// ===== CLASSES =====
-ClassDeclaration ::= "fasalka" Identifier ["ka_dhaxal" Identifier] Block
+ReturnStatement ::= "celi" [Expression]
 
 // ===== OBJECT ORIENTED =====
 ObjectProperty ::= Expression "." Identifier
@@ -120,12 +115,8 @@ Factor ::= NumberLiteral
         | IndexAccess
         | ListLiteral
         | ObjectLiteral
-        | NewExpression
         | "(" Expression ")"
         | UnaryOperator Factor
-
-// ===== NEW EXPRESSION =====
-NewExpression ::= "cusub" Identifier "(" [ArgumentList] ")"
 
 // ===== OPERATORS =====
 LogicalOperator ::= "&&" | "||"
@@ -145,7 +136,7 @@ StringLiteral ::= '"' {Character} '"' | "'" {Character} "'"
 
 BooleanLiteral ::= "true" | "false" | "run" | "been"
 
-NullLiteral ::= "null" | "waxba"
+NullLiteral ::= "null" | "maran"
 
 ListLiteral ::= "[" [Expression {"," Expression}] "]"
 
@@ -188,11 +179,54 @@ Position ::= Digit {Digit}
 ListMethod ::= "kudar"       // push
              | "kasaar"      // pop
              | "dherer"      // length
-             | "iskuxir"     // concat
-             | "ka_kooban"   // contains
+             | "kudar"       // concat
+             | "leeyahay"    // contains
+             | "nuqul"       // copy
+             | "nadiifi"     // clear
+             | "rog"         // reverse
+             | "habee"       // sort
+             | "jar"         // slice
+             | "aaddin"      // map/transform
+             | "shaandhee"   // filter
+             | "raadso"      // find index
 
 // ===== OBJECT METHODS =====
+<<<<<<< HEAD
 ObjectMethod ::= "furaha"    // keys
                | "haystaa"   // has
                | "tir"    // remove
                | "iskudar"   // merge
+=======
+ObjectMethod ::= "fure"      // keys
+               | "qiime"     // values
+               | "lamaane"   // entries
+               | "leeyahay"  // has
+               | "tirtir"    // remove
+               | "kudar"     // merge
+               | "nuqul"     // copy
+               | "nadiifi"   // clear
+
+// ===== STRING METHODS =====
+StringMethod ::= "qeybi"     // split
+              | "leeyahay"   // contains
+              | "dhamaad"    // endsWith
+              | "bilow"      // startsWith
+              | "beddel"     // replace
+              | "kudar"      // join
+              | "jar"        // slice
+
+// ===== BUILT-IN FUNCTIONS =====
+BuiltInFunction ::= "bandhig"  // print
+                  | "gelin"    // input
+                  | "nooc"     // typeof
+                  | "tiro"     // to integer
+                  | "jajab"    // to float
+                  | "qoraal"   // to string
+                  | "bool"     // to boolean
+                  | "liis"     // create list
+                  | "walax"    // create object
+                  | "daji"     // math.floor
+                  | "kor"      // math.ceil
+                  | "dherer"   // length
+                  | "kudhow"   // random
+>>>>>>> 305f19d234e11568b88a0d979e60f73afc627d0a

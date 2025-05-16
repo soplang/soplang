@@ -1,33 +1,39 @@
 // Test: Static Typing
 // This test checks if static typing works properly
 
-qor("Testing static typing:")
+bandhig("Testing static typing:")
 
-// Number (tiro)
-tiro number_var = 42
-qor("  Number (tiro): " + number_var)
+// Integer (tiro)
+tiro integer_var = 42
+bandhig("  Integer (tiro): " + integer_var)
+
+// Decimal (jajab)
+jajab decimal_var = 3.14159
+bandhig("  Decimal (jajab): " + decimal_var)
 
 // String (qoraal)
 qoraal string_var = "Soplang waa luqad wacan"
-qor("  String (qoraal): " + string_var)
-
-// Boolean (labadaran)
-labadaran bool_var = been
-qor("  Boolean (labadaran): " + bool_var)
+bandhig("  String (qoraal): " + string_var)
+// Boolean (bool)
+bool bool_var = been
+bandhig("  Boolean (bool): " + bool_var)
 
 // List (liis)
 liis list_var = [1, 2, 3, "afar", been]
-qor("  List (liis): " + list_var)
+bandhig("  List (liis): " + list_var)
 
-// Object (shey)
-shey object_var = {
+// Object (walax)
+walax object_var = {
     magac: "Ahmed",
-    da: 25
+    da: 25,
+    miisaan: 72.5
 }
-qor("  Object (shey): " + object_var)
+bandhig("  Object (walax): " + object_var)
 
 // Try to assign incompatible types (should fail)
 // Uncomment these lines to test type enforcement
-// number_var = "this should fail"
+// integer_var = "this should fail"
+// integer_var = 3.14  // should fail (no implicit conversion)
+// decimal_var = "not a number"
 // string_var = 123
 // bool_var = "not a boolean"

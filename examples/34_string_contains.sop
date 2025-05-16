@@ -1,0 +1,59 @@
+// Test: String Contains Method
+// This test demonstrates leeyahay() to check for substrings within strings
+
+bandhig("Testing string contains (leeyahay) method:")
+
+// Basic substring check
+door magac = "Barwaaqo"
+door match1 = magac.leeyahay("waa")    // Should be true (run)
+door match2 = magac.leeyahay("bilow")  // Should be false (been)
+
+bandhig("Basic tests:")
+bandhig("  String: " + magac)
+bandhig("  Has 'waa': " + match1)
+bandhig("  Has 'bilow': " + match2)
+
+// Case sensitivity test
+door sentence = "Soplang waa luqad wacan"
+door match3 = sentence.leeyahay("waa")  // Should be true
+door match4 = sentence.leeyahay("WAA")  // Should be false (case-sensitive)
+
+bandhig("Case sensitivity:")
+bandhig("  String: " + sentence)
+bandhig("  Has 'waa': " + match3)
+bandhig("  Has 'WAA': " + match4)
+
+// Empty string test
+door empty = ""
+door match5 = magac.leeyahay("")        // Should be true
+door match6 = empty.leeyahay("")        // Should be true
+door match7 = empty.leeyahay("test")    // Should be false
+
+bandhig("Empty string tests:")
+bandhig("  Empty string contains '': " + match6)
+bandhig("  Normal string contains '': " + match5)
+bandhig("  Empty string contains 'test': " + match7)
+
+// Position tests
+door match8 = sentence.leeyahay("Soplang")  // At start
+door match9 = sentence.leeyahay("wacan")    // At end
+
+bandhig("Position tests:")
+bandhig("  Starts with 'Soplang': " + match8)
+bandhig("  Ends with 'wacan': " + match9)
+
+// Practical application
+door email = "user@example.com"
+door valid_email = email.leeyahay("@")
+
+bandhig("Practical application:")
+bandhig("  Email: " + email)
+bandhig("  Contains '@': " + valid_email)
+
+haddii (valid_email) {
+    bandhig("  Email format is valid")
+} ugudambeyn {
+    bandhig("  Email format is invalid - missing @")
+}
+
+bandhig("\nString contains tests completed!")

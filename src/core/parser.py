@@ -44,19 +44,22 @@ class Parser:
             TokenType.NULL: "null",
             # Keywords
             TokenType.DOOR: "keyword 'door'",
-            TokenType.HOWL: "keyword 'howl' (function)",
-            TokenType.SOO_CELI: "keyword 'soo_celi' (return)",
-            TokenType.QOR: "keyword 'qor' (print)",
+            TokenType.HAWL: "keyword 'hawl' (function)",
+            TokenType.CELI: "keyword 'celi' (return)",
+            TokenType.BANDHIG: "keyword 'bandhig' (print)",
             TokenType.HADDII: "keyword 'haddii' (if)",
             TokenType.HADDII_KALE: "keyword 'haddii_kale' (else if)",
-            TokenType.HADDII_KALENA: "keyword 'haddii_kalena' (else)",
-            TokenType.KU_CELI: "keyword 'ku_celi' (for)",
-            TokenType.INTA_AY: "keyword 'inta_ay' (while)",
-            TokenType.TIRO: "keyword 'tiro' (number type)",
+            TokenType.UGUDAMBEYN: "keyword 'ugudambeyn' (else)",
+            TokenType.DOORO: "keyword 'dooro' (switch)",
+            TokenType.XAALAD: "keyword 'xaalad' (case)",
+            TokenType.kuceli: "keyword 'kuceli' (for)",
+            TokenType.INTAY: "keyword 'intay' (while)",
+            TokenType.TIRO: "keyword 'tiro' (integer type)",
+            TokenType.JAJAB: "keyword 'jajab' (decimal type)",
             TokenType.QORAAL: "keyword 'qoraal' (string type)",
-            TokenType.LABADARAN: "keyword 'labadaran' (boolean type)",
+            TokenType.BOOL: "keyword 'bool' (boolean type)",
             TokenType.LIIS: "keyword 'liis' (list type)",
-            TokenType.SHEY: "keyword 'shey' (object type)",
+            TokenType.WALAX: "keyword 'walax' (object type)",
         }
 
         return token_descriptions.get(token_type, str(token_type))
@@ -82,8 +85,8 @@ class Parser:
                 expected=expected_description,
                 found=found_description,
                 token=self.current_token,
-                line=getattr(self.current_token, 'line', None),
-                position=getattr(self.current_token, 'position', None)
+                line=getattr(self.current_token, "line", None),
+                position=getattr(self.current_token, "position", None),
             )
 
     def parse(self):
@@ -98,20 +101,25 @@ class Parser:
         """
         token = self.current_token
         token_type = token.type
-        line = getattr(token, 'line', None)
-        position = getattr(token, 'position', None)
+        line = getattr(token, "line", None)
+        position = getattr(token, "position", None)
 
         # Handle haddii (if statement)
         if token_type == TokenType.HADDII:
             return self.parse_if_statement()
 
+        # Handle dooro (switch statement)
+        elif token_type == TokenType.DOORO:
+            return self.parse_switch_statement()
+
         # Handle variable declarations with static typing
         elif token_type in (
             TokenType.TIRO,
+            TokenType.JAJAB,
             TokenType.QORAAL,
-            TokenType.LABADARAN,
+            TokenType.BOOL,
             TokenType.LIIS,
-            TokenType.SHEY,
+            TokenType.WALAX,
         ):
             return self.parse_variable_declaration(is_static=True)
 
@@ -119,36 +127,92 @@ class Parser:
         elif token_type == TokenType.DOOR:
             return self.parse_variable_declaration(is_static=False)
 
-        # Handle function definition (howl)
-        elif token_type == TokenType.HOWL:
+        # Handle constant variable declaration with dynamic typing (madoor)
+        elif token_type == TokenType.MADOOR:
+            self.advance()  # Consume madoor token
+
+            # Check if the next token is a type token
+            is_static = False
+            var_type = None
+
+            if self.current_token.type in (
+                TokenType.TIRO,
+                TokenType.JAJAB,
+                TokenType.QORAAL,
+                TokenType.BOOL,
+                TokenType.LIIS,
+                TokenType.WALAX,
+            ):
+                is_static = True
+                var_type = self.current_token.type
+                self.advance()  # Consume type token
+
+            # Get the variable name
+            if self.current_token.type != TokenType.IDENTIFIER:
+                raise ParserError(
+                    "expected_token",
+                    expected="identifier",
+                    found=self.get_friendly_token_name(self.current_token.type),
+                    token=self.current_token,
+                    line=getattr(self.current_token, "line", None),
+                    position=getattr(self.current_token, "position", None),
+                )
+
+            var_name = self.current_token.value
+            self.advance()  # Consume identifier
+
+            # Expect equals sign
+            self.expect(TokenType.EQUAL)
+
+            # Parse the expression to assign to the variable
+            expression = self.parse_logical_expression()
+
+            # Create variable declaration node
+            var_node = ASTNode(
+                NodeType.VARIABLE_DECLARATION,
+                value=var_name,
+                children=[expression],
+                line=line,
+                position=position,
+            )
+
+            var_node.is_constant = True
+
+            if is_static:
+                var_node.var_type = var_type
+
+            return var_node
+
+        # Handle function definition (hawl)
+        elif token_type == TokenType.HAWL:
             return self.parse_function_definition()
 
-        # Handle return statement (soo_celi)
-        elif token_type == TokenType.SOO_CELI:
+        # Handle return statement (celi)
+        elif token_type == TokenType.CELI:
             return self.parse_return_statement()
 
-        # Handle print statement (qor)
-        elif token_type == TokenType.QOR:
-            self.advance()  # Consume qor
+        # Handle print statement (bandhig)
+        elif token_type == TokenType.BANDHIG:
+            self.advance()  # Consume bandhig
             # Parse function call expression
             return ASTNode(
                 NodeType.FUNCTION_CALL,
-                value="qor",
+                value="bandhig",
                 children=[self.parse_expression()],
                 line=line,
-                position=position
+                position=position,
             )
 
         # Handle function calls
-        elif token_type == TokenType.QOR or token_type == TokenType.AKHRI:
+        elif token_type == TokenType.BANDHIG or token_type == TokenType.GELIN:
             return self.parse_function_call()
 
         # Handle loops
-        elif token_type == TokenType.KU_CELI:
+        elif token_type == TokenType.kuceli:
             return self.parse_loop_statement()
 
         # Handle while loop
-        elif token_type == TokenType.INTA_AY:
+        elif token_type == TokenType.INTAY:
             return self.parse_while_statement()
 
         # Handle break statement
@@ -156,7 +220,7 @@ class Parser:
             return self.parse_break_statement()
 
         # Handle continue statement
-        elif token_type == TokenType.SII_WAD:
+        elif token_type == TokenType.soco:
             return self.parse_continue_statement()
 
         # Handle try/catch
@@ -194,7 +258,10 @@ class Parser:
                 left = ASTNode(NodeType.IDENTIFIER, value=identifier_value)
 
                 # Parse any chain of property accesses or array indexing
-                while self.current_token.type in (TokenType.DOT, TokenType.LEFT_BRACKET):
+                while self.current_token.type in (
+                    TokenType.DOT,
+                    TokenType.LEFT_BRACKET,
+                ):
                     if self.current_token.type == TokenType.DOT:
                         # Handle property access (obj.prop)
                         self.advance()  # Consume the dot
@@ -205,8 +272,8 @@ class Parser:
                                 expected="IDENTIFIER",
                                 found=self.current_token.type,
                                 token=self.current_token,
-                                line=getattr(self.current_token, 'line', None),
-                                position=getattr(self.current_token, 'position', None)
+                                line=getattr(self.current_token, "line", None),
+                                position=getattr(self.current_token, "position", None),
                             )
 
                         prop_name = self.current_token.value
@@ -218,23 +285,29 @@ class Parser:
                             self.advance()  # Consume left paren
 
                             if self.current_token.type != TokenType.RIGHT_PAREN:
-                                args.append(self.parse_expression())
+                                args.append(self.parse_logical_expression())
                                 while self.current_token.type == TokenType.COMMA:
                                     self.advance()
-                                    args.append(self.parse_expression())
+                                    args.append(self.parse_logical_expression())
 
                             self.expect(TokenType.RIGHT_PAREN)
-                            left = ASTNode(NodeType.METHOD_CALL,
-                                           value=prop_name, children=[left] + args)
+                            left = ASTNode(
+                                NodeType.METHOD_CALL,
+                                value=prop_name,
+                                children=[left] + args,
+                            )
                         else:
                             # Regular property access (obj.prop)
-                            left = ASTNode(NodeType.PROPERTY_ACCESS,
-                                           value=prop_name, children=[left])
+                            left = ASTNode(
+                                NodeType.PROPERTY_ACCESS,
+                                value=prop_name,
+                                children=[left],
+                            )
 
                     elif self.current_token.type == TokenType.LEFT_BRACKET:
                         # Handle array indexing (arr[idx])
                         self.advance()  # Consume left bracket
-                        index = self.parse_expression()
+                        index = self.parse_logical_expression()
                         self.expect(TokenType.RIGHT_BRACKET)
                         left = ASTNode(NodeType.INDEX_ACCESS, children=[left, index])
 
@@ -242,7 +315,7 @@ class Parser:
                 if self.current_token.type == TokenType.EQUAL:
                     self.advance()  # Consume equals
                     value = self.parse_logical_expression()
-                    return ASTNode(NodeType.ASSIGNMENT, children=[left, value])
+                    return ASTNode(NodeType.ASSIGNMENT, children=[left, value], line=line, position=position)
 
                 # If not an assignment, just return the property access or method call
                 return left
@@ -253,13 +326,15 @@ class Parser:
                 self.advance()  # Consume left paren
 
                 if self.current_token.type != TokenType.RIGHT_PAREN:
-                    args.append(self.parse_expression())
+                    args.append(self.parse_logical_expression())
                     while self.current_token.type == TokenType.COMMA:
                         self.advance()
-                        args.append(self.parse_expression())
+                        args.append(self.parse_logical_expression())
 
                 self.expect(TokenType.RIGHT_PAREN)
-                return ASTNode(NodeType.FUNCTION_CALL, value=identifier_value, children=args)
+                return ASTNode(
+                    NodeType.FUNCTION_CALL, value=identifier_value, children=args
+                )
 
             # Handle simple variable assignment (var = value)
             elif self.current_token.type == TokenType.EQUAL:
@@ -267,40 +342,47 @@ class Parser:
                 value = self.parse_logical_expression()
                 return ASTNode(
                     NodeType.ASSIGNMENT,
-                    children=[ASTNode(NodeType.IDENTIFIER,
-                                      value=identifier_value), value]
+                    children=[
+                        ASTNode(NodeType.IDENTIFIER, value=identifier_value),
+                        value,
+                    ],
+                    line=line,
+                    position=position,
                 )
 
             # Just a variable reference
             return ASTNode(NodeType.IDENTIFIER, value=identifier_value)
 
-        # Top-level 'haddii_kale', 'haddii_kalena' are invalid
-        if token_type in (TokenType.HADDII_KALE, TokenType.HADDII_KALENA):
+        # Top-level 'haddii_kale', 'ugudambeyn' are invalid
+        if token_type in (TokenType.HADDII_KALE, TokenType.UGUDAMBEYN):
             raise ParserError(
                 "unexpected_token",
                 token=self.get_friendly_token_name(token_type),
-                line=getattr(token, 'line', None),
-                position=getattr(token, 'position', None)
+                line=getattr(token, "line", None),
+                position=getattr(token, "position", None),
             )
 
         raise ParserError(
             "unexpected_token",
             token=self.get_friendly_token_name(token_type),
-            line=getattr(token, 'line', None),
-            position=getattr(token, 'position', None)
+            line=getattr(token, "line", None),
+            position=getattr(token, "position", None),
         )
 
     # -----------------------------
     #  door x = 5  (dynamic typing)
     #  tiro y = 10 (static typing)
     # -----------------------------
-    def parse_variable_declaration(self, is_static=False):
+    def parse_variable_declaration(self, is_static=False, is_constant=False):
         # Get the variable type (for static typing)
         var_type = self.current_token.type if is_static else None
-        token_line = getattr(self.current_token, 'line', None)
-        token_position = getattr(self.current_token, 'position', None)
+        token_line = getattr(self.current_token, "line", None)
+        token_position = getattr(self.current_token, "position", None)
 
-        self.advance()  # Consume type/door token
+        # Only consume the token if we're being called directly from parse_statement
+        # If we're called from the MADOOR handler, the token is already consumed
+        if not is_constant or (is_constant and is_static):
+            self.advance()  # Consume type/door token
 
         # Get the variable name
         if self.current_token.type != TokenType.IDENTIFIER:
@@ -309,8 +391,8 @@ class Parser:
                 expected="identifier",
                 found=self.get_friendly_token_name(self.current_token.type),
                 token=self.current_token,
-                line=getattr(self.current_token, 'line', None),
-                position=getattr(self.current_token, 'position', None)
+                line=getattr(self.current_token, "line", None),
+                position=getattr(self.current_token, "position", None),
             )
 
         var_name = self.current_token.value
@@ -320,7 +402,7 @@ class Parser:
         self.expect(TokenType.EQUAL)
 
         # Parse the expression to assign to the variable
-        expression = self.parse_expression()
+        expression = self.parse_logical_expression()
 
         # Create variable declaration node
         var_node = ASTNode(
@@ -328,17 +410,18 @@ class Parser:
             value=var_name,
             children=[expression],
             line=token_line,
-            position=token_position
+            position=token_position,
         )
         var_node.var_type = var_type  # Store type for static typing
+        var_node.is_constant = is_constant  # Store constant flag
 
         return var_node
 
     # -----------------------------
-    #  howl foo(a, b) { ... }
+    #  hawl foo(a, b) { ... }
     # -----------------------------
     def parse_function_definition(self):
-        self.expect(TokenType.HOWL)
+        self.expect(TokenType.HAWL)
         func_name = self.current_token.value
         self.expect(TokenType.IDENTIFIER)
         self.expect(TokenType.LEFT_PAREN)
@@ -365,22 +448,23 @@ class Parser:
         )
 
     # -----------------------------
-    #  Function calls: qor("Hi") or akhri("Enter name:")
+    #  Function calls: bandhig("Hi") or gelin("Enter name:")
     # -----------------------------
     def parse_function_call(self):
-        """Parse a function call like 'qor("Hello")'"""
+        """Parse a function call like 'bandhig("Hello")'"""
         func_name = self.current_token.value
         if (
             self.current_token.type != TokenType.IDENTIFIER and
             self.current_token.type
             not in (
-                TokenType.QOR,
-                TokenType.AKHRI,
+                TokenType.BANDHIG,
+                TokenType.GELIN,
                 TokenType.QORAAL,
                 TokenType.TIRO,
-                TokenType.LABADARAN,
+                TokenType.JAJAB,
+                TokenType.BOOL,
                 TokenType.LIIS,
-                TokenType.SHEY,
+                TokenType.WALAX,
             )
         ):
             raise ParserError(
@@ -388,8 +472,8 @@ class Parser:
                 expected="function name",
                 found=self.get_friendly_token_name(self.current_token.type),
                 token=self.current_token,
-                line=getattr(self.current_token, 'line', None),
-                position=getattr(self.current_token, 'position', None)
+                line=getattr(self.current_token, "line", None),
+                position=getattr(self.current_token, "position", None),
             )
 
         # For non-identifier function names (like type names), get the value from the type
@@ -417,8 +501,8 @@ class Parser:
                 expected="string for file path",
                 found=self.get_friendly_token_name(self.current_token.type),
                 token=self.current_token,
-                line=getattr(self.current_token, 'line', None),
-                position=getattr(self.current_token, 'position', None)
+                line=getattr(self.current_token, "line", None),
+                position=getattr(self.current_token, "position", None),
             )
         filename = self.current_token.value
         self.advance()  # consume the STRING
@@ -428,7 +512,7 @@ class Parser:
     #  If statement:
     #  haddii (cond) { ... }
     #  [haddii_kale (cond2) { ... }]
-    #  [haddii_kalena { ... }]
+    #  [ugudambeyn { ... }]
     # -----------------------------
     def parse_if_statement(self):
         self.expect(TokenType.HADDII)
@@ -460,8 +544,8 @@ class Parser:
             )
             children.append(elif_node)
 
-        # Optionally parse 'haddii_kalena'
-        if self.current_token.type == TokenType.HADDII_KALENA:
+        # Optionally parse 'ugudambeyn'
+        if self.current_token.type == TokenType.UGUDAMBEYN:
             self.advance()
             self.expect(TokenType.LEFT_BRACE)
             else_body = []
@@ -475,26 +559,48 @@ class Parser:
         return ASTNode(NodeType.IF_STATEMENT, children=children)
 
     # -----------------------------
-    #  Loops: ku_celi i min 1 ilaa 5 { ... }
-    #  or with step: ku_celi i min 1 ilaa 5 by 2 { ... }
+    #  Loops: kuceli (i 1 ilaa 5) { ... }
+    #  or with step: kuceli (i 1 ilaa 5 by 2) { ... }
     # -----------------------------
     def parse_loop_statement(self):
-        self.expect(TokenType.KU_CELI)
+        self.expect(TokenType.kuceli)
+
+        # Expect an opening parenthesis
+        self.expect(TokenType.LEFT_PAREN)
+
+        # Get the loop variable
         loop_var = self.current_token.value
         self.expect(TokenType.IDENTIFIER)  # e.g. i
-        self.expect(TokenType.IDENTIFIER)  # "min"
+
+        # Parse the start expression
         start_expr = self.parse_expression()
+
+        # Expect 'ilaa' keyword
         self.expect(TokenType.IDENTIFIER)  # "ilaa"
+
+        # Parse the end expression
         end_expr = self.parse_expression()
 
-        # Check for optional step parameter
+        # Check for optional step parameter with '::' syntax
         step_expr = None
-        if (
-            self.current_token.type == TokenType.IDENTIFIER and
-            self.current_token.value == "by"
-        ):
-            self.advance()  # consume "by"
-            step_expr = self.parse_expression()
+        if self.current_token.type == TokenType.COLON:
+            self.advance()  # consume first ":"
+            if self.current_token.type == TokenType.COLON:
+                self.advance()  # consume second ":"
+                step_expr = self.parse_expression()
+            else:
+                # If we see just one colon, raise an error expecting the second one
+                raise ParserError(
+                    "expected_token",
+                    expected="':'",
+                    found=self.get_friendly_token_name(self.current_token.type),
+                    token=self.current_token,
+                    line=getattr(self.current_token, "line", None),
+                    position=getattr(self.current_token, "position", None),
+                )
+
+        # Expect a closing parenthesis
+        self.expect(TokenType.RIGHT_PAREN)
 
         self.expect(TokenType.LEFT_BRACE)
 
@@ -511,10 +617,10 @@ class Parser:
         return ASTNode(NodeType.LOOP_STATEMENT, value=loop_var, children=children)
 
     # -----------------------------
-    #  While loop: inta_ay (condition) { ... }
+    #  While loop: intay (condition) { ... }
     # -----------------------------
     def parse_while_statement(self):
-        self.expect(TokenType.INTA_AY)
+        self.expect(TokenType.INTAY)
         self.expect(TokenType.LEFT_PAREN)
         condition = self.parse_logical_expression()
         self.expect(TokenType.RIGHT_PAREN)
@@ -536,10 +642,10 @@ class Parser:
         return ASTNode(NodeType.BREAK_STATEMENT)
 
     # -----------------------------
-    #  Continue statement: sii_wad
+    #  Continue statement: soco
     # -----------------------------
     def parse_continue_statement(self):
-        self.expect(TokenType.SII_WAD)
+        self.expect(TokenType.soco)
         return ASTNode(NodeType.CONTINUE_STATEMENT)
 
     # -----------------------------
@@ -612,7 +718,7 @@ class Parser:
 
         elements = []
         while self.current_token.type != TokenType.RIGHT_BRACKET:
-            elements.append(self.parse_expression())
+            elements.append(self.parse_logical_expression())
             if self.current_token.type == TokenType.COMMA:
                 self.advance()
             else:
@@ -642,15 +748,15 @@ class Parser:
                     expected="property name (identifier or string)",
                     found=self.get_friendly_token_name(self.current_token.type),
                     token=self.current_token,
-                    line=getattr(self.current_token, 'line', None),
-                    position=getattr(self.current_token, 'position', None)
+                    line=getattr(self.current_token, "line", None),
+                    position=getattr(self.current_token, "position", None),
                 )
 
             # Colon separator
             self.expect(TokenType.COLON)
 
-            # Property value
-            value = self.parse_expression()
+            # Property value - use logical expressions for more flexibility
+            value = self.parse_logical_expression()
 
             # Create a property node with key as value and expression as child
             property_node = ASTNode(NodeType.LITERAL, value=key, children=[value])
@@ -715,12 +821,16 @@ class Parser:
             # For unary minus
             if op.type == TokenType.MINUS:
                 # Create a negative number directly if it's a literal
-                if factor.type == NodeType.LITERAL and isinstance(factor.value, (int, float)):
+                if factor.type == NodeType.LITERAL and isinstance(
+                    factor.value, (int, float)
+                ):
                     return ASTNode(NodeType.LITERAL, value=-factor.value)
 
                 # Otherwise create a binary operation
                 minus_one = ASTNode(NodeType.LITERAL, value=-1)
-                return ASTNode(NodeType.BINARY_OPERATION, value="*", children=[minus_one, factor])
+                return ASTNode(
+                    NodeType.BINARY_OPERATION, value="*", children=[minus_one, factor]
+                )
 
             # For NOT operator
             if op.type == TokenType.NOT:
@@ -748,8 +858,8 @@ class Parser:
                         expected="property name",
                         found=self.get_friendly_token_name(self.current_token.type),
                         token=self.current_token,
-                        line=getattr(self.current_token, 'line', None),
-                        position=getattr(self.current_token, 'position', None)
+                        line=getattr(self.current_token, "line", None),
+                        position=getattr(self.current_token, "position", None),
                     )
 
                 property_name = self.current_token.value
@@ -761,23 +871,27 @@ class Parser:
                     self.advance()  # Consume the left paren
 
                     if self.current_token.type != TokenType.RIGHT_PAREN:
-                        args.append(self.parse_expression())
+                        args.append(self.parse_logical_expression())
                         while self.current_token.type == TokenType.COMMA:
                             self.advance()
-                            args.append(self.parse_expression())
+                            args.append(self.parse_logical_expression())
 
                     self.expect(TokenType.RIGHT_PAREN)
-                    expr = ASTNode(NodeType.METHOD_CALL,
-                                   value=property_name, children=[expr] + args)
+                    expr = ASTNode(
+                        NodeType.METHOD_CALL,
+                        value=property_name,
+                        children=[expr] + args,
+                    )
                 else:
                     # Regular property access (obj.prop)
-                    expr = ASTNode(NodeType.PROPERTY_ACCESS,
-                                   value=property_name, children=[expr])
+                    expr = ASTNode(
+                        NodeType.PROPERTY_ACCESS, value=property_name, children=[expr]
+                    )
 
             elif self.current_token.type == TokenType.LEFT_BRACKET:
                 # Array indexing (array[index])
                 self.advance()  # Consume the left bracket
-                index = self.parse_expression()
+                index = self.parse_logical_expression()
                 self.expect(TokenType.RIGHT_BRACKET)
                 expr = ASTNode(NodeType.INDEX_ACCESS, children=[expr, index])
 
@@ -803,11 +917,19 @@ class Parser:
             self.advance()
             return ASTNode(NodeType.LITERAL, value=None)
         elif token.type == TokenType.IDENTIFIER or token.type in (
-            TokenType.QORAAL, TokenType.TIRO, TokenType.LABADARAN, TokenType.LIIS, TokenType.SHEY,
-            TokenType.QOR, TokenType.AKHRI  # Added QOR and AKHRI to handle them in expressions
+            TokenType.QORAAL,
+            TokenType.TIRO,
+            TokenType.JAJAB,
+            TokenType.BOOL,
+            TokenType.LIIS,
+            TokenType.WALAX,
+            TokenType.BANDHIG,
+            TokenType.GELIN,  # Added QOR and GELIN to handle them in expressions
         ):
             # Allow type names to be used as function names
-            token_value = token.value if token.type == TokenType.IDENTIFIER else token.type.value
+            token_value = (
+                token.value if token.type == TokenType.IDENTIFIER else token.type.value
+            )
             self.advance()
 
             # Check if this is a function call (followed by left parenthesis)
@@ -829,8 +951,8 @@ class Parser:
             raise ParserError(
                 "unexpected_token",
                 token=self.get_friendly_token_name(token.type),
-                line=getattr(token, 'line', None),
-                position=getattr(token, 'position', None)
+                line=getattr(token, "line", None),
+                position=getattr(token, "position", None),
             )
 
     def parse_function_call_helper(self, func_name):
@@ -840,10 +962,10 @@ class Parser:
 
         # Parse arguments
         if self.current_token.type != TokenType.RIGHT_PAREN:
-            args.append(self.parse_expression())
+            args.append(self.parse_logical_expression())
             while self.current_token.type == TokenType.COMMA:
                 self.advance()
-                args.append(self.parse_expression())
+                args.append(self.parse_logical_expression())
 
         self.expect(TokenType.RIGHT_PAREN)
 
@@ -902,16 +1024,89 @@ class Parser:
         return left
 
     def parse_return_statement(self):
-        self.expect(TokenType.SOO_CELI)
-        # If there is an expression after soo_celi, parse it
+        self.expect(TokenType.CELI)
+        # If there is an expression after celi, parse it
         if self.current_token.type != TokenType.SEMICOLON:
-            expr = self.parse_expression()
+            expr = self.parse_logical_expression()
             return ASTNode(NodeType.RETURN_STATEMENT, children=[expr])
         # Otherwise, it's a return with no value
         return ASTNode(NodeType.RETURN_STATEMENT)
 
     def create_node(self, node_type, value=None, children=None):
         """Create an AST node with current token's line and position information"""
-        line = getattr(self.current_token, 'line', None)
-        position = getattr(self.current_token, 'position', None)
-        return ASTNode(node_type, value=value, children=children, line=line, position=position)
+        line = getattr(self.current_token, "line", None)
+        position = getattr(self.current_token, "position", None)
+        return ASTNode(
+            node_type, value=value, children=children, line=line, position=position
+        )
+
+    # -----------------------------
+    #  Switch statement:
+    #  dooro (x) {
+    #    xaalad 1 { ... }
+    #    xaalad 2 { ... }
+    #    ugudambeyn { ... }
+    #  }
+    # -----------------------------
+    def parse_switch_statement(self):
+        self.expect(TokenType.DOORO)
+        self.expect(TokenType.LEFT_PAREN)
+        switch_expr = self.parse_logical_expression()
+        self.expect(TokenType.RIGHT_PAREN)
+        self.expect(TokenType.LEFT_BRACE)
+
+        # The main node will have the switch expression as its first child
+        children = [switch_expr]
+
+        # Parse each case
+        while self.current_token.type != TokenType.RIGHT_BRACE:
+            if self.current_token.type == TokenType.XAALAD:
+                self.advance()  # Consume 'xaalad'
+                case_value = self.parse_logical_expression()
+                self.expect(TokenType.LEFT_BRACE)
+
+                case_body = []
+                while self.current_token.type != TokenType.RIGHT_BRACE:
+                    case_body.append(self.parse_statement())
+                self.expect(TokenType.RIGHT_BRACE)
+
+                # Create a block node for this case
+                case_node = ASTNode(NodeType.BLOCK, children=[case_value] + case_body)
+                children.append(case_node)
+            elif self.current_token.type == TokenType.UGUDAMBEYN:
+                self.advance()  # Consume 'ugudambeyn'
+                self.expect(TokenType.LEFT_BRACE)
+
+                default_body = []
+                while self.current_token.type != TokenType.RIGHT_BRACE:
+                    default_body.append(self.parse_statement())
+                self.expect(TokenType.RIGHT_BRACE)
+
+                # Create a block node for the default case (without a case value)
+                default_node = ASTNode(NodeType.BLOCK, children=default_body)
+                children.append(default_node)
+            else:
+                raise ParserError(
+                    "expected_token",
+                    expected="'xaalad' or 'ugudambeyn'",
+                    found=self.get_friendly_token_name(self.current_token.type),
+                    token=self.current_token,
+                    line=getattr(self.current_token, "line", None),
+                    position=getattr(self.current_token, "position", None),
+                )
+
+        self.expect(TokenType.RIGHT_BRACE)
+        return ASTNode(NodeType.SWITCH_STATEMENT, children=children)
+
+    def execute_assignment(self, node):
+        """Execute an assignment node (identifier = expression)"""
+        target = node.children[0]  # Target of assignment
+        value = self.evaluate(node.children[1])
+
+        # Get line and position from node
+        line = getattr(node, "line", None)
+        position = getattr(node, "position", None)
+
+        # Simple variable assignment
+        if target.type == NodeType.IDENTIFIER:
+            return self.assign_variable(target.value, value, line, position)

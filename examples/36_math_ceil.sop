@@ -1,0 +1,64 @@
+// Test: Math Ceiling Function (kor)
+// This test demonstrates the kor() function which rounds up to the nearest integer
+
+bandhig("Testing math ceiling function (kor):")
+
+// Basic positive numbers
+bandhig("\nPositive numbers:")
+bandhig("  kor(4.2) = " + kor(4.2))       // Should be 5
+bandhig("  kor(5.8) = " + kor(5.8))       // Should be 6
+bandhig("  kor(9.01) = " + kor(9.01))     // Should be 10
+
+// Integers (should remain the same)
+bandhig("\nIntegers:")
+bandhig("  kor(7) = " + kor(7))           // Should be 7
+bandhig("  kor(0) = " + kor(0))           // Should be 0
+
+// Negative numbers (important edge case!)
+bandhig("\nNegative numbers:")
+bandhig("  kor(-3.7) = " + kor(-3.7))     // Should be -3
+bandhig("  kor(-1.2) = " + kor(-1.2))     // Should be -1
+bandhig("  kor(-8.999) = " + kor(-8.999)) // Should be -8
+
+// Edge cases
+bandhig("\nEdge cases:")
+bandhig("  kor(0.1) = " + kor(0.1))       // Should be 1
+bandhig("  kor(-0.1) = " + kor(-0.1))     // Should be 0
+bandhig("  kor(0.999) = " + kor(0.999))   // Should be 1
+
+// Compare with daji (floor) function
+bandhig("\nComparison with daji (floor):")
+door value1 = 7.3
+door value2 = -2.6
+bandhig("  Value 1: " + value1)
+bandhig("  daji(value1) = " + daji(value1))  // Should be 7
+bandhig("  kor(value1) = " + kor(value1))    // Should be 8
+bandhig("  Value 2: " + value2)
+bandhig("  daji(value2) = " + daji(value2))  // Should be -3
+bandhig("  kor(value2) = " + kor(value2))    // Should be -2
+
+// Dynamic variables
+bandhig("\nWith variables:")
+door x = 6.2
+door y = -4.8
+bandhig("  x = " + x)
+bandhig("  y = " + y)
+bandhig("  kor(x) = " + kor(x))           // Should be 7
+bandhig("  kor(y) = " + kor(y))           // Should be -4
+
+// Practical examples
+bandhig("\nPractical examples:")
+
+// Example: calculating minimum number of containers needed
+door items = 17
+door containerSize = 5
+door containers = kor(items / containerSize)
+bandhig("  " + items + " items with containers of size " + containerSize + " = " + containers + " containers needed")
+
+// Example: calculating minimum number of pages to show all results
+door results = 30
+door resultsPerPage = 8
+door pages = kor(results / resultsPerPage)
+bandhig("  " + results + " results with " + resultsPerPage + " per page = " + pages + " pages needed")
+
+bandhig("\nMath ceiling tests completed!")

@@ -1,0 +1,65 @@
+// Test: Object Copy (nuqul)
+// This test demonstrates the nuqul() method for walax (objects)
+
+bandhig("Testing walax.nuqul() (object copy):")
+
+// Create a test object
+walax qof = {
+    magac: "Axmed",
+    da: 25,
+    waxbarasho: "Jaamacad",
+    hiwayado: ["buugag", "ciyaaro", "safar"]
+}
+
+bandhig("Original object:")
+bandhig("  magac: " + qof.magac)
+bandhig("  da: " + qof.da)
+bandhig("  waxbarasho: " + qof.waxbarasho)
+bandhig("  hiwayado: " + qof.hiwayado)
+
+// Create a copy of the object
+bandhig("\nCreating a copy with nuqul()...")
+walax nuqulka = qof.nuqul()
+
+bandhig("\nVerifying copy is independent (shallow copy):")
+bandhig("  Original object and copy should be different references but contain the same values")
+
+// Changing a property on the original
+qof.magac = "Cali"
+bandhig("\nAfter changing original object's 'magac' to 'Cali':")
+bandhig("  Original magac: " + qof.magac)
+bandhig("  Copy magac: " + nuqulka.magac + " (Should still be 'Axmed')")
+
+// Changing a property on the copy
+nuqulka.da = 30
+bandhig("\nAfter changing copy's 'da' to 30:")
+bandhig("  Original da: " + qof.da + " (Should still be 25)")
+bandhig("  Copy da: " + nuqulka.da)
+
+// Adding a new property to the original
+qof.degaan = "Muqdisho"
+bandhig("\nAfter adding 'degaan' property to original:")
+bandhig("  Original has degaan: " + qof.leeyahay("degaan") + " (Should be run)")
+bandhig("  Copy has degaan: " + nuqulka.leeyahay("degaan") + " (Should be been)")
+
+// Demonstrate shallow copy behavior with nested arrays
+bandhig("\nDemonstrating shallow copy behavior with nested arrays:")
+qof.hiwayado.kudar("daawasho")
+bandhig("  After adding 'daawasho' to original's 'hiwayado' array:")
+bandhig("  Original hiwayado: " + qof.hiwayado)
+bandhig("  Copy hiwayado: " + nuqulka.hiwayado + " (Should also contain 'daawasho' because arrays are copied by reference)")
+
+// Create a nested object to demonstrate shallow copy
+qof.faahfaahin = {
+    jinsiyad: "Soomaali",
+    luqado: ["Soomaali", "Carabi", "Ingiriisi"]
+}
+
+walax new_copy = qof.nuqul()
+bandhig("\nTesting with nested object:")
+qof.faahfaahin.jinsiyad = "Kenyan"
+bandhig("  After changing original's nested object property 'jinsiyad':")
+bandhig("  Original jinsiyad: " + qof.faahfaahin.jinsiyad)
+bandhig("  Copy jinsiyad: " + new_copy.faahfaahin.jinsiyad + " (Should also change to 'Kenyan' because of shallow copy)")
+
+bandhig("\nTest completed: walax.nuqul() creates a shallow copy of objects")

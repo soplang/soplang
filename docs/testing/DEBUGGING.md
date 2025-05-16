@@ -60,25 +60,25 @@ Where:
 
 ### Adding Debug Output
 
-The most straightforward way to debug Soplang programs is to add debug output using the `qor()` function:
+The most straightforward way to debug Soplang programs is to add debug output using the `bandhig()` function:
 
 ```
 // Debug variable values
-qor("Debug - x: " + x)
-qor("Debug - y: " + y)
+bandhig("Debug - x: " + x)
+bandhig("Debug - y: " + y)
 
 // Debug control flow
-qor("Entering loop")
-ku_celi i min 0 ilaa 5 {
-    qor("  Loop iteration: " + i)
+bandhig("Entering loop")
+kuceli i 0 ilaa 5 {
+    bandhig("  Loop iteration: " + i)
 }
-qor("Exiting loop")
+bandhig("Exiting loop")
 
 // Debug conditional branches
 haddii (condition) {
-    qor("Condition is true")
-} haddii_kalena {
-    qor("Condition is false")
+    bandhig("Condition is true")
+} ugudambeyn {
+    bandhig("Condition is false")
 }
 ```
 
@@ -98,7 +98,7 @@ For complex issues, use step-by-step execution:
 
 2. Add debug points between sections:
    ```
-   qor("Debug: After initialization, x=" + x + ", y=" + y)
+   bandhig("Debug: After initialization, x=" + x + ", y=" + y)
    ```
 
 3. Comment out subsequent sections to isolate problems:
@@ -106,7 +106,7 @@ For complex issues, use step-by-step execution:
    // ==== SECTION 1: Initialize variables ====
    door x = 10
    door y = 20
-   qor("Debug: x=" + x + ", y=" + y)
+   bandhig("Debug: x=" + x + ", y=" + y)
 
    /* // Temporarily comment out
    // ==== SECTION 2: Calculate result ====
@@ -132,7 +132,7 @@ tiro num = tiro(userInput)  // Convert string to number
 **Solution**: Make sure the variable is declared before use and check for typos:
 ```
 door myVar = 10  // Declare first
-qor(myVar)       // Then use
+bandhig(myVar)       // Then use
 ```
 
 #### 3. Invalid Operations
@@ -154,7 +154,7 @@ qor(myVar)       // Then use
 haddii (condition) {
     door x = 10  // Only visible inside this block
 }
-// qor(x)  // Error: x is not defined here
+// bandhig(x)  // Error: x is not defined here
 ```
 
 ## Debugging the Interpreter
@@ -292,6 +292,6 @@ stats 10
 
 Effective debugging is essential for both developing the Soplang interpreter and writing Soplang programs. By understanding error messages, using debug output, and leveraging debugging tools, you can quickly identify and fix issues in your code.
 
-Remember that the most powerful debugging technique is often the simplest: adding strategic debug output with `qor()` can help track program state and identify where problems occur.
+Remember that the most powerful debugging technique is often the simplest: adding strategic debug output with `bandhig()` can help track program state and identify where problems occur.
 
 For more information on Soplang's testing methodology, see [TEST_METHODOLOGY.md](TEST_METHODOLOGY.md), and for details on example programs, see [EXAMPLES.md](EXAMPLES.md).
