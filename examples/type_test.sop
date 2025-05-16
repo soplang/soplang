@@ -5,7 +5,7 @@ qor("Testing type detection for numbers:")
 
 // Integer type
 door i = 1
-qor("Value: " + i + " | Type: " + nooc(i))  // Should be "tiro"
+qor("Value: " + i + " | Type: " + nooc(i))  // Should be "abn"
 
 // Float with zero decimal (should be jajab now)
 door f1 = 1.0

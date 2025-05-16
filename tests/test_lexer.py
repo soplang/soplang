@@ -34,12 +34,12 @@ class TestLexer(unittest.TestCase):
     
     def test_static_type_declaration(self):
         """Test token generation for static type declarations."""
-        source = 'tiro da = 10;'
+        source = 'abn da = 10;'
         lexer = Lexer(source)
         tokens = lexer.tokenize()
         
         # Check tokens for static type declaration
-        self.assertEqual(tokens[0].type, TokenType.TIRO)
+        self.assertEqual(tokens[0].type, TokenType.ABN)
         self.assertEqual(tokens[1].type, TokenType.IDENTIFIER)
         self.assertEqual(tokens[1].value, "da")
         self.assertEqual(tokens[2].type, TokenType.EQUAL)
