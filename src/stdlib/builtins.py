@@ -5,7 +5,7 @@ import random
 
 class SoplangBuiltins:
     @staticmethod
-    def bandhig(message=""):
+    def qor(message=""):
         """
         Print a message to the console (equivalent to 'print' in many languages)
 
@@ -840,7 +840,7 @@ def get_builtin_functions():
     Returns a dictionary of all built-in functions
     """
     builtins = {
-        "bandhig": SoplangBuiltins.bandhig,
+        "qor": SoplangBuiltins.qor,
         "gelin": SoplangBuiltins.gelin,
         "nooc": SoplangBuiltins.nooc,
         "tiro": SoplangBuiltins.tiro,

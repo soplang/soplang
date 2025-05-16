@@ -7,7 +7,7 @@ class TokenType(Enum):
     MADOOR = "madoor"  # Constant variable
     HAWL = "hawl"
     CELI = "celi"
-    BANDHIG = "bandhig"
+    QOR = "qor"
     GELIN = "gelin"
     HADDII = "haddii"
     HADDII_KALE = "haddii_kale"
