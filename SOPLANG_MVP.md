@@ -429,7 +429,7 @@ Objects are collections of key-value pairs that represent real-world entities.
 | --------------- | ---------------------- | ------------------- | -------------------------------------- |
 | `fure`          | `keys`                 | Get all object keys | `door keys = myObj.fure()`             |
 | `leeyahay`      | `has`/`hasOwnProperty` | Check if key exists | `door exists = myObj.leeyahay("name")` |
-| `tirtir`        | `delete`               | Remove a property   | `myObj.tirtir("oldProp")`              |
+| `tir`        | `delete`               | Remove a property   | `myObj.tir("oldProp")`              |
 | `kudar`         | `merge`/`assign`       | Combine objects     | `door merged = obj1.kudar(obj2)`       |
 
 ### Example
@@ -459,7 +459,7 @@ door haystaa_shaqo = qof.leeyahay("shaqo")
 bandhig(haystaa_shaqo)    // run (true)
 
 // Removing a property
-qof.tirtir("deggan")
+qof.tir("deggan")
 bandhig(qof.leeyahay("deggan"))    // been (false)
 
 // Merging objects

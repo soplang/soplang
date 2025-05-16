@@ -48,8 +48,8 @@ haddii (xog.leeyahay("qiimo_cusub")) {
     bandhig("  New property value: " + xog.qiimo_cusub)
 }
 
-// Comparison with tirtir (manually removing individual properties)
-bandhig("\nComparison with tirtir (manual property removal):")
+// Comparison with tir (manually removing individual properties)
+bandhig("\nComparison with tir (manual property removal):")
 walax xog2 = {
     a: 1,
     b: 2,
@@ -58,13 +58,13 @@ walax xog2 = {
 bandhig("  Original object2 keys: " + xog2.fure())
 
 // Remove each property manually
-xog2.tirtir("a")
-xog2.tirtir("b")
-xog2.tirtir("c")
+xog2.tir("a")
+xog2.tir("b")
+xog2.tir("c")
 bandhig("  After manual removal: " + xog2.fure())
 bandhig("  Object2 is empty: " + (xog2.fure().dherer() == 0))
 
-// Demonstrate nadiifi is more efficient than calling tirtir repeatedly
+// Demonstrate nadiifi is more efficient than calling tir repeatedly
 walax xog3 = {
     one: 1,
     two: 2,
