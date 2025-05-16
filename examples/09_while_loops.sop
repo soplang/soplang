@@ -1,24 +1,24 @@
 // Test: While Loops
 // This test checks if while loops work properly
 
-bandhig("Testing while loops (intay):")
+qor("Testing while loops (intay):")
 
 // Simple while loop
 tiro counter = 1
-bandhig("  Simple while loop:")
+qor("  Simple while loop:")
 intay (counter <= 5) {
-    bandhig("    Counter: " + counter)
+    qor("    Counter: " + counter)
     counter = counter + 1
 }
-
+ 
 // While loop with break
-bandhig("  While loop with break (jooji):")
+qor("  While loop with break (jooji):")
 counter = 1
 intay (counter <= 10) {
-    bandhig("    Counter: " + counter)
+    qor("    Counter: " + counter)
 
     haddii (counter == 5) {
-        bandhig("    Breaking the loop at counter = 5")
+        qor("    Breaking the loop at counter = 5")
         jooji
     }
 
@@ -26,7 +26,7 @@ intay (counter <= 10) {
 }
 
 // While loop with continue
-bandhig("  While loop with continue (soco):")
+qor("  While loop with continue (soco):")
 counter = 0
 intay (counter < 5) {
     counter = counter + 1
@@ -35,27 +35,27 @@ intay (counter < 5) {
         soco
     }
 
-    bandhig("    Odd counter: " + counter)
+    qor("    Odd counter: " + counter)
 }
 
 // Nested while loops
-bandhig("  Nested while loops:")
+qor("  Nested while loops:")
 tiro i = 1
 intay (i <= 3) {
-    bandhig("    Outer loop: " + i)
+    qor("    Outer loop: " + i)
     tiro j = 1
     intay (j <= 2) {
-        bandhig("      Inner loop: " + j)
+        qor("      Inner loop: " + j)
         j = j + 1
     }
     i = i + 1
 }
 
 // While loop with decimal values
-bandhig("  While loop with decimal values:")
+qor("  While loop with decimal values:")
 jajab x = 0.5
 intay (x < 3.0) {
-    bandhig("    x = " + x)
+    qor("    x = " + x)
     x = x + 0.5
 }
 
@@ -63,9 +63,9 @@ intay (x < 3.0) {
 tiro a = 5
 tiro factorial = 1
 tiro n = a
-bandhig("  Factorial calculation for " + a + ":")
+qor("  Factorial calculation for " + a + ":")
 intay (n > 0) {
     factorial = factorial * n
     n = n - 1
 }
-bandhig("    " + a + "! = " + factorial)
+qor("    " + a + "! = " + factorial)

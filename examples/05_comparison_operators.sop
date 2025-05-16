@@ -1,37 +1,37 @@
 // Test: Comparison Operators
 // This test checks if comparison operators work properly
 
-bandhig("Testing comparison operators:")
+qor("Testing comparison operators:")
 
 // Integer comparisons
 tiro a = 15
 tiro b = 5
 tiro c = 15
-bandhig("  a = " + a + ", b = " + b + ", c = " + c)
+qor("  a = " + a + ", b = " + b + ", c = " + c)
 
-bandhig("Integer comparisons:")
-bandhig("  Equal (a == c): " + (a == c))
-bandhig("  Not equal (a != b): " + (a != b))
-bandhig("  Greater than (a > b): " + (a > b))
-bandhig("  Less than (a < b): " + (a < b))
-bandhig("  Greater than or equal (a >= c): " + (a >= c))
-bandhig("  Less than or equal (a <= c): " + (a <= c))
+qor("Integer comparisons:")
+qor("  Equal (a == c): " + (a == c))
+qor("  Not equal (a != b): " + (a != b))
+qor("  Greater than (a > b): " + (a > b))
+qor("  Less than (a < b): " + (a < b))
+qor("  Greater than or equal (a >= c): " + (a >= c))
+qor("  Less than or equal (a <= c): " + (a <= c))
 
 // Decimal comparisons
 jajab x = 15.5
 jajab y = 5.25
 jajab z = 15.5
-bandhig("\nDecimal comparisons:")
-bandhig("  x = " + x + ", y = " + y + ", z = " + z)
-bandhig("  Equal (x == z): " + (x == z))
-bandhig("  Not equal (x != y): " + (x != y))
-bandhig("  Greater than (x > y): " + (x > y))
-bandhig("  Less than (x < y): " + (x < y))
-bandhig("  Greater than or equal (x >= z): " + (x >= z))
-bandhig("  Less than or equal (x <= z): " + (x <= z))
+qor("\nDecimal comparisons:")
+qor("  x = " + x + ", y = " + y + ", z = " + z)
+qor("  Equal (x == z): " + (x == z))
+qor("  Not equal (x != y): " + (x != y))
+qor("  Greater than (x > y): " + (x > y))
+qor("  Less than (x < y): " + (x < y))
+qor("  Greater than or equal (x >= z): " + (x >= z))
+qor("  Less than or equal (x <= z): " + (x <= z))
 
 // Mixed type comparisons
-bandhig("\nMixed type comparisons:")
-bandhig("  Integer vs. Decimal (a == x): " + (a == x))
-bandhig("  Integer vs. Decimal (a < x): " + (a < x))
-bandhig("  Integer vs. Decimal (b <= y): " + (b <= y))
+qor("\nMixed type comparisons:")
+qor("  Integer vs. Decimal (a == x): " + (a == x))
+qor("  Integer vs. Decimal (a < x): " + (a < x))
+qor("  Integer vs. Decimal (b <= y): " + (b <= y))
