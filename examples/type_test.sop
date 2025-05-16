@@ -1,28 +1,28 @@
 // Test: Type detection for numbers
 // Verify that nooc() correctly identifies types
 
-bandhig("Testing type detection for numbers:")
+qor("Testing type detection for numbers:")
 
 // Integer type
 door i = 1
-bandhig("Value: " + i + " | Type: " + nooc(i))  // Should be "tiro"
+qor("Value: " + i + " | Type: " + nooc(i))  // Should be "tiro"
 
 // Float with zero decimal (should be jajab now)
 door f1 = 1.0
-bandhig("Value: " + f1 + " | Type: " + nooc(f1))  // Should be "jajab"
+qor("Value: " + f1 + " | Type: " + nooc(f1))  // Should be "jajab"
 
 // Float with non-zero decimal
 door f2 = 1.5
-bandhig("Value: " + f2 + " | Type: " + nooc(f2))  // Should be "jajab"
+qor("Value: " + f2 + " | Type: " + nooc(f2))  // Should be "jajab"
 
 // Display values
-bandhig("Display format test:")
-bandhig("Integer: " + i)         // Should display as "1"
-bandhig("Float 1.0: " + f1)      // Should display as "1.0"
-bandhig("Float 1.5: " + f2)      // Should display as "1.5"
+qor("Display format test:")
+qor("Integer: " + i)         // Should display as "1"
+qor("Float 1.0: " + f1)      // Should display as "1.0"
+qor("Float 1.5: " + f2)      // Should display as "1.5"
 
 // Test in list
 liis numbers = [1, 1.0, 1.5]
-bandhig("List of numbers: " + numbers)  // Should display with proper formatting
+qor("List of numbers: " + numbers)  // Should display with proper formatting
 
-bandhig("Type detection tests completed!")
+qor("Type detection tests completed!")

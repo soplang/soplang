@@ -2,52 +2,52 @@
 // This test demonstrates the raadso() method to find indices in a list
 // and also shows how negative indices work for list access
 
-bandhig("Testing list.raadso() method and negative indexing:")
+qor("Testing list.raadso() method and negative indexing:")
 
 // Create a test list
 liis magacyo = ["Axmed", "Barwaaqo", "Cali", "Deeqa", "Cali"]
-bandhig("Original list: " + magacyo)
+qor("Original list: " + magacyo)
 
 // Find items using raadso()
-bandhig("Testing raadso() method:")
+qor("Testing raadso() method:")
 door i = magacyo.raadso("Cali")     // Should be 2 (first occurrence)
 door j = magacyo.raadso("Zahra")    // Should be maran (not found)
 door k = magacyo.raadso("Deeqa")    // Should be 3
 
-bandhig("Index of 'Cali': " + i)
-bandhig("Index of 'Zahra': " + j)
-bandhig("Index of 'Deeqa': " + k)
+qor("Index of 'Cali': " + i)
+qor("Index of 'Zahra': " + j)
+qor("Index of 'Deeqa': " + k)
 
 // Test negative indexing
-bandhig("Testing negative indexing:")
+qor("Testing negative indexing:")
 door ugu_dambe = magacyo[-1]            // "Cali" (last element)
 door labaad_ka_dambe = magacyo[-2]      // "Deeqa" (second last element)
 door saddexaad_ka_dambe = magacyo[-3]   // "Cali" (third last element)
 door afraad_ka_dambe = magacyo[-4]      // "Barwaaqo" (fourth last element)
 door shanaad_ka_dambe = magacyo[-5]     // "Axmed" (fifth last element)
 
-bandhig("Last element [-1]: " + ugu_dambe)
-bandhig("Second last element [-2]: " + labaad_ka_dambe)
-bandhig("Third last element [-3]: " + saddexaad_ka_dambe)
-bandhig("Fourth last element [-4]: " + afraad_ka_dambe)
-bandhig("Fifth last element [-5]: " + shanaad_ka_dambe)
+qor("Last element [-1]: " + ugu_dambe)
+qor("Second last element [-2]: " + labaad_ka_dambe)
+qor("Third last element [-3]: " + saddexaad_ka_dambe)
+qor("Fourth last element [-4]: " + afraad_ka_dambe)
+qor("Fifth last element [-5]: " + shanaad_ka_dambe)
 
 // Test negative indexing assignment
-bandhig("Testing negative indexing assignment:")
+qor("Testing negative indexing assignment:")
 magacyo[-1] = "Faarax"   // Replace last element
-bandhig("After changing last element: " + magacyo)
+qor("After changing last element: " + magacyo)
 
 magacyo[-3] = "Cabdi"    // Replace third last element
-bandhig("After changing third last element: " + magacyo)
+qor("After changing third last element: " + magacyo)
 
 // Test raadso() after modifications
-bandhig("Testing raadso() after modifications:")
+qor("Testing raadso() after modifications:")
 door new_i = magacyo.raadso("Cali")     // Should still be 2 (first occurrence)
 door new_j = magacyo.raadso("Faarax")   // Should be 4 (was modified from "Cali")
 door new_k = magacyo.raadso("Cabdi")    // Should be 2 (was modified from "Cali")
 
-bandhig("New index of 'Cali': " + new_i)
-bandhig("Index of 'Faarax': " + new_j)
-bandhig("Index of 'Cabdi': " + new_k)
+qor("New index of 'Cali': " + new_i)
+qor("Index of 'Faarax': " + new_j)
+qor("Index of 'Cabdi': " + new_k)
 
-bandhig("List raadso() and negative indexing test completed!")
+qor("List raadso() and negative indexing test completed!")
