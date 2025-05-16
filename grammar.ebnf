@@ -194,5 +194,5 @@ ListMethod ::= "kudar"       // push
 // ===== OBJECT METHODS =====
 ObjectMethod ::= "furaha"    // keys
                | "haystaa"   // has
-               | "tirtir"    // remove
+               | "tir"    // remove
                | "iskudar"   // merge

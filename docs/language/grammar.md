@@ -239,7 +239,7 @@ ListMethod ::= "kudar"       // push
 ```ebnf
 ObjectMethod ::= "furaha"    // keys
                | "haystaa"   // has
-               | "tirtir"    // remove
+               | "tir"    // remove
                | "iskudar"   // merge
 ```
 
