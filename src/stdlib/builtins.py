@@ -780,7 +780,7 @@ class SoplangBuiltins:
             )
 
     @staticmethod
-    def kudhow(*args):
+    def xul(*args):
         """
         Generate random numbers or select random items from a list.
 
@@ -832,7 +832,7 @@ class SoplangBuiltins:
 
         # Case 4: More than two arguments - error
         else:
-            raise TypeError("kudhow() waxay qaadataa 0, 1, ama 2 qiimo (kudhow() takes 0, 1, or 2 arguments)")
+            raise TypeError("xul() waxay qaadataa 0, 1, ama 2 qiimo (xul() takes 0, 1, or 2 arguments)")
 
 
 def get_builtin_functions():
@@ -852,7 +852,7 @@ def get_builtin_functions():
         "daji": SoplangBuiltins.daji,
         "kor": SoplangBuiltins.kor,
         "dherer": SoplangBuiltins.dherer,
-        "kudhow": SoplangBuiltins.kudhow,
+        "xul": SoplangBuiltins.xul,
     }
 
     return builtins

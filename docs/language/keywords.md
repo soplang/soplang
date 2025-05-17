@@ -94,7 +94,7 @@ This document provides a reference for all keywords in the Soplang programming l
 | `daji`    | Round down to integer | `Math.floor()`     | `door n = daji(4.7)`                     |
 | `kor`     | Round up to integer   | `Math.ceil()`      | `door n = kor(4.2)`                      |
 | `dherer`  | Get length of value   | `len()`/`.length`  | `door n = dherer(qoraal)`                |
-| `kudhow`  | Get random value      | `random()`         | `door n = kudhow(1, 6)`                  |
+| `xul`     | Get random value      | `random()`         | `door n = xul(1, 6)`                     |
 
 ## List Methods
 
@@ -131,7 +131,7 @@ This document provides a reference for all keywords in the Soplang programming l
 
 | Method            | English Equivalent | Description                           | Example                                  |
 | ----------------- | ------------------ | ------------------------------------- | ---------------------------------------- |
-| `qeybi(xad)`    | `split()`          | Split string by delimiter             | `door parts = text.qeybi(",")`           |
+| `qeybi(xad)`      | `split()`          | Split string by delimiter             | `door parts = text.qeybi(",")`           |
 | `leeyahay(sub)`   | `includes()`       | Check if string contains substring    | `haddii (text.leeyahay("search")) {...}` |
 | `dhamaad(sub)`    | `endsWith()`       | Check if string ends with substring   | `haddii (text.dhamaad("ing")) {...}`     |
 | `bilow(sub)`      | `startsWith()`     | Check if string starts with substring | `haddii (text.bilow("http")) {...}`      |
