@@ -1,18 +1,18 @@
-// Test: List raadso() method and negative indexing
-// This test demonstrates the raadso() method to find indices in a list
+// Test: List muuji() method and negative indexing
+// This test demonstrates the muuji() method to find indices in a list
 // and also shows how negative indices work for list access
 
-qor("Testing list.raadso() method and negative indexing:")
+qor("Testing list.muuji() method and negative indexing:")
 
 // Create a test list
 liis magacyo = ["Axmed", "Barwaaqo", "Cali", "Deeqa", "Cali"]
 qor("Original list: " + magacyo)
 
-// Find items using raadso()
-qor("Testing raadso() method:")
-door i = magacyo.raadso("Cali")     // Should be 2 (first occurrence)
-door j = magacyo.raadso("Zahra")    // Should be maran (not found)
-door k = magacyo.raadso("Deeqa")    // Should be 3
+// Find items using muuji()
+qor("Testing muuji() method:")
+door i = magacyo.muuji("Cali")     // Should be 2 (first occurrence)
+door j = magacyo.muuji("Zahra")    // Should be maran (not found)
+door k = magacyo.muuji("Deeqa")    // Should be 3
 
 qor("Index of 'Cali': " + i)
 qor("Index of 'Zahra': " + j)
@@ -40,14 +40,14 @@ qor("After changing last element: " + magacyo)
 magacyo[-3] = "Cabdi"    // Replace third last element
 qor("After changing third last element: " + magacyo)
 
-// Test raadso() after modifications
-qor("Testing raadso() after modifications:")
-door new_i = magacyo.raadso("Cali")     // Should still be 2 (first occurrence)
-door new_j = magacyo.raadso("Faarax")   // Should be 4 (was modified from "Cali")
-door new_k = magacyo.raadso("Cabdi")    // Should be 2 (was modified from "Cali")
+// Test muuji() after modifications
+qor("Testing muuji() after modifications:")
+door new_i = magacyo.muuji("Cali")     // Should still be 2 (first occurrence)
+door new_j = magacyo.muuji("Faarax")   // Should be 4 (was modified from "Cali")
+door new_k = magacyo.muuji("Cabdi")    // Should be 2 (was modified from "Cali")
 
 qor("New index of 'Cali': " + new_i)
 qor("Index of 'Faarax': " + new_j)
 qor("Index of 'Cabdi': " + new_k)
 
-qor("List raadso() and negative indexing test completed!")
+qor("List muuji() and negative indexing test completed!")

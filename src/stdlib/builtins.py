@@ -488,7 +488,7 @@ class SoplangBuiltins:
         return result
 
     @staticmethod
-    def list_raadso(lst, item):
+    def list_muuji(lst, item):
         """
         Find the index of an item in a list
         Returns the index of the first matching item or maran if not found
@@ -892,7 +892,7 @@ def get_list_methods():
         "shaandhee": SoplangBuiltins.list_filter,
         "jar": SoplangBuiltins.list_jar,
         "aaddin": SoplangBuiltins.list_map,
-        "raadso": SoplangBuiltins.list_raadso,
+        "muuji": SoplangBuiltins.list_muuji,
     }
 
     return methods
