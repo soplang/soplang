@@ -62,7 +62,7 @@ bool has_email = person.leeyahay("email")
 bandhig("  Does person have 'email'? " + has_email)
 
 // Removing properties
-person.tirtir("shaqo")
+person.tir("shaqo")
 bandhig("  After removing job: " + person)
 
 // Merging objects

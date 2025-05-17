@@ -865,7 +865,7 @@ def get_object_methods():
     methods = {
         "fure": SoplangBuiltins.object_keys,
         "leeyahay": SoplangBuiltins.object_has,
-        "tirtir": SoplangBuiltins.object_remove,
+        "tir": SoplangBuiltins.object_remove,
         "kudar": SoplangBuiltins.object_merge,
         "nuqul": SoplangBuiltins.object_copy,
         "nadiifi": SoplangBuiltins.object_clear,

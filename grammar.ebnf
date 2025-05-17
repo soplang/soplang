@@ -195,7 +195,7 @@ ObjectMethod ::= "fure"      // keys
                | "qiime"     // values
                | "lamaane"   // entries
                | "leeyahay"  // has
-               | "tirtir"    // remove
+               | "tir"    // remove
                | "kudar"     // merge
                | "nuqul"     // copy
                | "nadiifi"   // clear
