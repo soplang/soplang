@@ -168,13 +168,13 @@ class Interpreter:
                     position=position,
                 )
 
-        elif expected_type == TokenType.LIIS:
+        elif expected_type == TokenType.teed:
             if not isinstance(value, list):
                 raise TypeError(
                     "type_mismatch",
                     var_name=var_name,
                     value=value,
-                    expected_type="liis",
+                    expected_type="teed",
                     line=line,
                     position=position,
                 )
@@ -601,7 +601,7 @@ class Interpreter:
                 field_value = self.evaluate(child.children[0])
                 class_def["fields"][field_name] = field_value
             else:
-                # Execute any statements in the class (like bandhig())
+                # Execute any statements in the class (like qor())
                 self.execute(child)
 
         # Store the class definition
@@ -893,7 +893,7 @@ class Interpreter:
 
         if method_name not in self.list_methods:
             raise RuntimeError(
-                "method_not_found", method_name=method_name, type_name="liis"
+                "method_not_found", method_name=method_name, type_name="teed"
             )
 
         # Special handling for list methods that take function arguments

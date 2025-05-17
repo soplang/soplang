@@ -64,7 +64,7 @@ docker run --rm -v "$(pwd):/scripts" soplang:latest examples/XX_example_name.so
 **Purpose**: Demonstrates Soplang's static typing system with type-specific keywords.
 
 **Features Tested**:
-- Static variable declaration with `tiro`, `qoraal`, `bool`, `liis`, and `walax`
+- Static variable declaration with `tiro`, `qoraal`, `bool`, `teed`, and `walax`
 - Type enforcement at runtime
 - Error handling for type violations
 
@@ -228,7 +228,7 @@ docker run --rm -v "$(pwd):/scripts" soplang:latest examples/XX_example_name.so
 - Object creation and initialization
 - Property access with dot notation
 - Property modification
-- Object methods: `fure` (keys), `leeyahay` (has), `tirtir` (remove), `kudar` (merge)
+- Object methods: `fure` (keys), `leeyahay` (has), `tir` (remove), `kudar` (merge)
 - Nested objects
 - Objects with arrays
 - Arrays of objects

@@ -7,7 +7,7 @@ This document describes each example program available in the Soplang programmin
 A simple introduction to Soplang syntax and basic features.
 
 **Features tested:**
-- Basic output with `bandhig()`
+- Basic output with `qor()`
 - Variable declarations (dynamic and static)
 - String concatenation
 - Function definition and calls
@@ -83,7 +83,7 @@ Demonstrates list operations and features.
 
 **Features tested:**
 - Dynamic list declarations
-- Static list declarations with `liis` type
+- Static list declarations with `teed` type
 - Empty lists
 - Lists with mixed types
 - Lists with expressions

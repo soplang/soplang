@@ -1,132 +1,132 @@
 // Example 9: Switch-Case Statements
 // This example demonstrates the usage of dooro (switch) and xaalad (case) statements
 
-bandhig("=====================================")
-bandhig("Switch-Case Statements (dooro/xaalad)")
-bandhig("=====================================")
+qor("=====================================")
+qor("Switch-Case Statements (dooro/xaalad)")
+qor("=====================================")
 
 // Example 1: Basic switch with integer
-bandhig("\n1. Basic switch with integer:")
+qor("\n1. Basic switch with integer:")
 tiro number = 2
-bandhig("Testing with number = " + number)
+qor("Testing with number = " + number)
 
 dooro (number) {
   xaalad 1 {
-    bandhig("Hal (One)")
+    qor("Hal (One)")
   }
   xaalad 2 {
-    bandhig("Laba (Two)")
+    qor("Laba (Two)")
   }
   xaalad 3 {
-    bandhig("Saddex (Three)")
+    qor("Saddex (Three)")
   }
   ugudambeyn {
-    bandhig("Tiro kale (Another number)")
+    qor("Tiro kale (Another number)")
   }
 }
 
 // Example 2: Switch with strings
-bandhig("\n2. Switch with strings:")
+qor("\n2. Switch with strings:")
 qoraal language = "Somali"
-bandhig("Testing with language = " + language)
+qor("Testing with language = " + language)
 
 dooro (language) {
   xaalad "English" {
-    bandhig("Hello, World!")
+    qor("Hello, World!")
   }
   xaalad "Somali" {
-    bandhig("Salaan, Adduunka!")
+    qor("Salaan, Adduunka!")
   }
   xaalad "Spanish" {
-    bandhig("¡Hola, Mundo!")
+    qor("¡Hola, Mundo!")
   }
   ugudambeyn {
-    bandhig("Language not recognized")
+    qor("Language not recognized")
   }
 }
 
 // Example 3: Switch with expressions
-bandhig("\n3. Switch with expressions:")
+qor("\n3. Switch with expressions:")
 tiro x = 10
 tiro y = 20
-bandhig("Testing with x = " + x + " and y = " + y)
+qor("Testing with x = " + x + " and y = " + y)
 
 dooro (x + y) {
   xaalad 10 {
-    bandhig("Sum is 10")
+    qor("Sum is 10")
   }
   xaalad 30 {
-    bandhig("Sum is 30")
+    qor("Sum is 30")
   }
   xaalad 50 {
-    bandhig("Sum is 50")
+    qor("Sum is 50")
   }
   ugudambeyn {
-    bandhig("Sum is " + (x + y))
+    qor("Sum is " + (x + y))
   }
 }
 
 // Example 4: Switch with decimal values
-bandhig("\n4. Switch with decimal values:")
+qor("\n4. Switch with decimal values:")
 jajab price = 19.99
-bandhig("Testing with price = " + price)
+qor("Testing with price = " + price)
 
 dooro (price) {
   xaalad 9.99 {
-    bandhig("Budget item")
+    qor("Budget item")
   }
   xaalad 19.99 {
-    bandhig("Standard item")
+    qor("Standard item")
   }
   xaalad 29.99 {
-    bandhig("Premium item")
+    qor("Premium item")
   }
   ugudambeyn {
-    bandhig("Custom priced item")
+    qor("Custom priced item")
   }
 }
 
 // Example 5: Nested switch statements
-bandhig("\n5. Nested switch statements:")
+qor("\n5. Nested switch statements:")
 tiro department = 1
 tiro level = 2
-bandhig("Testing with department = " + department + " and level = " + level)
+qor("Testing with department = " + department + " and level = " + level)
 
 dooro (department) {
   xaalad 1 {
-    bandhig("Engineering Department")
+    qor("Engineering Department")
     dooro (level) {
       xaalad 1 {
-        bandhig("- Junior Engineer")
+        qor("- Junior Engineer")
       }
       xaalad 2 {
-        bandhig("- Senior Engineer")
+        qor("- Senior Engineer")
       }
       ugudambeyn {
-        bandhig("- Management Level")
+        qor("- Management Level")
       }
     }
   }
   xaalad 2 {
-    bandhig("Marketing Department")
+    qor("Marketing Department")
   }
   ugudambeyn {
-    bandhig("Other Department")
+    qor("Other Department")
   }
 }
 
 // Example 6: Switch with boolean expression
-bandhig("\n6. Switch with boolean expression:")
+qor("\n6. Switch with boolean expression:")
 tiro score = 85
-bandhig("Testing with score = " + score)
+qor("Testing with score = " + score)
 
 dooro (score >= 80) {
   xaalad run {
-    bandhig("High score achieved!")
+    qor("High score achieved!")
   }
   xaalad been {
-    bandhig("Keep practicing")
+    qor("Keep practicing")
   }
 }
 
-bandhig("\nSwitch-case demonstration completed!")
+qor("\nSwitch-case demonstration completed!")

@@ -27,7 +27,7 @@ class Lexer:
             "madoor": TokenType.MADOOR,
             "hawl": TokenType.HAWL,
             "celi": TokenType.CELI,
-            "bandhig": TokenType.BANDHIG,
+            "qor": TokenType.qor,
             "gelin": TokenType.GELIN,
             "haddii": TokenType.HADDII,
             "haddii_kale": TokenType.HADDII_KALE,
@@ -49,7 +49,7 @@ class Lexer:
             "tiro": TokenType.TIRO,
             "qoraal": TokenType.QORAAL,
             "bool": TokenType.BOOL,
-            "liis": TokenType.LIIS,
+            "teed": TokenType.teed,
             "walax": TokenType.WALAX,
             # Boolean literals
             "run": TokenType.TRUE,

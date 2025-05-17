@@ -4,56 +4,57 @@
 bandhig("Testing random function (xul):")
 
 // Case 1: No arguments - random float between 0.0 and 1.0
-bandhig("\nGenerate random float between 0.0 and 1.0:")
+qor("\nGenerate random float between 0.0 and 1.0:")
 door randomFloat1 = xul()
 door randomFloat2 = xul()
 door randomFloat3 = xul()
-bandhig("  Random float 1: " + randomFloat1)
-bandhig("  Random float 2: " + randomFloat2)
-bandhig("  Random float 3: " + randomFloat3)
-bandhig("  Note: Values will be different on each run")
+qor("  Random float 1: " + randomFloat1)
+qor("  Random float 2: " + randomFloat2)
+qor("  Random float 3: " + randomFloat3)
+qor("  Note: Values will be different on each run")
 
 // Case 2: Two number arguments - random number between a and b (inclusive)
-bandhig("\nGenerate random integers between ranges:")
+qor("\nGenerate random integers between ranges:")
 // Dice roll (1-6)
 door diceRoll1 = xul(1, 6)
 door diceRoll2 = xul(1, 6)
 door diceRoll3 = xul(1, 6)
-bandhig("  Dice roll 1 (1-6): " + diceRoll1)
-bandhig("  Dice roll 2 (1-6): " + diceRoll2)
-bandhig("  Dice roll 3 (1-6): " + diceRoll3)
+qor("  Dice roll 1 (1-6): " + diceRoll1)
+qor("  Dice roll 2 (1-6): " + diceRoll2)
+qor("  Dice roll 3 (1-6): " + diceRoll3)
 
 // Random number between 10 and 20
 door randomNum = xul(10, 20)
-bandhig("  Random number (10-20): " + randomNum)
+qor("  Random number (10-20): " + randomNum)
 
 // Random decimal between ranges
 door randomDecimal = xul(0.5, 9.5)
-bandhig("  Random decimal (0.5-9.5): " + randomDecimal)
+qor("  Random decimal (0.5-9.5): " + randomDecimal)
 
 // Case 3: One list argument - random item from list
-bandhig("\nSelect random items from lists:")
+qor("\nSelect random items from lists:")
 // Names
 liis names = ["Ayaan", "Cali", "Zahra", "Ahmed", "Fadumo"]
 door randomName1 = xul(names)
 door randomName2 = xul(names)
 door randomName3 = xul(names)
-bandhig("  Random name 1: " + randomName1)
-bandhig("  Random name 2: " + randomName2)
-bandhig("  Random name 3: " + randomName3)
+qor("  Random name 1: " + randomName1)
+qor("  Random name 2: " + randomName2)
+qor("  Random name 3: " + randomName3)
 
 // Mixed types
 liis mixedList = [42, "Soplang", been, [1, 2, 3], {name: "test"}]
 door randomItem = xul(mixedList)
-bandhig("  Random item from mixed list: " + randomItem)
+qor("  Random item from mixed list: " + randomItem)
 
 // Practical applications
-bandhig("\nPractical applications:")
+qor("\nPractical applications:")
 
 // 1. Random color generator
 liis colors = ["red", "green", "blue", "yellow", "purple", "orange"]
 door randomColor = xul(colors)
-bandhig("  Random color: " + randomColor)
+qor("  Random color: " + randomColor)
+color: " + randomColor)
 
 // 2. Random yes/no decision
 door randomValue = xul()
@@ -63,11 +64,11 @@ haddii (randomValue > 0.5) {
 } ugudambeyn {
     decision = "Maya"
 }
-bandhig("  Random decision: " + decision)
+qor("  Random decision: " + decision)
 
 // 3. Password generator helper
 hawl randomChar() {
-    liis chars = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M",
+    teed chars = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M",
                  "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z",
                  "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m",
                  "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z",
@@ -80,25 +81,27 @@ qoraal password = ""
 kuceli (i 0 ilaa 7) {
     password = password + randomChar()
 }
-bandhig("  Random password: " + password)
+qor("  Random password: " + password)
 
 // 4. Simple dice game
 tiro player1 = xul(1, 6)
 tiro player2 = xul(1, 6)
-bandhig("  Dice game: Player 1 rolled " + player1 + ", Player 2 rolled " + player2)
+qor("  Dice game: Player 1 rolled " + player1 + ", Player 2 rolled " + player2)
+
 haddii (player1 > player2) {
-    bandhig("  Player 1 wins!")
+    qor("  Player 1 wins!")
 } haddii_kale (player2 > player1) {
-    bandhig("  Player 2 wins!")
+    qor("  Player 2 wins!")
 } ugudambeyn {
-    bandhig("  It's a tie!")
+    qor("  It's a tie!")
 }
 
-bandhig("\nTesting error cases:")
-bandhig("  Note: The following lines would cause errors if uncommented:")
-bandhig("  // xul(1, 2, 3)          // Too many arguments")
-bandhig("  // xul({})               // Not a list")
-bandhig("  // xul(6, 1)             // First value greater than second")
-bandhig("  // xul([])               // Empty list")
+qor("\nTesting error cases:")
+qor("  Note: The following lines would cause errors if uncommented:")
+qor("  // xul(1, 2, 3)          // Too many arguments")
+qor("  // xul({})               // Not a list")
+qor("  // xul(6, 1)             // First value greater than second")
+qor("  // xul([])               // Empty list")
 
-bandhig("\nRandom function tests completed!")
+
+qor("\nRandom function tests completed!")

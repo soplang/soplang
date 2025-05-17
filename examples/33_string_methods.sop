@@ -1,47 +1,47 @@
 // Test: String Methods
 // This test demonstrates string methods like qeybi() to split strings
 
-bandhig("Testing string methods:")
+qor("Testing string methods:")
 
 // Simple string splitting example
 door text = "Ayaan,Cali,Zahra"
-liis magacyo = text.qeybi(",")
-bandhig("  Split by comma: " + magacyo)
+teed magacyo = text.qeybi(",")
+qor("  Split by comma: " + magacyo)
 
 // Splitting with spaces
 door sentence = "Soplang waa luqad wacan"
-liis words = sentence.qeybi(" ")
-bandhig("  Split by space: " + words)
+teed words = sentence.qeybi(" ")
+qor("  Split by space: " + words)
 
 // Handling empty strings
 door empty = ""
-liis emptyParts = empty.qeybi(",")
-bandhig("  Split empty string: " + emptyParts)
+teed emptyParts = empty.qeybi(",")
+qor("  Split empty string: " + emptyParts)
 
 // Handling delimiter not found
 door noDelim = "hello"
-liis noDelimParts = noDelim.qeybi(",")
-bandhig("  Split with no delimiter: " + noDelimParts)
+teed noDelimParts = noDelim.qeybi(",")
+qor("  Split with no delimiter: " + noDelimParts)
 
 // Handling consecutive delimiters
 door consecutive = "a,,b,c,"
-liis consecutiveParts = consecutive.qeybi(",")
-bandhig("  Split with consecutive delimiters: " + consecutiveParts)
+teed consecutiveParts = consecutive.qeybi(",")
+qor("  Split with consecutive delimiters: " + consecutiveParts)
 
 // Using split result in loops
-bandhig("\nIterating through split results:")
+qor("\nIterating through split results:")
 door csv = "1,2,3,4,5"
-liis numbers = csv.qeybi(",")
+teed numbers = csv.qeybi(",")
 
 kuceli (i 0 ilaa numbers.dherer() - 1) {
-    bandhig("  Item " + i + ": " + numbers[i])
+    qor("  Item " + i + ": " + numbers[i])
 }
 
 // Converting split numeric strings to numbers
-bandhig("\nConverting split strings to numbers:")
+qor("\nConverting split strings to numbers:")
 kuceli (i 0 ilaa numbers.dherer() - 1) {
     tiro num = tiro(numbers[i])
-    bandhig("  Number " + i + ": " + num + " (type: " + nooc(num) + ")")
+    qor("  Number " + i + ": " + num + " (type: " + nooc(num) + ")")
 }
 
-bandhig("\nString method tests completed!")
+qor("\nString method tests completed!")

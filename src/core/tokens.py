@@ -7,7 +7,7 @@ class TokenType(Enum):
     MADOOR = "madoor"  # Constant variable
     HAWL = "hawl"
     CELI = "celi"
-    BANDHIG = "bandhig"
+    qor = "qor"
     GELIN = "gelin"
     HADDII = "haddii"
     HADDII_KALE = "haddii_kale"
@@ -31,7 +31,7 @@ class TokenType(Enum):
     JAJAB = "jajab"  # float/decimal
     QORAAL = "qoraal"  # string
     BOOL = "bool"  # boolean
-    LIIS = "liis"  # list
+    teed = "teed"  # list
     WALAX = "walax"  # object/dict
 
     # Data & Operators

@@ -1,44 +1,44 @@
 // Test: Constant Type Checking
 // This test verifies that typed constants are properly type-checked
 
-bandhig("Testing constant type checking:")
+qor("Testing constant type checking:")
 
 // Define some typed constants
 madoor tiro MAX_COUNT = 100
 madoor qoraal APP_NAME = "Soplang"
 madoor bool IS_DEBUG = run
-madoor liis ALLOWED_OPTIONS = ["option1", "option2", "option3"]
+madoor teed ALLOWED_OPTIONS = ["option1", "option2", "option3"]
 madoor walax CONFIG = {host: "localhost", port: 8080}
 
-bandhig("Checking types of constants:")
-bandhig("  MAX_COUNT: " + nooc(MAX_COUNT))
-bandhig("  APP_NAME: " + nooc(APP_NAME))
-bandhig("  IS_DEBUG: " + nooc(IS_DEBUG))
-bandhig("  ALLOWED_OPTIONS: " + nooc(ALLOWED_OPTIONS))
-bandhig("  CONFIG: " + nooc(CONFIG))
+qor("Checking types of constants:")
+qor("  MAX_COUNT: " + nooc(MAX_COUNT))
+qor("  APP_NAME: " + nooc(APP_NAME))
+qor("  IS_DEBUG: " + nooc(IS_DEBUG))
+qor("  ALLOWED_OPTIONS: " + nooc(ALLOWED_OPTIONS))
+qor("  CONFIG: " + nooc(CONFIG))
 
 // Examples of valid usage
 tiro counter = MAX_COUNT - 50
-bandhig("Counter: " + counter)
+qor("Counter: " + counter)
 
 qoraal message = "Welcome to " + APP_NAME
-bandhig("Message: " + message)
+qor("Message: " + message)
 
 haddii (IS_DEBUG) {
-    bandhig("Debug mode is enabled")
+    qor("Debug mode is enabled")
 }
 
-liis user_options = ALLOWED_OPTIONS
+teed user_options = ALLOWED_OPTIONS
 user_options.kudar("option4")  // This modifies the copy, not the constant
-bandhig("User options: " + user_options)
-bandhig("Allowed options (constant): " + ALLOWED_OPTIONS)
+qor("User options: " + user_options)
+qor("Allowed options (constant): " + ALLOWED_OPTIONS)
 
-bandhig("Server config: " + CONFIG.host + ":" + CONFIG.port)
+qor("Server config: " + CONFIG.host + ":" + CONFIG.port)
 
 // For demonstration - these would cause type errors if uncommented
-bandhig("Type errors if uncommented:")
-bandhig("  // madoor tiro INVALID_INT = 'not a number'")
-bandhig("  // madoor qoraal INVALID_STRING = 123")
-bandhig("  // madoor bool INVALID_BOOL = 'not a boolean'")
+qor("Type errors if uncommented:")
+qor("  // madoor tiro INVALID_INT = 'not a number'")
+qor("  // madoor qoraal INVALID_STRING = 123")
+qor("  // madoor bool INVALID_BOOL = 'not a boolean'")
 
-bandhig("Constant type checking test completed!")
+qor("Constant type checking test completed!")

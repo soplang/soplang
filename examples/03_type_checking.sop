@@ -1,14 +1,14 @@
 // Test: Type Checking
 // This test checks if the nooc function works properly for detecting types
 
-bandhig("Testing type checking (nooc):")
+qor("Testing type checking (nooc):")
 
 // Create variables of different types
 tiro integer_var = 42
 jajab decimal_var = 3.14159
 qoraal string_var = "Soplang waa luqad wacan"
 bool bool_var = been
-liis list_var = [1, 2, 3, "afar", been]
+teed list_var = [1, 2, 3, "afar", been]
 walax object_var = {
     magac: "Ahmed",
     da: 25
@@ -16,22 +16,22 @@ walax object_var = {
 door dynamic_var = "dynamic"
 
 // Check types with nooc function
-bandhig("  Type of integer_var: " + nooc(integer_var))
-bandhig("  Type of decimal_var: " + nooc(decimal_var))
-bandhig("  Type of string_var: " + nooc(string_var))
-bandhig("  Type of bool_var: " + nooc(bool_var))
-bandhig("  Type of list_var: " + nooc(list_var))
-bandhig("  Type of object_var: " + nooc(object_var))
-bandhig("  Type of dynamic_var: " + nooc(dynamic_var))
+qor("  Type of integer_var: " + nooc(integer_var))
+qor("  Type of decimal_var: " + nooc(decimal_var))
+qor("  Type of string_var: " + nooc(string_var))
+qor("  Type of bool_var: " + nooc(bool_var))
+qor("  Type of list_var: " + nooc(list_var))
+qor("  Type of object_var: " + nooc(object_var))
+qor("  Type of dynamic_var: " + nooc(dynamic_var))
 
 // Change type of dynamic variable and check again
 dynamic_var = 100
-bandhig("  Type of dynamic_var after change: " + nooc(dynamic_var))
+qor("  Type of dynamic_var after change: " + nooc(dynamic_var))
 
 // Check type of literal values
-bandhig("  Type of literal integer: " + nooc(123))
-bandhig("  Type of literal decimal: " + nooc(45.67))
-bandhig("  Type of literal string: " + nooc("test"))
-bandhig("  Type of literal boolean: " + nooc(run))
-bandhig("  Type of literal list: " + nooc([1, 2, 3]))
-bandhig("  Type of literal object: " + nooc({a: 1, b: 2}))
+qor("  Type of literal integer: " + nooc(123))
+qor("  Type of literal decimal: " + nooc(45.67))
+qor("  Type of literal string: " + nooc("test"))
+qor("  Type of literal boolean: " + nooc(run))
+qor("  Type of literal list: " + nooc([1, 2, 3]))
+qor("  Type of literal object: " + nooc({a: 1, b: 2}))

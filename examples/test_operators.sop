@@ -1,39 +1,39 @@
 // Test file for operator parsing issues
 
-bandhig("Testing operator parsing:")
+qor("Testing operator parsing:")
 
 // Test comparison operators in assignments
 tiro score = 85
-bandhig("score = " + score)
+qor("score = " + score)
 
 // This should now work without parentheses
 door is_high_score = score >= 80
-bandhig("is_high_score = " + is_high_score)
+qor("is_high_score = " + is_high_score)
 
 // Test with parentheses too
 door is_passing = (score >= 60)
-bandhig("is_passing = " + is_passing)
+qor("is_passing = " + is_passing)
 
 // Test with dooro statement
-bandhig("\nTesting dooro with comparison:")
+qor("\nTesting dooro with comparison:")
 
 // This should now work directly with a comparison
 dooro (score >= 80) {
   xaalad run {
-    bandhig("High score achieved!")
+    qor("High score achieved!")
   }
   xaalad been {
-    bandhig("Keep practicing")
+    qor("Keep practicing")
   }
 }
 
 // Test complex conditions
 door complex_condition = (score > 60 && score < 90)
-bandhig("complex_condition = " + complex_condition)
+qor("complex_condition = " + complex_condition)
 
 // Test list with comparisons
-liis test_list = [score > 80, score < 90, score == 85]
-bandhig("test_list = " + test_list)
+teed test_list = [score > 80, score < 90, score == 85]
+qor("test_list = " + test_list)
 
 // Test object with comparisons
 walax test_obj = {
@@ -41,7 +41,7 @@ walax test_obj = {
   passing: score >= 60,
   perfect: score == 100
 }
-bandhig("test_obj.high_score = " + test_obj.high_score)
-bandhig("test_obj.perfect = " + test_obj.perfect)
+qor("test_obj.high_score = " + test_obj.high_score)
+qor("test_obj.perfect = " + test_obj.perfect)
 
-bandhig("\nTest completed")
+qor("\nTest completed")

@@ -1,80 +1,80 @@
 // Test: String Join Method (kudar)
 // This test demonstrates the kudar() method which joins a list of strings with a separator
 
-bandhig("Testing string join method (kudar):")
+qor("Testing string join method (kudar):")
 
 // Basic example from task definition
 door magacyo = ["Ayaan", "Cali", "Zahra"]
 door natiijo = ", ".kudar(magacyo)
 
-bandhig("")
-bandhig("Basic example:")
-bandhig("  Names: " + magacyo)
-bandhig("  Joined with comma: " + natiijo)  // Should be "Ayaan, Cali, Zahra"
+qor("")
+qor("Basic example:")
+qor("  Names: " + magacyo)
+qor("  Joined with comma: " + natiijo)  // Should be "Ayaan, Cali, Zahra"
 
 // Empty list test
 door empty_list = []
 door empty_result = "-".kudar(empty_list)
-bandhig("")
-bandhig("Empty list test:")
-bandhig("  Empty list joined with dash: '" + empty_result + "'")  // Should be ""
+qor("")
+qor("Empty list test:")
+qor("  Empty list joined with dash: '" + empty_result + "'")  // Should be ""
 
 // Single item list
 door single_list = ["Warsame"]
 door single_result = "...".kudar(single_list)
-bandhig("")
-bandhig("Single item list:")
-bandhig("  Single item list joined with dots: " + single_result)  // Should be "Warsame" with no separator
+qor("")
+qor("Single item list:")
+qor("  Single item list joined with dots: " + single_result)  // Should be "Warsame" with no separator
 
 // Different types of separators
 door fruits = ["Tufaax", "Moos", "Cambe"]
 door with_comma = ", ".kudar(fruits)
 door with_dash = " - ".kudar(fruits)
 door with_empty = "".kudar(fruits)
-bandhig("")
-bandhig("Different separators:")
-bandhig("  With comma: " + with_comma)  // Should be "Tufaax, Moos, Cambe"
-bandhig("  With dash: " + with_dash)     // Should be "Tufaax - Moos - Cambe"
-bandhig("  With empty string: " + with_empty)  // Should be "TufaaxMoosCambe"
+qor("")
+qor("Different separators:")
+qor("  With comma: " + with_comma)  // Should be "Tufaax, Moos, Cambe"
+qor("  With dash: " + with_dash)     // Should be "Tufaax - Moos - Cambe"
+qor("  With empty string: " + with_empty)  // Should be "TufaaxMoosCambe"
 
 // Multiple newlines for clarity
-bandhig("")
-bandhig("Newline separator:")
+qor("")
+qor("Newline separator:")
 // Using direct newline
 door items = ["Item 1", "Item 2", "Item 3"]
-bandhig("  Items on separate lines:")
-bandhig("Item 1")
-bandhig("Item 2")
-bandhig("Item 3")
+qor("  Items on separate lines:")
+qor("Item 1")
+qor("Item 2")
+qor("Item 3")
 
 // Practical examples
-bandhig("")
-bandhig("Practical examples:")
+qor("")
+qor("Practical examples:")
 
 // CSV line generation
 door data = ["2023-06-15", "Ahmed", "Somalia", "30"]
 door csv_line = ",".kudar(data)
-bandhig("  CSV line generation: " + csv_line)  // Should be "2023-06-15,Ahmed,Somalia,30"
+qor("  CSV line generation: " + csv_line)  // Should be "2023-06-15,Ahmed,Somalia,30"
 
 // URL building
 door url_parts = ["https://example.com", "api", "v1", "users", "123"]
 door url = "/".kudar(url_parts)
-bandhig("  URL building: " + url)  // Should be "https://example.com/api/v1/users/123"
+qor("  URL building: " + url)  // Should be "https://example.com/api/v1/users/123"
 
 // File path construction
 door path_parts = ["home", "user", "documents", "report.pdf"]
 door path = "/".kudar(path_parts)
-bandhig("  File path construction: " + path)  // Should be "home/user/documents/report.pdf"
+qor("  File path construction: " + path)  // Should be "home/user/documents/report.pdf"
 
 // HTML list generation
 door list_items = ["Hordhac", "Faahfaahin", "Gunaanad"]
 door html_list = "<li>".kudar(list_items) + "</li>"
-bandhig("  HTML list generation: " + html_list)  // Should be "Hordhac<li>Faahfaahin<li>Gunaanad</li>"
+qor("  HTML list generation: " + html_list)  // Should be "Hordhac<li>Faahfaahin<li>Gunaanad</li>"
 
 // Sentence construction
 door words = ["Soplang", "waa", "luqad", "cusub", "oo", "waxtar", "leh"]
 door sentence = " ".kudar(words) + "."
-bandhig("  Sentence construction: " + sentence)  // Should be "Soplang waa luqad cusub oo waxtar leh."
+qor("  Sentence construction: " + sentence)  // Should be "Soplang waa luqad cusub oo waxtar leh."
 
-bandhig("")
-bandhig("String join tests completed!")
+qor("")
+qor("String join tests completed!")

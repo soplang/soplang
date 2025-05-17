@@ -42,7 +42,7 @@ StaticType ::= "tiro"      // Integer
              | "jajab"     // Decimal
              | "qoraal"    // String
              | "bool"      // Boolean
-             | "liis"      // List/Array
+             | "teed"      // List/Array
              | "walax"     // Object
 
 // ===== FUNCTION DECLARATIONS =====
@@ -188,14 +188,14 @@ ListMethod ::= "kudar"       // push
              | "jar"         // slice
              | "aaddin"      // map/transform
              | "shaandhee"   // filter
-             | "raadso"      // find index
+             | "muuji"      // find index
 
 // ===== OBJECT METHODS =====
 ObjectMethod ::= "fure"      // keys
                | "qiime"     // values
                | "lamaane"   // entries
                | "leeyahay"  // has
-               | "tirtir"    // remove
+               | "tir"    // remove
                | "kudar"     // merge
                | "nuqul"     // copy
                | "nadiifi"   // clear
@@ -210,14 +210,14 @@ StringMethod ::= "qeybi"     // split
               | "jar"        // slice
 
 // ===== BUILT-IN FUNCTIONS =====
-BuiltInFunction ::= "bandhig"  // print
+BuiltInFunction ::= "qor"  // print
                   | "gelin"    // input
                   | "nooc"     // typeof
                   | "tiro"     // to integer
                   | "jajab"    // to float
                   | "qoraal"   // to string
                   | "bool"     // to boolean
-                  | "liis"     // create list
+                  | "teed"     // create list
                   | "walax"    // create object
                   | "daji"     // math.floor
                   | "kor"      // math.ceil
