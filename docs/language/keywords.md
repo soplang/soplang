@@ -112,7 +112,7 @@ This document provides a reference for all keywords in the Soplang programming l
 | `jar(a, b)`       | `slice(a, b)`             | Return sublist from a to b    | `door subset = numbers.jar(1, 3)`       |
 | `aaddin(func)`    | `map(func)`               | Transform items with function | `door doubled = nums.aaddin("laban")`   |
 | `shaandhee(func)` | `filter(func)`            | Filter items with function    | `door evens = nums.shaandhee("isEven")` |
-| `raadso(item)`    | `indexOf(item)`           | Find index of item            | `door idx = nums.raadso(5)`             |
+| `muuji(item)`    | `indexOf(item)`           | Find index of item            | `door idx = nums.muuji(5)`             |
 
 ## Object Methods
 

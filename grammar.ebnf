@@ -188,7 +188,7 @@ ListMethod ::= "kudar"       // push
              | "jar"         // slice
              | "aaddin"      // map/transform
              | "shaandhee"   // filter
-             | "raadso"      // find index
+             | "muuji"      // find index
 
 // ===== OBJECT METHODS =====
 ObjectMethod ::= "fure"      // keys
