@@ -1,49 +1,49 @@
 // Test: Conditional Statements
 // This test checks if conditional statements work properly
 
-bandhig("Testing conditional statements (haddii):")
+qor("Testing conditional statements (haddii):")
 
 // Simple if statement
 tiro age = 20
-bandhig("  age = " + age)
+qor("  age = " + age)
 
-bandhig("  Simple if statement:")
+qor("  Simple if statement:")
 haddii (age >= 18) {
-    bandhig("    Person is an adult")
+    qor("    Person is an adult")
 }
 
 // If-else statement
-bandhig("  If-else statement:")
+qor("  If-else statement:")
 haddii (age >= 21) {
-    bandhig("    Person can drink alcohol")
+    qor("    Person can drink alcohol")
 } ugudambeyn {
-    bandhig("    Person cannot drink alcohol")
+    qor("    Person cannot drink alcohol")
 }
 
 // If-else if-else statement
 tiro score = 85
-bandhig("  score = " + score)
-bandhig("  If-else if-else statement:")
+qor("  score = " + score)
+qor("  If-else if-else statement:")
 haddii (score >= 90) {
-    bandhig("    Grade: A")
+    qor("    Grade: A")
 } haddii_kale (score >= 80) {
-    bandhig("    Grade: B")
+    qor("    Grade: B")
 } haddii_kale (score >= 70) {
-    bandhig("    Grade: C")
+    qor("    Grade: C")
 } haddii_kale (score >= 60) {
-    bandhig("    Grade: D")
+    qor("    Grade: D")
 } ugudambeyn {
-    bandhig("    Grade: F")
+    qor("    Grade: F")
 }
 
 // Nested if statements
-bandhig("  Nested if statements:")
+qor("  Nested if statements:")
 haddii (age >= 16) {
-    bandhig("    Person can drive")
+    qor("    Person can drive")
     haddii (age >= 18) {
-        bandhig("    Person can vote")
+        qor("    Person can vote")
         haddii (age >= 21) {
-            bandhig("    Person can drink alcohol")
+            qor("    Person can drink alcohol")
         }
     }
 }
@@ -51,27 +51,27 @@ haddii (age >= 16) {
 // Using logical operators in conditions
 tiro x = 10
 tiro y = 20
-bandhig("  x = " + x + ", y = " + y)
+qor("  x = " + x + ", y = " + y)
 
-bandhig("  Using AND (&&) operator:")
+qor("  Using AND (&&) operator:")
 haddii (x > 5 && y < 30) {
-    bandhig("    Both conditions are true")
+    qor("    Both conditions are true")
 }
 
-bandhig("  Using OR (||) operator:")
+qor("  Using OR (||) operator:")
 haddii (x > 15 || y > 15) {
-    bandhig("    At least one condition is true")
+    qor("    At least one condition is true")
 }
 
 // Testing with decimal values
 jajab temperature = 37.5
-bandhig("  temperature = " + temperature)
+qor("  temperature = " + temperature)
 
-bandhig("  Testing with decimal values:")
+qor("  Testing with decimal values:")
 haddii (temperature > 38.0) {
-    bandhig("    Person has a fever")
+    qor("    Person has a fever")
 } haddii_kale (temperature >= 37.5) {
-    bandhig("    Person has a slight temperature")
+    qor("    Person has a slight temperature")
 } ugudambeyn {
-    bandhig("    Person's temperature is normal")
+    qor("    Person's temperature is normal")
 }

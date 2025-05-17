@@ -1,44 +1,44 @@
 // Test: Constants (madoor)
 // This test demonstrates the use of 'madoor' for declaring constant variables
 
-bandhig("Testing constant variables (madoor):")
+qor("Testing constant variables (madoor):")
 
 // Example 1: Dynamic constant (type inferred at runtime)
 madoor PI = 3.14159
-bandhig("  Dynamic constant PI: " + PI)
+qor("  Dynamic constant PI: " + PI)
 
 // Example 2: Typed constant (explicit type)
 madoor tiro MAX_USERS = 100
-bandhig("  Typed constant MAX_USERS: " + MAX_USERS)
+qor("  Typed constant MAX_USERS: " + MAX_USERS)
 
 madoor qoraal APP_NAME = "Soplang"
-bandhig("  Typed string constant APP_NAME: " + APP_NAME)
+qor("  Typed string constant APP_NAME: " + APP_NAME)
 
 madoor bool IS_PRODUCTION = been
-bandhig("  Typed boolean constant IS_PRODUCTION: " + IS_PRODUCTION)
+qor("  Typed boolean constant IS_PRODUCTION: " + IS_PRODUCTION)
 
 // Use constants in expressions
 tiro radius = 5
 jajab area = PI * radius * radius
-bandhig("  Area of circle with radius " + radius + ": " + area)
+qor("  Area of circle with radius " + radius + ": " + area)
 
 // Create array with max capacity from constant
 liis users = []
 kuceli (i 0 ilaa 3) {
     users.kudar("User " + i)
 }
-bandhig("  Users: " + users)
-bandhig("  Max users: " + MAX_USERS)
+qor("  Users: " + users)
+qor("  Max users: " + MAX_USERS)
 
 // Try to reassign constants (should fail)
-bandhig("Trying to reassign constants (should fail):")
-bandhig("  PI = 3.14")
+qor("Trying to reassign constants (should fail):")
+qor("  PI = 3.14")
 
 // Uncomment to see the error:
 // PI = 3.14  // Runtime error: Cannot reassign constant variable 'PI'
 
-bandhig("  MAX_USERS = 200")
+qor("  MAX_USERS = 200")
 // Uncomment to see the error:
 // MAX_USERS = 200  // Runtime error: Cannot reassign constant variable 'MAX_USERS'
 
-bandhig("Constants test completed!")
+qor("Constants test completed!")

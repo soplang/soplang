@@ -1,10 +1,10 @@
 // Test: Constant Type Error Messages
 // This test checks type error messages for constants
 
-bandhig("Testing constant type error messages:")
+qor("Testing constant type error messages:")
 
 // String constant with number value (should trigger type error)
-bandhig("\nAttempting to assign a number to a string constant:")
+qor("\nAttempting to assign a number to a string constant:")
     madoor qoraal STRING_CONST = 123  // This should trigger type_mismatch error with line/position info
 
-bandhig("If you see this message, the type error was not enforced properly")
+qor("If you see this message, the type error was not enforced properly")

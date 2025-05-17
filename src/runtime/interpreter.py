@@ -601,7 +601,7 @@ class Interpreter:
                 field_value = self.evaluate(child.children[0])
                 class_def["fields"][field_name] = field_value
             else:
-                # Execute any statements in the class (like bandhig())
+                # Execute any statements in the class (like qor())
                 self.execute(child)
 
         # Store the class definition

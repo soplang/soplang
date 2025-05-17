@@ -1,24 +1,24 @@
 // Test: Dynamic Typing (door variables)
 // This test checks if dynamic typing works properly
 
-bandhig("Testing dynamic typing (door):")
+qor("Testing dynamic typing (door):")
 
 // Initialize with number
 door dynamic_var = 10
-bandhig("  Initial value (number): " + dynamic_var)
+qor("  Initial value (number): " + dynamic_var)
 
 // Change to string
 dynamic_var = "waa qoraal hadda"
-bandhig("  Changed value (string): " + dynamic_var)
+qor("  Changed value (string): " + dynamic_var)
 
 // Change to boolean
 dynamic_var = been
-bandhig("  Changed value (boolean): " + dynamic_var)
+qor("  Changed value (boolean): " + dynamic_var)
 
 // Change to list
 dynamic_var = [1, 2, 3]
-bandhig("  Changed value (list): " + dynamic_var)
+qor("  Changed value (list): " + dynamic_var)
 
 // Change to object
 dynamic_var = { magac: "Omar", da: 30 }
-bandhig("  Changed value (object): " + dynamic_var)
+qor("  Changed value (object): " + dynamic_var)

@@ -20,15 +20,15 @@ This document provides a reference for all keywords in the Soplang programming l
 
 | Keyword       | Meaning            | English Equivalent | Example                                      |
 | ------------- | ------------------ | ------------------ | -------------------------------------------- |
-| `haddii`      | If statement       | `if`               | `haddii (x > 10) { bandhig("Weyn") }`        |
-| `haddii_kale` | Else if statement  | `else if`          | `haddii_kale (x == 10) { bandhig("Dhexe") }` |
-| `ugudambeyn`  | Else statement     | `else`             | `ugudambeyn { bandhig("Yar") }`              |
-| `dooro`       | Switch statement   | `switch`           | `dooro (x) { xaalad 1 { bandhig("Hal") } }`  |
-| `xaalad`      | Case clause        | `case`             | `xaalad "A" { bandhig("Case A") }`           |
-| `kuceli`      | For loop           | `for`              | `kuceli (i 1 ilaa 5) { bandhig(i) }`         |
-| `ilaa`        | Loop range end     | `to`               | `kuceli (i 1 ilaa 5) { bandhig(i) }`         |
-| `::`          | Loop increment     | `step`             | `kuceli (i 1 ilaa 10 :: 2) { bandhig(i) }`   |
-| `intay`       | While loop         | `while`            | `intay (x < 5) { bandhig(x) }`               |
+| `haddii`      | If statement       | `if`               | `haddii (x > 10) { qor("Weyn") }`        |
+| `haddii_kale` | Else if statement  | `else if`          | `haddii_kale (x == 10) { qor("Dhexe") }` |
+| `ugudambeyn`  | Else statement     | `else`             | `ugudambeyn { qor("Yar") }`              |
+| `dooro`       | Switch statement   | `switch`           | `dooro (x) { xaalad 1 { qor("Hal") } }`  |
+| `xaalad`      | Case clause        | `case`             | `xaalad "A" { qor("Case A") }`           |
+| `kuceli`      | For loop           | `for`              | `kuceli (i 1 ilaa 5) { qor(i) }`         |
+| `ilaa`        | Loop range end     | `to`               | `kuceli (i 1 ilaa 5) { qor(i) }`         |
+| `::`          | Loop increment     | `step`             | `kuceli (i 1 ilaa 10 :: 2) { qor(i) }`   |
+| `intay`       | While loop         | `while`            | `intay (x < 5) { qor(x) }`               |
 | `jooji`       | Break statement    | `break`            | `haddii (x == 3) { jooji }`                  |
 | `soco`        | Continue statement | `continue`         | `haddii (x == 3) { soco }`                   |
 
@@ -83,9 +83,9 @@ This document provides a reference for all keywords in the Soplang programming l
 
 | Function  | Meaning               | English Equivalent | Example                                  |
 | --------- | --------------------- | ------------------ | ---------------------------------------- |
-| `bandhig` | Print to console      | `print`            | `bandhig("Salaan, Adduunka!")`           |
+| `qor` | Print to console      | `print`            | `qor("Salaan, Adduunka!")`           |
 | `gelin`   | Read input from user  | `input`            | `door magac = gelin("Magacaaga geli: ")` |
-| `nooc`    | Get type of variable  | `typeof`           | `bandhig(nooc(magac))`                   |
+| `nooc`    | Get type of variable  | `typeof`           | `qor(nooc(magac))`                   |
 | `tiro`    | Convert to number     | `int`/`float`      | `door n = tiro("5")`                     |
 | `qoraal`  | Convert to string     | `str`              | `door s = qoraal(25)`                    |
 | `bool`    | Convert to boolean    | `bool`             | `door b = bool(1)`                       |

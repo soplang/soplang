@@ -1,7 +1,7 @@
 // Complex Test: List Filter (shaandhee)
 // Testing the shaandhee() method with different data types and conditions
 
-bandhig("Testing list filter (shaandhee) with complex conditions:")
+qor("Testing list filter (shaandhee) with complex conditions:")
 
 // Test 1: Filter numbers based on a calculation
 hawl is_divisible_by_three(n) {
@@ -9,9 +9,9 @@ hawl is_divisible_by_three(n) {
 }
 
 liis numbers = [3, 5, 6, 9, 10, 12, 15, 18]
-bandhig("Original numbers: " + numbers)
+qor("Original numbers: " + numbers)
 door divisible_by_three = numbers.shaandhee(is_divisible_by_three)
-bandhig("Numbers divisible by 3: " + divisible_by_three)
+qor("Numbers divisible by 3: " + divisible_by_three)
 
 // Test 2: Filter strings by their characteristics
 // In Soplang, we don't have a string length method, so we use a different approach
@@ -21,9 +21,9 @@ hawl has_letter_e(s) {
 }
 
 liis words = ["hello", "hi", "welcome", "bye", "greetings", "ok"]
-bandhig("Original words: " + words)
+qor("Original words: " + words)
 door words_with_e = words.shaandhee(has_letter_e)
-bandhig("Words containing 'e': " + words_with_e)
+qor("Words containing 'e': " + words_with_e)
 
 // Test 3: Filter by a more complex condition with multiple operators
 hawl is_special_number(n) {
@@ -31,8 +31,8 @@ hawl is_special_number(n) {
 }
 
 liis more_numbers = [5, 8, 11, 14, 15, 18, 21]
-bandhig("More numbers: " + more_numbers)
+qor("More numbers: " + more_numbers)
 door special_numbers = more_numbers.shaandhee(is_special_number)
-bandhig("Numbers greater than 10 and odd: " + special_numbers)
+qor("Numbers greater than 10 and odd: " + special_numbers)
 
-bandhig("All tests completed!")
+qor("All tests completed!")

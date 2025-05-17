@@ -11,18 +11,18 @@ hawl test_with_parens(x) {
 }
 
 // Test calls
-bandhig("Testing return statements with comparison operators:")
-bandhig("test_no_parens(10): " + test_no_parens(10))   // Should return run (true)
-bandhig("test_no_parens(3): " + test_no_parens(3))     // Should return been (false)
-bandhig("test_with_parens(10): " + test_with_parens(10))  // Should return run (true)
-bandhig("test_with_parens(3): " + test_with_parens(3))    // Should return been (false)
+qor("Testing return statements with comparison operators:")
+qor("test_no_parens(10): " + test_no_parens(10))   // Should return run (true)
+qor("test_no_parens(3): " + test_no_parens(3))     // Should return been (false)
+qor("test_with_parens(10): " + test_with_parens(10))  // Should return run (true)
+qor("test_with_parens(3): " + test_with_parens(3))    // Should return been (false)
 
 // Test with more complex expressions
 hawl test_complex(x) {
   celi x > 5 && x < 15
 }
 
-bandhig("test_complex(10): " + test_complex(10))  // Should return run (true)
-bandhig("test_complex(20): " + test_complex(20))  // Should return been (false)
+qor("test_complex(10): " + test_complex(10))  // Should return run (true)
+qor("test_complex(20): " + test_complex(20))  // Should return been (false)
 
-bandhig("Test completed!")
+qor("Test completed!")

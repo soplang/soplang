@@ -1,93 +1,93 @@
 // Test: Comparison Assignment
 // This test focuses on assigning the results of comparison operations to variables
 
-bandhig("Testing comparison operations in assignments:")
+qor("Testing comparison operations in assignments:")
 
 // Integer comparisons
-bandhig("Integer comparisons:")
+qor("Integer comparisons:")
 tiro a = 5
 tiro b = 3
-bandhig("  a = " + a + ", b = " + b)
+qor("  a = " + a + ", b = " + b)
 
 // Direct integer comparison assignments with door type
 door result1 = (a > b)
-bandhig("  door result1 = a > b: " + result1)
+qor("  door result1 = a > b: " + result1)
 
 door result2 = (a < b)
-bandhig("  door result2 = a < b: " + result2)
+qor("  door result2 = a < b: " + result2)
 
 door result3 = (a == b)
-bandhig("  door result3 = a == b: " + result3)
+qor("  door result3 = a == b: " + result3)
 
 door result4 = (a != b)
-bandhig("  door result4 = a != b: " + result4)
+qor("  door result4 = a != b: " + result4)
 
 door result5 = (a >= b)
-bandhig("  door result5 = a >= b: " + result5)
+qor("  door result5 = a >= b: " + result5)
 
 door result6 = (a <= b)
-bandhig("  door result6 = a <= b: " + result6)
+qor("  door result6 = a <= b: " + result6)
 
 // Decimal comparisons
-bandhig("\nDecimal comparisons:")
+qor("\nDecimal comparisons:")
 jajab x = 5.5
 jajab y = 3.25
-bandhig("  x = " + x + ", y = " + y)
+qor("  x = " + x + ", y = " + y)
 
 // Direct decimal comparison assignments with door type
 door result7 = (x > y)
-bandhig("  door result7 = x > y: " + result7)
+qor("  door result7 = x > y: " + result7)
 
 door result8 = (x < y)
-bandhig("  door result8 = x < y: " + result8)
+qor("  door result8 = x < y: " + result8)
 
 door result9 = (x == y)
-bandhig("  door result9 = x == y: " + result9)
+qor("  door result9 = x == y: " + result9)
 
 door result10 = (x != y)
-bandhig("  door result10 = x != y: " + result10)
+qor("  door result10 = x != y: " + result10)
 
 // Mixed type comparisons
-bandhig("\nMixed integer and decimal comparisons:")
+qor("\nMixed integer and decimal comparisons:")
 door result11 = (a > y)
-bandhig("  door result11 = a > y: " + result11)
+qor("  door result11 = a > y: " + result11)
 
 door result12 = (x == a)
-bandhig("  door result12 = x == a: " + result12)
+qor("  door result12 = x == a: " + result12)
 
 // Test with bool (boolean) type
-bandhig("\nBoolean type assignments:")
+qor("\nBoolean type assignments:")
 bool isGreater = (a > b)
-bandhig("  bool isGreater = a > b: " + isGreater)
+qor("  bool isGreater = a > b: " + isGreater)
 
 bool isLess = (a < b)
-bandhig("  bool isLess = a < b: " + isLess)
+qor("  bool isLess = a < b: " + isLess)
 
 bool isEqual = (a == b)
-bandhig("  bool isEqual = a == b: " + isEqual)
+qor("  bool isEqual = a == b: " + isEqual)
 
 bool isNotEqual = (a != b)
-bandhig("  bool isNotEqual = a != b: " + isNotEqual)
+qor("  bool isNotEqual = a != b: " + isNotEqual)
 
 bool isDecimalGreater = (x > y)
-bandhig("  bool isDecimalGreater = x > y: " + isDecimalGreater)
+qor("  bool isDecimalGreater = x > y: " + isDecimalGreater)
 
 // Test with complex expressions
-bandhig("\nComplex expressions:")
+qor("\nComplex expressions:")
 door complex1 = ((a > b) && (a != b))
-bandhig("  door complex1 = (a > b) && (a != b): " + complex1)
+qor("  door complex1 = (a > b) && (a != b): " + complex1)
 
 door complex2 = ((a < b) || (a == 5))
-bandhig("  door complex2 = (a < b) || (a == 5): " + complex2)
+qor("  door complex2 = (a < b) || (a == 5): " + complex2)
 
 door complex3 = ((x > y) && (a == 5))
-bandhig("  door complex3 = (x > y) && (a == 5): " + complex3)
+qor("  door complex3 = (x > y) && (a == 5): " + complex3)
 
 // Test with variable reassignment
-bandhig("\nVariable reassignment:")
+qor("\nVariable reassignment:")
 door test = been
-bandhig("  Initial test value: " + test)
+qor("  Initial test value: " + test)
 test = a > b
-bandhig("  After test = a > b: " + test)
+qor("  After test = a > b: " + test)
 test = x < y
-bandhig("  After test = x < y: " + test)
+qor("  After test = x < y: " + test)

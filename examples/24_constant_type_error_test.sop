@@ -1,19 +1,19 @@
 // Test: Constant Error Messages
 // This test checks the error messages for constants
 
-bandhig("Testing constant error messages:")
+qor("Testing constant error messages:")
 
 // Test 1: Constant reassignment error
-bandhig("\n1. Testing constant reassignment error:")
+qor("\n1. Testing constant reassignment error:")
 madoor bool TEST_CONSTANT = run
-bandhig("  Original constant value: " + TEST_CONSTANT)
+qor("  Original constant value: " + TEST_CONSTANT)
 
 // Try to reassign the constant (should generate a clear Somali error message)
-bandhig("  Attempting to reassign a constant (should show error in Somali):")
+qor("  Attempting to reassign a constant (should show error in Somali):")
     TEST_CONSTANT = been  // This should trigger constant_reassignment error with position info
 
 // The code below should not execute due to the error above
-bandhig("\n2. Testing constant type error:")
+qor("\n2. Testing constant type error:")
 madoor qoraal STRING_CONST = 123  // This should trigger type_mismatch error
 
-bandhig("If you see this message, the constant was incorrectly reassigned")
+qor("If you see this message, the constant was incorrectly reassigned")

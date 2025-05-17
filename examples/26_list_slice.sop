@@ -1,73 +1,73 @@
 // Test: List Slice (jar) Method
 // This test demonstrates the usage of the jar() method for getting slices of lists
 
-bandhig("Testing list slice (jar) method:")
+qor("Testing list slice (jar) method:")
 
 // Create a sample list
 liis magacyo = ["Axmed", "Barwaaqo", "Cali", "Deeqa", "Ergada"]
-bandhig("  Original list: " + magacyo)
+qor("  Original list: " + magacyo)
 
 // Basic slicing
-bandhig("Basic slicing:")
+qor("Basic slicing:")
 liis qayb1 = magacyo.jar(1, 3)
-bandhig("  magacyo.jar(1, 3): " + qayb1)  // Should be ["Barwaaqo", "Cali"]
+qor("  magacyo.jar(1, 3): " + qayb1)  // Should be ["Barwaaqo", "Cali"]
 // Confirm original list is unchanged
-bandhig("  Original list after slicing: " + magacyo)
+qor("  Original list after slicing: " + magacyo)
 
 // Slice to the end
-bandhig("Slicing to the end:")
+qor("Slicing to the end:")
 liis qayb2 = magacyo.jar(2, magacyo.dherer())
-bandhig("  magacyo.jar(2, magacyo.dherer()): " + qayb2)  // Should be ["Cali", "Deeqa", "Ergada"]
+qor("  magacyo.jar(2, magacyo.dherer()): " + qayb2)  // Should be ["Cali", "Deeqa", "Ergada"]
 
 // Slice from the beginning
-bandhig("Slicing from the beginning:")
+qor("Slicing from the beginning:")
 liis qayb3 = magacyo.jar(0, 2)
-bandhig("  magacyo.jar(0, 2): " + qayb3)  // Should be ["Axmed", "Barwaaqo"]
+qor("  magacyo.jar(0, 2): " + qayb3)  // Should be ["Axmed", "Barwaaqo"]
 
 // Using negative indices
-bandhig("Using negative indices:")
+qor("Using negative indices:")
 liis qayb4 = magacyo.jar(-2, magacyo.dherer())
-bandhig("  magacyo.jar(-2, magacyo.dherer()): " + qayb4)  // Should be ["Deeqa", "Ergada"]
+qor("  magacyo.jar(-2, magacyo.dherer()): " + qayb4)  // Should be ["Deeqa", "Ergada"]
 
 // Empty slice (start equals end)
-bandhig("Empty slice (start equals end):")
+qor("Empty slice (start equals end):")
 liis qayb5 = magacyo.jar(2, 2)
-bandhig("  magacyo.jar(2, 2): " + qayb5)  // Should be []
+qor("  magacyo.jar(2, 2): " + qayb5)  // Should be []
 
 // Out of range indices
-bandhig("Out of range indices:")
+qor("Out of range indices:")
 liis qayb6 = magacyo.jar(10, 20)
-bandhig("  magacyo.jar(10, 20): " + qayb6)  // Should be []
+qor("  magacyo.jar(10, 20): " + qayb6)  // Should be []
 
 liis qayb7 = magacyo.jar(-10, 2)
-bandhig("  magacyo.jar(-10, 2): " + qayb7)  // Should be ["Axmed", "Barwaaqo"]
+qor("  magacyo.jar(-10, 2): " + qayb7)  // Should be ["Axmed", "Barwaaqo"]
 
 // Edge cases
-bandhig("Edge cases:")
+qor("Edge cases:")
 // End index less than start index
 liis qayb8 = magacyo.jar(3, 1)
-bandhig("  magacyo.jar(3, 1): " + qayb8)  // Should be []
+qor("  magacyo.jar(3, 1): " + qayb8)  // Should be []
 
 // Slice the entire list
 liis qayb9 = magacyo.jar(0, magacyo.dherer())
-bandhig("  magacyo.jar(0, magacyo.dherer()): " + qayb9)
-bandhig("  Is it a new list (not the same reference)? " + (qayb9 != magacyo))
+qor("  magacyo.jar(0, magacyo.dherer()): " + qayb9)
+qor("  Is it a new list (not the same reference)? " + (qayb9 != magacyo))
 
 // Practical example: pagination
-bandhig("Practical example: pagination")
+qor("Practical example: pagination")
 liis titirada = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
 tiro bogag = 3  // items per page
 tiro bogNumber = 2  // page 2 (0-indexed)
 
 liis bogHada = titirada.jar(bogNumber * bogag, (bogNumber + 1) * bogag)
-bandhig("  Items per page: " + bogag)
-bandhig("  Page " + (bogNumber + 1) + ": " + bogHada)  // Should be [7, 8, 9]
+qor("  Items per page: " + bogag)
+qor("  Page " + (bogNumber + 1) + ": " + bogHada)  // Should be [7, 8, 9]
 
 // Working with other data types
-bandhig("Working with different data types:")
+qor("Working with different data types:")
 liis mixed = [10, "Somali", run, [1, 2], {name: "Soplang"}]
 liis qayb10 = mixed.jar(1, 4)
-bandhig("  Mixed list: " + mixed)
-bandhig("  mixed.jar(1, 4): " + qayb10)  // Should be ["Somali", true, [1, 2]]
+qor("  Mixed list: " + mixed)
+qor("  mixed.jar(1, 4): " + qayb10)  // Should be ["Somali", true, [1, 2]]
 
-bandhig("List slice tests completed!")
+qor("List slice tests completed!")

@@ -46,7 +46,7 @@ class Parser:
             TokenType.DOOR: "keyword 'door'",
             TokenType.HAWL: "keyword 'hawl' (function)",
             TokenType.CELI: "keyword 'celi' (return)",
-            TokenType.BANDHIG: "keyword 'bandhig' (print)",
+            TokenType.qor: "keyword 'qor' (print)",
             TokenType.HADDII: "keyword 'haddii' (if)",
             TokenType.HADDII_KALE: "keyword 'haddii_kale' (else if)",
             TokenType.UGUDAMBEYN: "keyword 'ugudambeyn' (else)",
@@ -191,20 +191,20 @@ class Parser:
         elif token_type == TokenType.CELI:
             return self.parse_return_statement()
 
-        # Handle print statement (bandhig)
-        elif token_type == TokenType.BANDHIG:
-            self.advance()  # Consume bandhig
+        # Handle print statement (qor)
+        elif token_type == TokenType.qor:
+            self.advance()  # Consume qor
             # Parse function call expression
             return ASTNode(
                 NodeType.FUNCTION_CALL,
-                value="bandhig",
+                value="qor",
                 children=[self.parse_expression()],
                 line=line,
                 position=position,
             )
 
         # Handle function calls
-        elif token_type == TokenType.BANDHIG or token_type == TokenType.GELIN:
+        elif token_type == TokenType.qor or token_type == TokenType.GELIN:
             return self.parse_function_call()
 
         # Handle loops
@@ -448,16 +448,16 @@ class Parser:
         )
 
     # -----------------------------
-    #  Function calls: bandhig("Hi") or gelin("Enter name:")
+    #  Function calls: qor("Hi") or gelin("Enter name:")
     # -----------------------------
     def parse_function_call(self):
-        """Parse a function call like 'bandhig("Hello")'"""
+        """Parse a function call like 'qor("Hello")'"""
         func_name = self.current_token.value
         if (
             self.current_token.type != TokenType.IDENTIFIER and
             self.current_token.type
             not in (
-                TokenType.BANDHIG,
+                TokenType.qor,
                 TokenType.GELIN,
                 TokenType.QORAAL,
                 TokenType.TIRO,
@@ -923,7 +923,7 @@ class Parser:
             TokenType.BOOL,
             TokenType.LIIS,
             TokenType.WALAX,
-            TokenType.BANDHIG,
+            TokenType.qor,
             TokenType.GELIN,  # Added QOR and GELIN to handle them in expressions
         ):
             # Allow type names to be used as function names

@@ -1,115 +1,115 @@
 // Test: Switch-Case Statements
 // This test demonstrates the dooro/xaalad (switch/case) syntax
 
-bandhig("Testing switch-case (dooro/xaalad) statements:")
+qor("Testing switch-case (dooro/xaalad) statements:")
 
 // Simple switch-case with integers
 tiro number = 2
-bandhig("\n1. Simple switch with integer:")
-bandhig("  number = " + number)
+qor("\n1. Simple switch with integer:")
+qor("  number = " + number)
 
 dooro (number) {
   xaalad 1 {
-    bandhig("  Hal (One)")
+    qor("  Hal (One)")
   }
   xaalad 2 {
-    bandhig("  Laba (Two)")
+    qor("  Laba (Two)")
   }
   xaalad 3 {
-    bandhig("  Saddex (Three)")
+    qor("  Saddex (Three)")
   }
   ugudambeyn {
-    bandhig("  Waa tiro kale (It's another number)")
+    qor("  Waa tiro kale (It's another number)")
   }
 }
 
 // Switch with strings
 qoraal language = "Somali"
-bandhig("\n2. Switch with strings:")
-bandhig("  language = " + language)
+qor("\n2. Switch with strings:")
+qor("  language = " + language)
 
 dooro (language) {
   xaalad "English" {
-    bandhig("  Hello, World!")
+    qor("  Hello, World!")
   }
   xaalad "Somali" {
-    bandhig("  Salaan, Adduunka!")
+    qor("  Salaan, Adduunka!")
   }
   xaalad "Spanish" {
-    bandhig("  ¡Hola, Mundo!")
+    qor("  ¡Hola, Mundo!")
   }
   ugudambeyn {
-    bandhig("  I don't know that language yet.")
+    qor("  I don't know that language yet.")
   }
 }
 
 // Switch with variable expressions
 tiro x = 10
 tiro y = 20
-bandhig("\n3. Switch with expressions:")
-bandhig("  x = " + x + ", y = " + y)
+qor("\n3. Switch with expressions:")
+qor("  x = " + x + ", y = " + y)
 
 dooro (x + y) {
   xaalad 10 {
-    bandhig("  x + y equals 10")
+    qor("  x + y equals 10")
   }
   xaalad 20 {
-    bandhig("  x + y equals 20")
+    qor("  x + y equals 20")
   }
   xaalad 30 {
-    bandhig("  x + y equals 30")
+    qor("  x + y equals 30")
   }
   ugudambeyn {
-    bandhig("  x + y equals " + (x + y))
+    qor("  x + y equals " + (x + y))
   }
 }
 
 // Switch with decimal values
 jajab decimal = 1.5
-bandhig("\n4. Switch with decimal values:")
-bandhig("  decimal = " + decimal)
+qor("\n4. Switch with decimal values:")
+qor("  decimal = " + decimal)
 
 dooro (decimal) {
   xaalad 1.0 {
-    bandhig("  decimal equals 1.0")
+    qor("  decimal equals 1.0")
   }
   xaalad 1.5 {
-    bandhig("  decimal equals 1.5")
+    qor("  decimal equals 1.5")
   }
   xaalad 2.0 {
-    bandhig("  decimal equals 2.0")
+    qor("  decimal equals 2.0")
   }
   ugudambeyn {
-    bandhig("  Unrecognized decimal value")
+    qor("  Unrecognized decimal value")
   }
 }
 
 // Nested switch statements
 tiro outer = 1
 tiro inner = 2
-bandhig("\n5. Nested switch statements:")
-bandhig("  outer = " + outer + ", inner = " + inner)
+qor("\n5. Nested switch statements:")
+qor("  outer = " + outer + ", inner = " + inner)
 
 dooro (outer) {
   xaalad 1 {
-    bandhig("  Outer case is 1")
+    qor("  Outer case is 1")
     dooro (inner) {
       xaalad 1 {
-        bandhig("  Inner case is 1")
+        qor("  Inner case is 1")
       }
       xaalad 2 {
-        bandhig("  Inner case is 2")
+        qor("  Inner case is 2")
       }
       ugudambeyn {
-        bandhig("  Inner case is something else")
+        qor("  Inner case is something else")
       }
     }
   }
   xaalad 2 {
-    bandhig("  Outer case is 2")
+    qor("  Outer case is 2")
   }
   ugudambeyn {
-    bandhig("  Outer case is something else")
+    qor("  Outer case is something else")
   }
 }
 
@@ -118,37 +118,37 @@ hawl get_option() {
   celi "B"
 }
 
-bandhig("\n6. Switch with function result:")
+qor("\n6. Switch with function result:")
 qoraal option = get_option()
-bandhig("  option = " + option)
+qor("  option = " + option)
 
 dooro (option) {
   xaalad "A" {
-    bandhig("  Option A selected")
+    qor("  Option A selected")
   }
   xaalad "B" {
-    bandhig("  Option B selected")
+    qor("  Option B selected")
   }
   xaalad "C" {
-    bandhig("  Option C selected")
+    qor("  Option C selected")
   }
   ugudambeyn {
-    bandhig("  Unknown option selected")
+    qor("  Unknown option selected")
   }
 }
 
 // Testing boolean expressions
 bool is_active = run
-bandhig("\n7. Switch with boolean value:")
-bandhig("  is_active = " + is_active)
+qor("\n7. Switch with boolean value:")
+qor("  is_active = " + is_active)
 
 dooro (is_active) {
   xaalad run {
-    bandhig("  The system is active")
+    qor("  The system is active")
   }
   xaalad been {
-    bandhig("  The system is inactive")
+    qor("  The system is inactive")
   }
 }
 
-bandhig("\nSwitch-case tests completed!")
+qor("\nSwitch-case tests completed!")
