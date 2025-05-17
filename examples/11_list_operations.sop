@@ -4,9 +4,9 @@
 qor("Testing list operations:")
 
 // Creating lists
-liis empty_list = []
-liis numbers = [10, 20, 30, 40, 50]
-liis mixed = [1, "two", been, [1, 2], {name: "something"}]
+teed empty_list = []
+teed numbers = [10, 20, 30, 40, 50]
+teed mixed = [1, "two", been, [1, 2], {name: "something"}]
 
 qor("  Empty list: " + empty_list)
 qor("  Numbers list: " + numbers)
@@ -36,7 +36,7 @@ qor("  Popped value: " + popped)
 qor("  List after pop: " + numbers)
 
 // Nested list access
-liis nested = [[1, 2], [3, 4]]
+teed nested = [[1, 2], [3, 4]]
 qor("  Nested list: " + nested)
 qor("  Accessing nested element [1][0]: " + nested[1][0])
 
@@ -47,9 +47,9 @@ kuceli (i 0 ilaa numbers.dherer() - 1) {
 }
 
 // List concatenation
-liis list1 = [1, 2, 3]
-liis list2 = [4, 5, 6]
-liis combined = list1.kudar(list2)
+teed list1 = [1, 2, 3]
+teed list2 = [4, 5, 6]
+teed combined = list1.kudar(list2)
 qor("  List1: " + list1)
 qor("  List2: " + list2)
 qor("  Combined list: " + combined)

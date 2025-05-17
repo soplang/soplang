@@ -61,7 +61,7 @@ Soplang provides both dynamic typing (variables can change types) and static typ
 | `jajab`        | `float`/`decimal`  | Static decimal type          | `jajab qiimo = 3.14`                   |
 | `qoraal`       | `string`           | Static string type           | `qoraal magac = "Sharafdin"`           |
 | `bool`         | `bool`/`boolean`   | Static boolean type          | `bool waaRun = run`                    |
-| `liis`         | `array`/`list`     | Static list type             | `liis numbers = [1, 2, 3]`             |
+| `teed`         | `array`/`list`     | Static list type             | `teed numbers = [1, 2, 3]`             |
 | `walax`        | `object`           | Static object type           | `walax person = { name: "Sharafdin" }` |
 
 ### Example
@@ -220,7 +220,7 @@ Soplang supports various data types and special values.
 | `jajab`              | `decimal`/`float`  | Decimal type        | `jajab x = 3.14`           |
 | `qoraal`             | `string`           | Text type           | `qoraal s = "soplang"`     |
 | `bool`               | `boolean`          | Truth value type    | `bool b = run`             |
-| `liis`               | `array`/`list`     | List type           | `liis l = [1, 2, 3]`       |
+| `teed`               | `array`/`list`     | List type           | `teed l = [1, 2, 3]`       |
 | `walax`              | `object`           | Object type         | `walax o = { a: 1, b: 2 }` |
 | `run`                | `true`             | Boolean true value  | `door check = run`         |
 | `been`               | `false`            | Boolean false value | `door check = been`        |
@@ -242,7 +242,7 @@ qoraal magac = "Sharafdin"
 bool waa_arday = run
 
 // List/Array
-liis tirooyin = [1, 2, 3, 4, 5]
+teed tirooyin = [1, 2, 3, 4, 5]
 
 // Object
 walax qof = {
@@ -349,7 +349,7 @@ Soplang provides several built-in functions for common operations.
 | `jajab`   | `float`/`decimal`  | Convert to decimal | `door n = jajab("3.14")`                 |
 | `qoraal`  | `str`              | Convert to string  | `door s = qoraal(42)`                    |
 | `bool`    | `bool`             | Convert to boolean | `door b = bool(1)`                       |
-| `liis`    | `list`/`array`     | Create a list      | `door list = liis(1, 2, 3)`              |
+| `teed`    | `list`/`array`     | Create a list      | `door list = teed(1, 2, 3)`              |
 | `walax`   | `object`/`dict`    | Create an object   | `door obj = walax(name: "Ali", age: 25)` |
 
 ### Example
@@ -391,7 +391,7 @@ Lists (arrays) are a collection of items that can be accessed by index.
 
 ```
 // Creating a list
-liis ardayda = ["Ali", "Farah", "Muna", "Hassan"]
+teed ardayda = ["Ali", "Farah", "Muna", "Hassan"]
 
 // Accessing by index (zero-based)
 qor(ardayda[0])    // "Ali"
@@ -415,9 +415,9 @@ door exists = ardayda.leeyahay("Farah")
 qor(exists)    // run (true)
 
 // Combining lists
-liis fasalka1 = ["Ali", "Farah"]
-liis fasalka2 = ["Muna", "Hassan"]
-liis dhamaan = fasalka1.kudar(fasalka2)
+teed fasalka1 = ["Ali", "Farah"]
+teed fasalka2 = ["Muna", "Hassan"]
+teed dhamaan = fasalka1.kudar(fasalka2)
 qor(dhamaan)   // ["Ali", "Farah", "Muna", "Hassan"]
 ```
 
@@ -530,7 +530,7 @@ hawl xisaabi_darajada(tiro dhibcaha) {
 qor("=== Xisaabiyaha Darajooyinka Ardayda ===")
 
 // Create a list to store student information
-liis ardayda = []
+teed ardayda = []
 
 // Get number of students
 qor("Fadlan gali tirada ardayda:")

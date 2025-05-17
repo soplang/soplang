@@ -13,7 +13,7 @@ This document provides a reference for all keywords in the Soplang programming l
 | `qoraal` | String type                   | `string`           | `qoraal magac = "Sharafdin"`           |
 | `bool`   | Boolean type                  | `bool`             | `bool waaRun = run`                    |
 | `walax`  | Object type                   | `object`           | `walax person = { name: "Sharafdin" }` |
-| `liis`   | List/array type               | `array`            | `liis numbers = [1, 2, 3]`             |
+| `teed`   | List/array type               | `array`            | `teed numbers = [1, 2, 3]`             |
 | `maran`  | Null value                    | `null`             | `door a = maran`                       |
 
 ## Control Flow Keywords
@@ -55,7 +55,7 @@ This document provides a reference for all keywords in the Soplang programming l
 | `jajab`     | `float`/`decimal`  | Decimal numbers | `jajab pi = 3.14`                |
 | `qoraal`    | `string`           | Text values     | `qoraal name = "Ahmed"`          |
 | `bool`      | `boolean`          | Truth values    | `bool isValid = run`             |
-| `liis`      | `list`/`array`     | List of items   | `liis numbers = [1, 2, 3]`       |
+| `teed`      | `list`/`array`     | List of items   | `teed numbers = [1, 2, 3]`       |
 | `walax`     | `object`           | Key-value pairs | `walax person = { name: "Ali" }` |
 
 ## Operators
@@ -89,7 +89,7 @@ This document provides a reference for all keywords in the Soplang programming l
 | `tiro`    | Convert to number     | `int`/`float`      | `door n = tiro("5")`                     |
 | `qoraal`  | Convert to string     | `str`              | `door s = qoraal(25)`                    |
 | `bool`    | Convert to boolean    | `bool`             | `door b = bool(1)`                       |
-| `liis`    | Create a list         | `list/array`       | `door list = liis(1, 2, 3)`              |
+| `teed`    | Create a list         | `list/array`       | `door list = teed(1, 2, 3)`              |
 | `walax`   | Create an object      | `object/dict`      | `door obj = walax(name: "Ali", age: 25)` |
 | `daji`    | Round down to integer | `Math.floor()`     | `door n = daji(4.7)`                     |
 | `kor`     | Round up to integer   | `Math.ceil()`      | `door n = kor(4.2)`                      |
@@ -103,7 +103,7 @@ This document provides a reference for all keywords in the Soplang programming l
 | `dherer()`        | `length()`                | Get list length               | `numbers.dherer()`                      |
 | `kudar()`         | `push()` or `append()`    | Add item to end               | `numbers.kudar(5)`                      |
 | `kasaar()`        | `pop()`                   | Remove and return last item   | `door last = numbers.kasaar()`          |
-| `kudar(liis)`     | `concat()`                | Concatenate lists             | `door all = list1.kudar(list2)`         |
+| `kudar(teed)`     | `concat()`                | Concatenate lists             | `door all = list1.kudar(list2)`         |
 | `leeyahay(x)`     | `contains()`/`includes()` | Check if item exists          | `haddii (list.leeyahay(x)) {...}`       |
 | `nuqul()`         | `copy()`                  | Create a shallow copy         | `door copy = list.nuqul()`              |
 | `nadiifi()`       | `clear()`                 | Remove all items from list    | `list.nadiifi()`                        |
@@ -136,5 +136,5 @@ This document provides a reference for all keywords in the Soplang programming l
 | `dhamaad(sub)`    | `endsWith()`       | Check if string ends with substring   | `haddii (text.dhamaad("ing")) {...}`     |
 | `bilow(sub)`      | `startsWith()`     | Check if string starts with substring | `haddii (text.bilow("http")) {...}`      |
 | `beddel(x, y)`    | `replace()`        | Replace substring x with y            | `door new = text.beddel("old", "new")`   |
-| `kudar(liis)`     | `join()`           | Join list of strings with separator   | `door text = ", ".kudar(names)`          |
+| `kudar(teed)`     | `join()`           | Join list of strings with separator   | `door text = ", ".kudar(names)`          |
 | `jar(start, end)` | `slice()`          | Extract substring from start to end   | `door sub = text.jar(0, 3)`              |

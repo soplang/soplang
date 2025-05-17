@@ -34,7 +34,7 @@ qor("  Random decimal (0.5-9.5): " + randomDecimal)
 // Case 3: One list argument - random item from list
 qor("\nSelect random items from lists:")
 // Names
-liis names = ["Ayaan", "Cali", "Zahra", "Ahmed", "Fadumo"]
+teed names = ["Ayaan", "Cali", "Zahra", "Ahmed", "Fadumo"]
 door randomName1 = kudhow(names)
 door randomName2 = kudhow(names)
 door randomName3 = kudhow(names)
@@ -43,7 +43,7 @@ qor("  Random name 2: " + randomName2)
 qor("  Random name 3: " + randomName3)
 
 // Mixed types
-liis mixedList = [42, "Soplang", been, [1, 2, 3], {name: "test"}]
+teed mixedList = [42, "Soplang", been, [1, 2, 3], {name: "test"}]
 door randomItem = kudhow(mixedList)
 qor("  Random item from mixed list: " + randomItem)
 
@@ -51,7 +51,7 @@ qor("  Random item from mixed list: " + randomItem)
 qor("\nPractical applications:")
 
 // 1. Random color generator
-liis colors = ["red", "green", "blue", "yellow", "purple", "orange"]
+teed colors = ["red", "green", "blue", "yellow", "purple", "orange"]
 door randomColor = kudhow(colors)
 qor("  Random color: " + randomColor)
 
@@ -67,7 +67,7 @@ qor("  Random decision: " + decision)
 
 // 3. Password generator helper
 hawl randomChar() {
-    liis chars = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M",
+    teed chars = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M",
                  "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z",
                  "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m",
                  "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z",

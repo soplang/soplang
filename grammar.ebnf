@@ -42,7 +42,7 @@ StaticType ::= "tiro"      // Integer
              | "jajab"     // Decimal
              | "qoraal"    // String
              | "bool"      // Boolean
-             | "liis"      // List/Array
+             | "teed"      // List/Array
              | "walax"     // Object
 
 // ===== FUNCTION DECLARATIONS =====
@@ -217,7 +217,7 @@ BuiltInFunction ::= "qor"  // print
                   | "jajab"    // to float
                   | "qoraal"   // to string
                   | "bool"     // to boolean
-                  | "liis"     // create list
+                  | "teed"     // create list
                   | "walax"    // create object
                   | "daji"     // math.floor
                   | "kor"      // math.ceil

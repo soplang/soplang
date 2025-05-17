@@ -38,7 +38,7 @@ class SoplangBuiltins:
             else:
                 return "jajab"
         elif isinstance(value, list):
-            return "liis"
+            return "teed"
         elif isinstance(value, dict):
             return "walax"
         elif value is None:
@@ -112,7 +112,7 @@ class SoplangBuiltins:
         return True
 
     @staticmethod
-    def liis(*args):
+    def teed(*args):
         """
         Create a list from the arguments
         """
@@ -131,7 +131,7 @@ class SoplangBuiltins:
         Add an item to the end of a list
         """
         if not isinstance(lst, list):
-            raise TypeError("Qiimahu ma ahan liis (Value is not a list)")
+            raise TypeError("Qiimahu ma ahan teed (Value is not a list)")
         lst.append(item)
         return lst
 
@@ -141,10 +141,10 @@ class SoplangBuiltins:
         Remove and return the last item from a list
         """
         if not isinstance(lst, list):
-            raise TypeError("Qiimahu ma ahan liis (Value is not a list)")
+            raise TypeError("Qiimahu ma ahan teed (Value is not a list)")
         if len(lst) == 0:
             raise ValueError(
-                "Ma saari kartid liis madhan (Cannot pop from an empty list)"
+                "Ma saari kartid teed madhan (Cannot pop from an empty list)"
             )
         return lst.pop()
 
@@ -154,7 +154,7 @@ class SoplangBuiltins:
         Return the length of a list
         """
         if not isinstance(lst, list):
-            raise TypeError("Qiimahu ma ahan liis (Value is not a list)")
+            raise TypeError("Qiimahu ma ahan teed (Value is not a list)")
         return len(lst)
 
     @staticmethod
@@ -164,7 +164,7 @@ class SoplangBuiltins:
         Or add a single item to a list if the second parameter is not a list
         """
         if not isinstance(lst1, list):
-            raise TypeError("Qiimaha koowaad ma ahan liis (First value is not a list)")
+            raise TypeError("Qiimaha koowaad ma ahan teed (First value is not a list)")
 
         # If lst2 is a list, concatenate (without modifying original)
         if isinstance(lst2, list):
@@ -182,7 +182,7 @@ class SoplangBuiltins:
         Check if an item exists in the list
         """
         if not isinstance(lst, list):
-            raise TypeError("Qiimahu ma ahan liis (Value is not a list)")
+            raise TypeError("Qiimahu ma ahan teed (Value is not a list)")
 
         # Return True if item exists in list, False otherwise
         return item in lst
@@ -193,7 +193,7 @@ class SoplangBuiltins:
         Return a shallow copy of the list
         """
         if not isinstance(lst, list):
-            raise TypeError("Qiimahu ma ahan liis (Value is not a list)")
+            raise TypeError("Qiimahu ma ahan teed (Value is not a list)")
 
         # Create a new list that is a shallow copy of the original
         return lst.copy()
@@ -204,7 +204,7 @@ class SoplangBuiltins:
         Remove all items from the list (in-place)
         """
         if not isinstance(lst, list):
-            raise TypeError("Qiimahu ma ahan liis (Value is not a list)")
+            raise TypeError("Qiimahu ma ahan teed (Value is not a list)")
 
         # Clear all items from the list
         lst.clear()
@@ -216,7 +216,7 @@ class SoplangBuiltins:
         Get an item from a list at the specified index
         """
         if not isinstance(lst, list):
-            raise TypeError("Qiimahu ma ahan liis (Value is not a list)")
+            raise TypeError("Qiimahu ma ahan teed (Value is not a list)")
 
         # Convert index to integer if it's a string
         if isinstance(index, str):
@@ -234,7 +234,7 @@ class SoplangBuiltins:
 
         if index < 0 or index >= len(lst):
             raise ValueError(
-                f"Index {index} waa ka baxsan xadka liiska (Index out of range)"
+                f"Index {index} waa ka baxsan xadka teedka (Index out of range)"
             )
 
         return lst[index]
@@ -245,7 +245,7 @@ class SoplangBuiltins:
         Set an item in a list at the specified index
         """
         if not isinstance(lst, list):
-            raise TypeError("Qiimahu ma ahan liis (Value is not a list)")
+            raise TypeError("Qiimahu ma ahan teed (Value is not a list)")
 
         # Convert index to integer if it's a string
         if isinstance(index, str):
@@ -263,7 +263,7 @@ class SoplangBuiltins:
 
         if index < 0 or index >= len(lst):
             raise ValueError(
-                f"Index {index} waa ka baxsan xadka liiska (Index out of range)"
+                f"Index {index} waa ka baxsan xadka teedka (Index out of range)"
             )
 
         lst[index] = value
@@ -374,7 +374,7 @@ class SoplangBuiltins:
         Reverse a list in-place
         """
         if not isinstance(lst, list):
-            raise TypeError("Qiimahu ma ahan liis (Value is not a list)")
+            raise TypeError("Qiimahu ma ahan teed (Value is not a list)")
 
         # Reverse the list in-place
         lst.reverse()
@@ -386,7 +386,7 @@ class SoplangBuiltins:
         Sort a list in-place (ascending order)
         """
         if not isinstance(lst, list):
-            raise TypeError("Qiimahu ma ahan liis (Value is not a list)")
+            raise TypeError("Qiimahu ma ahan teed (Value is not a list)")
 
         # Sort the list in-place (ascending order)
         lst.sort()
@@ -399,7 +399,7 @@ class SoplangBuiltins:
         with only the items that satisfy the condition
         """
         if not isinstance(lst, list):
-            raise TypeError("Qiimahu ma ahan liis (Value is not a list)")
+            raise TypeError("Qiimahu ma ahan teed (Value is not a list)")
 
         if not callable(condition_func):
             raise TypeError(
@@ -430,7 +430,7 @@ class SoplangBuiltins:
             A new list containing elements from start to end (exclusive)
         """
         if not isinstance(lst, list):
-            raise TypeError("Qiimahu ma ahan liis (Value is not a list)")
+            raise TypeError("Qiimahu ma ahan teed (Value is not a list)")
 
         # Convert indices to integers
         if not isinstance(start, (int, float)) or not isinstance(end, (int, float)):
@@ -471,7 +471,7 @@ class SoplangBuiltins:
             A new list containing the transformed values
         """
         if not isinstance(lst, list):
-            raise TypeError("Qiimahu ma ahan liis (Value is not a list)")
+            raise TypeError("Qiimahu ma ahan teed (Value is not a list)")
 
         if not callable(transform_func):
             raise TypeError(
@@ -501,7 +501,7 @@ class SoplangBuiltins:
             The index of the first occurrence of the item, or None (maran in Soplang) if not found
         """
         if not isinstance(lst, list):
-            raise TypeError("Qiimahu ma ahan liis (Value is not a list)")
+            raise TypeError("Qiimahu ma ahan teed (Value is not a list)")
 
         # Manually search for the item to avoid using list.index() which throws an exception
         for i in range(len(lst)):
@@ -694,14 +694,14 @@ class SoplangBuiltins:
             raise TypeError("Qiimahu ma ahan qoraal (Value is not a string)")
 
         if not isinstance(items, list):
-            raise TypeError("Qiimaha labaad ma ahan liis (Second value is not a list)")
+            raise TypeError("Qiimaha labaad ma ahan teed (Second value is not a list)")
 
         # Convert all items to strings before joining
         string_items = []
         for item in items:
             if not isinstance(item, str):
                 raise TypeError(
-                    "Liiska mid ka mid ah qiimihiisa ma ahan qoraal (One of the list items is not a string)")
+                    "teedka mid ka mid ah qiimihiisa ma ahan qoraal (One of the list items is not a string)")
             string_items.append(item)
 
         return separator.join(string_items)
@@ -776,7 +776,7 @@ class SoplangBuiltins:
             return len(value)  # Number of key-value pairs in the object
         else:
             raise TypeError(
-                "Qiimaha ma ahan liis, qoraal, ama walax (Value is not a list, string, or object)"
+                "Qiimaha ma ahan teed, qoraal, ama walax (Value is not a list, string, or object)"
             )
 
     @staticmethod
@@ -806,10 +806,10 @@ class SoplangBuiltins:
         # Case 2: One argument - must be a list
         elif len(args) == 1:
             if not isinstance(args[0], list):
-                raise TypeError("Qiimaha ma ahan liis (Value is not a list)")
+                raise TypeError("Qiimaha ma ahan teed (Value is not a list)")
 
             if len(args[0]) == 0:
-                raise ValueError("Liiska waa madhan (List is empty)")
+                raise ValueError("teedka waa madhan (List is empty)")
 
             return random.choice(args[0])
 
@@ -847,7 +847,7 @@ def get_builtin_functions():
         "jajab": SoplangBuiltins.jajab,
         "qoraal": SoplangBuiltins.qoraal,
         "bool": SoplangBuiltins.bool,
-        "liis": SoplangBuiltins.liis,
+        "teed": SoplangBuiltins.teed,
         "walax": SoplangBuiltins.walax,
         "daji": SoplangBuiltins.daji,
         "kor": SoplangBuiltins.kor,

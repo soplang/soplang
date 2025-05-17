@@ -21,12 +21,12 @@ qor("Original object:")
 qor("  qof = " + qof)
 
 // Get all keys for comparison
-liis fureyaasha = qof.fure()
+teed fureyaasha = qof.fure()
 qor("\nKeys using fure():")
 qor("  " + fureyaasha)
 
 // Get all values using qiime()
-liis qiimooyinka = qof.qiime()
+teed qiimooyinka = qof.qiime()
 qor("\nValues using qiime():")
 qor("  " + qiimooyinka)
 
@@ -62,7 +62,7 @@ qor("  After changing age and adding to hobbies:")
 qor("  Updated values: " + qof.qiime())
 
 // Using with type functions
-liis loogay_qoraal = {
+teed loogay_qoraal = {
     a: "one",
     b: "two",
     c: "three"
@@ -72,7 +72,7 @@ qor("  All values are strings: " + (loogay_qoraal[0] == "one" && loogay_qoraal[1
 
 // Converting all values to strings
 qor("\nConverting all values to strings:")
-liis qoraal_values = []
+teed qoraal_values = []
 kuceli (i 0 ilaa qiimooyinka.dherer() - 1) {
     qoraal_values.kudar(qoraal(qiimooyinka[i]))
 }

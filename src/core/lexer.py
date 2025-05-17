@@ -49,7 +49,7 @@ class Lexer:
             "tiro": TokenType.TIRO,
             "qoraal": TokenType.QORAAL,
             "bool": TokenType.BOOL,
-            "liis": TokenType.LIIS,
+            "teed": TokenType.teed,
             "walax": TokenType.WALAX,
             # Boolean literals
             "run": TokenType.TRUE,

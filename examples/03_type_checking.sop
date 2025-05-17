@@ -8,7 +8,7 @@ tiro integer_var = 42
 jajab decimal_var = 3.14159
 qoraal string_var = "Soplang waa luqad wacan"
 bool bool_var = been
-liis list_var = [1, 2, 3, "afar", been]
+teed list_var = [1, 2, 3, "afar", been]
 walax object_var = {
     magac: "Ahmed",
     da: 25

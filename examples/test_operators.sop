@@ -32,7 +32,7 @@ door complex_condition = (score > 60 && score < 90)
 qor("complex_condition = " + complex_condition)
 
 // Test list with comparisons
-liis test_list = [score > 80, score < 90, score == 85]
+teed test_list = [score > 80, score < 90, score == 85]
 qor("test_list = " + test_list)
 
 // Test object with comparisons

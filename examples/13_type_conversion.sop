@@ -70,7 +70,7 @@ qor("  Boolean (been) to string: " + bool_str_t)
 qor("  Boolean (run) to string: " + bool_str_f)
 
 // List to string conversion
-liis test_list = [1, 2, 3, 4.5]
+teed test_list = [1, 2, 3, 4.5]
 qoraal list_str = qoraal(test_list)
 qor("  List to string: " + list_str)
 

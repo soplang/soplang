@@ -43,7 +43,7 @@ class ErrorMessageManager:
         "cannot_convert": "'{value}' ma badali karo {target_type}",
         "invalid_operand": "Ma isticmaali karo '{operator}' oo ku shaqeeya {type_name}",
         "property_access": "Ma heli karo astaanta '{prop}' ee qiimaha aan ahayn walax",
-        "index_access": "Ma heli karo tirooyinka ee qiimaha aan ahayn liis",
+        "index_access": "Ma heli karo tirooyinka ee qiimaha aan ahayn teed",
         "invalid_method": "Ma wici karo habka '{method}' ee qiimaha {type_name}",
     }
 
