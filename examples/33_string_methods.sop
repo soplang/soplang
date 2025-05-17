@@ -5,33 +5,33 @@ qor("Testing string methods:")
 
 // Simple string splitting example
 door text = "Ayaan,Cali,Zahra"
-liis magacyo = text.qeybi(",")
+teed magacyo = text.qeybi(",")
 qor("  Split by comma: " + magacyo)
 
 // Splitting with spaces
 door sentence = "Soplang waa luqad wacan"
-liis words = sentence.qeybi(" ")
+teed words = sentence.qeybi(" ")
 qor("  Split by space: " + words)
 
 // Handling empty strings
 door empty = ""
-liis emptyParts = empty.qeybi(",")
+teed emptyParts = empty.qeybi(",")
 qor("  Split empty string: " + emptyParts)
 
 // Handling delimiter not found
 door noDelim = "hello"
-liis noDelimParts = noDelim.qeybi(",")
+teed noDelimParts = noDelim.qeybi(",")
 qor("  Split with no delimiter: " + noDelimParts)
 
 // Handling consecutive delimiters
 door consecutive = "a,,b,c,"
-liis consecutiveParts = consecutive.qeybi(",")
+teed consecutiveParts = consecutive.qeybi(",")
 qor("  Split with consecutive delimiters: " + consecutiveParts)
 
 // Using split result in loops
 qor("\nIterating through split results:")
 door csv = "1,2,3,4,5"
-liis numbers = csv.qeybi(",")
+teed numbers = csv.qeybi(",")
 
 kuceli (i 0 ilaa numbers.dherer() - 1) {
     qor("  Item " + i + ": " + numbers[i])

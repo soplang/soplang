@@ -58,7 +58,7 @@ class Parser:
             TokenType.JAJAB: "keyword 'jajab' (decimal type)",
             TokenType.QORAAL: "keyword 'qoraal' (string type)",
             TokenType.BOOL: "keyword 'bool' (boolean type)",
-            TokenType.LIIS: "keyword 'liis' (list type)",
+            TokenType.teed: "keyword 'teed' (list type)",
             TokenType.WALAX: "keyword 'walax' (object type)",
         }
 
@@ -118,7 +118,7 @@ class Parser:
             TokenType.JAJAB,
             TokenType.QORAAL,
             TokenType.BOOL,
-            TokenType.LIIS,
+            TokenType.teed,
             TokenType.WALAX,
         ):
             return self.parse_variable_declaration(is_static=True)
@@ -140,7 +140,7 @@ class Parser:
                 TokenType.JAJAB,
                 TokenType.QORAAL,
                 TokenType.BOOL,
-                TokenType.LIIS,
+                TokenType.teed,
                 TokenType.WALAX,
             ):
                 is_static = True
@@ -463,7 +463,7 @@ class Parser:
                 TokenType.TIRO,
                 TokenType.JAJAB,
                 TokenType.BOOL,
-                TokenType.LIIS,
+                TokenType.teed,
                 TokenType.WALAX,
             )
         ):
@@ -921,7 +921,7 @@ class Parser:
             TokenType.TIRO,
             TokenType.JAJAB,
             TokenType.BOOL,
-            TokenType.LIIS,
+            TokenType.teed,
             TokenType.WALAX,
             TokenType.qor,
             TokenType.GELIN,  # Added QOR and GELIN to handle them in expressions

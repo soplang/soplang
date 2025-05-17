@@ -23,7 +23,7 @@ jajab area = PI * radius * radius
 qor("  Area of circle with radius " + radius + ": " + area)
 
 // Create array with max capacity from constant
-liis users = []
+teed users = []
 kuceli (i 0 ilaa 3) {
     users.kudar("User " + i)
 }

@@ -5,28 +5,28 @@ qor("Testing list clear (nadiifi) method:")
 
 // Basic usage as shown in the example
 qor("1. Basic usage:")
-liis xasuus = ["A", "B", "C"]
+teed xasuus = ["A", "B", "C"]
 qor("  Original list: " + xasuus)
 xasuus.nadiifi()
 qor("  After nadiifi(): " + xasuus)
 
 // Clearing an already empty list
 qor("2. Clearing an already empty list:")
-liis madhan = []
+teed madhan = []
 qor("  Empty list: " + madhan)
 madhan.nadiifi()
 qor("  After nadiifi(): " + madhan)
 
 // Clearing a list with nested elements
 qor("3. Clearing a list with nested elements:")
-liis complex = [[1, 2], [3, 4], 5, "text"]
+teed complex = [[1, 2], [3, 4], 5, "text"]
 qor("  Complex list: " + complex)
 complex.nadiifi()
 qor("  After nadiifi(): " + complex)
 
 // Adding items to a cleared list
 qor("4. Adding items to a cleared list:")
-liis list = [10, 20, 30]
+teed list = [10, 20, 30]
 qor("  Original list: " + list)
 list.nadiifi()
 qor("  After nadiifi(): " + list)
@@ -36,7 +36,7 @@ qor("  After adding new items: " + list)
 
 // Chaining operations
 qor("5. Chaining operations with nadiifi():")
-liis chain = [1, 2, 3]
+teed chain = [1, 2, 3]
 qor("  Original list: " + chain)
 chain.nadiifi().kudar(4).kudar(5)
 qor("  After: chain.nadiifi().kudar(4).kudar(5): " + chain)

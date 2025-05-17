@@ -8,7 +8,7 @@ hawl is_divisible_by_three(n) {
   celi n % 3 == 0
 }
 
-liis numbers = [3, 5, 6, 9, 10, 12, 15, 18]
+teed numbers = [3, 5, 6, 9, 10, 12, 15, 18]
 qor("Original numbers: " + numbers)
 door divisible_by_three = numbers.shaandhee(is_divisible_by_three)
 qor("Numbers divisible by 3: " + divisible_by_three)
@@ -20,7 +20,7 @@ hawl has_letter_e(s) {
   celi s == "hello" || s == "welcome" || s == "greetings"
 }
 
-liis words = ["hello", "hi", "welcome", "bye", "greetings", "ok"]
+teed words = ["hello", "hi", "welcome", "bye", "greetings", "ok"]
 qor("Original words: " + words)
 door words_with_e = words.shaandhee(has_letter_e)
 qor("Words containing 'e': " + words_with_e)
@@ -30,7 +30,7 @@ hawl is_special_number(n) {
   celi n > 10 && n % 2 == 1
 }
 
-liis more_numbers = [5, 8, 11, 14, 15, 18, 21]
+teed more_numbers = [5, 8, 11, 14, 15, 18, 21]
 qor("More numbers: " + more_numbers)
 door special_numbers = more_numbers.shaandhee(is_special_number)
 qor("Numbers greater than 10 and odd: " + special_numbers)

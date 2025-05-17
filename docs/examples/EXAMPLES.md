@@ -83,7 +83,7 @@ Demonstrates list operations and features.
 
 **Features tested:**
 - Dynamic list declarations
-- Static list declarations with `liis` type
+- Static list declarations with `teed` type
 - Empty lists
 - Lists with mixed types
 - Lists with expressions

@@ -4,19 +4,19 @@
 qor("Testing list reverse (rog) method:")
 
 // Simple list reversal
-liis magacyo = ["Ayaan", "Barwaaqo", "Cali"]
+teed magacyo = ["Ayaan", "Barwaaqo", "Cali"]
 qor("  Original list: " + magacyo)
 magacyo.rog()
 qor("  After rog(): " + magacyo)  // Should output: ["Cali", "Barwaaqo", "Ayaan"]
 
 // Reversal of a numeric list
-liis numbers = [1, 2, 3, 4, 5]
+teed numbers = [1, 2, 3, 4, 5]
 qor("  Original numeric list: " + numbers)
 numbers.rog()
 qor("  After rog(): " + numbers)  // Should output: [5, 4, 3, 2, 1]
 
 // Verify the list is mutated (same reference)
-liis original = [10, 20, 30]
+teed original = [10, 20, 30]
 qor("  Original list: " + original)
 door reference = original
 reference.rog()
@@ -24,19 +24,19 @@ qor("  After rog() via reference: " + original)  // Should show the reversed lis
 qor("  Proving it's the same reference: " + reference)  // Should be identical to original
 
 // Empty list
-liis empty = []
+teed empty = []
 qor("  Empty list: " + empty)
 empty.rog()
 qor("  After rog() on empty list: " + empty)  // Should still be empty
 
 // Single element list
-liis single = ["Solo"]
+teed single = ["Solo"]
 qor("  Single element list: " + single)
 single.rog()
 qor("  After rog() on single element list: " + single)  // Should be unchanged
 
 // Method chaining
-liis chain = [1, 2, 3]
+teed chain = [1, 2, 3]
 qor("  Method chaining:")
 qor("  Original list: " + chain)
 chain.rog().kudar(4)

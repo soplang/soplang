@@ -5,7 +5,7 @@
 qor("Testing list.muuji() method and negative indexing:")
 
 // Create a test list
-liis magacyo = ["Axmed", "Barwaaqo", "Cali", "Deeqa", "Cali"]
+teed magacyo = ["Axmed", "Barwaaqo", "Cali", "Deeqa", "Cali"]
 qor("Original list: " + magacyo)
 
 // Find items using muuji()

@@ -18,9 +18,9 @@ qor("  String (qoraal): " + string_var)
 bool bool_var = been
 qor("  Boolean (bool): " + bool_var)
 
-// List (liis)
-liis list_var = [1, 2, 3, "afar", been]
-qor("  List (liis): " + list_var)
+// List (teed)
+teed list_var = [1, 2, 3, "afar", been]
+qor("  List (teed): " + list_var)
 
 // Object (walax)
 walax object_var = {

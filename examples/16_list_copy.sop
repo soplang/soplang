@@ -4,11 +4,11 @@
 qor("Testing list copy (nuqul) method:")
 
 // Create an original list
-liis asalka = [1, 2, 3]
+teed asalka = [1, 2, 3]
 qor("  Original list (asalka): " + asalka)
 
 // Create a copy using nuqul()
-liis nuqul_list = asalka.nuqul()
+teed nuqul_list = asalka.nuqul()
 qor("  Copied list (nuqul_list): " + nuqul_list)
 
 // Modify the original list
@@ -26,8 +26,8 @@ qor("  Modified copy: " + nuqul_list)
 
 // Test with nested structures (shallow copy behavior)
 qor("Testing shallow copy behavior with nested lists:")
-liis nested = [[10, 20], [30, 40]]
-liis nested_copy = nested.nuqul()
+teed nested = [[10, 20], [30, 40]]
+teed nested_copy = nested.nuqul()
 qor("  Original nested list: " + nested)
 qor("  Nested list copy: " + nested_copy)
 

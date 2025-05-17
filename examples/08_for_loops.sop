@@ -43,7 +43,7 @@ kuceli (i 1 ilaa 3) {
 }
 
 // For loop operating on a list
-liis numbers = [10, 20, 30, 40, 50]
+teed numbers = [10, 20, 30, 40, 50]
 qor("  For loop iterating over a list with indices:")
 kuceli (i 0 ilaa numbers.dherer() - 1) {
     qor("    Element at index " + i + ": " + numbers[i])

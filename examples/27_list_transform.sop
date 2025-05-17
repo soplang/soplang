@@ -24,19 +24,19 @@ hawl kent_juft(x) {
 qor("Testing list transform (aaddin) method:")
 
 // Create a sample list
-liis numbers = [1, 2, 3, 4, 5]
+teed numbers = [1, 2, 3, 4, 5]
 qor("Original list: " + numbers)
 
 // Apply number transformation (doubling)
-liis result1 = numbers.aaddin("laban")
+teed result1 = numbers.aaddin("laban")
 qor("After numbers.aaddin('laban'): " + result1)  // Should be [2, 4, 6, 8, 10]
 
 // Apply string transformation (adding prefix)
-liis result2 = numbers.aaddin("ku_badal_qoraal")
+teed result2 = numbers.aaddin("ku_badal_qoraal")
 qor("After numbers.aaddin('ku_badal_qoraal'): " + result2)  // Should be ["Tiro_1", "Tiro_2", ...]
 
 // Apply conditional transformation (even/odd)
-liis result3 = numbers.aaddin("kent_juft")
+teed result3 = numbers.aaddin("kent_juft")
 qor("After numbers.aaddin('kent_juft'): " + result3)  // Should process even/odd numbers differently
 
 // Confirm original list is unchanged

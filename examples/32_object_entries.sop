@@ -16,7 +16,7 @@ qor("\nOriginal object:")
 qor("  qof = " + qof)
 
 // Get entries (key-value pairs) using lamaane()
-liis pairs = qof.lamaane()
+teed pairs = qof.lamaane()
 qor("\nEntries using lamaane():")
 qor("  " + pairs)
 
@@ -40,12 +40,12 @@ walax complex = {
   active: run
 }
 qor("\nTesting object with nested values:")
-liis complex_entries = complex.lamaane()
+teed complex_entries = complex.lamaane()
 qor("  Entries: " + complex_entries)
 
 // Demonstrate transforming entries
 qor("\nTransforming entries to formatted strings:")
-liis formatted = []
+teed formatted = []
 kuceli (i 0 ilaa complex_entries.dherer() - 1) {
   door key = complex_entries[i][0]
   door value = complex_entries[i][1]
@@ -59,7 +59,7 @@ kuceli (i 0 ilaa formatted.dherer() - 1) {
 
 // Demonstrate updating values through entries
 qor("\nUpdating values through entries:")
-liis qof_entries = qof.lamaane()
+teed qof_entries = qof.lamaane()
 kuceli (i 0 ilaa qof_entries.dherer() - 1) {
   // Find the age entry and update the object
   haddii (qof_entries[i][0] == "da") {

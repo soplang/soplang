@@ -22,7 +22,7 @@ qor("Float 1.0: " + f1)      // Should display as "1.0"
 qor("Float 1.5: " + f2)      // Should display as "1.5"
 
 // Test in list
-liis numbers = [1, 1.0, 1.5]
+teed numbers = [1, 1.0, 1.5]
 qor("List of numbers: " + numbers)  // Should display with proper formatting
 
 qor("Type detection tests completed!")
