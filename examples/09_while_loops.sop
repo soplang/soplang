@@ -4,7 +4,7 @@
 qor("Testing while loops (intay):")
 
 // Simple while loop
-tiro counter = 1
+abn counter = 1
 qor("  Simple while loop:")
 intay (counter <= 5) {
     qor("    Counter: " + counter)
@@ -40,10 +40,10 @@ intay (counter < 5) {
 
 // Nested while loops
 qor("  Nested while loops:")
-tiro i = 1
+abn i = 1
 intay (i <= 3) {
     qor("    Outer loop: " + i)
-    tiro j = 1
+    abn j = 1
     intay (j <= 2) {
         qor("      Inner loop: " + j)
         j = j + 1
@@ -60,9 +60,9 @@ intay (x < 3.0) {
 }
 
 // Factorial calculation using while loop
-tiro a = 5
-tiro factorial = 1
-tiro n = a
+abn a = 5
+abn factorial = 1
+abn n = a
 qor("  Factorial calculation for " + a + ":")
 intay (n > 0) {
     factorial = factorial * n

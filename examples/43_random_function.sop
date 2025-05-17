@@ -84,8 +84,8 @@ kuceli (i 0 ilaa 7) {
 qor("  Random password: " + password)
 
 // 4. Simple dice game
-tiro player1 = xul(1, 6)
-tiro player2 = xul(1, 6)
+abn player1 = xul(1, 6)
+abn player2 = xul(1, 6)
 qor("  Dice game: Player 1 rolled " + player1 + ", Player 2 rolled " + player2)
 
 haddii (player1 > player2) {

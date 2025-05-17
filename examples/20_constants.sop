@@ -8,7 +8,7 @@ madoor PI = 3.14159
 qor("  Dynamic constant PI: " + PI)
 
 // Example 2: Typed constant (explicit type)
-madoor tiro MAX_USERS = 100
+madoor abn MAX_USERS = 100
 qor("  Typed constant MAX_USERS: " + MAX_USERS)
 
 madoor qoraal APP_NAME = "Soplang"
@@ -18,7 +18,7 @@ madoor bool IS_PRODUCTION = been
 qor("  Typed boolean constant IS_PRODUCTION: " + IS_PRODUCTION)
 
 // Use constants in expressions
-tiro radius = 5
+abn radius = 5
 jajab area = PI * radius * radius
 qor("  Area of circle with radius " + radius + ": " + area)
 

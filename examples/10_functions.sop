@@ -38,7 +38,7 @@ qor("  Testing function with string parameters:")
 qor("  isku_dar_strings('Magac', 'Danbe'): " + isku_dar_strings("Magac", "Danbe"))
 
 // Function that doubles an integer
-hawl laban_jibbaar_integer(tiro num) {
+hawl laban_jibbaar_integer(abn num) {
     celi num * 2
 }
 
@@ -52,7 +52,7 @@ qor("  laban_jibbaar_integer(8): " + laban_jibbaar_integer(8))
 qor("  laban_jibbaar_decimal(8.5): " + laban_jibbaar_decimal(8.5))
 
 // Function with type checking
-hawl check_even(tiro num) {
+hawl check_even(abn num) {
     haddii (num % 2 == 0) {
         celi run
     } ugudambeyn {
@@ -66,7 +66,7 @@ qor("  check_even(7): " + check_even(7))
 
 // Function with decimal rounding
 hawl round_decimal(jajab num) {
-    tiro rounded = tiro(num)
+    abn rounded = abn(num)
     celi rounded
 }
 
@@ -75,7 +75,7 @@ qor("  round_decimal(4.7): " + round_decimal(4.7))
 qor("  round_decimal(9.2): " + round_decimal(9.2))
 
 // Function with conditional return
-hawl get_grade(tiro score) {
+hawl get_grade(abn score) {
     haddii (score >= 90) {
         celi "A"
     } haddii_kale (score >= 80) {

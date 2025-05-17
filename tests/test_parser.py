@@ -39,7 +39,7 @@ class TestParser(unittest.TestCase):
     def test_static_type_declaration(self):
         """Test parsing of static type declarations."""
         # Parse directly from a node for testing
-        lexer = Lexer('tiro y = 10')
+        lexer = Lexer('abn y = 10')
         tokens = lexer.tokenize()
         
         # Inspect tokens for debugging
@@ -49,7 +49,7 @@ class TestParser(unittest.TestCase):
             
         # Create a simple parser instance just for this test
         parser = Parser([
-            tokens[0],  # TIRO
+            tokens[0],  # abn
             tokens[1],  # IDENTIFIER (y)
             tokens[2],  # EQUAL
             tokens[3],  # NUMBER (10)
