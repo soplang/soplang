@@ -1,14 +1,14 @@
 // Test: Functions
 // This test checks if functions work properly
 
-bandhig("Testing functions (hawl):")
+qor("Testing functions (hawl):")
 
 // Simple function with no parameters or return value
 hawl salaan() {
-    bandhig("  Salaan, Adduunka!")
+    qor("  Salaan, Adduunka!")
 }
 
-bandhig("  Calling salaan function:")
+qor("  Calling salaan function:")
 salaan()
 
 // Function with integer parameters
@@ -16,26 +16,26 @@ hawl isku_dar_integers(x, y) {
     celi x + y
 }
 
-bandhig("  Testing function with integer parameters:")
-bandhig("  isku_dar_integers(5, 7): " + isku_dar_integers(5, 7))
-bandhig("  isku_dar_integers(10, 20): " + isku_dar_integers(10, 20))
+qor("  Testing function with integer parameters:")
+qor("  isku_dar_integers(5, 7): " + isku_dar_integers(5, 7))
+qor("  isku_dar_integers(10, 20): " + isku_dar_integers(10, 20))
 
 // Function with decimal parameters
 hawl isku_dar_decimals(x, y) {
     celi x + y
 }
 
-bandhig("  Testing function with decimal parameters:")
-bandhig("  isku_dar_decimals(5.5, 7.25): " + isku_dar_decimals(5.5, 7.25))
-bandhig("  isku_dar_decimals(10.1, 20.2): " + isku_dar_decimals(10.1, 20.2))
+qor("  Testing function with decimal parameters:")
+qor("  isku_dar_decimals(5.5, 7.25): " + isku_dar_decimals(5.5, 7.25))
+qor("  isku_dar_decimals(10.1, 20.2): " + isku_dar_decimals(10.1, 20.2))
 
 // Function with string concatenation
 hawl isku_dar_strings(str1, str2) {
     celi str1 + str2
 }
 
-bandhig("  Testing function with string parameters:")
-bandhig("  isku_dar_strings('Magac', 'Danbe'): " + isku_dar_strings("Magac", "Danbe"))
+qor("  Testing function with string parameters:")
+qor("  isku_dar_strings('Magac', 'Danbe'): " + isku_dar_strings("Magac", "Danbe"))
 
 // Function that doubles an integer
 hawl laban_jibbaar_integer(tiro num) {
@@ -47,9 +47,9 @@ hawl laban_jibbaar_decimal(jajab num) {
     celi num * 2
 }
 
-bandhig("  Testing functions with specific return types:")
-bandhig("  laban_jibbaar_integer(8): " + laban_jibbaar_integer(8))
-bandhig("  laban_jibbaar_decimal(8.5): " + laban_jibbaar_decimal(8.5))
+qor("  Testing functions with specific return types:")
+qor("  laban_jibbaar_integer(8): " + laban_jibbaar_integer(8))
+qor("  laban_jibbaar_decimal(8.5): " + laban_jibbaar_decimal(8.5))
 
 // Function with type checking
 hawl check_even(tiro num) {
@@ -60,9 +60,9 @@ hawl check_even(tiro num) {
     }
 }
 
-bandhig("  Testing function with type checking:")
-bandhig("  check_even(4): " + check_even(4))
-bandhig("  check_even(7): " + check_even(7))
+qor("  Testing function with type checking:")
+qor("  check_even(4): " + check_even(4))
+qor("  check_even(7): " + check_even(7))
 
 // Function with decimal rounding
 hawl round_decimal(jajab num) {
@@ -70,9 +70,9 @@ hawl round_decimal(jajab num) {
     celi rounded
 }
 
-bandhig("  Testing decimal rounding function:")
-bandhig("  round_decimal(4.7): " + round_decimal(4.7))
-bandhig("  round_decimal(9.2): " + round_decimal(9.2))
+qor("  Testing decimal rounding function:")
+qor("  round_decimal(4.7): " + round_decimal(4.7))
+qor("  round_decimal(9.2): " + round_decimal(9.2))
 
 // Function with conditional return
 hawl get_grade(tiro score) {
@@ -89,12 +89,12 @@ hawl get_grade(tiro score) {
     }
 }
 
-bandhig("  Testing function with conditional return:")
-bandhig("  get_grade(95): " + get_grade(95))
-bandhig("  get_grade(85): " + get_grade(85))
-bandhig("  get_grade(75): " + get_grade(75))
-bandhig("  get_grade(65): " + get_grade(65))
-bandhig("  get_grade(55): " + get_grade(55))
+qor("  Testing function with conditional return:")
+qor("  get_grade(95): " + get_grade(95))
+qor("  get_grade(85): " + get_grade(85))
+qor("  get_grade(75): " + get_grade(75))
+qor("  get_grade(65): " + get_grade(65))
+qor("  get_grade(55): " + get_grade(55))
 
 // Function that works with both integers and decimals
 hawl calculate_area(shape, a, b) {
@@ -107,6 +107,6 @@ hawl calculate_area(shape, a, b) {
     }
 }
 
-bandhig("  Testing generic calculation function:")
-bandhig("  Rectangle area (integers) calculate_area('rectangle', 5, 10): " + calculate_area("rectangle", 5, 10))
-bandhig("  Triangle area (decimals) calculate_area('triangle', 5.5, 10.5): " + calculate_area("triangle", 5.5, 10.5))
+qor("  Testing generic calculation function:")
+qor("  Rectangle area (integers) calculate_area('rectangle', 5, 10): " + calculate_area("rectangle", 5, 10))
+qor("  Triangle area (decimals) calculate_area('triangle', 5.5, 10.5): " + calculate_area("triangle", 5.5, 10.5))

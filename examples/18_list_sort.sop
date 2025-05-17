@@ -1,46 +1,46 @@
 // Test: List Sort
 // This test checks if the habee() method correctly sorts lists in-place
 
-bandhig("Testing list sort (habee) method:")
+qor("Testing list sort (habee) method:")
 
 // Simple list sorting (numbers)
 liis tirooyin = [5, 1, 3, 4, 2]
-bandhig("  Original number list: " + tirooyin)
+qor("  Original number list: " + tirooyin)
 tirooyin.habee()
-bandhig("  After habee(): " + tirooyin)  // Should output: [1, 2, 3, 4, 5]
+qor("  After habee(): " + tirooyin)  // Should output: [1, 2, 3, 4, 5]
 
 // Sorting strings (alphabetical order)
 liis magacyo = ["Zaynab", "Cabdi", "Faadumo", "Axmed", "Xaliimo"]
-bandhig("  Original name list: " + magacyo)
+qor("  Original name list: " + magacyo)
 magacyo.habee()
-bandhig("  After habee(): " + magacyo)  // Should output sorted alphabetically
+qor("  After habee(): " + magacyo)  // Should output sorted alphabetically
 
 // Verify the list is mutated (same reference)
 liis original = [30, 10, 20]
-bandhig("  Original list: " + original)
+qor("  Original list: " + original)
 door reference = original
 reference.habee()
-bandhig("  After habee() via reference: " + original)  // Should show the sorted list
-bandhig("  Proving it's the same reference: " + reference)  // Should be identical to original
+qor("  After habee() via reference: " + original)  // Should show the sorted list
+qor("  Proving it's the same reference: " + reference)  // Should be identical to original
 
 // Empty list
 liis empty = []
-bandhig("  Empty list: " + empty)
+qor("  Empty list: " + empty)
 empty.habee()
-bandhig("  After habee() on empty list: " + empty)  // Should still be empty
+qor("  After habee() on empty list: " + empty)  // Should still be empty
 
 // Single element list
 liis single = ["Solo"]
-bandhig("  Single element list: " + single)
+qor("  Single element list: " + single)
 single.habee()
-bandhig("  After habee() on single element list: " + single)  // Should be unchanged
+qor("  After habee() on single element list: " + single)  // Should be unchanged
 
 // Method chaining
 liis chain = [3, 1, 2]
-bandhig("  Method chaining:")
-bandhig("  Original list: " + chain)
+qor("  Method chaining:")
+qor("  Original list: " + chain)
 chain.habee().kudar(4)
-bandhig("  After habee().kudar(4): " + chain)  // Should be [1, 2, 3, 4]
+qor("  After habee().kudar(4): " + chain)  // Should be [1, 2, 3, 4]
 
 // Mixed types list - should raise error when uncommented
 // liis mixed = [5, "a", 3, "b"]
@@ -48,8 +48,8 @@ bandhig("  After habee().kudar(4): " + chain)  // Should be [1, 2, 3, 4]
 
 // List with decimal numbers
 liis decimals = [3.14, 1.5, 2.71, 0.99]
-bandhig("  Decimal numbers list: " + decimals)
+qor("  Decimal numbers list: " + decimals)
 decimals.habee()
-bandhig("  After habee(): " + decimals)  // Should output sorted decimal numbers
+qor("  After habee(): " + decimals)  // Should output sorted decimal numbers
 
-bandhig("List sort (habee) tests completed!")
+qor("List sort (habee) tests completed!")

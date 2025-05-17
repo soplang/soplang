@@ -268,7 +268,7 @@ After installing Soplang, verify that it's working properly:
 
 2. Run a simple Soplang program:
    ```bash
-   soplang -c 'bandhig("Hello from Soplang!")'
+   soplang -c 'qor("Hello from Soplang!")'
    ```
    You should see the output: `Hello from Soplang!`
 

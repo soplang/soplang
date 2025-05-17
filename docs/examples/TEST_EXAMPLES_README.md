@@ -4,7 +4,7 @@ This directory contains various test examples for the Soplang programming langua
 
 ## Available Test Examples
 
-1. **01_basic_output.so** - Tests the basic output functionality using the `bandhig()` function.
+1. **01_basic_output.so** - Tests the basic output functionality using the `qor()` function.
    * Printing strings, numbers, and expressions
    * String concatenation
    * Printing boolean values

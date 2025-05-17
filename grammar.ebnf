@@ -195,7 +195,7 @@ ObjectMethod ::= "fure"      // keys
                | "qiime"     // values
                | "lamaane"   // entries
                | "leeyahay"  // has
-               | "tirtir"    // remove
+               | "tir"    // remove
                | "kudar"     // merge
                | "nuqul"     // copy
                | "nadiifi"   // clear
@@ -210,7 +210,7 @@ StringMethod ::= "qeybi"     // split
               | "jar"        // slice
 
 // ===== BUILT-IN FUNCTIONS =====
-BuiltInFunction ::= "bandhig"  // print
+BuiltInFunction ::= "qor"  // print
                   | "gelin"    // input
                   | "nooc"     // typeof
                   | "tiro"     // to integer

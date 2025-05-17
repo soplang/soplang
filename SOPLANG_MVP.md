@@ -87,11 +87,11 @@ Conditional statements allow your program to make decisions.
 
 | Somali Keyword | English Equivalent | Description       | Example                                      |
 | -------------- | ------------------ | ----------------- | -------------------------------------------- |
-| `haddii`       | `if`               | If condition      | `haddii (x > 10) { bandhig("Weyn") }`        |
-| `haddii_kale`  | `else if`          | Else if condition | `haddii_kale (x == 10) { bandhig("Dhexe") }` |
-| `ugudambeyn`   | `else`             | Else condition    | `ugudambeyn { bandhig("Yar") }`              |
-| `dooro`        | `switch`           | Switch statement  | `dooro (x) { xaalad 1 { bandhig("Hal") } }`  |
-| `xaalad`       | `case`             | Case clause       | `xaalad "A" { bandhig("Option A") }`         |
+| `haddii`       | `if`               | If condition      | `haddii (x > 10) { qor("Weyn") }`        |
+| `haddii_kale`  | `else if`          | Else if condition | `haddii_kale (x == 10) { qor("Dhexe") }` |
+| `ugudambeyn`   | `else`             | Else condition    | `ugudambeyn { qor("Yar") }`              |
+| `dooro`        | `switch`           | Switch statement  | `dooro (x) { xaalad 1 { qor("Hal") } }`  |
+| `xaalad`       | `case`             | Case clause       | `xaalad "A" { qor("Option A") }`         |
 
 ### Example
 
@@ -100,13 +100,13 @@ Conditional statements allow your program to make decisions.
 door buundada = 85
 
 haddii (buundada >= 90) {
-    bandhig("Darajada A")
+    qor("Darajada A")
 } haddii_kale (buundada >= 80) {
-    bandhig("Darajada B")
+    qor("Darajada B")
 } haddii_kale (buundada >= 70) {
-    bandhig("Darajada C")
+    qor("Darajada C")
 } ugudambeyn {
-    bandhig("Waa lagu dhacay")
+    qor("Waa lagu dhacay")
 }
 
 // Switch-case statement
@@ -114,16 +114,16 @@ door doorasho = "B"
 
 dooro (doorasho) {
     xaalad "A" {
-        bandhig("Waa doorasho A")
+        qor("Waa doorasho A")
     }
     xaalad "B" {
-        bandhig("Waa doorasho B")
+        qor("Waa doorasho B")
     }
     xaalad "C" {
-        bandhig("Waa doorasho C")
+        qor("Waa doorasho C")
     }
     ugudambeyn {
-        bandhig("Doorasho aan la aqoon")
+        qor("Doorasho aan la aqoon")
     }
 }
 ```
@@ -134,29 +134,29 @@ Loops allow you to repeat code multiple times.
 
 | Somali Keyword | English Equivalent | Description              | Example                                   |
 | -------------- | ------------------ | ------------------------ | ----------------------------------------- |
-| `kuceli`       | `for`              | For loop                 | `kuceli (i 1 ilaa 5) { bandhig(i) }`      |
-| `intay`        | `while`            | While loop               | `intay (x < 5) { bandhig(x); x = x + 1 }` |
+| `kuceli`       | `for`              | For loop                 | `kuceli (i 1 ilaa 5) { qor(i) }`      |
+| `intay`        | `while`            | While loop               | `intay (x < 5) { qor(x); x = x + 1 }` |
 | `jooji`        | `break`            | Break from loop          | `haddii (x == 3) { jooji }`               |
 | `soco`         | `continue`         | Skip to next iteration   | `haddii (x == 3) { soco }`                |
-| `ilaa`         | `to`               | Ending value in for loop | `kuceli (i 1 ilaa 5) { bandhig(i) }`      |
+| `ilaa`         | `to`               | Ending value in for loop | `kuceli (i 1 ilaa 5) { qor(i) }`      |
 
 ### Example
 
 ```
 // For loop
 kuceli (i 1 ilaa 5) {
-    bandhig("Tirsi: " + i)
+    qor("Tirsi: " + i)
 }
 
 // For loop with step
 kuceli (j 1 ilaa 10 :: 2) {
-    bandhig("Step: " + j)
+    qor("Step: " + j)
 }
 
 // While loop
 door j = 1
 intay (j <= 5) {
-    bandhig("J waa: " + j)
+    qor("J waa: " + j)
     j = j + 1
 }
 
@@ -173,7 +173,7 @@ intay (run) {  // Infinite loop with break
         jooji  // Exit loop when k > 5
     }
 
-    bandhig(k)
+    qor(k)
 }
 ```
 
@@ -201,12 +201,12 @@ hawl salaan(qoraal magac) {
 
 // Function with no parameters
 hawl sayHello() {
-    bandhig("Salaam, Adduunka!")
+    qor("Salaam, Adduunka!")
 }
 
 // Using the functions
-bandhig(isuDar(5, 3))    // Outputs: 8
-bandhig(salaan("Ahmed")) // Outputs: Salaam, Ahmed!
+qor(isuDar(5, 3))    // Outputs: 8
+qor(salaan("Ahmed")) // Outputs: Salaam, Ahmed!
 sayHello()           // Outputs: Salaam, Adduunka!
 ```
 
@@ -296,11 +296,11 @@ door salaan = "Salaam, " + magac + "!"  // "Salaam, Ahmed!"
 
 // Comparison operators
 haddii (a > b) {
-    bandhig("A waa ka weyn yahay B")
+    qor("A waa ka weyn yahay B")
 }
 
 haddii (a == 10) {
-    bandhig("A waa 10")
+    qor("A waa 10")
 }
 
 // Direct use of comparison operators in expressions
@@ -312,10 +312,10 @@ door passed = student_score > passing_score  // Assigns 'run' (true)
 // Using comparison expressions in switch statements
 dooro (student_score >= 90) {
     xaalad run {
-        bandhig("Waxaad heshay darajo A")  // You got an A grade
+        qor("Waxaad heshay darajo A")  // You got an A grade
     }
     xaalad been {
-        bandhig("Waxaad heshay darajo kale")  // You got another grade
+        qor("Waxaad heshay darajo kale")  // You got another grade
     }
 }
 
@@ -324,15 +324,15 @@ door is_eligible = (age >= 18) && (score > 70 || experience >= 2)
 
 // Logical operators
 haddii (a > 5 && b < 5) {
-    bandhig("Labada shuruud waa run")
+    qor("Labada shuruud waa run")
 }
 
 haddii (a > 20 || b < 5) {
-    bandhig("Mid ka mid ah shuruudaha waa run")
+    qor("Mid ka mid ah shuruudaha waa run")
 }
 
 haddii (!been) {
-    bandhig("Been ma ahan run")
+    qor("Been ma ahan run")
 }
 ```
 
@@ -342,9 +342,9 @@ Soplang provides several built-in functions for common operations.
 
 | Function  | English Equivalent | Description        | Example                                  |
 | --------- | ------------------ | ------------------ | ---------------------------------------- |
-| `bandhig` | `print`            | Output to console  | `bandhig("Salaam, Adduunka!")`           |
+| `qor` | `print`            | Output to console  | `qor("Salaam, Adduunka!")`           |
 | `gelin`   | `input`            | Get user input     | `door magac = gelin("Magacaaga: ")`      |
-| `nooc`    | `typeof`           | Get variable type  | `bandhig(nooc(x))`                       |
+| `nooc`    | `typeof`           | Get variable type  | `qor(nooc(x))`                       |
 | `tiro`    | `int`              | Convert to integer | `door n = tiro("42")`                    |
 | `jajab`   | `float`/`decimal`  | Convert to decimal | `door n = jajab("3.14")`                 |
 | `qoraal`  | `str`              | Convert to string  | `door s = qoraal(42)`                    |
@@ -356,12 +356,12 @@ Soplang provides several built-in functions for common operations.
 
 ```
 // Printing to console
-bandhig("Salaam, Adduunka!")
+qor("Salaam, Adduunka!")
 
 // Getting user input
-bandhig("Fadlan gali magacaaga:")
+qor("Fadlan gali magacaaga:")
 door magac = gelin()
-bandhig("Salaam, " + magac + "!")
+qor("Salaam, " + magac + "!")
 
 // Type conversion
 door number_string = "42"
@@ -371,8 +371,8 @@ door result = actual_number + 8    // 50
 // Getting type
 door x = 42
 door y = "hello"
-bandhig(nooc(x))    // "tiro"
-bandhig(nooc(y))    // "qoraal"
+qor(nooc(x))    // "tiro"
+qor(nooc(y))    // "qoraal"
 ```
 
 ## Lists and Methods
@@ -394,31 +394,31 @@ Lists (arrays) are a collection of items that can be accessed by index.
 liis ardayda = ["Ali", "Farah", "Muna", "Hassan"]
 
 // Accessing by index (zero-based)
-bandhig(ardayda[0])    // "Ali"
-bandhig(ardayda[2])    // "Muna"
+qor(ardayda[0])    // "Ali"
+qor(ardayda[2])    // "Muna"
 
 // Getting the length
 door tirada = ardayda.dherer()
-bandhig("Tirada ardayda: " + tirada)    // "Tirada ardayda: 4"
+qor("Tirada ardayda: " + tirada)    // "Tirada ardayda: 4"
 
 // Adding an item
 ardayda.kudar("Amina")
-bandhig(ardayda)    // ["Ali", "Farah", "Muna", "Hassan", "Amina"]
+qor(ardayda)    // ["Ali", "Farah", "Muna", "Hassan", "Amina"]
 
 // Removing the last item
 door last = ardayda.kasaar()
-bandhig(last)      // "Amina"
-bandhig(ardayda)   // ["Ali", "Farah", "Muna", "Hassan"]
+qor(last)      // "Amina"
+qor(ardayda)   // ["Ali", "Farah", "Muna", "Hassan"]
 
 // Checking if an item exists
 door exists = ardayda.leeyahay("Farah")
-bandhig(exists)    // run (true)
+qor(exists)    // run (true)
 
 // Combining lists
 liis fasalka1 = ["Ali", "Farah"]
 liis fasalka2 = ["Muna", "Hassan"]
 liis dhamaan = fasalka1.kudar(fasalka2)
-bandhig(dhamaan)   // ["Ali", "Farah", "Muna", "Hassan"]
+qor(dhamaan)   // ["Ali", "Farah", "Muna", "Hassan"]
 ```
 
 ## Objects and Methods
@@ -429,7 +429,7 @@ Objects are collections of key-value pairs that represent real-world entities.
 | --------------- | ---------------------- | ------------------- | -------------------------------------- |
 | `fure`          | `keys`                 | Get all object keys | `door keys = myObj.fure()`             |
 | `leeyahay`      | `has`/`hasOwnProperty` | Check if key exists | `door exists = myObj.leeyahay("name")` |
-| `tirtir`        | `delete`               | Remove a property   | `myObj.tirtir("oldProp")`              |
+| `tir`        | `delete`               | Remove a property   | `myObj.tir("oldProp")`              |
 | `kudar`         | `merge`/`assign`       | Combine objects     | `door merged = obj1.kudar(obj2)`       |
 
 ### Example
@@ -443,8 +443,8 @@ walax qof = {
 }
 
 // Accessing properties
-bandhig(qof["magac"])    // "Ahmed Ali"
-bandhig(qof.da)          // 30
+qor(qof["magac"])    // "Ahmed Ali"
+qor(qof.da)          // 30
 
 // Adding/modifying properties
 qof.shaqo = "Macallin"
@@ -452,15 +452,15 @@ qof.da = 31
 
 // Getting all keys
 door furayaasha = qof.fure()
-bandhig(furayaasha)    // ["magac", "da", "deggan", "shaqo"]
+qor(furayaasha)    // ["magac", "da", "deggan", "shaqo"]
 
 // Checking if a property exists
 door haystaa_shaqo = qof.leeyahay("shaqo")
-bandhig(haystaa_shaqo)    // run (true)
+qor(haystaa_shaqo)    // run (true)
 
 // Removing a property
-qof.tirtir("deggan")
-bandhig(qof.leeyahay("deggan"))    // been (false)
+qof.tir("deggan")
+qor(qof.leeyahay("deggan"))    // been (false)
 
 // Merging objects
 walax faahfaahin = {
@@ -469,7 +469,7 @@ walax faahfaahin = {
 }
 
 door qof_dhamaystiray = qof.kudar(faahfaahin)
-bandhig(qof_dhamaystiray.luuqadaha[0])    // "Soomaali"
+qor(qof_dhamaystiray.luuqadaha[0])    // "Soomaali"
 ```
 
 ## Comments
@@ -494,7 +494,7 @@ Comments allow you to add notes to your code that are not executed.
 door a = 5    // Assign 5 to variable a
 door b = 10   // Assign 10 to variable b
 door sum = a + b    // Calculate sum
-bandhig(sum)      // Print the result
+qor(sum)      // Print the result
 ```
 
 ## Complete Example Program
@@ -527,27 +527,27 @@ hawl xisaabi_darajada(tiro dhibcaha) {
 }
 
 // Main program
-bandhig("=== Xisaabiyaha Darajooyinka Ardayda ===")
+qor("=== Xisaabiyaha Darajooyinka Ardayda ===")
 
 // Create a list to store student information
 liis ardayda = []
 
 // Get number of students
-bandhig("Fadlan gali tirada ardayda:")
+qor("Fadlan gali tirada ardayda:")
 door tirada_ardayda = tiro(gelin())
 
 // Input loop
 kuceli i  1 ilaa tirada_ardayda {
-    bandhig("\nArday #" + i)
-    bandhig("Fadlan gali magaca ardayga:")
+    qor("\nArday #" + i)
+    qor("Fadlan gali magaca ardayga:")
     door magac = gelin()
 
-    bandhig("Fadlan gali dhibcaha ardayga (0-100):")
+    qor("Fadlan gali dhibcaha ardayga (0-100):")
     door dhibco = tiro(gelin())
 
     // Validate score
     intay (dhibco < 0 || dhibco > 100) {
-        bandhig("Dhibcaha waa inay u dhexeeyaan 0 iyo 100. Fadlan mar kale gali:")
+        qor("Dhibcaha waa inay u dhexeeyaan 0 iyo 100. Fadlan mar kale gali:")
         dhibco = tiro(gelin())
     }
 
@@ -566,7 +566,7 @@ kuceli i  1 ilaa tirada_ardayda {
 }
 
 // Display results
-bandhig("\n=== Natiijooyinka Ardayda ===")
+qor("\n=== Natiijooyinka Ardayda ===")
 
 door wadarta_dhibcaha = 0
 door tirada_guulaystay = 0
@@ -574,18 +574,18 @@ door tirada_guulaystay = 0
 kuceli i  0 ilaa ardayda.dherer() - 1 {
     door arday = ardayda[i]
 
-    bandhig("Magaca: " + arday.magac)
-    bandhig("Dhibcaha: " + arday.dhibco)
-    bandhig("Darajada: " + arday.darajo)
+    qor("Magaca: " + arday.magac)
+    qor("Dhibcaha: " + arday.dhibco)
+    qor("Darajada: " + arday.darajo)
 
     haddii (arday.dhibco >= 60) {
-        bandhig("Xaaladda: Guulaystay!")
+        qor("Xaaladda: Guulaystay!")
         tirada_guulaystay = tirada_guulaystay + 1
     } ugudambeyn {
-        bandhig("Xaaladda: Ku dhacay")
+        qor("Xaaladda: Ku dhacay")
     }
 
-    bandhig("-----------------------")
+    qor("-----------------------")
 
     wadarta_dhibcaha = wadarta_dhibcaha + arday.dhibco
 }
@@ -594,10 +594,10 @@ kuceli i  0 ilaa ardayda.dherer() - 1 {
 door celceliska = wadarta_dhibcaha / ardayda.dherer()
 door boqolkiiba_guul = (tirada_guulaystay / ardayda.dherer()) * 100
 
-bandhig("\n=== Tirakoobka Fasalka ===")
-bandhig("Tirada Ardayda: " + ardayda.dherer())
-bandhig("Celceliska Dhibcaha: " + celceliska)
-bandhig("Boqolkiiba Guulaystay: " + boqolkiiba_guul + "%")
+qor("\n=== Tirakoobka Fasalka ===")
+qor("Tirada Ardayda: " + ardayda.dherer())
+qor("Celceliska Dhibcaha: " + celceliska)
+qor("Boqolkiiba Guulaystay: " + boqolkiiba_guul + "%")
 ```
 
 This program demonstrates:

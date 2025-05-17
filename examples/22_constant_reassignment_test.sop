@@ -1,19 +1,19 @@
 // Test: Constant Reassignment Error
 // This test verifies that constants cannot be reassigned
 
-bandhig("Testing constant reassignment protection:")
+qor("Testing constant reassignment protection:")
 
 // Define some constants
 madoor PI = 3.14159
 madoor tiro MAX_VALUE = 100
 
-bandhig("  Initial values:")
-bandhig("  PI = " + PI)
-bandhig("  MAX_VALUE = " + MAX_VALUE)
+qor("  Initial values:")
+qor("  PI = " + PI)
+qor("  MAX_VALUE = " + MAX_VALUE)
 
 // Trying to reassign a constant
-bandhig("Attempting to reassign PI (should cause error):")
+qor("Attempting to reassign PI (should cause error):")
 PI = 3.14 // This should fail with a runtime error
 
 // We should never reach this point
-bandhig("  This line should never be displayed")
+qor("  This line should never be displayed")

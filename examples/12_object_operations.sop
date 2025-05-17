@@ -1,7 +1,7 @@
 // Test: Object Operations
 // This test checks if object operations work properly
 
-bandhig("Testing object operations:")
+qor("Testing object operations:")
 
 // Creating objects
 walax empty_obj = {}
@@ -11,22 +11,22 @@ walax person = {
     magaalo: "Muqdisho"
 }
 
-bandhig("  Empty object: " + empty_obj)
-bandhig("  Person object: " + person)
-bandhig("  Type of person: " + nooc(person))
+qor("  Empty object: " + empty_obj)
+qor("  Person object: " + person)
+qor("  Type of person: " + nooc(person))
 
 // Accessing properties
-bandhig("  Name: " + person.magac)
-bandhig("  Age: " + person.da)
-bandhig("  City: " + person.magaalo)
+qor("  Name: " + person.magac)
+qor("  Age: " + person.da)
+qor("  City: " + person.magaalo)
 
 // Modifying properties using dot notation
 person.da = 31
-bandhig("  After changing age: " + person)
+qor("  After changing age: " + person)
 
 // Adding new properties using dot notation
 person.shaqo = "Barnaamij Samayne"
-bandhig("  After adding job: " + person)
+qor("  After adding job: " + person)
 
 // Nested objects
 walax address = {
@@ -41,40 +41,40 @@ walax employee = {
     address: address
 }
 
-bandhig("  Employee with nested address: " + employee)
-bandhig("  Employee's district: " + employee.address.district)
+qor("  Employee with nested address: " + employee)
+qor("  Employee's district: " + employee.address.district)
 
 // Object keys
 door keys = person.fure()
-bandhig("  Object keys: " + keys)
-bandhig("  Type of keys: " + nooc(keys))
+qor("  Object keys: " + keys)
+qor("  Type of keys: " + nooc(keys))
 
 // Debug - Print first few keys if they exist
 haddii (keys.dherer() > 0) {
-    bandhig("  First key: " + keys[0])
+    qor("  First key: " + keys[0])
 }
 
 // Check if property exists
 bool has_job = person.leeyahay("shaqo")
-bandhig("  Does person have 'shaqo'? " + has_job)
+qor("  Does person have 'shaqo'? " + has_job)
 
 bool has_email = person.leeyahay("email")
-bandhig("  Does person have 'email'? " + has_email)
+qor("  Does person have 'email'? " + has_email)
 
 // Removing properties
-person.tirtir("shaqo")
-bandhig("  After removing job: " + person)
+person.tir("shaqo")
+qor("  After removing job: " + person)
 
 // Merging objects
 walax obj1 = {a: 1, b: 2}
 walax obj2 = {c: 3, d: 4}
 walax merged = obj1.kudar(obj2)
-bandhig("  obj1: " + obj1)
-bandhig("  obj2: " + obj2)
-bandhig("  Merged object: " + merged)
+qor("  obj1: " + obj1)
+qor("  obj2: " + obj2)
+qor("  Merged object: " + merged)
 
 // Testing additional nested property access
-bandhig("\nTesting additional nested property access:")
+qor("\nTesting additional nested property access:")
 
 // Create a company object with nested properties
 walax company = {
@@ -86,13 +86,13 @@ walax company = {
 }
 
 // Test accessing nested properties
-bandhig("  Company name: " + company.name)
-bandhig("  Company city: " + company.location.city)
-bandhig("  Company address: " + company.location.address)
+qor("  Company name: " + company.name)
+qor("  Company city: " + company.location.city)
+qor("  Company address: " + company.location.address)
 
 // Test updating nested properties using dot notation
 company.location.city = "Hargeisa"
-bandhig("  Updated city: " + company.location.city)
+qor("  Updated city: " + company.location.city)
 
 // Test object with array
 walax team = {
@@ -103,5 +103,5 @@ walax team = {
 }
 
 // Access array elements in object
-bandhig("  First team member: " + team.members[0].name)
-bandhig("  Second team member role: " + team.members[1].role)
+qor("  First team member: " + team.members[0].name)
+qor("  Second team member role: " + team.members[1].role)

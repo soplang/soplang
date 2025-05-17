@@ -1,47 +1,47 @@
 // Test: List Copy Operations
 // This test demonstrates the nuqul() method for making shallow copies of lists
 
-bandhig("Testing list copy (nuqul) method:")
+qor("Testing list copy (nuqul) method:")
 
 // Create an original list
 liis asalka = [1, 2, 3]
-bandhig("  Original list (asalka): " + asalka)
+qor("  Original list (asalka): " + asalka)
 
 // Create a copy using nuqul()
 liis nuqul_list = asalka.nuqul()
-bandhig("  Copied list (nuqul_list): " + nuqul_list)
+qor("  Copied list (nuqul_list): " + nuqul_list)
 
 // Modify the original list
 asalka.kudar(4)
-bandhig("  Original list after modification: " + asalka)
-bandhig("  Copied list after original was modified: " + nuqul_list)
+qor("  Original list after modification: " + asalka)
+qor("  Copied list after original was modified: " + nuqul_list)
 
 // Verify that the lists are separate objects
-bandhig("Verifying that the copy is independent from the original:")
-bandhig("  asalka == nuqul_list: " + (asalka == nuqul_list))  // Content comparison
-bandhig("  After adding an element to the copy:")
+qor("Verifying that the copy is independent from the original:")
+qor("  asalka == nuqul_list: " + (asalka == nuqul_list))  // Content comparison
+qor("  After adding an element to the copy:")
 nuqul_list.kudar(5)
-bandhig("  Original list: " + asalka)
-bandhig("  Modified copy: " + nuqul_list)
+qor("  Original list: " + asalka)
+qor("  Modified copy: " + nuqul_list)
 
 // Test with nested structures (shallow copy behavior)
-bandhig("Testing shallow copy behavior with nested lists:")
+qor("Testing shallow copy behavior with nested lists:")
 liis nested = [[10, 20], [30, 40]]
 liis nested_copy = nested.nuqul()
-bandhig("  Original nested list: " + nested)
-bandhig("  Nested list copy: " + nested_copy)
+qor("  Original nested list: " + nested)
+qor("  Nested list copy: " + nested_copy)
 
 // Modify a nested element (should affect both lists since it's a shallow copy)
 nested[0][0] = 15
-bandhig("  After modifying a nested element (nested[0][0] = 15):")
-bandhig("  Original nested list: " + nested)
-bandhig("  Nested list copy: " + nested_copy)
+qor("  After modifying a nested element (nested[0][0] = 15):")
+qor("  Original nested list: " + nested)
+qor("  Nested list copy: " + nested_copy)
 
 // Modify the outer structure (should not affect the copy)
 nested.kudar([50, 60])
-bandhig("  After adding a new nested list to the original:")
-bandhig("  Original nested list: " + nested)
-bandhig("  Nested list copy: " + nested_copy)
-bandhig("  Notice: The nested copy doesn't contain the [50, 60] element added to the original")
+qor("  After adding a new nested list to the original:")
+qor("  Original nested list: " + nested)
+qor("  Nested list copy: " + nested_copy)
+qor("  Notice: The nested copy doesn't contain the [50, 60] element added to the original")
 
-bandhig("The nuqul() method successfully creates a shallow copy that is independent at the top level.")
+qor("The nuqul() method successfully creates a shallow copy that is independent at the top level.")

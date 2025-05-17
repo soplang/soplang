@@ -1,7 +1,7 @@
 // Test: Object Values (qiime)
 // This test demonstrates the qiime() method for walax (objects)
 
-bandhig("Testing walax.qiime() (object values):")
+qor("Testing walax.qiime() (object values):")
 
 // Create a test object with various types of values
 walax qof = {
@@ -17,32 +17,32 @@ walax qof = {
 }
 
 // Display the original object
-bandhig("Original object:")
-bandhig("  qof = " + qof)
+qor("Original object:")
+qor("  qof = " + qof)
 
 // Get all keys for comparison
 liis fureyaasha = qof.fure()
-bandhig("\nKeys using fure():")
-bandhig("  " + fureyaasha)
+qor("\nKeys using fure():")
+qor("  " + fureyaasha)
 
 // Get all values using qiime()
 liis qiimooyinka = qof.qiime()
-bandhig("\nValues using qiime():")
-bandhig("  " + qiimooyinka)
+qor("\nValues using qiime():")
+qor("  " + qiimooyinka)
 
 // Verify values correspond to keys in same order
-bandhig("\nVerifying individual values match keys:")
+qor("\nVerifying individual values match keys:")
 kuceli (i 0 ilaa fureyaasha.dherer() - 1) {
     door fure = fureyaasha[i]
     door qiime = qiimooyinka[i]
-    bandhig("  " + fure + ": " + qiime)
+    qor("  " + fure + ": " + qiime)
 }
 
 // Testing empty object
 walax maran = {}
-bandhig("\nTesting empty object:")
-bandhig("  Empty object values: " + maran.qiime())
-bandhig("  Values count: " + maran.qiime().dherer())
+qor("\nTesting empty object:")
+qor("  Empty object values: " + maran.qiime())
+qor("  Values count: " + maran.qiime().dherer())
 
 // Testing object with numbers as values
 walax numbers = {
@@ -51,15 +51,15 @@ walax numbers = {
     saddex: 3,
     afar: 4
 }
-bandhig("\nObject with numeric values:")
-bandhig("  Values: " + numbers.qiime())
+qor("\nObject with numeric values:")
+qor("  Values: " + numbers.qiime())
 
 // Modifying values and getting updated values
-bandhig("\nModifying object values:")
+qor("\nModifying object values:")
 qof.da = 22
 qof.hiwayado.kudar("daawasho")
-bandhig("  After changing age and adding to hobbies:")
-bandhig("  Updated values: " + qof.qiime())
+qor("  After changing age and adding to hobbies:")
+qor("  Updated values: " + qof.qiime())
 
 // Using with type functions
 liis loogay_qoraal = {
@@ -67,15 +67,15 @@ liis loogay_qoraal = {
     b: "two",
     c: "three"
 }.qiime()
-bandhig("\nUsing values with other functions:")
-bandhig("  All values are strings: " + (loogay_qoraal[0] == "one" && loogay_qoraal[1] == "two" && loogay_qoraal[2] == "three"))
+qor("\nUsing values with other functions:")
+qor("  All values are strings: " + (loogay_qoraal[0] == "one" && loogay_qoraal[1] == "two" && loogay_qoraal[2] == "three"))
 
 // Converting all values to strings
-bandhig("\nConverting all values to strings:")
+qor("\nConverting all values to strings:")
 liis qoraal_values = []
 kuceli (i 0 ilaa qiimooyinka.dherer() - 1) {
     qoraal_values.kudar(qoraal(qiimooyinka[i]))
 }
-bandhig("  String values: " + qoraal_values)
+qor("  String values: " + qoraal_values)
 
-bandhig("\nTest completed: walax.qiime() returns all values from an object")
+qor("\nTest completed: walax.qiime() returns all values from an object")
