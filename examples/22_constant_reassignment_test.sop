@@ -5,7 +5,7 @@ qor("Testing constant reassignment protection:")
 
 // Define some constants
 madoor PI = 3.14159
-madoor tiro MAX_VALUE = 100
+madoor abn MAX_VALUE = 100
 
 qor("  Initial values:")
 qor("  PI = " + PI)

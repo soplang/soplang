@@ -51,7 +51,7 @@ class TestInterpreter(unittest.TestCase):
     def test_static_type_declaration(self):
         """Test static type variable declaration."""
         source = '''
-        tiro num = 10
+        abn num = 10
         qoraal str = "Hello"
         qor(qoraal(num) + " " + str)
         '''

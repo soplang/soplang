@@ -60,7 +60,7 @@ qor("Practical applications:")
 
 // Using dherer in a loop
 teed numbers = [10, 20, 30, 40, 50]
-tiro sum = 0
+abn sum = 0
 kuceli (i 0 ilaa dherer(numbers) - 1) {
     sum = sum + numbers[i]
 }

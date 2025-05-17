@@ -5,8 +5,8 @@ qor("Testing comparison operations in assignments:")
 
 // Integer comparisons
 qor("Integer comparisons:")
-tiro a = 5
-tiro b = 3
+abn a = 5
+abn b = 3
 qor("  a = " + a + ", b = " + b)
 
 // Direct integer comparison assignments with door type

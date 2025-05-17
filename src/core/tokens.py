@@ -27,7 +27,7 @@ class TokenType(Enum):
     NAFTA = "nafta"  # self/this
 
     # Static types
-    TIRO = "tiro"  # integer
+    abn = "abn"  # integer
     JAJAB = "jajab"  # float/decimal
     QORAAL = "qoraal"  # string
     BOOL = "bool"  # boolean

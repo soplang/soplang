@@ -4,7 +4,7 @@
 qor("Testing conditional statements (haddii):")
 
 // Simple if statement
-tiro age = 20
+abn age = 20
 qor("  age = " + age)
 
 qor("  Simple if statement:")
@@ -21,7 +21,7 @@ haddii (age >= 21) {
 }
 
 // If-else if-else statement
-tiro score = 85
+abn score = 85
 qor("  score = " + score)
 qor("  If-else if-else statement:")
 haddii (score >= 90) {
@@ -49,8 +49,8 @@ haddii (age >= 16) {
 }
 
 // Using logical operators in conditions
-tiro x = 10
-tiro y = 20
+abn x = 10
+abn y = 20
 qor("  x = " + x + ", y = " + y)
 
 qor("  Using AND (&&) operator:")

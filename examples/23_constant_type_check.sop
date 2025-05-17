@@ -4,7 +4,7 @@
 qor("Testing constant type checking:")
 
 // Define some typed constants
-madoor tiro MAX_COUNT = 100
+madoor abn MAX_COUNT = 100
 madoor qoraal APP_NAME = "Soplang"
 madoor bool IS_DEBUG = run
 madoor teed ALLOWED_OPTIONS = ["option1", "option2", "option3"]
@@ -18,7 +18,7 @@ qor("  ALLOWED_OPTIONS: " + nooc(ALLOWED_OPTIONS))
 qor("  CONFIG: " + nooc(CONFIG))
 
 // Examples of valid usage
-tiro counter = MAX_COUNT - 50
+abn counter = MAX_COUNT - 50
 qor("Counter: " + counter)
 
 qoraal message = "Welcome to " + APP_NAME
@@ -37,7 +37,7 @@ qor("Server config: " + CONFIG.host + ":" + CONFIG.port)
 
 // For demonstration - these would cause type errors if uncommented
 qor("Type errors if uncommented:")
-qor("  // madoor tiro INVALID_INT = 'not a number'")
+qor("  // madoor abn INVALID_INT = 'not a number'")
 qor("  // madoor qoraal INVALID_STRING = 123")
 qor("  // madoor bool INVALID_BOOL = 'not a boolean'")
 

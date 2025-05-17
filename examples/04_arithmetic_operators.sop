@@ -5,8 +5,8 @@ qor("Testing arithmetic operators:")
 
 // Integer operations
 qor("Integer operations:")
-tiro a = 15
-tiro b = 5
+abn a = 15
+abn b = 5
 qor("  a = " + a + ", b = " + b)
 
 // Basic operations with integers
@@ -17,7 +17,7 @@ qor("  Division (a / b): " + (a / b))
 qor("  Modulus (a % b): " + (a % b))
 
 // Test with negative integers
-tiro negative = -10
+abn negative = -10
 qor("  negative = " + negative)
 qor("  Addition with negative (a + negative): " + (a + negative))
 qor("  Negative multiplication (negative * b): " + (negative * b))
@@ -45,7 +45,7 @@ qor("  Operator precedence (2 + 3 * 4): " + (2 + 3 * 4))
 qor("  Using parentheses ((2 + 3) * 4): " + ((2 + 3) * 4))
 
 // Complex expressions
-tiro complex_int = (a + b) * 2 - 10 / 2
+abn complex_int = (a + b) * 2 - 10 / 2
 jajab complex_dec = (x + y) * 2.5 - 10.5 / 2.1
 qor("\nComplex expressions:")
 qor("  Integer expression ((a + b) * 2 - 10 / 2): " + complex_int)

@@ -353,11 +353,11 @@ class SoplangShell:
                             # If evaluation fails, continue with other methods
                             pass
 
-            # Case 3: Static typing (tiro, qoraal)
-            if code.startswith("tiro ") or code.startswith("qoraal "):
+            # Case 3: Static typing (abn, qoraal)
+            if code.startswith("abn ") or code.startswith("qoraal "):
                 # Remove semicolon for regex processing if present
                 code_without_semicolon = code[:-1] if code.endswith(";") else code
-                type_name = code_without_semicolon.split(" ")[0]  # tiro or qoraal
+                type_name = code_without_semicolon.split(" ")[0]  # abn or qoraal
                 # Match pattern: type name = value
                 match = re.search(
                     rf"{type_name}\s+(\w+)\s*=\s*(.+)", code_without_semicolon
@@ -366,13 +366,13 @@ class SoplangShell:
                     var_name = match.group(1)
                     var_value = match.group(2).strip()
 
-                    if type_name == "tiro":
+                    if type_name == "abn":
                         try:
                             # Try direct number conversion
                             self.interpreter.variables[var_name] = int(var_value)
-                            self.interpreter.variable_types[var_name] = "tiro"
+                            self.interpreter.variable_types[var_name] = "abn"
                             print(
-                                f"\033[32m=> {var_name} = {self.interpreter.variables[var_name]} (tiro)\033[0m"
+                                f"\033[32m=> {var_name} = {self.interpreter.variables[var_name]} (abn)\033[0m"
                             )
                             return
                         except ValueError:
@@ -393,9 +393,9 @@ class SoplangShell:
                                 if all(c in "0123456789+-*/() " for c in eval_expr):
                                     result = int(eval(eval_expr))
                                     self.interpreter.variables[var_name] = result
-                                    self.interpreter.variable_types[var_name] = "tiro"
+                                    self.interpreter.variable_types[var_name] = "abn"
                                     print(
-                                        f"\033[32m=> {var_name} = {result} (tiro)\033[0m"
+                                        f"\033[32m=> {var_name} = {result} (abn)\033[0m"
                                     )
                                     return
                             except:
@@ -407,7 +407,7 @@ class SoplangShell:
                             error = TypeError(
                                 "type_mismatch",
                                 var_name=var_name,
-                                expected_type="tiro",
+                                expected_type="abn",
                                 value=var_value,
                             )
                             print(f"\033[31m{error.message}\033[0m")
@@ -681,7 +681,7 @@ class SoplangShell:
                     code = f'qor("{string_content}")'
 
         # Fix variable declarations with bad spacing
-        if any(code.startswith(prefix) for prefix in ["door ", "tiro ", "qoraal "]):
+        if any(code.startswith(prefix) for prefix in ["door ", "abn ", "qoraal "]):
             if "=" in code and " = " not in code:
                 code = re.sub(r"=", " = ", code, 1)
 

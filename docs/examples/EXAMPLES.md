@@ -25,7 +25,7 @@ Demonstrates fundamental language features and operations.
 
 **Features tested:**
 - Dynamic typing with `door`
-- Static typing with `qoraal`, `tiro`, etc.
+- Static typing with `qoraal`, `abn`, etc.
 - Type checking with `nooc()`
 - Type conversion
 - Arithmetic operations

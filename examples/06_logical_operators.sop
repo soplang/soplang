@@ -21,8 +21,8 @@ qor("  Complex expression (c && (d || !d)): " + (c && (d || !d)))
 qor("  Complex expression ((c || d) && (c || !d)): " + ((c || d) && (c || !d)))
 
 // Using integer values in logical operations
-tiro x = 10
-tiro y = 20
+abn x = 10
+abn y = 20
 qor("\nLogical operations with integers:")
 qor("  x = " + x + ", y = " + y)
 qor("  Comparison in logical expression ((x > 5) && (y < 30)): " + ((x > 5) && (y < 30)))

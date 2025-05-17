@@ -55,7 +55,7 @@ Where:
 
 4. **Type Error**
    ```
-   Khalad type: 'x' waa tiro laakin qiimaheeda "hello" ma ahan tiro
+   Khalad type: 'x' waa abn laakin qiimaheeda "hello" ma ahan abn
    ```
 
 ### Adding Debug Output
@@ -122,7 +122,7 @@ For complex issues, use step-by-step execution:
 
 **Solution**: Check that you're using variables with the correct types and explicitly convert types when needed:
 ```
-tiro num = tiro(userInput)  // Convert string to number
+abn num = abn(userInput)  // Convert string to number
 ```
 
 #### 2. Undefined Variables

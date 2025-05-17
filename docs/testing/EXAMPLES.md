@@ -64,7 +64,7 @@ docker run --rm -v "$(pwd):/scripts" soplang:latest examples/XX_example_name.so
 **Purpose**: Demonstrates Soplang's static typing system with type-specific keywords.
 
 **Features Tested**:
-- Static variable declaration with `tiro`, `qoraal`, `bool`, `teed`, and `walax`
+- Static variable declaration with `abn`, `qoraal`, `bool`, `teed`, and `walax`
 - Type enforcement at runtime
 - Error handling for type violations
 
@@ -253,7 +253,7 @@ docker run --rm -v "$(pwd):/scripts" soplang:latest examples/XX_example_name.so
 - Type detection with `nooc()`
 
 **Key Concepts**:
-- The type conversion functions (`tiro`, `qoraal`, `bool`) convert values between types
+- The type conversion functions (`abn`, `qoraal`, `bool`) convert values between types
 - The `nooc()` function returns the type of a value as a string
 
 ### 14_comparison_assignment.so

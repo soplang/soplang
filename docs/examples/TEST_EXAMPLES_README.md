@@ -34,7 +34,7 @@ This directory contains various test examples for the Soplang programming langua
    * Using dynamic types in expressions
 
 6. **06_static_typing.so** - Tests static typing using type-specific keywords.
-   * Integer variables (`tiro`)
+   * Integer variables (`abn`)
    * String variables (`qoraal`)
    * Boolean variables (`bool`)
    * Type enforcement

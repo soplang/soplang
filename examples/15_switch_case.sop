@@ -4,7 +4,7 @@
 qor("Testing switch-case (dooro/xaalad) statements:")
 
 // Simple switch-case with integers
-tiro number = 2
+abn number = 2
 qor("\n1. Simple switch with integer:")
 qor("  number = " + number)
 
@@ -19,7 +19,7 @@ dooro (number) {
     qor("  Saddex (Three)")
   }
   ugudambeyn {
-    qor("  Waa tiro kale (It's another number)")
+    qor("  Waa abn kale (It's another number)")
   }
 }
 
@@ -44,8 +44,8 @@ dooro (language) {
 }
 
 // Switch with variable expressions
-tiro x = 10
-tiro y = 20
+abn x = 10
+abn y = 20
 qor("\n3. Switch with expressions:")
 qor("  x = " + x + ", y = " + y)
 
@@ -85,8 +85,8 @@ dooro (decimal) {
 }
 
 // Nested switch statements
-tiro outer = 1
-tiro inner = 2
+abn outer = 1
+abn inner = 2
 qor("\n5. Nested switch statements:")
 qor("  outer = " + outer + ", inner = " + inner)
 

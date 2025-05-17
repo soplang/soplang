@@ -8,7 +8,7 @@ This document provides a reference for all keywords in the Soplang programming l
 | -------- | ----------------------------- | ------------------ | -------------------------------------- |
 | `door`   | Dynamic variable declaration  | `var`/`let`        | `door magac = "Sharafdin"`             |
 | `madoor` | Constant variable declaration | `const`            | `madoor PI = 3.14159`                  |
-| `tiro`   | Integer type                  | `int`              | `tiro da = 25`                         |
+| `abn`   | Integer type                  | `int`              | `abn da = 25`                         |
 | `jajab`  | Decimal/float type            | `float`/`double`   | `jajab qiimo = 3.14`                   |
 | `qoraal` | String type                   | `string`           | `qoraal magac = "Sharafdin"`           |
 | `bool`   | Boolean type                  | `bool`             | `bool waaRun = run`                    |
@@ -51,7 +51,7 @@ This document provides a reference for all keywords in the Soplang programming l
 
 | Somali Type | English Equivalent | Description     | Example                          |
 | ----------- | ------------------ | --------------- | -------------------------------- |
-| `tiro`      | `int`/`number`     | Integer numbers | `tiro age = 25`                  |
+| `abn`      | `int`/`number`     | Integer numbers | `abn age = 25`                  |
 | `jajab`     | `float`/`decimal`  | Decimal numbers | `jajab pi = 3.14`                |
 | `qoraal`    | `string`           | Text values     | `qoraal name = "Ahmed"`          |
 | `bool`      | `boolean`          | Truth values    | `bool isValid = run`             |
@@ -86,7 +86,7 @@ This document provides a reference for all keywords in the Soplang programming l
 | `qor` | Print to console      | `print`            | `qor("Salaan, Adduunka!")`           |
 | `gelin`   | Read input from user  | `input`            | `door magac = gelin("Magacaaga geli: ")` |
 | `nooc`    | Get type of variable  | `typeof`           | `qor(nooc(magac))`                   |
-| `tiro`    | Convert to number     | `int`/`float`      | `door n = tiro("5")`                     |
+| `abn`    | Convert to number     | `int`/`float`      | `door n = abn("5")`                     |
 | `qoraal`  | Convert to string     | `str`              | `door s = qoraal(25)`                    |
 | `bool`    | Convert to boolean    | `bool`             | `door b = bool(1)`                       |
 | `teed`    | Create a list         | `list/array`       | `door list = teed(1, 2, 3)`              |
