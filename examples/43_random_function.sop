@@ -1,7 +1,7 @@
 // Test: Random Function (xul)
 // This test demonstrates the xul() function for generating random values
 
-bandhig("Testing random function (xul):")
+qor("Testing random function (xul):")
 
 // Case 1: No arguments - random float between 0.0 and 1.0
 qor("\nGenerate random float between 0.0 and 1.0:")
@@ -34,7 +34,7 @@ qor("  Random decimal (0.5-9.5): " + randomDecimal)
 // Case 3: One list argument - random item from list
 qor("\nSelect random items from lists:")
 // Names
-liis names = ["Ayaan", "Cali", "Zahra", "Ahmed", "Fadumo"]
+teed names = ["Ayaan", "Cali", "Zahra", "Ahmed", "Fadumo"]
 door randomName1 = xul(names)
 door randomName2 = xul(names)
 door randomName3 = xul(names)
@@ -43,7 +43,7 @@ qor("  Random name 2: " + randomName2)
 qor("  Random name 3: " + randomName3)
 
 // Mixed types
-liis mixedList = [42, "Soplang", been, [1, 2, 3], {name: "test"}]
+teed mixedList = [42, "Soplang", been, [1, 2, 3], {name: "test"}]
 door randomItem = xul(mixedList)
 qor("  Random item from mixed list: " + randomItem)
 
@@ -51,10 +51,9 @@ qor("  Random item from mixed list: " + randomItem)
 qor("\nPractical applications:")
 
 // 1. Random color generator
-liis colors = ["red", "green", "blue", "yellow", "purple", "orange"]
+teed colors = ["red", "green", "blue", "yellow", "purple", "orange"]
 door randomColor = xul(colors)
 qor("  Random color: " + randomColor)
-color: " + randomColor)
 
 // 2. Random yes/no decision
 door randomValue = xul()
