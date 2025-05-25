@@ -21,7 +21,7 @@ windows_requirements = [
 
 setup(
     name="soplang",
-    version="0.1.0",
+    version="2.0.0-beta",
     description="The Somali Programming Language",
     author="Sharafdin",
     author_email="info@soplang.org",

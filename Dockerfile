@@ -1,7 +1,8 @@
 FROM python:3.10-slim AS builder
 
 # Add build arguments for versioning
-ARG VERSION=0.1.0
+ARG PYTHON_VERSION=3.11
+ARG VERSION=2.0.0-beta
 ARG BUILD_DATE=unknown
 ARG VCS_REF=unknown
 
@@ -25,7 +26,8 @@ RUN if [ -f requirements.txt ]; then \
 FROM python:3.10-slim
 
 # Add build arguments for versioning
-ARG VERSION=0.1.0
+ARG PYTHON_VERSION=3.11
+ARG VERSION=2.0.0-beta
 ARG BUILD_DATE=unknown
 ARG VCS_REF=unknown
 
