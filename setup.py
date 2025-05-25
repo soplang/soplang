@@ -2,6 +2,7 @@
 import sys
 
 from setuptools import find_packages, setup
+
 from src.core.version import VERSION
 
 # Read requirements from requirements.txt
