@@ -3,6 +3,8 @@ import sys
 
 from setuptools import find_packages, setup
 
+from src.core.version import VERSION
+
 # Read requirements from requirements.txt
 with open("requirements.txt") as f:
     requirements = [
@@ -21,7 +23,7 @@ windows_requirements = [
 
 setup(
     name="soplang",
-    version="0.1.0",
+    version=VERSION,
     description="The Somali Programming Language",
     author="Sharafdin",
     author_email="info@soplang.org",

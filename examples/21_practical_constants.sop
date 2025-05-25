@@ -4,7 +4,7 @@
 qor("Practical uses of constants (madoor):")
 
 // Application configuration constants
-madoor qoraal APP_VERSION = "1.0.0"
+madoor qoraal APP_VERSION = "2.0.0-beta"
 madoor qoraal API_ENDPOINT = "https://api.example.com/v1"
 madoor abn TIMEOUT_MS = 5000
 madoor abn MAX_RETRIES = 3
