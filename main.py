@@ -10,6 +10,7 @@ import sys
 
 from src.core.lexer import Lexer
 from src.core.parser import Parser
+from src.core.version import VERSION
 from src.runtime.interpreter import Interpreter
 from src.runtime.shell import SoplangShell
 
@@ -62,7 +63,7 @@ def main():
     # Display version information if requested
     if args.version:
         print("Soplang - The Somali Programming Language")
-        print("Version: 0.1.0")
+        print(f"Version: {VERSION}")
         print("Website: https://www.soplang.org/")
         print("License: MIT")
         return 0

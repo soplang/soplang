@@ -1,5 +1,5 @@
 #define MyAppName "Soplang"
-#define MyAppVersion "2.0.0-beta"
+#define MyAppVersion "2.0.0"
 #define MyAppPublisher "Soplang Software Foundation"
 #define MyAppURL "https://www.soplang.org/"
 #define MyAppExeName "soplang.exe"
