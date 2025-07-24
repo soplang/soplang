@@ -885,6 +885,27 @@ class SoplangBuiltins:
         else:
             raise TypeError("xul() waxay qaadataa 0, 1, ama 2 qiimo (xul() takes 0, 1, or 2 arguments)")
 
+    @staticmethod
+    def baaxad(*args):
+        """
+        Generate a list of numbers. Usage:
+        - baaxad(stop): 0 to stop-1
+        - baaxad(start, stop): start to stop-1
+        - baaxad(start, stop, step): start to stop-1 with step
+        """
+        num_args = len(args)
+        if num_args == 1:
+            start, stop, step = 0, args[0], 1
+        elif num_args == 2:
+            start, stop, step = args[0], args[1], 1
+        elif num_args == 3:
+            start, stop, step = args[0], args[1], args[2]
+        else:
+            raise TypeError("baaxad() waxay qaadataa 1 ilaa 3 qiimo (takes 1 to 3 arguments)")
+        if not all(isinstance(x, (int, float)) for x in [start, stop, step]):
+            raise TypeError("Dhammaan qiimayaasha waa inay noqdaan abn ama jajab (all values must be numbers)")
+        return list(range(int(start), int(stop), int(step)))
+
 
 def get_builtin_functions():
     """
@@ -904,6 +925,7 @@ def get_builtin_functions():
         "kor": SoplangBuiltins.kor,
         "dherer": SoplangBuiltins.dherer,
         "xul": SoplangBuiltins.xul,
+        "baaxad": SoplangBuiltins.baaxad,
     }
 
     return builtins
