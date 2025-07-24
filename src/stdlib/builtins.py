@@ -754,6 +754,57 @@ class SoplangBuiltins:
         return s[start:end]
 
     @staticmethod
+    def string_upper(s):
+        """
+        Convert a string to uppercase.
+        """
+        if not isinstance(s, str):
+            raise TypeError("Qiimahu ma ahan qoraal (Value is not a string)")
+        return s.upper()
+
+    @staticmethod
+    def string_lower(s):
+        """
+        Convert a string to lowercase.
+        """
+        if not isinstance(s, str):
+            raise TypeError("Qiimahu ma ahan qoraal (Value is not a string)")
+        return s.lower()
+
+    @staticmethod
+    def string_strip(s):
+        """
+        Remove leading and trailing whitespace from a string.
+        """
+        if not isinstance(s, str):
+            raise TypeError("Qiimahu ma ahan qoraal (Value is not a string)")
+        return s.strip()
+
+    @staticmethod
+    def string_find(s, substring):
+        """
+        Find the index of the first occurrence of a substring in a string. Returns -1 if not found.
+        """
+        if not isinstance(s, str):
+            raise TypeError("Qiimahu ma ahan qoraal (Value is not a string)")
+        if not isinstance(substring, str):
+            raise TypeError("Substring-ka ma ahan qoraal (Substring is not a string)")
+        return s.find(substring)
+
+    @staticmethod
+    def string_replace_all(s, target, replacement):
+        """
+        Replace all occurrences of a substring with another string.
+        """
+        if not isinstance(s, str):
+            raise TypeError("Qiimahu ma ahan qoraal (Value is not a string)")
+        if not isinstance(target, str):
+            raise TypeError("Target-ka ma ahan qoraal (Target is not a string)")
+        if not isinstance(replacement, str):
+            raise TypeError("Baddalka ma ahan qoraal (Replacement is not a string)")
+        return s.replace(target, replacement)
+
+    @staticmethod
     def dherer(value):
         """
         Return the length of a value (list, string, or object).
@@ -908,8 +959,12 @@ def get_string_methods():
         "dhamaad": SoplangBuiltins.string_endswith,
         "bilow": SoplangBuiltins.string_startswith,
         "beddel": SoplangBuiltins.string_replace,
+        "beddel_dhammaan": SoplangBuiltins.string_replace_all,
         "kudar": SoplangBuiltins.string_join,
         "jar": SoplangBuiltins.string_jar,
+        "xarafaha_weyn": SoplangBuiltins.string_upper,
+        "xarfaha_yaryar": SoplangBuiltins.string_lower,
+        "masax": SoplangBuiltins.string_strip,
+        "raadi": SoplangBuiltins.string_find,
     }
-
     return methods

@@ -138,3 +138,50 @@ This document provides a reference for all keywords in the Soplang programming l
 | `beddel(x, y)`    | `replace()`        | Replace substring x with y            | `door new = text.beddel("old", "new")`   |
 | `kudar(teed)`     | `join()`           | Join list of strings with separator   | `door text = ", ".kudar(names)`          |
 | `jar(start, end)` | `slice()`          | Extract substring from start to end   | `door sub = text.jar(0, 3)`              |
+
+## String Methods (Hababka Qoraalka)
+
+### xarafaha_weyn (Uppercase)
+**Isticmaal:**
+
+```soplang
+q = "soplang"
+natiijo = q.xarafaha_weyn()
+qor(natiijo)  # SOPLANG
+```
+
+### xarfaha_yaryar (Lowercase)
+**Isticmaal:**
+
+```soplang
+q = "SOPLANG"
+natiijo = q.xarfaha_yaryar()
+qor(natiijo)  # soplang
+```
+
+### masax (Trim Whitespace)
+**Isticmaal:**
+
+```soplang
+q = "  soplang  "
+natiijo = q.masax()
+qor(natiijo)  # soplang
+```
+
+### raadi (Find Substring)
+**Isticmaal:**
+
+```soplang
+q = "soplang programming"
+natiijo = q.raadi("pro")
+qor(natiijo)  # 8
+```
+
+### beddel_dhammaan (Replace All)
+**Isticmaal:**
+
+```soplang
+q = "abaaba"
+natiijo = q.beddel_dhammaan("a", "x")
+qor(natiijo)  # xbxxbx
+```
