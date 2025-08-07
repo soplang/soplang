@@ -96,6 +96,23 @@ This document provides a reference for all keywords in the Soplang programming l
 | `dherer`  | Get length of value   | `len()`/`.length`  | `door n = dherer(qoraal)`                |
 | `xul`     | Get random value      | `random()`         | `door n = xul(1, 6)`                     |
 
+## baaxad (Range)
+
+`baaxad` waa hawl dhisay oo soo saarta liis tirooyin ah, sida Python `range`.
+
+**Isticmaalka:**
+
+```soplang
+// baaxad(stop): 0 ilaa stop-1
+qor(baaxad(5))  // [0, 1, 2, 3, 4]
+
+// baaxad(start, stop): start ilaa stop-1
+qor(baaxad(2, 6))  // [2, 3, 4, 5]
+
+// baaxad(start, stop, step): start ilaa stop-1, talaabo kasta
+qor(baaxad(1, 10, 2))  // [1, 3, 5, 7, 9]
+```
+
 ## List Methods
 
 | Method            | English Equivalent        | Description                   | Example                                 |
