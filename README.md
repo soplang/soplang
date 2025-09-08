@@ -135,3 +135,4 @@ We are committed to providing a welcoming and inclusive experience for everyone.
 ## License
 
 This project is licensed under the [MIT License](https://opensource.org/licenses/MIT) - see the [LICENSE](LICENSE) file for details.
+---
