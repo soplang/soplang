@@ -76,16 +76,20 @@ pub fn maybe_wrap_for_repl(source: &str) -> String {
 }
 
 /// Build a standalone executable (AOT path).
+///
+/// `source_path` is the file being built. `keen` imports are inlined into the
+/// embedded program so the binary does not need those files beside it.
 pub fn build_source(
     source: &str,
+    source_path: Option<&Path>,
     out_path: &Path,
     opt_level: u8,
     strict: bool,
 ) -> Result<(), SoplangError> {
-    let tokens = Lexer::new(source).tokenize()?;
-    let stmts = frontend::imports::resolve_imports(Parser::new(tokens).parse()?, None)?;
-    let sym = semantic::analyze_with_options(&stmts, semantic::AnalyzeOptions { strict })?;
-    let _hir = HirLowering::lower(&sym, &stmts);
+    let bundled = frontend::imports::bundle_source(source, source_path)?;
+    let tokens = Lexer::new(&bundled).tokenize()?;
+    let stmts = Parser::new(tokens).parse()?;
+    semantic::analyze_with_options(&stmts, semantic::AnalyzeOptions { strict })?;
     let backend = backend::llvm::LlvmBackend::new();
-    backend.build_executable(source, out_path, opt_level, strict)
+    backend.build_executable(&bundled, out_path, opt_level, strict)
 }

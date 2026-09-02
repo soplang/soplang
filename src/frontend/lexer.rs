@@ -12,6 +12,8 @@ pub struct Lexer<'a> {
     chars:   Peekable<Chars<'a>>,
     line:    usize,
     col:     usize,
+    /// Byte offset of `current` in `source`.
+    index:   usize,
     current: Option<char>,
 }
 
@@ -19,7 +21,7 @@ impl<'a> Lexer<'a> {
     pub fn new(source: &'a str) -> Self {
         let mut chars = source.chars().peekable();
         let current = chars.next();
-        Self { source, chars, line: 1, col: 1, current }
+        Self { source, chars, line: 1, col: 1, index: 0, current }
     }
 
     pub fn tokenize(&mut self) -> Result<Vec<Token>, SoplangError> {
@@ -48,52 +50,53 @@ impl<'a> Lexer<'a> {
             }
             let line = self.line;
             let col = self.col;
+            let start = self.index;
             if c.is_alphabetic() || c == '_' {
-                return Ok(self.read_identifier(line, col));
+                return Ok(self.read_identifier(line, col, start));
             }
             if c.is_ascii_digit() {
-                return Ok(self.read_number(line, col));
+                return Ok(self.read_number(line, col, start));
             }
             if c == '"' || c == '\'' {
-                return self.read_string(c, line, col);
+                return self.read_string(c, line, col, start);
             }
             if c == '=' {
                 self.advance();
                 if self.current == Some('=') {
                     self.advance();
-                    return Ok(Token::new(TokenType::EqEq, "==", line, col));
+                    return Ok(Token::new(TokenType::EqEq, "==", line, col, start));
                 }
-                return Ok(Token::new(TokenType::Assign, "=", line, col));
+                return Ok(Token::new(TokenType::Assign, "=", line, col, start));
             }
             if c == '>' {
                 self.advance();
                 if self.current == Some('=') {
                     self.advance();
-                    return Ok(Token::new(TokenType::GreaterEq, ">=", line, col));
+                    return Ok(Token::new(TokenType::GreaterEq, ">=", line, col, start));
                 }
-                return Ok(Token::new(TokenType::Greater, ">", line, col));
+                return Ok(Token::new(TokenType::Greater, ">", line, col, start));
             }
             if c == '<' {
                 self.advance();
                 if self.current == Some('=') {
                     self.advance();
-                    return Ok(Token::new(TokenType::LessEq, "<=", line, col));
+                    return Ok(Token::new(TokenType::LessEq, "<=", line, col, start));
                 }
-                return Ok(Token::new(TokenType::Less, "<", line, col));
+                return Ok(Token::new(TokenType::Less, "<", line, col, start));
             }
             if c == '!' {
                 self.advance();
                 if self.current == Some('=') {
                     self.advance();
-                    return Ok(Token::new(TokenType::NotEq, "!=", line, col));
+                    return Ok(Token::new(TokenType::NotEq, "!=", line, col, start));
                 }
-                return Ok(Token::new(TokenType::Not, "!", line, col));
+                return Ok(Token::new(TokenType::Not, "!", line, col, start));
             }
             if c == '&' {
                 self.advance();
                 if self.current == Some('&') {
                     self.advance();
-                    return Ok(Token::new(TokenType::And, "&&", line, col));
+                    return Ok(Token::new(TokenType::And, "&&", line, col, start));
                 }
                 return Err(lexer_error_ex(
                     format!("Xaraf aan la filayn: {}", c),
@@ -105,7 +108,7 @@ impl<'a> Lexer<'a> {
                 self.advance();
                 if self.current == Some('|') {
                     self.advance();
-                    return Ok(Token::new(TokenType::Or, "||", line, col));
+                    return Ok(Token::new(TokenType::Or, "||", line, col, start));
                 }
                 return Err(lexer_error_ex(
                     format!("Xaraf aan la filayn: {}", c),
@@ -138,12 +141,15 @@ impl<'a> Lexer<'a> {
                 }
             };
             self.advance();
-            return Ok(Token::new(kind, lexeme, line, col));
+            return Ok(Token::new(kind, lexeme, line, col, start));
         }
-        Ok(Token::new(TokenType::Eof, "", self.line, self.col))
+        Ok(Token::new(TokenType::Eof, "", self.line, self.col, self.index))
     }
 
     fn advance(&mut self) {
+        if let Some(c) = self.current {
+            self.index += c.len_utf8();
+        }
         if self.current == Some('\n') {
             self.line += 1;
             self.col = 1;
@@ -195,26 +201,26 @@ impl<'a> Lexer<'a> {
         ))
     }
 
-    fn read_identifier(&mut self, start_line: usize, start_col: usize) -> Token {
+    fn read_identifier(&mut self, start_line: usize, start_col: usize, start: usize) -> Token {
         let mut s = String::new();
         while self.current.map_or(false, |c| c.is_alphanumeric() || c == '_') {
             s.push(self.current.unwrap());
             self.advance();
         }
         let kind = keyword(&s).unwrap_or(TokenType::Identifier);
-        Token::new(kind, s, start_line, start_col)
+        Token::new(kind, s, start_line, start_col, start)
     }
 
-    fn read_number(&mut self, start_line: usize, start_col: usize) -> Token {
+    fn read_number(&mut self, start_line: usize, start_col: usize, start: usize) -> Token {
         let mut s = String::new();
         while self.current.map_or(false, |c| c.is_ascii_digit() || c == '.') {
             s.push(self.current.unwrap());
             self.advance();
         }
-        Token::new(TokenType::Number, s, start_line, start_col)
+        Token::new(TokenType::Number, s, start_line, start_col, start)
     }
 
-    fn read_string(&mut self, quote: char, start_line: usize, start_col: usize) -> Result<Token, SoplangError> {
+    fn read_string(&mut self, quote: char, start_line: usize, start_col: usize, start: usize) -> Result<Token, SoplangError> {
         self.advance();
         let mut s = String::new();
         while self.current.is_some() && self.current != Some(quote) {
@@ -225,7 +231,7 @@ impl<'a> Lexer<'a> {
         }
         if self.current == Some(quote) {
             self.advance();
-            Ok(Token::new(TokenType::String, s, start_line, start_col))
+            Ok(Token::new(TokenType::String, s, start_line, start_col, start))
         } else {
             Err(lexer_error_ex(
                 "Qoraal aan la xidhin",

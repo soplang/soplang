@@ -54,6 +54,24 @@ fn test_aot_build_hello_matches_expected() {
 }
 
 #[test]
+fn test_aot_build_import_inlines_keen() {
+    let out_bin = temp_bin_path("import_aot");
+    let status = Command::new(soplang_exe())
+        .arg("--build")
+        .arg("examples/16_import.sop")
+        .arg("-o")
+        .arg(&out_bin)
+        .status()
+        .expect("run soplang --build");
+    assert!(status.success(), "AOT build of import example failed");
+
+    let actual = run_and_capture(&out_bin);
+    assert_eq!(actual, "6\n");
+
+    let _ = fs::remove_file(out_bin);
+}
+
+#[test]
 fn test_aot_build_opt_level_0_runs() {
     let out_bin = temp_bin_path("hello_aot_o0");
     let status = Command::new(soplang_exe())

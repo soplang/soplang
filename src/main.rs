@@ -91,7 +91,7 @@ fn main() {
         let strict = cli.strict;
 
         if cli.quiet {
-            match build_source(&source, &out, opt_level, strict) {
+            match build_source(&source, Some(&path), &out, opt_level, strict) {
                 Ok(()) => return,
                 Err(e) => {
                     eprintln!("{}", format_error_with_source(&e, None));
@@ -102,7 +102,10 @@ fn main() {
 
         let start = Instant::now();
         let out_build = out.clone();
-        let build_handle = thread::spawn(move || build_source(&source, &out_build, opt_level, strict));
+        let path_for_build = path.clone();
+        let build_handle = thread::spawn(move || {
+            build_source(&source, Some(&path_for_build), &out_build, opt_level, strict)
+        });
 
         let spin = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴'];
         let mut i = 0;
