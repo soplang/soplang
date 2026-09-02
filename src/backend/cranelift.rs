@@ -29,6 +29,10 @@ pub struct CraneliftBackend {
     fn_ctx: FunctionBuilderContext,
     main_func_id: Option<FuncId>,
     compiled_fns: Vec<CompiledFnInfo>,
+    /// Names already published into the runtime function table.
+    registered_fns: usize,
+    /// Unique suffix for Cranelift function declarations in this module.
+    fn_seq: u32,
 }
 
 fn register_runtime_symbols(builder: &mut JITBuilder) {
@@ -164,20 +168,34 @@ impl CraneliftBackend {
             fn_ctx: FunctionBuilderContext::new(),
             main_func_id: None,
             compiled_fns: Vec::new(),
+            registered_fns: 0,
+            fn_seq: 0,
         })
     }
 
     pub fn compile_module(&mut self, hir: &HirModule, sym: &SymbolTable) -> Result<(), SoplangError> {
         runtime::clear_class_registry();
-        for (i, f) in hir.functions.iter().enumerate() {
-            self.compile_function(f, i)?;
+        self.compile_new(hir)?;
+        runtime::register_classes_from_sym(&sym.classes);
+        Ok(())
+    }
+
+    /// Compile another snippet into this module without dropping earlier functions or classes.
+    pub fn compile_incremental(&mut self, hir: &HirModule, sym: &SymbolTable) -> Result<(), SoplangError> {
+        self.compile_new(hir)?;
+        runtime::merge_classes_from_sym(&sym.classes);
+        Ok(())
+    }
+
+    fn compile_new(&mut self, hir: &HirModule) -> Result<(), SoplangError> {
+        for f in hir.functions.iter() {
+            self.compile_function(f)?;
         }
         self.compile_top_level(&hir.top_level)?;
         self.module
             .finalize_definitions()
             .map_err(|e| runtime_error(e.to_string(), 0, 0))?;
         self.register_compiled_fns();
-        runtime::register_classes_from_sym(&sym.classes);
         Ok(())
     }
 
@@ -194,8 +212,9 @@ impl CraneliftBackend {
         Ok(())
     }
 
-    fn register_compiled_fns(&self) {
-        for fi in &self.compiled_fns {
+    fn register_compiled_fns(&mut self) {
+        let start = self.registered_fns;
+        for fi in &self.compiled_fns[start..] {
             let ptr = self.module.get_finalized_function(fi.func_id);
             if !ptr.is_null() {
                 let idx = runtime::register_compiled_fn(ptr, fi.n_params);
@@ -207,12 +226,15 @@ impl CraneliftBackend {
                 runtime::store_global(&fi.name, sv);
             }
         }
+        self.registered_fns = self.compiled_fns.len();
     }
 
     fn compile_top_level(&mut self, body: &[HirInstr]) -> Result<(), SoplangError> {
+        self.fn_seq += 1;
+        let seq = self.fn_seq;
         let sig = Signature::new(CallConv::SystemV);
         self.ctx.func = cranelift::codegen::ir::Function::with_name_signature(
-            cranelift::codegen::ir::UserFuncName::user(0, 0),
+            cranelift::codegen::ir::UserFuncName::user(0, seq),
             sig,
         );
 
@@ -246,7 +268,11 @@ impl CraneliftBackend {
 
         let id = self
             .module
-            .declare_function("soplang_main", Linkage::Export, &self.ctx.func.signature)
+            .declare_function(
+                &format!("soplang_entry_{seq}"),
+                Linkage::Export,
+                &self.ctx.func.signature,
+            )
             .map_err(|e| runtime_error(e.to_string(), 0, 0))?;
         self.main_func_id = Some(id);
         self.module
@@ -256,7 +282,9 @@ impl CraneliftBackend {
         Ok(())
     }
 
-    fn compile_function(&mut self, f: &HirFunction, idx: usize) -> Result<(), SoplangError> {
+    fn compile_function(&mut self, f: &HirFunction) -> Result<(), SoplangError> {
+        self.fn_seq += 1;
+        let seq = self.fn_seq;
         let mut sig = Signature::new(CallConv::SystemV);
         for _ in &f.params {
             sig.params.push(AbiParam::new(types::I64));
@@ -266,7 +294,7 @@ impl CraneliftBackend {
         sig.returns.push(AbiParam::new(types::I64));
 
         self.ctx.func = cranelift::codegen::ir::Function::with_name_signature(
-            cranelift::codegen::ir::UserFuncName::user(0, (idx + 1) as u32),
+            cranelift::codegen::ir::UserFuncName::user(0, seq),
             sig,
         );
 
@@ -305,7 +333,7 @@ impl CraneliftBackend {
         builder.seal_all_blocks();
         builder.finalize();
 
-        let name = format!("soplang_fn_{}", idx);
+        let name = format!("soplang_fn_{seq}");
         let id = self
             .module
             .declare_function(&name, Linkage::Export, &self.ctx.func.signature)

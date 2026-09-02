@@ -14,6 +14,7 @@ pub use frontend::{
     TypeAnnotation,
 };
 pub use hir::{BinOpKind, HirFunction, HirInstr, HirLowering, HirModule, UnOpKind};
+pub use cli::ReplSession;
 pub use runtime::Value;
 pub use semantic::{
     analyze, analyze_with_options, AnalyzeOptions, ClassMeta, FunctionMeta, Scope, SymbolTable,
@@ -38,7 +39,7 @@ pub fn run_source(
         }
         return Ok(());
     }
-    let sym = semantic::analyze_with_options(&stmts, semantic::AnalyzeOptions { strict })?;
+    let sym = semantic::analyze_with_options(&stmts, semantic::AnalyzeOptions { strict, repl: false })?;
     let hir = HirLowering::lower(&sym, &stmts);
     if dump_hir {
         for f in &hir.functions {
@@ -89,7 +90,7 @@ pub fn build_source(
     let bundled = frontend::imports::bundle_source(source, source_path)?;
     let tokens = Lexer::new(&bundled).tokenize()?;
     let stmts = Parser::new(tokens).parse()?;
-    semantic::analyze_with_options(&stmts, semantic::AnalyzeOptions { strict })?;
+    semantic::analyze_with_options(&stmts, semantic::AnalyzeOptions { strict, repl: false })?;
     let backend = backend::llvm::LlvmBackend::new();
     backend.build_executable(&bundled, out_path, opt_level, strict)
 }

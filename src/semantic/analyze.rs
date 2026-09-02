@@ -1,7 +1,7 @@
 //! Semantic analysis: name resolution, variable slots, function/class metadata.
 //! Phase 1 of COMPILER_PLAN. Consumes AST, produces SymbolTable for HIR lowering.
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use crate::error::{codes, type_error_ex, ErrorMeta, SoplangError};
 use crate::frontend::ast::{Expr, Literal, Stmt, TypeAnnotation};
@@ -15,6 +15,9 @@ pub struct SymbolTable {
     pub functions: Vec<FunctionMeta>,
     /// Class name -> metadata (methods, parent).
     pub classes:   HashMap<String, ClassMeta>,
+    /// Globals carried in from a REPL session. Top-level uses load/store them
+    /// instead of treating their old slots as locals of the new snippet.
+    pub session_globals: HashSet<String>,
 }
 
 #[derive(Debug, Default, Clone)]
@@ -65,6 +68,8 @@ pub fn analyze(stmts: &[Stmt]) -> Result<SymbolTable, SoplangError> {
 #[derive(Debug, Clone, Copy, Default)]
 pub struct AnalyzeOptions {
     pub strict: bool,
+    /// REPL: a later line may declare an existing global again.
+    pub repl: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -80,10 +85,23 @@ pub fn analyze_with_options(
 ) -> Result<SymbolTable, SoplangError> {
     let mut sym = SymbolTable::default();
     sym.scopes.push(Scope::default()); // global scope
-    let fn_sigs = collect_function_sigs(stmts);
-    analyze_block(stmts, &mut sym, &opts, &fn_sigs, None, None)?;
-    validate_classes(&sym)?;
+    analyze_into(&mut sym, stmts, opts)?;
     Ok(sym)
+}
+
+/// Continue analysis on a symbol table that may already hold REPL globals and classes.
+pub fn analyze_into(
+    sym: &mut SymbolTable,
+    stmts: &[Stmt],
+    opts: AnalyzeOptions,
+) -> Result<(), SoplangError> {
+    if sym.scopes.is_empty() {
+        sym.scopes.push(Scope::default());
+    }
+    let fn_sigs = collect_function_sigs(stmts);
+    analyze_block(stmts, sym, &opts, &fn_sigs, None, None)?;
+    validate_classes(sym)?;
+    Ok(())
 }
 
 fn validate_classes(sym: &SymbolTable) -> Result<(), SoplangError> {
@@ -141,27 +159,52 @@ fn analyze_stmt(
                         .with_hint("Strict mode: isticmaal nooc cad oo sugan sida abn/jajab/qoraal/bool/teed/walax."),
                 ));
             }
+            let at_global = sym.scopes.len() == 1;
             let scope = sym.scopes.last_mut().unwrap();
-            if scope.vars.contains_key(name) {
-                return Err(type_error_ex(
-                    format!("Magaca '{}' mar hore ayaa la qeexay", name),
-                    *line,
-                    *col,
-                    ErrorMeta::default()
-                        .with_code(codes::E020_REDECLARED)
-                        .with_hint("Magacan ayaa mar hore la isticmaalay. Fadlan isticmaal magac kale."),
-                ));
+            if let Some(existing) = scope.vars.get(name).cloned() {
+                let allow_again = opts.repl && at_global && !existing.is_const;
+                if !allow_again {
+                    let (msg, hint) = if existing.is_const {
+                        (
+                            format!("Ma bedeli kartid qiimaha doorsamaha madoor '{}'", name),
+                            "Doorsamaha madoor ma beddeli karaan qiimahooda. Isticmaal 'door' haddii aad rabto mid beddeli kara.",
+                        )
+                    } else {
+                        (
+                            format!("Magaca '{}' mar hore ayaa la qeexay", name),
+                            "Magacan ayaa mar hore la isticmaalay. Fadlan isticmaal magac kale.",
+                        )
+                    };
+                    return Err(type_error_ex(
+                        msg,
+                        *line,
+                        *col,
+                        ErrorMeta::default()
+                            .with_code(codes::E020_REDECLARED)
+                            .with_hint(hint),
+                    ));
+                }
+                scope.vars.insert(
+                    name.clone(),
+                    VarInfo {
+                        slot: existing.slot,
+                        type_ann: *type_ann,
+                        is_const: *is_const,
+                        is_captured: false,
+                    },
+                );
+            } else {
+                let slot = scope.vars.len();
+                scope.vars.insert(
+                    name.clone(),
+                    VarInfo {
+                        slot,
+                        type_ann: *type_ann,
+                        is_const: *is_const,
+                        is_captured: false,
+                    },
+                );
             }
-            let slot = scope.vars.len();
-            scope.vars.insert(
-                name.clone(),
-                VarInfo {
-                    slot,
-                    type_ann: *type_ann,
-                    is_const: *is_const,
-                    is_captured: false,
-                },
-            );
             // Phase 2: basic static type check for initializer when we can infer a type.
             if *type_ann != TypeAnnotation::Dynamic {
                 if let Some(expr_ty) = infer_expr_type(value, sym, fn_sigs) {

@@ -756,6 +756,12 @@ pub fn clear_class_registry() {
     CLASS_REGISTRY.with(|r| r.borrow_mut().clear());
 }
 
+/// Drop a leftover try-block or pending error before the next REPL line.
+pub fn reset_try_state() {
+    TRY_DEPTH.with(|d| d.set(0));
+    PENDING_ERROR.with(|e| *e.borrow_mut() = None);
+}
+
 fn global_fn_payload(name: &str) -> Option<i64> {
     ensure_builtins();
     GLOBAL_VARS.with(|g| {
@@ -817,6 +823,11 @@ fn resolve_constructor_fn_index(class_name: &str) -> Option<i64> {
 /// Register all classes from semantic analysis after compiled functions are in globals.
 pub fn register_classes_from_sym(classes: &HashMap<String, crate::semantic::ClassMeta>) {
     clear_class_registry();
+    merge_classes_from_sym(classes);
+}
+
+/// Add or replace classes without dropping ones registered by earlier snippets.
+pub fn merge_classes_from_sym(classes: &HashMap<String, crate::semantic::ClassMeta>) {
     for (name, meta) in classes {
         let mut methods = HashMap::new();
         for (method, mangled) in &meta.methods {

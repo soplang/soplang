@@ -285,6 +285,8 @@ impl<'a> HirLowering<'a> {
         if self.func_scope.is_some() {
             // Inside a function: only resolve local variables, not globals
             self.func_scope.unwrap().get(name).map(|v| v.slot)
+        } else if self.sym.session_globals.contains(name) {
+            None
         } else {
             resolve_name(self.sym, name, None).map(|v| v.slot)
         }

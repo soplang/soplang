@@ -75,6 +75,51 @@ fn test_try_catch_runtime() {
 }
 
 #[test]
+fn test_repl_session_keeps_names() {
+    let mut session = soplang::ReplSession::new(false).expect("session");
+    session.eval(r#"door natiijo = """#, None).unwrap();
+    session
+        .eval(
+            r#"
+            qaab Bisad {
+                hawl salaam() { natiijo = "Mia" }
+            }
+            "#,
+            None,
+        )
+        .unwrap();
+    session.eval(r#"door b = cusub Bisad()"#, None).unwrap();
+    session.eval(r#"b.salaam()"#, None).unwrap();
+    assert_eq!(global_string("natiijo"), "Mia");
+
+    session.eval("door x = 1", None).unwrap();
+    session.eval("x = x + 4", None).unwrap();
+    assert_eq!(global_int("x"), 5);
+
+    session
+        .eval(r#"hawl foo() { natiijo = "fn" }"#, None)
+        .unwrap();
+    session.eval("foo()", None).unwrap();
+    assert_eq!(global_string("natiijo"), "fn");
+}
+
+fn global_string(name: &str) -> String {
+    let sv = soplang::runtime::soplang_get_builtin(name.as_ptr(), name.len());
+    match soplang::runtime::soplang_to_value(sv).unwrap() {
+        soplang::Value::Str(s) => s,
+        other => panic!("expected string for {name}, got {other:?}"),
+    }
+}
+
+fn global_int(name: &str) -> i64 {
+    let sv = soplang::runtime::soplang_get_builtin(name.as_ptr(), name.len());
+    match soplang::runtime::soplang_to_value(sv).unwrap() {
+        soplang::Value::Int(n) => n,
+        other => panic!("expected int for {name}, got {other:?}"),
+    }
+}
+
+#[test]
 fn test_import_via_file() {
     let exe = env!("CARGO_BIN_EXE_soplang");
     let out = std::process::Command::new(exe)
