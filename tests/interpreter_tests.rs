@@ -65,6 +65,36 @@ fn test_oop_class_example() {
 }
 
 #[test]
+fn test_static_abn_jajab_ops() {
+    let output = run_program(
+        r#"
+        abn a = 10
+        abn b = 4
+        qor(a + b)
+        qor(a - b)
+        qor(a * b)
+        qor(a / b)
+        qor(a % b)
+        jajab f = 1.5
+        qor(f + a)
+        haddii (a > b) { qor("weyn") }
+        abn n = 3
+        qor(-n)
+        hawl ku_dar(abn x, abn y) { celi x + y }
+        qor(ku_dar(2, 5))
+        door d = 1
+        qor(d + "a")
+        fasax {
+            abn z = 1
+            abn w = 0
+            qor(z / w)
+        } qabo (e) { qor("ok") }
+    "#,
+    );
+    assert_eq!(output, "14\n6\n40\n2.5\n2\n11.5\nweyn\n-3\n7\n1a\nok\n");
+}
+
+#[test]
 fn test_try_catch_runtime() {
     let output = run_program(
         r#"

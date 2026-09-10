@@ -13,7 +13,7 @@ use cranelift_jit::JITBuilder;
 use cranelift_module::{FuncId, Linkage, Module};
 
 use crate::error::{runtime_error, SoplangError};
-use crate::hir::{BinOpKind, HirConst, HirFunction, HirInstr, HirModule, UnOpKind};
+use crate::hir::{BinOpKind, HirConst, HirFunction, HirInstr, HirModule, SlotNum, UnOpKind};
 use crate::runtime;
 use crate::semantic::SymbolTable;
 
@@ -191,7 +191,7 @@ impl CraneliftBackend {
         for f in hir.functions.iter() {
             self.compile_function(f)?;
         }
-        self.compile_top_level(&hir.top_level)?;
+        self.compile_top_level(&hir.top_level, &hir.top_nums)?;
         self.module
             .finalize_definitions()
             .map_err(|e| runtime_error(e.to_string(), 0, 0))?;
@@ -229,7 +229,7 @@ impl CraneliftBackend {
         self.registered_fns = self.compiled_fns.len();
     }
 
-    fn compile_top_level(&mut self, body: &[HirInstr]) -> Result<(), SoplangError> {
+    fn compile_top_level(&mut self, body: &[HirInstr], slot_nums: &[SlotNum]) -> Result<(), SoplangError> {
         self.fn_seq += 1;
         let seq = self.fn_seq;
         let sig = Signature::new(CallConv::SystemV);
@@ -261,6 +261,7 @@ impl CraneliftBackend {
             &self.compiled_fns,
             &fn_name_map,
             false,
+            slot_nums,
         )?;
 
         builder.seal_all_blocks();
@@ -328,6 +329,7 @@ impl CraneliftBackend {
             &self.compiled_fns,
             &fn_name_map,
             true,
+            &f.local_nums,
         )?;
 
         builder.seal_all_blocks();
@@ -378,6 +380,7 @@ fn compile_body(
     compiled_fns: &[CompiledFnInfo],
     fn_name_map: &HashMap<String, usize>,
     is_function: bool,
+    seed: &[SlotNum],
 ) -> Result<(), SoplangError> {
     let mut block_map: HashMap<usize, Block> = HashMap::new();
     for instr in body {
@@ -388,6 +391,14 @@ fn compile_body(
 
     // Track which slots hold known compiled function references
     let mut slot_compiled_fn: HashMap<usize, usize> = HashMap::new();
+    let mut kinds = vec![SlotNum::Dyn; var_tags.len()];
+    let mut seeded = vec![false; var_tags.len()];
+    for (i, kind) in seed.iter().enumerate() {
+        if i < kinds.len() {
+            kinds[i] = *kind;
+            seeded[i] = *kind != SlotNum::Dyn;
+        }
+    }
     let mut terminated = false;
 
     for instr in body {
@@ -406,6 +417,13 @@ fn compile_body(
                 let (t, p) = emit_const(builder, module, val)?;
                 builder.def_var(var_tags[*dst], t);
                 builder.def_var(var_pays[*dst], p);
+                if *dst < seeded.len() && !seeded[*dst] {
+                    kinds[*dst] = match val {
+                        HirConst::Int(_) => SlotNum::Int,
+                        HirConst::Float(_) => SlotNum::Float,
+                        _ => SlotNum::Dyn,
+                    };
+                }
             }
 
             HirInstr::Copy { dst, src } => {
@@ -414,6 +432,9 @@ fn compile_body(
                 let p = builder.use_var(var_pays[*src]);
                 builder.def_var(var_tags[*dst], t);
                 builder.def_var(var_pays[*dst], p);
+                if *dst < seeded.len() && !seeded[*dst] {
+                    kinds[*dst] = kinds.get(*src).copied().unwrap_or(SlotNum::Dyn);
+                }
                 if let Some(&fn_idx) = slot_compiled_fn.get(src) {
                     slot_compiled_fn.insert(*dst, fn_idx);
                 }
@@ -440,43 +461,72 @@ fn compile_body(
                 emit_store_global(builder, module, nptr, nlen, st, sp)?;
             }
 
-            HirInstr::BinOp { dst, op, lhs, rhs, .. } => {
+            HirInstr::BinOp { dst, op, lhs, rhs, typed } => {
                 if terminated { continue; }
                 let lt = builder.use_var(var_tags[*lhs]);
                 let lp = builder.use_var(var_pays[*lhs]);
                 let rt = builder.use_var(var_tags[*rhs]);
                 let rp = builder.use_var(var_pays[*rhs]);
-                let fname = match op {
-                    BinOpKind::Add => "soplang_add",
-                    BinOpKind::Sub => "soplang_sub",
-                    BinOpKind::Mul => "soplang_mul",
-                    BinOpKind::Div => "soplang_div",
-                    BinOpKind::Mod => "soplang_mod",
-                    BinOpKind::Eq  => "soplang_eq",
-                    BinOpKind::Ne  => "soplang_ne",
-                    BinOpKind::Lt  => "soplang_lt",
-                    BinOpKind::Le  => "soplang_le",
-                    BinOpKind::Gt  => "soplang_gt",
-                    BinOpKind::Ge  => "soplang_ge",
-                    BinOpKind::And => "soplang_and",
-                    BinOpKind::Or  => "soplang_or",
+                let lk = kinds.get(*lhs).copied().unwrap_or(SlotNum::Dyn);
+                let rk = kinds.get(*rhs).copied().unwrap_or(SlotNum::Dyn);
+                let native = if *typed && lk != SlotNum::Dyn && rk != SlotNum::Dyn {
+                    emit_native_binop(builder, module, *op, lk, rk, lt, lp, rt, rp)?
+                } else {
+                    None
                 };
-                let (dt, dp) = call_rt(builder, module, fname, &[lt, lp, rt, rp])?;
+                let (dt, dp, result_kind) = if let Some((dt, dp, result_kind)) = native {
+                    (dt, dp, result_kind)
+                } else {
+                    let fname = match op {
+                        BinOpKind::Add => "soplang_add",
+                        BinOpKind::Sub => "soplang_sub",
+                        BinOpKind::Mul => "soplang_mul",
+                        BinOpKind::Div => "soplang_div",
+                        BinOpKind::Mod => "soplang_mod",
+                        BinOpKind::Eq  => "soplang_eq",
+                        BinOpKind::Ne  => "soplang_ne",
+                        BinOpKind::Lt  => "soplang_lt",
+                        BinOpKind::Le  => "soplang_le",
+                        BinOpKind::Gt  => "soplang_gt",
+                        BinOpKind::Ge  => "soplang_ge",
+                        BinOpKind::And => "soplang_and",
+                        BinOpKind::Or  => "soplang_or",
+                    };
+                    let (dt, dp) = call_rt(builder, module, fname, &[lt, lp, rt, rp])?;
+                    (dt, dp, SlotNum::Dyn)
+                };
                 builder.def_var(var_tags[*dst], dt);
                 builder.def_var(var_pays[*dst], dp);
+                if *dst < seeded.len() && !seeded[*dst] {
+                    kinds[*dst] = result_kind;
+                }
             }
 
             HirInstr::UnOp { dst, op, src } => {
                 if terminated { continue; }
                 let st = builder.use_var(var_tags[*src]);
                 let sp = builder.use_var(var_pays[*src]);
-                let fname = match op {
-                    UnOpKind::Neg => "soplang_neg",
-                    UnOpKind::Not => "soplang_not",
+                let sk = kinds.get(*src).copied().unwrap_or(SlotNum::Dyn);
+                let native = if *op == UnOpKind::Neg && sk != SlotNum::Dyn {
+                    Some(emit_native_neg(builder, sk, sp))
+                } else {
+                    None
                 };
-                let (dt, dp) = call_rt(builder, module, fname, &[st, sp])?;
+                let (dt, dp, result_kind) = if let Some((dt, dp, result_kind)) = native {
+                    (dt, dp, result_kind)
+                } else {
+                    let fname = match op {
+                        UnOpKind::Neg => "soplang_neg",
+                        UnOpKind::Not => "soplang_not",
+                    };
+                    let (dt, dp) = call_rt(builder, module, fname, &[st, sp])?;
+                    (dt, dp, SlotNum::Dyn)
+                };
                 builder.def_var(var_tags[*dst], dt);
                 builder.def_var(var_pays[*dst], dp);
+                if *dst < seeded.len() && !seeded[*dst] {
+                    kinds[*dst] = result_kind;
+                }
             }
 
             HirInstr::BuildList { dst, items } => {
@@ -763,6 +813,166 @@ fn emit_store_global(
     let fref = module.declare_func_in_func(fid, builder.func);
     builder.ins().call(fref, &[name_ptr, name_len, tag, payload]);
     Ok(())
+}
+
+fn payload_as_float(builder: &mut FunctionBuilder, kind: SlotNum, payload: Value) -> Value {
+    match kind {
+        SlotNum::Float => builder.ins().bitcast(types::F64, MemFlags::new(), payload),
+        _ => builder.ins().fcvt_from_sint(types::F64, payload),
+    }
+}
+
+fn float_to_bits(builder: &mut FunctionBuilder, val: Value) -> Value {
+    builder.ins().bitcast(types::I64, MemFlags::new(), val)
+}
+
+fn emit_native_neg(builder: &mut FunctionBuilder, kind: SlotNum, payload: Value) -> (Value, Value, SlotNum) {
+    match kind {
+        SlotNum::Float => {
+            let f = payload_as_float(builder, kind, payload);
+            let n = builder.ins().fneg(f);
+            (
+                builder.ins().iconst(types::I64, 2),
+                float_to_bits(builder, n),
+                SlotNum::Float,
+            )
+        }
+        _ => (
+            builder.ins().iconst(types::I64, 1),
+            builder.ins().ineg(payload),
+            SlotNum::Int,
+        ),
+    }
+}
+
+fn emit_native_binop(
+    builder: &mut FunctionBuilder,
+    module: &mut cranelift_jit::JITModule,
+    op: BinOpKind,
+    lk: SlotNum,
+    rk: SlotNum,
+    lt: Value,
+    lp: Value,
+    rt: Value,
+    rp: Value,
+) -> Result<Option<(Value, Value, SlotNum)>, SoplangError> {
+    let use_float = matches!(op, BinOpKind::Div)
+        || lk == SlotNum::Float
+        || rk == SlotNum::Float;
+    let result_kind = match op {
+        BinOpKind::Div => SlotNum::Float,
+        BinOpKind::Add | BinOpKind::Sub | BinOpKind::Mul | BinOpKind::Mod if use_float => SlotNum::Float,
+        BinOpKind::Add | BinOpKind::Sub | BinOpKind::Mul | BinOpKind::Mod => SlotNum::Int,
+        _ => SlotNum::Dyn,
+    };
+
+    let produce = |builder: &mut FunctionBuilder| -> (Value, Value) {
+        match op {
+            BinOpKind::Add | BinOpKind::Sub | BinOpKind::Mul if !use_float => {
+                let p = match op {
+                    BinOpKind::Add => builder.ins().iadd(lp, rp),
+                    BinOpKind::Sub => builder.ins().isub(lp, rp),
+                    _ => builder.ins().imul(lp, rp),
+                };
+                (builder.ins().iconst(types::I64, 1), p)
+            }
+            BinOpKind::Add | BinOpKind::Sub | BinOpKind::Mul | BinOpKind::Div => {
+                let l = payload_as_float(builder, lk, lp);
+                let r = payload_as_float(builder, rk, rp);
+                let f = match op {
+                    BinOpKind::Add => builder.ins().fadd(l, r),
+                    BinOpKind::Sub => builder.ins().fsub(l, r),
+                    BinOpKind::Mul => builder.ins().fmul(l, r),
+                    _ => builder.ins().fdiv(l, r),
+                };
+                (builder.ins().iconst(types::I64, 2), float_to_bits(builder, f))
+            }
+            BinOpKind::Mod if !use_float => (
+                builder.ins().iconst(types::I64, 1),
+                builder.ins().srem(lp, rp),
+            ),
+            BinOpKind::Mod => {
+                let l = payload_as_float(builder, lk, lp);
+                let r = payload_as_float(builder, rk, rp);
+                let quot = builder.ins().fdiv(l, r);
+                let whole = builder.ins().trunc(quot);
+                let scaled = builder.ins().fmul(whole, r);
+                let rem = builder.ins().fsub(l, scaled);
+                (builder.ins().iconst(types::I64, 2), float_to_bits(builder, rem))
+            }
+            BinOpKind::Eq | BinOpKind::Ne | BinOpKind::Lt | BinOpKind::Le | BinOpKind::Gt | BinOpKind::Ge => {
+                let flag = if !use_float {
+                    let cc = match op {
+                        BinOpKind::Eq => IntCC::Equal,
+                        BinOpKind::Ne => IntCC::NotEqual,
+                        BinOpKind::Lt => IntCC::SignedLessThan,
+                        BinOpKind::Le => IntCC::SignedLessThanOrEqual,
+                        BinOpKind::Gt => IntCC::SignedGreaterThan,
+                        _ => IntCC::SignedGreaterThanOrEqual,
+                    };
+                    builder.ins().icmp(cc, lp, rp)
+                } else {
+                    let l = payload_as_float(builder, lk, lp);
+                    let r = payload_as_float(builder, rk, rp);
+                    let cc = match op {
+                        BinOpKind::Eq => FloatCC::Equal,
+                        BinOpKind::Ne => FloatCC::NotEqual,
+                        BinOpKind::Lt => FloatCC::LessThan,
+                        BinOpKind::Le => FloatCC::LessThanOrEqual,
+                        BinOpKind::Gt => FloatCC::GreaterThan,
+                        _ => FloatCC::GreaterThanOrEqual,
+                    };
+                    builder.ins().fcmp(cc, l, r)
+                };
+                (
+                    builder.ins().iconst(types::I64, 3),
+                    builder.ins().uextend(types::I64, flag),
+                )
+            }
+            _ => (builder.ins().iconst(types::I64, 0), builder.ins().iconst(types::I64, 0)),
+        }
+    };
+
+    if !matches!(op, BinOpKind::Div | BinOpKind::Mod) {
+        let (t, p) = produce(builder);
+        return Ok(Some((t, p, result_kind)));
+    }
+
+    let merge = builder.create_block();
+    builder.append_block_param(merge, types::I64);
+    builder.append_block_param(merge, types::I64);
+    let zero_bb = builder.create_block();
+    let ok_bb = builder.create_block();
+    let is_zero = if rk == SlotNum::Int {
+        let z = builder.ins().iconst(types::I64, 0);
+        builder.ins().icmp(IntCC::Equal, rp, z)
+    } else {
+        let rv = payload_as_float(builder, rk, rp);
+        let z = builder.ins().f64const(0.0);
+        builder.ins().fcmp(FloatCC::Equal, rv, z)
+    };
+    builder.ins().brif(is_zero, zero_bb, &[], ok_bb, &[]);
+
+    builder.switch_to_block(zero_bb);
+    let fname = if op == BinOpKind::Div { "soplang_div" } else { "soplang_mod" };
+    let (zt, zp) = call_rt(builder, module, fname, &[lt, lp, rt, rp])?;
+    let zargs = [
+        cranelift::codegen::ir::BlockArg::from(zt),
+        cranelift::codegen::ir::BlockArg::from(zp),
+    ];
+    builder.ins().jump(merge, &zargs);
+
+    builder.switch_to_block(ok_bb);
+    let (nt, np) = produce(builder);
+    let nargs = [
+        cranelift::codegen::ir::BlockArg::from(nt),
+        cranelift::codegen::ir::BlockArg::from(np),
+    ];
+    builder.ins().jump(merge, &nargs);
+
+    builder.switch_to_block(merge);
+    let params = builder.block_params(merge);
+    Ok(Some((params[0], params[1], result_kind)))
 }
 
 fn emit_const(
