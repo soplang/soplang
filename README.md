@@ -22,8 +22,8 @@ Soplang is a programming language with syntax inspired by Somali, making program
 - **Dual type system** — Static typing (`abn`, `qoraal`, etc.) and dynamic typing (`door`)
 - **Somali-based syntax** — Keywords and concepts in Somali
 - **Modern paradigms** — Functional, procedural, and object-oriented support
-- **Interactive shell** — REPL powered by the compiled JIT pipeline
-- **Compiled execution** — Cranelift JIT for running files, AOT build for standalone binaries
+- **Interactive shell** — one Cranelift session, so functions, classes, and globals survive across lines
+- **Compiled execution** — Cranelift JIT for running files; `--build` produces a standalone binary
 
 ## Example
 
@@ -62,9 +62,11 @@ Or: `make build`, `make run FILE=examples/hello.sop`, `make shell`, `make test`,
 - `soplang --build ... --opt-level 0..3`: tune AOT optimization level.
 - `soplang --strict`: enable stricter static typing checks.
 
-### AOT backend note
+### How a program runs
 
-Current AOT backend is implemented by generating a temporary Rust runner and compiling it to a native executable. This is the supported strategy for now; it can be replaced later with a direct LLVM IR (`inkwell`) backend.
+`soplang file.sop` and the REPL share one pipeline: lex, parse, resolve `keen`, analyze, lower to HIR, then Cranelift. Static `abn` and `jajab` arithmetic is native integer and float code. `door` and other dynamic values, including string concatenation, go through the tagged runtime.
+
+`soplang --build file.sop` inlines `keen` from the real source path, then embeds that text in a small Cargo runner. `--opt-level` selects the Cargo profile. The binary calls the same JIT when it starts, and it has no `keen` left to resolve. A direct LLVM backend is later work; `inkwell` is not a dependency.
 
 ## Benchmark results
 
@@ -98,7 +100,7 @@ All new development (compiler, JIT, AOT, CLI) happens here in the Rust implement
 - [Installation](docs/installation.md)
 - [Contributing](docs/CONTRIBUTING.md)
 - [Rust implementation plan (complete)](IMPLEMENTATION_PLAN.md) — Phases 1–7 done
-- [Compiler plan (in progress)](COMPILER_PLAN.md) — Cranelift + LLVM
+- [Compiler plan](COMPILER_PLAN.md) — Cranelift run path and Cargo `--build` are in place; real LLVM is phase 5
 
 ## License
 

@@ -8,14 +8,16 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-* **Rust implementation.** Lexer, parser, AST, stdlib (builtins + list/object/string methods), REPL, CLI (clap), coloured errors, scope/env, functions, classes, import, try/catch, Cranelift JIT, AOT build.
-* **Tests and benchmarks.** Unit tests (lexer, parser), integration tests (examples vs `.expected`), Criterion benchmarks. Makefile targets: `build`, `run`, `shell`, `test`, `bench`.
-* **Compiler plan.** Soplang is defined as a compiled language; compiler work (Cranelift JIT + LLVM AOT) is documented in [COMPILER_PLAN.md](COMPILER_PLAN.md). Interpreter remains the current runtime until compiler backends are implemented.
+* **Cranelift pipeline.** `soplang file.sop` lexes, parses, resolves `keen`, analyzes, lowers to HIR, and JIT-compiles with Cranelift. The tree-walking interpreter is not in this repo.
+* **REPL session.** The shell keeps one Cranelift context, so functions, classes, and globals survive across lines.
+* **Standalone `--build`.** `soplang --build file.sop` inlines `keen` imports and embeds that program in a Cargo runner. The binary JIT-compiles at process start. Direct LLVM IR is not wired up yet.
+* **Native `abn` and `jajab`.** Static integer and float slots emit native arithmetic. `door`, strings, and other dynamic values stay on the tagged runtime. Division and modulo by zero still use that runtime so `fasax` can catch them.
+* **Tests and benchmarks.** Unit tests, integration tests (examples vs `.expected`), and Criterion benchmarks. Makefile targets: `build`, `run`, `shell`, `test`, `bench`.
 
 ### Changed
 
-* **Runtime is Rust.** Run via `cargo build --release` and `./target/release/soplang`.
-* README, IMPLEMENTATION_PLAN, and docs updated to state Rust migration complete and compiler phase in progress.
+* **Runtime is the Cranelift JIT.** Run via `cargo build --release` and `./target/release/soplang`.
+* README and [COMPILER_PLAN.md](COMPILER_PLAN.md) describe the current pipeline. Phases 1–4 and 6 are done. Phase 5 (real LLVM) is still ahead.
 
 ---
 

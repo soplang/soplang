@@ -1,26 +1,40 @@
 # Soplang Compiler Plan
 
-> **Soplang is a compiled language.** The tree-walking interpreter is replaced by a **two-backend** pipeline: **Cranelift** (run `soplang file.sop` — JIT to native code) and **LLVM** (build `soplang build file.sop` — AOT standalone binary). Both share the same front-end and HIR.
+> **Soplang is a compiled language.** The tree-walking interpreter lives in the separate [`soplang-interpreter`](https://github.com/soplang/soplang-interpreter) repo. This tree runs programs with **Cranelift**. `soplang --build` produces a standalone binary by embedding the program in a Cargo runner. A direct **LLVM** backend is still phase 5.
+
+## Current status
+
+Phases 1–4 and 6 are done. Phase 5 (LLVM IR via `inkwell`) has not started.
+
+| Path | What it does today |
+|------|--------------------|
+| `soplang file.sop` | Lex → parse → `keen` → analyze → HIR → Cranelift JIT → run |
+| REPL | One `ReplSession`: the same JIT module, class registry, and globals across lines |
+| `soplang --build file.sop` | Inline `keen` from the source path, embed that text in a Cargo runner, JIT at process start |
+| Static `abn` / `jajab` | Native `i64` / `f64` ops in the JIT. `door` stays on the tagged runtime |
+
+Division and modulo by zero still call the runtime, including inside `fasax`.
 
 ---
 
 ## Table of Contents
 
-1. [Goals](#goals)
-2. [Architecture Overview](#architecture-overview)
-3. [Pipeline Stages](#pipeline-stages)
-4. [Value Representation](#value-representation)
-5. [Runtime Library](#runtime-library)
-6. [Cranelift JIT Design](#cranelift-jit-design)
-7. [LLVM AOT Design](#llvm-aot-design)
-8. [Phase 1 — Semantic Analyzer](#phase-1--semantic-analyzer)
-9. [Phase 2 — HIR (High-Level IR)](#phase-2--hir-high-level-ir)
-10. [Phase 3 — Runtime Library](#phase-3--runtime-library)
-11. [Phase 4 — Cranelift JIT Backend](#phase-4--cranelift-jit-backend)
-12. [Phase 5 — LLVM AOT Backend](#phase-5--llvm-aot-backend)
-13. [Phase 6 — Remove Interpreter, Final Wiring](#phase-6--remove-interpreter-final-wiring)
-14. [Crate Layout](#crate-layout)
-15. [Validation + Timeline](#validation--timeline)
+1. [Current status](#current-status)
+2. [Goals](#goals)
+3. [Architecture Overview](#architecture-overview)
+4. [Pipeline Stages](#pipeline-stages)
+5. [Value Representation](#value-representation)
+6. [Runtime Library](#runtime-library)
+7. [Cranelift JIT Design](#cranelift-jit-design)
+8. [LLVM AOT Design](#llvm-aot-design)
+9. [Phase 1 — Semantic Analyzer](#phase-1--semantic-analyzer)
+10. [Phase 2 — HIR (High-Level IR)](#phase-2--hir-high-level-ir)
+11. [Phase 3 — Runtime Library](#phase-3--runtime-library)
+12. [Phase 4 — Cranelift JIT Backend](#phase-4--cranelift-jit-backend)
+13. [Phase 5 — LLVM AOT Backend](#phase-5--llvm-aot-backend)
+14. [Phase 6 — Remove Interpreter, Final Wiring](#phase-6--remove-interpreter-final-wiring)
+15. [Crate Layout](#crate-layout)
+16. [Validation + Timeline](#validation--timeline)
 
 ---
 
@@ -29,7 +43,8 @@
 - **Compiled-only**: no tree-walking interpreter in the final product.
 - **Two backends** sharing the same front-end (Lexer, Parser, AST, Semantic, HIR):
   - **Cranelift JIT**: `soplang file.sop` → HIR → native machine code in memory → run. Near-native speed, fast compile, ~5 MB dep.
-  - **LLVM AOT**: `soplang build file.sop` → HIR → LLVM IR → .o → link → standalone binary. Maximum optimization; best for static types (`abn`, `jajab`).
+  - **Build today:** `soplang --build file.sop` embeds the program (with `keen` inlined) in a Cargo runner. The binary JIT-compiles at startup.
+  - **LLVM AOT (phase 5, not started):** HIR → LLVM IR → object file → standalone binary, aimed at stronger optimization of static `abn` and `jajab`.
 - **Reuse**: Lexer, Parser, AST, `Value`, `SoplangError`, stdlib (wrapped by runtime for native backends).
 - **Remove interpreter**: `src/interpreter.rs` deleted in Phase 6.
 
@@ -75,9 +90,11 @@
   │  HIR → Cranelift IR              │  HIR → LLVM IR                        │
   │  → native code in memory         │  → .o → link → standalone binary     │
   │  Used for: soplang file.sop      │  Used for: soplang build file.sop     │
-  │  (Phase 4)                      │  (Phase 5)                            │
+  │  (Phase 4, done)                │  (Phase 5, not started)               │
   └─────────────────────────────────┴──────────────────────────────────────┘
 ```
+
+`--build` does not take the LLVM column yet. It lowers nothing into LLVM IR. See [Current status](#current-status).
 
 ---
 
@@ -209,11 +226,13 @@ impl CraneliftBackend {
 
 ### Optimization
 
-Cranelift applies its own passes (constant propagation, dead code elimination, register allocation). For `abn`/`jajab`, emit `iadd`, `fadd`, etc. with no boxing.
+Cranelift applies its own passes (constant propagation, dead code elimination, register allocation). Static `abn` and `jajab` slots emit `iadd`, `fadd`, and the matching compare and remainder ops, and still write the value tag so `qor` and stores keep working. `door` slots stay on runtime calls. The REPL keeps one `CraneliftBackend` and compiles each line with `compile_incremental`.
 
 ---
 
 ## LLVM AOT Design
+
+**Status:** not implemented. `inkwell` is not a dependency. `soplang --build` is the Cargo runner described in [Current status](#current-status). The design below is the later phase 5 target.
 
 **Crate:** `inkwell` (LLVM 17+ bindings).
 
@@ -376,6 +395,8 @@ pub struct HirModule {
 
 ## Phase 4 — Cranelift JIT Backend
 
+**Status:** done.
+
 **Goal:** Full “run” path: source → … → HIR → Cranelift → native code → execute. All language features work.
 
 ### Steps
@@ -411,7 +432,9 @@ pub fn run_source(source: &str, path: Option<&Path>) -> Result<(), SoplangError>
 
 ## Phase 5 — LLVM AOT Backend
 
-**Goal:** `soplang build file.sop` produces a standalone native binary.
+**Status:** not started. Standalone binaries today come from the Cargo runner (`src/backend/llvm.rs` is that runner, not LLVM IR).
+
+**Goal:** `soplang --build file.sop` emits a real native binary from HIR, without JIT-compiling the source at startup.
 
 ### Steps
 
@@ -427,6 +450,8 @@ pub fn run_source(source: &str, path: Option<&Path>) -> Result<(), SoplangError>
 ---
 
 ## Phase 6 — Remove Interpreter, Final Wiring
+
+**Status:** done for the interpreter. The run path is Cranelift. The build path is the Cargo runner until phase 5.
 
 **Goal:** Interpreter removed. Single run path (Cranelift) and single build path (LLVM). Tests and docs updated.
 
@@ -480,18 +505,19 @@ src/
 
 | Phase | Focus | Validation |
 |-------|--------|------------|
-| 1 | Semantic Analyzer | All examples pass; symbol table correct |
-| 2 | HIR | `--dump-hir` works; no panic on examples |
-| 3 | Runtime Library | Runtime builds; ABI used by backends |
-| 4 | Cranelift JIT | All 43 `.expected` tests pass via `soplang file.sop` |
-| 5 | LLVM AOT | `soplang build file.sop` produces working binary |
-| 6 | Remove interpreter | No interpreter code; tests green |
+| 1 | Semantic Analyzer | Done |
+| 2 | HIR | Done |
+| 3 | Runtime Library | Done |
+| 4 | Cranelift JIT | Done. `soplang file.sop` and the REPL session |
+| 5 | LLVM AOT | Not started. `--build` is the Cargo runner |
+| 6 | Remove interpreter | Done. No interpreter in this repo |
 
 ### Backend summary
 
 | Backend | Command | Output | Dep |
 |---------|---------|--------|-----|
 | **Cranelift JIT** | `soplang file.sop` | Run in process; no standalone binary | cranelift-* ~5 MB |
-| **LLVM AOT** | `soplang build file.sop` | Standalone native binary | inkwell + LLVM ~300 MB dev |
+| **Cargo runner** | `soplang --build file.sop` | Standalone binary that JIT-compiles embedded source | cranelift (same as run) |
+| **LLVM AOT** | later replacement for `--build` | Standalone binary from LLVM IR | inkwell + LLVM, not added yet |
 
-When ready, start with **Phase 1** (Semantic Analyzer).
+Next work is **Phase 5** (real LLVM). Do not treat `src/backend/llvm.rs` as that backend.
