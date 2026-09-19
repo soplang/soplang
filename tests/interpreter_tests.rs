@@ -119,6 +119,32 @@ fn test_waalid_calls_parent_method() {
 }
 
 #[test]
+fn test_class_typed_variable() {
+    let output = run_program(
+        r#"
+        qaab Xayawaan {
+            hawl dhaw(magac) { nafta.magac = magac }
+            hawl magaca() { celi nafta.magac }
+        }
+        qaab Bisad dhaxal Xayawaan {
+            hawl dhaw(magac) { nafta.magac = magac }
+        }
+        qaab Kale { hawl dhaw() {} }
+        Bisad b = cusub Bisad("Mia")
+        qor(b.magaca())
+        Xayawaan x = b
+        qor(x.magaca())
+        door d = cusub Kale()
+        fasax {
+            Bisad bad = d
+            qor("no")
+        } qabo (e) { qor("ok") }
+    "#,
+    );
+    assert_eq!(output, "Mia\nMia\nok\n");
+}
+
+#[test]
 fn test_try_catch_runtime() {
     let output = run_program(
         r#"

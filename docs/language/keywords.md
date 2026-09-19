@@ -238,6 +238,7 @@ qaab Bisad dhaxal Xayawaan {
 }
 
 door bisad = cusub Bisad("Mia")
+Bisad b = cusub Bisad("Mia")
 bisad.salaam()
 qor(bisad.magac)
 ```

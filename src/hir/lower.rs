@@ -78,6 +78,8 @@ pub enum HirInstr {
     CheckThrow { catch: LabelId },
     Pop { dst: Slot }, // discard value (for expr stmt)
     CheckType { src: Slot, type_tag: u8, name: String },
+    /// Value must be an instance of `class_name` or a subclass.
+    CheckClass { src: Slot, class_name: String, var_name: String },
     MarkConst { name: String },
     NewInstance { dst: Slot, class_name: String, args: Vec<Slot> },
 }
@@ -170,6 +172,9 @@ impl fmt::Display for HirInstr {
             HirInstr::BindError { dst } => write!(f, "  bind_error %{}", dst),
             HirInstr::Pop { dst } => write!(f, "  pop %{}", dst),
             HirInstr::CheckType { src, type_tag, name } => write!(f, "  check_type %{} {} {}", src, type_tag, name),
+            HirInstr::CheckClass { src, class_name, var_name } => {
+                write!(f, "  check_class %{} {} {}", src, class_name, var_name)
+            }
             HirInstr::MarkConst { name } => write!(f, "  mark_const {}", name),
             HirInstr::NewInstance { dst, class_name, args } => {
                 write!(f, "  %{} = new {}(", dst, class_name)?;
@@ -272,6 +277,15 @@ impl<'a> HirLowering<'a> {
                 };
                 inner.prepare_vars(&fm.scope_vars);
                 let local_nums = inner.nums.clone();
+                for (name, info) in &fm.scope_vars {
+                    if let TypeAnnotation::Class(class) = &info.type_ann {
+                        inner.emit(HirInstr::CheckClass {
+                            src: info.slot,
+                            class_name: class.clone(),
+                            var_name: name.clone(),
+                        });
+                    }
+                }
                 for s in &body_stmts {
                     inner.lower_stmt(s);
                 }
@@ -314,7 +328,7 @@ impl<'a> HirLowering<'a> {
         self.nums.resize(n, SlotNum::Dyn);
         self.fixed.resize(n, false);
         for v in vars.values() {
-            self.nums[v.slot] = num_of_ann(v.type_ann);
+            self.nums[v.slot] = num_of_ann(&v.type_ann);
             self.fixed[v.slot] = true;
         }
         if self.next_slot < n {
@@ -418,6 +432,29 @@ impl<'a> HirLowering<'a> {
         Some(dst)
     }
 
+    fn var_ann(&self, name: &str) -> Option<TypeAnnotation> {
+        if self.func_scope.is_some() {
+            return self.func_scope.unwrap().get(name).map(|v| v.type_ann.clone());
+        }
+        resolve_name(self.sym, name, None).map(|v| v.type_ann.clone())
+    }
+
+    fn emit_type_check(&mut self, src: Slot, ann: &TypeAnnotation, name: &str) {
+        match ann {
+            TypeAnnotation::Dynamic => {}
+            TypeAnnotation::Class(class) => self.emit(HirInstr::CheckClass {
+                src,
+                class_name: class.clone(),
+                var_name: name.to_string(),
+            }),
+            other => self.emit(HirInstr::CheckType {
+                src,
+                type_tag: type_ann_to_tag(other),
+                name: name.to_string(),
+            }),
+        }
+    }
+
     fn resolve_slot(&self, name: &str) -> Option<Slot> {
         if let Some((catch_name, slot)) = &self.catch_var {
             if catch_name == name {
@@ -446,9 +483,7 @@ impl<'a> HirLowering<'a> {
                 } else {
                     self.emit(HirInstr::Store { name: name.clone(), src: val_slot });
                 }
-                if *type_ann != TypeAnnotation::Dynamic {
-                    self.emit(HirInstr::CheckType { src: val_slot, type_tag: type_ann_to_tag(*type_ann), name: name.clone() });
-                }
+                self.emit_type_check(val_slot, type_ann, name);
                 if *is_const && self.func_scope.is_none() {
                     self.emit(HirInstr::MarkConst { name: name.clone() });
                 }
@@ -464,6 +499,13 @@ impl<'a> HirLowering<'a> {
                             }
                         } else {
                             self.emit(HirInstr::Store { name: n.clone(), src: val_slot });
+                        }
+                        if let Some(TypeAnnotation::Class(class)) = self.var_ann(n) {
+                            self.emit(HirInstr::CheckClass {
+                                src: val_slot,
+                                class_name: class,
+                                var_name: n.clone(),
+                            });
                         }
                     }
                     Expr::Index { obj, idx } => {
@@ -741,7 +783,7 @@ impl<'a> HirLowering<'a> {
     }
 }
 
-fn num_of_ann(ann: TypeAnnotation) -> SlotNum {
+fn num_of_ann(ann: &TypeAnnotation) -> SlotNum {
     match ann {
         TypeAnnotation::Abn => SlotNum::Int,
         TypeAnnotation::Jajab => SlotNum::Float,
@@ -749,7 +791,7 @@ fn num_of_ann(ann: TypeAnnotation) -> SlotNum {
     }
 }
 
-fn type_ann_to_tag(ann: TypeAnnotation) -> u8 {
+fn type_ann_to_tag(ann: &TypeAnnotation) -> u8 {
     match ann {
         TypeAnnotation::Abn => 1,
         TypeAnnotation::Jajab => 2,
@@ -757,7 +799,7 @@ fn type_ann_to_tag(ann: TypeAnnotation) -> u8 {
         TypeAnnotation::Bool => 4,
         TypeAnnotation::Teed => 5,
         TypeAnnotation::Walax => 6,
-        TypeAnnotation::Dynamic => 0,
+        TypeAnnotation::Dynamic | TypeAnnotation::Class(_) => 0,
     }
 }
 

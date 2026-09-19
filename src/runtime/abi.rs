@@ -1184,6 +1184,72 @@ pub extern "C" fn soplang_mark_const(name: *const u8, len: usize) {
     CONST_GLOBALS.with(|c| c.borrow_mut().insert(key));
 }
 
+/// The value must be an instance of `expected` or of a class that extends it.
+#[no_mangle]
+pub extern "C" fn soplang_check_class(
+    tag: i64,
+    payload: i64,
+    class_ptr: *const u8,
+    class_len: usize,
+    name_ptr: *const u8,
+    name_len: usize,
+) {
+    if class_ptr.is_null() || class_len == 0 {
+        return;
+    }
+    let expected = unsafe {
+        std::str::from_utf8_unchecked(std::slice::from_raw_parts(class_ptr, class_len))
+    };
+    let sv = SoplangValue { tag: tag as u8, _pad: [0; 7], payload };
+    let val = soplang_to_value(sv).unwrap_or(Value::Null);
+    if instance_matches_class(&val, expected) {
+        return;
+    }
+    let name = if name_ptr.is_null() || name_len == 0 {
+        ""
+    } else {
+        unsafe { std::str::from_utf8_unchecked(std::slice::from_raw_parts(name_ptr, name_len)) }
+    };
+    let err = type_error(
+        format!(
+            "'{}' waa {} laakin qiimaheeda '{}' ma ahan {}",
+            name, expected, val, expected
+        ),
+        0,
+        0,
+    );
+    if TRY_DEPTH.with(|d| d.get()) > 0 {
+        PENDING_ERROR.with(|p| *p.borrow_mut() = Some(error_message(&err)));
+    } else {
+        fatal_error(err);
+    }
+}
+
+fn instance_matches_class(val: &Value, expected: &str) -> bool {
+    let Value::Object(o) = val else {
+        return false;
+    };
+    let Some(mut current) = get_instance_class(o) else {
+        return false;
+    };
+    let mut seen = std::collections::HashSet::new();
+    loop {
+        if current == expected {
+            return true;
+        }
+        if !seen.insert(current.clone()) {
+            return false;
+        }
+        let next = CLASS_REGISTRY.with(|r| {
+            r.borrow().get(&current).and_then(|entry| entry.parent.clone())
+        });
+        match next {
+            Some(parent) => current = parent,
+            None => return false,
+        }
+    }
+}
+
 /// Runtime type validation for typed variable assignment (C ABI).
 /// expected_type: 1=abn, 2=jajab, 3=qoraal, 4=bool, 5=teed, 6=walax, 0=dynamic(skip).
 #[no_mangle]

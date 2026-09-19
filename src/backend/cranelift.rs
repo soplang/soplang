@@ -76,6 +76,7 @@ fn register_runtime_symbols(builder: &mut JITBuilder) {
     sym!(builder, soplang_store_global);
     sym!(builder, soplang_call_method);
     sym!(builder, soplang_check_type);
+    sym!(builder, soplang_check_class);
     sym!(builder, soplang_mark_const);
     sym!(builder, soplang_new_instance);
     sym!(builder, soplang_register_class);
@@ -130,7 +131,7 @@ fn max_slot_in_body(body: &[HirInstr]) -> usize {
             }
             HirInstr::Return { val } => { mx = mx.max(*val + 1); }
             HirInstr::JumpIf { cond, .. } => { mx = mx.max(*cond + 1); }
-            HirInstr::CheckType { src, .. } => { mx = mx.max(*src + 1); }
+            HirInstr::CheckType { src, .. } | HirInstr::CheckClass { src, .. } => { mx = mx.max(*src + 1); }
             HirInstr::NewInstance { dst, args, .. } => {
                 mx = mx.max(*dst + 1);
                 for s in args {
@@ -683,6 +684,22 @@ fn compile_body(
                     .map_err(|e| runtime_error(e.to_string(), 0, 0))?;
                 let fref = module.declare_func_in_func(fid, builder.func);
                 builder.ins().call(fref, &[st, sp, et, nptr, nlen]);
+            }
+
+            HirInstr::CheckClass { src, class_name, var_name } => {
+                if terminated { continue; }
+                let st = builder.use_var(var_tags[*src]);
+                let sp = builder.use_var(var_pays[*src]);
+                let cptr = builder.ins().iconst(types::I64, class_name.as_ptr() as i64);
+                let clen = builder.ins().iconst(types::I64, class_name.len() as i64);
+                let nptr = builder.ins().iconst(types::I64, var_name.as_ptr() as i64);
+                let nlen = builder.ins().iconst(types::I64, var_name.len() as i64);
+                let sig = make_sig(6, 0);
+                let fid = module
+                    .declare_function("soplang_check_class", Linkage::Import, &sig)
+                    .map_err(|e| runtime_error(e.to_string(), 0, 0))?;
+                let fref = module.declare_func_in_func(fid, builder.func);
+                builder.ins().call(fref, &[st, sp, cptr, clen, nptr, nlen]);
             }
 
             HirInstr::MarkConst { name } => {

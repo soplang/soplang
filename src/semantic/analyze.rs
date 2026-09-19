@@ -215,7 +215,7 @@ fn analyze_block(
     sym: &mut SymbolTable,
     opts: &AnalyzeOptions,
     fn_sigs: &HashMap<String, FunctionSig>,
-    current_return: Option<TypeAnnotation>,
+    current_return: Option<&TypeAnnotation>,
     current_class: Option<&str>,
 ) -> Result<(), SoplangError> {
     for s in stmts {
@@ -229,12 +229,12 @@ fn analyze_stmt(
     sym: &mut SymbolTable,
     opts: &AnalyzeOptions,
     fn_sigs: &HashMap<String, FunctionSig>,
-    current_return: Option<TypeAnnotation>,
+    current_return: Option<&TypeAnnotation>,
     current_class: Option<&str>,
 ) -> Result<(), SoplangError> {
     match stmt {
         Stmt::VarDecl { name, type_ann, is_const, value, line, col } => {
-            if opts.strict && *type_ann == TypeAnnotation::Dynamic {
+            if opts.strict && type_ann == &TypeAnnotation::Dynamic {
                 return Err(type_error_ex(
                     format!("'{}' waa dynamic laakiin 'strict mode' waa shidan yahay", name),
                     *line,
@@ -273,7 +273,7 @@ fn analyze_stmt(
                     name.clone(),
                     VarInfo {
                         slot: existing.slot,
-                        type_ann: *type_ann,
+                        type_ann: type_ann.clone(),
                         is_const: *is_const,
                         is_captured: false,
                     },
@@ -284,20 +284,21 @@ fn analyze_stmt(
                     name.clone(),
                     VarInfo {
                         slot,
-                        type_ann: *type_ann,
+                        type_ann: type_ann.clone(),
                         is_const: *is_const,
                         is_captured: false,
                     },
                 );
             }
             // Phase 2: basic static type check for initializer when we can infer a type.
-            if *type_ann != TypeAnnotation::Dynamic {
+            ensure_known_class(sym, type_ann)?;
+            if type_ann != &TypeAnnotation::Dynamic {
                 if let Some(expr_ty) = infer_expr_type(value, sym, fn_sigs) {
-                    if !is_type_compatible(*type_ann, expr_ty) {
+                    if !is_type_compatible(sym, type_ann, &expr_ty) {
                         return Err(type_mismatch_error(
                             name,
-                            *type_ann,
-                            expr_ty,
+                            type_ann,
+                            &expr_ty,
                             *line,
                             *col,
                         ));
@@ -328,13 +329,13 @@ fn analyze_stmt(
                             .with_hint("Doorsamaha madoor ma beddeli karaan qiimahooda. Isticmaal 'door' haddii aad rabto mid beddeli kara."),
                     ));
                 }
-                if var.type_ann != TypeAnnotation::Dynamic {
+                if &var.type_ann != &TypeAnnotation::Dynamic {
                     if let Some(expr_ty) = infer_expr_type(value, sym, fn_sigs) {
-                        if !is_type_compatible(var.type_ann, expr_ty) {
+                        if !is_type_compatible(sym, &var.type_ann, &expr_ty) {
                             return Err(type_mismatch_error(
                                 name,
-                                var.type_ann,
-                                expr_ty,
+                                &var.type_ann,
+                                &expr_ty,
                                 *line,
                                 *col,
                             ));
@@ -362,7 +363,7 @@ fn analyze_stmt(
                 }
             }
             if opts.strict {
-                if *return_ann == TypeAnnotation::Dynamic {
+                if return_ann == &TypeAnnotation::Dynamic {
                     return Err(type_error_ex(
                         format!("hawl '{}' ma leh nooc celi cad", name),
                         0,
@@ -410,21 +411,25 @@ fn analyze_stmt(
                     p.name.clone(),
                     VarInfo {
                         slot,
-                        type_ann: p.type_ann,
+                        type_ann: p.type_ann.clone(),
                         is_const: false,
                         is_captured: false,
                     },
                 );
             }
             sym.scopes.push(func_scope);
-            analyze_block(body, sym, opts, fn_sigs, Some(*return_ann), current_class)?;
+            ensure_known_class(sym, return_ann)?;
+            for p in params {
+                ensure_known_class(sym, &p.type_ann)?;
+            }
+            analyze_block(body, sym, opts, fn_sigs, Some(return_ann), current_class)?;
             let scope = sym.scopes.pop().unwrap();
             let local_count = scope.vars.len();
             sym.functions.push(FunctionMeta {
                 name: fn_name,
                 param_slots,
-                param_types: params.iter().map(|p| p.type_ann).collect(),
-                return_ann: *return_ann,
+                param_types: params.iter().map(|p| p.type_ann.clone()).collect(),
+                return_ann: return_ann.clone(),
                 local_count,
                 captures: Vec::new(),
                 scope_vars: scope.vars,
@@ -519,11 +524,11 @@ fn analyze_stmt(
         Stmt::Return(Some(e)) => {
             analyze_expr(e, sym, fn_sigs, current_class)?;
             if let Some(ret_ann) = current_return {
-                if ret_ann != TypeAnnotation::Dynamic {
+                if ret_ann != &TypeAnnotation::Dynamic {
                     if let Some(expr_ty) = infer_expr_type(e, sym, fn_sigs) {
-                        if !is_type_compatible(ret_ann, expr_ty) {
+                        if !is_type_compatible(sym, ret_ann, &expr_ty) {
                             return Err(type_error_ex(
-                                format!("nooca celi '{}' ma waafaqsana nooca hawsha '{}'", ty_str(expr_ty), ty_str(ret_ann)),
+                                format!("nooca celi '{}' ma waafaqsana nooca hawsha '{}'", ty_str(&expr_ty), ty_str(ret_ann)),
                                 0,
                                 0,
                                 ErrorMeta::default()
@@ -537,7 +542,7 @@ fn analyze_stmt(
         }
         Stmt::Return(None) => {
             if let Some(ret_ann) = current_return {
-                if ret_ann != TypeAnnotation::Dynamic {
+                if ret_ann != &TypeAnnotation::Dynamic {
                     return Err(type_error_ex(
                         format!("hawshu waxay rabtaa '{}' laakiin celi qiimo ma leh", ty_str(ret_ann)),
                         0,
@@ -631,18 +636,18 @@ fn analyze_expr(
                     ));
                 }
                 for (idx, (arg, expected)) in args.iter().zip(sig.params.iter()).enumerate() {
-                    if *expected == TypeAnnotation::Dynamic {
+                    if expected == &TypeAnnotation::Dynamic {
                         continue;
                     }
                     if let Some(found) = infer_expr_type(arg, sym, fn_sigs) {
-                        if !is_type_compatible(*expected, found) {
+                        if !is_type_compatible(sym, expected, &found) {
                             return Err(type_error_ex(
                                 format!(
                                     "doodda {} ee '{}' waa '{}', laakiin '{}' ayaa la helay",
                                     idx + 1,
                                     name,
-                                    ty_str(*expected),
-                                    ty_str(found)
+                                    ty_str(expected),
+                                    ty_str(&found)
                                 ),
                                 0,
                                 0,
@@ -748,7 +753,7 @@ fn infer_expr_type(
             Literal::Bool(_) => TypeAnnotation::Bool,
             Literal::Null => TypeAnnotation::Dynamic,
         }),
-        Expr::Identifier(name) => resolve_name(sym, name, None).map(|v| v.type_ann),
+        Expr::Identifier(name) => resolve_name(sym, name, None).map(|v| v.type_ann.clone()),
         Expr::List(_) => Some(TypeAnnotation::Teed),
         Expr::Object(_) => Some(TypeAnnotation::Walax),
         Expr::UnaryOp { expr: inner, .. } => infer_expr_type(inner, sym, fn_sigs),
@@ -784,35 +789,70 @@ fn infer_expr_type(
             if s.ret == TypeAnnotation::Dynamic {
                 None
             } else {
-                Some(s.ret)
+                Some(s.ret.clone())
             }
         }),
-        Expr::MethodCall { .. } | Expr::Index { .. } | Expr::Property { .. } | Expr::New { .. } => {
-            // For now, calls/index/property/new are treated as dynamic
-            None
-        }
+        Expr::New { class_name, .. } => Some(TypeAnnotation::Class(class_name.clone())),
+        Expr::MethodCall { .. } | Expr::Index { .. } | Expr::Property { .. } => None,
     }
 }
 
-fn is_type_compatible(target: TypeAnnotation, value: TypeAnnotation) -> bool {
+fn is_type_compatible(sym: &SymbolTable, target: &TypeAnnotation, value: &TypeAnnotation) -> bool {
     use TypeAnnotation::*;
-    match target {
-        Dynamic => true,
-        // Interpreter allows assigning integral decimals into abn at runtime.
-        // Keep semantic check permissive here to avoid false negatives.
-        Abn => matches!(value, Abn | Jajab),
-        Jajab => matches!(value, Abn | Jajab),
-        Qoraal => matches!(value, Qoraal),
-        Bool => matches!(value, Bool),
-        Teed => matches!(value, Teed),
-        Walax => matches!(value, Walax),
+    match (target, value) {
+        (Dynamic, _) => true,
+        // A door value has no static class. The runtime check accepts a real instance.
+        (Class(_), Dynamic) => true,
+        (Class(expected), Class(found)) => is_same_or_subclass(sym, found, expected),
+        (Class(_), _) => false,
+        // Integral decimals may be stored in abn. Keep that check permissive.
+        (Abn, Abn | Jajab) => true,
+        (Jajab, Abn | Jajab) => true,
+        (Qoraal, Qoraal) => true,
+        (Bool, Bool) => true,
+        (Teed, Teed) => true,
+        (Walax, Walax) => true,
+        _ => false,
     }
+}
+
+/// `found` is the instance class. True when it is `expected` or extends it.
+fn is_same_or_subclass(sym: &SymbolTable, found: &str, expected: &str) -> bool {
+    let mut current = Some(found.to_string());
+    let mut seen = HashSet::new();
+    while let Some(name) = current {
+        if name == expected {
+            return true;
+        }
+        if !seen.insert(name.clone()) {
+            return false;
+        }
+        current = sym.classes.get(&name).and_then(|meta| meta.parent.clone());
+    }
+    false
+}
+
+fn ensure_known_class(sym: &SymbolTable, ann: &TypeAnnotation) -> Result<(), SoplangError> {
+    let TypeAnnotation::Class(name) = ann else {
+        return Ok(());
+    };
+    if sym.classes.contains_key(name) {
+        return Ok(());
+    }
+    Err(type_error_ex(
+        format!("Qaab '{}' lama aqoonsan", name),
+        0,
+        0,
+        ErrorMeta::default()
+            .with_code(codes::E021_UNDECLARED)
+            .with_hint("Qeex qaabka ka hor intaadan u isticmaalin nooc ahaan."),
+    ))
 }
 
 fn type_mismatch_error(
     name: &str,
-    expected: TypeAnnotation,
-    found: TypeAnnotation,
+    expected: &TypeAnnotation,
+    found: &TypeAnnotation,
     line: usize,
     col: usize,
 ) -> SoplangError {
@@ -833,15 +873,16 @@ fn type_mismatch_error(
     )
 }
 
-fn ty_str(a: TypeAnnotation) -> &'static str {
+fn ty_str(a: &TypeAnnotation) -> String {
     match a {
-        TypeAnnotation::Abn => "abn",
-        TypeAnnotation::Jajab => "jajab",
-        TypeAnnotation::Qoraal => "qoraal",
-        TypeAnnotation::Bool => "bool",
-        TypeAnnotation::Teed => "teed",
-        TypeAnnotation::Walax => "walax",
-        TypeAnnotation::Dynamic => "dynamic",
+        TypeAnnotation::Abn => "abn".to_string(),
+        TypeAnnotation::Jajab => "jajab".to_string(),
+        TypeAnnotation::Qoraal => "qoraal".to_string(),
+        TypeAnnotation::Bool => "bool".to_string(),
+        TypeAnnotation::Teed => "teed".to_string(),
+        TypeAnnotation::Walax => "walax".to_string(),
+        TypeAnnotation::Dynamic => "dynamic".to_string(),
+        TypeAnnotation::Class(name) => name.clone(),
     }
 }
 
@@ -889,8 +930,8 @@ fn collect_function_sigs_rec(
                 out.insert(
                     key,
                     FunctionSig {
-                        params: params.iter().map(|p| p.type_ann).collect(),
-                        ret: *return_ann,
+                        params: params.iter().map(|p| p.type_ann.clone()).collect(),
+                        ret: return_ann.clone(),
                     },
                 );
             }

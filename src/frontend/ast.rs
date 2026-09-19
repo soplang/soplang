@@ -2,8 +2,8 @@
 
 use std::fmt;
 
-/// Static type annotation (abn, jajab, qoraal, bool, teed, walax) or dynamic (door/madoor).
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+/// Static type annotation, a class name, or dynamic (`door` / `madoor`).
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum TypeAnnotation {
     Abn,
     Jajab,
@@ -12,6 +12,8 @@ pub enum TypeAnnotation {
     Teed,
     Walax,
     Dynamic,
+    /// Instance of this class, or of a class that extends it.
+    Class(String),
 }
 
 /// Literal values at parse time.
@@ -235,6 +237,7 @@ impl Stmt {
                     TypeAnnotation::Bool => "bool".to_string(),
                     TypeAnnotation::Teed => "teed".to_string(),
                     TypeAnnotation::Walax => "walax".to_string(),
+                    TypeAnnotation::Class(class) => class.clone(),
                 };
                 writeln!(f, "{}{} {} = {};", pad, ty, name, value)
             }
@@ -245,25 +248,27 @@ impl Stmt {
                     if i > 0 {
                         write!(f, ", ")?;
                     }
-                    let param_ty = match p.type_ann {
-                        TypeAnnotation::Dynamic => "door",
-                        TypeAnnotation::Abn => "abn",
-                        TypeAnnotation::Jajab => "jajab",
-                        TypeAnnotation::Qoraal => "qoraal",
-                        TypeAnnotation::Bool => "bool",
-                        TypeAnnotation::Teed => "teed",
-                        TypeAnnotation::Walax => "walax",
+                    let param_ty = match &p.type_ann {
+                        TypeAnnotation::Dynamic => "door".to_string(),
+                        TypeAnnotation::Abn => "abn".to_string(),
+                        TypeAnnotation::Jajab => "jajab".to_string(),
+                        TypeAnnotation::Qoraal => "qoraal".to_string(),
+                        TypeAnnotation::Bool => "bool".to_string(),
+                        TypeAnnotation::Teed => "teed".to_string(),
+                        TypeAnnotation::Walax => "walax".to_string(),
+                        TypeAnnotation::Class(class) => class.clone(),
                     };
                     write!(f, "{} {}", param_ty, p.name)?;
                 }
                 let ret_ty = match return_ann {
-                    TypeAnnotation::Dynamic => "door",
-                    TypeAnnotation::Abn => "abn",
-                    TypeAnnotation::Jajab => "jajab",
-                    TypeAnnotation::Qoraal => "qoraal",
-                    TypeAnnotation::Bool => "bool",
-                    TypeAnnotation::Teed => "teed",
-                    TypeAnnotation::Walax => "walax",
+                    TypeAnnotation::Dynamic => "door".to_string(),
+                    TypeAnnotation::Abn => "abn".to_string(),
+                    TypeAnnotation::Jajab => "jajab".to_string(),
+                    TypeAnnotation::Qoraal => "qoraal".to_string(),
+                    TypeAnnotation::Bool => "bool".to_string(),
+                    TypeAnnotation::Teed => "teed".to_string(),
+                    TypeAnnotation::Walax => "walax".to_string(),
+                    TypeAnnotation::Class(class) => class.clone(),
                 };
                 writeln!(f, ") : {} {{", ret_ty)?;
                 for s in body {

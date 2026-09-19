@@ -97,6 +97,37 @@ fn test_semantic_rejects_waalid_without_parent() {
 }
 
 #[test]
+fn test_semantic_class_typed_var() {
+    let source = r#"
+        qaab Xayawaan { hawl dhaw(magac) { nafta.magac = magac } }
+        qaab Bisad dhaxal Xayawaan { hawl dhaw(magac) { nafta.magac = magac } }
+        qaab Kale { hawl dhaw() {} }
+        Bisad b = cusub Bisad("Mia")
+        Xayawaan x = cusub Bisad("Luna")
+    "#;
+    let tokens = Lexer::new(source).tokenize().unwrap();
+    let stmts = Parser::new(tokens).parse().unwrap();
+    assert!(semantic::analyze(&stmts).is_ok());
+
+    let bad = r#"
+        qaab Bisad { hawl dhaw(magac) { nafta.magac = magac } }
+        qaab Kale { hawl dhaw() {} }
+        Bisad b = cusub Kale()
+    "#;
+    let tokens = Lexer::new(bad).tokenize().unwrap();
+    let stmts = Parser::new(tokens).parse().unwrap();
+    assert!(semantic::analyze(&stmts).is_err());
+
+    let missing = r#"
+        Missing m = 1
+    "#;
+    let tokens = Lexer::new(missing).tokenize().unwrap();
+    let stmts = Parser::new(tokens).parse().unwrap();
+    let err = semantic::analyze(&stmts).unwrap_err().to_string();
+    assert!(err.contains("Missing"), "{err}");
+}
+
+#[test]
 fn test_semantic_rejects_unknown_parent() {
     let source = r#"
         qaab Child dhaxal Missing {

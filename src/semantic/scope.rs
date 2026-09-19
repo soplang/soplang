@@ -83,7 +83,7 @@ impl Env {
 
     #[allow(dead_code)] // Phase 4: type check on assign
     pub fn get_type(&self, name: &str) -> Option<TypeAnnotation> {
-        self.types.get(name).copied().or_else(|| {
+        self.types.get(name).cloned().or_else(|| {
             self.parent
                 .as_ref()
                 .and_then(|p| p.borrow().get_type(name))

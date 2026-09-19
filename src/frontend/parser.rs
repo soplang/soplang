@@ -41,6 +41,19 @@ impl Parser {
         self.peek().kind == TokenType::Eof
     }
 
+    fn peek_nth(&self, n: usize) -> &Token {
+        self.tokens
+            .get(self.current + n)
+            .unwrap_or_else(|| self.tokens.last().unwrap())
+    }
+
+    /// `ClassName var = ...` at the start of a statement or after `madoor`.
+    fn looks_like_class_decl(&self) -> bool {
+        matches!(self.peek().kind, TokenType::Identifier)
+            && matches!(self.peek_nth(1).kind, TokenType::Identifier)
+            && matches!(self.peek_nth(2).kind, TokenType::Assign)
+    }
+
     fn peek(&self) -> &Token {
         if self.current >= self.tokens.len() {
             return self.tokens.last().unwrap();
@@ -102,6 +115,11 @@ impl Parser {
             TokenType::Keen => return self.parse_import(),
             TokenType::Qaab => return self.parse_class_def(),
             TokenType::LBrace => return self.parse_block(),
+            TokenType::Identifier if self.looks_like_class_decl() => {
+                let class_name = self.peek().lexeme.clone();
+                self.advance();
+                return self.parse_var_decl_rest(TypeAnnotation::Class(class_name), false, line, col);
+            }
             TokenType::Identifier | TokenType::Nafta | TokenType::Waalid => {
                 return self.parse_identifier_stmt(line, col)
             }
@@ -140,6 +158,10 @@ impl Parser {
                 | TokenType::Teed | TokenType::Walax
         ) {
             (token_to_type_ann(&self.peek().kind), true)
+        } else if self.looks_like_class_decl() {
+            let class_name = self.peek().lexeme.clone();
+            self.advance();
+            return self.parse_var_decl_rest(TypeAnnotation::Class(class_name), true, line, col);
         } else {
             (TypeAnnotation::Dynamic, false)
         };
@@ -232,6 +254,12 @@ impl Parser {
                 let ann = token_to_type_ann(&self.peek().kind);
                 self.advance();
                 ann
+            } else if matches!(self.peek().kind, TokenType::Identifier)
+                && matches!(self.peek_nth(1).kind, TokenType::Identifier)
+            {
+                let class_name = self.peek().lexeme.clone();
+                self.advance();
+                TypeAnnotation::Class(class_name)
             } else {
                 TypeAnnotation::Dynamic
             };
@@ -258,6 +286,10 @@ impl Parser {
                 let ann = token_to_type_ann(&self.peek().kind);
                 self.advance();
                 ann
+            } else if matches!(self.peek().kind, TokenType::Identifier) {
+                let class_name = self.peek().lexeme.clone();
+                self.advance();
+                TypeAnnotation::Class(class_name)
             } else {
                 return Err(parser_error(
                     "Waxaa la filayay nooca celi (abn/jajab/qoraal/bool/teed/walax)",
