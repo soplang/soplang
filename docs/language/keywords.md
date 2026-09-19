@@ -216,6 +216,7 @@ qor(natiijo)  # xbxxbx
 | `dhaxal` | Inherit from parent class                   | `extends`        | `qaab Bisad dhaxal Xayawaan { ... }`        |
 | `cusub`  | Create a new instance                       | `new`             | `door b = cusub Bisad("Mia")`               |
 | `nafta`  | Current instance (self)                     | `this` / `self`  | `nafta.magac = magac`                       |
+| `waalid` | Call a method on the parent class           | `super`          | `celi waalid.cod()`                         |
 | `dhaw`   | Constructor method (auto-called by `cusub`) | `constructor`    | `hawl dhaw(magac) { nafta.magac = magac }`  |
 
 **Class example:**

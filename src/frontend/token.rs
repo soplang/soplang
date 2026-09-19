@@ -26,6 +26,7 @@ pub enum TokenType {
     Dhaxal,    // dhaxal (extends)
     Cusub,     // cusub (new)
     Nafta,     // nafta (self/this)
+    Waalid,    // waalid (parent method)
     // Static type keywords
     Abn,       // abn (integer)
     Jajab,     // jajab (float)

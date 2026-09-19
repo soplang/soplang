@@ -60,6 +60,71 @@ pub fn mangle_method(class: &str, method: &str) -> String {
     format!("{}::{}", class, method)
 }
 
+/// Method on an ancestor, starting at the parent of `class`. Skips `class` itself.
+pub fn resolve_parent_method(
+    sym: &SymbolTable,
+    class: &str,
+    method: &str,
+) -> Result<String, SoplangError> {
+    let parent = sym
+        .classes
+        .get(class)
+        .and_then(|meta| meta.parent.clone())
+        .ok_or_else(|| {
+            type_error_ex(
+                "'waalid' wuxuu u baahan yahay qaab ka dhaxla qaab kale",
+                0,
+                0,
+                ErrorMeta::default()
+                    .with_code(codes::E021_UNDECLARED)
+                    .with_hint("Ku dar 'dhaxal' qaabka, kadibna wac waalid.hawl()."),
+            )
+        })?;
+    let mut current = parent;
+    let mut seen = HashSet::new();
+    loop {
+        if !seen.insert(current.clone()) {
+            return Err(type_error_ex(
+                format!("Qaab '{}' wuxuu ka dhaxlaa meel-wareeg", class),
+                0,
+                0,
+                ErrorMeta::default()
+                    .with_code(codes::E021_UNDECLARED)
+                    .with_hint("Qaabku ma dhaxli karo naftiisa ama qaab uu ka dhaxlo."),
+            ));
+        }
+        let Some(meta) = sym.classes.get(&current) else {
+            return Err(type_error_ex(
+                format!(
+                    "Qaab '{}' wuxuu ka dhaxlay '{}' laakiin qaabkaas ma jiro",
+                    class, current
+                ),
+                0,
+                0,
+                ErrorMeta::default()
+                    .with_code(codes::E021_UNDECLARED)
+                    .with_hint("Hubi in qaabka waalidka uu ka horreeyo qaabka ilmaha."),
+            ));
+        };
+        if meta.methods.contains_key(method) {
+            return Ok(mangle_method(&current, method));
+        }
+        match meta.parent.clone() {
+            Some(next) => current = next,
+            None => {
+                return Err(type_error_ex(
+                    format!("Hawl '{}' lama helin waalidka qaabka '{}'", method, class),
+                    0,
+                    0,
+                    ErrorMeta::default()
+                        .with_code(codes::E021_UNDECLARED)
+                        .with_hint("Hubi in hawlka uu ku jiro qaabka waalidka."),
+                ));
+            }
+        }
+    }
+}
+
 /// Run semantic analysis on the AST. Returns a symbol table or an error.
 pub fn analyze(stmts: &[Stmt]) -> Result<SymbolTable, SoplangError> {
     analyze_with_options(stmts, AnalyzeOptions::default())
@@ -106,19 +171,39 @@ pub fn analyze_into(
 
 fn validate_classes(sym: &SymbolTable) -> Result<(), SoplangError> {
     for meta in sym.classes.values() {
-        if let Some(ref parent) = meta.parent {
-            if !sym.classes.contains_key(parent) {
+        let mut seen = HashSet::new();
+        let mut current = Some(meta.name.clone());
+        while let Some(name) = current {
+            if !seen.insert(name.clone()) {
                 return Err(type_error_ex(
-                    format!(
-                        "Qaab '{}' wuxuu ka dhaxlay '{}' laakiin qaabkaas ma jiro",
-                        meta.name, parent
-                    ),
+                    format!("Qaab '{}' wuxuu ka dhaxlaa meel-wareeg", meta.name),
                     0,
                     0,
                     ErrorMeta::default()
                         .with_code(codes::E021_UNDECLARED)
-                        .with_hint("Hubi in qaabka waalidka uu ka horreeyo qaabka ilmaha."),
+                        .with_hint("Qaabku ma dhaxli karo naftiisa ama qaab uu ka dhaxlo."),
                 ));
+            }
+            let Some(node) = sym.classes.get(&name) else {
+                break;
+            };
+            if let Some(ref parent) = node.parent {
+                if !sym.classes.contains_key(parent) {
+                    return Err(type_error_ex(
+                        format!(
+                            "Qaab '{}' wuxuu ka dhaxlay '{}' laakiin qaabkaas ma jiro",
+                            node.name, parent
+                        ),
+                        0,
+                        0,
+                        ErrorMeta::default()
+                            .with_code(codes::E021_UNDECLARED)
+                            .with_hint("Hubi in qaabka waalidka uu ka horreeyo qaabka ilmaha."),
+                    ));
+                }
+                current = Some(parent.clone());
+            } else {
+                current = None;
             }
         }
     }
@@ -509,6 +594,16 @@ fn analyze_expr(
                         .with_hint("Isticmaal 'nafta' gudaha hawl ku jirta qaabka."),
                 ));
             }
+            if name == "waalid" {
+                return Err(type_error_ex(
+                    "'waalid' waa wicitaan hawl, sida waalid.cod()",
+                    0,
+                    0,
+                    ErrorMeta::default()
+                        .with_code(codes::E021_UNDECLARED)
+                        .with_hint("Wac hawl ka mid ah qaabka waalidka."),
+                ));
+            }
         }
         Expr::BinaryOp { left, right, .. } => {
             analyze_expr(left, sym, fn_sigs, current_class)?;
@@ -560,7 +655,43 @@ fn analyze_expr(
                 }
             }
         }
-        Expr::MethodCall { obj, args, .. } => {
+        Expr::MethodCall { obj, method, args } => {
+            if let Expr::Identifier(recv) = obj.as_ref() {
+                if recv == "waalid" {
+                    let class = current_class.ok_or_else(|| {
+                        type_error_ex(
+                            "'waalid' waxaa loo isticmaali karaa gudaha hawlgallada qaabka kaliya",
+                            0,
+                            0,
+                            ErrorMeta::default()
+                                .with_code(codes::E021_UNDECLARED)
+                                .with_hint("Isticmaal 'waalid' gudaha hawl ku jirta qaabka."),
+                        )
+                    })?;
+                    let mangled = resolve_parent_method(sym, class, method)?;
+                    if let Some(fm) = sym.functions.iter().find(|f| f.name == mangled) {
+                        if fm.param_types.len() != args.len() {
+                            return Err(type_error_ex(
+                                format!(
+                                    "hawl '{}' waxay u baahan tahay {} dood, laakiin {} ayaa la bixiyay",
+                                    method,
+                                    fm.param_types.len(),
+                                    args.len()
+                                ),
+                                0,
+                                0,
+                                ErrorMeta::default()
+                                    .with_code(codes::E022_TYPE_MISMATCH)
+                                    .with_hint("Hubi tirada doodaha markaad wacayso waalidka."),
+                            ));
+                        }
+                    }
+                    for a in args {
+                        analyze_expr(a, sym, fn_sigs, current_class)?;
+                    }
+                    return Ok(());
+                }
+            }
             analyze_expr(obj, sym, fn_sigs, current_class)?;
             for a in args {
                 analyze_expr(a, sym, fn_sigs, current_class)?;

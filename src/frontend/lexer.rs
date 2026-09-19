@@ -288,6 +288,7 @@ fn keyword(s: &str) -> Option<TokenType> {
         "dhaxal" => Some(TokenType::Dhaxal),
         "cusub" => Some(TokenType::Cusub),
         "nafta" => Some(TokenType::Nafta),
+        "waalid" => Some(TokenType::Waalid),
         "abn" => Some(TokenType::Abn),
         "jajab" => Some(TokenType::Jajab),
         "qoraal" => Some(TokenType::Qoraal),

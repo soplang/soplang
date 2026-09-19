@@ -4,7 +4,7 @@
 use std::fmt;
 
 use crate::frontend::ast::{Expr, Literal, Stmt, TypeAnnotation};
-use crate::semantic::{resolve_name, SymbolTable, VarInfo};
+use crate::semantic::{resolve_name, resolve_parent_method, SymbolTable, VarInfo};
 
 pub type Slot = usize;
 pub type LabelId = usize;
@@ -221,6 +221,8 @@ pub struct HirLowering<'a> {
     loop_stack: Vec<(LabelId, LabelId)>, // (break_label, continue_label)
     func_scope:  Option<&'a std::collections::HashMap<String, crate::semantic::VarInfo>>,
     catch_var:  Option<(String, Slot)>,
+    /// Class whose method is being lowered. `waalid` starts lookup at its parent.
+    enclosing_class: Option<&'a str>,
     nums: Vec<SlotNum>,
     /// Variable slots keep the kind from their type annotation.
     fixed: Vec<bool>,
@@ -236,6 +238,7 @@ impl<'a> HirLowering<'a> {
             loop_stack: Vec::new(),
             func_scope: None,
             catch_var: None,
+            enclosing_class: None,
             nums: Vec::new(),
             fixed: Vec::new(),
         };
@@ -263,6 +266,7 @@ impl<'a> HirLowering<'a> {
                     loop_stack: Vec::new(),
                     func_scope: Some(&fm.scope_vars),
                     catch_var: None,
+                    enclosing_class: fm.class_name.as_deref(),
                     nums: Vec::new(),
                     fixed: Vec::new(),
                 };
@@ -398,6 +402,20 @@ impl<'a> HirLowering<'a> {
 
     fn emit(&mut self, instr: HirInstr) {
         self.body.push(instr);
+    }
+
+    /// Direct call of an ancestor method, with `nafta` as the instance.
+    fn lower_parent_call(&mut self, method: &str, args: &[Expr]) -> Option<Slot> {
+        let class = self.enclosing_class?;
+        let mangled = resolve_parent_method(self.sym, class, method).ok()?;
+        let nafta = self.resolve_slot("nafta")?;
+        let mut arg_slots = vec![nafta];
+        arg_slots.extend(args.iter().map(|a| self.lower_expr(a)));
+        let callee = self.alloc_slot();
+        self.emit(HirInstr::Load { dst: callee, name: mangled });
+        let dst = self.alloc_slot();
+        self.emit(HirInstr::Call { dst, callee, args: arg_slots });
+        Some(dst)
     }
 
     fn resolve_slot(&self, name: &str) -> Option<Slot> {
@@ -675,6 +693,13 @@ impl<'a> HirLowering<'a> {
                 dst
             }
             Expr::MethodCall { obj, method, args } => {
+                if let Expr::Identifier(recv) = obj.as_ref() {
+                    if recv == "waalid" {
+                        if let Some(slot) = self.lower_parent_call(method, args) {
+                            return slot;
+                        }
+                    }
+                }
                 let obj_slot = self.lower_expr(obj);
                 let arg_slots: Vec<Slot> = args.iter().map(|a| self.lower_expr(a)).collect();
                 let dst = self.alloc_slot();

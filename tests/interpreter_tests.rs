@@ -95,6 +95,30 @@ fn test_static_abn_jajab_ops() {
 }
 
 #[test]
+fn test_waalid_calls_parent_method() {
+    let output = run_program(
+        r#"
+        qaab A {
+            hawl dhaw() { qor("A") }
+            hawl cod() { celi "A" }
+        }
+        qaab B dhaxal A {
+            hawl dhaw() { qor("B") }
+            hawl cod() { celi waalid.cod() + "B" }
+        }
+        qaab C dhaxal B {
+            hawl cod() { celi waalid.cod() + "C" }
+        }
+        door b = cusub B()
+        qor(b.cod())
+        door c = cusub C()
+        qor(c.cod())
+    "#,
+    );
+    assert_eq!(output, "B\nAB\nB\nABC\n");
+}
+
+#[test]
 fn test_try_catch_runtime() {
     let output = run_program(
         r#"

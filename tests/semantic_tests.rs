@@ -62,6 +62,41 @@ fn test_semantic_mangles_class_methods() {
 }
 
 #[test]
+fn test_semantic_rejects_cyclic_parent() {
+    let source = r#"
+        qaab A dhaxal B { hawl foo() { celi 1 } }
+        qaab B dhaxal A { hawl bar() { celi 2 } }
+    "#;
+    let tokens = Lexer::new(source).tokenize().unwrap();
+    let stmts = Parser::new(tokens).parse().unwrap();
+    let err = semantic::analyze(&stmts).unwrap_err().to_string();
+    assert!(err.contains("meel-wareeg"), "{err}");
+}
+
+#[test]
+fn test_semantic_rejects_self_parent() {
+    let source = r#"
+        qaab A dhaxal A { hawl foo() { celi 1 } }
+    "#;
+    let tokens = Lexer::new(source).tokenize().unwrap();
+    let stmts = Parser::new(tokens).parse().unwrap();
+    let err = semantic::analyze(&stmts).unwrap_err().to_string();
+    assert!(err.contains("meel-wareeg"), "{err}");
+}
+
+#[test]
+fn test_semantic_rejects_waalid_without_parent() {
+    let source = r#"
+        qaab A {
+            hawl cod() { celi waalid.cod() }
+        }
+    "#;
+    let tokens = Lexer::new(source).tokenize().unwrap();
+    let stmts = Parser::new(tokens).parse().unwrap();
+    assert!(semantic::analyze(&stmts).is_err());
+}
+
+#[test]
 fn test_semantic_rejects_unknown_parent() {
     let source = r#"
         qaab Child dhaxal Missing {

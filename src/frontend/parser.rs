@@ -102,7 +102,9 @@ impl Parser {
             TokenType::Keen => return self.parse_import(),
             TokenType::Qaab => return self.parse_class_def(),
             TokenType::LBrace => return self.parse_block(),
-            TokenType::Identifier | TokenType::Nafta => return self.parse_identifier_stmt(line, col),
+            TokenType::Identifier | TokenType::Nafta | TokenType::Waalid => {
+                return self.parse_identifier_stmt(line, col)
+            }
             _ => {}
         }
 
@@ -523,6 +525,7 @@ impl Parser {
     fn parse_identifier_stmt(&mut self, line: usize, col: usize) -> Result<Stmt, SoplangError> {
         let name = match &self.peek().kind {
             TokenType::Nafta => "nafta".to_string(),
+            TokenType::Waalid => "waalid".to_string(),
             _ => self.peek().lexeme.clone(),
         };
         self.advance();
@@ -828,6 +831,10 @@ impl Parser {
             TokenType::Nafta => {
                 self.advance();
                 Ok(Expr::Identifier("nafta".to_string()))
+            }
+            TokenType::Waalid => {
+                self.advance();
+                Ok(Expr::Identifier("waalid".to_string()))
             }
             TokenType::LParen => {
                 self.advance();
