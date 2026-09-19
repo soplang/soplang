@@ -24,6 +24,8 @@ pub enum Value {
     Object(Rc<RefCell<HashMap<String, Value>>>),
     Function(FunctionId),
     NativeFunction(NativeFn),
+    /// Leaked closure data pointer. Survives a trip through `Value`.
+    Closure(i64),
     Null,
 }
 
@@ -47,6 +49,7 @@ impl Value {
             Value::Object(o) => ValueDebug::Object(o.borrow().len()),
             Value::Function(id) => ValueDebug::Function(*id),
             Value::NativeFunction(_) => ValueDebug::NativeFn,
+            Value::Closure(p) => ValueDebug::Closure(*p),
             Value::Null => ValueDebug::Null,
         }
     }
@@ -63,6 +66,7 @@ enum ValueDebug<'a> {
     Object(usize),
     Function(FunctionId),
     NativeFn,
+    Closure(i64),
     Null,
 }
 
@@ -77,6 +81,7 @@ impl PartialEq for Value {
             (Value::List(a), Value::List(b)) => Rc::ptr_eq(a, b) || *a.borrow() == *b.borrow(),
             (Value::Object(a), Value::Object(b)) => Rc::ptr_eq(a, b) || *a.borrow() == *b.borrow(),
             (Value::Function(a), Value::Function(b)) => a == b,
+            (Value::Closure(a), Value::Closure(b)) => a == b,
             (Value::NativeFunction(a), Value::NativeFunction(b)) => std::ptr::eq(
                 *a as *const (), *b as *const (),
             ),
@@ -96,7 +101,7 @@ impl Value {
             Value::Bool(_) => "bool",
             Value::List(_) => "teed",
             Value::Object(_) => "walax",
-            Value::Function(_) | Value::NativeFunction(_) => "hawl",
+            Value::Function(_) | Value::NativeFunction(_) | Value::Closure(_) => "hawl",
             Value::Null => "maran",
         }
     }
@@ -111,7 +116,7 @@ impl Value {
             Value::Str(s) => !s.is_empty(),
             Value::List(l) => !l.borrow().is_empty(),
             Value::Object(o) => !o.borrow().is_empty(),
-            Value::Function(_) | Value::NativeFunction(_) => true,
+            Value::Function(_) | Value::NativeFunction(_) | Value::Closure(_) => true,
         }
     }
 }
@@ -162,6 +167,7 @@ impl fmt::Display for Value {
             }
             Value::Function(id) => write!(f, "{}", id),
             Value::NativeFunction(_) => write!(f, "<hawl>"),
+            Value::Closure(_) => write!(f, "<hawl>"),
         }
     }
 }
@@ -196,6 +202,6 @@ pub fn value_to_string(v: &Value) -> String {
             format!("{{{}}}", pairs.join(", "))
         }
         Value::Function(id) => format!("{}", id),
-        Value::NativeFunction(_) => "<hawl>".to_string(),
+        Value::NativeFunction(_) | Value::Closure(_) => "<hawl>".to_string(),
     }
 }

@@ -79,6 +79,8 @@ fn register_runtime_symbols(builder: &mut JITBuilder) {
     sym!(builder, soplang_check_class);
     sym!(builder, soplang_mark_const);
     sym!(builder, soplang_new_instance);
+    sym!(builder, soplang_make_closure);
+    sym!(builder, soplang_capture_get);
     sym!(builder, soplang_register_class);
     sym!(builder, soplang_try_begin);
     sym!(builder, soplang_try_end);
@@ -135,6 +137,12 @@ fn max_slot_in_body(body: &[HirInstr]) -> usize {
             HirInstr::NewInstance { dst, args, .. } => {
                 mx = mx.max(*dst + 1);
                 for s in args {
+                    mx = mx.max(*s + 1);
+                }
+            }
+            HirInstr::MakeClosure { dst, captures, .. } => {
+                mx = mx.max(*dst + 1);
+                for s in captures {
                     mx = mx.max(*s + 1);
                 }
             }
@@ -287,8 +295,10 @@ impl CraneliftBackend {
     fn compile_function(&mut self, f: &HirFunction) -> Result<(), SoplangError> {
         self.fn_seq += 1;
         let seq = self.fn_seq;
+        let has_env = !f.capture_slots.is_empty();
+        let env_params = if has_env { 1 } else { 0 };
         let mut sig = Signature::new(CallConv::SystemV);
-        for _ in &f.params {
+        for _ in 0..(f.params.len() + env_params) {
             sig.params.push(AbiParam::new(types::I64));
             sig.params.push(AbiParam::new(types::I64));
         }
@@ -316,9 +326,24 @@ impl CraneliftBackend {
         let (var_tags, var_pays) = declare_slot_vars(&mut builder, num_slots);
 
         let params = builder.block_params(entry).to_vec();
+        if has_env {
+            let env_ptr = params[1];
+            for (i, &slot) in f.capture_slots.iter().enumerate() {
+                let idx = builder.ins().iconst(types::I64, i as i64);
+                let (t, p) = call_rt(
+                    &mut builder,
+                    &mut self.module,
+                    "soplang_capture_get",
+                    &[env_ptr, idx],
+                )?;
+                builder.def_var(var_tags[slot], t);
+                builder.def_var(var_pays[slot], p);
+            }
+        }
         for (i, &slot) in f.params.iter().enumerate() {
-            builder.def_var(var_tags[slot], params[i * 2]);
-            builder.def_var(var_pays[slot], params[i * 2 + 1]);
+            let base = (env_params + i) * 2;
+            builder.def_var(var_tags[slot], params[base]);
+            builder.def_var(var_pays[slot], params[base + 1]);
         }
 
         compile_body(
@@ -343,7 +368,7 @@ impl CraneliftBackend {
             .map_err(|e| runtime_error(e.to_string(), 0, 0))?;
         self.compiled_fns.push(CompiledFnInfo {
             name: f.name.clone(),
-            n_params: f.params.len(),
+            n_params: f.params.len() + env_params,
             func_id: id,
         });
         self.module
@@ -754,6 +779,17 @@ fn compile_body(
                 builder.def_var(var_tags[*dst], t);
                 builder.def_var(var_pays[*dst], p);
             }
+
+            HirInstr::MakeClosure { dst, fn_name, captures } => {
+                if terminated { continue; }
+                let arg_vals: Vec<(Value, Value)> = captures
+                    .iter()
+                    .map(|s| (builder.use_var(var_tags[*s]), builder.use_var(var_pays[*s])))
+                    .collect();
+                let (t, p) = emit_make_closure(builder, module, fn_name, &arg_vals)?;
+                builder.def_var(var_tags[*dst], t);
+                builder.def_var(var_pays[*dst], p);
+            }
         }
     }
 
@@ -1040,6 +1076,33 @@ fn emit_direct_call(
     let call = builder.ins().call(fref, args);
     let r = builder.inst_results(call);
     Ok((r[0], r[1]))
+}
+
+fn emit_make_closure(
+    builder: &mut FunctionBuilder,
+    module: &mut cranelift_jit::JITModule,
+    fn_name: &str,
+    captures: &[(Value, Value)],
+) -> Result<(Value, Value), SoplangError> {
+    let nptr = builder.ins().iconst(types::I64, fn_name.as_ptr() as i64);
+    let nlen = builder.ins().iconst(types::I64, fn_name.len() as i64);
+    let n = captures.len();
+    let n_val = builder.ins().iconst(types::I64, n as i64);
+    if n == 0 {
+        let null_ptr = builder.ins().iconst(types::I64, 0);
+        return call_rt(builder, module, "soplang_make_closure", &[nptr, nlen, n_val, null_ptr]);
+    }
+    let size = (n * 16) as u32;
+    let slot = builder.func.create_sized_stack_slot(StackSlotData::new(
+        StackSlotKind::ExplicitSlot, size, 3,
+    ));
+    let base = builder.ins().stack_addr(types::I64, slot, 0);
+    for (i, (t, p)) in captures.iter().enumerate() {
+        let off = (i * 16) as i32;
+        builder.ins().store(MemFlags::trusted(), *t, base, off);
+        builder.ins().store(MemFlags::trusted(), *p, base, off + 8);
+    }
+    call_rt(builder, module, "soplang_make_closure", &[nptr, nlen, n_val, base])
 }
 
 fn emit_soplang_call(

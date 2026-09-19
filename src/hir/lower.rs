@@ -82,6 +82,8 @@ pub enum HirInstr {
     CheckClass { src: Slot, class_name: String, var_name: String },
     MarkConst { name: String },
     NewInstance { dst: Slot, class_name: String, args: Vec<Slot> },
+    /// Nested function value: compiled function plus the captured slots.
+    MakeClosure { dst: Slot, fn_name: String, captures: Vec<Slot> },
 }
 
 #[derive(Debug, Clone)]
@@ -93,6 +95,8 @@ pub struct HirFunction {
     pub is_static:   bool,
     /// Numeric kind of local slots, indexed by slot. Temps are not included.
     pub local_nums:  Vec<SlotNum>,
+    /// Locals filled from the closure environment. Empty means no env parameter.
+    pub capture_slots: Vec<Slot>,
 }
 
 #[derive(Debug, Default, Clone)]
@@ -186,6 +190,16 @@ impl fmt::Display for HirInstr {
                 }
                 write!(f, ")")
             }
+            HirInstr::MakeClosure { dst, fn_name, captures } => {
+                write!(f, "  %{} = closure {} [", dst, fn_name)?;
+                for (i, s) in captures.iter().enumerate() {
+                    if i > 0 {
+                        write!(f, ", ")?;
+                    }
+                    write!(f, "%{}", s)?;
+                }
+                write!(f, "]")
+            }
         }
     }
 }
@@ -228,6 +242,8 @@ pub struct HirLowering<'a> {
     catch_var:  Option<(String, Slot)>,
     /// Class whose method is being lowered. `waalid` starts lookup at its parent.
     enclosing_class: Option<&'a str>,
+    /// Function being lowered. Nested `hawl` names are `parent::name`.
+    enclosing_fn: Option<&'a str>,
     nums: Vec<SlotNum>,
     /// Variable slots keep the kind from their type annotation.
     fixed: Vec<bool>,
@@ -244,6 +260,7 @@ impl<'a> HirLowering<'a> {
             func_scope: None,
             catch_var: None,
             enclosing_class: None,
+            enclosing_fn: None,
             nums: Vec::new(),
             fixed: Vec::new(),
         };
@@ -259,6 +276,12 @@ impl<'a> HirLowering<'a> {
             }
         }
         let top_level = std::mem::take(&mut lower.body);
+        let func_bodies_len = func_bodies.len();
+        debug_assert_eq!(
+            sym.functions.len(),
+            func_bodies_len,
+            "function metadata and bodies diverged"
+        );
         let functions: Vec<HirFunction> = sym.functions
             .iter()
             .zip(func_bodies.into_iter())
@@ -272,11 +295,17 @@ impl<'a> HirLowering<'a> {
                     func_scope: Some(&fm.scope_vars),
                     catch_var: None,
                     enclosing_class: fm.class_name.as_deref(),
+                    enclosing_fn: Some(fm.name.as_str()),
                     nums: Vec::new(),
                     fixed: Vec::new(),
                 };
                 inner.prepare_vars(&fm.scope_vars);
                 let local_nums = inner.nums.clone();
+                let capture_slots: Vec<Slot> = fm
+                    .captures
+                    .iter()
+                    .filter_map(|name| fm.scope_vars.get(name).map(|info| info.slot))
+                    .collect();
                 for (name, info) in &fm.scope_vars {
                     if let TypeAnnotation::Class(class) = &info.type_ann {
                         inner.emit(HirInstr::CheckClass {
@@ -296,6 +325,7 @@ impl<'a> HirLowering<'a> {
                     body:        inner.body,
                     is_static:   false,
                     local_nums,
+                    capture_slots,
                 }
             })
             .collect();
@@ -520,7 +550,29 @@ impl<'a> HirLowering<'a> {
                     _ => {}
                 }
             }
-            Stmt::FuncDef { .. } | Stmt::ClassDef { .. } => {}
+            Stmt::ClassDef { .. } => {}
+            Stmt::FuncDef { name, .. } => {
+                let Some(parent) = self.enclosing_fn else {
+                    return;
+                };
+                let Some(dst) = self.resolve_slot(name) else {
+                    return;
+                };
+                let mangled = format!("{parent}::{name}");
+                let caps = self
+                    .sym
+                    .functions
+                    .iter()
+                    .find(|f| f.name == mangled)
+                    .map(|f| f.captures.clone())
+                    .unwrap_or_default();
+                if caps.is_empty() {
+                    self.emit(HirInstr::Load { dst, name: mangled });
+                } else {
+                    let slots: Vec<Slot> = caps.iter().filter_map(|c| self.resolve_slot(c)).collect();
+                    self.emit(HirInstr::MakeClosure { dst, fn_name: mangled, captures: slots });
+                }
+            }
             Stmt::If { cond, then_body, elseifs, else_body } => {
                 let end_label = self.new_label();
                 let else_start = self.new_label();
@@ -803,21 +855,50 @@ fn type_ann_to_tag(ann: &TypeAnnotation) -> u8 {
     }
 }
 
-/// Collect function bodies in the same order as sym.functions (top-level funcs, then class methods).
+/// Collect function bodies in the same order as `sym.functions`.
+/// Nested functions are pushed before the function that contains them.
 fn collect_func_bodies(stmts: &[Stmt]) -> Vec<Vec<Stmt>> {
     let mut out = Vec::new();
-    for s in stmts {
-        match s {
-            Stmt::FuncDef { body, .. } => out.push(body.clone()),
-            Stmt::ClassDef { body, .. } => {
-                for m in body {
-                    if let Stmt::FuncDef { body: mb, .. } = m {
-                        out.push(mb.clone());
-                    }
-                }
-            }
-            _ => {}
-        }
-    }
+    collect_funcs(stmts, &mut out);
     out
+}
+
+fn collect_funcs(stmts: &[Stmt], out: &mut Vec<Vec<Stmt>>) {
+    for s in stmts {
+        collect_funcs_stmt(s, out);
+    }
+}
+
+fn collect_funcs_stmt(stmt: &Stmt, out: &mut Vec<Vec<Stmt>>) {
+    match stmt {
+        Stmt::FuncDef { body, .. } => {
+            collect_funcs(body, out);
+            out.push(body.clone());
+        }
+        Stmt::ClassDef { body, .. } => collect_funcs(body, out),
+        Stmt::If { then_body, elseifs, else_body, .. } => {
+            collect_funcs(then_body, out);
+            for (_, b) in elseifs {
+                collect_funcs(b, out);
+            }
+            if let Some(b) = else_body {
+                collect_funcs(b, out);
+            }
+        }
+        Stmt::Switch { cases, default, .. } => {
+            for (_, b) in cases {
+                collect_funcs(b, out);
+            }
+            if let Some(b) = default {
+                collect_funcs(b, out);
+            }
+        }
+        Stmt::For { body, .. } | Stmt::While { body, .. } => collect_funcs(body, out),
+        Stmt::TryCatch { try_body, catch_body, .. } => {
+            collect_funcs(try_body, out);
+            collect_funcs(catch_body, out);
+        }
+        Stmt::Block(body) => collect_funcs(body, out),
+        _ => {}
+    }
 }

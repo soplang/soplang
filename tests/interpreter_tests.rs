@@ -145,6 +145,84 @@ fn test_class_typed_variable() {
 }
 
 #[test]
+fn test_nested_function_keeps_outer_local() {
+    let output = run_program(
+        r#"
+        hawl plain() {
+            hawl hi() { celi "hi" }
+            celi hi
+        }
+        door p = plain()
+        qor(p())
+
+        hawl make() {
+            door x = "kept"
+            hawl inner() { celi x }
+            celi inner
+        }
+        door f = make()
+        qor(f())
+
+        hawl snap() {
+            door x = "first"
+            hawl shot() { celi x }
+            x = "second"
+            celi shot
+        }
+        door s = snap()
+        qor(s())
+
+        door g = "global"
+        hawl outer() {
+            hawl readg() { celi g }
+            celi readg
+        }
+        door h = outer()
+        g = "changed"
+        qor(h())
+
+        hawl greet(name) {
+            hawl inner() { celi name }
+            celi inner
+        }
+        door greet_f = greet("Amina")
+        qor(greet_f())
+
+        hawl a() {
+            door x = "deep"
+            hawl b() {
+                hawl c() { celi x }
+                celi c
+            }
+            celi b
+        }
+        door mid = a()
+        door deep = mid()
+        qor(deep())
+
+        hawl add(base) {
+            hawl plus(n) { celi base + n }
+            celi plus
+        }
+        door plus = add(10)
+        qor(plus(5))
+
+        qaab Sanduuq {
+            hawl dhaw(magac) { nafta.magac = magac }
+            hawl reader() {
+                hawl inner() { celi nafta.magac }
+                celi inner
+            }
+        }
+        door box = cusub Sanduuq("Mia")
+        door read = box.reader()
+        qor(read())
+    "#,
+    );
+    assert_eq!(output, "hi\nkept\nfirst\nchanged\nAmina\ndeep\n15\nMia\n");
+}
+
+#[test]
 fn test_try_catch_runtime() {
     let output = run_program(
         r#"

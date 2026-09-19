@@ -164,7 +164,7 @@ pub fn analyze_into(
         sym.scopes.push(Scope::default());
     }
     let fn_sigs = collect_function_sigs(stmts);
-    analyze_block(stmts, sym, &opts, &fn_sigs, None, None)?;
+    analyze_block(stmts, sym, &opts, &fn_sigs, None, None, None)?;
     validate_classes(sym)?;
     Ok(())
 }
@@ -217,9 +217,10 @@ fn analyze_block(
     fn_sigs: &HashMap<String, FunctionSig>,
     current_return: Option<&TypeAnnotation>,
     current_class: Option<&str>,
+    enclosing_fn: Option<&str>,
 ) -> Result<(), SoplangError> {
     for s in stmts {
-        analyze_stmt(s, sym, opts, fn_sigs, current_return, current_class)?;
+        analyze_stmt(s, sym, opts, fn_sigs, current_return, current_class, enclosing_fn)?;
     }
     Ok(())
 }
@@ -231,6 +232,7 @@ fn analyze_stmt(
     fn_sigs: &HashMap<String, FunctionSig>,
     current_return: Option<&TypeAnnotation>,
     current_class: Option<&str>,
+    enclosing_fn: Option<&str>,
 ) -> Result<(), SoplangError> {
     match stmt {
         Stmt::VarDecl { name, type_ann, is_const, value, line, col } => {
@@ -349,7 +351,7 @@ fn analyze_stmt(
             analyze_expr(value, sym, fn_sigs, current_class)?;
         }
         Stmt::FuncDef { name, params, return_ann, body } => {
-            let is_method = current_class.is_some();
+            let is_method = current_class.is_some() && enclosing_fn.is_none();
             if is_method {
                 if params.iter().any(|p| p.name == "nafta") {
                     return Err(type_error_ex(
@@ -384,12 +386,14 @@ fn analyze_stmt(
                     ));
                 }
             }
-            let fn_name = if let Some(class) = current_class {
-                mangle_method(class, name)
+            let fn_name = if is_method {
+                mangle_method(current_class.unwrap(), name)
+            } else if let Some(parent) = enclosing_fn {
+                format!("{parent}::{name}")
             } else {
                 name.clone()
             };
-            let class_name = current_class.map(str::to_string);
+            let class_name = if is_method { current_class.map(str::to_string) } else { None };
             let mut func_scope = Scope::default();
             let mut param_slots: Vec<usize> = Vec::new();
             if is_method {
@@ -417,12 +421,56 @@ fn analyze_stmt(
                     },
                 );
             }
+            let fns_before = sym.functions.len();
             sym.scopes.push(func_scope);
             ensure_known_class(sym, return_ann)?;
             for p in params {
                 ensure_known_class(sym, &p.type_ann)?;
             }
-            analyze_block(body, sym, opts, fn_sigs, Some(return_ann), current_class)?;
+            analyze_block(
+                body,
+                sym,
+                opts,
+                fn_sigs,
+                Some(return_ann),
+                current_class,
+                Some(fn_name.as_str()),
+            )?;
+            let mut captures = Vec::new();
+            if enclosing_fn.is_some() {
+                captures = collect_captures(body, sym);
+                let nested: Vec<Vec<String>> = sym.functions[fns_before..]
+                    .iter()
+                    .map(|nf| nf.captures.clone())
+                    .collect();
+                for caps in &nested {
+                    for c in caps {
+                        if !sym.scopes.last().unwrap().vars.contains_key(c)
+                            && capture_from_enclosing(sym, c)
+                        {
+                            push_capture(&mut captures, c);
+                        }
+                    }
+                }
+                let missing: Vec<String> = captures
+                    .iter()
+                    .filter(|c| !sym.scopes.last().unwrap().vars.contains_key(c.as_str()))
+                    .cloned()
+                    .collect();
+                for c in missing {
+                    let scope = sym.scopes.last_mut().unwrap();
+                    let slot = scope.vars.len();
+                    scope.vars.insert(
+                        c,
+                        VarInfo {
+                            slot,
+                            type_ann: TypeAnnotation::Dynamic,
+                            is_const: false,
+                            is_captured: true,
+                        },
+                    );
+                }
+            }
             let scope = sym.scopes.pop().unwrap();
             let local_count = scope.vars.len();
             sym.functions.push(FunctionMeta {
@@ -431,11 +479,26 @@ fn analyze_stmt(
                 param_types: params.iter().map(|p| p.type_ann.clone()).collect(),
                 return_ann: return_ann.clone(),
                 local_count,
-                captures: Vec::new(),
+                captures,
                 scope_vars: scope.vars,
                 class_name,
                 is_method,
             });
+            if enclosing_fn.is_some() {
+                let scope = sym.scopes.last_mut().unwrap();
+                if !scope.vars.contains_key(name) {
+                    let slot = scope.vars.len();
+                    scope.vars.insert(
+                        name.clone(),
+                        VarInfo {
+                            slot,
+                            type_ann: TypeAnnotation::Dynamic,
+                            is_const: false,
+                            is_captured: false,
+                        },
+                    );
+                }
+            }
         }
         Stmt::ClassDef { name, parent, body } => {
             if sym.classes.contains_key(name) {
@@ -472,27 +535,27 @@ fn analyze_stmt(
                     methods,
                 },
             );
-            analyze_block(body, sym, opts, fn_sigs, current_return, Some(name))?;
+            analyze_block(body, sym, opts, fn_sigs, current_return, Some(name), None)?;
         }
         Stmt::If { cond, then_body, elseifs, else_body } => {
             analyze_expr(cond, sym, fn_sigs, current_class)?;
-            analyze_block(then_body, sym, opts, fn_sigs, current_return, current_class)?;
+            analyze_block(then_body, sym, opts, fn_sigs, current_return, current_class, enclosing_fn)?;
             for (c, b) in elseifs {
                 analyze_expr(c, sym, fn_sigs, current_class)?;
-                analyze_block(b, sym, opts, fn_sigs, current_return, current_class)?;
+                analyze_block(b, sym, opts, fn_sigs, current_return, current_class, enclosing_fn)?;
             }
             if let Some(eb) = else_body {
-                analyze_block(eb, sym, opts, fn_sigs, current_return, current_class)?;
+                analyze_block(eb, sym, opts, fn_sigs, current_return, current_class, enclosing_fn)?;
             }
         }
         Stmt::Switch { expr, cases, default } => {
             analyze_expr(expr, sym, fn_sigs, current_class)?;
             for (v, body) in cases {
                 analyze_expr(v, sym, fn_sigs, current_class)?;
-                analyze_block(body, sym, opts, fn_sigs, current_return, current_class)?;
+                analyze_block(body, sym, opts, fn_sigs, current_return, current_class, enclosing_fn)?;
             }
             if let Some(d) = default {
-                analyze_block(d, sym, opts, fn_sigs, current_return, current_class)?;
+                analyze_block(d, sym, opts, fn_sigs, current_return, current_class, enclosing_fn)?;
             }
         }
         Stmt::For { var, start, end, step, body } => {
@@ -515,11 +578,11 @@ fn analyze_stmt(
             if let Some(s) = step {
                 analyze_expr(s, sym, fn_sigs, current_class)?;
             }
-            analyze_block(body, sym, opts, fn_sigs, current_return, current_class)?;
+            analyze_block(body, sym, opts, fn_sigs, current_return, current_class, enclosing_fn)?;
         }
         Stmt::While { cond, body } => {
             analyze_expr(cond, sym, fn_sigs, current_class)?;
-            analyze_block(body, sym, opts, fn_sigs, current_return, current_class)?;
+            analyze_block(body, sym, opts, fn_sigs, current_return, current_class, enclosing_fn)?;
         }
         Stmt::Return(Some(e)) => {
             analyze_expr(e, sym, fn_sigs, current_class)?;
@@ -556,7 +619,7 @@ fn analyze_stmt(
         }
         Stmt::Break | Stmt::Continue => {}
         Stmt::TryCatch { try_body, err_var, catch_body, .. } => {
-            analyze_block(try_body, sym, opts, fn_sigs, current_return, current_class)?;
+            analyze_block(try_body, sym, opts, fn_sigs, current_return, current_class, enclosing_fn)?;
             sym.scopes.push(Scope::default());
             {
                 let scope = sym.scopes.last_mut().unwrap();
@@ -570,11 +633,13 @@ fn analyze_stmt(
                     },
                 );
             }
-            analyze_block(catch_body, sym, opts, fn_sigs, current_return, current_class)?;
+            analyze_block(catch_body, sym, opts, fn_sigs, current_return, current_class, enclosing_fn)?;
             sym.scopes.pop();
         }
         Stmt::Import(_) => {}
-        Stmt::Block(stmts) => analyze_block(stmts, sym, opts, fn_sigs, current_return, current_class)?,
+        Stmt::Block(stmts) => {
+            analyze_block(stmts, sym, opts, fn_sigs, current_return, current_class, enclosing_fn)?
+        }
         Stmt::Expr(e) => analyze_expr(e, sym, fn_sigs, current_class)?,
     }
     Ok(())
@@ -974,6 +1039,141 @@ fn collect_function_sigs_rec(
             }
             _ => {}
         }
+    }
+}
+
+/// A name in an outer function, not a global and not a local of the current one.
+fn capture_from_enclosing(sym: &SymbolTable, name: &str) -> bool {
+    let last = sym.scopes.len().saturating_sub(1);
+    for i in (0..sym.scopes.len()).rev() {
+        if sym.scopes[i].vars.contains_key(name) {
+            return i > 0 && i < last;
+        }
+    }
+    false
+}
+
+fn push_capture(caps: &mut Vec<String>, name: &str) {
+    if !caps.iter().any(|c| c == name) {
+        caps.push(name.to_string());
+    }
+}
+
+fn collect_captures(body: &[Stmt], sym: &SymbolTable) -> Vec<String> {
+    let mut caps = Vec::new();
+    note_free_stmts(body, sym, &mut caps);
+    caps
+}
+
+fn note_free_stmts(stmts: &[Stmt], sym: &SymbolTable, caps: &mut Vec<String>) {
+    for s in stmts {
+        note_free_stmt(s, sym, caps);
+    }
+}
+
+fn note_name(name: &str, sym: &SymbolTable, caps: &mut Vec<String>) {
+    if capture_from_enclosing(sym, name) {
+        push_capture(caps, name);
+    }
+}
+
+fn note_free_expr(expr: &Expr, sym: &SymbolTable, caps: &mut Vec<String>) {
+    match expr {
+        Expr::Literal(_) => {}
+        Expr::Identifier(name) => note_name(name, sym, caps),
+        Expr::BinaryOp { left, right, .. } => {
+            note_free_expr(left, sym, caps);
+            note_free_expr(right, sym, caps);
+        }
+        Expr::UnaryOp { expr, .. } => note_free_expr(expr, sym, caps),
+        Expr::Call { name, args } => {
+            note_name(name, sym, caps);
+            for a in args {
+                note_free_expr(a, sym, caps);
+            }
+        }
+        Expr::MethodCall { obj, args, .. } => {
+            note_free_expr(obj, sym, caps);
+            for a in args {
+                note_free_expr(a, sym, caps);
+            }
+        }
+        Expr::Index { obj, idx } => {
+            note_free_expr(obj, sym, caps);
+            note_free_expr(idx, sym, caps);
+        }
+        Expr::Property { obj, .. } => note_free_expr(obj, sym, caps),
+        Expr::List(items) => {
+            for e in items {
+                note_free_expr(e, sym, caps);
+            }
+        }
+        Expr::Object(pairs) => {
+            for (_, e) in pairs {
+                note_free_expr(e, sym, caps);
+            }
+        }
+        Expr::New { args, .. } => {
+            for a in args {
+                note_free_expr(a, sym, caps);
+            }
+        }
+    }
+}
+
+fn note_free_stmt(stmt: &Stmt, sym: &SymbolTable, caps: &mut Vec<String>) {
+    match stmt {
+        Stmt::VarDecl { value, .. } => note_free_expr(value, sym, caps),
+        Stmt::Assign { target, value, .. } => {
+            note_free_expr(target, sym, caps);
+            note_free_expr(value, sym, caps);
+        }
+        Stmt::FuncDef { .. }
+        | Stmt::ClassDef { .. }
+        | Stmt::Break
+        | Stmt::Continue
+        | Stmt::Import(_)
+        | Stmt::Return(None) => {}
+        Stmt::If { cond, then_body, elseifs, else_body } => {
+            note_free_expr(cond, sym, caps);
+            note_free_stmts(then_body, sym, caps);
+            for (c, b) in elseifs {
+                note_free_expr(c, sym, caps);
+                note_free_stmts(b, sym, caps);
+            }
+            if let Some(b) = else_body {
+                note_free_stmts(b, sym, caps);
+            }
+        }
+        Stmt::Switch { expr, cases, default } => {
+            note_free_expr(expr, sym, caps);
+            for (v, b) in cases {
+                note_free_expr(v, sym, caps);
+                note_free_stmts(b, sym, caps);
+            }
+            if let Some(b) = default {
+                note_free_stmts(b, sym, caps);
+            }
+        }
+        Stmt::For { start, end, step, body, .. } => {
+            note_free_expr(start, sym, caps);
+            note_free_expr(end, sym, caps);
+            if let Some(s) = step {
+                note_free_expr(s, sym, caps);
+            }
+            note_free_stmts(body, sym, caps);
+        }
+        Stmt::While { cond, body } => {
+            note_free_expr(cond, sym, caps);
+            note_free_stmts(body, sym, caps);
+        }
+        Stmt::Return(Some(e)) => note_free_expr(e, sym, caps),
+        Stmt::TryCatch { try_body, catch_body, .. } => {
+            note_free_stmts(try_body, sym, caps);
+            note_free_stmts(catch_body, sym, caps);
+        }
+        Stmt::Block(b) => note_free_stmts(b, sym, caps),
+        Stmt::Expr(e) => note_free_expr(e, sym, caps),
     }
 }
 

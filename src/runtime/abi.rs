@@ -104,6 +104,7 @@ pub const TAG_STR: u8 = 4;
 pub const TAG_LIST: u8 = 5;
 pub const TAG_OBJECT: u8 = 6;
 pub const TAG_FUNC: u8 = 7;
+pub const TAG_CLOSURE: u8 = 9;
 
 /// Tagged value for C ABI. 16 bytes: tag (u8) + padding + payload (i64).
 #[repr(C)]
@@ -234,6 +235,7 @@ pub fn value_to_soplang(v: &Value) -> SoplangValue {
         Value::List(l) => SoplangValue { tag: TAG_LIST, _pad: [0; 7], payload: list_alloc(Rc::clone(l)) },
         Value::Object(o) => SoplangValue { tag: TAG_OBJECT, _pad: [0; 7], payload: obj_alloc(Rc::clone(o)) },
         Value::Function(id) => SoplangValue { tag: TAG_FUNC, _pad: [0; 7], payload: id.0 as i64 },
+        Value::Closure(p) => SoplangValue { tag: TAG_CLOSURE, _pad: [0; 7], payload: *p },
         Value::NativeFunction(f) => {
             ensure_builtins();
             for (name, v) in stdlib::get_builtin_functions() {
@@ -261,6 +263,7 @@ pub fn soplang_to_value(sv: SoplangValue) -> Result<Value, SoplangError> {
         TAG_LIST => Ok(Value::List(list_get(sv.payload))),
         TAG_OBJECT => Ok(Value::Object(obj_get(sv.payload))),
         TAG_FUNC => Ok(Value::Function(super::value::FunctionId(sv.payload as usize))),
+        TAG_CLOSURE => Ok(Value::Closure(sv.payload)),
         _ => Err(runtime_error(format!("Invalid tag {}", sv.tag), 0, 0)),
     }
 }
@@ -1316,11 +1319,85 @@ pub fn register_compiled_fn(ptr: *const u8, n_params: usize) -> i64 {
     })
 }
 
-/// Call a callee with args. Callee must be SoplangValue with TAG_FUNC (native or user fn).
+struct ClosureData {
+    fn_index: i64,
+    env: Vec<SoplangValue>,
+}
+
+/// Build a closure from a compiled function name and the captured values.
+#[no_mangle]
+pub extern "C" fn soplang_make_closure(
+    name: *const u8,
+    name_len: usize,
+    n: i64,
+    args: *const SoplangValue,
+) -> SoplangValue {
+    let callee = soplang_get_builtin(name, name_len);
+    if callee.tag != TAG_FUNC {
+        let val = soplang_to_value(callee).unwrap_or(Value::Null);
+        return handle_runtime_error(runtime_error(
+            format!("'{}' ma ahan hawl, lama xidhi karo", value_to_string(&val)),
+            0,
+            0,
+        ));
+    }
+    let mut env = Vec::new();
+    if !args.is_null() && n > 0 {
+        for i in 0..n as usize {
+            env.push(unsafe { *args.add(i) });
+        }
+    }
+    let data = Box::leak(Box::new(ClosureData { fn_index: callee.payload, env }));
+    SoplangValue { tag: TAG_CLOSURE, _pad: [0; 7], payload: data as *mut ClosureData as i64 }
+}
+
+/// Read one captured value. `env_ptr` is the closure data pointer.
+#[no_mangle]
+pub extern "C" fn soplang_capture_get(env_ptr: i64, index: i64) -> SoplangValue {
+    if env_ptr == 0 || index < 0 {
+        return SoplangValue::null();
+    }
+    let data = unsafe { &*(env_ptr as *const ClosureData) };
+    data.env.get(index as usize).copied().unwrap_or_else(SoplangValue::null)
+}
+
+fn call_closure(callee: SoplangValue, args: *const SoplangValue, n: i32) -> SoplangValue {
+    if callee.payload == 0 {
+        return SoplangValue::null();
+    }
+    let data = unsafe { &*(callee.payload as *const ClosureData) };
+    let mut full = Vec::with_capacity(1 + n.max(0) as usize);
+    full.push(SoplangValue { tag: TAG_NULL, _pad: [0; 7], payload: callee.payload });
+    if !args.is_null() && n > 0 {
+        for i in 0..n as usize {
+            full.push(unsafe { *args.add(i) });
+        }
+    }
+    let native_count = NATIVE_FN_TABLE.with(|t| t.borrow().len()) as i64;
+    let compiled_idx = data.fn_index - native_count;
+    let entry = COMPILED_FN_TABLE.with(|t| {
+        let v = t.borrow();
+        if compiled_idx >= 0 && (compiled_idx as usize) < v.len() {
+            Some(v[compiled_idx as usize])
+        } else {
+            None
+        }
+    });
+    if let Some(entry) = entry {
+        call_compiled_fn(entry.ptr, entry.n_params, full.as_ptr(), full.len() as i32)
+    } else {
+        SoplangValue::null()
+    }
+}
+
+/// Call a callee with args. Callee is TAG_FUNC (native or user) or TAG_CLOSURE.
 #[no_mangle]
 pub extern "C" fn soplang_call(callee: SoplangValue, args: *const SoplangValue, n: i32) -> SoplangValue {
     if let Some(v) = short_circuit_if_pending() {
         return v;
+    }
+    if callee.tag == TAG_CLOSURE {
+        return call_closure(callee, args, n);
     }
     if callee.tag != TAG_FUNC {
         let val = soplang_to_value(callee).unwrap_or(Value::Null);
