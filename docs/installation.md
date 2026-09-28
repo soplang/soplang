@@ -61,7 +61,7 @@ cargo build --release
 After installation, you can:
 - Run Soplang from the Start menu
 - Double-click `.sop` or `.so` files to run them with Soplang
-- Open a Command Prompt and type `soplang` to start the interpreter
+- Open a Command Prompt and type `soplang` to start the REPL
 
 ### Building from Source on Windows
 
@@ -126,7 +126,7 @@ sudo rpm -i soplang-<version>.x86_64.rpm
 
 #### Prerequisites
 
-1. Install Python 3.6 or higher:
+1. Install the Rust toolchain:
    ```bash
    # Debian/Ubuntu
    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
@@ -203,7 +203,7 @@ After installation, you can:
 
 #### Prerequisites
 
-1. Install Python 3.6 or higher:
+1. Install the Rust toolchain:
    ```bash
    # Using Homebrew (recommended)
    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh

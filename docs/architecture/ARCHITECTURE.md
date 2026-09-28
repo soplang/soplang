@@ -309,7 +309,7 @@ src/
 - **Single IR (HIR):** One flat IR for both JIT and AOT; backends share the same lowering and runtime.
 - **C ABI boundary:** Generated code (Cranelift or AOT binary) only talks to the runtime via `SoplangValue` and `extern "C"` functions; no direct dependency on `Value` or stdlib types in generated code.
 - **Slot-based HIR:** No SSA in the IR; slots are virtual registers; Cranelift backend maps them to its own SSA variables and stack.
-- **Thread-local heaps:** Simplifies embedding and avoids global locks; one “interpreter” per thread.
+- **Thread-local heaps:** Simplifies embedding and avoids global locks; each thread has its own runtime heaps.
 - **Somali messages and codes:** Errors and builtins use Somali where appropriate; error codes (E0xx) allow stable tooling and docs.
 
 This architecture supports a clear pipeline, maintainable modules, and two execution modes (JIT and AOT) sharing one runtime and one language implementation.
