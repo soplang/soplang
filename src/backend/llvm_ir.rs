@@ -1,6 +1,7 @@
-//! LLVM IR for a subset of HIR. Calls the existing runtime.
+//! LLVM IR that calls the existing runtime.
 //!
-//! Covered here: constants, arithmetic, branches, loops, and functions.
+//! Constants, arithmetic, branches, loops, functions, lists, objects, classes,
+//! `waalid`, `fasax`, and closures. Native `abn`/`jajab` ops are not lowered here.
 //! `soplang --build` is still the Cargo runner in `llvm.rs`.
 
 use std::collections::HashMap;
@@ -10,6 +11,7 @@ use std::process::Command;
 
 use crate::error::{runtime_error, SoplangError};
 use crate::hir::{BinOpKind, HirConst, HirFunction, HirInstr, HirModule, UnOpKind};
+use crate::semantic::SymbolTable;
 
 const DECLS: &str = r#"%SoplangValue = type { i8, i64 }
 
@@ -37,11 +39,32 @@ declare %SoplangValue @soplang_get_builtin(ptr, i64)
 declare void @soplang_store_global(ptr, i64, i64, i64)
 declare %SoplangValue @soplang_call(%SoplangValue, ptr, i32)
 declare void @soplang_check_type(i64, i64, i64, ptr, i64)
+declare %SoplangValue @soplang_list_new()
+declare %SoplangValue @soplang_list_push(%SoplangValue, %SoplangValue)
+declare %SoplangValue @soplang_object_new()
+declare %SoplangValue @soplang_get_index(%SoplangValue, %SoplangValue)
+declare %SoplangValue @soplang_set_index(%SoplangValue, %SoplangValue, %SoplangValue)
+declare %SoplangValue @soplang_get_prop(%SoplangValue, ptr, i64)
+declare %SoplangValue @soplang_set_prop(%SoplangValue, ptr, i64, %SoplangValue)
+declare %SoplangValue @soplang_call_method(%SoplangValue, ptr, i64, ptr, i32)
+declare %SoplangValue @soplang_new_instance(ptr, i64, ptr, i32)
+declare void @soplang_register_class(ptr, i64, ptr, i64, ptr, i64, i64)
+declare i64 @soplang_register_user_fn(ptr, i64, ptr, i64)
+declare i32 @soplang_try_begin()
+declare void @soplang_try_end()
+declare i32 @soplang_has_pending_error()
+declare %SoplangValue @soplang_get_caught_error()
+declare void @soplang_check_class(i64, i64, ptr, i64, ptr, i64)
+declare void @soplang_mark_const(ptr, i64)
+declare %SoplangValue @soplang_make_closure(ptr, i64, i64, ptr)
+declare %SoplangValue @soplang_capture_get(i64, i64)
 "#;
 
 struct FnInfo {
     llvm_name: String,
+    /// ABI values, including the leading closure environment when present.
     n_params: usize,
+    has_env: bool,
 }
 
 struct ModuleOut {
@@ -76,19 +99,19 @@ struct FnEmit<'a> {
     nslots: usize,
     slot_fn: HashMap<usize, usize>,
     is_main: bool,
+    cont: usize,
 }
 
-pub fn emit_llvm_ir(hir: &HirModule) -> Result<String, SoplangError> {
+pub fn emit_llvm_ir(hir: &HirModule, sym: &SymbolTable) -> Result<String, SoplangError> {
     let mut fns = Vec::new();
     let mut by_name = HashMap::new();
     for (i, f) in hir.functions.iter().enumerate() {
-        if !f.capture_slots.is_empty() {
-            return Err(runtime_error("LLVM IR does not support closures yet", 0, 0));
-        }
+        let has_env = !f.capture_slots.is_empty();
         by_name.insert(f.name.clone(), i);
         fns.push(FnInfo {
             llvm_name: format!("sfn{i}"),
-            n_params: f.params.len(),
+            n_params: f.params.len() + usize::from(has_env),
+            has_env,
         });
     }
 
@@ -101,7 +124,7 @@ pub fn emit_llvm_ir(hir: &HirModule) -> Result<String, SoplangError> {
     for f in hir.functions.iter() {
         emit_function(&mut m, &fns, &by_name, f)?;
     }
-    emit_main(&mut m, &fns, &by_name, &hir.top_level)?;
+    emit_main(&mut m, &fns, &by_name, hir, sym)?;
 
     Ok(format!("{DECLS}\n{}\n{}", m.strings, m.body))
 }
@@ -111,13 +134,13 @@ pub fn emit_llvm_ir(hir: &HirModule) -> Result<String, SoplangError> {
 pub fn link_llvm_binary(ir: &str, out: &Path) -> Result<(), SoplangError> {
     let (rlib, deps) = soplang_rlib()?;
     let dir = std::env::temp_dir();
-    let stamp = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map(|d| d.as_millis())
-        .unwrap_or(0);
-    let ll = dir.join(format!("soplang_llvm_{stamp}.ll"));
-    let obj = dir.join(format!("soplang_llvm_{stamp}.o"));
-    let wrapper = dir.join(format!("soplang_llvm_{stamp}.rs"));
+    let tag = out
+        .file_name()
+        .and_then(|s| s.to_str())
+        .unwrap_or("soplang_llvm");
+    let ll = dir.join(format!("{tag}.ll"));
+    let obj = dir.join(format!("{tag}.o"));
+    let wrapper = dir.join(format!("{tag}.rs"));
     fs::write(&ll, ir).map_err(|e| runtime_error(e.to_string(), 0, 0))?;
     fs::write(&wrapper, LINK_WRAPPER).map_err(|e| runtime_error(e.to_string(), 0, 0))?;
     if let Some(parent) = out.parent() {
@@ -181,7 +204,7 @@ struct Keep(*const ());
 unsafe impl Sync for Keep {}
 
 #[used]
-static KEEP: [Keep; 24] = [
+static KEEP: [Keep; 43] = [
     Keep(soplang::runtime::soplang_int as *const ()),
     Keep(soplang::runtime::soplang_float as *const ()),
     Keep(soplang::runtime::soplang_str as *const ()),
@@ -206,6 +229,25 @@ static KEEP: [Keep; 24] = [
     Keep(soplang::runtime::soplang_store_global as *const ()),
     Keep(soplang::runtime::soplang_call as *const ()),
     Keep(soplang::runtime::soplang_check_type as *const ()),
+    Keep(soplang::runtime::soplang_list_new as *const ()),
+    Keep(soplang::runtime::soplang_list_push as *const ()),
+    Keep(soplang::runtime::soplang_object_new as *const ()),
+    Keep(soplang::runtime::soplang_get_index as *const ()),
+    Keep(soplang::runtime::soplang_set_index as *const ()),
+    Keep(soplang::runtime::soplang_get_prop as *const ()),
+    Keep(soplang::runtime::soplang_set_prop as *const ()),
+    Keep(soplang::runtime::soplang_call_method as *const ()),
+    Keep(soplang::runtime::soplang_new_instance as *const ()),
+    Keep(soplang::runtime::soplang_register_class as *const ()),
+    Keep(soplang::runtime::soplang_register_user_fn as *const ()),
+    Keep(soplang::runtime::soplang_try_begin as *const ()),
+    Keep(soplang::runtime::soplang_try_end as *const ()),
+    Keep(soplang::runtime::soplang_has_pending_error as *const ()),
+    Keep(soplang::runtime::soplang_get_caught_error as *const ()),
+    Keep(soplang::runtime::soplang_check_class as *const ()),
+    Keep(soplang::runtime::soplang_mark_const as *const ()),
+    Keep(soplang::runtime::soplang_make_closure as *const ()),
+    Keep(soplang::runtime::soplang_capture_get as *const ()),
 ];
 "#;
 
@@ -254,13 +296,24 @@ fn emit_function(
     f: &HirFunction,
 ) -> Result<(), SoplangError> {
     let info = &fns[by_name[&f.name]];
+    let has_env = info.has_env;
+    let llvm_name = info.llvm_name.clone();
+    let n_params = info.n_params;
+    let cap = f
+        .capture_slots
+        .iter()
+        .copied()
+        .max()
+        .map(|s| s + 1)
+        .unwrap_or(0);
     let nslots = slots_needed(
         &f.body,
         f.local_count
-            .max(f.params.iter().copied().max().map(|s| s + 1).unwrap_or(0)),
+            .max(f.params.iter().copied().max().map(|s| s + 1).unwrap_or(0))
+            .max(cap),
     );
     let mut args = String::new();
-    for i in 0..info.n_params {
+    for i in 0..n_params {
         if i > 0 {
             args.push_str(", ");
         }
@@ -268,7 +321,7 @@ fn emit_function(
     }
     m.body.push_str(&format!(
         "define %SoplangValue @{}({args}) {{\nentry:\n",
-        info.llvm_name
+        llvm_name
     ));
     let mut emit = FnEmit {
         m,
@@ -278,10 +331,22 @@ fn emit_function(
         nslots,
         slot_fn: HashMap::new(),
         is_main: false,
+        cont: 0,
     };
     emit.alloc_slots();
+    let user_base = if has_env {
+        let env_pay = emit.fresh();
+        emit.line(format!("  {env_pay} = extractvalue %SoplangValue %a0, 1"));
+        for (i, &slot) in f.capture_slots.iter().enumerate() {
+            let sv = emit.call_sv("soplang_capture_get", &format!("i64 {env_pay}, i64 {i}"));
+            emit.unpack_store(&sv, slot);
+        }
+        1
+    } else {
+        0
+    };
     for (i, &slot) in f.params.iter().enumerate() {
-        emit.unpack_store(&format!("%a{i}"), slot);
+        emit.unpack_store(&format!("%a{}", user_base + i), slot);
     }
     emit.body(&f.body)?;
     emit.m.body.push_str("}\n\n");
@@ -292,9 +357,10 @@ fn emit_main(
     m: &mut ModuleOut,
     fns: &[FnInfo],
     by_name: &HashMap<String, usize>,
-    body: &[HirInstr],
+    hir: &HirModule,
+    sym: &SymbolTable,
 ) -> Result<(), SoplangError> {
-    let nslots = slots_needed(body, 0);
+    let nslots = slots_needed(&hir.top_level, 0);
     m.body.push_str("define i32 @main() {\nentry:\n");
     let mut emit = FnEmit {
         m,
@@ -304,9 +370,11 @@ fn emit_main(
         nslots,
         slot_fn: HashMap::new(),
         is_main: true,
+        cont: 0,
     };
     emit.alloc_slots();
-    emit.body(body)?;
+    emit.register_runtime(&hir.functions, sym);
+    emit.body(&hir.top_level)?;
     emit.m.body.push_str("}\n");
     Ok(())
 }
@@ -375,14 +443,70 @@ impl<'a> FnEmit<'a> {
         s2
     }
 
-    fn unpack_store(&mut self, sv: &str, slot: usize) {
+    fn unpack(&mut self, sv: &str) -> (String, String) {
         let t8 = self.fresh();
         let tag = self.fresh();
         let pay = self.fresh();
         self.line(format!("  {t8} = extractvalue %SoplangValue {sv}, 0"));
         self.line(format!("  {tag} = zext i8 {t8} to i64"));
         self.line(format!("  {pay} = extractvalue %SoplangValue {sv}, 1"));
+        (tag, pay)
+    }
+
+    fn unpack_store(&mut self, sv: &str, slot: usize) {
+        let (tag, pay) = self.unpack(sv);
         self.store_slot(slot, &tag, &pay);
+    }
+
+    fn value_buf(&mut self, slots: &[usize]) -> String {
+        if slots.is_empty() {
+            return "null".to_string();
+        }
+        let n = slots.len();
+        let buf = self.fresh();
+        self.line(format!("  {buf} = alloca [{n} x %SoplangValue], align 8"));
+        for (i, &slot) in slots.iter().enumerate() {
+            let (t, p) = self.load_slot(slot);
+            let sv = self.pack(&t, &p);
+            let ep = self.fresh();
+            self.line(format!(
+                "  {ep} = getelementptr inbounds [{n} x %SoplangValue], ptr {buf}, i64 0, i64 {i}"
+            ));
+            self.line(format!("  store %SoplangValue {sv}, ptr {ep}, align 8"));
+        }
+        buf
+    }
+
+    fn register_runtime(&mut self, functions: &[HirFunction], sym: &SymbolTable) {
+        for f in functions {
+            let idx = self.by_name[&f.name];
+            let info = &self.fns[idx];
+            let llvm_name = info.llvm_name.clone();
+            let n_params = info.n_params;
+            let (p, n) = self.str_ptr(&f.name);
+            self.line(format!(
+                "  call i64 @soplang_register_user_fn(ptr {p}, i64 {n}, ptr @{llvm_name}, i64 {n_params})"
+            ));
+        }
+        for (name, meta) in &sym.classes {
+            for (method, mangled) in &meta.methods {
+                let (np, nl) = self.str_ptr(mangled);
+                let sv = self.call_sv("soplang_get_builtin", &format!("ptr {np}, i64 {nl}"));
+                let (_, pay) = self.unpack(&sv);
+                let (cp, cl) = self.str_ptr(name);
+                let (mp, ml) = self.str_ptr(method);
+                let (pp, pl) = match &meta.parent {
+                    Some(parent) => {
+                        let (p, n) = self.str_ptr(parent);
+                        (p, n.to_string())
+                    }
+                    None => ("null".to_string(), "0".to_string()),
+                };
+                self.line(format!(
+                    "  call void @soplang_register_class(ptr {cp}, i64 {cl}, ptr {pp}, i64 {pl}, ptr {mp}, i64 {ml}, i64 {pay})"
+                ));
+            }
+        }
     }
 
     fn call_sv(&mut self, func: &str, args: &str) -> String {
@@ -462,7 +586,9 @@ impl<'a> FnEmit<'a> {
             }
             HirInstr::Load { dst, name } => {
                 if let Some(idx) = self.fn_index(name) {
-                    self.slot_fn.insert(*dst, idx);
+                    if !self.fns[idx].has_env {
+                        self.slot_fn.insert(*dst, idx);
+                    }
                 }
                 let (p, n) = self.str_ptr(name);
                 let sv = self.call_sv("soplang_get_builtin", &format!("ptr {p}, i64 {n}"));
@@ -491,6 +617,10 @@ impl<'a> FnEmit<'a> {
                 };
                 let sv = self.unary(func, *src);
                 self.unpack_store(&sv, *dst);
+                Ok(false)
+            }
+            HirInstr::Label(id) => {
+                self.line(format!("L{id}:"));
                 Ok(false)
             }
             HirInstr::Jump(id) | HirInstr::Break(id) | HirInstr::Continue(id) => {
@@ -567,12 +697,182 @@ impl<'a> FnEmit<'a> {
                 ));
                 Ok(false)
             }
-            other => Err(runtime_error(
-                format!("LLVM IR does not support this instruction yet: {other}"),
-                0,
-                0,
-            )),
+            HirInstr::BuildList { dst, items } => {
+                let mut sv = self.call_sv("soplang_list_new", "");
+                for &item in items {
+                    let (lt, lp) = self.unpack(&sv);
+                    let list = self.pack(&lt, &lp);
+                    let (it, ip) = self.load_slot(item);
+                    let iv = self.pack(&it, &ip);
+                    sv = self.call_sv(
+                        "soplang_list_push",
+                        &format!("%SoplangValue {list}, %SoplangValue {iv}"),
+                    );
+                }
+                self.unpack_store(&sv, *dst);
+                Ok(false)
+            }
+            HirInstr::BuildObject { dst, pairs } => {
+                let mut sv = self.call_sv("soplang_object_new", "");
+                for (key, slot) in pairs {
+                    let (ot, op) = self.unpack(&sv);
+                    let obj = self.pack(&ot, &op);
+                    let (kp, kl) = self.str_ptr(key);
+                    let (vt, vp) = self.load_slot(*slot);
+                    let val = self.pack(&vt, &vp);
+                    sv = self.call_sv(
+                        "soplang_set_prop",
+                        &format!("%SoplangValue {obj}, ptr {kp}, i64 {kl}, %SoplangValue {val}"),
+                    );
+                }
+                self.unpack_store(&sv, *dst);
+                Ok(false)
+            }
+            HirInstr::GetIndex { dst, obj, idx } => {
+                let sv = self.call_two("soplang_get_index", *obj, *idx);
+                self.unpack_store(&sv, *dst);
+                Ok(false)
+            }
+            HirInstr::SetIndex { obj, idx, val } => {
+                let _ = self.call_three("soplang_set_index", *obj, *idx, *val);
+                Ok(false)
+            }
+            HirInstr::GetProp { dst, obj, prop } => {
+                let objv = self.pack_slot(*obj);
+                let (pp, pl) = self.str_ptr(prop);
+                let sv = self.call_sv(
+                    "soplang_get_prop",
+                    &format!("%SoplangValue {objv}, ptr {pp}, i64 {pl}"),
+                );
+                self.unpack_store(&sv, *dst);
+                Ok(false)
+            }
+            HirInstr::SetProp { obj, prop, val } => {
+                let objv = self.pack_slot(*obj);
+                let valv = self.pack_slot(*val);
+                let (pp, pl) = self.str_ptr(prop);
+                let _ = self.call_sv(
+                    "soplang_set_prop",
+                    &format!("%SoplangValue {objv}, ptr {pp}, i64 {pl}, %SoplangValue {valv}"),
+                );
+                Ok(false)
+            }
+            HirInstr::CallMethod {
+                dst,
+                obj,
+                method,
+                args,
+            } => {
+                let objv = self.pack_slot(*obj);
+                let (mp, ml) = self.str_ptr(method);
+                let buf = self.value_buf(args);
+                let n = args.len();
+                let sv = self.call_sv(
+                    "soplang_call_method",
+                    &format!("%SoplangValue {objv}, ptr {mp}, i64 {ml}, ptr {buf}, i32 {n}"),
+                );
+                self.unpack_store(&sv, *dst);
+                Ok(false)
+            }
+            HirInstr::NewInstance {
+                dst,
+                class_name,
+                args,
+            } => {
+                let (cp, cl) = self.str_ptr(class_name);
+                let buf = self.value_buf(args);
+                let n = args.len();
+                let sv = self.call_sv(
+                    "soplang_new_instance",
+                    &format!("ptr {cp}, i64 {cl}, ptr {buf}, i32 {n}"),
+                );
+                self.unpack_store(&sv, *dst);
+                Ok(false)
+            }
+            HirInstr::CheckClass {
+                src,
+                class_name,
+                var_name,
+            } => {
+                let (t, p) = self.load_slot(*src);
+                let (cp, cl) = self.str_ptr(class_name);
+                let (np, nl) = self.str_ptr(var_name);
+                self.line(format!(
+                    "  call void @soplang_check_class(i64 {t}, i64 {p}, ptr {cp}, i64 {cl}, ptr {np}, i64 {nl})"
+                ));
+                Ok(false)
+            }
+            HirInstr::MarkConst { name } => {
+                let (np, nl) = self.str_ptr(name);
+                self.line(format!(
+                    "  call void @soplang_mark_const(ptr {np}, i64 {nl})"
+                ));
+                Ok(false)
+            }
+            HirInstr::TryBegin { .. } => {
+                let v = self.fresh();
+                self.line(format!("  {v} = call i32 @soplang_try_begin()"));
+                Ok(false)
+            }
+            HirInstr::TryEnd => {
+                self.line("  call void @soplang_try_end()");
+                Ok(false)
+            }
+            HirInstr::CheckThrow { catch } => {
+                let pending = self.fresh();
+                let cmp = self.fresh();
+                let cont = self.cont;
+                self.cont += 1;
+                self.line(format!(
+                    "  {pending} = call i32 @soplang_has_pending_error()"
+                ));
+                self.line(format!("  {cmp} = icmp ne i32 {pending}, 0"));
+                self.line(format!("  br i1 {cmp}, label %L{catch}, label %K{cont}"));
+                self.line(format!("K{cont}:"));
+                Ok(false)
+            }
+            HirInstr::BindError { dst } => {
+                let sv = self.call_sv("soplang_get_caught_error", "");
+                self.unpack_store(&sv, *dst);
+                Ok(false)
+            }
+            HirInstr::MakeClosure {
+                dst,
+                fn_name,
+                captures,
+            } => {
+                let (np, nl) = self.str_ptr(fn_name);
+                let buf = self.value_buf(captures);
+                let n = captures.len();
+                let sv = self.call_sv(
+                    "soplang_make_closure",
+                    &format!("ptr {np}, i64 {nl}, i64 {n}, ptr {buf}"),
+                );
+                self.unpack_store(&sv, *dst);
+                Ok(false)
+            }
         }
+    }
+
+    fn pack_slot(&mut self, slot: usize) -> String {
+        let (t, p) = self.load_slot(slot);
+        self.pack(&t, &p)
+    }
+
+    fn call_two(&mut self, func: &str, a: usize, b: usize) -> String {
+        let av = self.pack_slot(a);
+        let bv = self.pack_slot(b);
+        self.call_sv(func, &format!("%SoplangValue {av}, %SoplangValue {bv}"))
+    }
+
+    fn call_three(&mut self, func: &str, a: usize, b: usize, c: usize) -> String {
+        let av = self.pack_slot(a);
+        let bv = self.pack_slot(b);
+        let cv = self.pack_slot(c);
+        self.call_sv(
+            func,
+            &format!("%SoplangValue {av}, %SoplangValue {bv}, %SoplangValue {cv}"),
+        )
     }
 
     fn binop(&mut self, op: BinOpKind, lhs: usize, rhs: usize) -> String {

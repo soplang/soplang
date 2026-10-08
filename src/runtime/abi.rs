@@ -1319,6 +1319,31 @@ pub fn register_compiled_fn(ptr: *const u8, n_params: usize) -> i64 {
     })
 }
 
+/// Record an AOT function pointer under `name` so calls, methods, and closures can find it.
+#[no_mangle]
+pub extern "C" fn soplang_register_user_fn(
+    name: *const u8,
+    name_len: usize,
+    ptr: *const u8,
+    n_params: i64,
+) -> i64 {
+    let idx = register_compiled_fn(ptr, n_params.max(0) as usize);
+    if !name.is_null() && name_len > 0 {
+        let key = unsafe {
+            String::from_utf8_lossy(std::slice::from_raw_parts(name, name_len)).into_owned()
+        };
+        store_global(
+            &key,
+            SoplangValue {
+                tag: TAG_FUNC,
+                _pad: [0; 7],
+                payload: idx,
+            },
+        );
+    }
+    idx
+}
+
 struct ClosureData {
     fn_index: i64,
     env: Vec<SoplangValue>,
