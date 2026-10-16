@@ -24,6 +24,10 @@ Somali vocabulary for new public syntax and APIs must be agreed and documented
 before implementation. This prevents temporary names from becoming permanent
 compatibility obligations.
 
+The [terminology review](docs/language/terminology.md) records the existing
+vocabulary, evidence, proposed changes, and compatibility decisions required
+before introducing new canonical names.
+
 ## Soplang 3.0 — compiled language foundation
 
 Soplang 3.0 establishes the release baseline:

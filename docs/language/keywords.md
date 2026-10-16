@@ -2,6 +2,9 @@
 
 This document provides a reference for all keywords in the Soplang programming language, along with their meanings and examples of usage.
 
+The [terminology review](terminology.md) records current names, source evidence,
+and proposed alternatives. Pending alternatives are not part of this reference.
+
 ## Variable Declaration Keywords
 
 | Keyword  | Meaning                       | English Equivalent | Example                                |
