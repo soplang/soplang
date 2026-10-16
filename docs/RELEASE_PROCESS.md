@@ -2,6 +2,12 @@
 
 This document outlines the semi-automated release process for Soplang.
 
+## Version Policy
+
+Soplang releases remain on the version 3 line and use `3.x.y` versions. There
+is no approved or scheduled version 4. See the [Soplang 3 roadmap](../ROADMAP.md)
+for the version policy and ordered development plan.
+
 ## Release Workflow Overview
 
 Soplang uses a combination of manual binary building and automated processes:

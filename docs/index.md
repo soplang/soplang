@@ -6,6 +6,8 @@ Soplang is the Somali programming language, designed to make programming accessi
 
 ## Documentation Sections
 
+- [Soplang 3 Roadmap](../ROADMAP.md) - Version policy and ordered plans for future `3.x` releases
+
 ### Getting Started
 - [Installation Guide](installation.md) - Detailed instructions for installing Soplang on Windows, Linux, and macOS
 
