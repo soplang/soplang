@@ -1,8 +1,9 @@
 # Soplang 3 terminology review
 
-Status: **Stage 1 review draft**. This glossary inventories the existing public
-vocabulary and records recommendations for review. Candidate spellings are not
-implemented or approved canonical replacements.
+Status: **Naming decisions recorded; documentation and diagnostics stage**.
+The approved names below are ready for implementation. Their aliases are not
+yet implemented; the inventory continues to describe the current public API.
+Other candidate names remain pending.
 
 All work belongs to Soplang 3. No version 4 transition or removal of existing
 names is scheduled. The [language reference](keywords.md) describes the current
@@ -29,8 +30,8 @@ reject automatic joining, splitting, or vowel changes without evidence.
 
 Each decision should record the concept, receiver or syntax context, current
 name, chosen canonical name, evidence, rationale, aliases, implementation
-release, and decision status. Approval of this review process does not approve
-individual replacements.
+release, and decision status. Approval is recorded per public name. SLS
+attestation and a Soplang naming decision remain separate kinds of evidence.
 
 The inventory uses these labels:
 
@@ -186,19 +187,41 @@ receiver type. A shared spelling does not guarantee shared mutation behavior.
 | `ku_celi`         | Repeat text                                 | Retain; distinct from the loop keyword `kuceli`.                      |
 | `raadi_dambe`     | Last matching character index or `-1`       | Retain.                                                               |
 
-## Public-name decisions for review
+## Approved public-name decisions
 
-All entries below are **pending**. Alternatives are Soplang proposals based on
-the cited senses; none is presented as an SLS-approved computing term.
+T01, T02, T03, T05, and T06 are approved as Soplang terminology. These are
+project decisions informed by SLS evidence, not SLS computing standards.
+Implementation is pending in the next vocabulary stage, within version 3;
+no minor or patch release number is assigned yet.
+
+| ID | Current spelling to retain as an alias | Approved canonical spelling | Behavior to preserve |
+| --- | --- | --- | --- |
+| T01 | Constructor `dhaw()` | `dhis()` | Construction, argument validation, inheritance, and parent constructor calls. |
+| T02 | Try block `fasax` | `tijaabi` | The existing `qabo` grammar and runtime error handling. |
+| T03 | Exponentiation `awood()` | `jibbaar()` | Numeric conversion, arity, and floating-point exponentiation. |
+| T05 | List `muuji(item)` | List `raadi(item)` | First matching index; `maran` when no item matches. |
+| T06 | String `dhamaad(sub)` | String `dhammaad(sub)` | Suffix predicate and argument validation. |
+| T06 | String `masax_dhamaad()` | String `masax_dhammaad()` | Removal of trailing whitespace. |
+
+No spelling in this table should be presented as callable or accepted syntax
+until its implementation and compatibility tests pass. Constructors require a
+lookup rule for old and new spellings across inheritance. The try spelling
+requires a strategy for existing identifiers named `tijaabi`.
+
+## Decision rationale and remaining review
+
+Rows T01, T02, T03, T05, and T06 explain the approved choices above. T04, T07,
+T08, T09, T10, and T12 remain pending; their possible alternatives are not
+selected. T11 retains the current short identifiers with explanations.
 
 | ID  | Current name or concept           | Candidate and recommendation                                                             | Evidence and remaining decision                                                                                                                                                                   |
 | --- | --------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T01 | Constructor `dhaw`                | Prefer reviewing `dhis()`; compare `bilow()`.                                            | [Dictionary Dh][dict-dh] associates `dhaw` with unrelated senses and `dhis` with building; [Dictionary B][dict-b] attests beginning. Define old/new constructor precedence if both methods exist. |
-| T02 | Try keyword `fasax`               | Review `tijaabi`.                                                                        | [Dictionary F][dict-f]: permission or leave; [Dictionary T][dict-t]: `tijaabi`. A new reserved keyword could invalidate an existing user identifier.                                              |
-| T03 | Exponentiation `awood`            | Prefer `jibbaar`.                                                                        | [Math glossary][math]: Power — Jibbaar. [Dictionary A][dict-a] distinguishes ability and physical power. Keep `awood` callable if an alias is approved.                                           |
+| T01 | Constructor `dhaw` | Approved: `dhis()`; retain `dhaw()` as a compatibility alias. | [Dictionary Dh][dict-dh] associates `dhaw` with unrelated senses and `dhis` with building. Implementation must define constructor precedence across old and new spellings. |
+| T02 | Try keyword `fasax` | Approved: `tijaabi`; retain `fasax` as a compatibility spelling. | [Dictionary F][dict-f]: permission or leave; [Dictionary T][dict-t]: `tijaabi`. Implementation must preserve existing identifier uses. |
+| T03 | Exponentiation `awood` | Approved: `jibbaar()`; retain `awood()` as a compatibility alias. | [Math glossary][math]: Power — Jibbaar. [Dictionary A][dict-a] distinguishes ability and physical power. |
 | T04 | Rounding `dhammeystir`            | Choose a rounding-specific form after reviewing *duubid*; no exact replacement selected. | [Math glossary][math]: Rounding off — Duubid. [Dictionary Dh][dict-dh]: `dhammaystir` means completion. Do not treat a spelling-only change as a complete semantic fix.                           |
-| T05 | List index lookup `muuji`         | Review `raadi(item)`.                                                                    | [Dictionary M][dict-m]: showing; [Dictionary R][dict-r]: searching. Decide whether list misses remain `maran` or become `-1`; a terminology alias must preserve existing behavior.                |
-| T06 | String `dhamaad`, `masax_dhamaad` | Review `dhammaad`, `masax_dhammaad`.                                                     | [Dictionary Dh][dict-dh] records doubled `m`. Preserve current names as aliases if adopted.                                                                                                       |
+| T05 | List index lookup `muuji` | Approved: list `raadi(item)`; retain `muuji(item)` as a compatibility alias. | [Dictionary M][dict-m]: showing; [Dictionary R][dict-r]: searching. Preserve `maran` for a missing list item; string search retains its existing `-1` result. |
+| T06 | String `dhamaad`, `masax_dhamaad` | Approved: `dhammaad`, `masax_dhammaad`; retain both previous spellings as aliases. | [Dictionary Dh][dict-dh] records doubled `m`. Alias behavior must match existing suffix and whitespace operations. |
 | T07 | Square root `xidid`               | Keep with an explicit definition, or introduce an explicit square-root name.             | [Dictionary X][dict-x] supports general root; [Math glossary][math] gives square-root phrases. Exact identifier spelling remains open.                                                            |
 | T08 | Object `fure`, `qiime`, `lamaane` | Review plural naming as one family; `furayaasha()` is a candidate for keys.              | [Dictionary F][dict-f] and [math glossary][math] support key terminology, not approval of a complete computing API family. Confirm morphology and consistent identifier style.                    |
 | T09 | General fold `isku_gee`           | Select a general accumulation term, or retain with an explicit definition.               | [Math glossary][math] records addition terminology; the callback may multiply or build strings or objects. Literal mathematical reduce does not automatically name a programming fold.            |
@@ -208,8 +231,10 @@ the cited senses; none is presented as an SLS-approved computing term.
 
 ## CLI and diagnostic inventory
 
-The inventory covers the public surfaces below. Individual message revisions
-belong to Stage 3; the examples are proposals, not newly approved templates.
+The inventory covers the public surfaces below. The wording changes in this
+stage clarify arithmetic, method lookup, conversion, argument counts, and
+strict-mode messages. Error-heading spelling and additional translations remain
+under review.
 
 | Surface             | Current vocabulary                                                                                                                           | Planned review                                                                                 |
 | ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
@@ -225,13 +250,13 @@ belong to Stage 3; the examples are proposals, not newly approved templates.
 | Method errors       | `No method`, `Unknown list/object/string method`                                                                                             | Use consistent Somali sentences including receiver type and requested name.                    |
 | File/build messages | `fayl`, `Barnaamijka waa la dhisayaa`, build failures                                                                                        | Review spelling, agreement, and useful technical context.                                      |
 
-Suggested templates for the next editing stage:
+Applied wording in this stage:
 
-| Existing wording                                     | Candidate wording                                                                      |
+| Existing wording                                     | Current wording                                                                      |
 | ---------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| `Habka waa in ay noqdaan tiro`                       | `Hawlgalkani wuxuu u baahan yahay tirooyin.`                                           |
+| `Habka waa in ay noqdaan tiro`                       | `Hawlgalka (%) wuxuu u baahan yahay tirooyin.`                                           |
 | `Tixgacaysi (-) waa in uu noqdo tiro`                | `Hawlgalka (-) wuxuu u baahan yahay tiro.`                                             |
-| `No method '{}' on this type`                        | `Noocan ma laha hawl la yiraahdo '{}'.`                                                |
+| `No method '{}' on this type`                        | `Nooca '{}' ma laha hawl la yiraahdo '{}'.`                                                |
 | `hawl '{}' waxay leedahay param dynamic strict mode` | `Habka adag wuxuu u baahan yahay in dood kasta oo hawsha '{}' leedahay loo qoro nooc.` |
 | `baaxad waa hawl dhisay`                             | `baaxad() waa hawl ku dhex jirta Soplang.`                                             |
 

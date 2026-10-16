@@ -21,7 +21,7 @@ fn expect_arity(args: &[Value], name: &str, expected: usize) -> Result<(), Sopla
         Ok(())
     } else {
         Err(err_type(format!(
-            "{}() waxay qaadataa {} qiimo, laakiin {} ayaa la bixiyay",
+            "Hawsha '{}()' waxay qaadataa {} dood, laakiin {} ayaa la bixiyay",
             name,
             expected,
             args.len()
@@ -39,7 +39,7 @@ fn expect_arity_range(
         Ok(())
     } else {
         Err(err_type(format!(
-            "{}() waxay qaadataa {} ilaa {} qiimo, laakiin {} ayaa la bixiyay",
+            "Hawsha '{}()' waxay qaadataa {} ilaa {} dood, laakiin {} ayaa la bixiyay",
             name,
             minimum,
             maximum,
@@ -105,13 +105,15 @@ pub fn builtin_abn(args: Vec<Value>) -> Result<Value, SoplangError> {
     let integer = match value {
         Value::Int(n) => *n,
         Value::Float(x) if x.is_finite() => *x as i64,
-        Value::Str(s) => s
-            .trim()
-            .parse::<i64>()
-            .map_err(|_| err_type(format!("{} ma badali karo abn", value_to_string(value))))?,
+        Value::Str(s) => s.trim().parse::<i64>().map_err(|_| {
+            err_type(format!(
+                "Qiimaha '{}' looma beddeli karo abn",
+                value_to_string(value)
+            ))
+        })?,
         _ => {
             return Err(err_type(format!(
-                "{} ma badali karo abn",
+                "Qiimaha '{}' looma beddeli karo abn",
                 value_to_string(value)
             )))
         }
@@ -126,20 +128,22 @@ pub fn builtin_jajab(args: Vec<Value>) -> Result<Value, SoplangError> {
     let number = match value {
         Value::Int(n) => *n as f64,
         Value::Float(x) => *x,
-        Value::Str(s) => s
-            .trim()
-            .parse::<f64>()
-            .map_err(|_| err_type(format!("{} ma badali karo jajab", value_to_string(value))))?,
+        Value::Str(s) => s.trim().parse::<f64>().map_err(|_| {
+            err_type(format!(
+                "Qiimaha '{}' looma beddeli karo jajab",
+                value_to_string(value)
+            ))
+        })?,
         _ => {
             return Err(err_type(format!(
-                "{} ma badali karo jajab",
+                "Qiimaha '{}' looma beddeli karo jajab",
                 value_to_string(value)
             )))
         }
     };
     if !number.is_finite() {
         return Err(err_type(format!(
-            "{} ma badali karo jajab",
+            "Qiimaha '{}' looma beddeli karo jajab",
             value_to_string(value)
         )));
     }
@@ -257,7 +261,7 @@ pub fn builtin_xul(args: Vec<Value>) -> Result<Value, SoplangError> {
             let x = a + next() * (b - a);
             Ok(Value::Float(x))
         }
-        _ => Err(err_type("xul() waxay qaadataa 0, 1, ama 2 qiimo")),
+        _ => Err(err_type("Hawsha 'xul()' waxay qaadataa 0, 1, ama 2 dood")),
     }
 }
 
@@ -275,7 +279,7 @@ pub fn builtin_baaxad(args: Vec<Value>) -> Result<Value, SoplangError> {
             to_integer(&args[1], "baaxad")?,
             to_integer(&args[2], "baaxad")?,
         ),
-        _ => return Err(err_type("baaxad() waxay qaadataa 1 ilaa 3 qiimo")),
+        _ => return Err(err_type("Hawsha 'baaxad()' waxay qaadataa 1 ilaa 3 dood")),
     };
     if step == 0 {
         return Err(err_runtime("Tallaabada baaxad() eber ma noqon karto"));
@@ -309,7 +313,7 @@ pub fn builtin_sugan(args: Vec<Value>) -> Result<Value, SoplangError> {
 fn numeric_extreme(args: Vec<Value>, name: &str, minimum: bool) -> Result<Value, SoplangError> {
     if args.is_empty() {
         return Err(err_type(format!(
-            "{}() wuxuu u baahan yahay ugu yaraan 1 qiimo",
+            "Hawsha '{}()' waxay u baahan tahay ugu yaraan 1 dood",
             name
         )));
     }
@@ -454,10 +458,10 @@ pub fn list_habee(lst: Rc<RefCell<Vec<Value>>>, args: &[Value]) -> Result<Value,
 pub fn list_jar(lst: Rc<RefCell<Vec<Value>>>, args: &[Value]) -> Result<Value, SoplangError> {
     expect_arity(args, "jar", 2)?;
     let start = to_number(&args[0])
-        .map_err(|_| err_type("Bilowga iyo dhamaadka waa inay noqdaan abn"))?
+        .map_err(|_| err_type("Bilowga iyo dhammaadka waa inay noqdaan abn"))?
         as i64;
     let end = to_number(&args[1])
-        .map_err(|_| err_type("Bilowga iyo dhamaadka waa inay noqdaan abn"))? as i64;
+        .map_err(|_| err_type("Bilowga iyo dhammaadka waa inay noqdaan abn"))? as i64;
     let v = lst.borrow();
     let len = v.len() as i64;
     let mut start = start;
@@ -756,7 +760,7 @@ pub fn string_kudar(s: String, args: &[Value]) -> Result<Value, SoplangError> {
 pub fn string_jar(s: String, args: &[Value]) -> Result<Value, SoplangError> {
     if args.len() > 2 {
         return Err(err_type(format!(
-            "jar() waxay qaadataa ugu badnaan 2 qiimo, laakiin {} ayaa la bixiyay",
+            "Hawsha 'jar()' waxay qaadataa ugu badnaan 2 dood, laakiin {} ayaa la bixiyay",
             args.len()
         )));
     }
@@ -776,7 +780,7 @@ pub fn string_jar(s: String, args: &[Value]) -> Result<Value, SoplangError> {
                 .map_err(|_| err_type("Bilowga waa inuu noqdaa abn"))?,
             to_number(&args[1])
                 .map(|x| x as i64)
-                .map_err(|_| err_type("Dhamaadka waa inuu noqdaa abn"))?,
+                .map_err(|_| err_type("Dhammaadka waa inuu noqdaa abn"))?,
         ),
     };
     let mut start = start;

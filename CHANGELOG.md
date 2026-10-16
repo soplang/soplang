@@ -19,6 +19,8 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+* **Clearer terminology.** Runtime and strict-mode diagnostics use consistent Somali explanations. The language reference distinguishes integer conversion, binary floating point, range materialization, and collection copy and lookup behavior.
+
 * **Two compiler backends.** Normal execution uses the Cranelift JIT, while `--build` uses the LLVM AOT backend. Compiler phases 1–6 are complete.
 * **Soplang 3 vocabulary.** The language reference and examples use the final keyword spellings, including `qor`, `gelin`, `abn`, `teed`, `xul`, `muuji`, `tir`, and `maran`.
 * **Predictable evaluation.** Logical operators short circuit, strings index by Unicode characters, negative indexes have consistent bounds, and callable argument counts are enforced at runtime.

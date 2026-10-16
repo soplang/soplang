@@ -408,12 +408,12 @@ fn analyze_stmt(
         } => {
             if opts.strict && type_ann == &TypeAnnotation::Dynamic {
                 return Err(type_error_ex(
-                    format!("'{}' waa dynamic laakiin 'strict mode' waa shidan yahay", name),
+                    format!("Habka adag wuxuu u baahan yahay nooc cad oo loo qoro '{}'.", name),
                     *line,
                     *col,
                     ErrorMeta::default()
                         .with_code(codes::E022_TYPE_MISMATCH)
-                        .with_hint("Strict mode: isticmaal nooc cad oo sugan sida abn/jajab/qoraal/bool/teed/walax."),
+                        .with_hint("Habka adag: isticmaal nooc cad sida abn, jajab, qoraal, bool, teed, ama walax."),
                 ));
             }
             let at_global = sym.scopes.len() == 1;
@@ -551,19 +551,19 @@ fn analyze_stmt(
                         ErrorMeta::default()
                             .with_code(codes::E022_TYPE_MISMATCH)
                             .with_hint(
-                                "Strict mode: qor nooca celi sida ') : abn {' ama ') : qoraal {'.",
+                                "Habka adag: qor nooca qiimaha la celinayo sida ') : abn {' ama ') : qoraal {'.",
                             ),
                     ));
                 }
                 if params.iter().any(|p| p.type_ann == TypeAnnotation::Dynamic) {
                     return Err(type_error_ex(
-                        format!("hawl '{}' waxay leedahay param dynamic strict mode", name),
+                        format!("Habka adag wuxuu u baahan yahay in dood kasta oo hawsha '{}' leedahay loo qoro nooc.", name),
                         0,
                         0,
                         ErrorMeta::default()
                             .with_code(codes::E022_TYPE_MISMATCH)
                             .with_hint(
-                            "Strict mode: qor nooca param kasta, tusaale: hawl f(abn x, qoraal y).",
+                            "Habka adag: qor nooca dood kasta, tusaale: hawl f(abn x, qoraal y).",
                         ),
                     ));
                 }
@@ -1211,18 +1211,18 @@ fn analyze_anonymous_function(
                 0,
                 ErrorMeta::default()
                     .with_code(codes::E022_TYPE_MISMATCH)
-                    .with_hint("Strict mode: qor nooca celi sida ') : abn {' ama ') : qoraal {'."),
+                    .with_hint("Habka adag: qor nooca qiimaha la celinayo sida ') : abn {' ama ') : qoraal {'."),
             ));
         }
         if params.iter().any(|p| p.type_ann == TypeAnnotation::Dynamic) {
             return Err(type_error_ex(
-                "hawl aan magac lahayn waxay leedahay param dynamic strict mode",
+                "Habka adag wuxuu u baahan yahay in dood kasta oo hawsha aan magaca lahayn leedahay loo qoro nooc.",
                 0,
                 0,
                 ErrorMeta::default()
                     .with_code(codes::E022_TYPE_MISMATCH)
                     .with_hint(
-                        "Strict mode: qor nooca param kasta, tusaale: hawl(abn x, qoraal y).",
+                        "Habka adag: qor nooca dood kasta, tusaale: hawl(abn x, qoraal y).",
                     ),
             ));
         }

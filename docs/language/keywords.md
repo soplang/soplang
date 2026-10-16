@@ -3,7 +3,8 @@
 This document provides a reference for all keywords in the Soplang programming language, along with their meanings and examples of usage.
 
 The [terminology review](terminology.md) records current names, source evidence,
-and proposed alternatives. Pending alternatives are not part of this reference.
+and naming decisions. Approved replacements remain planned until their aliases
+are implemented; this reference documents the currently supported spellings.
 
 ## Variable Declaration Keywords
 
@@ -12,7 +13,7 @@ and proposed alternatives. Pending alternatives are not part of this reference.
 | `door`   | Dynamic variable declaration  | `var`/`let`        | `door magac = "Sharafdin"`             |
 | `madoor` | Constant variable declaration | `const`            | `madoor PI = 3.14159`                  |
 | `abn`    | Integer type                  | `int`               | `abn da = 25`                          |
-| `jajab`  | Decimal/float type            | `float`/`double`   | `jajab qiimo = 3.14`                   |
+| `jajab`  | Binary floating-point type            | `float`/`double`   | `jajab qiimo = 3.14`                   |
 | `qoraal` | String type                   | `string`           | `qoraal magac = "Sharafdin"`           |
 | `bool`   | Boolean type                  | `bool`             | `bool waaRun = run`                    |
 | `walax`  | Object type                   | `object`           | `walax person = { name: "Sharafdin" }` |
@@ -50,18 +51,26 @@ and proposed alternatives. Pending alternatives are not part of this reference.
 | `been`       | `false`             | Boolean false value  | `haddii (!been) { ... }` |
 | `maran`      | `null`              | Empty/null value     | `door val = maran`       |
 
-`maran` is the canonical null literal. `null` remains accepted as a compatibility spelling.
+`maran` is the canonical null literal. `null` remains accepted as a compatibility spelling. An empty string, list, or object is a value of its own type, distinct from `maran`.
 
 ## Data Types
 
 | Somali Type | English Equivalent | Description       | Example                          |
 | ----------- | -------------------- | ------------------ | ---------------------------------- |
-| `abn`       | `int`/`number`        | Integer numbers    | `abn age = 25`                    |
-| `jajab`     | `float`/`decimal`     | Decimal numbers    | `jajab pi = 3.14`                  |
+| `abn`       | `int`        | Integer numbers    | `abn age = 25`                    |
+| `jajab`     | `float`/`double`     | Binary floating-point numbers    | `jajab pi = 3.14`                  |
 | `qoraal`    | `string`              | Text values         | `qoraal name = "Ahmed"`            |
 | `bool`      | `boolean`             | Truth values        | `bool isValid = run`               |
 | `teed`      | `list`/`array`        | List of items       | `teed numbers = [1, 2, 3]`         |
 | `walax`     | `object`              | Key-value pairs     | `walax person = { name: "Ali" }`   |
+
+`abn` uses signed 64-bit integers. `jajab` uses 64-bit binary floating-point
+values; it does not provide exact decimal arithmetic. `qoraal` is a string,
+`teed` is a mutable list, and `walax` stores string keys and values.
+
+`door`, `madoor`, and `abn` are Soplang short identifiers. The terminology
+review relates them to *doorsoome*, *madoorsoome*, and *abyoone*, respectively;
+these explanations do not establish a historical abbreviation or SLS approval.
 
 ## Operators
 
@@ -91,8 +100,8 @@ and proposed alternatives. Pending alternatives are not part of this reference.
 | `qor`    | Print to console                             | `print`              | `qor("Salaan, Adduunka!")`                |
 | `gelin`  | Read input from user                         | `input`              | `door magac = gelin("Magacaaga geli: ")`  |
 | `nooc`   | Get type of variable                         | `typeof`             | `qor(nooc(magac))`                        |
-| `abn`    | Convert value to a number (also the `int` type keyword above) | `int`/`float` | `door n = abn("5")`                 |
-| `jajab`  | Convert a number or numeric string to a decimal | `float` | `door n = jajab("3.5")`             |
+| `abn`    | Convert value to an integer (also the `int` type keyword above) | `int` | `door n = abn("5")`                 |
+| `jajab`  | Convert a number or numeric string to floating point | `float` | `door n = jajab("3.5")`             |
 | `qoraal` | Convert to string                            | `str`                | `door s = qoraal(25)`                     |
 | `bool`   | Convert to boolean                           | `bool`               | `door b = bool(1)`                        |
 | `teed`   | Create a list                                | `list/array`         | `door list = teed(1, 2, 3)`               |
@@ -109,13 +118,20 @@ and proposed alternatives. Pending alternatives are not part of this reference.
 | `awood`  | Raise a number to a power                    | `pow()`              | `door n = awood(2, 3)`                    |
 | `xidid`  | Calculate a square root                      | `sqrt()`             | `door n = xidid(9)`                       |
 
-`xul()` returns a decimal in `[0, 1)`. `xul(a, b)` returns a decimal in `[a, b)`. `xul(teed)` returns one item and reports an error for an empty list.
+`daji()` rounds toward negative infinity and `kor()` toward positive infinity.
+`dhammeystir()` rounds to the nearest integer, with halfway values rounded away
+from zero. `xidid()` computes only a square root, not an arbitrary root.
+
+`xul()` returns a floating-point number in `[0, 1)`. `xul(a, b)` returns a floating-point number in `[a, b)`. `xul(teed)` returns one item and reports an error for an empty list.
 
 > **Note:** `abn`, `qoraal`, `bool`, `teed`, and `walax` are used both as static **type keywords** (see Variable Declaration Keywords / Data Types above) and as **built-in conversion/constructor functions** here. The meaning depends on context: e.g. `abn age = 25` declares a typed variable, while `abn("5")` converts a string to a number.
 
 ## baaxad (Range)
 
-`baaxad` waa hawl dhisay oo soo saarta liis tirooyin ah, sida Python `range`.
+`baaxad()` waa hawl ku dhex jirta Soplang oo soo saarta teed abn ah.
+
+Unlike a lazy range iterator, it creates a list containing all the requested
+integers. The stop bound is excluded.
 
 **Isticmaalka:**
 
@@ -126,7 +142,7 @@ qor(baaxad(5))  // [0, 1, 2, 3, 4]
 // baaxad(start, stop): start ilaa stop-1
 qor(baaxad(2, 6))  // [2, 3, 4, 5]
 
-// baaxad(start, stop, step): start ilaa stop-1, talaabo kasta
+// baaxad(start, stop, step): dhammaadka kuma jiro; tallaabadu waa step
 qor(baaxad(1, 10, 2))  // [1, 3, 5, 7, 9]
 ```
 
@@ -145,7 +161,7 @@ qor(baaxad(1, 10, 2))  // [1, 3, 5, 7, 9]
 | `nadiifi()`        | `clear()`                    | Remove all items from the original list | `list.nadiifi()`                     |
 | `rog()`            | `reverse()`                  | Reverse the original list          | `list.rog()`                              |
 | `habee()`          | `sort()`                     | Sort the original list in ascending order | `list.habee()`                    |
-| `jar(a, b)`        | `slice(a, b)`                | Return sublist from a to b         | `door subset = numbers.jar(1, 3)`         |
+| `jar(a, b)`        | `slice(a, b)`                | Return a new list; start included, end excluded         | `door subset = numbers.jar(1, 3)`         |
 | `aaddin(func)`     | `map(func)`                   | Transform items with function      | `door doubled = nums.aaddin(hawl(x) { celi x * 2 })` |
 | `shaandhee(func)`  | `filter(func)`                | Filter items with function         | `door evens = nums.shaandhee(hawl(x) { celi x % 2 == 0 })` |
 | `muuji(item)`      | `indexOf(item)`               | Find index of item                 | `door idx = nums.muuji(5)`                |
@@ -153,11 +169,16 @@ qor(baaxad(1, 10, 2))  // [1, 3, 5, 7, 9]
 | `ka_saar(index)`   | `remove(index)`                | Remove and return an indexed item  | `door item = numbers.ka_saar(1)`          |
 | `koowaad()`        | `first()`                      | Return first item or `maran`       | `door item = numbers.koowaad()`           |
 | `ugu_dambeeya()`   | `last()`                       | Return last item or `maran`        | `door item = numbers.ugu_dambeeya()`      |
-| `isku_gee(func, bilow)` | `reduce(func, initial)`  | Fold items into one value          | `nums.isku_gee(hawl(a, b) { celi a + b }, 0)` |
+| `isku_gee(func, bilow)` | `reduce(func, initial)`  | Fold with an arbitrary callback, not only addition          | `nums.isku_gee(hawl(a, b) { celi a + b }, 0)` |
 | `dhammaan(func)`   | `every(func)`                  | Test whether every item matches    | `nums.dhammaan(hawl(x) { celi x > 0 })`   |
 | `qaar(func)`       | `some(func)`                   | Test whether any item matches      | `nums.qaar(hawl(x) { celi x == 5 })`      |
 
-`kudar(teed)` returns a concatenated copy. `nuqul()` and `jar()` also return new lists. `kasaar()` and `ka_saar()` return the removed value. Methods that otherwise mutate a list return the original list after changing it.
+`kudar(teed)` returns a concatenated copy. `nuqul()` and `jar()` also return new lists. `kasaar()` and `ka_saar()` return the removed value. Methods that otherwise mutate a list return the original list after changing it. Nested lists and objects remain shared when copied.
+
+`muuji(item)` returns the first matching index or `maran` when no item matches.
+`isku_gee(func, bilow)` is a general left fold: its callback receives the
+accumulated value and the next item. It can multiply values, construct text, or
+perform other accumulation; its behavior is not restricted to summation.
 
 ## Object Methods
 
@@ -175,7 +196,7 @@ qor(baaxad(1, 10, 2))  // [1, 3, 5, 7, 9]
 | `dhig(key, value)` | `set()`              | Set a computed key             | `obj.dhig("name", "Ali")`        |
 | `ka_qaad(key)` | `remove()`              | Remove and return a value      | `door old = obj.ka_qaad("name")`  |
 
-Objects also support computed bracket access: `obj["name"]` and `obj["name"] = "Ali"`.
+Objects also support computed bracket access: `obj["name"]` and `obj["name"] = "Ali"`. Object `nuqul()` is shallow: nested lists and objects remain shared. `tir(key)` returns the object, whereas `ka_qaad(key)` returns the removed value or `maran`.
 
 ## String Methods
 

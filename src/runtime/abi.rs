@@ -403,7 +403,11 @@ fn sub_impl(a: Value, b: Value) -> Result<Value, SoplangError> {
         (Value::Int(n), Value::Float(y)) => Ok(Value::Float(*n as f64 - y)),
         (Value::Float(x), Value::Int(m)) => Ok(Value::Float(x - *m as f64)),
         (Value::Float(x), Value::Float(y)) => Ok(Value::Float(x - y)),
-        _ => Err(runtime_error("Ka jar waa in ay noqdaan tiro", 0, 0)),
+        _ => Err(runtime_error(
+            "Hawlgalka (-) wuxuu u baahan yahay tirooyin.",
+            0,
+            0,
+        )),
     }
 }
 
@@ -435,33 +439,37 @@ fn div_impl(a: Value, b: Value) -> Result<Value, SoplangError> {
     match (&a, &b) {
         (Value::Int(n), Value::Int(m)) => {
             if *m == 0 {
-                Err(runtime_error("Qaybinta eber ma jirto", 0, 0))
+                Err(runtime_error("Tiro looma qaybin karo eber.", 0, 0))
             } else {
                 Ok(Value::Float(*n as f64 / *m as f64))
             }
         }
         (Value::Float(x), Value::Float(y)) => {
             if *y == 0.0 {
-                Err(runtime_error("Qaybinta eber ma jirto", 0, 0))
+                Err(runtime_error("Tiro looma qaybin karo eber.", 0, 0))
             } else {
                 Ok(Value::Float(x / y))
             }
         }
         (Value::Int(n), Value::Float(y)) => {
             if *y == 0.0 {
-                Err(runtime_error("Qaybinta eber ma jirto", 0, 0))
+                Err(runtime_error("Tiro looma qaybin karo eber.", 0, 0))
             } else {
                 Ok(Value::Float(*n as f64 / y))
             }
         }
         (Value::Float(x), Value::Int(m)) => {
             if *m == 0 {
-                Err(runtime_error("Qaybinta eber ma jirto", 0, 0))
+                Err(runtime_error("Tiro looma qaybin karo eber.", 0, 0))
             } else {
                 Ok(Value::Float(x / *m as f64))
             }
         }
-        _ => Err(runtime_error("Qaybinta waa in ay noqdaan tiro", 0, 0)),
+        _ => Err(runtime_error(
+            "Hawlgalka (/) wuxuu u baahan yahay tirooyin.",
+            0,
+            0,
+        )),
     }
 }
 
@@ -474,33 +482,53 @@ fn mod_impl(a: Value, b: Value) -> Result<Value, SoplangError> {
     match (&a, &b) {
         (Value::Int(n), Value::Int(m)) => {
             if *m == 0 {
-                Err(runtime_error("Habka eber ma jirto", 0, 0))
+                Err(runtime_error(
+                    "Hawlgalka (%) ma aqbalo qaybiye eber ah.",
+                    0,
+                    0,
+                ))
             } else {
                 Ok(Value::Int(n % m))
             }
         }
         (Value::Float(x), Value::Float(y)) => {
             if *y == 0.0 {
-                Err(runtime_error("Habka eber ma jirto", 0, 0))
+                Err(runtime_error(
+                    "Hawlgalka (%) ma aqbalo qaybiye eber ah.",
+                    0,
+                    0,
+                ))
             } else {
                 Ok(Value::Float(x % y))
             }
         }
         (Value::Int(n), Value::Float(y)) => {
             if *y == 0.0 {
-                Err(runtime_error("Habka eber ma jirto", 0, 0))
+                Err(runtime_error(
+                    "Hawlgalka (%) ma aqbalo qaybiye eber ah.",
+                    0,
+                    0,
+                ))
             } else {
                 Ok(Value::Float(*n as f64 % y))
             }
         }
         (Value::Float(x), Value::Int(m)) => {
             if *m == 0 {
-                Err(runtime_error("Habka eber ma jirto", 0, 0))
+                Err(runtime_error(
+                    "Hawlgalka (%) ma aqbalo qaybiye eber ah.",
+                    0,
+                    0,
+                ))
             } else {
                 Ok(Value::Float(x % *m as f64))
             }
         }
-        _ => Err(runtime_error("Habka waa in ay noqdaan tiro", 0, 0)),
+        _ => Err(runtime_error(
+            "Hawlgalka (%) wuxuu u baahan yahay tirooyin.",
+            0,
+            0,
+        )),
     }
 }
 
@@ -513,7 +541,11 @@ fn neg_impl(a: Value) -> Result<Value, SoplangError> {
     match &a {
         Value::Int(n) => Ok(Value::Int(-n)),
         Value::Float(x) => Ok(Value::Float(-x)),
-        _ => Err(runtime_error("Tixgacaysi (-) waa in uu noqdo tiro", 0, 0)),
+        _ => Err(runtime_error(
+            "Hawlgalka (-) wuxuu u baahan yahay tiro.",
+            0,
+            0,
+        )),
     }
 }
 
@@ -998,7 +1030,7 @@ fn dispatch_instance_method(
     args: &[Value],
 ) -> Result<Value, SoplangError> {
     let class_name = get_instance_class(o)
-        .ok_or_else(|| runtime_error("Walaxkan ma ahan tusaale fasal", 0, 0))?;
+        .ok_or_else(|| runtime_error("Walaxdani ma aha nuqul qaab laga sameeyay.", 0, 0))?;
     let fn_idx = resolve_method_fn_index(&class_name, method).ok_or_else(|| {
         runtime_error(
             format!("Hawl '{}' lama helin qaabka '{}'", method, class_name),
@@ -1170,7 +1202,11 @@ pub extern "C" fn soplang_call_method(
         Value::Object(o) => dispatch_object_method(o, method, &argv),
         Value::Str(s) => dispatch_string_method(s, method, &argv),
         _ => Err(runtime_error(
-            format!("No method '{}' on this type", method),
+            format!(
+                "Nooca '{}' ma laha hawl la yiraahdo '{}'.",
+                obj_val.type_name(),
+                method
+            ),
             0,
             0,
         )),
@@ -1288,7 +1324,7 @@ fn dispatch_list_method(
         "shaandhee" => {
             if args.len() != 1 {
                 return Err(runtime_error(
-                    "shaandhee() waa in uu qaato 1 qiimo (hawl)",
+                    "Hawsha 'shaandhee()' waxay u baahan tahay 1 dood oo hawl ah.",
                     0,
                     0,
                 ));
@@ -1310,7 +1346,7 @@ fn dispatch_list_method(
         "aaddin" => {
             if args.len() != 1 {
                 return Err(runtime_error(
-                    "aaddin() waa in uu qaato 1 qiimo (hawl)",
+                    "Hawsha 'aaddin()' waxay u baahan tahay 1 dood oo hawl ah.",
                     0,
                     0,
                 ));
@@ -1377,7 +1413,7 @@ fn dispatch_list_method(
         "koowaad" => super::stdlib::list_koowaad(Rc::clone(l), args),
         "ugu_dambeeya" => super::stdlib::list_ugu_dambeeya(Rc::clone(l), args),
         _ => Err(runtime_error(
-            format!("Unknown list method: {}", method),
+            format!("Teedku ma laha hawl la yiraahdo '{}'.", method),
             0,
             0,
         )),
@@ -1402,7 +1438,7 @@ fn dispatch_object_method(
         "dhig" => super::stdlib::object_dhig(Rc::clone(o), args),
         "ka_qaad" => super::stdlib::object_ka_qaad(Rc::clone(o), args),
         _ => Err(runtime_error(
-            format!("Unknown object method: {}", method),
+            format!("Walaxdu ma laha hawl la yiraahdo '{}'.", method),
             0,
             0,
         )),
@@ -1432,7 +1468,7 @@ fn dispatch_string_method(s: &str, method: &str, args: &[Value]) -> Result<Value
         "ku_celi" => super::stdlib::string_ku_celi(s.to_string(), args),
         "raadi_dambe" => super::stdlib::string_raadi_dambe(s.to_string(), args),
         _ => Err(runtime_error(
-            format!("Unknown string method: {}", method),
+            format!("Qoraalku ma laha hawl la yiraahdo '{}'.", method),
             0,
             0,
         )),

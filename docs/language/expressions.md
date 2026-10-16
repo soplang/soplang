@@ -5,7 +5,7 @@ property access.
 
 ## Values
 
-- Numbers: `42`, `3.14`
+- Numbers: signed 64-bit integers such as `42`, and binary floating-point values such as `3.14`
 - Strings: `"Soomaali"`
 - Booleans: `run`, `been`
 - Empty value: `maran`
