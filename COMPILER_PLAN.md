@@ -1,26 +1,40 @@
 # Soplang Compiler Plan
 
-> **Soplang is a compiled language.** The tree-walking interpreter is replaced by a **two-backend** pipeline: **Cranelift** (run `soplang file.sop` — JIT to native code) and **LLVM** (build `soplang build file.sop` — AOT standalone binary). Both share the same front-end and HIR.
+> **Soplang is a compiled language.** The tree-walking interpreter lives in the separate [`soplang-interpreter`](https://github.com/soplang/soplang-interpreter) repo. This tree runs programs with **Cranelift** and builds standalone binaries with **LLVM IR**.
+
+## Current status
+
+Phases 1–6 are done. Phase 5 emits textual LLVM IR and uses system `clang` plus `rustc` to link the runtime; `inkwell` is not a dependency.
+
+| Path | What it does today |
+|------|--------------------|
+| `soplang file.sop` | Lex → parse → `keen` → analyze → HIR → Cranelift JIT → run |
+| REPL | One `ReplSession`: the same JIT module, class registry, and globals across lines |
+| `soplang --build file.sop` | Inline `keen`, lower to HIR and LLVM IR, compile and link a standalone binary |
+| Static `abn` / `jajab` | Native `i64` / `f64` operations in both backends. Values still use tagged slots |
+
+Division and modulo by zero still call the runtime, including inside `fasax`.
 
 ---
 
 ## Table of Contents
 
-1. [Goals](#goals)
-2. [Architecture Overview](#architecture-overview)
-3. [Pipeline Stages](#pipeline-stages)
-4. [Value Representation](#value-representation)
-5. [Runtime Library](#runtime-library)
-6. [Cranelift JIT Design](#cranelift-jit-design)
-7. [LLVM AOT Design](#llvm-aot-design)
-8. [Phase 1 — Semantic Analyzer](#phase-1--semantic-analyzer)
-9. [Phase 2 — HIR (High-Level IR)](#phase-2--hir-high-level-ir)
-10. [Phase 3 — Runtime Library](#phase-3--runtime-library)
-11. [Phase 4 — Cranelift JIT Backend](#phase-4--cranelift-jit-backend)
-12. [Phase 5 — LLVM AOT Backend](#phase-5--llvm-aot-backend)
-13. [Phase 6 — Remove Interpreter, Final Wiring](#phase-6--remove-interpreter-final-wiring)
-14. [Crate Layout](#crate-layout)
-15. [Validation + Timeline](#validation--timeline)
+1. [Current status](#current-status)
+2. [Goals](#goals)
+3. [Architecture Overview](#architecture-overview)
+4. [Pipeline Stages](#pipeline-stages)
+5. [Value Representation](#value-representation)
+6. [Runtime Library](#runtime-library)
+7. [Cranelift JIT Design](#cranelift-jit-design)
+8. [LLVM AOT Design](#llvm-aot-design)
+9. [Phase 1 — Semantic Analyzer](#phase-1--semantic-analyzer)
+10. [Phase 2 — HIR (High-Level IR)](#phase-2--hir-high-level-ir)
+11. [Phase 3 — Runtime Library](#phase-3--runtime-library)
+12. [Phase 4 — Cranelift JIT Backend](#phase-4--cranelift-jit-backend)
+13. [Phase 5 — LLVM AOT Backend](#phase-5--llvm-aot-backend)
+14. [Phase 6 — Remove Interpreter, Final Wiring](#phase-6--remove-interpreter-final-wiring)
+15. [Crate Layout](#crate-layout)
+16. [Validation + Timeline](#validation--timeline)
 
 ---
 
@@ -29,7 +43,7 @@
 - **Compiled-only**: no tree-walking interpreter in the final product.
 - **Two backends** sharing the same front-end (Lexer, Parser, AST, Semantic, HIR):
   - **Cranelift JIT**: `soplang file.sop` → HIR → native machine code in memory → run. Near-native speed, fast compile, ~5 MB dep.
-  - **LLVM AOT**: `soplang build file.sop` → HIR → LLVM IR → .o → link → standalone binary. Maximum optimization; best for static types (`abn`, `jajab`).
+  - **LLVM AOT:** `soplang --build file.sop` resolves `keen`, lowers HIR to textual LLVM IR, compiles an object with `clang`, and links a standalone binary with `rustc`.
 - **Reuse**: Lexer, Parser, AST, `Value`, `SoplangError`, stdlib (wrapped by runtime for native backends).
 - **Remove interpreter**: `src/interpreter.rs` deleted in Phase 6.
 
@@ -74,10 +88,12 @@
   │  Cranelift JIT                   │  LLVM AOT                            │
   │  HIR → Cranelift IR              │  HIR → LLVM IR                        │
   │  → native code in memory         │  → .o → link → standalone binary     │
-  │  Used for: soplang file.sop      │  Used for: soplang build file.sop     │
-  │  (Phase 4)                      │  (Phase 5)                            │
+  │  Used for: soplang file.sop      │  Used for: soplang --build file.sop   │
+  │  (Phase 4, done)                │  (Phase 5, done)                      │
   └─────────────────────────────────┴──────────────────────────────────────┘
 ```
+
+Both backends consume the same HIR and call the same runtime ABI for dynamic operations.
 
 ---
 
@@ -91,7 +107,7 @@
 | HIR Lowering | `hir.rs` | Annotated AST → HIR | 2 |
 | Runtime Library | `runtime.rs` | C-ABI functions called by both backends | 3 |
 | Cranelift Backend | `backend/cranelift.rs` | HIR → native code (JIT) | 4 |
-| LLVM Backend | `backend/llvm.rs` | HIR → LLVM IR → binary | 5 |
+| LLVM Backend | `backend/llvm.rs`, `backend/llvm_ir.rs` | HIR → LLVM IR → binary | 5 |
 
 ---
 
@@ -111,19 +127,18 @@ Tag  Meaning    Payload
  4   Str        pointer to heap String (as i64)
  5   List       pointer to Rc<Vec<Value>> (as i64)
  6   Object     pointer to Rc<HashMap> (as i64)
- 7   Function   pointer to closure struct (as i64)
+ 7   Function   runtime function index
+ 8   Throw      pending error marker
+ 9   Closure    pointer to captured environment
 ```
 
-**Static types (`abn`, `jajab`) skip boxing in both backends:**
-- `abn x = 42` → emit native `i64` in Cranelift/LLVM; no struct, no runtime call.
-- `jajab y = 3.14` → emit native `f64` (double).  
-This is where Soplang's static type system gives large optimization wins.
+Static numeric operations use native `i64` and `f64` instructions in both backends. Slots retain a tag and payload so values can cross function, global, and runtime boundaries. Unboxing slots is outside the current phase.
 
 ---
 
 ## Runtime Library
 
-Both backends call a small Rust runtime via C ABI. New file: `src/runtime.rs`.
+Both backends call the Rust runtime through the C ABI in `src/runtime/abi.rs`.
 
 ```rust
 #[repr(C)]
@@ -185,7 +200,7 @@ Each function converts `SoplangValue` to/from the existing `Value` enum and dele
 
 ### Value in Cranelift
 
-Pass `SoplangValue` as two `i64` (tag widened): params/returns `(i64, i64)`. For static-typed locals use plain `i64` or `f64` and only box at boundaries (e.g. call, return, `qor`).
+Pass `SoplangValue` as two `i64` values (tag widened) across compiled function boundaries. Static numeric instructions operate directly on slot payloads; slots retain their tags.
 
 ### Structure
 
@@ -209,18 +224,18 @@ impl CraneliftBackend {
 
 ### Optimization
 
-Cranelift applies its own passes (constant propagation, dead code elimination, register allocation). For `abn`/`jajab`, emit `iadd`, `fadd`, etc. with no boxing.
+Cranelift applies its own passes (constant propagation, dead code elimination, register allocation). Static `abn` and `jajab` slots emit `iadd`, `fadd`, and the matching compare and remainder ops, and still write the value tag so `qor` and stores keep working. `door` slots stay on runtime calls. The REPL keeps one `CraneliftBackend` and compiles each line with `compile_incremental`.
 
 ---
 
 ## LLVM AOT Design
 
-**Crate:** `inkwell` (LLVM 17+ bindings).
+**Status:** implemented in `src/backend/llvm_ir.rs` and wired through `src/backend/llvm.rs`. LLVM IR is written as text; `inkwell` is not used.
 
 ### Role
 
-- **Invocation:** `soplang build file.sop` (or `soplang build file.sop -o mybin`).
-- **Flow:** HIR → LLVM IR → optimize (O2) → emit .o → link with runtime → standalone binary.
+- **Invocation:** `soplang --build file.sop [-o mybin] [--opt-level 0..3]`.
+- **Flow:** resolve `keen` → analyze → HIR → textual LLVM IR → `clang -O<level> -c` → object file → `rustc` links the Soplang runtime rlib and object file.
 - **Standalone binary:** user gets an executable that runs without `soplang`.
 
 ### Value type in LLVM IR
@@ -235,24 +250,11 @@ declare void @soplang_qor(%SoplangValue)
 
 ### Static type optimization
 
-For `abn x = 42; abn y = x + 3` emit pure `i64` arithmetic; LLVM constant-folds and optimizes. For `door` use `%SoplangValue` and runtime calls.
+Typed `abn` and `jajab` arithmetic, comparisons, and negation emit native LLVM integer and floating point instructions. Division and modulo check for zero and call the runtime on that path so `fasax` can catch the error. Dynamic operations use `%SoplangValue` and runtime calls. Slots remain tagged.
 
 ### Structure
 
-```rust
-pub struct LlvmBackend<'ctx> {
-    ctx:      &'ctx Context,
-    module:   Module<'ctx>,
-    builder:  Builder<'ctx>,
-    value_ty: StructType<'ctx>,
-}
-
-impl<'ctx> LlvmBackend<'ctx> {
-    pub fn compile_module(&mut self, hir: &HirModule) -> Result<(), SoplangError> { ... }
-    pub fn emit_object_file(&self, path: &Path) -> Result<(), SoplangError> { ... }
-    pub fn link_binary(&self, obj_path: &Path, out_path: &Path) -> Result<(), SoplangError> { ... }
-}
-```
+`LlvmBackend::build_executable` calls `emit_llvm_ir(hir, sym)` and `link_llvm_binary_with_opt`. The IR defines one function per HIR function and a native `main`; it registers functions and classes with the shared runtime before running top-level instructions. `rustc` links a small `#![no_main]` wrapper that retains the runtime symbols needed by the LLVM object.
 
 ---
 
@@ -359,7 +361,7 @@ pub struct HirModule {
 
 ## Phase 3 — Runtime Library
 
-**Goal:** Implement `src/runtime.rs` with all `extern "C"` functions that Cranelift and LLVM IR will call.
+**Goal:** Implement `src/runtime/abi.rs` with the `extern "C"` functions that Cranelift and LLVM IR call.
 
 ### Steps
 
@@ -375,6 +377,8 @@ pub struct HirModule {
 ---
 
 ## Phase 4 — Cranelift JIT Backend
+
+**Status:** done.
 
 **Goal:** Full “run” path: source → … → HIR → Cranelift → native code → execute. All language features work.
 
@@ -411,22 +415,26 @@ pub fn run_source(source: &str, path: Option<&Path>) -> Result<(), SoplangError>
 
 ## Phase 5 — LLVM AOT Backend
 
-**Goal:** `soplang build file.sop` produces a standalone native binary.
+**Status:** done. `soplang --build` produces a native LLVM-backed binary without embedding source or starting the JIT.
+
+**Goal:** `soplang --build file.sop` emits a real native binary from HIR, without JIT-compiling the source at startup.
 
 ### Steps
 
-1. **HIR → LLVM IR:** Same HIR as Cranelift; emit LLVM IR via inkwell (runtime declarations, `%SoplangValue`, static vs dynamic as in Cranelift).
-2. **Optimization:** Run O2 (or configurable) passes on the module.
-3. **Emit .o:** Write object file; link with runtime (same `runtime.rs` compiled into a static lib or linked from the soplang binary).
-4. **CLI:** `soplang build <file.sop> [-o output]` → compile → link → output binary.
+1. **HIR → LLVM IR:** Emit textual IR for all HIR instructions, including functions, classes, closures, and runtime calls.
+2. **Optimization:** Pass `--opt-level 0..3` to `clang` and `rustc`.
+3. **Emit .o:** Compile IR with system `clang`, then link the object with the Soplang rlib via `rustc`.
+4. **CLI:** `soplang --build <file.sop> [-o output]` → compile → link → output binary.
 
 ### Deliverable
 
-- `soplang build examples/hello.sop -o hello` produces `./hello` that runs and matches expected output.
+- `soplang --build examples/01_hello.sop -o hello` produces `./hello` that runs and matches expected output.
 
 ---
 
 ## Phase 6 — Remove Interpreter, Final Wiring
+
+**Status:** done. The run path is Cranelift; the build path is LLVM.
 
 **Goal:** Interpreter removed. Single run path (Cranelift) and single build path (LLVM). Tests and docs updated.
 
@@ -441,7 +449,7 @@ pub fn run_source(source: &str, path: Option<&Path>) -> Result<(), SoplangError>
 
 ### Deliverable
 
-- No interpreter in tree. `cargo test` green. `soplang file.sop` and `soplang build file.sop` documented and working.
+- No interpreter in tree. `cargo test` green. `soplang file.sop` and `soplang --build file.sop` documented and working.
 
 ---
 
@@ -465,7 +473,8 @@ src/
 ├── backend/
 │   ├── mod.rs
 │   ├── cranelift.rs  Phase 4 — JIT (soplang file.sop)
-│   └── llvm.rs       Phase 5 — AOT (soplang build file.sop)
+│   ├── llvm.rs       Phase 5 — AOT entrypoint (soplang --build file.sop)
+│   └── llvm_ir.rs    Textual LLVM IR emitter and linker
 │
 ├── shell.rs          REPL: compile + run via Cranelift
 ├── main.rs           CLI: run vs build
@@ -480,18 +489,18 @@ src/
 
 | Phase | Focus | Validation |
 |-------|--------|------------|
-| 1 | Semantic Analyzer | All examples pass; symbol table correct |
-| 2 | HIR | `--dump-hir` works; no panic on examples |
-| 3 | Runtime Library | Runtime builds; ABI used by backends |
-| 4 | Cranelift JIT | All 43 `.expected` tests pass via `soplang file.sop` |
-| 5 | LLVM AOT | `soplang build file.sop` produces working binary |
-| 6 | Remove interpreter | No interpreter code; tests green |
+| 1 | Semantic Analyzer | Done |
+| 2 | HIR | Done |
+| 3 | Runtime Library | Done |
+| 4 | Cranelift JIT | Done. `soplang file.sop` and the REPL session |
+| 5 | LLVM AOT | Done. `--build` emits LLVM IR and links a native binary |
+| 6 | Remove interpreter | Done. No interpreter in this repo |
 
 ### Backend summary
 
 | Backend | Command | Output | Dep |
 |---------|---------|--------|-----|
 | **Cranelift JIT** | `soplang file.sop` | Run in process; no standalone binary | cranelift-* ~5 MB |
-| **LLVM AOT** | `soplang build file.sop` | Standalone native binary | inkwell + LLVM ~300 MB dev |
+| **LLVM AOT** | `soplang --build file.sop` | Standalone binary from LLVM IR | system clang and rustc |
 
-When ready, start with **Phase 1** (Semantic Analyzer).
+Future optimization work can unbox static values across slots and boundaries.

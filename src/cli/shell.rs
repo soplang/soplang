@@ -1,11 +1,14 @@
 //! Interactive REPL (Phase 6).
 
 use std::fs;
+use std::path::Path;
 
 use rustyline::error::ReadlineError;
 use rustyline::DefaultEditor;
 
 use crate::{format_error_with_source, maybe_wrap_for_repl, run_source};
+
+use super::ReplSession;
 
 const PROMPT: &str = "soplang> ";
 const CONTINUATION_PROMPT: &str = "    ... ";
@@ -37,6 +40,7 @@ Haddii aad geliso weedh kaliya (tusaale: 1+2), natiijada waxaa laguu soo bandhig
 pub struct Shell {
     editor: DefaultEditor,
     strict: bool,
+    session: ReplSession,
 }
 
 impl Shell {
@@ -45,7 +49,8 @@ impl Shell {
         if let Some(p) = history_path() {
             let _ = editor.load_history(&p);
         }
-        Self { editor, strict }
+        let session = ReplSession::new(strict).expect("Cranelift JIT");
+        Self { editor, strict, session }
     }
 
     pub fn run(&mut self) {
@@ -135,7 +140,7 @@ impl Shell {
                     return false;
                 }
                 match fs::read_to_string(path) {
-                    Ok(source) => self.execute(&source),
+                    Ok(source) => self.execute_at(&source, Some(Path::new(path)), false),
                     Err(e) => eprintln!("Khalad: Ma suurtagelin in la akhriyo faylka '{}': {}", path, e),
                 }
             }
@@ -165,8 +170,16 @@ impl Shell {
     }
 
     fn execute(&mut self, source: &str) {
-        let to_run = maybe_wrap_for_repl(source);
-        if let Err(e) = run_source(&to_run, None, false, false, self.strict) {
+        self.execute_at(source, None, true);
+    }
+
+    fn execute_at(&mut self, source: &str, path: Option<&Path>, wrap: bool) {
+        let to_run = if wrap {
+            maybe_wrap_for_repl(source)
+        } else {
+            source.to_string()
+        };
+        if let Err(e) = self.session.eval(&to_run, path) {
             eprintln!("{}", format_error_with_source(&e, Some(source)));
         }
     }

@@ -48,9 +48,9 @@ flowchart LR
 ┌─────────────────────────────────────────────────────────────────────────────────────────────┐
 │                              Backend (JIT or AOT)                                             │
 │  ┌─────────────────────────────┐              ┌─────────────────────────────┐                │
-│  │  Cranelift JIT               │              │  LLVM-style AOT             │                │
-│  │  • Compile HIR → native code  │              │  • Generate Rust runner      │                │
-│  │  • Register in runtime       │              │  • cargo build → binary     │                │
+│  │  Cranelift JIT               │              │  LLVM AOT                   │                │
+│  │  • Compile HIR → native code  │              │  • Emit textual LLVM IR      │                │
+│  │  • Register in runtime       │              │  • clang + rustc → binary   │                │
 │  │  • Execute via function ptr  │              │  • Standalone executable    │                │
 │  └──────────────┬──────────────┘              └──────────────┬──────────────┘                │
 └─────────────────┼──────────────────────────────────────────┼───────────────────────────────┘
@@ -195,18 +195,18 @@ flowchart LR
 
 **Mechanism:** FunctionBuilder for SSA-style IR; stack slots for locals; symbol table for runtime C symbols (`soplang_*`). All heap access and builtin behavior go through the runtime ABI.
 
-### 7.2 AOT (LLVM-style)
+### 7.2 LLVM AOT
 
-**Location:** `src/backend/llvm.rs`
+**Location:** `src/backend/llvm.rs`, `src/backend/llvm_ir.rs`
 
 **Algorithm:**
 
-1. **No direct LLVM:** AOT is implemented by generating a **Rust crate** that embeds the source and depends on the `soplang` library.
-2. **Generated crate:** Fixed dir `target/soplang_aot_runner/`; `Cargo.toml` with `soplang = { path = "..." }`; `src/main.rs` contains `const SOURCE: &str = ...` and `run_source(SOURCE, ...)`.
-3. **Build:** `cargo build --quiet --manifest-path <that Cargo.toml> --release`; stdout/stderr captured; on failure, last 25 lines of stderr returned in a structured error.
-4. **Output:** Copy the built binary from `target/release/soplang_aot_runner` to the user-requested path (e.g. `barnaamij/<name>`); create parent dirs if needed.
+1. **Front end:** Resolve `keen`, analyze the program, and lower it to the same HIR used by Cranelift.
+2. **LLVM IR:** Emit functions and `main` as textual LLVM IR. Native numeric operations use LLVM instructions; dynamic operations call the runtime ABI.
+3. **Build:** Compile IR to an object with system `clang`, then link it with the Soplang rlib using `rustc` and a small `#![no_main]` wrapper. `--opt-level` controls optimization.
+4. **Output:** Write the standalone executable to the requested path (or `barnaamij/<name>` by default).
 
-**Mechanism:** Same runtime and `run_source` as JIT; the “compilation” is done at build time of the generated crate; the resulting binary is a standalone runner that JIT-compiles the embedded source when executed.
+**Mechanism:** The binary contains compiled Soplang functions and the shared runtime. It does not embed source or invoke the JIT at startup.
 
 ---
 
@@ -299,7 +299,7 @@ src/
 | Semantic  | Single-pass analysis   | Scope stack; name → VarInfo/slot; strict type checks; collect function/class metadata. |
 | HIR       | AST walk + IR emit     | Slots for locals/temporaries; labels for control flow; flat instruction list. |
 | Cranelift | HIR → SSA + codegen    | Slots → Cranelift vars; each HIR op → Cranelift IR; C ABI for calls. |
-| AOT       | Source embedding       | Generate Rust crate that calls run_source; build with cargo; copy binary. |
+| AOT       | HIR → LLVM IR           | Compile IR with clang; link the runtime with rustc. |
 | Runtime   | Tagged values + heaps | Value ↔ SoplangValue; heaps for strings/lists/objects; globals and compiled fn table. |
 
 ---
@@ -309,7 +309,7 @@ src/
 - **Single IR (HIR):** One flat IR for both JIT and AOT; backends share the same lowering and runtime.
 - **C ABI boundary:** Generated code (Cranelift or AOT binary) only talks to the runtime via `SoplangValue` and `extern "C"` functions; no direct dependency on `Value` or stdlib types in generated code.
 - **Slot-based HIR:** No SSA in the IR; slots are virtual registers; Cranelift backend maps them to its own SSA variables and stack.
-- **Thread-local heaps:** Simplifies embedding and avoids global locks; one “interpreter” per thread.
+- **Thread-local heaps:** Simplifies embedding and avoids global locks; each thread has its own runtime heaps.
 - **Somali messages and codes:** Errors and builtins use Somali where appropriate; error codes (E0xx) allow stable tooling and docs.
 
 This architecture supports a clear pipeline, maintainable modules, and two execution modes (JIT and AOT) sharing one runtime and one language implementation.

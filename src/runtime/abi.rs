@@ -104,6 +104,7 @@ pub const TAG_STR: u8 = 4;
 pub const TAG_LIST: u8 = 5;
 pub const TAG_OBJECT: u8 = 6;
 pub const TAG_FUNC: u8 = 7;
+pub const TAG_CLOSURE: u8 = 9;
 
 /// Tagged value for C ABI. 16 bytes: tag (u8) + padding + payload (i64).
 #[repr(C)]
@@ -234,6 +235,7 @@ pub fn value_to_soplang(v: &Value) -> SoplangValue {
         Value::List(l) => SoplangValue { tag: TAG_LIST, _pad: [0; 7], payload: list_alloc(Rc::clone(l)) },
         Value::Object(o) => SoplangValue { tag: TAG_OBJECT, _pad: [0; 7], payload: obj_alloc(Rc::clone(o)) },
         Value::Function(id) => SoplangValue { tag: TAG_FUNC, _pad: [0; 7], payload: id.0 as i64 },
+        Value::Closure(p) => SoplangValue { tag: TAG_CLOSURE, _pad: [0; 7], payload: *p },
         Value::NativeFunction(f) => {
             ensure_builtins();
             for (name, v) in stdlib::get_builtin_functions() {
@@ -261,6 +263,7 @@ pub fn soplang_to_value(sv: SoplangValue) -> Result<Value, SoplangError> {
         TAG_LIST => Ok(Value::List(list_get(sv.payload))),
         TAG_OBJECT => Ok(Value::Object(obj_get(sv.payload))),
         TAG_FUNC => Ok(Value::Function(super::value::FunctionId(sv.payload as usize))),
+        TAG_CLOSURE => Ok(Value::Closure(sv.payload)),
         _ => Err(runtime_error(format!("Invalid tag {}", sv.tag), 0, 0)),
     }
 }
@@ -756,6 +759,12 @@ pub fn clear_class_registry() {
     CLASS_REGISTRY.with(|r| r.borrow_mut().clear());
 }
 
+/// Drop a leftover try-block or pending error before the next REPL line.
+pub fn reset_try_state() {
+    TRY_DEPTH.with(|d| d.set(0));
+    PENDING_ERROR.with(|e| *e.borrow_mut() = None);
+}
+
 fn global_fn_payload(name: &str) -> Option<i64> {
     ensure_builtins();
     GLOBAL_VARS.with(|g| {
@@ -817,6 +826,11 @@ fn resolve_constructor_fn_index(class_name: &str) -> Option<i64> {
 /// Register all classes from semantic analysis after compiled functions are in globals.
 pub fn register_classes_from_sym(classes: &HashMap<String, crate::semantic::ClassMeta>) {
     clear_class_registry();
+    merge_classes_from_sym(classes);
+}
+
+/// Add or replace classes without dropping ones registered by earlier snippets.
+pub fn merge_classes_from_sym(classes: &HashMap<String, crate::semantic::ClassMeta>) {
     for (name, meta) in classes {
         let mut methods = HashMap::new();
         for (method, mangled) in &meta.methods {
@@ -1173,6 +1187,72 @@ pub extern "C" fn soplang_mark_const(name: *const u8, len: usize) {
     CONST_GLOBALS.with(|c| c.borrow_mut().insert(key));
 }
 
+/// The value must be an instance of `expected` or of a class that extends it.
+#[no_mangle]
+pub extern "C" fn soplang_check_class(
+    tag: i64,
+    payload: i64,
+    class_ptr: *const u8,
+    class_len: usize,
+    name_ptr: *const u8,
+    name_len: usize,
+) {
+    if class_ptr.is_null() || class_len == 0 {
+        return;
+    }
+    let expected = unsafe {
+        std::str::from_utf8_unchecked(std::slice::from_raw_parts(class_ptr, class_len))
+    };
+    let sv = SoplangValue { tag: tag as u8, _pad: [0; 7], payload };
+    let val = soplang_to_value(sv).unwrap_or(Value::Null);
+    if instance_matches_class(&val, expected) {
+        return;
+    }
+    let name = if name_ptr.is_null() || name_len == 0 {
+        ""
+    } else {
+        unsafe { std::str::from_utf8_unchecked(std::slice::from_raw_parts(name_ptr, name_len)) }
+    };
+    let err = type_error(
+        format!(
+            "'{}' waa {} laakin qiimaheeda '{}' ma ahan {}",
+            name, expected, val, expected
+        ),
+        0,
+        0,
+    );
+    if TRY_DEPTH.with(|d| d.get()) > 0 {
+        PENDING_ERROR.with(|p| *p.borrow_mut() = Some(error_message(&err)));
+    } else {
+        fatal_error(err);
+    }
+}
+
+fn instance_matches_class(val: &Value, expected: &str) -> bool {
+    let Value::Object(o) = val else {
+        return false;
+    };
+    let Some(mut current) = get_instance_class(o) else {
+        return false;
+    };
+    let mut seen = std::collections::HashSet::new();
+    loop {
+        if current == expected {
+            return true;
+        }
+        if !seen.insert(current.clone()) {
+            return false;
+        }
+        let next = CLASS_REGISTRY.with(|r| {
+            r.borrow().get(&current).and_then(|entry| entry.parent.clone())
+        });
+        match next {
+            Some(parent) => current = parent,
+            None => return false,
+        }
+    }
+}
+
 /// Runtime type validation for typed variable assignment (C ABI).
 /// expected_type: 1=abn, 2=jajab, 3=qoraal, 4=bool, 5=teed, 6=walax, 0=dynamic(skip).
 #[no_mangle]
@@ -1239,11 +1319,110 @@ pub fn register_compiled_fn(ptr: *const u8, n_params: usize) -> i64 {
     })
 }
 
-/// Call a callee with args. Callee must be SoplangValue with TAG_FUNC (native or user fn).
+/// Record an AOT function pointer under `name` so calls, methods, and closures can find it.
+#[no_mangle]
+pub extern "C" fn soplang_register_user_fn(
+    name: *const u8,
+    name_len: usize,
+    ptr: *const u8,
+    n_params: i64,
+) -> i64 {
+    let idx = register_compiled_fn(ptr, n_params.max(0) as usize);
+    if !name.is_null() && name_len > 0 {
+        let key = unsafe {
+            String::from_utf8_lossy(std::slice::from_raw_parts(name, name_len)).into_owned()
+        };
+        store_global(
+            &key,
+            SoplangValue {
+                tag: TAG_FUNC,
+                _pad: [0; 7],
+                payload: idx,
+            },
+        );
+    }
+    idx
+}
+
+struct ClosureData {
+    fn_index: i64,
+    env: Vec<SoplangValue>,
+}
+
+/// Build a closure from a compiled function name and the captured values.
+#[no_mangle]
+pub extern "C" fn soplang_make_closure(
+    name: *const u8,
+    name_len: usize,
+    n: i64,
+    args: *const SoplangValue,
+) -> SoplangValue {
+    let callee = soplang_get_builtin(name, name_len);
+    if callee.tag != TAG_FUNC {
+        let val = soplang_to_value(callee).unwrap_or(Value::Null);
+        return handle_runtime_error(runtime_error(
+            format!("'{}' ma ahan hawl, lama xidhi karo", value_to_string(&val)),
+            0,
+            0,
+        ));
+    }
+    let mut env = Vec::new();
+    if !args.is_null() && n > 0 {
+        for i in 0..n as usize {
+            env.push(unsafe { *args.add(i) });
+        }
+    }
+    let data = Box::leak(Box::new(ClosureData { fn_index: callee.payload, env }));
+    SoplangValue { tag: TAG_CLOSURE, _pad: [0; 7], payload: data as *mut ClosureData as i64 }
+}
+
+/// Read one captured value. `env_ptr` is the closure data pointer.
+#[no_mangle]
+pub extern "C" fn soplang_capture_get(env_ptr: i64, index: i64) -> SoplangValue {
+    if env_ptr == 0 || index < 0 {
+        return SoplangValue::null();
+    }
+    let data = unsafe { &*(env_ptr as *const ClosureData) };
+    data.env.get(index as usize).copied().unwrap_or_else(SoplangValue::null)
+}
+
+fn call_closure(callee: SoplangValue, args: *const SoplangValue, n: i32) -> SoplangValue {
+    if callee.payload == 0 {
+        return SoplangValue::null();
+    }
+    let data = unsafe { &*(callee.payload as *const ClosureData) };
+    let mut full = Vec::with_capacity(1 + n.max(0) as usize);
+    full.push(SoplangValue { tag: TAG_NULL, _pad: [0; 7], payload: callee.payload });
+    if !args.is_null() && n > 0 {
+        for i in 0..n as usize {
+            full.push(unsafe { *args.add(i) });
+        }
+    }
+    let native_count = NATIVE_FN_TABLE.with(|t| t.borrow().len()) as i64;
+    let compiled_idx = data.fn_index - native_count;
+    let entry = COMPILED_FN_TABLE.with(|t| {
+        let v = t.borrow();
+        if compiled_idx >= 0 && (compiled_idx as usize) < v.len() {
+            Some(v[compiled_idx as usize])
+        } else {
+            None
+        }
+    });
+    if let Some(entry) = entry {
+        call_compiled_fn(entry.ptr, entry.n_params, full.as_ptr(), full.len() as i32)
+    } else {
+        SoplangValue::null()
+    }
+}
+
+/// Call a callee with args. Callee is TAG_FUNC (native or user) or TAG_CLOSURE.
 #[no_mangle]
 pub extern "C" fn soplang_call(callee: SoplangValue, args: *const SoplangValue, n: i32) -> SoplangValue {
     if let Some(v) = short_circuit_if_pending() {
         return v;
+    }
+    if callee.tag == TAG_CLOSURE {
+        return call_closure(callee, args, n);
     }
     if callee.tag != TAG_FUNC {
         let val = soplang_to_value(callee).unwrap_or(Value::Null);

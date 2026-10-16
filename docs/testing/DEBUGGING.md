@@ -1,6 +1,6 @@
 # Debugging Soplang
 
-This document provides guidance on debugging both the Soplang interpreter itself and Soplang programs. It covers various techniques, tools, and common issues you might encounter.
+This document covers debugging Soplang programs and inspecting the compiler. Programs run through the lexer, parser, semantic analysis, HIR, and the Cranelift JIT.
 
 ## Table of Contents
 
@@ -10,12 +10,10 @@ This document provides guidance on debugging both the Soplang interpreter itself
   - [Step-by-Step Debugging](#step-by-step-debugging)
   - [Common Runtime Errors](#common-runtime-errors)
 
-- [Debugging the Interpreter](#debugging-the-interpreter)
-  - [Debugging the Lexer](#debugging-the-lexer)
-  - [Debugging the Parser](#debugging-the-parser)
-  - [Debugging the Interpreter](#debugging-the-interpreter-1)
-  - [Using Logging](#using-logging)
-  - [Advanced Debugging Techniques](#advanced-debugging-techniques)
+- [Debugging the compiler](#debugging-the-compiler)
+  - [Parse tree and HIR](#parse-tree-and-hir)
+  - [A single test](#a-single-test)
+  - [Stepping through the Rust code](#stepping-through-the-rust-code)
 
 ## Debugging Soplang Programs
 
@@ -157,141 +155,44 @@ haddii (condition) {
 // qor(x)  // Error: x is not defined here
 ```
 
-## Debugging the Interpreter
+## Debugging the compiler
 
-### Debugging the Lexer
+### Parse tree and HIR
 
-When tokens aren't being recognized properly:
-
-1. **Enable lexer debug mode**:
-   ```bash
-   python main.py --debug-lexer examples/my_program.so
-   ```
-
-2. **Check token outputs**:
-   ```
-   Token(TokenType.DOOR, 'door')
-   Token(TokenType.IDENTIFIER, 'x')
-   Token(TokenType.EQUAL, '=')
-   Token(TokenType.NUMBER, 5.0)
-   ```
-
-3. **Identify issues** like:
-   - Missing tokens
-   - Wrong token types
-   - Incorrect token values
-
-### Debugging the Parser
-
-When the syntax tree isn't being constructed correctly:
-
-1. **Enable parser debug mode**:
-   ```bash
-   python main.py --debug-parser examples/my_program.so
-   ```
-
-2. **Inspect the AST output**:
-   ```
-   ASTNode(PROGRAM, children=[
-     ASTNode(VARIABLE_DECLARATION, value='x', children=[
-       ASTNode(LITERAL, value=5.0)
-     ])
-   ])
-   ```
-
-3. **Look for issues** like:
-   - Missing nodes
-   - Incorrect node types
-   - Wrong node relationships
-   - Wrong values
-
-### Debugging the Interpreter
-
-When runtime behavior is unexpected:
-
-1. **Enable interpreter debug mode**:
-   ```bash
-   python main.py --debug-interpreter examples/my_program.so
-   ```
-
-2. **Follow execution flow**:
-   ```
-   Executing: VARIABLE_DECLARATION (x)
-   Evaluating: LITERAL (5.0)
-   Variable x = 5.0
-   ```
-
-3. **Watch for issues** like:
-   - Incorrect variable values
-   - Unexpected control flow
-   - Missing or extra executions
-
-### Using Logging
-
-For persistent debugging, use the logging system:
-
-1. **Enable logging**:
-   ```bash
-   python main.py --log-level=DEBUG examples/my_program.so
-   ```
-
-2. **View different log levels**:
-   - `ERROR`: Only serious errors
-   - `WARNING`: Warnings and errors
-   - `INFO`: General information
-   - `DEBUG`: Detailed debugging information
-
-3. **Check log file** at `soplang_debug.log`
-
-### Advanced Debugging Techniques
-
-#### 1. Python Debugger (pdb)
-
-Add `import pdb; pdb.set_trace()` at a specific point in the interpreter code to start interactive debugging:
-
-```python
-def evaluate(self, node):
-    if node.type == NodeType.BINARY_OPERATION and node.value == "+":
-        import pdb; pdb.set_trace()  # Start debugging here
-        # Rest of the code
-```
-
-Then use pdb commands:
-- `n` - Next line
-- `s` - Step into function
-- `c` - Continue execution
-- `p variable` - Print variable
-- `q` - Quit debugging
-
-#### 2. AST Visualization
-
-To visualize the abstract syntax tree:
+`--ast` prints the parse tree and does not run the program. `--hir` prints the flat instructions for each function and for the top level, and also does not run.
 
 ```bash
-python -m tools.ast_visualizer examples/my_program.so
+cargo build --release
+./target/release/soplang --ast examples/08_functions.sop
+./target/release/soplang --hir examples/08_functions.sop
 ```
 
-This generates a graphical representation of the AST to help understand program structure.
+Use `--ast` when a program is rejected while parsing, or when a statement is bound to the wrong form. Use `--hir` when parsing succeeds and the value or control flow is wrong: look for the slot copies, calls, and returns of that function.
 
-#### 3. Performance Profiling
-
-To identify performance bottlenecks:
+### A single test
 
 ```bash
-python -m cProfile -o profile.out main.py examples/my_program.so
-python -m pstats profile.out
+cargo test --test interpreter_tests test_hello_world -- --nocapture
+cargo test --test semantic_tests test_semantic_class_typed_var -- --nocapture
 ```
 
-Then in the pstats interface:
+`--nocapture` shows `qor` output and compiler errors from that test.
+
+### Stepping through the Rust code
+
+Build the debug binary and run it under a debugger:
+
+```bash
+cargo build
+rust-gdb --args target/debug/soplang examples/01_hello.sop
 ```
-sort cumtime
-stats 10
-```
+
+`rust-lldb` works the same way on macOS. Break in `run_source`, `HirLowering::lower`, or `CraneliftBackend::compile_function` depending on the stage you care about.
+
+JIT time is measured with `cargo bench`. See [benchmarks/README.md](../../benchmarks/README.md).
 
 ## Conclusion
 
-Effective debugging is essential for both developing the Soplang interpreter and writing Soplang programs. By understanding error messages, using debug output, and leveraging debugging tools, you can quickly identify and fix issues in your code.
+For a Soplang program, `qor` at the points you care about is still the fastest check. For the compiler, `--ast` and `--hir` show the two representations before native code, and `cargo test` locks the behavior.
 
-Remember that the most powerful debugging technique is often the simplest: adding strategic debug output with `qor()` can help track program state and identify where problems occur.
-
-For more information on Soplang's testing methodology, see [TEST_METHODOLOGY.md](TEST_METHODOLOGY.md), and for details on example programs, see [EXAMPLES.md](EXAMPLES.md).
+See [TEST_METHODOLOGY.md](TEST_METHODOLOGY.md) for the suites and [EXAMPLES.md](EXAMPLES.md) for the example programs.

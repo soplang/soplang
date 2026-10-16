@@ -26,6 +26,7 @@ pub enum TokenType {
     Dhaxal,    // dhaxal (extends)
     Cusub,     // cusub (new)
     Nafta,     // nafta (self/this)
+    Waalid,    // waalid (parent method)
     // Static type keywords
     Abn,       // abn (integer)
     Jajab,     // jajab (float)
@@ -77,11 +78,13 @@ pub struct Token {
     pub lexeme: String,
     pub line:   usize,
     pub col:    usize,
+    /// Byte offset of this token in the source.
+    pub start:  usize,
 }
 
 impl Token {
-    pub fn new(kind: TokenType, lexeme: impl Into<String>, line: usize, col: usize) -> Self {
-        Self { kind, lexeme: lexeme.into(), line, col }
+    pub fn new(kind: TokenType, lexeme: impl Into<String>, line: usize, col: usize, start: usize) -> Self {
+        Self { kind, lexeme: lexeme.into(), line, col, start }
     }
 }
 

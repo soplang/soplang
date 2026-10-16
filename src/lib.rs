@@ -8,6 +8,7 @@ pub mod hir;
 pub mod runtime;
 pub mod semantic;
 
+pub use cli::ReplSession;
 pub use error::{format_error_with_source, SoplangError};
 pub use frontend::{
     ast, lexer, parser, token, Expr, Lexer, Literal, Param, Parser, Stmt, Token, TokenType,
@@ -38,7 +39,13 @@ pub fn run_source(
         }
         return Ok(());
     }
-    let sym = semantic::analyze_with_options(&stmts, semantic::AnalyzeOptions { strict })?;
+    let sym = semantic::analyze_with_options(
+        &stmts,
+        semantic::AnalyzeOptions {
+            strict,
+            repl: false,
+        },
+    )?;
     let hir = HirLowering::lower(&sym, &stmts);
     if dump_hir {
         for f in &hir.functions {
@@ -76,16 +83,27 @@ pub fn maybe_wrap_for_repl(source: &str) -> String {
 }
 
 /// Build a standalone executable (AOT path).
+///
+/// `source_path` is the file being built. `keen` imports are resolved before
+/// lowering so the binary does not need those files beside it.
 pub fn build_source(
     source: &str,
+    source_path: Option<&Path>,
     out_path: &Path,
     opt_level: u8,
     strict: bool,
 ) -> Result<(), SoplangError> {
-    let tokens = Lexer::new(source).tokenize()?;
-    let stmts = frontend::imports::resolve_imports(Parser::new(tokens).parse()?, None)?;
-    let sym = semantic::analyze_with_options(&stmts, semantic::AnalyzeOptions { strict })?;
-    let _hir = HirLowering::lower(&sym, &stmts);
+    let bundled = frontend::imports::bundle_source(source, source_path)?;
+    let tokens = Lexer::new(&bundled).tokenize()?;
+    let stmts = Parser::new(tokens).parse()?;
+    let sym = semantic::analyze_with_options(
+        &stmts,
+        semantic::AnalyzeOptions {
+            strict,
+            repl: false,
+        },
+    )?;
+    let hir = HirLowering::lower(&sym, &stmts);
     let backend = backend::llvm::LlvmBackend::new();
-    backend.build_executable(source, out_path, opt_level, strict)
+    backend.build_executable(&hir, &sym, out_path, opt_level)
 }

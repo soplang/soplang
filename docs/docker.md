@@ -102,10 +102,7 @@ docker run -it --rm soplang:local
 
 ## Environment Variables
 
-The Soplang Docker image supports the following environment variables:
-
-- `PYTHONPATH`: Customize the Python path (default: `/app`)
-- `PYTHONUNBUFFERED`: Control Python output buffering
+The image entrypoint is the `soplang` binary. It does not read `PYTHONPATH` or other Python settings. Pass Soplang flags after the image name, for example `soplang/soplang --ast my_script.sop`.
 
 ## Security
 

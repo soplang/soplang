@@ -65,6 +65,164 @@ fn test_oop_class_example() {
 }
 
 #[test]
+fn test_static_abn_jajab_ops() {
+    let output = run_program(
+        r#"
+        abn a = 10
+        abn b = 4
+        qor(a + b)
+        qor(a - b)
+        qor(a * b)
+        qor(a / b)
+        qor(a % b)
+        jajab f = 1.5
+        qor(f + a)
+        haddii (a > b) { qor("weyn") }
+        abn n = 3
+        qor(-n)
+        hawl ku_dar(abn x, abn y) { celi x + y }
+        qor(ku_dar(2, 5))
+        door d = 1
+        qor(d + "a")
+        fasax {
+            abn z = 1
+            abn w = 0
+            qor(z / w)
+        } qabo (e) { qor("ok") }
+    "#,
+    );
+    assert_eq!(output, "14\n6\n40\n2.5\n2\n11.5\nweyn\n-3\n7\n1a\nok\n");
+}
+
+#[test]
+fn test_waalid_calls_parent_method() {
+    let output = run_program(
+        r#"
+        qaab A {
+            hawl dhaw() { qor("A") }
+            hawl cod() { celi "A" }
+        }
+        qaab B dhaxal A {
+            hawl dhaw() { qor("B") }
+            hawl cod() { celi waalid.cod() + "B" }
+        }
+        qaab C dhaxal B {
+            hawl cod() { celi waalid.cod() + "C" }
+        }
+        door b = cusub B()
+        qor(b.cod())
+        door c = cusub C()
+        qor(c.cod())
+    "#,
+    );
+    assert_eq!(output, "B\nAB\nB\nABC\n");
+}
+
+#[test]
+fn test_class_typed_variable() {
+    let output = run_program(
+        r#"
+        qaab Xayawaan {
+            hawl dhaw(magac) { nafta.magac = magac }
+            hawl magaca() { celi nafta.magac }
+        }
+        qaab Bisad dhaxal Xayawaan {
+            hawl dhaw(magac) { nafta.magac = magac }
+        }
+        qaab Kale { hawl dhaw() {} }
+        Bisad b = cusub Bisad("Mia")
+        qor(b.magaca())
+        Xayawaan x = b
+        qor(x.magaca())
+        door d = cusub Kale()
+        fasax {
+            Bisad bad = d
+            qor("no")
+        } qabo (e) { qor("ok") }
+    "#,
+    );
+    assert_eq!(output, "Mia\nMia\nok\n");
+}
+
+#[test]
+fn test_nested_function_keeps_outer_local() {
+    let output = run_program(
+        r#"
+        hawl plain() {
+            hawl hi() { celi "hi" }
+            celi hi
+        }
+        door p = plain()
+        qor(p())
+
+        hawl make() {
+            door x = "kept"
+            hawl inner() { celi x }
+            celi inner
+        }
+        door f = make()
+        qor(f())
+
+        hawl snap() {
+            door x = "first"
+            hawl shot() { celi x }
+            x = "second"
+            celi shot
+        }
+        door s = snap()
+        qor(s())
+
+        door g = "global"
+        hawl outer() {
+            hawl readg() { celi g }
+            celi readg
+        }
+        door h = outer()
+        g = "changed"
+        qor(h())
+
+        hawl greet(name) {
+            hawl inner() { celi name }
+            celi inner
+        }
+        door greet_f = greet("Amina")
+        qor(greet_f())
+
+        hawl a() {
+            door x = "deep"
+            hawl b() {
+                hawl c() { celi x }
+                celi c
+            }
+            celi b
+        }
+        door mid = a()
+        door deep = mid()
+        qor(deep())
+
+        hawl add(base) {
+            hawl plus(n) { celi base + n }
+            celi plus
+        }
+        door plus = add(10)
+        qor(plus(5))
+
+        qaab Sanduuq {
+            hawl dhaw(magac) { nafta.magac = magac }
+            hawl reader() {
+                hawl inner() { celi nafta.magac }
+                celi inner
+            }
+        }
+        door box = cusub Sanduuq("Mia")
+        door read = box.reader()
+        qor(read())
+    "#,
+    );
+    assert_eq!(output, "hi\nkept\nfirst\nchanged\nAmina\ndeep\n15\nMia\n");
+}
+
+#[test]
 fn test_try_catch_runtime() {
     let output = run_program(
         r#"
@@ -72,6 +230,51 @@ fn test_try_catch_runtime() {
     "#,
     );
     assert_eq!(output, "ok\n");
+}
+
+#[test]
+fn test_repl_session_keeps_names() {
+    let mut session = soplang::ReplSession::new(false).expect("session");
+    session.eval(r#"door natiijo = """#, None).unwrap();
+    session
+        .eval(
+            r#"
+            qaab Bisad {
+                hawl salaam() { natiijo = "Mia" }
+            }
+            "#,
+            None,
+        )
+        .unwrap();
+    session.eval(r#"door b = cusub Bisad()"#, None).unwrap();
+    session.eval(r#"b.salaam()"#, None).unwrap();
+    assert_eq!(global_string("natiijo"), "Mia");
+
+    session.eval("door x = 1", None).unwrap();
+    session.eval("x = x + 4", None).unwrap();
+    assert_eq!(global_int("x"), 5);
+
+    session
+        .eval(r#"hawl foo() { natiijo = "fn" }"#, None)
+        .unwrap();
+    session.eval("foo()", None).unwrap();
+    assert_eq!(global_string("natiijo"), "fn");
+}
+
+fn global_string(name: &str) -> String {
+    let sv = soplang::runtime::soplang_get_builtin(name.as_ptr(), name.len());
+    match soplang::runtime::soplang_to_value(sv).unwrap() {
+        soplang::Value::Str(s) => s,
+        other => panic!("expected string for {name}, got {other:?}"),
+    }
+}
+
+fn global_int(name: &str) -> i64 {
+    let sv = soplang::runtime::soplang_get_builtin(name.as_ptr(), name.len());
+    match soplang::runtime::soplang_to_value(sv).unwrap() {
+        soplang::Value::Int(n) => n,
+        other => panic!("expected int for {name}, got {other:?}"),
+    }
 }
 
 #[test]

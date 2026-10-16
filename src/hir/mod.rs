@@ -3,5 +3,6 @@
 mod lower;
 
 pub use lower::{
-    BinOpKind, HirConst, HirFunction, HirInstr, HirLowering, HirModule, LabelId, Slot, UnOpKind,
+    BinOpKind, HirConst, HirFunction, HirInstr, HirLowering, HirModule, LabelId, Slot, SlotNum,
+    UnOpKind,
 };

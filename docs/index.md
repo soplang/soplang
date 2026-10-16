@@ -2,7 +2,7 @@
 
 Soplang is the Somali programming language, designed to make programming accessible to Somali speakers worldwide.
 
-**Implementation:** Rust (at project root). The **compiler** (Cranelift JIT + LLVM AOT) is in progress; see [COMPILER_PLAN.md](../COMPILER_PLAN.md) in the repo root.
+**Implementation:** Rust (at project root). Programs run on the Cranelift JIT. `soplang --build` compiles LLVM IR into a standalone binary. The pipeline is described in [COMPILER_PLAN.md](../COMPILER_PLAN.md).
 
 ## Documentation Sections
 
@@ -23,7 +23,7 @@ Soplang is the Somali programming language, designed to make programming accessi
 - [Performance / benchmarks](../benchmarks/README.md) - Compiler benchmarks (Criterion), [RESULTS.md](../benchmarks/RESULTS.md)
 
 ### Architecture & Internals
-- [Compiler Plan](../COMPILER_PLAN.md) - Cranelift JIT + LLVM AOT (Rust, in progress)
+- [Compiler Plan](../COMPILER_PLAN.md) - Cranelift JIT + LLVM AOT
 
 ### Testing
 - [Testing Guide](testing/README.md) - How to test Soplang
