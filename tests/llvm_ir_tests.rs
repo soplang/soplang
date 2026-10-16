@@ -238,3 +238,74 @@ fn test_llvm_ir_lists_objects_try_classes_and_closures() {
         "hi\nkept\nfirst\nchanged\nAmina\ndeep\n15\nMia\n"
     );
 }
+
+#[test]
+fn test_llvm_ir_native_numeric_ops_and_zero_fallback() {
+    let source = r#"
+        abn a = 10
+        abn b = 4
+        qor(a + b)
+        qor(a - b)
+        qor(a * b)
+        qor(a / b)
+        qor(a % b)
+        jajab f = 5.5
+        qor(f + a)
+        qor(f % 2.0)
+        qor(a > b)
+        qor(-a)
+        qor(-f)
+        hawl ku_dar(abn x, abn y) { celi x + y }
+        qor(ku_dar(2, 5))
+        door d = 1
+        qor(d + "a")
+        fasax {
+            abn z = 0
+            qor(a / z)
+        } qabo (e) { qor("div zero") }
+        fasax {
+            abn mz = 0
+            qor(a % mz)
+        } qabo (e) { qor("mod zero") }
+        fasax {
+            jajab fz = 0.0
+            qor(f / fz)
+        } qabo (e) { qor("float zero") }
+    "#;
+    let tokens = Lexer::new(source).tokenize().expect("lex");
+    let stmts = Parser::new(tokens).parse().expect("parse");
+    let sym = analyze(&stmts).expect("analyze");
+    let hir = HirLowering::lower(&sym, &stmts);
+    let ir = emit_llvm_ir(&hir, &sym).unwrap_or_else(|e| panic!("{e}"));
+    for instruction in [
+        " = add i64 ",
+        " = sub i64 ",
+        " = mul i64 ",
+        " = srem i64 ",
+        " = fadd double ",
+        " = fdiv double ",
+        " = frem double ",
+        " = icmp sgt i64 ",
+        " = fneg double ",
+        "Nzero",
+        "call %SoplangValue @soplang_add",
+    ] {
+        assert!(
+            ir.contains(instruction),
+            "missing native or fallback IR: {instruction}"
+        );
+    }
+    let bin = temp_bin("llvm_numeric");
+    link_llvm_binary(&ir, &bin).unwrap_or_else(|e| panic!("{e}"));
+    let out = Command::new(&bin).output().expect("run llvm binary");
+    let _ = fs::remove_file(&bin);
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    assert_eq!(
+        String::from_utf8(out.stdout).expect("utf8"),
+        "14\n6\n40\n2.5\n2\n15.5\n1.5\nrun\n-10\n-5.5\n7\n1a\ndiv zero\nmod zero\nfloat zero\n"
+    );
+}

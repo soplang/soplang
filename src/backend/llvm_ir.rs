@@ -1,7 +1,7 @@
 //! LLVM IR that calls the existing runtime.
 //!
 //! Constants, arithmetic, branches, loops, functions, lists, objects, classes,
-//! `waalid`, `fasax`, and closures. Native `abn`/`jajab` ops are not lowered here.
+//! `waalid`, `fasax`, closures, and native `abn`/`jajab` ops.
 //! `soplang --build` is still the Cargo runner in `llvm.rs`.
 
 use std::collections::HashMap;
@@ -10,7 +10,7 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use crate::error::{runtime_error, SoplangError};
-use crate::hir::{BinOpKind, HirConst, HirFunction, HirInstr, HirModule, UnOpKind};
+use crate::hir::{BinOpKind, HirConst, HirFunction, HirInstr, HirModule, SlotNum, UnOpKind};
 use crate::semantic::SymbolTable;
 
 const DECLS: &str = r#"%SoplangValue = type { i8, i64 }
@@ -97,6 +97,8 @@ struct FnEmit<'a> {
     by_name: &'a HashMap<String, usize>,
     tmp: usize,
     nslots: usize,
+    kinds: Vec<SlotNum>,
+    seeded: Vec<bool>,
     slot_fn: HashMap<usize, usize>,
     is_main: bool,
     cont: usize,
@@ -329,6 +331,8 @@ fn emit_function(
         by_name,
         tmp: 0,
         nslots,
+        kinds: numeric_kinds(&f.local_nums, nslots),
+        seeded: numeric_seeds(&f.local_nums, nslots),
         slot_fn: HashMap::new(),
         is_main: false,
         cont: 0,
@@ -368,6 +372,8 @@ fn emit_main(
         by_name,
         tmp: 0,
         nslots,
+        kinds: numeric_kinds(&hir.top_nums, nslots),
+        seeded: numeric_seeds(&hir.top_nums, nslots),
         slot_fn: HashMap::new(),
         is_main: true,
         cont: 0,
@@ -377,6 +383,18 @@ fn emit_main(
     emit.body(&hir.top_level)?;
     emit.m.body.push_str("}\n");
     Ok(())
+}
+
+fn numeric_kinds(seed: &[SlotNum], nslots: usize) -> Vec<SlotNum> {
+    (0..nslots)
+        .map(|i| seed.get(i).copied().unwrap_or(SlotNum::Dyn))
+        .collect()
+}
+
+fn numeric_seeds(seed: &[SlotNum], nslots: usize) -> Vec<bool> {
+    (0..nslots)
+        .map(|i| seed.get(i).copied().unwrap_or(SlotNum::Dyn) != SlotNum::Dyn)
+        .collect()
 }
 
 impl<'a> FnEmit<'a> {
@@ -574,11 +592,20 @@ impl<'a> FnEmit<'a> {
                     HirConst::Null => self.call_sv("soplang_null", ""),
                 };
                 self.unpack_store(&sv, *dst);
+                self.set_kind(
+                    *dst,
+                    match val {
+                        HirConst::Int(_) => SlotNum::Int,
+                        HirConst::Float(_) => SlotNum::Float,
+                        _ => SlotNum::Dyn,
+                    },
+                );
                 Ok(false)
             }
             HirInstr::Copy { dst, src } => {
                 let (t, p) = self.load_slot(*src);
                 self.store_slot(*dst, &t, &p);
+                self.set_kind(*dst, self.kind(*src));
                 if let Some(idx) = self.slot_fn.get(src).copied() {
                     self.slot_fn.insert(*dst, idx);
                 }
@@ -604,19 +631,50 @@ impl<'a> FnEmit<'a> {
                 Ok(false)
             }
             HirInstr::BinOp {
-                dst, op, lhs, rhs, ..
+                dst,
+                op,
+                lhs,
+                rhs,
+                typed,
             } => {
-                let sv = self.binop(*op, *lhs, *rhs);
-                self.unpack_store(&sv, *dst);
+                let lk = self.kind(*lhs);
+                let rk = self.kind(*rhs);
+                let native = if *typed && lk != SlotNum::Dyn && rk != SlotNum::Dyn {
+                    self.native_binop(*op, *lhs, *rhs, lk, rk)
+                } else {
+                    None
+                };
+                let (tag, pay, kind) = if let Some(result) = native {
+                    result
+                } else {
+                    let sv = self.binop(*op, *lhs, *rhs);
+                    let (tag, pay) = self.unpack(&sv);
+                    (tag, pay, SlotNum::Dyn)
+                };
+                self.store_slot(*dst, &tag, &pay);
+                self.set_kind(*dst, kind);
                 Ok(false)
             }
             HirInstr::UnOp { dst, op, src } => {
-                let func = match op {
-                    UnOpKind::Neg => "soplang_neg",
-                    UnOpKind::Not => "soplang_not",
+                let kind = self.kind(*src);
+                let native = if *op == UnOpKind::Neg && kind != SlotNum::Dyn {
+                    self.native_neg(*src, kind)
+                } else {
+                    None
                 };
-                let sv = self.unary(func, *src);
-                self.unpack_store(&sv, *dst);
+                let (tag, pay, result_kind) = if let Some(result) = native {
+                    result
+                } else {
+                    let func = match op {
+                        UnOpKind::Neg => "soplang_neg",
+                        UnOpKind::Not => "soplang_not",
+                    };
+                    let sv = self.unary(func, *src);
+                    let (tag, pay) = self.unpack(&sv);
+                    (tag, pay, SlotNum::Dyn)
+                };
+                self.store_slot(*dst, &tag, &pay);
+                self.set_kind(*dst, result_kind);
                 Ok(false)
             }
             HirInstr::Label(id) => {
@@ -873,6 +931,170 @@ impl<'a> FnEmit<'a> {
             func,
             &format!("%SoplangValue {av}, %SoplangValue {bv}, %SoplangValue {cv}"),
         )
+    }
+
+    fn kind(&self, slot: usize) -> SlotNum {
+        self.kinds.get(slot).copied().unwrap_or(SlotNum::Dyn)
+    }
+
+    fn set_kind(&mut self, slot: usize, kind: SlotNum) {
+        if !self.seeded[slot] {
+            self.kinds[slot] = kind;
+        }
+    }
+
+    fn as_float(&mut self, payload: &str, kind: SlotNum) -> String {
+        let value = self.fresh();
+        if kind == SlotNum::Float {
+            self.line(format!("  {value} = bitcast i64 {payload} to double"));
+        } else {
+            self.line(format!("  {value} = sitofp i64 {payload} to double"));
+        }
+        value
+    }
+
+    fn native_neg(&mut self, src: usize, kind: SlotNum) -> Option<(String, String, SlotNum)> {
+        let (_, payload) = self.load_slot(src);
+        let result = self.fresh();
+        match kind {
+            SlotNum::Int => {
+                self.line(format!("  {result} = sub i64 0, {payload}"));
+                Some(("1".into(), result, SlotNum::Int))
+            }
+            SlotNum::Float => {
+                let value = self.as_float(&payload, kind);
+                self.line(format!("  {result} = fneg double {value}"));
+                let bits = self.fresh();
+                self.line(format!("  {bits} = bitcast double {result} to i64"));
+                Some(("2".into(), bits, SlotNum::Float))
+            }
+            SlotNum::Dyn => None,
+        }
+    }
+
+    fn native_binop(
+        &mut self,
+        op: BinOpKind,
+        lhs: usize,
+        rhs: usize,
+        lk: SlotNum,
+        rk: SlotNum,
+    ) -> Option<(String, String, SlotNum)> {
+        if matches!(op, BinOpKind::And | BinOpKind::Or) {
+            return None;
+        }
+        let (_, lp) = self.load_slot(lhs);
+        let (_, rp) = self.load_slot(rhs);
+        let use_float = op == BinOpKind::Div || lk == SlotNum::Float || rk == SlotNum::Float;
+        if matches!(op, BinOpKind::Div | BinOpKind::Mod) {
+            let zero = self.fresh();
+            if rk == SlotNum::Int {
+                self.line(format!("  {zero} = icmp eq i64 {rp}, 0"));
+            } else {
+                let divisor = self.as_float(&rp, rk);
+                self.line(format!(
+                    "  {zero} = fcmp oeq double {divisor}, 0.000000e+00"
+                ));
+            }
+            let id = self.cont;
+            self.cont += 1;
+            let zero_label = format!("Nzero{id}");
+            let ok_label = format!("Nok{id}");
+            let merge_label = format!("Nmerge{id}");
+            self.line(format!(
+                "  br i1 {zero}, label %{zero_label}, label %{ok_label}"
+            ));
+            self.line(format!("{zero_label}:"));
+            let sv = self.binop(op, lhs, rhs);
+            let (zt, zp) = self.unpack(&sv);
+            self.line(format!("  br label %{merge_label}"));
+            self.line(format!("{ok_label}:"));
+            let (nt, np, kind) = self.native_numeric(op, &lp, &rp, lk, rk, use_float);
+            self.line(format!("  br label %{merge_label}"));
+            self.line(format!("{merge_label}:"));
+            let tag = self.fresh();
+            let pay = self.fresh();
+            self.line(format!(
+                "  {tag} = phi i64 [{zt}, %{zero_label}], [{nt}, %{ok_label}]"
+            ));
+            self.line(format!(
+                "  {pay} = phi i64 [{zp}, %{zero_label}], [{np}, %{ok_label}]"
+            ));
+            return Some((tag, pay, kind));
+        }
+        Some(self.native_numeric(op, &lp, &rp, lk, rk, use_float))
+    }
+
+    fn native_numeric(
+        &mut self,
+        op: BinOpKind,
+        lp: &str,
+        rp: &str,
+        lk: SlotNum,
+        rk: SlotNum,
+        use_float: bool,
+    ) -> (String, String, SlotNum) {
+        if !use_float {
+            let instruction = match op {
+                BinOpKind::Add => "add",
+                BinOpKind::Sub => "sub",
+                BinOpKind::Mul => "mul",
+                BinOpKind::Mod => "srem",
+                BinOpKind::Eq => "icmp eq",
+                BinOpKind::Ne => "icmp ne",
+                BinOpKind::Lt => "icmp slt",
+                BinOpKind::Le => "icmp sle",
+                BinOpKind::Gt => "icmp sgt",
+                BinOpKind::Ge => "icmp sge",
+                _ => unreachable!(),
+            };
+            let value = self.fresh();
+            self.line(format!("  {value} = {instruction} i64 {lp}, {rp}"));
+            if matches!(
+                op,
+                BinOpKind::Add | BinOpKind::Sub | BinOpKind::Mul | BinOpKind::Mod
+            ) {
+                return ("1".into(), value, SlotNum::Int);
+            }
+            let pay = self.fresh();
+            self.line(format!("  {pay} = zext i1 {value} to i64"));
+            return ("3".into(), pay, SlotNum::Dyn);
+        }
+        let l = self.as_float(lp, lk);
+        let r = self.as_float(rp, rk);
+        let instruction = match op {
+            BinOpKind::Add => "fadd",
+            BinOpKind::Sub => "fsub",
+            BinOpKind::Mul => "fmul",
+            BinOpKind::Div => "fdiv",
+            BinOpKind::Mod => "frem",
+            BinOpKind::Eq => "fcmp oeq",
+            BinOpKind::Ne => "fcmp une",
+            BinOpKind::Lt => "fcmp olt",
+            BinOpKind::Le => "fcmp ole",
+            BinOpKind::Gt => "fcmp ogt",
+            BinOpKind::Ge => "fcmp oge",
+            _ => unreachable!(),
+        };
+        let value = self.fresh();
+        self.line(format!("  {value} = {instruction} double {l}, {r}"));
+        if matches!(
+            op,
+            BinOpKind::Eq
+                | BinOpKind::Ne
+                | BinOpKind::Lt
+                | BinOpKind::Le
+                | BinOpKind::Gt
+                | BinOpKind::Ge
+        ) {
+            let pay = self.fresh();
+            self.line(format!("  {pay} = zext i1 {value} to i64"));
+            ("3".into(), pay, SlotNum::Dyn)
+        } else {
+            let pay = self.fresh();
+            self.line(format!("  {pay} = bitcast double {value} to i64"));
+            ("2".into(), pay, SlotNum::Float)
+        }
     }
 
     fn binop(&mut self, op: BinOpKind, lhs: usize, rhs: usize) -> String {
