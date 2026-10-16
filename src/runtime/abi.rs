@@ -1268,6 +1268,31 @@ pub extern "C" fn soplang_call_method(
     }
 }
 
+
+#[repr(C)]
+struct CompiledReturn {
+    tag: i64,
+    payload: i64,
+}
+
+macro_rules! compiled_fn_type {
+    ($name:ident($($ty:ty),*)) => {
+        #[cfg(all(target_os = "windows", target_arch = "x86_64"))]
+        type $name = extern "sysv64" fn($($ty),*) -> CompiledReturn;
+        #[cfg(not(all(target_os = "windows", target_arch = "x86_64")))]
+        type $name = extern "C" fn($($ty),*) -> CompiledReturn;
+    };
+}
+
+compiled_fn_type!(CompiledFn0());
+compiled_fn_type!(CompiledFn2(i64, i64));
+compiled_fn_type!(CompiledFn4(i64, i64, i64, i64));
+compiled_fn_type!(CompiledFn6(i64, i64, i64, i64, i64, i64));
+compiled_fn_type!(CompiledFn8(i64, i64, i64, i64, i64, i64, i64, i64));
+compiled_fn_type!(CompiledFn16(
+    i64, i64, i64, i64, i64, i64, i64, i64, i64, i64, i64, i64, i64, i64, i64, i64
+));
+
 fn call_compiled_fn(
     ptr: *const u8,
     n_params: usize,
@@ -1303,51 +1328,35 @@ fn call_compiled_fn(
             raw.push(0);
         }
     }
-    let (ret_tag, ret_pay): (i64, i64) = unsafe {
+    let CompiledReturn {
+        tag: ret_tag,
+        payload: ret_pay,
+    } = unsafe {
         match n_params {
             0 => {
-                let f: extern "C" fn() -> (i64, i64) = std::mem::transmute(ptr);
+                let f: CompiledFn0 = std::mem::transmute(ptr);
                 f()
             }
             1 => {
-                let f: extern "C" fn(i64, i64) -> (i64, i64) = std::mem::transmute(ptr);
+                let f: CompiledFn2 = std::mem::transmute(ptr);
                 f(raw[0], raw[1])
             }
             2 => {
-                let f: extern "C" fn(i64, i64, i64, i64) -> (i64, i64) = std::mem::transmute(ptr);
+                let f: CompiledFn4 = std::mem::transmute(ptr);
                 f(raw[0], raw[1], raw[2], raw[3])
             }
             3 => {
-                let f: extern "C" fn(i64, i64, i64, i64, i64, i64) -> (i64, i64) =
-                    std::mem::transmute(ptr);
+                let f: CompiledFn6 = std::mem::transmute(ptr);
                 f(raw[0], raw[1], raw[2], raw[3], raw[4], raw[5])
             }
             4 => {
-                let f: extern "C" fn(i64, i64, i64, i64, i64, i64, i64, i64) -> (i64, i64) =
-                    std::mem::transmute(ptr);
+                let f: CompiledFn8 = std::mem::transmute(ptr);
                 f(
                     raw[0], raw[1], raw[2], raw[3], raw[4], raw[5], raw[6], raw[7],
                 )
             }
             _ => {
-                let f: extern "C" fn(
-                    i64,
-                    i64,
-                    i64,
-                    i64,
-                    i64,
-                    i64,
-                    i64,
-                    i64,
-                    i64,
-                    i64,
-                    i64,
-                    i64,
-                    i64,
-                    i64,
-                    i64,
-                    i64,
-                ) -> (i64, i64) = std::mem::transmute(ptr);
+                let f: CompiledFn16 = std::mem::transmute(ptr);
                 let mut a = [0i64; 16];
                 for (i, v) in raw.iter().enumerate().take(16) {
                     a[i] = *v;

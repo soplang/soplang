@@ -497,3 +497,11 @@ fn test_llvm_ir_truthiness_ranges_and_runtime_types() {
         )
     );
 }
+
+#[test]
+fn test_llvm_runtime_names_inside_strings_are_preserved() {
+    assert_eq!(
+        run_llvm("runtime_symbol_string", r#"qor(" = call @soplang_add")"#),
+        " = call @soplang_add\n"
+    );
+}

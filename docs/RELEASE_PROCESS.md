@@ -42,7 +42,7 @@ package alone is not evidence of a successful JIT or LLVM ABI.
 After the maintainer commits and pushes a matching `release/v3.x.y` branch,
 release automation first calls the full verification workflow. Only successful
 Linux, Windows, macOS, and container jobs allow a draft. The draft contains the
-reviewed release notes, real package assets, and their platform checksum files,
+reviewed release notes, real package assets, and one combined `SHA256SUMS`,
 and targets the exact tested source revision. Automation does not rewrite the
 changelog or add a commit. Update and commit the changelog during review.
 
@@ -53,7 +53,7 @@ until a maintainer chooses a candidate version; this document does not select
 or publish a version.
 
 Publishing triggers the existing Docker registry workflow. Stable releases also
-trigger AUR publication. Prereleases must not replace stable `latest`, `3`, or
+trigger AUR publication when its credentials are configured. Prereleases must not replace stable `latest`, `3`, or
 `3.0` Docker tags or update the stable AUR package. Verify registry images and
 AUR installation after publication; the local image check cannot verify a
 registry upload. No publication is performed by the local packaging scripts.

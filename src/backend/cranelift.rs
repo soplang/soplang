@@ -38,6 +38,9 @@ pub struct CraneliftBackend {
 fn register_runtime_symbols(builder: &mut JITBuilder) {
     macro_rules! sym {
         ($b:expr, $name:ident) => {
+            #[cfg(all(target_os = "windows", target_arch = "x86_64"))]
+            $b.symbol(stringify!($name), runtime::windows_abi::$name as *const u8);
+            #[cfg(not(all(target_os = "windows", target_arch = "x86_64")))]
             $b.symbol(stringify!($name), runtime::$name as *const u8);
         };
     }
@@ -89,6 +92,18 @@ fn register_runtime_symbols(builder: &mut JITBuilder) {
     sym!(builder, soplang_try_end);
     sym!(builder, soplang_has_pending_error);
     sym!(builder, soplang_get_caught_error);
+}
+
+// JIT allocations can be farther apart than AArch64's direct branch range,
+// especially across persistent REPL compilations. Request a far-call sequence.
+fn declare_jit_function(
+    module: &mut cranelift_jit::JITModule,
+    id: FuncId,
+    function: &mut cranelift::codegen::ir::Function,
+) -> cranelift::codegen::ir::FuncRef {
+    let reference = module.declare_func_in_func(id, function);
+    function.dfg.ext_funcs[reference].colocated = false;
+    reference
 }
 
 fn make_sig(n_params: usize, n_returns: usize) -> Signature {
@@ -270,6 +285,9 @@ impl CraneliftBackend {
         if code.is_null() {
             return Err(runtime_error("main not finalized", 0, 0));
         }
+        #[cfg(all(target_os = "windows", target_arch = "x86_64"))]
+        let main_fn: extern "sysv64" fn() = unsafe { std::mem::transmute(code) };
+        #[cfg(not(all(target_os = "windows", target_arch = "x86_64")))]
         let main_fn: extern "C" fn() = unsafe { std::mem::transmute(code) };
         main_fn();
         Ok(())
@@ -509,7 +527,7 @@ fn compile_body(
                 let fid = module
                     .declare_function("soplang_set_location", Linkage::Import, &make_sig(7, 0))
                     .map_err(|e| runtime_error(e.to_string(), 0, 0))?;
-                let fref = module.declare_func_in_func(fid, builder.func);
+                let fref = declare_jit_function(module, fid, builder.func);
                 builder.ins().call(fref, &args);
             }
 
@@ -902,7 +920,7 @@ fn compile_body(
                 let fid = module
                     .declare_function("soplang_check_type", Linkage::Import, &sig)
                     .map_err(|e| runtime_error(e.to_string(), 0, 0))?;
-                let fref = module.declare_func_in_func(fid, builder.func);
+                let fref = declare_jit_function(module, fid, builder.func);
                 builder.ins().call(fref, &[st, sp, et, nptr, nlen]);
             }
 
@@ -924,7 +942,7 @@ fn compile_body(
                 let fid = module
                     .declare_function("soplang_check_class", Linkage::Import, &sig)
                     .map_err(|e| runtime_error(e.to_string(), 0, 0))?;
-                let fref = module.declare_func_in_func(fid, builder.func);
+                let fref = declare_jit_function(module, fid, builder.func);
                 builder.ins().call(fref, &[st, sp, cptr, clen, nptr, nlen]);
             }
 
@@ -938,7 +956,7 @@ fn compile_body(
                 let fid = module
                     .declare_function("soplang_mark_const", Linkage::Import, &sig)
                     .map_err(|e| runtime_error(e.to_string(), 0, 0))?;
-                let fref = module.declare_func_in_func(fid, builder.func);
+                let fref = declare_jit_function(module, fid, builder.func);
                 builder.ins().call(fref, &[nptr, nlen]);
             }
 
@@ -1042,7 +1060,7 @@ fn call_rt(
     let fid = module
         .declare_function(name, Linkage::Import, &sig)
         .map_err(|e| runtime_error(e.to_string(), 0, 0))?;
-    let fref = module.declare_func_in_func(fid, builder.func);
+    let fref = declare_jit_function(module, fid, builder.func);
     let call = builder.ins().call(fref, args);
     let r = builder.inst_results(call);
     Ok((r[0], r[1]))
@@ -1058,7 +1076,7 @@ fn call_rt_i64(
     let fid = module
         .declare_function(name, Linkage::Import, &sig)
         .map_err(|e| runtime_error(e.to_string(), 0, 0))?;
-    let fref = module.declare_func_in_func(fid, builder.func);
+    let fref = declare_jit_function(module, fid, builder.func);
     let call = builder.ins().call(fref, args);
     Ok(builder.inst_results(call)[0])
 }
@@ -1073,7 +1091,7 @@ fn call_rt_void(
     let fid = module
         .declare_function(name, Linkage::Import, &sig)
         .map_err(|e| runtime_error(e.to_string(), 0, 0))?;
-    let fref = module.declare_func_in_func(fid, builder.func);
+    let fref = declare_jit_function(module, fid, builder.func);
     builder.ins().call(fref, args);
     Ok(())
 }
@@ -1090,7 +1108,7 @@ fn emit_store_global(
     let fid = module
         .declare_function("soplang_store_global", Linkage::Import, &sig)
         .map_err(|e| runtime_error(e.to_string(), 0, 0))?;
-    let fref = module.declare_func_in_func(fid, builder.func);
+    let fref = declare_jit_function(module, fid, builder.func);
     builder
         .ins()
         .call(fref, &[name_ptr, name_len, tag, payload]);
@@ -1323,7 +1341,7 @@ fn emit_direct_call(
     }
     sig.returns.push(AbiParam::new(types::I64));
     sig.returns.push(AbiParam::new(types::I64));
-    let fref = module.declare_func_in_func(*func_id, builder.func);
+    let fref = declare_jit_function(module, *func_id, builder.func);
     let call = builder.ins().call(fref, args);
     let r = builder.inst_results(call);
     Ok((r[0], r[1]))

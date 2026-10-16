@@ -5,6 +5,8 @@
 - `verify_package.py /path/to/soplang`: relocates a distribution away from the
   checkout and checks all public examples, error snapshots, REPL, concurrent
   native builds, runtime lookup, toolchain validation, and standalone outputs.
+- `release_assets.py <artifact-directory>`: validate each platform checksum and
+  create one combined manifest with unique asset names for publication.
 - `checksums.py <assets...> --output SHA256SUMS`: hashes actual files and writes
   SHA-256 records by filename. Run verification beside the assets.
 

@@ -131,7 +131,40 @@ pub fn emit_llvm_ir(hir: &HirModule, sym: &SymbolTable) -> Result<String, Soplan
     }
     emit_main(&mut m, &fns, &by_name, hir, sym)?;
 
-    Ok(format!("{DECLS}\n{}\n{}", m.strings, m.body))
+    let ir = format!("{DECLS}\n{}\n{}", m.strings, m.body);
+    Ok(target_runtime_abi(ir))
+}
+
+fn target_runtime_abi(ir: String) -> String {
+    #[cfg(all(target_os = "windows", target_arch = "x86_64"))]
+    {
+        // Match Cranelift's tagged-value convention through the Windows SysV
+        // bridges. main keeps the host C convention used by the CRT.
+        let mut output = String::with_capacity(ir.len());
+        for line in ir.split_inclusive('\n') {
+            let code = line.trim_start();
+            if code.starts_with("declare ")
+                || code.starts_with("define %SoplangValue ")
+                || code.starts_with("call ")
+                || (code.starts_with('%') && code.contains(" = call "))
+            {
+                output.push_str(
+                    &line
+                        .replace("declare ", "declare x86_64_sysvcc ")
+                        .replace("define %SoplangValue", "define x86_64_sysvcc %SoplangValue")
+                        .replace("call ", "call x86_64_sysvcc ")
+                        .replace("@soplang_", "@sysv_soplang_"),
+                );
+            } else {
+                output.push_str(line);
+            }
+        }
+        output
+    }
+    #[cfg(not(all(target_os = "windows", target_arch = "x86_64")))]
+    {
+        ir
+    }
 }
 
 /// Compile `ir` and link it with the Soplang runtime.
@@ -171,7 +204,11 @@ pub fn link_llvm_binary_with_opt(ir: &str, out: &Path, opt_level: u8) -> Result<
             0,
         ));
     }
-    let rustc = Command::new("rustc")
+    let mut linker = Command::new("rustc");
+    for path in native_library_paths(&deps) {
+        linker.arg("-L").arg(format!("native={}", path.display()));
+    }
+    let rustc = linker
         .arg("--edition")
         .arg("2021")
         .arg("--crate-name")
@@ -209,59 +246,101 @@ const LINK_WRAPPER: &str = r#"
 #![no_main]
 extern crate soplang;
 
+#[cfg(all(target_os = "windows", target_arch = "x86_64"))]
+use soplang::runtime::windows_abi as runtime;
+#[cfg(not(all(target_os = "windows", target_arch = "x86_64")))]
+use soplang::runtime;
+
+#[allow(dead_code)]
 struct Keep(*const ());
 unsafe impl Sync for Keep {}
 
 #[used]
 static KEEP: [Keep; 46] = [
-    Keep(soplang::runtime::soplang_set_location as *const ()),
-    Keep(soplang::runtime::soplang_int as *const ()),
-    Keep(soplang::runtime::soplang_float as *const ()),
-    Keep(soplang::runtime::soplang_str as *const ()),
-    Keep(soplang::runtime::soplang_bool as *const ()),
-    Keep(soplang::runtime::soplang_null as *const ()),
-    Keep(soplang::runtime::soplang_add as *const ()),
-    Keep(soplang::runtime::soplang_sub as *const ()),
-    Keep(soplang::runtime::soplang_mul as *const ()),
-    Keep(soplang::runtime::soplang_div as *const ()),
-    Keep(soplang::runtime::soplang_mod as *const ()),
-    Keep(soplang::runtime::soplang_neg as *const ()),
-    Keep(soplang::runtime::soplang_not as *const ()),
-    Keep(soplang::runtime::soplang_eq as *const ()),
-    Keep(soplang::runtime::soplang_ne as *const ()),
-    Keep(soplang::runtime::soplang_lt as *const ()),
-    Keep(soplang::runtime::soplang_le as *const ()),
-    Keep(soplang::runtime::soplang_gt as *const ()),
-    Keep(soplang::runtime::soplang_ge as *const ()),
-    Keep(soplang::runtime::soplang_and as *const ()),
-    Keep(soplang::runtime::soplang_or as *const ()),
-    Keep(soplang::runtime::soplang_truthy as *const ()),
-    Keep(soplang::runtime::soplang_range_continue as *const ()),
-    Keep(soplang::runtime::soplang_get_builtin as *const ()),
-    Keep(soplang::runtime::soplang_store_global as *const ()),
-    Keep(soplang::runtime::soplang_call as *const ()),
-    Keep(soplang::runtime::soplang_check_type as *const ()),
-    Keep(soplang::runtime::soplang_list_new as *const ()),
-    Keep(soplang::runtime::soplang_list_push as *const ()),
-    Keep(soplang::runtime::soplang_object_new as *const ()),
-    Keep(soplang::runtime::soplang_get_index as *const ()),
-    Keep(soplang::runtime::soplang_set_index as *const ()),
-    Keep(soplang::runtime::soplang_get_prop as *const ()),
-    Keep(soplang::runtime::soplang_set_prop as *const ()),
-    Keep(soplang::runtime::soplang_call_method as *const ()),
-    Keep(soplang::runtime::soplang_new_instance as *const ()),
-    Keep(soplang::runtime::soplang_register_class as *const ()),
-    Keep(soplang::runtime::soplang_register_user_fn as *const ()),
-    Keep(soplang::runtime::soplang_try_begin as *const ()),
-    Keep(soplang::runtime::soplang_try_end as *const ()),
-    Keep(soplang::runtime::soplang_has_pending_error as *const ()),
-    Keep(soplang::runtime::soplang_get_caught_error as *const ()),
-    Keep(soplang::runtime::soplang_check_class as *const ()),
-    Keep(soplang::runtime::soplang_mark_const as *const ()),
-    Keep(soplang::runtime::soplang_make_closure as *const ()),
-    Keep(soplang::runtime::soplang_capture_get as *const ()),
+    Keep(runtime::soplang_set_location as *const ()),
+    Keep(runtime::soplang_int as *const ()),
+    Keep(runtime::soplang_float as *const ()),
+    Keep(runtime::soplang_str as *const ()),
+    Keep(runtime::soplang_bool as *const ()),
+    Keep(runtime::soplang_null as *const ()),
+    Keep(runtime::soplang_add as *const ()),
+    Keep(runtime::soplang_sub as *const ()),
+    Keep(runtime::soplang_mul as *const ()),
+    Keep(runtime::soplang_div as *const ()),
+    Keep(runtime::soplang_mod as *const ()),
+    Keep(runtime::soplang_neg as *const ()),
+    Keep(runtime::soplang_not as *const ()),
+    Keep(runtime::soplang_eq as *const ()),
+    Keep(runtime::soplang_ne as *const ()),
+    Keep(runtime::soplang_lt as *const ()),
+    Keep(runtime::soplang_le as *const ()),
+    Keep(runtime::soplang_gt as *const ()),
+    Keep(runtime::soplang_ge as *const ()),
+    Keep(runtime::soplang_and as *const ()),
+    Keep(runtime::soplang_or as *const ()),
+    Keep(runtime::soplang_truthy as *const ()),
+    Keep(runtime::soplang_range_continue as *const ()),
+    Keep(runtime::soplang_get_builtin as *const ()),
+    Keep(runtime::soplang_store_global as *const ()),
+    Keep(runtime::soplang_call as *const ()),
+    Keep(runtime::soplang_check_type as *const ()),
+    Keep(runtime::soplang_list_new as *const ()),
+    Keep(runtime::soplang_list_push as *const ()),
+    Keep(runtime::soplang_object_new as *const ()),
+    Keep(runtime::soplang_get_index as *const ()),
+    Keep(runtime::soplang_set_index as *const ()),
+    Keep(runtime::soplang_get_prop as *const ()),
+    Keep(runtime::soplang_set_prop as *const ()),
+    Keep(runtime::soplang_call_method as *const ()),
+    Keep(runtime::soplang_new_instance as *const ()),
+    Keep(runtime::soplang_register_class as *const ()),
+    Keep(runtime::soplang_register_user_fn as *const ()),
+    Keep(runtime::soplang_try_begin as *const ()),
+    Keep(runtime::soplang_try_end as *const ()),
+    Keep(runtime::soplang_has_pending_error as *const ()),
+    Keep(runtime::soplang_get_caught_error as *const ()),
+    Keep(runtime::soplang_check_class as *const ()),
+    Keep(runtime::soplang_mark_const as *const ()),
+    Keep(runtime::soplang_make_closure as *const ()),
+    Keep(runtime::soplang_capture_get as *const ()),
 ];
 "#;
+
+fn native_library_paths(deps: &Path) -> Vec<PathBuf> {
+    let mut paths = Vec::new();
+    if let Some(profile) = deps.parent() {
+        let packaged = profile.join("native");
+        if packaged.is_dir() {
+            paths.push(packaged);
+        }
+        // Cargo's build-script output records native import-library locations.
+        // Reuse that metadata for source builds without invoking Cargo again.
+        if let Ok(entries) = fs::read_dir(profile.join("build")) {
+            for entry in entries.flatten() {
+                let Ok(output) = fs::read_to_string(entry.path().join("output")) else {
+                    continue;
+                };
+                for line in output.lines() {
+                    let search = line
+                        .strip_prefix("cargo:rustc-link-search=")
+                        .or_else(|| line.strip_prefix("cargo::rustc-link-search="));
+                    if let Some(search) = search {
+                        let search = search.strip_prefix("native=").unwrap_or(search);
+                        if !search.contains('=') {
+                            let path = PathBuf::from(search);
+                            if path.is_dir() {
+                                paths.push(path);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    paths.sort();
+    paths.dedup();
+    paths
+}
 
 // Each link owns its scratch directory, including concurrent builds with the same
 // output filename. Drop also cleans up when either compiler fails to start.

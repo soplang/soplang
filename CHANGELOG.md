@@ -46,6 +46,10 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+* JIT function references use far calls so macOS ARM64 allocations can exceed the direct branch range. Windows builds retain native import-library paths and packages bundle those libraries.
+* Windows x64 generated calls use System V bridges to the platform C runtime, including callbacks and explicit two-word return values.
+* Release uploads combine verified platform checksums into one manifest and skip optional AUR publication when credentials are absent.
+
 * Installed `--build` locates its bundled runtime instead of searching the build machine's Cargo directory and reports mismatched Rust toolchains before linking.
 * Concurrent LLVM builds with identical output filenames use isolated temporary directories and clean up on failures.
 * Docker includes Cargo manifests, clang 16, the linker, and the matching Rust toolchain. Registry metadata separates image names from the optional Docker Hub output.

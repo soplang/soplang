@@ -15,7 +15,8 @@ interactive shell. These operations do not need Rust, Cargo, or clang.
 ## Building standalone programs
 
 `--build` requires clang 15 or newer (with opaque pointer support) and the **exact Rust compiler used to build the package**,
-including its host target. Read `lib/soplang/rustc-version.txt` for the compiler
+including its host target. Native Windows import libraries are bundled under
+`lib/soplang/native` and selected automatically by the linker. Read `lib/soplang/rustc-version.txt` for the compiler
 version, commit, and target. For official packages the toolchain is Rust 1.94.0;
 install it through rustup, then select it in the shell where you run Soplang:
 

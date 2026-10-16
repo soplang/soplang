@@ -6,9 +6,9 @@ Verified on Linux x86_64 with Rust 1.94.0 and clang 22.1.8.
 
 | Check | Result |
 | --- | --- |
-| `cargo test --locked` | 99 passed; no ignored or skipped tests |
-| `cargo test --release --locked` | 99 passed; no ignored or skipped tests |
-| `cargo test --locked --test llvm_ir_tests` | 12 passed |
+| `cargo test --locked` | 100 passed; no ignored or skipped tests |
+| `cargo test --release --locked` | 100 passed; no ignored or skipped tests |
+| `cargo test --locked --test llvm_ir_tests` | 13 passed |
 | `cargo build --release --locked` | Passed |
 | Targeted Rust formatting and `git diff --check` | Passed |
 
@@ -95,3 +95,34 @@ or publication was triggered in this session.
 
 Native workflow configuration is not a native result. Keep publication gated on
 those checks. Releases remain on the Soplang 3 line.
+
+## First native CI run and follow-up fixes
+
+[Verification run 38982689163](https://github.com/soplang/soplang/actions/runs/38982689163)
+tested committed revision `17e5e9c` on native runners:
+
+| Job | Result |
+| --- | --- |
+| Linux x86_64 | Passed debug/release tests and extracted archive/Debian package checks |
+| Container | Passed image build and the full installed-package checker |
+| macOS ARM64 | Failed in Cranelift's short-range call relocation during two JIT fixture programs |
+| Windows x64 | Failed LLVM linking because Windows import-library search paths were missing |
+
+The follow-up changes request far JIT calls, preserve native library search
+metadata for source builds, and bundle native import libraries in installed
+packages. Windows x64 bridges match the generated System V value convention to
+the platform C runtime; generated callbacks use a C-layout two-word return value.
+LLVM's Windows ABI conversion leaves source strings unchanged, with a new
+regression example containing a runtime symbol name in a string.
+
+Both native target compile checks pass locally (`x86_64-pc-windows-msvc` and
+`aarch64-apple-darwin`). The Linux debug/release suites now each pass 100 tests,
+and the dedicated LLVM suite passes 13. The updated relocated Linux package also
+passes the full installed-package checker. These local checks do not establish
+that the native failures are resolved: rerun the native workflow after the fixes
+are committed and pushed, and publish only after every required job succeeds.
+
+Release drafts now verify platform checksums and assemble one combined
+`SHA256SUMS`, preventing equal platform checksum filenames from overwriting one
+another on GitHub. Stable AUR publication is optional and skips when credentials
+are absent. No v3 tag or release has been published.

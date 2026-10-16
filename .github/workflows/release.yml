@@ -42,6 +42,8 @@ jobs:
           pattern: soplang-*
           merge-multiple: true
           path: release-assets
+      - name: Verify assets and combine checksums
+        run: python3 scripts/release_assets.py release-assets
       - name: Create draft with verified package assets
         uses: softprops/action-gh-release@v3
         with:
@@ -55,21 +57,36 @@ jobs:
             release-assets/**/*.zip
             release-assets/**/*.exe
             release-assets/**/*.dmg
-            release-assets/**/SHA256SUMS
+            release-assets/SHA256SUMS
           fail_on_unmatched_files: false
           draft: true
           prerelease: ${{ env.PRERELEASE == 'true' }}
 
   publish-aur:
-    name: Publish to AUR
+    name: Publish to AUR when configured
     runs-on: ubuntu-latest
     if: github.event_name == 'release' && github.event.action == 'published' && !github.event.release.prerelease
 
     steps:
+      - name: Check AUR credentials
+        id: aur
+        env:
+          AUR_USERNAME: ${{ secrets.AUR_USERNAME }}
+          AUR_EMAIL: ${{ secrets.AUR_EMAIL }}
+          AUR_SSH_PRIVATE_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+        run: |
+          if [[ -n "$AUR_USERNAME" && -n "$AUR_EMAIL" && -n "$AUR_SSH_PRIVATE_KEY" ]]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::AUR credentials are not configured; skipping optional AUR publication."
+          fi
       - name: Checkout code
+        if: steps.aur.outputs.enabled == 'true'
         uses: actions/checkout@v7
 
       - name: Extract version
+        if: steps.aur.outputs.enabled == 'true'
         id: extract_version
         env:
           RELEASE_TAG: ${{ github.event.release.tag_name }}
@@ -78,6 +95,7 @@ jobs:
           echo "VERSION_NUM=$VERSION_NUM" >> "$GITHUB_ENV"
 
       - name: Generate PKGBUILD
+        if: steps.aur.outputs.enabled == 'true'
         run: |
           mkdir -p aur-workspace
           cp linux/aur/PKGBUILD.template aur-workspace/PKGBUILD
@@ -92,11 +110,13 @@ jobs:
           sed -i "s/{{SHA256}}/${SHA256}/g" aur-workspace/PKGBUILD
 
       - name: Generate .SRCINFO
+        if: steps.aur.outputs.enabled == 'true'
         run: |
           # Use an Arch Linux container to run makepkg
           docker run --rm -v "$PWD/aur-workspace:/pkg" -w /pkg archlinux:latest bash -c "pacman -Sy --noconfirm base-devel sudo && useradd -m builduser && chown -R builduser:builduser /pkg && sudo -u builduser makepkg --printsrcinfo > .SRCINFO"
 
       - name: Publish to AUR
+        if: steps.aur.outputs.enabled == 'true'
         uses: KSXGitHub/github-actions-deploy-aur@v2.7.2
         with:
           pkgname: soplang

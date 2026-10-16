@@ -30,10 +30,18 @@ def main():
         cwd=ROOT, stdout=subprocess.PIPE, text=True, check=True,
     )
     artifacts = []
+    native_paths = set()
     binary = None
     runtime = None
     for line in result.stdout.splitlines():
         message = json.loads(line)
+        if message.get("reason") == "build-script-executed":
+            for search in message.get("linked_paths", []):
+                kind, separator, path = search.partition("=")
+                if not separator:
+                    native_paths.add(Path(search))
+                elif kind in ("native", "all"):
+                    native_paths.add(Path(path))
         if message.get("reason") != "compiler-artifact":
             continue
         target = message["target"]
@@ -58,7 +66,17 @@ def main():
         shutil.copy2(runtime, deps.parent / "libsoplang.rlib")
         for artifact in artifacts:
             shutil.copy2(artifact, deps / artifact.name)
-        (deps.parent / "rustc-version.txt").write_text(version, encoding="utf-8")
+        native_dir = deps.parent / "native"
+        for path in sorted(native_paths):
+            for library in path.iterdir():
+                if library.suffix not in (".lib", ".a") or not library.is_file():
+                    continue
+                native_dir.mkdir(exist_ok=True)
+                destination = native_dir / library.name
+                if destination.exists() and destination.read_bytes() != library.read_bytes():
+                    raise RuntimeError(f"conflicting native libraries: {library.name}")
+                shutil.copy2(library, destination)
+        (deps.parent / "rustc-version.txt").write_bytes(version.encode("utf-8"))
         for name in ("LICENSE", "README.md"):
             shutil.copy2(ROOT / name, stage / name)
         shutil.copy2(ROOT / "docs/INSTALLING_PACKAGES.md", stage / "INSTALLING.md")
