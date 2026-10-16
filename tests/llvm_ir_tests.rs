@@ -18,6 +18,14 @@ fn temp_bin(name: &str) -> PathBuf {
     p.with_extension(std::env::consts::EXE_EXTENSION)
 }
 
+fn runtime_add_call() -> &'static str {
+    if cfg!(all(target_os = "windows", target_arch = "x86_64")) {
+        "call x86_64_sysvcc %SoplangValue @sysv_soplang_add"
+    } else {
+        "call %SoplangValue @soplang_add"
+    }
+}
+
 #[test]
 fn test_llvm_ir_prints_without_run_source() {
     let source = r#"
@@ -41,7 +49,7 @@ fn test_llvm_ir_prints_without_run_source() {
     let ir = emit_llvm_ir(&hir, &sym).unwrap_or_else(|e| panic!("{e}"));
     assert!(ir.contains("define i32 @main()"), "IR has no LLVM main");
     assert!(
-        ir.contains("@soplang_add"),
+        ir.contains(runtime_add_call()),
         "arithmetic does not call the runtime"
     );
     assert!(
@@ -437,7 +445,7 @@ fn test_llvm_ir_native_numeric_ops_and_zero_fallback() {
         " = icmp sgt i64 ",
         " = fneg double ",
         "Nzero",
-        "call %SoplangValue @soplang_add",
+        runtime_add_call(),
     ] {
         assert!(
             ir.contains(instruction),

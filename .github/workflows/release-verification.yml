@@ -62,6 +62,7 @@ jobs:
           python3 scripts/verify_package.py target/archive-install/soplang/soplang
           python3 scripts/verify_package.py target/deb-install/usr/bin/soplang
           (cd linux && sha256sum -c SHA256SUMS)
+          python3 scripts/verify_installation.py debian linux/soplang_*.deb
       - name: Build and verify Windows archive
         if: runner.os == 'Windows'
         shell: pwsh
@@ -71,6 +72,11 @@ jobs:
           Expand-Archive windows/soplang-*-windows-*.zip target/archive-install
           python scripts/verify_package.py target/archive-install/soplang/soplang.exe
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $installer = "windows/Output/soplang-setup.exe"
+          if (Test-Path $installer) {
+            python scripts/verify_installation.py windows $installer
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
           foreach ($row in Get-Content windows/SHA256SUMS) {
             $hash, $name = $row -split '  ', 2
             $found = (Get-ChildItem windows -Recurse -File | Where-Object Name -eq $name)

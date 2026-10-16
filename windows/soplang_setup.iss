@@ -82,7 +82,7 @@ Root: HKCR; Subkey: ".so"; ValueType: string; ValueName: "PerceivedType"; ValueD
 ; File type
 Root: HKCR; Subkey: "SoplangFile"; ValueType: string; ValueName: ""; ValueData: "Soplang Source Code"; Flags: uninsdeletekey; Tasks: fileassociation
 Root: HKCR; Subkey: "SoplangFile"; ValueType: string; ValueName: "FriendlyTypeName"; ValueData: "Soplang Source Code"; Tasks: fileassociation
-Root: HKCR; Subkey: "SoplangFile\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\soplang_icon.ico"; Tasks: fileassociation
+Root: HKCR; Subkey: "SoplangFile\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\{#MyIconName}"; Tasks: fileassociation
 
 ; Shell commands
 Root: HKCR; Subkey: "SoplangFile\shell"; ValueType: string; ValueName: ""; ValueData: "open"; Tasks: fileassociation

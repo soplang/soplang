@@ -5,6 +5,9 @@
 - `verify_package.py /path/to/soplang`: relocates a distribution away from the
   checkout and checks all public examples, error snapshots, REPL, concurrent
   native builds, runtime lookup, toolchain validation, and standalone outputs.
+- `verify_installation.py <debian|windows> <package>`: install on a disposable
+  runner, execute the installed CLI through JIT/LLVM, and verify removal. The
+  Windows check also covers PATH and file associations.
 - `release_assets.py <artifact-directory>`: validate each platform checksum and
   create one combined manifest with unique asset names for publication.
 - `checksums.py <assets...> --output SHA256SUMS`: hashes actual files and writes

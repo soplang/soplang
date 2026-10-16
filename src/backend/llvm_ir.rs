@@ -180,6 +180,12 @@ pub fn link_llvm_binary_with_opt(ir: &str, out: &Path, opt_level: u8) -> Result<
     let ll = temp.0.join("program.ll");
     let obj = temp.0.join("program.o");
     let wrapper = temp.0.join("wrapper.rs");
+    // MSVC also emits PDB/import-library sidecars. Keep every linker artifact
+    // inside the scratch directory and publish only the finished executable.
+    let linked = temp
+        .0
+        .join("program")
+        .with_extension(std::env::consts::EXE_EXTENSION);
     fs::write(&ll, ir).map_err(|e| runtime_error(e.to_string(), 0, 0))?;
     fs::write(&wrapper, LINK_WRAPPER).map_err(|e| runtime_error(e.to_string(), 0, 0))?;
     if let Some(parent) = out.parent() {
@@ -222,7 +228,7 @@ pub fn link_llvm_binary_with_opt(ir: &str, out: &Path, opt_level: u8) -> Result<
         .arg("-L")
         .arg(format!("dependency={}", deps.display()))
         .arg("-o")
-        .arg(out)
+        .arg(&linked)
         .arg(&wrapper)
         .arg("-C")
         .arg(format!("link-arg={}", obj.display()))
@@ -239,6 +245,7 @@ pub fn link_llvm_binary_with_opt(ir: &str, out: &Path, opt_level: u8) -> Result<
             0,
         ));
     }
+    fs::copy(&linked, out).map_err(|e| runtime_error(e.to_string(), 0, 0))?;
     Ok(())
 }
 
