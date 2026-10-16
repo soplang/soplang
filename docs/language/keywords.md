@@ -129,8 +129,8 @@ qor(baaxad(1, 10, 2))  // [1, 3, 5, 7, 9]
 | `rog()`            | `reverse()`                  | Reverse the list in-place          | `list.rog()`                              |
 | `habee()`          | `sort()`                      | Sort the list in-place             | `list.habee()`                            |
 | `jar(a, b)`        | `slice(a, b)`                | Return sublist from a to b         | `door subset = numbers.jar(1, 3)`         |
-| `aaddin(func)`     | `map(func)`                   | Transform items with function      | `door doubled = nums.aaddin("laban")`     |
-| `shaandhee(func)`  | `filter(func)`                | Filter items with function         | `door evens = nums.shaandhee("isEven")`   |
+| `aaddin(func)`     | `map(func)`                   | Transform items with function      | `door doubled = nums.aaddin(hawl(x) { celi x * 2 })` |
+| `shaandhee(func)`  | `filter(func)`                | Filter items with function         | `door evens = nums.shaandhee(hawl(x) { celi x % 2 == 0 })` |
 | `muuji(item)`      | `indexOf(item)`               | Find index of item                 | `door idx = nums.muuji(5)`                |
 
 ## Object Methods

@@ -315,7 +315,7 @@ impl<'a> HirLowering<'a> {
                         });
                     }
                 }
-                for s in &body_stmts {
+                for s in body_stmts {
                     inner.lower_stmt(s);
                 }
                 HirFunction {
@@ -786,6 +786,36 @@ impl<'a> HirLowering<'a> {
                 self.emit(HirInstr::Call { dst, callee, args: arg_slots });
                 dst
             }
+            Expr::AnonymousFunc { .. } => {
+                let dst = self.alloc_slot();
+                let key = expr as *const Expr as usize;
+                let name = self
+                    .sym
+                    .anonymous_functions
+                    .get(&key)
+                    .expect("anonymous function was not analyzed");
+                let fn_name = self
+                    .enclosing_fn
+                    .map(|parent| format!("{parent}::{name}"))
+                    .unwrap_or_else(|| name.clone());
+                let captures = self
+                    .sym
+                    .functions
+                    .iter()
+                    .find(|function| function.name == fn_name)
+                    .map(|function| function.captures.as_slice())
+                    .unwrap_or_default();
+                if captures.is_empty() {
+                    self.emit(HirInstr::Load { dst, name: fn_name });
+                } else {
+                    let capture_slots = captures
+                        .iter()
+                        .filter_map(|capture| self.resolve_slot(capture))
+                        .collect();
+                    self.emit(HirInstr::MakeClosure { dst, fn_name, captures: capture_slots });
+                }
+                dst
+            }
             Expr::MethodCall { obj, method, args } => {
                 if let Expr::Identifier(recv) = obj.as_ref() {
                     if recv == "waalid" {
@@ -857,48 +887,115 @@ fn type_ann_to_tag(ann: &TypeAnnotation) -> u8 {
 
 /// Collect function bodies in the same order as `sym.functions`.
 /// Nested functions are pushed before the function that contains them.
-fn collect_func_bodies(stmts: &[Stmt]) -> Vec<Vec<Stmt>> {
+fn collect_func_bodies(stmts: &[Stmt]) -> Vec<&[Stmt]> {
     let mut out = Vec::new();
     collect_funcs(stmts, &mut out);
     out
 }
 
-fn collect_funcs(stmts: &[Stmt], out: &mut Vec<Vec<Stmt>>) {
+fn collect_funcs<'a>(stmts: &'a [Stmt], out: &mut Vec<&'a [Stmt]>) {
     for s in stmts {
         collect_funcs_stmt(s, out);
     }
 }
 
-fn collect_funcs_stmt(stmt: &Stmt, out: &mut Vec<Vec<Stmt>>) {
+fn collect_funcs_stmt<'a>(stmt: &'a Stmt, out: &mut Vec<&'a [Stmt]>) {
     match stmt {
         Stmt::FuncDef { body, .. } => {
             collect_funcs(body, out);
-            out.push(body.clone());
+            out.push(body);
         }
         Stmt::ClassDef { body, .. } => collect_funcs(body, out),
-        Stmt::If { then_body, elseifs, else_body, .. } => {
+        Stmt::VarDecl { value, .. } => collect_funcs_expr(value, out),
+        Stmt::Assign { target, value, .. } => {
+            collect_funcs_expr(target, out);
+            collect_funcs_expr(value, out);
+        }
+        Stmt::If { cond, then_body, elseifs, else_body } => {
+            collect_funcs_expr(cond, out);
             collect_funcs(then_body, out);
-            for (_, b) in elseifs {
+            for (condition, b) in elseifs {
+                collect_funcs_expr(condition, out);
                 collect_funcs(b, out);
             }
             if let Some(b) = else_body {
                 collect_funcs(b, out);
             }
         }
-        Stmt::Switch { cases, default, .. } => {
-            for (_, b) in cases {
+        Stmt::Switch { expr, cases, default } => {
+            collect_funcs_expr(expr, out);
+            for (value, b) in cases {
+                collect_funcs_expr(value, out);
                 collect_funcs(b, out);
             }
             if let Some(b) = default {
                 collect_funcs(b, out);
             }
         }
-        Stmt::For { body, .. } | Stmt::While { body, .. } => collect_funcs(body, out),
+        Stmt::For { start, end, step, body, .. } => {
+            collect_funcs_expr(start, out);
+            collect_funcs_expr(end, out);
+            if let Some(step) = step {
+                collect_funcs_expr(step, out);
+            }
+            collect_funcs(body, out);
+        }
+        Stmt::While { cond, body } => {
+            collect_funcs_expr(cond, out);
+            collect_funcs(body, out);
+        }
         Stmt::TryCatch { try_body, catch_body, .. } => {
             collect_funcs(try_body, out);
             collect_funcs(catch_body, out);
         }
         Stmt::Block(body) => collect_funcs(body, out),
-        _ => {}
+        Stmt::Return(Some(expr)) | Stmt::Expr(expr) => collect_funcs_expr(expr, out),
+        Stmt::Return(None) | Stmt::Break | Stmt::Continue | Stmt::Import(_) => {}
+    }
+}
+
+fn collect_funcs_expr<'a>(expr: &'a Expr, out: &mut Vec<&'a [Stmt]>) {
+    match expr {
+        Expr::Literal(_) | Expr::Identifier(_) => {}
+        Expr::BinaryOp { left, right, .. } => {
+            collect_funcs_expr(left, out);
+            collect_funcs_expr(right, out);
+        }
+        Expr::UnaryOp { expr, .. } => collect_funcs_expr(expr, out),
+        Expr::Call { args, .. } => {
+            for arg in args {
+                collect_funcs_expr(arg, out);
+            }
+        }
+        Expr::AnonymousFunc { body, .. } => {
+            collect_funcs(body, out);
+            out.push(body);
+        }
+        Expr::MethodCall { obj, args, .. } => {
+            collect_funcs_expr(obj, out);
+            for arg in args {
+                collect_funcs_expr(arg, out);
+            }
+        }
+        Expr::Index { obj, idx } => {
+            collect_funcs_expr(obj, out);
+            collect_funcs_expr(idx, out);
+        }
+        Expr::Property { obj, .. } => collect_funcs_expr(obj, out),
+        Expr::List(items) => {
+            for item in items {
+                collect_funcs_expr(item, out);
+            }
+        }
+        Expr::Object(pairs) => {
+            for (_, value) in pairs {
+                collect_funcs_expr(value, out);
+            }
+        }
+        Expr::New { args, .. } => {
+            for arg in args {
+                collect_funcs_expr(arg, out);
+            }
+        }
     }
 }

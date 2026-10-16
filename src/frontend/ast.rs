@@ -57,6 +57,12 @@ pub enum Expr {
         name: String,
         args: Vec<Expr>,
     },
+    /// Anonymous function expression: hawl(params) { body }
+    AnonymousFunc {
+        params:     Vec<Param>,
+        return_ann: TypeAnnotation,
+        body:       Vec<Stmt>,
+    },
     /// obj.method(args)
     MethodCall {
         obj:    Box<Expr>,
@@ -101,6 +107,20 @@ impl fmt::Display for Expr {
                 }
                 write!(f, ")")
             }
+            Expr::AnonymousFunc { params, return_ann, .. } => {
+                write!(f, "hawl(")?;
+                for (i, p) in params.iter().enumerate() {
+                    if i > 0 {
+                        write!(f, ", ")?;
+                    }
+                    write!(f, "{}", p.name)?;
+                }
+                if return_ann != &TypeAnnotation::Dynamic {
+                    write!(f, ") : {} {{ ... }}", type_annotation_name(return_ann))
+                } else {
+                    write!(f, ") {{ ... }}")
+                }
+            }
             Expr::MethodCall { obj, method, args } => {
                 write!(f, "({}).{}(", obj, method)?;
                 for (i, a) in args.iter().enumerate() {
@@ -144,6 +164,19 @@ impl fmt::Display for Expr {
                 write!(f, ")")
             }
         }
+    }
+}
+
+fn type_annotation_name(ann: &TypeAnnotation) -> &str {
+    match ann {
+        TypeAnnotation::Abn => "abn",
+        TypeAnnotation::Jajab => "jajab",
+        TypeAnnotation::Qoraal => "qoraal",
+        TypeAnnotation::Bool => "bool",
+        TypeAnnotation::Teed => "teed",
+        TypeAnnotation::Walax => "walax",
+        TypeAnnotation::Dynamic => "door",
+        TypeAnnotation::Class(name) => name,
     }
 }
 

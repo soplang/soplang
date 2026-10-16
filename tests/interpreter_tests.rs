@@ -223,6 +223,33 @@ fn test_nested_function_keeps_outer_local() {
 }
 
 #[test]
+fn test_anonymous_functions_as_inline_callbacks() {
+    let output = run_program(
+        r#"
+        door laban = hawl(x) { celi x * 2 }
+        qor(laban(5))
+
+        door nums = teed(1, 2, 3, 4)
+        qor(nums.aaddin(hawl(x) { celi x * 2 }))
+        qor(nums.shaandhee(hawl(x) { celi x % 2 == 0 }))
+
+        hawl scale(factor) {
+            celi nums.aaddin(hawl(x) { celi x * factor })
+        }
+        qor(scale(3))
+
+        hawl make(base) {
+            celi hawl(n) { celi hawl(extra) { celi base + n + extra } }
+        }
+        door first = make(10)
+        door second = first(2)
+        qor(second(3))
+    "#,
+    );
+    assert_eq!(output, "10\n[2, 4, 6, 8]\n[2, 4]\n[3, 6, 9, 12]\n15\n");
+}
+
+#[test]
 fn test_try_catch_runtime() {
     let output = run_program(
         r#"

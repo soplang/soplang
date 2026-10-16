@@ -29,6 +29,7 @@ while_stmt  = "ilaa" expression "{" block "}" .
 
 ```
 function_def = "hawl" identifier "(" [ params ] ")" [ ":" type_annot ] "{" block "}" .
+function_expr = "hawl" "(" [ params ] ")" [ ":" type_annot ] "{" block "}" .
 params      = param { "," param } .
 param       = identifier [ ":" type_annot ] .
 class_def   = "nooc" identifier "{" { member_def } "}" .
@@ -39,7 +40,7 @@ class_def   = "nooc" identifier "{" { member_def } "}" .
 ```
 expression  = binary | unary | primary .
 binary      = primary ( op primary )* .
-primary     = literal | identifier | call | member | subscript | "(" expression ")" .
+primary     = literal | identifier | call | member | subscript | function_expr | "(" expression ")" .
 call        = ( identifier | primary "." identifier ) "(" [ args ] ")" .
 ```
 

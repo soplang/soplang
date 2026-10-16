@@ -4,7 +4,7 @@
 use std::collections::{HashMap, HashSet};
 
 use crate::error::{codes, type_error_ex, ErrorMeta, SoplangError};
-use crate::frontend::ast::{Expr, Literal, Stmt, TypeAnnotation};
+use crate::frontend::ast::{Expr, Literal, Param, Stmt, TypeAnnotation};
 
 /// Symbol table built by semantic analysis. Used by HIR lowering.
 #[derive(Debug, Default)]
@@ -15,6 +15,8 @@ pub struct SymbolTable {
     pub functions: Vec<FunctionMeta>,
     /// Class name -> metadata (methods, parent).
     pub classes:   HashMap<String, ClassMeta>,
+    /// Anonymous expression address -> deterministic compiler-internal name.
+    pub anonymous_functions: HashMap<usize, String>,
     /// Globals carried in from a REPL session. Top-level uses load/store them
     /// instead of treating their old slots as locals of the new snippet.
     pub session_globals: HashSet<String>,
@@ -307,7 +309,7 @@ fn analyze_stmt(
                     }
                 }
             }
-            analyze_expr(value, sym, fn_sigs, current_class)?;
+            analyze_expr(value, sym, opts, fn_sigs, current_class, enclosing_fn)?;
         }
         Stmt::Assign { target, value, line, col } => {
             if let Expr::Identifier(name) = target {
@@ -346,9 +348,9 @@ fn analyze_stmt(
                 }
             } else {
                 // Index or Property: resolve subexpressions only
-                analyze_assign_target(target, sym, fn_sigs, current_class)?;
+                analyze_assign_target(target, sym, opts, fn_sigs, current_class, enclosing_fn)?;
             }
-            analyze_expr(value, sym, fn_sigs, current_class)?;
+            analyze_expr(value, sym, opts, fn_sigs, current_class, enclosing_fn)?;
         }
         Stmt::FuncDef { name, params, return_ann, body } => {
             let is_method = current_class.is_some() && enclosing_fn.is_none();
@@ -538,10 +540,10 @@ fn analyze_stmt(
             analyze_block(body, sym, opts, fn_sigs, current_return, Some(name), None)?;
         }
         Stmt::If { cond, then_body, elseifs, else_body } => {
-            analyze_expr(cond, sym, fn_sigs, current_class)?;
+            analyze_expr(cond, sym, opts, fn_sigs, current_class, enclosing_fn)?;
             analyze_block(then_body, sym, opts, fn_sigs, current_return, current_class, enclosing_fn)?;
             for (c, b) in elseifs {
-                analyze_expr(c, sym, fn_sigs, current_class)?;
+                analyze_expr(c, sym, opts, fn_sigs, current_class, enclosing_fn)?;
                 analyze_block(b, sym, opts, fn_sigs, current_return, current_class, enclosing_fn)?;
             }
             if let Some(eb) = else_body {
@@ -549,9 +551,9 @@ fn analyze_stmt(
             }
         }
         Stmt::Switch { expr, cases, default } => {
-            analyze_expr(expr, sym, fn_sigs, current_class)?;
+            analyze_expr(expr, sym, opts, fn_sigs, current_class, enclosing_fn)?;
             for (v, body) in cases {
-                analyze_expr(v, sym, fn_sigs, current_class)?;
+                analyze_expr(v, sym, opts, fn_sigs, current_class, enclosing_fn)?;
                 analyze_block(body, sym, opts, fn_sigs, current_return, current_class, enclosing_fn)?;
             }
             if let Some(d) = default {
@@ -573,19 +575,19 @@ fn analyze_stmt(
                     },
                 );
             }
-            analyze_expr(start, sym, fn_sigs, current_class)?;
-            analyze_expr(end, sym, fn_sigs, current_class)?;
+            analyze_expr(start, sym, opts, fn_sigs, current_class, enclosing_fn)?;
+            analyze_expr(end, sym, opts, fn_sigs, current_class, enclosing_fn)?;
             if let Some(s) = step {
-                analyze_expr(s, sym, fn_sigs, current_class)?;
+                analyze_expr(s, sym, opts, fn_sigs, current_class, enclosing_fn)?;
             }
             analyze_block(body, sym, opts, fn_sigs, current_return, current_class, enclosing_fn)?;
         }
         Stmt::While { cond, body } => {
-            analyze_expr(cond, sym, fn_sigs, current_class)?;
+            analyze_expr(cond, sym, opts, fn_sigs, current_class, enclosing_fn)?;
             analyze_block(body, sym, opts, fn_sigs, current_return, current_class, enclosing_fn)?;
         }
         Stmt::Return(Some(e)) => {
-            analyze_expr(e, sym, fn_sigs, current_class)?;
+            analyze_expr(e, sym, opts, fn_sigs, current_class, enclosing_fn)?;
             if let Some(ret_ann) = current_return {
                 if ret_ann != &TypeAnnotation::Dynamic {
                     if let Some(expr_ty) = infer_expr_type(e, sym, fn_sigs) {
@@ -640,7 +642,7 @@ fn analyze_stmt(
         Stmt::Block(stmts) => {
             analyze_block(stmts, sym, opts, fn_sigs, current_return, current_class, enclosing_fn)?
         }
-        Stmt::Expr(e) => analyze_expr(e, sym, fn_sigs, current_class)?,
+        Stmt::Expr(e) => analyze_expr(e, sym, opts, fn_sigs, current_class, enclosing_fn)?,
     }
     Ok(())
 }
@@ -648,8 +650,10 @@ fn analyze_stmt(
 fn analyze_expr(
     expr: &Expr,
     sym: &mut SymbolTable,
+    opts: &AnalyzeOptions,
     fn_sigs: &HashMap<String, FunctionSig>,
     current_class: Option<&str>,
+    enclosing_fn: Option<&str>,
 ) -> Result<(), SoplangError> {
     match expr {
         Expr::Literal(_) => {}
@@ -676,13 +680,13 @@ fn analyze_expr(
             }
         }
         Expr::BinaryOp { left, right, .. } => {
-            analyze_expr(left, sym, fn_sigs, current_class)?;
-            analyze_expr(right, sym, fn_sigs, current_class)?;
+            analyze_expr(left, sym, opts, fn_sigs, current_class, enclosing_fn)?;
+            analyze_expr(right, sym, opts, fn_sigs, current_class, enclosing_fn)?;
         }
-        Expr::UnaryOp { expr: e, .. } => analyze_expr(e, sym, fn_sigs, current_class)?,
+        Expr::UnaryOp { expr: e, .. } => analyze_expr(e, sym, opts, fn_sigs, current_class, enclosing_fn)?,
         Expr::Call { name, args } => {
             for a in args {
-                analyze_expr(a, sym, fn_sigs, current_class)?;
+                analyze_expr(a, sym, opts, fn_sigs, current_class, enclosing_fn)?;
             }
             if let Some(sig) = fn_sigs.get(name) {
                 if sig.params.len() != args.len() {
@@ -757,29 +761,29 @@ fn analyze_expr(
                         }
                     }
                     for a in args {
-                        analyze_expr(a, sym, fn_sigs, current_class)?;
+                        analyze_expr(a, sym, opts, fn_sigs, current_class, enclosing_fn)?;
                     }
                     return Ok(());
                 }
             }
-            analyze_expr(obj, sym, fn_sigs, current_class)?;
+            analyze_expr(obj, sym, opts, fn_sigs, current_class, enclosing_fn)?;
             for a in args {
-                analyze_expr(a, sym, fn_sigs, current_class)?;
+                analyze_expr(a, sym, opts, fn_sigs, current_class, enclosing_fn)?;
             }
         }
         Expr::Index { obj, idx } => {
-            analyze_expr(obj, sym, fn_sigs, current_class)?;
-            analyze_expr(idx, sym, fn_sigs, current_class)?;
+            analyze_expr(obj, sym, opts, fn_sigs, current_class, enclosing_fn)?;
+            analyze_expr(idx, sym, opts, fn_sigs, current_class, enclosing_fn)?;
         }
-        Expr::Property { obj, .. } => analyze_expr(obj, sym, fn_sigs, current_class)?,
+        Expr::Property { obj, .. } => analyze_expr(obj, sym, opts, fn_sigs, current_class, enclosing_fn)?,
         Expr::List(exprs) => {
             for e in exprs {
-                analyze_expr(e, sym, fn_sigs, current_class)?;
+                analyze_expr(e, sym, opts, fn_sigs, current_class, enclosing_fn)?;
             }
         }
         Expr::Object(pairs) => {
             for (_, e) in pairs {
-                analyze_expr(e, sym, fn_sigs, current_class)?;
+                analyze_expr(e, sym, opts, fn_sigs, current_class, enclosing_fn)?;
             }
         }
         Expr::New { class_name, args } => {
@@ -794,10 +798,129 @@ fn analyze_expr(
                 ));
             }
             for a in args {
-                analyze_expr(a, sym, fn_sigs, current_class)?;
+                analyze_expr(a, sym, opts, fn_sigs, current_class, enclosing_fn)?;
             }
         }
+        Expr::AnonymousFunc { params, return_ann, body } => {
+            let key = expr as *const Expr as usize;
+            let name = format!("#anonymous{}", sym.anonymous_functions.len());
+            sym.anonymous_functions.insert(key, name.clone());
+            analyze_anonymous_function(
+                &name, params, return_ann, body, sym, opts, fn_sigs, current_class, enclosing_fn,
+            )?;
+        }
     }
+    Ok(())
+}
+
+fn analyze_anonymous_function(
+    name: &str,
+    params: &[Param],
+    return_ann: &TypeAnnotation,
+    body: &[Stmt],
+    sym: &mut SymbolTable,
+    opts: &AnalyzeOptions,
+    fn_sigs: &HashMap<String, FunctionSig>,
+    current_class: Option<&str>,
+    enclosing_fn: Option<&str>,
+) -> Result<(), SoplangError> {
+    if opts.strict {
+        if return_ann == &TypeAnnotation::Dynamic {
+            return Err(type_error_ex(
+                "hawl aan magac lahayn ma leh nooc celi cad",
+                0,
+                0,
+                ErrorMeta::default()
+                    .with_code(codes::E022_TYPE_MISMATCH)
+                    .with_hint("Strict mode: qor nooca celi sida ') : abn {' ama ') : qoraal {'."),
+            ));
+        }
+        if params.iter().any(|p| p.type_ann == TypeAnnotation::Dynamic) {
+            return Err(type_error_ex(
+                "hawl aan magac lahayn waxay leedahay param dynamic strict mode",
+                0,
+                0,
+                ErrorMeta::default()
+                    .with_code(codes::E022_TYPE_MISMATCH)
+                    .with_hint("Strict mode: qor nooca param kasta, tusaale: hawl(abn x, qoraal y)."),
+            ));
+        }
+    }
+
+    let fn_name = enclosing_fn
+        .map(|parent| format!("{parent}::{name}"))
+        .unwrap_or_else(|| name.to_string());
+    let mut func_scope = Scope::default();
+    let mut param_slots = Vec::with_capacity(params.len());
+    for (slot, param) in params.iter().enumerate() {
+        param_slots.push(slot);
+        func_scope.vars.insert(
+            param.name.clone(),
+            VarInfo {
+                slot,
+                type_ann: param.type_ann.clone(),
+                is_const: false,
+                is_captured: false,
+            },
+        );
+    }
+
+    let fns_before = sym.functions.len();
+    sym.scopes.push(func_scope);
+    ensure_known_class(sym, return_ann)?;
+    for param in params {
+        ensure_known_class(sym, &param.type_ann)?;
+    }
+    analyze_block(body, sym, opts, fn_sigs, Some(return_ann), current_class, Some(fn_name.as_str()))?;
+
+    let mut captures = Vec::new();
+    if enclosing_fn.is_some() {
+        captures = collect_captures(body, sym);
+        let nested: Vec<Vec<String>> = sym.functions[fns_before..]
+            .iter()
+            .map(|function| function.captures.clone())
+            .collect();
+        for nested_captures in &nested {
+            for capture in nested_captures {
+                if !sym.scopes.last().unwrap().vars.contains_key(capture)
+                    && capture_from_enclosing(sym, capture)
+                {
+                    push_capture(&mut captures, capture);
+                }
+            }
+        }
+        let missing: Vec<String> = captures
+            .iter()
+            .filter(|capture| !sym.scopes.last().unwrap().vars.contains_key(capture.as_str()))
+            .cloned()
+            .collect();
+        for capture in missing {
+            let scope = sym.scopes.last_mut().unwrap();
+            let slot = scope.vars.len();
+            scope.vars.insert(
+                capture,
+                VarInfo {
+                    slot,
+                    type_ann: TypeAnnotation::Dynamic,
+                    is_const: false,
+                    is_captured: true,
+                },
+            );
+        }
+    }
+
+    let scope = sym.scopes.pop().unwrap();
+    sym.functions.push(FunctionMeta {
+        name: fn_name,
+        param_slots,
+        param_types: params.iter().map(|param| param.type_ann.clone()).collect(),
+        return_ann: return_ann.clone(),
+        local_count: scope.vars.len(),
+        captures,
+        scope_vars: scope.vars,
+        class_name: None,
+        is_method: false,
+    });
     Ok(())
 }
 
@@ -858,7 +981,10 @@ fn infer_expr_type(
             }
         }),
         Expr::New { class_name, .. } => Some(TypeAnnotation::Class(class_name.clone())),
-        Expr::MethodCall { .. } | Expr::Index { .. } | Expr::Property { .. } => None,
+        Expr::AnonymousFunc { .. }
+        | Expr::MethodCall { .. }
+        | Expr::Index { .. }
+        | Expr::Property { .. } => None,
     }
 }
 
@@ -954,15 +1080,17 @@ fn ty_str(a: &TypeAnnotation) -> String {
 fn analyze_assign_target(
     target: &Expr,
     sym: &mut SymbolTable,
+    opts: &AnalyzeOptions,
     fn_sigs: &HashMap<String, FunctionSig>,
     current_class: Option<&str>,
+    enclosing_fn: Option<&str>,
 ) -> Result<(), SoplangError> {
     match target {
         Expr::Index { obj, idx } => {
-            analyze_expr(obj, sym, fn_sigs, current_class)?;
-            analyze_expr(idx, sym, fn_sigs, current_class)?;
+            analyze_expr(obj, sym, opts, fn_sigs, current_class, enclosing_fn)?;
+            analyze_expr(idx, sym, opts, fn_sigs, current_class, enclosing_fn)?;
         }
-        Expr::Property { obj, .. } => analyze_expr(obj, sym, fn_sigs, current_class)?,
+        Expr::Property { obj, .. } => analyze_expr(obj, sym, opts, fn_sigs, current_class, enclosing_fn)?,
         _ => {}
     }
     Ok(())
@@ -1092,6 +1220,7 @@ fn note_free_expr(expr: &Expr, sym: &SymbolTable, caps: &mut Vec<String>) {
                 note_free_expr(a, sym, caps);
             }
         }
+        Expr::AnonymousFunc { .. } => {}
         Expr::MethodCall { obj, args, .. } => {
             note_free_expr(obj, sym, caps);
             for a in args {

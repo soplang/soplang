@@ -240,6 +240,36 @@ fn test_llvm_ir_lists_objects_try_classes_and_closures() {
 }
 
 #[test]
+fn test_llvm_ir_anonymous_functions_as_inline_callbacks() {
+    assert_eq!(
+        run_llvm(
+            "anonymous_functions",
+            r#"
+            door laban = hawl(x) { celi x * 2 }
+            qor(laban(5))
+
+            door nums = teed(1, 2, 3, 4)
+            qor(nums.aaddin(hawl(x) { celi x * 2 }))
+            qor(nums.shaandhee(hawl(x) { celi x % 2 == 0 }))
+
+            hawl scale(factor) {
+                celi nums.aaddin(hawl(x) { celi x * factor })
+            }
+            qor(scale(3))
+
+            hawl make(base) {
+                celi hawl(n) { celi hawl(extra) { celi base + n + extra } }
+            }
+            door first = make(10)
+            door second = first(2)
+            qor(second(3))
+            "#,
+        ),
+        "10\n[2, 4, 6, 8]\n[2, 4]\n[3, 6, 9, 12]\n15\n"
+    );
+}
+
+#[test]
 fn test_llvm_ir_native_numeric_ops_and_zero_fallback() {
     let source = r#"
         abn a = 10

@@ -239,6 +239,16 @@ impl Parser {
     fn parse_func_def(&mut self) -> Result<Stmt, SoplangError> {
         self.advance(); // hawl
         let name = self.expect_identifier()?;
+        let (params, return_ann, body) = self.parse_function_tail()?;
+        Ok(Stmt::FuncDef {
+            name,
+            params,
+            return_ann,
+            body,
+        })
+    }
+
+    fn parse_function_tail(&mut self) -> Result<(Vec<Param>, TypeAnnotation, Vec<Stmt>), SoplangError> {
         self.expect(TokenType::LParen)?;
         let mut params = Vec::new();
         while !self.check(TokenType::RParen) {
@@ -303,8 +313,13 @@ impl Parser {
         self.expect(TokenType::LBrace)?;
         let body = self.parse_block_stmts()?;
         self.expect(TokenType::RBrace)?;
-        Ok(Stmt::FuncDef {
-            name,
+        Ok((params, return_ann, body))
+    }
+
+    fn parse_anonymous_function(&mut self) -> Result<Expr, SoplangError> {
+        self.advance(); // hawl
+        let (params, return_ann, body) = self.parse_function_tail()?;
+        Ok(Expr::AnonymousFunc {
             params,
             return_ann,
             body,
@@ -860,6 +875,7 @@ impl Parser {
                 let args = self.parse_call_args()?;
                 Ok(Expr::New { class_name, args })
             }
+            TokenType::Hawl => self.parse_anonymous_function(),
             TokenType::Nafta => {
                 self.advance();
                 Ok(Expr::Identifier("nafta".to_string()))
