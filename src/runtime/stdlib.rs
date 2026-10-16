@@ -116,14 +116,14 @@ pub fn builtin_walax(args: Vec<Value>) -> Result<Value, SoplangError> {
 pub fn builtin_daji(args: Vec<Value>) -> Result<Value, SoplangError> {
     let v = args.into_iter().next().ok_or_else(|| err_type("daji() waa in ay qaadato 1 qiimo"))?;
     let n = to_number(&v)?;
-    Ok(Value::Float(n.floor()))
+    Ok(Value::Int(n.floor() as i64))
 }
 
 /// Built-in kor: ceil.
 pub fn builtin_kor(args: Vec<Value>) -> Result<Value, SoplangError> {
     let v = args.into_iter().next().ok_or_else(|| err_type("kor() waa in ay qaadato 1 qiimo"))?;
     let n = to_number(&v)?;
-    Ok(Value::Float(n.ceil()))
+    Ok(Value::Int(n.ceil() as i64))
 }
 
 /// Built-in dherer: length of list, string, or object.
@@ -131,7 +131,7 @@ pub fn builtin_dherer(args: Vec<Value>) -> Result<Value, SoplangError> {
     let v = args.into_iter().next().ok_or_else(|| err_type("dherer() waa in ay qaadato 1 qiimo"))?;
     let len = match &v {
         Value::List(l) => l.borrow().len(),
-        Value::Str(s) => s.len(),
+        Value::Str(s) => s.chars().count(),
         Value::Object(o) => o.borrow().len(),
         _ => return Err(err_type("Qiimaha ma ahan teed, qoraal, ama walax")),
     };
@@ -265,7 +265,15 @@ pub fn list_rog(lst: Rc<RefCell<Vec<Value>>>, _args: &[Value]) -> Result<Value, 
 }
 
 fn value_cmp_for_sort(a: &Value, b: &Value) -> std::cmp::Ordering {
-    value_to_string(a).cmp(&value_to_string(b))
+    match (a, b) {
+        (Value::Int(a), Value::Int(b)) => a.cmp(b),
+        (Value::Float(a), Value::Float(b)) => a.total_cmp(b),
+        (Value::Int(a), Value::Float(b)) => (*a as f64).total_cmp(b),
+        (Value::Float(a), Value::Int(b)) => a.total_cmp(&(*b as f64)),
+        (Value::Str(a), Value::Str(b)) => a.cmp(b),
+        (Value::Bool(a), Value::Bool(b)) => a.cmp(b),
+        _ => value_to_string(a).cmp(&value_to_string(b)),
+    }
 }
 
 pub fn list_habee(lst: Rc<RefCell<Vec<Value>>>, _args: &[Value]) -> Result<Value, SoplangError> {
@@ -417,7 +425,8 @@ pub fn string_kudar(s: String, args: &[Value]) -> Result<Value, SoplangError> {
 }
 
 pub fn string_jar(s: String, args: &[Value]) -> Result<Value, SoplangError> {
-    let len = s.len() as i64;
+    let chars: Vec<char> = s.chars().collect();
+    let len = chars.len() as i64;
     let (start, end) = match args.len() {
         0 => (0i64, len),
         1 => (
@@ -429,7 +438,6 @@ pub fn string_jar(s: String, args: &[Value]) -> Result<Value, SoplangError> {
             to_number(&args[1]).map(|x| x as i64).map_err(|_| err_type("Dhamaadka waa inuu noqdaa abn"))?,
         ),
     };
-    let len = s.len() as i64;
     let mut start = start;
     let mut end = end;
     if start < 0 {
@@ -442,7 +450,7 @@ pub fn string_jar(s: String, args: &[Value]) -> Result<Value, SoplangError> {
     end = end.min(len);
     let start = start as usize;
     let end = end as usize;
-    Ok(Value::Str(s[start..end].to_string()))
+    Ok(Value::Str(chars[start..end].iter().collect()))
 }
 
 pub fn string_xarafaha_weyn(s: String, _args: &[Value]) -> Result<Value, SoplangError> {
@@ -459,6 +467,9 @@ pub fn string_masax(s: String, _args: &[Value]) -> Result<Value, SoplangError> {
 
 pub fn string_raadi(s: String, args: &[Value]) -> Result<Value, SoplangError> {
     let sub = args.first().map(|v| value_to_string(v)).unwrap_or_default();
-    let pos = s.find(&sub).map(|i| i as i64).unwrap_or(-1);
+    let pos = s
+        .find(&sub)
+        .map(|byte_index| s[..byte_index].chars().count() as i64)
+        .unwrap_or(-1);
     Ok(Value::Int(pos))
 }

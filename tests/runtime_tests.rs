@@ -1,11 +1,18 @@
 //! Phase 3 (COMPILER_PLAN): Runtime library tests.
 
+use std::cell::RefCell;
+use std::rc::Rc;
+
 use soplang::runtime::{
     soplang_add, soplang_call, soplang_eq, soplang_float, soplang_get_builtin, soplang_get_index,
     soplang_get_prop, soplang_int, soplang_list_new, soplang_list_push, soplang_lt, soplang_mod,
     soplang_mul, soplang_ne, soplang_null, soplang_object_new, soplang_set_prop, soplang_str,
     soplang_sub, soplang_to_value, TAG_BOOL, TAG_FLOAT, TAG_INT, TAG_LIST,
 };
+use soplang::runtime::stdlib::{
+    builtin_daji, builtin_dherer, builtin_kor, list_habee, string_jar, string_raadi,
+};
+use soplang::Value;
 
 fn cstr(s: &str) -> (*const u8, usize) {
     (s.as_ptr(), s.len())
@@ -118,4 +125,40 @@ fn test_runtime_builtin_call() {
     } else {
         panic!("expected string from qor");
     }
+}
+
+#[test]
+fn test_rounding_functions_return_integers() {
+    assert_eq!(builtin_daji(vec![Value::Float(4.9)]).unwrap(), Value::Int(4));
+    assert_eq!(builtin_daji(vec![Value::Float(-4.1)]).unwrap(), Value::Int(-5));
+    assert_eq!(builtin_kor(vec![Value::Float(4.1)]).unwrap(), Value::Int(5));
+    assert_eq!(builtin_kor(vec![Value::Float(-4.9)]).unwrap(), Value::Int(-4));
+}
+
+#[test]
+fn test_string_operations_use_character_indices() {
+    let text = Value::Str("éSoomaali".to_string());
+    assert_eq!(builtin_dherer(vec![text]).unwrap(), Value::Int(9));
+    assert_eq!(
+        string_jar("éSoomaali".to_string(), &[Value::Int(0), Value::Int(2)]).unwrap(),
+        Value::Str("éS".to_string())
+    );
+    assert_eq!(
+        string_raadi("éSoomaali".to_string(), &[Value::Str("Soo".to_string())]).unwrap(),
+        Value::Int(1)
+    );
+}
+
+#[test]
+fn test_list_sort_orders_numbers_by_value() {
+    let list = Rc::new(RefCell::new(vec![
+        Value::Int(10),
+        Value::Float(1.5),
+        Value::Int(2),
+    ]));
+    list_habee(Rc::clone(&list), &[]).unwrap();
+    assert_eq!(
+        *list.borrow(),
+        vec![Value::Float(1.5), Value::Int(2), Value::Int(10)]
+    );
 }
