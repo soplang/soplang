@@ -26,6 +26,12 @@ fn test_qor_number() {
 }
 
 #[test]
+fn test_maran_literal() {
+    let output = run_program("door value = maran qor(value) qor(nooc(value))");
+    assert_eq!(output, "maran\nmaran\n");
+}
+
+#[test]
 fn test_for_loop() {
     let output = run_program(
         r#"

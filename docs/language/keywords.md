@@ -47,6 +47,8 @@ This document provides a reference for all keywords in the Soplang programming l
 | `been`       | `false`             | Boolean false value  | `haddii (!been) { ... }` |
 | `maran`      | `null`              | Empty/null value     | `door val = maran`       |
 
+`maran` is the canonical null literal. `null` remains accepted as a compatibility spelling.
+
 ## Data Types
 
 | Somali Type | English Equivalent | Description       | Example                          |

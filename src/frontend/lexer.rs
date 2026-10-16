@@ -297,7 +297,7 @@ fn keyword(s: &str) -> Option<TokenType> {
         "walax" => Some(TokenType::Walax),
         "run" => Some(TokenType::True),
         "been" => Some(TokenType::False),
-        "null" => Some(TokenType::Null),
+        "maran" | "null" => Some(TokenType::Null),
         _ => None,
     }
 }

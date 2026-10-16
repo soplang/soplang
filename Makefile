@@ -6,7 +6,7 @@
 help:
 	@echo "Soplang Development Commands:"
 	@echo "  make build     - Build release binary (cargo build --release)"
-	@echo "  make run       - Run a .sop file: make run FILE=examples/hello.sop"
+	@echo "  make run       - Run a .sop file: make run FILE=examples/01_hello.sop"
 	@echo "  make shell     - Run interactive REPL"
 	@echo "  make test      - Run unit and integration tests"
 	@echo "  make bench     - Run criterion benchmarks"

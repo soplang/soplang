@@ -195,7 +195,7 @@ fn keyword(s: &str) -> Option<TokenType> {
         // ... all keywords
         "run"        => Some(TokenType::True),
         "been"       => Some(TokenType::False),
-        "null"       => Some(TokenType::Null),
+        "maran"      => Some(TokenType::Null),
         _            => None,
     }
 }

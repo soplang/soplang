@@ -34,8 +34,8 @@ Run:
 
 ```bash
 # Run a script
-./target/release/soplang examples/hello.sop    # macOS/Linux
-target\release\soplang.exe examples\hello.sop  # Windows
+./target/release/soplang examples/01_hello.sop    # macOS/Linux
+target\release\soplang.exe examples\01_hello.sop  # Windows
 
 # Interactive REPL
 ./target/release/soplang -i
@@ -140,7 +140,7 @@ From the project root (PowerShell):
 ### Run
 
 ```bash
-./target/release/soplang examples/hello.sop
+./target/release/soplang examples/01_hello.sop
 ./target/release/soplang -i
 open dist/Soplang.app
 ```
@@ -206,13 +206,13 @@ codesign --force --sign "Developer ID Application: Your Name" dist/Soplang.app
 
 ```bash
 sudo dpkg -i linux/soplang_2.0.0_amd64.deb
-soplang examples/hello.sop
+soplang examples/01_hello.sop
 ```
 
 ### Run without installing
 
 ```bash
-./target/release/soplang examples/hello.sop
+./target/release/soplang examples/01_hello.sop
 ./target/release/soplang -i
 ```
 

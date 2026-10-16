@@ -47,13 +47,13 @@ The primary way to run Soplang is the **Rust binary** (from project root):
 cargo build --release
 
 # Run a Soplang program
-./target/release/soplang examples/hello.sop
+./target/release/soplang examples/01_hello.sop
 
 # Start the interactive shell (REPL)
 ./target/release/soplang -i
 ```
 
-Or use the Makefile: `make build`, `make run FILE=examples/hello.sop`, `make shell`.
+Or use the Makefile: `make build`, `make run FILE=examples/01_hello.sop`, `make shell`.
 
 ## Further Resources
 

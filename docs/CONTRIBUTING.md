@@ -32,7 +32,7 @@ Using Docker provides a consistent development environment for all contributors 
    docker-compose exec soplang soplang -i
 
    # Run a Soplang file
-   docker-compose exec soplang soplang examples/hello.sop
+   docker-compose exec soplang soplang examples/01_hello.sop
 
    # Run tests
    docker-compose exec soplang cargo test

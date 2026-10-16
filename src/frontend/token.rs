@@ -37,7 +37,7 @@ pub enum TokenType {
     // Literals
     True,      // run
     False,     // been
-    Null,      // null
+    Null,      // maran (null compatibility spelling)
     Identifier,
     Number,
     String,

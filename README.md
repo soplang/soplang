@@ -46,14 +46,14 @@ Build and run:
 ```bash
 cargo build --release
 
-./target/release/soplang examples/hello.sop        # JIT run
+./target/release/soplang examples/01_hello.sop     # JIT run
 ./target/release/soplang -i    # REPL
 ./target/release/soplang -c 'qor("Salaan!")'
-./target/release/soplang --build examples/hello.sop -o hello_aot
+./target/release/soplang --build examples/01_hello.sop -o hello_aot
 ./hello_aot
 ```
 
-Or: `make build`, `make run FILE=examples/hello.sop`, `make shell`, `make test`, `make bench`.
+Or: `make build`, `make run FILE=examples/01_hello.sop`, `make shell`, `make test`, `make bench`.
 
 ### CLI notes
 

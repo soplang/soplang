@@ -40,11 +40,11 @@ Note that the file path should be relative to your mounted directory. For exampl
 
 ```bash
 # If running from the project root
-docker run -it --rm -v $(pwd):/scripts soplang/soplang examples/01_dynamic_typing.sop
+docker run -it --rm -v $(pwd):/scripts soplang/soplang examples/02_variables.sop
 
 # If examples/ is in your current directory
 cd examples
-docker run -it --rm -v $(pwd):/scripts soplang/soplang 01_dynamic_typing.sop
+docker run -it --rm -v $(pwd):/scripts soplang/soplang 02_variables.sop
 ```
 
 ### Mounting a Volume for Persistent Scripts

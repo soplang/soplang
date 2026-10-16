@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file.
 
 * **Runtime is the Cranelift JIT.** Run via `cargo build --release` and `./target/release/soplang`.
 * README and [COMPILER_PLAN.md](COMPILER_PLAN.md) describe the current pipeline. Phases 1–4 and 6 are done. Phase 5 (real LLVM) is still ahead.
+* **Soplang 2.0 vocabulary.** The language reference and examples now use the final keyword spellings, including `qor`, `gelin`, `abn`, `teed`, `xul`, `muuji`, `tir`, and `maran`.
 
 ---
 

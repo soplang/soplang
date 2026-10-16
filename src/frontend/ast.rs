@@ -33,7 +33,7 @@ impl fmt::Display for Literal {
             Literal::Float(x) => write!(f, "{}", x),
             Literal::Str(s) => write!(f, "{:?}", s),
             Literal::Bool(b) => write!(f, "{}", if *b { "run" } else { "been" }),
-            Literal::Null => write!(f, "null"),
+            Literal::Null => write!(f, "maran"),
         }
     }
 }

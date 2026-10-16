@@ -28,7 +28,7 @@ fn run_file_with_stdin(path: &Path, stdin: Option<&str>) -> String {
     String::from_utf8(out.stdout).unwrap()
 }
 
-/// Path to .expected for a .sop file (e.g. examples/hello.sop -> examples/hello.expected).
+/// Path to .expected for a .sop file (e.g. examples/15_classes.sop -> examples/15_classes.expected).
 fn expected_path(sop_path: &Path) -> PathBuf {
     sop_path
         .with_file_name(sop_path.file_stem().unwrap_or_default().to_string_lossy().to_string() + ".expected")
@@ -36,39 +36,14 @@ fn expected_path(sop_path: &Path) -> PathBuf {
 
 #[test]
 fn test_example_hello() {
-    let path = Path::new("examples/hello.sop");
-    if !path.exists() {
-        return;
-    }
+    let path = Path::new("examples/01_hello.sop");
     let output = run_file(path);
     assert_eq!(output, "Salaan, Adduunka!\n");
 }
 
-#[test]
-fn test_example_01_dynamic_typing() {
-    let path = Path::new("examples/01_dynamic_typing.sop");
-    if !path.exists() {
-        return;
-    }
-    let output = run_file(path);
-    assert!(output.contains("Initial value (number): 10"));
-    assert!(output.contains("Changed value (string): waa qoraal hadda"));
-}
-
-#[test]
-fn test_example_03_type_checking() {
-    let path = Path::new("examples/03_type_checking.sop");
-    if !path.exists() {
-        return;
-    }
-    let output = run_file(path);
-    assert!(output.contains("Type of integer_var: abn"));
-    assert!(output.contains("Type of list_var: teed"));
-}
-
 /// Phase 7.2: Run each examples/*.sop that has a .expected file; assert stdout matches.
 /// Regenerate .expected: see examples/README.md.
-/// Skips: 43_random_function (non-deterministic), and any .sop without a .expected file.
+/// Skips the random example and any .sop without a .expected file.
 #[test]
 fn test_each_example_against_expected() {
     let examples_dir = Path::new("examples");
@@ -85,7 +60,7 @@ fn test_each_example_against_expected() {
 
     for sop_path in sop_paths {
         let stem = sop_path.file_stem().and_then(|s| s.to_str()).unwrap_or("");
-        if stem == "43_random_function" || stem == "14_random" {
+        if stem == "14_random" {
             continue; // non-deterministic (xul)
         }
         let expected_path = expected_path(&sop_path);

@@ -41,7 +41,7 @@ cd soplang
 cargo build --release
 
 # Run Soplang
-./target/release/soplang examples/hello.sop
+./target/release/soplang examples/01_hello.sop
 ./target/release/soplang -i   # Interactive REPL
 ```
 
