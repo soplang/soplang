@@ -14,15 +14,6 @@ use super::value::{value_to_string, NativeFn, Value};
 
 const TAG_THROW: u8 = 8;
 
-fn fatal_error(e: impl std::fmt::Display) -> ! {
-    raise_or_fatal(runtime_error(e.to_string(), 0, 0));
-}
-
-fn raise_or_fatal(e: SoplangError) -> ! {
-    handle_runtime_error(e);
-    unreachable!()
-}
-
 fn error_message(e: &SoplangError) -> String {
     match e {
         SoplangError::Runtime { msg, .. } | SoplangError::Type { msg, .. } => msg.clone(),
@@ -928,7 +919,7 @@ pub extern "C" fn soplang_new_instance(
             }
             match call_compiled_fn_value(entry, &call_args) {
                 Ok(_) => {}
-                Err(e) => fatal_error(e),
+                Err(e) => return handle_runtime_error(e),
             }
         }
     }
@@ -1017,7 +1008,7 @@ pub extern "C" fn soplang_call_method(
     };
     match result {
         Ok(v) => value_to_soplang(&v),
-        Err(e) => fatal_error(e),
+        Err(e) => handle_runtime_error(e),
     }
 }
 
@@ -1075,7 +1066,10 @@ fn dispatch_list_method(
 ) -> Result<Value, SoplangError> {
     match method {
         "shaandhee" => {
-            let func_val = args.first().ok_or_else(|| runtime_error("shaandhee() waa in uu qaato 1 qiimo (hawl)", 0, 0))?;
+            if args.len() != 1 {
+                return Err(runtime_error("shaandhee() waa in uu qaato 1 qiimo (hawl)", 0, 0));
+            }
+            let func_val = &args[0];
             let callee_sv = value_to_soplang(func_val);
             let mut out = Vec::new();
             for item in l.borrow().iter() {
@@ -1090,7 +1084,10 @@ fn dispatch_list_method(
             Ok(Value::List(Rc::new(RefCell::new(out))))
         }
         "aaddin" => {
-            let func_val = args.first().ok_or_else(|| runtime_error("aaddin() waa in uu qaato 1 qiimo (hawl)", 0, 0))?;
+            if args.len() != 1 {
+                return Err(runtime_error("aaddin() waa in uu qaato 1 qiimo (hawl)", 0, 0));
+            }
+            let func_val = &args[0];
             let callee_sv = value_to_soplang(func_val);
             let mut out = Vec::new();
             for item in l.borrow().iter() {
@@ -1224,7 +1221,7 @@ pub extern "C" fn soplang_check_class(
     if TRY_DEPTH.with(|d| d.get()) > 0 {
         PENDING_ERROR.with(|p| *p.borrow_mut() = Some(error_message(&err)));
     } else {
-        fatal_error(err);
+        handle_runtime_error(err);
     }
 }
 
@@ -1284,7 +1281,7 @@ pub extern "C" fn soplang_check_type(tag: i64, payload: i64, expected_type: i64,
         if TRY_DEPTH.with(|d| d.get()) > 0 {
             PENDING_ERROR.with(|p| *p.borrow_mut() = Some(error_message(&err)));
         } else {
-            fatal_error(err);
+            handle_runtime_error(err);
         }
     }
 }

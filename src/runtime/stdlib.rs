@@ -16,6 +16,19 @@ fn err_runtime(msg: impl Into<String>) -> SoplangError {
     runtime_error(msg, 0, 0)
 }
 
+fn expect_arity(args: &[Value], name: &str, expected: usize) -> Result<(), SoplangError> {
+    if args.len() == expected {
+        Ok(())
+    } else {
+        Err(err_type(format!(
+            "{}() waxay qaadataa {} qiimo, laakiin {} ayaa la bixiyay",
+            name,
+            expected,
+            args.len()
+        )))
+    }
+}
+
 fn to_number(v: &Value) -> Result<f64, SoplangError> {
     match v {
         Value::Int(n) => Ok(*n as f64),
@@ -114,21 +127,24 @@ pub fn builtin_walax(args: Vec<Value>) -> Result<Value, SoplangError> {
 
 /// Built-in daji: floor.
 pub fn builtin_daji(args: Vec<Value>) -> Result<Value, SoplangError> {
-    let v = args.into_iter().next().ok_or_else(|| err_type("daji() waa in ay qaadato 1 qiimo"))?;
+    expect_arity(&args, "daji", 1)?;
+    let v = args.into_iter().next().unwrap();
     let n = to_number(&v)?;
     Ok(Value::Int(n.floor() as i64))
 }
 
 /// Built-in kor: ceil.
 pub fn builtin_kor(args: Vec<Value>) -> Result<Value, SoplangError> {
-    let v = args.into_iter().next().ok_or_else(|| err_type("kor() waa in ay qaadato 1 qiimo"))?;
+    expect_arity(&args, "kor", 1)?;
+    let v = args.into_iter().next().unwrap();
     let n = to_number(&v)?;
     Ok(Value::Int(n.ceil() as i64))
 }
 
 /// Built-in dherer: length of list, string, or object.
 pub fn builtin_dherer(args: Vec<Value>) -> Result<Value, SoplangError> {
-    let v = args.into_iter().next().ok_or_else(|| err_type("dherer() waa in ay qaadato 1 qiimo"))?;
+    expect_arity(&args, "dherer", 1)?;
+    let v = args.into_iter().next().unwrap();
     let len = match &v {
         Value::List(l) => l.borrow().len(),
         Value::Str(s) => s.chars().count(),
@@ -220,7 +236,8 @@ pub fn get_builtin_functions() -> HashMap<String, Value> {
 
 // ---------- List methods (kasaar=pop, dherer=length, kudar=concat/push, leeyahay, nuqul, nadiifi, rog, habee, jar, muuji) ----------
 
-pub fn list_kasaar(lst: Rc<RefCell<Vec<Value>>>, _args: &[Value]) -> Result<Value, SoplangError> {
+pub fn list_kasaar(lst: Rc<RefCell<Vec<Value>>>, args: &[Value]) -> Result<Value, SoplangError> {
+    expect_arity(args, "kasaar", 0)?;
     let mut v = lst.borrow_mut();
     if v.is_empty() {
         return Err(err_runtime("Ma saari kartid teed madhan"));
@@ -228,12 +245,14 @@ pub fn list_kasaar(lst: Rc<RefCell<Vec<Value>>>, _args: &[Value]) -> Result<Valu
     Ok(v.pop().unwrap())
 }
 
-pub fn list_dherer(lst: Rc<RefCell<Vec<Value>>>, _args: &[Value]) -> Result<Value, SoplangError> {
+pub fn list_dherer(lst: Rc<RefCell<Vec<Value>>>, args: &[Value]) -> Result<Value, SoplangError> {
+    expect_arity(args, "dherer", 0)?;
     Ok(Value::Int(lst.borrow().len() as i64))
 }
 
 pub fn list_kudar(lst: Rc<RefCell<Vec<Value>>>, args: &[Value]) -> Result<Value, SoplangError> {
-    let second = args.first().cloned().unwrap_or(Value::Null);
+    expect_arity(args, "kudar", 1)?;
+    let second = args[0].clone();
     if let Value::List(other) = &second {
         let mut v = lst.borrow().clone();
         v.extend(other.borrow().iter().cloned());
@@ -245,21 +264,25 @@ pub fn list_kudar(lst: Rc<RefCell<Vec<Value>>>, args: &[Value]) -> Result<Value,
 }
 
 pub fn list_leeyahay(lst: Rc<RefCell<Vec<Value>>>, args: &[Value]) -> Result<Value, SoplangError> {
-    let item = args.first().cloned().unwrap_or(Value::Null);
+    expect_arity(args, "leeyahay", 1)?;
+    let item = args[0].clone();
     let v = lst.borrow();
     Ok(Value::Bool(v.contains(&item)))
 }
 
-pub fn list_nuqul(lst: Rc<RefCell<Vec<Value>>>, _args: &[Value]) -> Result<Value, SoplangError> {
+pub fn list_nuqul(lst: Rc<RefCell<Vec<Value>>>, args: &[Value]) -> Result<Value, SoplangError> {
+    expect_arity(args, "nuqul", 0)?;
     Ok(Value::List(Rc::new(RefCell::new(lst.borrow().clone()))))
 }
 
-pub fn list_nadiifi(lst: Rc<RefCell<Vec<Value>>>, _args: &[Value]) -> Result<Value, SoplangError> {
+pub fn list_nadiifi(lst: Rc<RefCell<Vec<Value>>>, args: &[Value]) -> Result<Value, SoplangError> {
+    expect_arity(args, "nadiifi", 0)?;
     lst.borrow_mut().clear();
     Ok(Value::List(Rc::clone(&lst)))
 }
 
-pub fn list_rog(lst: Rc<RefCell<Vec<Value>>>, _args: &[Value]) -> Result<Value, SoplangError> {
+pub fn list_rog(lst: Rc<RefCell<Vec<Value>>>, args: &[Value]) -> Result<Value, SoplangError> {
+    expect_arity(args, "rog", 0)?;
     lst.borrow_mut().reverse();
     Ok(Value::List(Rc::clone(&lst)))
 }
@@ -276,15 +299,14 @@ fn value_cmp_for_sort(a: &Value, b: &Value) -> std::cmp::Ordering {
     }
 }
 
-pub fn list_habee(lst: Rc<RefCell<Vec<Value>>>, _args: &[Value]) -> Result<Value, SoplangError> {
+pub fn list_habee(lst: Rc<RefCell<Vec<Value>>>, args: &[Value]) -> Result<Value, SoplangError> {
+    expect_arity(args, "habee", 0)?;
     lst.borrow_mut().sort_by(value_cmp_for_sort);
     Ok(Value::List(Rc::clone(&lst)))
 }
 
 pub fn list_jar(lst: Rc<RefCell<Vec<Value>>>, args: &[Value]) -> Result<Value, SoplangError> {
-    if args.len() < 2 {
-        return Err(err_type("jar() waa in ay qaadato 2 qiimo (bilow iyo dhammaad)"));
-    }
+    expect_arity(args, "jar", 2)?;
     let start = to_number(&args[0]).map_err(|_| err_type("Bilowga iyo dhamaadka waa inay noqdaan abn"))? as i64;
     let end = to_number(&args[1]).map_err(|_| err_type("Bilowga iyo dhamaadka waa inay noqdaan abn"))? as i64;
     let v = lst.borrow();
@@ -306,7 +328,8 @@ pub fn list_jar(lst: Rc<RefCell<Vec<Value>>>, args: &[Value]) -> Result<Value, S
 }
 
 pub fn list_muuji(lst: Rc<RefCell<Vec<Value>>>, args: &[Value]) -> Result<Value, SoplangError> {
-    let item = args.first().cloned().unwrap_or(Value::Null);
+    expect_arity(args, "muuji", 1)?;
+    let item = args[0].clone();
     let v = lst.borrow();
     for (i, x) in v.iter().enumerate() {
         if x == &item {
@@ -318,7 +341,8 @@ pub fn list_muuji(lst: Rc<RefCell<Vec<Value>>>, args: &[Value]) -> Result<Value,
 
 // ---------- Object methods ----------
 
-pub fn object_fure(obj: Rc<RefCell<HashMap<String, Value>>>, _args: &[Value]) -> Result<Value, SoplangError> {
+pub fn object_fure(obj: Rc<RefCell<HashMap<String, Value>>>, args: &[Value]) -> Result<Value, SoplangError> {
+    expect_arity(args, "fure", 0)?;
     let mut keys: Vec<String> = obj.borrow().keys().cloned().collect();
     keys.sort();
     let keys: Vec<Value> = keys.into_iter().map(Value::Str).collect();
@@ -326,17 +350,20 @@ pub fn object_fure(obj: Rc<RefCell<HashMap<String, Value>>>, _args: &[Value]) ->
 }
 
 pub fn object_leeyahay(obj: Rc<RefCell<HashMap<String, Value>>>, args: &[Value]) -> Result<Value, SoplangError> {
+    expect_arity(args, "leeyahay", 1)?;
     let key = args.first().and_then(|v| if let Value::Str(s) = v { Some(s.clone()) } else { None }).ok_or_else(|| err_type("Furaha waa in uu noqdo qoraal"))?;
     Ok(Value::Bool(obj.borrow().contains_key(&key)))
 }
 
 pub fn object_tir(obj: Rc<RefCell<HashMap<String, Value>>>, args: &[Value]) -> Result<Value, SoplangError> {
+    expect_arity(args, "tir", 1)?;
     let key = args.first().and_then(|v| if let Value::Str(s) = v { Some(s.clone()) } else { None }).ok_or_else(|| err_type("Furaha waa in uu noqdo qoraal"))?;
     obj.borrow_mut().remove(&key);
     Ok(Value::Object(Rc::clone(&obj)))
 }
 
 pub fn object_kudar(obj: Rc<RefCell<HashMap<String, Value>>>, args: &[Value]) -> Result<Value, SoplangError> {
+    expect_arity(args, "kudar", 1)?;
     let other = args.first().and_then(|v| if let Value::Object(o) = v { Some(Rc::clone(o)) } else { None }).ok_or_else(|| err_type("Qiimaha labaad ma ahan walax"))?;
     let mut m = obj.borrow().clone();
     for (k, v) in other.borrow().iter() {
@@ -345,16 +372,19 @@ pub fn object_kudar(obj: Rc<RefCell<HashMap<String, Value>>>, args: &[Value]) ->
     Ok(Value::Object(Rc::new(RefCell::new(m))))
 }
 
-pub fn object_nuqul(obj: Rc<RefCell<HashMap<String, Value>>>, _args: &[Value]) -> Result<Value, SoplangError> {
+pub fn object_nuqul(obj: Rc<RefCell<HashMap<String, Value>>>, args: &[Value]) -> Result<Value, SoplangError> {
+    expect_arity(args, "nuqul", 0)?;
     Ok(Value::Object(Rc::new(RefCell::new(obj.borrow().clone()))))
 }
 
-pub fn object_nadiifi(obj: Rc<RefCell<HashMap<String, Value>>>, _args: &[Value]) -> Result<Value, SoplangError> {
+pub fn object_nadiifi(obj: Rc<RefCell<HashMap<String, Value>>>, args: &[Value]) -> Result<Value, SoplangError> {
+    expect_arity(args, "nadiifi", 0)?;
     obj.borrow_mut().clear();
     Ok(Value::Object(Rc::clone(&obj)))
 }
 
-pub fn object_qiime(obj: Rc<RefCell<HashMap<String, Value>>>, _args: &[Value]) -> Result<Value, SoplangError> {
+pub fn object_qiime(obj: Rc<RefCell<HashMap<String, Value>>>, args: &[Value]) -> Result<Value, SoplangError> {
+    expect_arity(args, "qiime", 0)?;
     let m = obj.borrow();
     let mut keys: Vec<String> = m.keys().cloned().collect();
     keys.sort();
@@ -362,7 +392,8 @@ pub fn object_qiime(obj: Rc<RefCell<HashMap<String, Value>>>, _args: &[Value]) -
     Ok(Value::List(Rc::new(RefCell::new(vals))))
 }
 
-pub fn object_lamaane(obj: Rc<RefCell<HashMap<String, Value>>>, _args: &[Value]) -> Result<Value, SoplangError> {
+pub fn object_lamaane(obj: Rc<RefCell<HashMap<String, Value>>>, args: &[Value]) -> Result<Value, SoplangError> {
+    expect_arity(args, "lamaane", 0)?;
     let m = obj.borrow();
     let mut keys: Vec<String> = m.keys().cloned().collect();
     keys.sort();
@@ -381,50 +412,57 @@ pub fn object_lamaane(obj: Rc<RefCell<HashMap<String, Value>>>, _args: &[Value])
 // ---------- String methods ----------
 
 pub fn string_qeybi(s: String, args: &[Value]) -> Result<Value, SoplangError> {
-    let delim = args.first().map(|v| value_to_string(v)).unwrap_or_default();
+    expect_arity(args, "qeybi", 1)?;
+    let delim = value_to_string(&args[0]);
     let parts: Vec<Value> = s.split(&delim).map(|p| Value::Str(p.to_string())).collect();
     Ok(Value::List(Rc::new(RefCell::new(parts))))
 }
 
 pub fn string_leeyahay(s: String, args: &[Value]) -> Result<Value, SoplangError> {
-    let sub = args.first().map(|v| value_to_string(v)).unwrap_or_default();
+    expect_arity(args, "leeyahay", 1)?;
+    let sub = value_to_string(&args[0]);
     Ok(Value::Bool(s.contains(&sub)))
 }
 
 pub fn string_dhamaad(s: String, args: &[Value]) -> Result<Value, SoplangError> {
-    let suffix = args.first().map(|v| value_to_string(v)).unwrap_or_default();
+    expect_arity(args, "dhamaad", 1)?;
+    let suffix = value_to_string(&args[0]);
     Ok(Value::Bool(s.ends_with(&suffix)))
 }
 
 pub fn string_bilow(s: String, args: &[Value]) -> Result<Value, SoplangError> {
-    let prefix = args.first().map(|v| value_to_string(v)).unwrap_or_default();
+    expect_arity(args, "bilow", 1)?;
+    let prefix = value_to_string(&args[0]);
     Ok(Value::Bool(s.starts_with(&prefix)))
 }
 
 pub fn string_beddel(s: String, args: &[Value]) -> Result<Value, SoplangError> {
-    let (target, repl) = match (args.get(0), args.get(1)) {
-        (Some(a), Some(b)) => (value_to_string(a), value_to_string(b)),
-        _ => return Err(err_type("beddel() waa in ay qaadato 2 qiimo")),
-    };
+    expect_arity(args, "beddel", 2)?;
+    let (target, repl) = (value_to_string(&args[0]), value_to_string(&args[1]));
     let new_s = s.replacen(&target, &repl, 1);
     Ok(Value::Str(new_s))
 }
 
 pub fn string_beddel_dhammaan(s: String, args: &[Value]) -> Result<Value, SoplangError> {
-    let (target, repl) = match (args.get(0), args.get(1)) {
-        (Some(a), Some(b)) => (value_to_string(a), value_to_string(b)),
-        _ => return Err(err_type("beddel_dhammaan() waa in ay qaadato 2 qiimo")),
-    };
+    expect_arity(args, "beddel_dhammaan", 2)?;
+    let (target, repl) = (value_to_string(&args[0]), value_to_string(&args[1]));
     Ok(Value::Str(s.replace(&target, &repl)))
 }
 
 pub fn string_kudar(s: String, args: &[Value]) -> Result<Value, SoplangError> {
+    expect_arity(args, "kudar", 1)?;
     let list = args.first().and_then(|v| if let Value::List(l) = v { Some(l.borrow().clone()) } else { None }).ok_or_else(|| err_type("Qiimaha labaad ma ahan teed"))?;
     let parts: Vec<String> = list.iter().map(|v| value_to_string(v)).collect();
     Ok(Value::Str(parts.join(&s)))
 }
 
 pub fn string_jar(s: String, args: &[Value]) -> Result<Value, SoplangError> {
+    if args.len() > 2 {
+        return Err(err_type(format!(
+            "jar() waxay qaadataa ugu badnaan 2 qiimo, laakiin {} ayaa la bixiyay",
+            args.len()
+        )));
+    }
     let chars: Vec<char> = s.chars().collect();
     let len = chars.len() as i64;
     let (start, end) = match args.len() {
@@ -453,20 +491,24 @@ pub fn string_jar(s: String, args: &[Value]) -> Result<Value, SoplangError> {
     Ok(Value::Str(chars[start..end].iter().collect()))
 }
 
-pub fn string_xarafaha_weyn(s: String, _args: &[Value]) -> Result<Value, SoplangError> {
+pub fn string_xarafaha_weyn(s: String, args: &[Value]) -> Result<Value, SoplangError> {
+    expect_arity(args, "xarafaha_weyn", 0)?;
     Ok(Value::Str(s.to_uppercase()))
 }
 
-pub fn string_xarfaha_yaryar(s: String, _args: &[Value]) -> Result<Value, SoplangError> {
+pub fn string_xarfaha_yaryar(s: String, args: &[Value]) -> Result<Value, SoplangError> {
+    expect_arity(args, "xarfaha_yaryar", 0)?;
     Ok(Value::Str(s.to_lowercase()))
 }
 
-pub fn string_masax(s: String, _args: &[Value]) -> Result<Value, SoplangError> {
+pub fn string_masax(s: String, args: &[Value]) -> Result<Value, SoplangError> {
+    expect_arity(args, "masax", 0)?;
     Ok(Value::Str(s.trim().to_string()))
 }
 
 pub fn string_raadi(s: String, args: &[Value]) -> Result<Value, SoplangError> {
-    let sub = args.first().map(|v| value_to_string(v)).unwrap_or_default();
+    expect_arity(args, "raadi", 1)?;
+    let sub = value_to_string(&args[0]);
     let pos = s
         .find(&sub)
         .map(|byte_index| s[..byte_index].chars().count() as i64)

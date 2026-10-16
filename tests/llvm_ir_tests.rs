@@ -270,6 +270,35 @@ fn test_llvm_ir_anonymous_functions_as_inline_callbacks() {
 }
 
 #[test]
+fn test_llvm_ir_standard_library_values_and_argument_counts() {
+    assert_eq!(
+        run_llvm(
+            "standard_library",
+            r#"
+            door nums = teed(10, 2, 1.5)
+            nums.habee()
+            qor(nums)
+            qor(dherer("éSoomaali"))
+            qor("éSoomaali".jar(0, 2))
+            qor("éSoomaali".raadi("Soo"))
+            qor(nooc(daji(4.9)))
+
+            fasax { nums.dherer(1) } qabo (e) { qor("list") }
+            door obj = { magac: "Ayaan" }
+            fasax { obj.fure(1) } qabo (e) { qor("object") }
+            door text = "abc"
+            fasax { text.bilow() } qabo (e) { qor("string") }
+            fasax { dherer("a", "b") } qabo (e) { qor("builtin") }
+            fasax {
+                nums.aaddin(hawl(x) { celi x }, hawl(x) { celi x })
+            } qabo (e) { qor("callback") }
+            "#,
+        ),
+        "[1.5, 2, 10]\n9\néS\n1\nabn\nlist\nobject\nstring\nbuiltin\ncallback\n"
+    );
+}
+
+#[test]
 fn test_llvm_ir_native_numeric_ops_and_zero_fallback() {
     let source = r#"
         abn a = 10
