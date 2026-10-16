@@ -66,7 +66,7 @@ Or: `make build`, `make run FILE=examples/hello.sop`, `make shell`, `make test`,
 
 `soplang file.sop` and the REPL share one pipeline: lex, parse, resolve `keen`, analyze, lower to HIR, then Cranelift. Static `abn` and `jajab` arithmetic is native integer and float code. `door` and other dynamic values, including string concatenation, go through the tagged runtime.
 
-`soplang --build file.sop` inlines `keen` from the real source path, then embeds that text in a small Cargo runner. `--opt-level` selects the Cargo profile. The binary calls the same JIT when it starts, and it has no `keen` left to resolve. A direct LLVM backend is later work; `inkwell` is not a dependency.
+`soplang --build file.sop` resolves `keen`, lowers the program to HIR, emits textual LLVM IR, and links a native binary with system `clang` and `rustc`. `--opt-level` selects optimization level 0–3. The binary runs without Soplang or the source files beside it.
 
 ## Benchmark results
 
@@ -100,7 +100,7 @@ All new development (compiler, JIT, AOT, CLI) happens here in the Rust implement
 - [Installation](docs/installation.md)
 - [Contributing](docs/CONTRIBUTING.md)
 - [Rust implementation plan (complete)](IMPLEMENTATION_PLAN.md) — Phases 1–7 done
-- [Compiler plan](COMPILER_PLAN.md) — Cranelift run path and Cargo `--build` are in place; real LLVM is phase 5
+- [Compiler plan](COMPILER_PLAN.md) — Cranelift run path and LLVM AOT build path
 
 ## License
 

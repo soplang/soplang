@@ -8,13 +8,13 @@ pub mod hir;
 pub mod runtime;
 pub mod semantic;
 
+pub use cli::ReplSession;
 pub use error::{format_error_with_source, SoplangError};
 pub use frontend::{
     ast, lexer, parser, token, Expr, Lexer, Literal, Param, Parser, Stmt, Token, TokenType,
     TypeAnnotation,
 };
 pub use hir::{BinOpKind, HirFunction, HirInstr, HirLowering, HirModule, UnOpKind};
-pub use cli::ReplSession;
 pub use runtime::Value;
 pub use semantic::{
     analyze, analyze_with_options, AnalyzeOptions, ClassMeta, FunctionMeta, Scope, SymbolTable,
@@ -39,7 +39,13 @@ pub fn run_source(
         }
         return Ok(());
     }
-    let sym = semantic::analyze_with_options(&stmts, semantic::AnalyzeOptions { strict, repl: false })?;
+    let sym = semantic::analyze_with_options(
+        &stmts,
+        semantic::AnalyzeOptions {
+            strict,
+            repl: false,
+        },
+    )?;
     let hir = HirLowering::lower(&sym, &stmts);
     if dump_hir {
         for f in &hir.functions {
@@ -78,8 +84,8 @@ pub fn maybe_wrap_for_repl(source: &str) -> String {
 
 /// Build a standalone executable (AOT path).
 ///
-/// `source_path` is the file being built. `keen` imports are inlined into the
-/// embedded program so the binary does not need those files beside it.
+/// `source_path` is the file being built. `keen` imports are resolved before
+/// lowering so the binary does not need those files beside it.
 pub fn build_source(
     source: &str,
     source_path: Option<&Path>,
@@ -90,7 +96,14 @@ pub fn build_source(
     let bundled = frontend::imports::bundle_source(source, source_path)?;
     let tokens = Lexer::new(&bundled).tokenize()?;
     let stmts = Parser::new(tokens).parse()?;
-    semantic::analyze_with_options(&stmts, semantic::AnalyzeOptions { strict, repl: false })?;
+    let sym = semantic::analyze_with_options(
+        &stmts,
+        semantic::AnalyzeOptions {
+            strict,
+            repl: false,
+        },
+    )?;
+    let hir = HirLowering::lower(&sym, &stmts);
     let backend = backend::llvm::LlvmBackend::new();
-    backend.build_executable(&bundled, out_path, opt_level, strict)
+    backend.build_executable(&hir, &sym, out_path, opt_level)
 }

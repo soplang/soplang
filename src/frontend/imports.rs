@@ -11,8 +11,8 @@ use crate::frontend::{Lexer, Parser};
 
 /// Inline `keen` imports into one source string, in program order.
 ///
-/// The result has no `keen` statements. Standalone builds embed this text and
-/// run it without the original file path.
+/// The result has no `keen` statements. Standalone builds compile this text
+/// without needing the original import files at runtime.
 pub fn bundle_source(source: &str, source_path: Option<&Path>) -> Result<String, SoplangError> {
     let mut seen = HashSet::new();
     if let Some(path) = source_path {

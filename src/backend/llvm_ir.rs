@@ -2,7 +2,6 @@
 //!
 //! Constants, arithmetic, branches, loops, functions, lists, objects, classes,
 //! `waalid`, `fasax`, closures, and native `abn`/`jajab` ops.
-//! `soplang --build` is still the Cargo runner in `llvm.rs`.
 
 use std::collections::HashMap;
 use std::fs;
@@ -134,6 +133,11 @@ pub fn emit_llvm_ir(hir: &HirModule, sym: &SymbolTable) -> Result<String, Soplan
 /// Compile `ir` and link it with the Soplang runtime.
 /// `main` is the LLVM function. The Rust entry is `#![no_main]` so nothing calls `run_source`.
 pub fn link_llvm_binary(ir: &str, out: &Path) -> Result<(), SoplangError> {
+    link_llvm_binary_with_opt(ir, out, 2)
+}
+
+/// Compile and link LLVM IR with the requested optimization level (0..3).
+pub fn link_llvm_binary_with_opt(ir: &str, out: &Path, opt_level: u8) -> Result<(), SoplangError> {
     let (rlib, deps) = soplang_rlib()?;
     let dir = std::env::temp_dir();
     let tag = out
@@ -151,6 +155,7 @@ pub fn link_llvm_binary(ir: &str, out: &Path) -> Result<(), SoplangError> {
         }
     }
     let clang = Command::new("clang")
+        .arg(format!("-O{}", opt_level.min(3)))
         .arg("-c")
         .arg(&ll)
         .arg("-o")
@@ -173,6 +178,8 @@ pub fn link_llvm_binary(ir: &str, out: &Path) -> Result<(), SoplangError> {
         .arg("soplang_llvm_bin")
         .arg("--crate-type")
         .arg("bin")
+        .arg("-C")
+        .arg(format!("opt-level={}", opt_level.min(3)))
         .arg("--extern")
         .arg(format!("soplang={}", rlib.display()))
         .arg("-L")
