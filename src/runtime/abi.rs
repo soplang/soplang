@@ -1143,7 +1143,9 @@ fn dispatch_string_method(
         "beddel_dhammaan" => super::stdlib::string_beddel_dhammaan(s.to_string(), args),
         "kudar"    => super::stdlib::string_kudar(s.to_string(), args),
         "jar"      => super::stdlib::string_jar(s.to_string(), args),
-        "xarafaha_weyn"   => super::stdlib::string_xarafaha_weyn(s.to_string(), args),
+        "xarfaha_waaweyn" | "xarafaha_weyn" => {
+            super::stdlib::string_xarfaha_waaweyn(s.to_string(), args)
+        }
         "xarfaha_yaryar"  => super::stdlib::string_xarfaha_yaryar(s.to_string(), args),
         "masax"    => super::stdlib::string_masax(s.to_string(), args),
         "raadi"    => super::stdlib::string_raadi(s.to_string(), args),

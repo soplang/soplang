@@ -491,8 +491,8 @@ pub fn string_jar(s: String, args: &[Value]) -> Result<Value, SoplangError> {
     Ok(Value::Str(chars[start..end].iter().collect()))
 }
 
-pub fn string_xarafaha_weyn(s: String, args: &[Value]) -> Result<Value, SoplangError> {
-    expect_arity(args, "xarafaha_weyn", 0)?;
+pub fn string_xarfaha_waaweyn(s: String, args: &[Value]) -> Result<Value, SoplangError> {
+    expect_arity(args, "xarfaha_waaweyn", 0)?;
     Ok(Value::Str(s.to_uppercase()))
 }
 

@@ -279,6 +279,75 @@ fn test_standard_library_values_and_argument_counts() {
 }
 
 #[test]
+fn test_standard_library_method_catalog() {
+    let output = run_program(
+        r#"
+        door values = teed(3, 1, 2)
+        qor(values.dherer())
+        qor(values.leeyahay(1))
+        qor(values.muuji(2))
+        qor(values.jar(0, 2))
+        door copied = values.nuqul()
+        copied.rog()
+        qor(copied)
+        copied.habee()
+        qor(copied)
+        qor(values.kudar(teed(4)))
+        values.kudar(4)
+        qor(values.kasaar())
+        qor(values)
+        copied.nadiifi()
+        qor(copied)
+
+        door record = { b: 2, a: 1 }
+        qor(record.fure())
+        qor(record.qiime())
+        qor(record.lamaane())
+        qor(record.leeyahay("a"))
+        door merged = record.kudar({ c: 3 })
+        qor(merged.c)
+        door record_copy = record.nuqul()
+        record_copy.a = 9
+        qor(record.a)
+        record.tir("a")
+        qor(record.leeyahay("a"))
+        record.nadiifi()
+        qor(record.fure())
+
+        door text = "  Soplang-Soomaali  "
+        door clean = text.masax()
+        qor(clean.qeybi("-"))
+        qor(clean.leeyahay("Soomaali"))
+        qor(clean.bilow("Sop"))
+        qor(clean.dhamaad("aali"))
+        qor(clean.beddel("o", "0"))
+        qor(clean.beddel_dhammaan("o", "0"))
+        qor("/".kudar(teed("a", "b", "c")))
+        qor(clean.jar(0, 7))
+        qor(clean.xarfaha_waaweyn())
+        qor(clean.xarfaha_yaryar())
+        qor(clean.raadi("Soo"))
+
+        door random_number = xul(1, 2)
+        qor(random_number >= 1 && random_number < 2)
+        door random_item = xul(teed("a", "b"))
+        qor(teed("a", "b").leeyahay(random_item))
+    "#,
+    );
+    assert_eq!(
+        output,
+        concat!(
+            "3\nrun\n2\n[3, 1]\n[2, 1, 3]\n[1, 2, 3]\n",
+            "[3, 1, 2, 4]\n4\n[3, 1, 2]\n[]\n",
+            "[a, b]\n[1, 2]\n[[a, 1], [b, 2]]\nrun\n3\n1\nbeen\n[]\n",
+            "[Soplang, Soomaali]\nrun\nrun\nrun\nS0plang-Soomaali\n",
+            "S0plang-S00maali\na/b/c\nSoplang\nSOPLANG-SOOMAALI\n",
+            "soplang-soomaali\n8\nrun\nrun\n"
+        )
+    );
+}
+
+#[test]
 fn test_try_catch_runtime() {
     let output = run_program(
         r#"

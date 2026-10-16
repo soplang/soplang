@@ -90,11 +90,13 @@ This document provides a reference for all keywords in the Soplang programming l
 | `qoraal` | Convert to string                            | `str`                | `door s = qoraal(25)`                     |
 | `bool`   | Convert to boolean                           | `bool`               | `door b = bool(1)`                        |
 | `teed`   | Create a list                                | `list/array`         | `door list = teed(1, 2, 3)`               |
-| `walax`  | Create an object                             | `object/dict`        | `door obj = walax(name: "Ali", age: 25)`  |
+| `walax`  | Create an object                             | `object/dict`        | `door obj = walax("name", "Ali", "age", 25)` |
 | `daji`   | Round down to integer                        | `Math.floor()`       | `door n = daji(4.7)`                      |
 | `kor`    | Round up to integer                          | `Math.ceil()`        | `door n = kor(4.2)`                       |
-| `dherer` | Get length of value                          | `len()`/`.length`    | `door n = dherer(qoraal)`                 |
+| `dherer` | Count list items, object keys, or string characters | `len()`/`.length` | `door n = dherer(qoraal)`             |
 | `xul`    | Get random value                             | `random()`           | `door n = xul(1, 6)`                      |
+
+`xul()` returns a decimal in `[0, 1)`. `xul(a, b)` returns a decimal in `[a, b)`. `xul(teed)` returns one item and reports an error for an empty list.
 
 > **Note:** `abn`, `qoraal`, `bool`, `teed`, and `walax` are used both as static **type keywords** (see Variable Declaration Keywords / Data Types above) and as **built-in conversion/constructor functions** here. The meaning depends on context: e.g. `abn age = 25` declares a typed variable, while `abn("5")` converts a string to a number.
 
@@ -120,18 +122,20 @@ qor(baaxad(1, 10, 2))  // [1, 3, 5, 7, 9]
 | Method            | English Equivalent        | Description                     | Example                                 |
 | ------------------ | --------------------------- | ---------------------------------- | ------------------------------------------ |
 | `dherer()`         | `length()`                  | Get list length                    | `numbers.dherer()`                        |
-| `kudar()`          | `push()` or `append()`      | Add item to end                    | `numbers.kudar(5)`                        |
+| `kudar(item)`      | `push()` or `append()`      | Add item to the original list      | `numbers.kudar(5)`                        |
 | `kasaar()`         | `pop()`                      | Remove and return last item        | `door last = numbers.kasaar()`            |
 | `kudar(teed)`      | `concat()`                   | Concatenate lists                  | `door all = list1.kudar(list2)`           |
 | `leeyahay(x)`      | `contains()`/`includes()`   | Check if item exists               | `haddii (list.leeyahay(x)) {...}`         |
 | `nuqul()`          | `copy()`                     | Create a shallow copy              | `door copy = list.nuqul()`                |
-| `nadiifi()`        | `clear()`                    | Remove all items from list         | `list.nadiifi()`                          |
-| `rog()`            | `reverse()`                  | Reverse the list in-place          | `list.rog()`                              |
-| `habee()`          | `sort()`                      | Sort the list in-place             | `list.habee()`                            |
+| `nadiifi()`        | `clear()`                    | Remove all items from the original list | `list.nadiifi()`                     |
+| `rog()`            | `reverse()`                  | Reverse the original list          | `list.rog()`                              |
+| `habee()`          | `sort()`                     | Sort the original list in ascending order | `list.habee()`                    |
 | `jar(a, b)`        | `slice(a, b)`                | Return sublist from a to b         | `door subset = numbers.jar(1, 3)`         |
 | `aaddin(func)`     | `map(func)`                   | Transform items with function      | `door doubled = nums.aaddin(hawl(x) { celi x * 2 })` |
 | `shaandhee(func)`  | `filter(func)`                | Filter items with function         | `door evens = nums.shaandhee(hawl(x) { celi x % 2 == 0 })` |
 | `muuji(item)`      | `indexOf(item)`               | Find index of item                 | `door idx = nums.muuji(5)`                |
+
+`kudar(teed)` returns a concatenated copy. `nuqul()` and `jar()` also return new lists. The other mutating methods return the original list after changing it.
 
 ## Object Methods
 
@@ -141,10 +145,10 @@ qor(baaxad(1, 10, 2))  // [1, 3, 5, 7, 9]
 | `qiime()`     | `values()`             | Get all values             | `door values = obj.qiime()`            |
 | `lamaane()`   | `entries()`            | Get key-value pairs        | `door pairs = obj.lamaane()`           |
 | `leeyahay(x)` | `hasOwnProperty()`     | Check if key exists        | `haddii (obj.leeyahay("name")) {...}`  |
-| `tir(x)`      | `delete property`      | Delete a property          | `obj.tir("oldProp")`                   |
-| `kudar(obj)`  | `merge()`/`assign()`   | Merge/copy properties      | `door merged = obj1.kudar(obj2)`       |
+| `tir(x)`      | `delete property`      | Delete from the original object | `obj.tir("oldProp")`              |
+| `kudar(obj)`  | `merge()`/`assign()`   | Return a merged copy       | `door merged = obj1.kudar(obj2)`       |
 | `nuqul()`     | `copy()`               | Create a shallow copy      | `door copy = obj.nuqul()`              |
-| `nadiifi()`   | `clear()`              | Remove all properties      | `obj.nadiifi()`                        |
+| `nadiifi()`   | `clear()`              | Remove all original properties | `obj.nadiifi()`                    |
 
 ## String Methods
 
@@ -156,19 +160,21 @@ qor(baaxad(1, 10, 2))  // [1, 3, 5, 7, 9]
 | `bilow(sub)`        | `startsWith()`        | Check if string starts with substring      | `haddii (text.bilow("http")) {...}`        |
 | `beddel(x, y)`      | `replace()`           | Replace substring x with y                 | `door new = text.beddel("old", "new")`     |
 | `kudar(teed)`       | `join()`               | Join list of strings with separator        | `door text = ", ".kudar(names)`            |
-| `jar(start, end)`   | `slice()`              | Extract substring from start to end        | `door sub = text.jar(0, 3)`                |
+| `jar(start, end)`   | `slice()`              | Slice by character position                 | `door sub = text.jar(0, 3)`                |
 | `xarfaha_waaweyn()` | `toUpperCase()`        | Convert string to uppercase                | `door n = q.xarfaha_waaweyn()`             |
 | `xarfaha_yaryar()`  | `toLowerCase()`        | Convert string to lowercase                | `door n = q.xarfaha_yaryar()`              |
 | `masax()`           | `trim()`               | Remove leading/trailing whitespace         | `door n = q.masax()`                       |
 | `raadi(sub)`        | `indexOf()`            | Find the index of a substring              | `door n = q.raadi("pro")`                  |
 | `beddel_dhammaan(x, y)` | `replaceAll()`     | Replace all occurrences of x with y        | `door n = q.beddel_dhammaan("a", "x")`     |
 
+String positions count characters rather than UTF-8 bytes. `jar()` accepts negative positions from the end, and `raadi()` returns `-1` when it finds no match. Calls with the wrong number of arguments report an error that can be caught with `fasax` and `qabo`.
+
 ### xarfaha_waaweyn (Uppercase)
 **Isticmaal:**
 
 ```soplang
-q = "soplang"
-natiijo = q.xarfaha_waaweyn()
+door q = "soplang"
+door natiijo = q.xarfaha_waaweyn()
 qor(natiijo)  # SOPLANG
 ```
 
@@ -176,8 +182,8 @@ qor(natiijo)  # SOPLANG
 **Isticmaal:**
 
 ```soplang
-q = "SOPLANG"
-natiijo = q.xarfaha_yaryar()
+door q = "SOPLANG"
+door natiijo = q.xarfaha_yaryar()
 qor(natiijo)  # soplang
 ```
 
@@ -185,8 +191,8 @@ qor(natiijo)  # soplang
 **Isticmaal:**
 
 ```soplang
-q = "  soplang  "
-natiijo = q.masax()
+door q = "  soplang  "
+door natiijo = q.masax()
 qor(natiijo)  # soplang
 ```
 
@@ -194,8 +200,8 @@ qor(natiijo)  # soplang
 **Isticmaal:**
 
 ```soplang
-q = "soplang programming"
-natiijo = q.raadi("pro")
+door q = "soplang programming"
+door natiijo = q.raadi("pro")
 qor(natiijo)  # 8
 ```
 
@@ -203,8 +209,8 @@ qor(natiijo)  # 8
 **Isticmaal:**
 
 ```soplang
-q = "abaaba"
-natiijo = q.beddel_dhammaan("a", "x")
+door q = "abaaba"
+door natiijo = q.beddel_dhammaan("a", "x")
 qor(natiijo)  # xbxxbx
 ```
 
