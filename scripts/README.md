@@ -1,28 +1,14 @@
-# Soplang Scripts
+# Soplang scripts
 
-Scripts have been cleaned up. The important ones live at the project root or in `benchmarks/`.
+- `package.py --output dist/soplang`: locked release build and relocatable
+  distribution. Uses Cargo's JSON artifact list, not every old rlib in target.
+- `verify_package.py /path/to/soplang`: relocates a distribution away from the
+  checkout and checks all public examples, error snapshots, REPL, concurrent
+  native builds, runtime lookup, toolchain validation, and standalone outputs.
+- `checksums.py <assets...> --output SHA256SUMS`: hashes actual files and writes
+  SHA-256 records by filename. Run verification beside the assets.
 
-## Build and run
-
-- **Root:** `./build.sh` — runs `cargo build --release`
-- **Root:** `./soplang-docker.sh` — build Docker image (if needed) and run Soplang in Docker (shell or a file)
-- **Benchmarks:** `benchmarks/run_benchmarks.sh` — run `cargo bench` and regenerate `benchmarks/RESULTS.md`
-
-## Tests
-
-Use the Makefile or Cargo directly:
-
-```bash
-make test
-# or
-cargo test
-```
-
-Example programs are tested automatically via `cargo test` (examples vs `.expected` files).
-
-## Recreating scripts later
-
-When you need them again, the most useful to add back are:
-
-1. **Example runner** — run all `examples/*.sop` with `./target/release/soplang` (optionally non-interactive)
-2. **Platform packaging** — macOS/Linux/Windows scripts that build the Rust binary and produce installers (e.g. .dmg, .deb, .exe) when you’re ready to ship
+These tools require Python 3.9+. Platform builders call the packaging and
+checksum tools. See [release verification](../docs/testing/RELEASE_VERIFICATION.md)
+and the [release process](../docs/RELEASE_PROCESS.md). None of these scripts
+commits, tags, pushes, or publishes.

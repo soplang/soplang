@@ -29,17 +29,20 @@ jobs:
 
       - name: Generate version from git tag or manual input
         id: version
+        env:
+          MANUAL_VERSION: ${{ github.event.inputs.version }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: |
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            VERSION=${{ github.event.inputs.version }}
-          elif [[ "${{ github.event_name }}" == "release" ]]; then
-            VERSION=${{ github.event.release.tag_name }}
+          if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
+            VERSION="$MANUAL_VERSION"
+          elif [[ "$GITHUB_EVENT_NAME" == "release" ]]; then
+            VERSION="$RELEASE_TAG"
             VERSION=${VERSION#v}
           else
             VERSION=latest
           fi
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_ENV"
           echo "Version set to: $VERSION"
 
       - name: Set registry targets
@@ -48,25 +51,30 @@ jobs:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
         run: |
-          echo "images<<EOF" >> $GITHUB_OUTPUT
-          echo "ghcr.io/${{ github.repository }}" >> $GITHUB_OUTPUT
           if [[ -n "$DOCKERHUB_USERNAME" && -n "$DOCKERHUB_TOKEN" ]]; then
-            echo "soplang/soplang" >> $GITHUB_OUTPUT
-            echo "dockerhub=true" >> $GITHUB_OUTPUT
+            echo "dockerhub=true" >> "$GITHUB_OUTPUT"
           else
-            echo "dockerhub=false" >> $GITHUB_OUTPUT
+            echo "dockerhub=false" >> "$GITHUB_OUTPUT"
           fi
-          echo "EOF" >> $GITHUB_OUTPUT
+          {
+            echo "images<<EOF"
+            echo "ghcr.io/${{ github.repository }}"
+            if [[ -n "$DOCKERHUB_USERNAME" && -n "$DOCKERHUB_TOKEN" ]]; then
+              echo "soplang/soplang"
+            fi
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@v6
         with:
           images: ${{ steps.registries.outputs.images }}
+          flavor: latest=false
           tags: |
             type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
+            type=semver,pattern={{major}}.{{minor}},enable=${{ github.event_name == 'release' && !github.event.release.prerelease }}
+            type=semver,pattern={{major}},enable=${{ github.event_name == 'release' && !github.event.release.prerelease }}
             type=sha
             type=raw,value=${{ env.VERSION }},enable=${{ github.event_name == 'workflow_dispatch' }}
             type=raw,value=latest,enable=${{ github.event_name == 'release' && !github.event.release.prerelease }}

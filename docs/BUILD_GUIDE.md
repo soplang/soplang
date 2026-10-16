@@ -1,234 +1,60 @@
-# Soplang build guide
+# Building Soplang 3
 
-Step-by-step instructions for building Soplang from source on **Windows**, **macOS**, and **Linux**. The project is implemented in Rust; all platforms use the same codebase and Cargo.
+## Source build
 
----
+Install Rust through rustup, Git, a system linker, and clang for native Soplang
+builds. `rust-toolchain.toml` pins Rust 1.94.0 for the release. Windows also needs
+Visual Studio C++ Build Tools and the Windows SDK. macOS needs Xcode Command
+Line Tools. Linux needs its C development toolchain.
 
-## Prerequisites (all platforms)
-
-- **Rust** — Install the stable toolchain from [rustup.rs](https://rustup.rs).  
-  After installation, verify:
-  ```bash
-  rustc --version
-  cargo --version
-  ```
-
-- **Git** — To clone the repository.
-
----
-
-## Quick build (any platform)
-
-From the project root:
-
-```bash
-git clone https://github.com/soplang/soplang.git
-cd soplang
-cargo build --release
+```sh
+cargo build --release --locked
+cargo test --locked
+cargo test --release --locked
 ```
 
-- **Windows:** binary at `target\release\soplang.exe`
-- **macOS / Linux:** binary at `target/release/soplang`
+The executable is `target/release/soplang` (`soplang.exe` on Windows). Cargo
+builds resolve their runtime artifacts beside that executable, including custom
+`CARGO_TARGET_DIR` layouts. Installed native builds never run Cargo.
 
-Run:
-
-```bash
-# Run a script
-./target/release/soplang examples/01_hello.sop    # macOS/Linux
-target\release\soplang.exe examples\01_hello.sop  # Windows
-
-# Interactive REPL
-./target/release/soplang -i
-```
-
----
-
-## Windows
-
-### Prerequisites
-
-- **Rust** — [rustup.rs](https://rustup.rs) (use the “Visual Studio C++ Build Tools” option if prompted).
-- **Inno Setup 6** (optional) — For building the installer: [jrsoftware.org/isdl.php](https://jrsoftware.org/isdl.php).
-
-### Build steps
-
-1. Open **PowerShell** or **Command Prompt** and go to the project root:
-   ```cmd
-   cd path\to\soplang
-   ```
-
-2. Run the Windows build script:
-   - **PowerShell:**
-     ```powershell
-     .\windows\build_windows.ps1
-     ```
-   - **Command Prompt:**
-     ```cmd
-     windows\build_windows.bat
-     ```
-
-3. The script will:
-   - Run `cargo build --release`
-   - Copy `soplang.exe` to `dist\soplang\`
-   - If Inno Setup 6 is installed, create `windows\Output\soplang-setup.exe`
-
-### Output
-
-| Item        | Path |
-|------------|------|
-| Binary     | `target\release\soplang.exe` |
-| Dist copy  | `dist\soplang\soplang.exe` |
-| Installer  | `windows\Output\soplang-setup.exe` (if Inno Setup used) |
-
-### Custom installer icon
-
-Place a 256×256 (or larger) **soplang_icon.ico** in the `windows\` folder before building. The Inno Setup script uses it for the setup and app icon.
-
-### Test the build
-
-From the project root (PowerShell):
-
-```powershell
-.\windows\test_windows_build.ps1
-```
-
-### Troubleshooting
-
-- **“cargo not found”** — Install Rust with rustup and restart the terminal. Ensure “Add to PATH” was selected.
-- **Linker errors** — On Windows, rustup may prompt for “Visual Studio C++ Build Tools”; install them and retry.
-- **Inno Setup not found** — Build still produces the binary and `dist\soplang\`; only the installer is skipped.
-
----
-
-## macOS
-
-### Prerequisites
-
-- **Rust** — [rustup.rs](https://rustup.rs).
-- **create-dmg** (optional) — For building a disk image: `brew install create-dmg`.
-
-### Build steps
-
-1. Open Terminal and go to the project root:
-   ```bash
-   cd /path/to/soplang
-   ```
-
-2. Run the build (either way):
-   ```bash
-   ./build.sh
-   ```
-   or:
-   ```bash
-   chmod +x macos/build_macos.sh
-   ./macos/build_macos.sh
-   ```
-
-3. The script will:
-   - Run `cargo build --release`
-   - Create **dist/Soplang.app** (macOS application bundle)
-   - If `create-dmg` is installed, create **macos/Soplang-&lt;version&gt;.dmg**
-
-### Output
-
-| Item      | Path |
-|-----------|------|
-| Binary    | `target/release/soplang` |
-| App bundle| `dist/Soplang.app` |
-| DMG      | `macos/Soplang-<version>.dmg` (if create-dmg installed) |
-
-### Run
-
-```bash
+```sh
 ./target/release/soplang examples/01_hello.sop
-./target/release/soplang -i
-open dist/Soplang.app
+./target/release/soplang --build examples/27_inheritance.sop -o program
+./program
 ```
 
-### Distribution (optional)
+Run Soplang with no arguments for the REPL. See the [example catalog](../examples/README.md)
+and [test methodology](testing/TEST_METHODOLOGY.md).
 
-For distribution you may want to sign and notarize:
+## Packages
 
-```bash
-codesign --force --sign "Developer ID Application: Your Name" dist/Soplang.app
-# Then notarize the DMG with Apple (see Apple’s documentation).
+Python 3.9+ is required for packaging. Each package contains the executable,
+matching runtime/dependency rlibs, toolchain metadata, license, and installation
+instructions. Keep the whole package together. Package builders use Cargo's
+reported artifacts, including fresh dependencies, instead of globbing stale
+libraries from a shared target directory.
+
+| Platform | Command | Assets |
+| --- | --- | --- |
+| Linux | `bash linux/build_linux.sh` | Tar archive; Debian package when dpkg-deb is installed |
+| Windows | `./windows/build_windows.ps1` or `windows\\build_windows.bat` | ZIP; installer when Inno Setup is installed |
+| macOS | `bash macos/build_macos.sh` | App archive; DMG when create-dmg is installed |
+
+Each builder writes a platform-local `SHA256SUMS`. See [package requirements](INSTALLING_PACKAGES.md)
+for the matching Rust compiler needed by installed `--build`; JIT and REPL do
+not require that compiler. See [release verification](testing/RELEASE_VERIFICATION.md)
+for actual tested platforms and remaining gates. A script for a platform does
+not establish native ABI or installer support.
+
+## Docker
+
+```sh
+docker build -t soplang:release-check .
+docker run --rm soplang:release-check --version
+docker run --rm -v "$PWD/examples:/scripts:ro" soplang:release-check 01_hello.sop
 ```
 
-### Troubleshooting
-
-- **“cargo not found”** — Install Rust via rustup; restart the terminal.
-- **“create-dmg not found”** — Optional; install with `brew install create-dmg` if you need a DMG.
-
----
-
-## Linux
-
-### Prerequisites
-
-- **Rust** — [rustup.rs](https://rustup.rs).
-- **dpkg-dev**, **fakeroot** (optional) — For building a .deb package:
-  - Debian/Ubuntu: `sudo apt install dpkg-dev fakeroot`
-  - Fedora: `sudo dnf install dpkg fakeroot` (if you need .deb on non-Debian systems).
-
-### Build steps
-
-1. Open a terminal and go to the project root:
-   ```bash
-   cd /path/to/soplang
-   ```
-
-2. Run the build (either way):
-   ```bash
-   ./build.sh
-   ```
-   or:
-   ```bash
-   chmod +x linux/build_linux.sh
-   ./linux/build_linux.sh
-   ```
-
-3. The script will:
-   - Run `cargo build --release`
-   - Copy the binary to **dist/soplang/soplang**
-   - Create **linux/soplang-&lt;version&gt;-linux-&lt;arch&gt;.tar.gz**
-   - If `dpkg-deb` is available, create **linux/soplang_&lt;version&gt;_amd64.deb** (or your architecture)
-
-### Output
-
-| Item     | Path |
-|----------|------|
-| Binary   | `target/release/soplang` |
-| Dist     | `dist/soplang/soplang` |
-| Tarball  | `linux/soplang-<version>-linux-<arch>.tar.gz` |
-| .deb     | `linux/soplang_<version>_amd64.deb` (if dpkg-deb available) |
-
-### Install from .deb
-
-```bash
-sudo dpkg -i linux/soplang_<version>_amd64.deb
-soplang examples/01_hello.sop
-```
-
-### Run without installing
-
-```bash
-./target/release/soplang examples/01_hello.sop
-./target/release/soplang -i
-```
-
-### Troubleshooting
-
-- **“cargo not found”** — Install Rust via rustup; restart the terminal.
-- **No .deb produced** — Install `dpkg-dev` and `fakeroot` (see Prerequisites).
-
----
-
-## Summary
-
-| Platform | Build command (from repo root)     | Optional packaging        |
-|----------|------------------------------------|---------------------------|
-| Windows  | `windows\build_windows.bat` or `.\windows\build_windows.ps1` | Inno Setup → `.exe` installer |
-| macOS    | `./build.sh` or `./macos/build_macos.sh` | create-dmg → `.dmg` |
-| Linux    | `./build.sh` or `./linux/build_linux.sh` | dpkg-deb → `.deb`, tarball |
-
-For a minimal build on any platform, `cargo build --release` is enough; platform scripts add packaging and installer creation.
+The image includes Rust, clang, the system linker, and installed runtime
+libraries. Mount a writable output directory when using `--build`; programs run
+as the unprivileged `soplang` user. See [release checks](RELEASE_PROCESS.md) for
+the complete image verifier.

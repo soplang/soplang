@@ -2,9 +2,17 @@
 #ifndef MyAppVersion
 #define MyAppVersion "0.0.0"
 #endif
+#ifndef MyNumericVersion
+#define MyNumericVersion MyAppVersion
+#endif
 #define MyAppPublisher "Soplang Software Foundation"
 #define MyAppURL "https://www.soplang.org/"
 #define MyAppExeName "soplang.exe"
+#if FileExists("soplang_icon.ico")
+#define MyIconName "soplang_icon.ico"
+#else
+#define MyIconName MyAppExeName
+#endif
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
@@ -24,10 +32,12 @@ OutputBaseFilename=soplang-setup
 Compression=lzma
 SolidCompression=yes
 ChangesEnvironment=yes
+#if FileExists("soplang_icon.ico")
 SetupIconFile=soplang_icon.ico
+#endif
 UninstallDisplayIcon={app}\soplang.exe
 WizardStyle=modern
-VersionInfoVersion={#MyAppVersion}
+VersionInfoVersion={#MyNumericVersion}
 VersionInfoCompany={#MyAppPublisher}
 VersionInfoDescription=Installer for {#MyAppName}
 VersionInfoCopyright=© 2025 {#MyAppPublisher}
@@ -45,16 +55,18 @@ Name: "fileassociation"; Description: "Associate Soplang with .sop and .so files
 
 [Files]
 Source: "..\dist\soplang\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+#if FileExists("soplang_icon.ico")
 Source: "soplang_icon.ico"; DestDir: "{app}"; Flags: ignoreversion
+#endif
 Source: "file_association.reg"; DestDir: "{app}"; Flags: ignoreversion
 Source: "soplang_cmd.bat"; DestDir: "{app}"; Flags: ignoreversion
 Source: "soplang_launcher.bat"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
-Name: "{group}\Soplang Interpreter"; Filename: "{app}\soplang_launcher.bat"; IconFilename: "{app}\soplang_icon.ico"; Comment: "Run Soplang Interactive Shell"; WorkingDir: "{app}"
-Name: "{group}\Soplang Command Prompt"; Filename: "{sys}\cmd.exe"; Parameters: "/k set ""PATH={app};%PATH%"" && cd /d ""{app}"""; IconFilename: "{app}\soplang_icon.ico"; Comment: "Open a command prompt with Soplang in the path"; WorkingDir: "{app}"
+Name: "{group}\Soplang Interpreter"; Filename: "{app}\soplang_launcher.bat"; IconFilename: "{app}\{#MyIconName}"; Comment: "Run Soplang Interactive Shell"; WorkingDir: "{app}"
+Name: "{group}\Soplang Command Prompt"; Filename: "{sys}\cmd.exe"; Parameters: "/k set ""PATH={app};%PATH%"" && cd /d ""{app}"""; IconFilename: "{app}\{#MyIconName}"; Comment: "Open a command prompt with Soplang in the path"; WorkingDir: "{app}"
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
-Name: "{autodesktop}\Soplang Interpreter"; Filename: "{app}\soplang_launcher.bat"; IconFilename: "{app}\soplang_icon.ico"; Tasks: desktopicon; WorkingDir: "{app}"
+Name: "{autodesktop}\Soplang Interpreter"; Filename: "{app}\soplang_launcher.bat"; IconFilename: "{app}\{#MyIconName}"; Tasks: desktopicon; WorkingDir: "{app}"
 
 [Registry]
 ; Primary file extension (.sop)

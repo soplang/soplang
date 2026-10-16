@@ -9,9 +9,9 @@ elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
     exec ./linux/build_linux.sh
 elif [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || "$OSTYPE" == "win32" ]]; then
     echo "On Windows run: windows\build_windows.bat or powershell -File windows\build_windows.ps1"
-    cargo build --release
+    cargo build --release --locked
     echo "Binary: ./target/release/soplang.exe"
 else
-    cargo build --release
+    cargo build --release --locked
     echo "Binary: ./target/release/soplang"
 fi

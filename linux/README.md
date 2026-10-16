@@ -1,53 +1,28 @@
 # Soplang for Linux
 
-Build Soplang (Rust) on Linux and optionally create a tarball or .deb package.
+Install Rust via rustup, Python 3.9+, and a C development toolchain. Install
+clang for Soplang native builds and dpkg-dev for Debian packaging.
 
-**Full build guide (all platforms):** [../docs/BUILD_GUIDE.md](../docs/BUILD_GUIDE.md)
-
-## Prerequisites
-
-- **Rust** — [rustup.rs](https://rustup.rs)
-- **dpkg-dev**, **fakeroot** (optional, for .deb) — `sudo apt install dpkg-dev fakeroot`
-
-## Build
-
-From the **project root**:
-
-```bash
-./build.sh
+```sh
+bash linux/build_linux.sh
 ```
 
-Or from this directory:
+The locked builder stages the executable and matching runtime libraries in
+`dist/soplang`, creates `linux/soplang-<version>-linux-<arch>.tar.gz`, and creates
+`linux/soplang_<version>_<deb-arch>.deb` when dpkg-deb is available. Checksums are
+in `linux/SHA256SUMS`. Debian versions map prerelease `-` to `~` so a
+candidate sorts below the corresponding final release.
 
-```bash
-chmod +x build_linux.sh
-./build_linux.sh
+Extract the archive and keep its directory intact, or install the Debian
+package. Debian installs the executable at `/usr/bin/soplang` and runtime at
+`/usr/lib/soplang`. Verify an extracted package before publishing:
+
+```sh
+python3 scripts/verify_package.py /path/to/extracted/soplang/soplang
+(cd linux && sha256sum -c SHA256SUMS)
 ```
 
-The script will:
-
-1. Run `cargo build --release`
-2. Copy binary to **dist/soplang/soplang**
-3. Create **linux/soplang-&lt;version&gt;-linux-$(uname -m).tar.gz**
-4. If `dpkg-deb` is available, create **linux/soplang_&lt;version&gt;_amd64.deb** (or your arch)
-
-## Output
-
-- **Binary:** `target/release/soplang`
-- **Dist:** `dist/soplang/`
-- **Tarball:** `linux/soplang-<version>-linux-<arch>.tar.gz`
-- **Debian package:** `linux/soplang_<version>_amd64.deb` (if dpkg-deb installed)
-
-## Install from .deb
-
-```bash
-sudo dpkg -i linux/soplang_<version>_amd64.deb
-soplang examples/01_hello.sop
-```
-
-## Run without installing
-
-```bash
-./target/release/soplang examples/01_hello.sop
-./target/release/soplang -i
-```
+[Installed native-build requirements](../docs/INSTALLING_PACKAGES.md) include
+clang and the exact Rust compiler recorded inside the package. Build against
+the oldest supported distribution and test there before announcing a minimum
+Linux version; a successful build on a newer host does not establish it.

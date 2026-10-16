@@ -29,19 +29,69 @@ that build directory is not part of the source distribution. The checked
 [example catalog](../../examples/README.md), [failure manifest](../../examples/errors/cases.tsv),
 and `.expected` / `.stderr` files provide reproducible source-level evidence.
 
-## Remaining distribution gates
+## Package verification
 
-These are separate from the successful local compiler tests.
+The local Linux archive and Debian package include the executable, runtime rlib,
+71 dependency rlibs, the full Rust compiler version, and installation guidance.
+The package builder selects Cargo's exact artifact list, excluding stale builds.
+The Debian package installs under `/usr/bin` and `/usr/lib/soplang`; its control
+metadata records this host build's actual minimum, `libc6 (>= 2.39)`.
+Do not advertise compatibility with older distributions from these host assets.
+
+The installed-package checker relocates the executable and libraries into a
+fresh temporary directory with spaces and uses a nonexistent Cargo target path.
+It checks:
+
+- Version, command execution, imports, stdin, strict mode, and a persistent REPL.
+- All 28 public examples and all 63 diagnostic snapshots through JIT and LLVM.
+- Concurrent builds with identical output basenames.
+- Portable and Unix prefix layouts, missing runtimes, an invalid explicit runtime
+  override, and mismatched Rust compiler metadata.
+- Native execution after removing the source and installed runtime; JIT execution
+  without Rust/clang on PATH.
+
+Both the extracted tar archive and extracted Debian package passed. The host did
+not have dpkg-deb installed; the Debian tool was extracted into `/tmp` from the
+official downloaded Rust/Debian image, and the normal Linux packaging script
+built the package with it. Both actual assets have generated and verified
+SHA-256 records in `linux/SHA256SUMS` (generated output, not source control).
+This checks extraction and execution, not a privileged system installation.
+
+## Container
+
+The final local image (`043ec9caa31a`) built and passed the complete installed-
+package checker: all 28 examples and 63 diagnostics in both backends, REPL,
+imports, concurrent builds, runtime discovery, toolchain mismatch handling, and
+standalone execution. It runs as `soplang` with clang 16.0.6 and Rust 1.94.0.
+Only the checker scripts and examples were mounted read-only; the image supplied
+its own executable, runtime libraries, compiler, and linker.
+
+The first attempt exposed clang 14 rejecting opaque LLVM pointer syntax. Docker
+now installs clang 16, includes manifests in its context, and keeps its Rust
+compiler matched to the bundled rlibs. Build and verification logs are under
+`target/release-verification/container-build.log` and `container-install.log`.
+The local image check does not establish a successful registry publication.
+
+## Release automation
+
+The native/container verification workflow covers Linux, Windows, and macOS.
+Release branch drafts depend on all of its jobs succeeding, then attach actual
+archives/packages and platform checksum records from the tested source revision.
+Automation no longer rewrites the changelog or creates a commit. Prereleases
+skip stable AUR publication and cannot replace stable Docker aliases. Workflow
+syntax and embedded shell scripts passed actionlint locally; no remote workflow
+or publication was triggered in this session.
+
+## Remaining publication gates
 
 | Gate | Status and required work |
 | --- | --- |
-| Installed Linux package | Pending. Package scripts currently copy only the executable; `--build` still searches the original Cargo target directory for its runtime/dependency rlibs. Bundle and locate those artifacts, then test an extracted install away from the checkout. |
-| Windows installer | Pending native build and execution on Windows, including the JIT and LLVM calling/linking conventions and toolchain requirements. |
-| macOS package | Pending native build and execution on macOS, including imports, REPL, and standalone builds. |
-| Container | Pending. `.dockerignore` currently excludes Cargo manifests used by `Dockerfile`, and the runtime image omits the `--build` toolchain/artifacts. This session also cannot access the Docker daemon socket. |
-| Release assets/checksums | Pending final package builds; compute checksums from the actual assets after those gates pass. |
-| Release notes | Draft prepared in [RELEASE_NOTES_V3.md](../RELEASE_NOTES_V3.md). |
+| Linux system installation / compatibility floor | Archive and Debian extraction/execution passed on this x86_64 host. A clean system installation and the chosen oldest supported distribution still need validation. |
+| Windows native compiler and installer | Pending native CI and a clean installation/removal check, including calling conventions, PATH, and file associations. |
+| macOS native compiler and installer | Pending native CI, extracted app / mounted DMG execution, and any required signing/notarization. |
+| Container registry | Local image verification passed. Validate the published registry image after publication. |
+| Final candidate assets | Local Linux assets and checksums exist. Regenerate and verify every platform's assets from the selected candidate revision; optional installers must be tested if distributed. |
+| Release notes/version | Draft prepared in [RELEASE_NOTES_V3.md](../RELEASE_NOTES_V3.md). Cargo remains 3.0.0; a candidate version has not been selected or published. |
 
-The local results do not establish installed-package or cross-platform release
-readiness. Keep publication gated on those distribution checks. Releases remain
-on the Soplang 3 line.
+Native workflow configuration is not a native result. Keep publication gated on
+those checks. Releases remain on the Soplang 3 line.

@@ -15,7 +15,7 @@ fn temp_bin(name: &str) -> PathBuf {
         .as_millis();
     let mut p = std::env::temp_dir();
     p.push(format!("soplang_{name}_{}_{stamp}", std::process::id()));
-    p
+    p.with_extension(std::env::consts::EXE_EXTENSION)
 }
 
 #[test]

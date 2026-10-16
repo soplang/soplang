@@ -1,156 +1,67 @@
-# Soplang Release Process
+# Soplang release process
 
-This document outlines the semi-automated release process for Soplang.
+## Version policy
 
-## Version Policy
+Releases remain on `3.x.y`; version 4 is neither approved nor scheduled. Package
+versions come from Cargo.toml and must match a `release/v3.x.y` branch. A release
+candidate uses a version such as `3.0.0-rc.1` in Cargo.toml and Cargo.lock and a
+matching branch. Choose that version before creating the release branch.
 
-Soplang releases remain on the version 3 line and use `3.x.y` versions. There
-is no approved or scheduled version 4. See the [Soplang 3 roadmap](../ROADMAP.md)
-for the version policy and ordered development plan.
+## Verification before drafting
 
-## Release Workflow Overview
+1. Review the [verification record](testing/RELEASE_VERIFICATION.md) and
+   [release notes](RELEASE_NOTES_V3.md). Finish pending platform gates.
+2. Run `cargo test --locked` and `cargo test --release --locked`, including AOT.
+3. Build packages on their native systems:
+   - Linux: `bash linux/build_linux.sh` (install dpkg-dev for a Debian package).
+   - Windows: `./windows/build_windows.ps1` (Inno Setup is optional).
+   - macOS: `bash macos/build_macos.sh` (create-dmg is optional).
+4. Extract each archive/package and run `python3 scripts/verify_package.py
+   /path/to/extracted/soplang` (use `python` / `soplang.exe` on Windows).
+   Test the actual installer on a clean native machine too; archive checks do
+   not establish installer PATH, file association, signing, or notarization.
+5. Verify each generated `SHA256SUMS` beside its assets using `sha256sum -c`
+   (Linux) or `shasum -a 256 -c` (macOS). Each platform checksum file lists only
+   that platform's generated assets. Keep the platform directories separate.
+6. Build and test Docker without publishing:
 
-Soplang uses a combination of manual binary building and automated processes:
-
-1. **Manual Building**: Binaries for Windows, Linux, and macOS are built manually by the development team
-2. **Automated Docker Images**: Images are published to GitHub Container Registry and optionally Docker Hub
-3. **Automated Draft Creation**: GitHub Actions creates a draft release with appropriate templates
-4. **Manual Asset Upload**: Binaries are uploaded to the draft release
-5. **Manual Publishing**: The release is reviewed and published by a team member
-
-## Creating a Release
-
-### Step 1: Create a Release Branch
-
-1. Set the release version in `Cargo.toml`, then create a branch from `main` using the naming convention `release/vX.Y.Z` (for example, `release/v3.0.0`):
-   ```bash
-   git checkout main
-   git pull
-   git checkout -b release/v3.0.0
+   ```sh
+   docker build -t soplang:release-check .
+   docker run --rm --entrypoint python3 \
+     -v "$PWD/scripts:/verify/scripts:ro" \
+     -v "$PWD/examples:/verify/examples:ro" \
+     soplang:release-check /verify/scripts/verify_package.py /usr/local/bin/soplang
    ```
 
-   Linux and macOS packages read this version from `Cargo.toml`; the Windows build passes it to Inno Setup.
+The `Verify release packages` workflow runs the same native and container gates
+on pull requests and manual dispatch. Native results must be green; an uploaded
+package alone is not evidence of a successful JIT or LLVM ABI.
 
-2. Make any final release adjustments and push the branch to GitHub:
-   ```bash
-   git push origin release/v3.0.0
-   ```
+## Draft and publication
 
-3. This triggers the GitHub Actions workflow, which:
-   - Verifies that the branch version matches `Cargo.toml`
-   - Runs the complete locked test suite
-   - Updates `CHANGELOG.md` on the release branch
-   - Creates a git tag for the release
-   - Drafts a GitHub release with a template for the release notes
+After the maintainer commits and pushes a matching `release/v3.x.y` branch,
+release automation first calls the full verification workflow. Only successful
+Linux, Windows, macOS, and container jobs allow a draft. The draft contains the
+reviewed release notes, real package assets, and their platform checksum files,
+and targets the exact tested source revision. Automation does not rewrite the
+changelog or add a commit. Update and commit the changelog during review.
 
-### Step 2: Build Platform-Specific Binaries
+Prerelease versions produce a prerelease draft. Review every download, signing
+requirement, platform result, and note before publishing manually. A release
+candidate is recommended before 3.0.0 final. The package version remains 3.0.0
+until a maintainer chooses a candidate version; this document does not select
+or publish a version.
 
-After the GitHub Action completes, build the binaries for each platform:
+Publishing triggers the existing Docker registry workflow. Stable releases also
+trigger AUR publication. Prereleases must not replace stable `latest`, `3`, or
+`3.0` Docker tags or update the stable AUR package. Verify registry images and
+AUR installation after publication; the local image check cannot verify a
+registry upload. No publication is performed by the local packaging scripts.
 
-1. **Windows Binary**:
-   ```bash
-   cd windows
-   ./build_windows.ps1  # Or build_windows.bat
-   ```
-   This will create `windows/Output/soplang-setup.exe`
+## Installed build requirements
 
-2. **Linux Binary**:
-   ```bash
-   cd linux
-   ./build_linux.sh
-   ```
-   This will create `linux/soplang_<version>_amd64.deb` (or .rpm)
-
-3. **macOS Binary**:
-   ```bash
-   cd macos
-   ./build_macos.sh
-   ```
-   This will create `macos/Soplang-<version>.dmg`
-
-### Step 3: Upload Binaries and Publish the Release
-
-1. Go to the "Releases" section on GitHub
-2. Find the draft release created by the workflow
-3. Upload the binaries you built as assets
-4. Update the download links in the release description
-5. Calculate and add SHA256 checksums for each file
-6. Remove the checklist section
-7. Review the release and publish it
-
-### Step 4: Verify Docker Image Deployment
-
-After publishing the release, the Docker workflow will automatically build and push Docker images:
-
-1. Verify the image in GitHub Container Registry at [ghcr.io/soplang/soplang](https://github.com/soplang/soplang/pkgs/container/soplang)
-2. If Docker Hub credentials are configured, verify the image at [soplang/soplang](https://hub.docker.com/r/soplang/soplang)
-3. Test the Docker images by running:
-   ```bash
-   docker pull soplang/soplang:latest
-   docker run -it --rm soplang/soplang -v
-   ```
-
-### Step 5: Merge the Release Branch
-
-After the release is published and verified, merge the release branch back to main:
-```bash
-git checkout main
-git merge release/v3.0.0
-git push origin main
-```
-
-## Commit Message Format
-
-For best changelog generation, use conventional commit messages:
-
-- `feat: add new feature` - Appears in the "Added" section
-- `fix: fix a bug` - Appears in the "Fixed" section
-- `change: update existing functionality` - Appears in the "Changed" section
-- `docs: update documentation` - Appears in the "Documentation" section
-- `build: update build process` - Appears in the "Build" section
-- `remove: remove feature` - Appears in the "Removed" section
-
-### Attribution and GitHub Links
-
-For proper attribution in the changelog and release notes:
-
-1. Ensure your git config has your GitHub username as the author name:
-   ```bash
-   git config --global user.name "sharafdin"
-   ```
-
-2. In commit messages, you can manually add attribution like:
-   ```
-   feat: add error messages [@sharafdin](https://github.com/sharafdin)
-   ```
-
-3. The automated changelog will create GitHub links for authors in the format:
-   ```
-   [@username](https://github.com/username)
-   ```
-
-4. When editing the release notes, ensure usernames are properly linked if the automation doesn't catch them
-
-## Docker Image Tagging
-
-The Docker automation will create the following tags:
-
-1. Full version: `soplang/soplang:3.0.0`
-2. Minor version: `soplang/soplang:3.0`
-3. Major version: `soplang/soplang:3`
-4. Latest tag: `soplang/soplang:latest` (for a published, non-prerelease release)
-
-The same tags are also created in the GitHub Container Registry with the prefix `ghcr.io/soplang/`.
-
-## Troubleshooting
-
-If the automated release process fails:
-
-1. Check the GitHub Actions logs for error details
-2. Make the necessary corrections
-3. Push the changes to the release branch to trigger the workflow again
-
-If Docker image building fails:
-1. Check the Docker workflow logs in the GitHub Actions tab
-2. Common issues include permission problems or missing secrets
-3. Ensure `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` secrets are configured in the repository
+See [Installing packages](INSTALLING_PACKAGES.md). Native builds require clang,
+a system linker, and the exact Rust toolchain recorded inside the package.
+The image includes these tools. Built programs retain ordinary system-library
+requirements; build Linux assets against the oldest supported distribution and
+test them there before advertising compatibility.

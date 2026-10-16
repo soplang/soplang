@@ -37,3 +37,16 @@ barnaamij/
 # Added by cargo
 
 /target
+
+# Generated release packages
+/dist/
+/linux/*.tar.gz
+/linux/*.deb
+/linux/SHA256SUMS
+/macos/*.tar.gz
+/macos/*.dmg
+/macos/SHA256SUMS
+/windows/*.zip
+/windows/Output/
+/windows/SHA256SUMS
+__pycache__/

@@ -1,47 +1,27 @@
 # Soplang for Windows
 
-Build Soplang (Rust) on Windows and optionally create an installer with Inno Setup.
+Install Rust via rustup, Python 3.9+, Visual Studio C++ Build Tools / Windows SDK,
+and LLVM clang. Open a developer shell with the linker available. Inno Setup 6
+is optional for building the installer.
 
-**Full build guide (all platforms):** [../docs/BUILD_GUIDE.md](../docs/BUILD_GUIDE.md)
-
-## Prerequisites
-
-- **Rust** — [rustup.rs](https://rustup.rs)
-- **Inno Setup 6** (optional, for installer) — [jrsoftware.org/isdl.php](https://jrsoftware.org/isdl.php)
-
-## Build
-
-From the **project root** (PowerShell or Command Prompt):
-
-**PowerShell (recommended):**
 ```powershell
-.\windows\build_windows.ps1
+./windows/build_windows.ps1
+# Command Prompt: windows\build_windows.bat
 ```
 
-**Command Prompt:**
-```cmd
-windows\build_windows.bat
+The locked builder stages `dist/soplang` with runtime libraries and produces
+`windows/soplang-<version>-windows-<arch>.zip`. With Inno Setup it also produces
+`windows/Output/soplang-setup.exe`. Failures in Cargo, packaging, checksumming,
+or Inno Setup stop the build. `windows/SHA256SUMS` records actual assets.
+
+```powershell
+python scripts/verify_package.py dist/soplang/soplang.exe
+# Or: ./windows/test_windows_build.ps1
 ```
 
-The script will:
-
-1. Run `cargo build --release`
-2. Copy **soplang.exe** to **dist\soplang\**
-3. If Inno Setup 6 is installed, create **windows\Output\soplang-setup.exe**
-
-## Output
-
-- **Binary:** `target\release\soplang.exe`
-- **Dist:** `dist\soplang\soplang.exe`
-- **Installer:** `windows\Output\soplang-setup.exe` (if Inno Setup installed)
-
-## Run
-
-```cmd
-target\release\soplang.exe examples\01_hello.sop
-target\release\soplang.exe -i
-```
-
-## Custom icon
-
-Place **soplang_icon.ico** in the `windows\` folder before building the installer; the script uses it for the setup and app icon.
+Repeat the checker on the extracted ZIP. Test installer installation/removal,
+PATH changes, and file associations on a clean Windows machine. Native JIT and
+LLVM calling conventions must pass the Windows CI job before claiming support;
+this Linux-hosted session cannot establish that result. See
+[package requirements](../docs/INSTALLING_PACKAGES.md) and the
+[verification record](../docs/testing/RELEASE_VERIFICATION.md).

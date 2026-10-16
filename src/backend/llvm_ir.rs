@@ -7,6 +7,7 @@ use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::sync::atomic::{AtomicU64, Ordering};
 
 use crate::error::{runtime_error, SoplangError};
 use crate::hir::{BinOpKind, HirConst, HirFunction, HirInstr, HirModule, SlotNum, UnOpKind};
@@ -142,14 +143,10 @@ pub fn link_llvm_binary(ir: &str, out: &Path) -> Result<(), SoplangError> {
 /// Compile and link LLVM IR with the requested optimization level (0..3).
 pub fn link_llvm_binary_with_opt(ir: &str, out: &Path, opt_level: u8) -> Result<(), SoplangError> {
     let (rlib, deps) = soplang_rlib()?;
-    let dir = std::env::temp_dir();
-    let tag = out
-        .file_name()
-        .and_then(|s| s.to_str())
-        .unwrap_or("soplang_llvm");
-    let ll = dir.join(format!("{tag}.ll"));
-    let obj = dir.join(format!("{tag}.o"));
-    let wrapper = dir.join(format!("{tag}.rs"));
+    let temp = LinkTemp::new()?;
+    let ll = temp.0.join("program.ll");
+    let obj = temp.0.join("program.o");
+    let wrapper = temp.0.join("wrapper.rs");
     fs::write(&ll, ir).map_err(|e| runtime_error(e.to_string(), 0, 0))?;
     fs::write(&wrapper, LINK_WRAPPER).map_err(|e| runtime_error(e.to_string(), 0, 0))?;
     if let Some(parent) = out.parent() {
@@ -266,42 +263,111 @@ static KEEP: [Keep; 46] = [
 ];
 "#;
 
+// Each link owns its scratch directory, including concurrent builds with the same
+// output filename. Drop also cleans up when either compiler fails to start.
+struct LinkTemp(PathBuf);
+
+impl LinkTemp {
+    fn new() -> Result<Self, SoplangError> {
+        static NEXT: AtomicU64 = AtomicU64::new(0);
+        loop {
+            let path = std::env::temp_dir().join(format!(
+                "soplang-link-{}-{}",
+                std::process::id(),
+                NEXT.fetch_add(1, Ordering::Relaxed)
+            ));
+            match fs::create_dir(&path) {
+                Ok(()) => return Ok(Self(path)),
+                Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => continue,
+                Err(e) => return Err(runtime_error(e.to_string(), 0, 0)),
+            }
+        }
+    }
+}
+
+impl Drop for LinkTemp {
+    fn drop(&mut self) {
+        let _ = fs::remove_dir_all(&self.0);
+    }
+}
+
+fn packaged_runtime(dir: &Path) -> Result<(PathBuf, PathBuf), SoplangError> {
+    let expected = fs::read_to_string(dir.join("rustc-version.txt")).map_err(|e| {
+        runtime_error(
+            format!("cannot read runtime toolchain in {}: {e}", dir.display()),
+            0,
+            0,
+        )
+    })?;
+    let rustc = Command::new("rustc").arg("-vV").output().map_err(|e| {
+        runtime_error(
+            format!(
+                "rustc did not start: {e}. Install the toolchain listed in {}/rustc-version.txt",
+                dir.display()
+            ),
+            0,
+            0,
+        )
+    })?;
+    let actual = String::from_utf8_lossy(&rustc.stdout);
+    // rlib metadata is specific to the Rust compiler and host target. Compare
+    // the full version, including the commit and host, before asking rustc to link.
+    if !rustc.status.success() || !actual.trim().lines().eq(expected.trim().lines()) {
+        return Err(runtime_error(format!(
+            "runtime Rust toolchain mismatch\nRequired:\n{}\nFound:\n{}\nInstall the matching Rust toolchain or rebuild this Soplang package.",
+            expected.trim(), actual.trim()), 0, 0));
+    }
+    let rlib = dir.join("libsoplang.rlib");
+    let deps = dir.join("deps");
+    if !rlib.is_file() || !deps.is_dir() {
+        return Err(runtime_error(
+            format!("incomplete Soplang runtime in {}", dir.display()),
+            0,
+            0,
+        ));
+    }
+    Ok((rlib, deps))
+}
+
 fn soplang_rlib() -> Result<(PathBuf, PathBuf), SoplangError> {
-    let base = std::env::var("CARGO_TARGET_DIR")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("target"));
-    let profile = if cfg!(debug_assertions) {
-        "debug"
-    } else {
-        "release"
-    };
-    let deps = base.join(profile).join("deps");
-    let mut best: Option<(std::time::SystemTime, PathBuf)> = None;
-    let entries = fs::read_dir(&deps)
-        .map_err(|e| runtime_error(format!("cannot read {}: {e}", deps.display()), 0, 0))?;
-    for ent in entries {
-        let ent = ent.map_err(|e| runtime_error(e.to_string(), 0, 0))?;
-        let path = ent.path();
-        let file = path.file_name().and_then(|s| s.to_str()).unwrap_or("");
-        if !(file.starts_with("libsoplang-") && file.ends_with(".rlib")) {
+    if let Some(dir) = std::env::var_os("SOPLANG_RUNTIME_DIR") {
+        return packaged_runtime(Path::new(&dir));
+    }
+    let exe = std::env::current_exe().map_err(|e| runtime_error(e.to_string(), 0, 0))?;
+    let parent = exe
+        .parent()
+        .ok_or_else(|| runtime_error("cannot locate Soplang executable", 0, 0))?;
+    // Portable archives / Windows / macOS bundles; then Unix prefix/bin layout.
+    for dir in [parent.join("lib/soplang"), parent.join("../lib/soplang")] {
+        if dir.is_dir() {
+            return packaged_runtime(&dir);
+        }
+    }
+    // Cargo executables and integration tests find their own profile artifacts.
+    // Never fall back to the build machine's checkout for an installed binary.
+    for deps in [parent.join("deps"), parent.to_path_buf()] {
+        let Ok(entries) = fs::read_dir(&deps) else {
             continue;
+        };
+        let mut candidates = Vec::new();
+        for ent in entries.flatten() {
+            let path = ent.path();
+            let file = path.file_name().and_then(|s| s.to_str()).unwrap_or("");
+            if file.starts_with("libsoplang-") && file.ends_with(".rlib") {
+                let modified = path
+                    .metadata()
+                    .and_then(|m| m.modified())
+                    .unwrap_or(std::time::SystemTime::UNIX_EPOCH);
+                candidates.push((modified, path));
+            }
         }
-        let modified = path
-            .metadata()
-            .and_then(|m| m.modified())
-            .unwrap_or(std::time::SystemTime::UNIX_EPOCH);
-        if best.as_ref().map(|(t, _)| modified >= *t).unwrap_or(true) {
-            best = Some((modified, path));
+        candidates.sort();
+        if let Some((_, rlib)) = candidates.pop() {
+            return Ok((rlib, deps));
         }
     }
-    match best {
-        Some((_, p)) => Ok((p, deps)),
-        None => Err(runtime_error(
-            format!("soplang rlib not found in {}", deps.display()),
-            0,
-            0,
-        )),
-    }
+    Err(runtime_error(
+        "Soplang runtime libraries are missing. Install the complete package or set SOPLANG_RUNTIME_DIR to its lib/soplang directory.", 0, 0))
 }
 
 fn emit_function(

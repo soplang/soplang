@@ -66,7 +66,7 @@ Or: `make build`, `make run FILE=examples/01_hello.sop`, `make shell`, `make tes
 
 `soplang file.sop` and the REPL share one pipeline: lex, parse, resolve `keen`, analyze, lower to HIR, then Cranelift. Static `abn` and `jajab` arithmetic is native integer and float code. `door` and other dynamic values, including string concatenation, go through the tagged runtime.
 
-`soplang --build file.sop` resolves `keen`, lowers the program to HIR, emits textual LLVM IR, and links a native binary with system `clang` and `rustc`. `--opt-level` selects optimization level 0–3. The binary runs without Soplang or the source files beside it.
+`soplang --build file.sop` resolves `keen`, lowers the program to HIR, emits textual LLVM IR, and links a native binary with system `clang` (15+) and the matching `rustc`. Installed packages include the required runtime libraries; keep the package intact. See [package installation](docs/INSTALLING_PACKAGES.md). `--opt-level` selects optimization level 0–3. The binary runs without Soplang or the source files beside it.
 
 ## Benchmark results
 

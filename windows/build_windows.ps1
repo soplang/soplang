@@ -1,58 +1,37 @@
-# Soplang Windows Build — build Rust binary and optional Inno Setup installer.
-# Prerequisites: Rust (rustup.rs). Optional: Inno Setup 6 for installer.
-
+# Build a complete portable package and optional Inno Setup installer.
 $ErrorActionPreference = "Stop"
-
 $projectRoot = Split-Path -Parent $PSScriptRoot
-Set-Location $projectRoot
-
-Write-Host "Soplang Windows Build" -ForegroundColor Cyan
-Write-Host "=====================" -ForegroundColor Cyan
-
-# Check for cargo
-if (-not (Get-Command cargo -ErrorAction SilentlyContinue)) {
-    Write-Host "Error: cargo not found. Install Rust from https://rustup.rs" -ForegroundColor Red
-    exit 1
+Push-Location $projectRoot
+try {
+    $cargoToml = Get-Content "Cargo.toml" -Raw
+    if ($cargoToml -notmatch '(?m)^version = "([^"]+)"') { throw "Missing Cargo version" }
+    $version = $Matches[1]
+    python scripts/package.py --output dist/soplang
+    if ($LASTEXITCODE -ne 0) { throw "Package build failed" }
+    $archive = "windows/soplang-$version-windows-$env:PROCESSOR_ARCHITECTURE.zip"
+    if (Test-Path $archive) { Remove-Item $archive }
+    Compress-Archive -Path dist/soplang -DestinationPath $archive
+    $assets = @($archive)
+    $iscc = Get-Command ISCC.exe -ErrorAction SilentlyContinue
+    $isccPath = if ($iscc) { $iscc.Source } else { $null }
+    if (-not $isccPath) {
+        foreach ($base in @(${env:ProgramFiles(x86)}, $env:ProgramFiles)) {
+            if ($base -and (Test-Path "$base\Inno Setup 6\ISCC.exe")) {
+                $isccPath = "$base\Inno Setup 6\ISCC.exe"
+                break
+            }
+        }
+    }
+    if ($isccPath) {
+        $numericVersion = ($version -split '-')[0]
+        & $isccPath "/DMyAppVersion=$version" "/DMyNumericVersion=$numericVersion" "windows/soplang_setup.iss"
+        if ($LASTEXITCODE -ne 0) { throw "Inno Setup failed" }
+        $assets += "windows/Output/soplang-setup.exe"
+    } else {
+        Write-Host "Inno Setup unavailable; installer verification remains pending."
+    }
+    python scripts/checksums.py @assets --output windows/SHA256SUMS
+    if ($LASTEXITCODE -ne 0) { throw "Checksum generation failed" }
+} finally {
+    Pop-Location
 }
-
-$cargoToml = Get-Content (Join-Path $projectRoot "Cargo.toml") -Raw
-if ($cargoToml -notmatch '(?m)^version = "([^"]+)"') {
-    Write-Host "Could not read the package version from Cargo.toml." -ForegroundColor Red
-    exit 1
-}
-$version = $Matches[1]
-
-# Build release binary
-Write-Host "Building release binary..." -ForegroundColor Cyan
-cargo build --release
-$binary = Join-Path $projectRoot "target\release\soplang.exe"
-if (-not (Test-Path $binary)) {
-    Write-Host "Build failed: soplang.exe not found." -ForegroundColor Red
-    exit 1
-}
-Write-Host "Binary: $binary" -ForegroundColor Green
-
-# Prepare dist for installer (Inno Setup expects ..\dist\soplang\*)
-$distDir = Join-Path $projectRoot "dist\soplang"
-New-Item -ItemType Directory -Force -Path $distDir | Out-Null
-Copy-Item -Path $binary -Destination (Join-Path $distDir "soplang.exe") -Force
-Write-Host "Dist: $distDir" -ForegroundColor Green
-
-# Optional: Inno Setup installer
-$iscc = $null
-if (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe") {
-    $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
-} elseif (Test-Path "${env:ProgramFiles}\Inno Setup 6\ISCC.exe") {
-    $iscc = "${env:ProgramFiles}\Inno Setup 6\ISCC.exe"
-}
-
-if ($iscc) {
-    Write-Host "Creating installer with Inno Setup..." -ForegroundColor Cyan
-    & $iscc "/DMyAppVersion=$version" "windows\soplang_setup.iss"
-    Write-Host "Installer: $projectRoot\windows\Output\soplang-setup.exe" -ForegroundColor Green
-} else {
-    Write-Host "Inno Setup not found. Skipping installer. Install from https://jrsoftware.org/isdl.php to create soplang-setup.exe" -ForegroundColor Yellow
-}
-
-Write-Host "Done." -ForegroundColor Green
-Set-Location $PSScriptRoot

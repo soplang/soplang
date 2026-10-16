@@ -1,0 +1,118 @@
+name: Verify release packages
+
+on:
+  workflow_call:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'examples/**'
+      - 'scripts/**'
+      - 'linux/**'
+      - 'macos/**'
+      - 'windows/**'
+      - 'Cargo.*'
+      - 'rust-toolchain.toml'
+      - 'Dockerfile'
+      - '.dockerignore'
+      - '.github/workflows/*.yml'
+      - 'docs/INSTALLING_PACKAGES.md'
+      - 'README.md'
+
+permissions:
+  contents: read
+
+jobs:
+  native:
+    name: Native package (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-14]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - uses: dtolnay/rust-toolchain@1.94.0
+      - name: Install Linux build tools
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y clang dpkg-dev
+      - name: Show toolchain
+        run: |
+          rustc -vV
+          clang --version
+      - name: Test compiler
+        run: cargo test --locked
+      - name: Test optimized compiler
+        run: cargo test --release --locked
+      - name: Build Linux archive and Debian package
+        if: runner.os == 'Linux'
+        run: bash linux/build_linux.sh
+      - name: Verify extracted Linux packages
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p target/archive-install target/deb-install
+          tar -xzf linux/soplang-*-linux-*.tar.gz -C target/archive-install
+          dpkg-deb -x linux/soplang_*.deb target/deb-install
+          python3 scripts/verify_package.py target/archive-install/soplang/soplang
+          python3 scripts/verify_package.py target/deb-install/usr/bin/soplang
+          (cd linux && sha256sum -c SHA256SUMS)
+      - name: Build and verify Windows archive
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          ./windows/build_windows.ps1
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Expand-Archive windows/soplang-*-windows-*.zip target/archive-install
+          python scripts/verify_package.py target/archive-install/soplang/soplang.exe
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          foreach ($row in Get-Content windows/SHA256SUMS) {
+            $hash, $name = $row -split '  ', 2
+            $found = (Get-ChildItem windows -Recurse -File | Where-Object Name -eq $name)
+            if (@($found).Count -ne 1 -or (Get-FileHash $found.FullName -Algorithm SHA256).Hash.ToLower() -ne $hash) {
+              throw "Checksum failed: $name"
+            }
+          }
+      - name: Build and verify macOS archive
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash macos/build_macos.sh
+          mkdir -p target/archive-install
+          tar -xzf macos/soplang-*-macos-*.tar.gz -C target/archive-install
+          python3 scripts/verify_package.py target/archive-install/Soplang.app/Contents/MacOS/soplang
+          (cd macos && shasum -a 256 -c SHA256SUMS)
+      - uses: actions/upload-artifact@v4
+        with:
+          name: soplang-${{ matrix.os }}
+          path: |
+            linux/*.tar.gz
+            linux/*.deb
+            linux/SHA256SUMS
+            macos/*.tar.gz
+            macos/*.dmg
+            macos/SHA256SUMS
+            windows/*.zip
+            windows/Output/*.exe
+            windows/SHA256SUMS
+          if-no-files-found: error
+
+  container:
+    name: Container package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build release image
+        run: docker build -t soplang:release-check .
+      - name: Verify installed container package
+        run: |
+          docker run --rm --entrypoint python3 \
+            -v "$PWD/scripts:/verify/scripts:ro" \
+            -v "$PWD/examples:/verify/examples:ro" \
+            soplang:release-check /verify/scripts/verify_package.py /usr/local/bin/soplang

@@ -50,8 +50,10 @@ See [Migrating to Soplang 3](MIGRATION_V3.md) for compatibility names, stricter
 argument/index validation, search-miss conventions, and intentional behavior
 corrections.
 
-- `--build` requires `clang`, `rustc`, and matching Soplang runtime/dependency
-  artifacts. Installed-package validation remains a release gate.
+- `--build` requires clang with opaque pointer support and the exact Rust
+  compiler recorded in the package. Packages bundle the matching runtime and
+  dependency libraries; Docker also includes the build toolchain. JIT and REPL
+  execution need neither Rust nor clang.
 - Runtime memory reclamation, compiled stack traces, structured user-raised
   errors, and guaranteed cleanup are planned for 3.1.
 - More argument forms, iterators, and data types are planned for 3.2.

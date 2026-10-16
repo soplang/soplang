@@ -8,6 +8,9 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+* **Relocatable compiler packages.** Linux archives/Debian packages, Windows archives/installers, macOS bundles, and Docker include matching runtime libraries and Rust toolchain metadata. Package checks run every public example and diagnostic outside the source checkout.
+* **Release verification gates.** Native Linux, Windows, macOS, and container checks gate release drafts. Builders generate SHA-256 checksums for real assets; prereleases preserve stable Docker tags and skip stable AUR publication.
+
 * **Somali diagnostics with source locations.** Lexer, parser, semantic, and runtime failures retain original files, token columns, source lines, and caret spans through Cranelift and LLVM, including imports. Carets account for tabs, accents, combining marks, emoji, and wide characters.
 * **Complete example checks.** All 28 numbered programs have expected output; 63 intentional failures have diagnostic snapshots and expected locations. Both compiler paths check exit statuses and output, with dedicated strict-mode, command-expression, and REPL coverage.
 
@@ -42,6 +45,10 @@ All notable changes to this project will be documented in this file.
 * **Optional semicolons.** Statements may use semicolons consistently while newline-oriented source remains valid.
 
 ### Fixed
+
+* Installed `--build` locates its bundled runtime instead of searching the build machine's Cargo directory and reports mismatched Rust toolchains before linking.
+* Concurrent LLVM builds with identical output filenames use isolated temporary directories and clean up on failures.
+* Docker includes Cargo manifests, clang 16, the linker, and the matching Rust toolchain. Registry metadata separates image names from the optional Docker Hub output.
 
 * Canonical API argument errors report the spelling used at the call site; large line numbers preserve caret alignment.
 * Unclosed strings and comments point to the opening delimiter. Invalid class contents point to the offending statement. EOF diagnostics retain empty final source lines.

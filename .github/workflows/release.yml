@@ -12,231 +12,58 @@ permissions:
   contents: write
 
 jobs:
-  draft-release:
-    name: Draft Release Process
+  verify:
     if: github.event_name == 'push'
+    permissions:
+      contents: read
+    uses: ./.github/workflows/release-verification.yml
+
+  draft-release:
+    name: Draft verified release
+    if: github.event_name == 'push'
+    needs: verify
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v7
-        with:
-          fetch-depth: 0 # Fetch all history for changelog generation
-          # Add token for checkout to allow pushing later
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Setup Python
-        uses: actions/setup-python@v7
-        with:
-          python-version: "3.x"
-
-      - name: Extract version from branch name
-        id: extract_version
+      - uses: actions/checkout@v7
+      - name: Validate release version
+        shell: bash
         run: |
-          BRANCH_NAME=${GITHUB_REF#refs/heads/}
-          VERSION=${BRANCH_NAME#release/}
-          # Remove v prefix if present (for file naming)
-          VERSION_NUM=${VERSION#v}
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "VERSION_NUM=$VERSION_NUM" >> $GITHUB_ENV
-          echo "Version extracted: $VERSION (number: $VERSION_NUM)"
-
-      - name: Set up Rust
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Validate release version and tests
-        run: |
+          VERSION="${GITHUB_REF_NAME#release/v}"
           CARGO_VERSION=$(sed -n 's/^version = "\([^"]*\)"/\1/p' Cargo.toml | head -n 1)
-          if [[ "$CARGO_VERSION" != "${{ env.VERSION_NUM }}" ]]; then
-            echo "Cargo.toml version $CARGO_VERSION does not match release branch ${{ env.VERSION_NUM }}"
-            exit 1
-          fi
-          cargo test --locked
-
-      # Update the CHANGELOG.md file
-      - name: Install changelog generator
-        run: |
-          pip install gitchangelog pystache
-          echo "Using gitchangelog for changelog generation"
-
-      - name: Create or update CHANGELOG.md
-        id: changelog
-        run: |
-          # Check if CHANGELOG.md exists, create it if it doesn't
-          if [ ! -f CHANGELOG.md ]; then
-            echo "# CHANGELOG" > CHANGELOG.md
-            echo "" >> CHANGELOG.md
-            echo "All notable changes to this project will be documented in this file." >> CHANGELOG.md
-            echo "" >> CHANGELOG.md
-            echo "FIRST_RUN=true" >> $GITHUB_ENV
+          [[ "$VERSION" == "$CARGO_VERSION" && "$VERSION" == 3.* ]]
+          echo "RELEASE_TAG=v$VERSION" >> "$GITHUB_ENV"
+          if [[ "$VERSION" == *-* ]]; then
+            echo "PRERELEASE=true" >> "$GITHUB_ENV"
           else
-            echo "FIRST_RUN=false" >> $GITHUB_ENV
+            echo "PRERELEASE=false" >> "$GITHUB_ENV"
           fi
-
-          # Generate changelog for the current version
-          PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
-          if [ -z "$PREV_TAG" ]; then
-            # No previous tag, generate changelog from the beginning
-            echo "No previous tag found, generating changelog from first commit"
-            FIRST_COMMIT=$(git rev-list --max-parents=0 HEAD)
-            CHANGELOG_CONTENT=$(gitchangelog $FIRST_COMMIT..HEAD || echo "- Initial release")
-
-            # For first release with no tags, force CHANGELOG_CHANGED to true
-            echo "CHANGELOG_FORCED=true" >> $GITHUB_ENV
-          else
-            # Generate changelog since the last tag
-            echo "Generating changelog since tag $PREV_TAG"
-            CHANGELOG_CONTENT=$(gitchangelog $PREV_TAG..HEAD || echo "- No notable changes")
-            echo "CHANGELOG_FORCED=false" >> $GITHUB_ENV
-          fi
-
-          # If we got no content from gitchangelog, provide a default entry
-          if [ -z "$CHANGELOG_CONTENT" ]; then
-            echo "No changelog content generated, using default"
-            CHANGELOG_CONTENT="### Added\n- Initial release of Soplang ${{ env.VERSION }}"
-          fi
-
-          # Create a new changelog entry
-          echo "## [${{ env.VERSION }}] - $(date +'%Y-%m-%d')" > changelog_entry.md
-          echo "" >> changelog_entry.md
-          echo "$CHANGELOG_CONTENT" >> changelog_entry.md
-          echo "" >> changelog_entry.md
-
-          # Check if Unreleased section already exists
-          if grep -q "## \[Unreleased\]" CHANGELOG.md; then
-            echo "Unreleased section already exists, updating existing changelog structure"
-            # Insert new entry after the Unreleased section
-            sed -i "/## \[Unreleased\]/r changelog_entry.md" CHANGELOG.md
-          else
-            echo "No Unreleased section found, creating standard structure"
-            # Insert the new entry and create Unreleased section
-            awk 'NR==4{print "## [Unreleased]\n"}1' CHANGELOG.md > temp_changelog
-            sed -i '4 r changelog_entry.md' temp_changelog
-            mv temp_changelog CHANGELOG.md
-          fi
-
-          # Save the changelog entry for the release notes
-          CHANGELOG_ONLY=$(cat changelog_entry.md)
-          echo "CHANGELOG_ONLY<<EOF" >> $GITHUB_ENV
-          echo "$CHANGELOG_ONLY" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
-
-          # Create release template with download table, Docker info, and checklist
-          echo "# 🚀 Soplang ${{ env.VERSION }} Release" > release_template.md
-          echo "" >> release_template.md
-          echo "## 🛠️ Downloads" >> release_template.md
-          echo "" >> release_template.md
-          echo "| Platform | File | Checksum |" >> release_template.md
-          echo "|----------|------|----------|" >> release_template.md
-          echo "| Windows  | [soplang-setup.exe](replace_with_actual_link) | TBD |" >> release_template.md
-          echo "| Linux    | [soplang_${{ env.VERSION_NUM }}_amd64.deb](replace_with_actual_link) | TBD |" >> release_template.md
-          echo "| macOS    | [Soplang-${{ env.VERSION_NUM }}.dmg](replace_with_actual_link) | TBD |" >> release_template.md
-          echo "" >> release_template.md
-
-          echo "## 🐳 Docker Images" >> release_template.md
-          echo "" >> release_template.md
-          echo "Docker images are published to GitHub Container Registry and, when credentials are configured, Docker Hub:" >> release_template.md
-          echo "" >> release_template.md
-          echo "```bash" >> release_template.md
-          echo "# Pull from Docker Hub" >> release_template.md
-          echo "docker pull soplang/soplang:${{ env.VERSION_NUM }}" >> release_template.md
-          echo "" >> release_template.md
-          echo "# Pull from GitHub Container Registry" >> release_template.md
-          echo "docker pull ghcr.io/soplang/soplang:${{ env.VERSION_NUM }}" >> release_template.md
-          echo "```" >> release_template.md
-          echo "" >> release_template.md
-          echo "### Quick Start with Docker" >> release_template.md
-          echo "" >> release_template.md
-          echo "```bash" >> release_template.md
-          echo "# Run interactive shell" >> release_template.md
-          echo "docker run -it --rm soplang/soplang" >> release_template.md
-          echo "" >> release_template.md
-          echo "# Run a Soplang script" >> release_template.md
-          echo "docker run -it --rm -v \$(pwd):/scripts soplang/soplang my_script.sop" >> release_template.md
-          echo "```" >> release_template.md
-          echo "" >> release_template.md
-
-          # Process the changelog content to add GitHub username links
-          # More comprehensive pattern matching for various username formats
-          PROCESSED_CHANGELOG=$(echo "$CHANGELOG_CONTENT" | sed -E \
-            -e 's/\[Mr Sharafdin\]/[@sharafdin](https:\/\/github.com\/sharafdin)/g' \
-            -e 's/\[Sharafdin\]/[@sharafdin](https:\/\/github.com\/sharafdin)/g' \
-            -e 's/\[(Mr )?([A-Za-z0-9_-]+)\]/[@\2](https:\/\/github.com\/\2)/g')
-
-          echo "$PROCESSED_CHANGELOG" >> release_template.md
-          echo "" >> release_template.md
-          echo "## 📝 Release Checklist" >> release_template.md
-          echo "" >> release_template.md
-          echo "- [ ] Build Windows installer (soplang-setup.exe)" >> release_template.md
-          echo "- [ ] Build Linux package (soplang_${{ env.VERSION_NUM }}_amd64.deb)" >> release_template.md
-          echo "- [ ] Build macOS image (Soplang-${{ env.VERSION_NUM }}.dmg)" >> release_template.md
-          echo "- [ ] Upload all binaries as assets" >> release_template.md
-          echo "- [ ] Calculate and add SHA256 checksums to the table" >> release_template.md
-          echo "- [ ] Remove this checklist section" >> release_template.md
-          echo "- [ ] Publish the release" >> release_template.md
-
-          # Save full release template for the draft
-          RELEASE_TEMPLATE=$(cat release_template.md)
-          echo "RELEASE_TEMPLATE<<EOF" >> $GITHUB_ENV
-          echo "$RELEASE_TEMPLATE" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
-
-          # Check if CHANGELOG.md changed
-          if [[ $(git status --porcelain CHANGELOG.md | wc -l) -gt 0 || "${{ env.FIRST_RUN }}" == "true" || "${{ env.CHANGELOG_FORCED }}" == "true" ]]; then
-            echo "CHANGELOG_CHANGED=true" >> $GITHUB_ENV
-          else
-            echo "CHANGELOG_CHANGED=false" >> $GITHUB_ENV
-          fi
-
-      # Use direct commit approach with proper GitHub bot identity
-      - name: Commit updated changelog
-        if: env.CHANGELOG_CHANGED == 'true'
-        run: |
-          echo "Changelog changed, committing updates..."
-          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git add CHANGELOG.md
-          git commit -m "chore: update changelog for ${{ env.VERSION }}"
-          git push
-          echo "Changelog committed and pushed successfully"
-
-      - name: Debug changelog status
-        run: |
-          echo "CHANGELOG_CHANGED: ${{ env.CHANGELOG_CHANGED }}"
-          echo "FIRST_RUN: ${{ env.FIRST_RUN }}"
-          echo "CHANGELOG_FORCED: ${{ env.CHANGELOG_FORCED }}"
-          echo "CHANGELOG.md status:"
-          git status --porcelain CHANGELOG.md
-
-      # Create a Draft GitHub Release
-      - name: Create git tag
-        run: |
-          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git tag -a ${{ env.VERSION }} -m "Release ${{ env.VERSION }}"
-          git push origin ${{ env.VERSION }}
-
-      - name: Create GitHub Draft Release
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: soplang-*
+          merge-multiple: true
+          path: release-assets
+      - name: Create draft with verified package assets
         uses: softprops/action-gh-release@v3
         with:
-          tag_name: ${{ env.VERSION }}
-          name: "Soplang ${{ env.VERSION }}"
-          body: ${{ env.RELEASE_TEMPLATE }}
+          tag_name: ${{ env.RELEASE_TAG }}
+          target_commitish: ${{ github.sha }}
+          name: Soplang ${{ env.RELEASE_TAG }}
+          body_path: docs/RELEASE_NOTES_V3.md
+          files: |
+            release-assets/**/*.tar.gz
+            release-assets/**/*.deb
+            release-assets/**/*.zip
+            release-assets/**/*.exe
+            release-assets/**/*.dmg
+            release-assets/**/SHA256SUMS
+          fail_on_unmatched_files: false
           draft: true
-          prerelease: false
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Release status
-        run: |
-          echo "✅ Release ${{ env.VERSION }} draft created successfully!"
-          echo "  - Changelog updated with direct commit"
-          echo "  - GitHub Release draft created with tag ${{ env.VERSION }}"
-          echo "  - Please upload binaries manually and publish the release"
+          prerelease: ${{ env.PRERELEASE == 'true' }}
 
   publish-aur:
     name: Publish to AUR
     runs-on: ubuntu-latest
-    if: github.event_name == 'release' && github.event.action == 'published'
+    if: github.event_name == 'release' && github.event.action == 'published' && !github.event.release.prerelease
 
     steps:
       - name: Checkout code
@@ -244,10 +71,11 @@ jobs:
 
       - name: Extract version
         id: extract_version
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: |
-          VERSION=${{ github.event.release.tag_name }}
-          VERSION_NUM=${VERSION#v}
-          echo "VERSION_NUM=$VERSION_NUM" >> $GITHUB_ENV
+          VERSION_NUM="${RELEASE_TAG#v}"
+          echo "VERSION_NUM=$VERSION_NUM" >> "$GITHUB_ENV"
 
       - name: Generate PKGBUILD
         run: |
@@ -256,7 +84,7 @@ jobs:
           
           # Download the source tarball to calculate sha256
           TARBALL_URL="https://github.com/${{ github.repository }}/archive/refs/tags/${{ github.event.release.tag_name }}.tar.gz"
-          curl -sL $TARBALL_URL -o source.tar.gz
+          curl --fail --show-error --location "$TARBALL_URL" -o source.tar.gz
           SHA256=$(sha256sum source.tar.gz | awk '{print $1}')
           
           # Replace placeholders
@@ -266,7 +94,7 @@ jobs:
       - name: Generate .SRCINFO
         run: |
           # Use an Arch Linux container to run makepkg
-          docker run --rm -v $(pwd)/aur-workspace:/pkg -w /pkg archlinux:latest bash -c "pacman -Sy --noconfirm base-devel sudo && useradd -m builduser && chown -R builduser:builduser /pkg && sudo -u builduser makepkg --printsrcinfo > .SRCINFO"
+          docker run --rm -v "$PWD/aur-workspace:/pkg" -w /pkg archlinux:latest bash -c "pacman -Sy --noconfirm base-devel sudo && useradd -m builduser && chown -R builduser:builduser /pkg && sudo -u builduser makepkg --printsrcinfo > .SRCINFO"
 
       - name: Publish to AUR
         uses: KSXGitHub/github-actions-deploy-aur@v2.7.2

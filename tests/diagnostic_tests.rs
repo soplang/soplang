@@ -47,6 +47,17 @@ fn check(case: &Case, result: Output) {
     let stderr = String::from_utf8(result.stderr)
         .unwrap()
         .replace("\r\n", "\n");
+    // File separators depend on the host; source text and caret spacing do not.
+    let stderr = stderr
+        .split_inclusive('\n')
+        .map(|line| {
+            if line.starts_with("     --> ") {
+                line.replace('\\', "/")
+            } else {
+                line.to_owned()
+            }
+        })
+        .collect::<String>();
     assert!(stderr.starts_with("Khalad "), "{stderr}");
     assert!(
         stderr.contains(&format!("safka {}, tiirka {}", case.line, case.col)),
