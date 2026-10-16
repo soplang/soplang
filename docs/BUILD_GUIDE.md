@@ -127,7 +127,7 @@ From the project root (PowerShell):
 3. The script will:
    - Run `cargo build --release`
    - Create **dist/Soplang.app** (macOS application bundle)
-   - If `create-dmg` is installed, create **macos/Soplang-2.0.0.dmg**
+   - If `create-dmg` is installed, create **macos/Soplang-&lt;version&gt;.dmg**
 
 ### Output
 
@@ -135,7 +135,7 @@ From the project root (PowerShell):
 |-----------|------|
 | Binary    | `target/release/soplang` |
 | App bundle| `dist/Soplang.app` |
-| DMG      | `macos/Soplang-2.0.0.dmg` (if create-dmg installed) |
+| DMG      | `macos/Soplang-<version>.dmg` (if create-dmg installed) |
 
 ### Run
 
@@ -190,8 +190,8 @@ codesign --force --sign "Developer ID Application: Your Name" dist/Soplang.app
 3. The script will:
    - Run `cargo build --release`
    - Copy the binary to **dist/soplang/soplang**
-   - Create **linux/soplang-2.0.0-linux-&lt;arch&gt;.tar.gz**
-   - If `dpkg-deb` is available, create **linux/soplang_2.0.0_amd64.deb** (or your architecture)
+   - Create **linux/soplang-&lt;version&gt;-linux-&lt;arch&gt;.tar.gz**
+   - If `dpkg-deb` is available, create **linux/soplang_&lt;version&gt;_amd64.deb** (or your architecture)
 
 ### Output
 
@@ -199,13 +199,13 @@ codesign --force --sign "Developer ID Application: Your Name" dist/Soplang.app
 |----------|------|
 | Binary   | `target/release/soplang` |
 | Dist     | `dist/soplang/soplang` |
-| Tarball  | `linux/soplang-2.0.0-linux-<arch>.tar.gz` |
-| .deb     | `linux/soplang_2.0.0_amd64.deb` (if dpkg-deb available) |
+| Tarball  | `linux/soplang-<version>-linux-<arch>.tar.gz` |
+| .deb     | `linux/soplang_<version>_amd64.deb` (if dpkg-deb available) |
 
 ### Install from .deb
 
 ```bash
-sudo dpkg -i linux/soplang_2.0.0_amd64.deb
+sudo dpkg -i linux/soplang_<version>_amd64.deb
 soplang examples/01_hello.sop
 ```
 

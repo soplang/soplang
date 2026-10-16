@@ -89,6 +89,7 @@ This document provides a reference for all keywords in the Soplang programming l
 | `gelin`  | Read input from user                         | `input`              | `door magac = gelin("Magacaaga geli: ")`  |
 | `nooc`   | Get type of variable                         | `typeof`             | `qor(nooc(magac))`                        |
 | `abn`    | Convert value to a number (also the `int` type keyword above) | `int`/`float` | `door n = abn("5")`                 |
+| `jajab`  | Convert a number or numeric string to a decimal | `float` | `door n = jajab("3.5")`             |
 | `qoraal` | Convert to string                            | `str`                | `door s = qoraal(25)`                     |
 | `bool`   | Convert to boolean                           | `bool`               | `door b = bool(1)`                        |
 | `teed`   | Create a list                                | `list/array`         | `door list = teed(1, 2, 3)`               |
@@ -97,6 +98,13 @@ This document provides a reference for all keywords in the Soplang programming l
 | `kor`    | Round up to integer                          | `Math.ceil()`        | `door n = kor(4.2)`                       |
 | `dherer` | Count list items, object keys, or string characters | `len()`/`.length` | `door n = dherer(qoraal)`             |
 | `xul`    | Get random value                             | `random()`           | `door n = xul(1, 6)`                      |
+| `baaxad` | Create an integer range                      | `range()`            | `door n = baaxad(1, 5)`                   |
+| `dhammeystir` | Round to the nearest integer            | `round()`            | `door n = dhammeystir(4.6)`               |
+| `sugan`  | Get the absolute value                       | `abs()`              | `door n = sugan(-5)`                      |
+| `ugu_yar` | Get the smallest numeric argument           | `min()`              | `door n = ugu_yar(4, 2, 8)`               |
+| `ugu_weyn` | Get the largest numeric argument           | `max()`              | `door n = ugu_weyn(4, 2, 8)`              |
+| `awood`  | Raise a number to a power                    | `pow()`              | `door n = awood(2, 3)`                    |
+| `xidid`  | Calculate a square root                      | `sqrt()`             | `door n = xidid(9)`                       |
 
 `xul()` returns a decimal in `[0, 1)`. `xul(a, b)` returns a decimal in `[a, b)`. `xul(teed)` returns one item and reports an error for an empty list.
 
@@ -119,6 +127,8 @@ qor(baaxad(2, 6))  // [2, 3, 4, 5]
 qor(baaxad(1, 10, 2))  // [1, 3, 5, 7, 9]
 ```
 
+`baaxad` accepts integers only. A zero step reports an error that can be caught with `fasax` and `qabo`.
+
 ## List Methods
 
 | Method            | English Equivalent        | Description                     | Example                                 |
@@ -136,8 +146,15 @@ qor(baaxad(1, 10, 2))  // [1, 3, 5, 7, 9]
 | `aaddin(func)`     | `map(func)`                   | Transform items with function      | `door doubled = nums.aaddin(hawl(x) { celi x * 2 })` |
 | `shaandhee(func)`  | `filter(func)`                | Filter items with function         | `door evens = nums.shaandhee(hawl(x) { celi x % 2 == 0 })` |
 | `muuji(item)`      | `indexOf(item)`               | Find index of item                 | `door idx = nums.muuji(5)`                |
+| `geli(index, item)` | `insert(index, item)`         | Insert into the original list      | `numbers.geli(1, 5)`                      |
+| `ka_saar(index)`   | `remove(index)`                | Remove and return an indexed item  | `door item = numbers.ka_saar(1)`          |
+| `koowaad()`        | `first()`                      | Return first item or `maran`       | `door item = numbers.koowaad()`           |
+| `ugu_dambeeya()`   | `last()`                       | Return last item or `maran`        | `door item = numbers.ugu_dambeeya()`      |
+| `isku_gee(func, bilow)` | `reduce(func, initial)`  | Fold items into one value          | `nums.isku_gee(hawl(a, b) { celi a + b }, 0)` |
+| `dhammaan(func)`   | `every(func)`                  | Test whether every item matches    | `nums.dhammaan(hawl(x) { celi x > 0 })`   |
+| `qaar(func)`       | `some(func)`                   | Test whether any item matches      | `nums.qaar(hawl(x) { celi x == 5 })`      |
 
-`kudar(teed)` returns a concatenated copy. `nuqul()` and `jar()` also return new lists. The other mutating methods return the original list after changing it.
+`kudar(teed)` returns a concatenated copy. `nuqul()` and `jar()` also return new lists. `kasaar()` and `ka_saar()` return the removed value. Methods that otherwise mutate a list return the original list after changing it.
 
 ## Object Methods
 
@@ -151,6 +168,11 @@ qor(baaxad(1, 10, 2))  // [1, 3, 5, 7, 9]
 | `kudar(obj)`  | `merge()`/`assign()`   | Return a merged copy       | `door merged = obj1.kudar(obj2)`       |
 | `nuqul()`     | `copy()`               | Create a shallow copy      | `door copy = obj.nuqul()`              |
 | `nadiifi()`   | `clear()`              | Remove all original properties | `obj.nadiifi()`                    |
+| `hel(key, default?)` | `get()`            | Get a key or optional default  | `obj.hel("name", "Unknown")`     |
+| `dhig(key, value)` | `set()`              | Set a computed key             | `obj.dhig("name", "Ali")`        |
+| `ka_qaad(key)` | `remove()`              | Remove and return a value      | `door old = obj.ka_qaad("name")`  |
+
+Objects also support computed bracket access: `obj["name"]` and `obj["name"] = "Ali"`.
 
 ## String Methods
 
@@ -168,8 +190,14 @@ qor(baaxad(1, 10, 2))  // [1, 3, 5, 7, 9]
 | `masax()`           | `trim()`               | Remove leading/trailing whitespace         | `door n = q.masax()`                       |
 | `raadi(sub)`        | `indexOf()`            | Find the index of a substring              | `door n = q.raadi("pro")`                  |
 | `beddel_dhammaan(x, y)` | `replaceAll()`     | Replace all occurrences of x with y        | `door n = q.beddel_dhammaan("a", "x")`     |
+| `dherer()`          | `length`              | Count Unicode characters                    | `door n = q.dherer()`                       |
+| `masax_bilow()`     | `trimStart()`         | Remove leading whitespace                   | `door n = q.masax_bilow()`                  |
+| `masax_dhamaad()`   | `trimEnd()`           | Remove trailing whitespace                  | `door n = q.masax_dhamaad()`                |
+| `tiri(sub)`         | `count()`             | Count non-overlapping occurrences           | `door n = q.tiri("ab")`                    |
+| `ku_celi(n)`        | `repeat()`            | Repeat the string                           | `door n = q.ku_celi(3)`                     |
+| `raadi_dambe(sub)`  | `lastIndexOf()`       | Find the last character position            | `door n = q.raadi_dambe("ab")`             |
 
-String positions count characters rather than UTF-8 bytes. `jar()` accepts negative positions from the end, and `raadi()` returns `-1` when it finds no match. Calls with the wrong number of arguments report an error that can be caught with `fasax` and `qabo`.
+String positions and bracket indexes count characters rather than UTF-8 bytes. `jar()` and bracket indexing accept negative positions from the end. Missing indexes return `maran`; `raadi()` and `raadi_dambe()` return `-1` when they find no match. Calls with the wrong number of arguments report an error that can be caught with `fasax` and `qabo`.
 
 ### xarfaha_waaweyn (Uppercase)
 **Isticmaal:**

@@ -61,6 +61,8 @@ fn register_runtime_symbols(builder: &mut JITBuilder) {
     sym!(builder, soplang_ge);
     sym!(builder, soplang_and);
     sym!(builder, soplang_or);
+    sym!(builder, soplang_truthy);
+    sym!(builder, soplang_range_continue);
     sym!(builder, soplang_qor);
     sym!(builder, soplang_gelin);
     sym!(builder, soplang_nooc);
@@ -106,34 +108,78 @@ fn max_slot_in_body(body: &[HirInstr]) -> usize {
             HirInstr::Const { dst, .. }
             | HirInstr::Load { dst, .. }
             | HirInstr::Pop { dst }
-            | HirInstr::BindError { dst } => { mx = mx.max(*dst + 1); }
-            HirInstr::Copy { dst, src } => { mx = mx.max(*dst + 1).max(*src + 1); }
-            HirInstr::Store { src, .. } => { mx = mx.max(*src + 1); }
-            HirInstr::BinOp { dst, lhs, rhs, .. } => { mx = mx.max(*dst + 1).max(*lhs + 1).max(*rhs + 1); }
-            HirInstr::UnOp { dst, src, .. } => { mx = mx.max(*dst + 1).max(*src + 1); }
+            | HirInstr::BindError { dst } => {
+                mx = mx.max(*dst + 1);
+            }
+            HirInstr::Copy { dst, src } => {
+                mx = mx.max(*dst + 1).max(*src + 1);
+            }
+            HirInstr::Store { src, .. } => {
+                mx = mx.max(*src + 1);
+            }
+            HirInstr::BinOp { dst, lhs, rhs, .. } => {
+                mx = mx.max(*dst + 1).max(*lhs + 1).max(*rhs + 1);
+            }
+            HirInstr::UnOp { dst, src, .. } => {
+                mx = mx.max(*dst + 1).max(*src + 1);
+            }
             HirInstr::BuildList { dst, items } => {
                 mx = mx.max(*dst + 1);
-                for s in items { mx = mx.max(*s + 1); }
+                for s in items {
+                    mx = mx.max(*s + 1);
+                }
             }
             HirInstr::BuildObject { dst, pairs } => {
                 mx = mx.max(*dst + 1);
-                for (_, s) in pairs { mx = mx.max(*s + 1); }
+                for (_, s) in pairs {
+                    mx = mx.max(*s + 1);
+                }
             }
-            HirInstr::GetIndex { dst, obj, idx } => { mx = mx.max(*dst + 1).max(*obj + 1).max(*idx + 1); }
-            HirInstr::SetIndex { obj, idx, val } => { mx = mx.max(*obj + 1).max(*idx + 1).max(*val + 1); }
-            HirInstr::GetProp { dst, obj, .. } => { mx = mx.max(*dst + 1).max(*obj + 1); }
-            HirInstr::SetProp { obj, val, .. } => { mx = mx.max(*obj + 1).max(*val + 1); }
+            HirInstr::GetIndex { dst, obj, idx } => {
+                mx = mx.max(*dst + 1).max(*obj + 1).max(*idx + 1);
+            }
+            HirInstr::SetIndex { obj, idx, val } => {
+                mx = mx.max(*obj + 1).max(*idx + 1).max(*val + 1);
+            }
+            HirInstr::GetProp { dst, obj, .. } => {
+                mx = mx.max(*dst + 1).max(*obj + 1);
+            }
+            HirInstr::SetProp { obj, val, .. } => {
+                mx = mx.max(*obj + 1).max(*val + 1);
+            }
             HirInstr::Call { dst, callee, args } => {
                 mx = mx.max(*dst + 1).max(*callee + 1);
-                for s in args { mx = mx.max(*s + 1); }
+                for s in args {
+                    mx = mx.max(*s + 1);
+                }
             }
             HirInstr::CallMethod { dst, obj, args, .. } => {
                 mx = mx.max(*dst + 1).max(*obj + 1);
-                for s in args { mx = mx.max(*s + 1); }
+                for s in args {
+                    mx = mx.max(*s + 1);
+                }
             }
-            HirInstr::Return { val } => { mx = mx.max(*val + 1); }
-            HirInstr::JumpIf { cond, .. } => { mx = mx.max(*cond + 1); }
-            HirInstr::CheckType { src, .. } | HirInstr::CheckClass { src, .. } => { mx = mx.max(*src + 1); }
+            HirInstr::Return { val } => {
+                mx = mx.max(*val + 1);
+            }
+            HirInstr::JumpIf { cond, .. } => {
+                mx = mx.max(*cond + 1);
+            }
+            HirInstr::RangeContinue {
+                dst,
+                current,
+                end,
+                step,
+            } => {
+                mx = mx
+                    .max(*dst + 1)
+                    .max(*current + 1)
+                    .max(*end + 1)
+                    .max(*step + 1);
+            }
+            HirInstr::CheckType { src, .. } | HirInstr::CheckClass { src, .. } => {
+                mx = mx.max(*src + 1);
+            }
             HirInstr::NewInstance { dst, args, .. } => {
                 mx = mx.max(*dst + 1);
                 for s in args {
@@ -164,8 +210,7 @@ impl CraneliftBackend {
             .finish(settings::Flags::new(flag_builder))
             .map_err(|e| runtime_error(e.to_string(), 0, 0))?;
 
-        let mut jit_builder =
-            JITBuilder::with_isa(isa, cranelift_module::default_libcall_names());
+        let mut jit_builder = JITBuilder::with_isa(isa, cranelift_module::default_libcall_names());
         register_runtime_symbols(&mut jit_builder);
 
         let module = cranelift_jit::JITModule::new(jit_builder);
@@ -182,7 +227,11 @@ impl CraneliftBackend {
         })
     }
 
-    pub fn compile_module(&mut self, hir: &HirModule, sym: &SymbolTable) -> Result<(), SoplangError> {
+    pub fn compile_module(
+        &mut self,
+        hir: &HirModule,
+        sym: &SymbolTable,
+    ) -> Result<(), SoplangError> {
         runtime::clear_class_registry();
         self.compile_new(hir)?;
         runtime::register_classes_from_sym(&sym.classes);
@@ -190,7 +239,11 @@ impl CraneliftBackend {
     }
 
     /// Compile another snippet into this module without dropping earlier functions or classes.
-    pub fn compile_incremental(&mut self, hir: &HirModule, sym: &SymbolTable) -> Result<(), SoplangError> {
+    pub fn compile_incremental(
+        &mut self,
+        hir: &HirModule,
+        sym: &SymbolTable,
+    ) -> Result<(), SoplangError> {
         self.compile_new(hir)?;
         runtime::merge_classes_from_sym(&sym.classes);
         Ok(())
@@ -238,7 +291,11 @@ impl CraneliftBackend {
         self.registered_fns = self.compiled_fns.len();
     }
 
-    fn compile_top_level(&mut self, body: &[HirInstr], slot_nums: &[SlotNum]) -> Result<(), SoplangError> {
+    fn compile_top_level(
+        &mut self,
+        body: &[HirInstr],
+        slot_nums: &[SlotNum],
+    ) -> Result<(), SoplangError> {
         self.fn_seq += 1;
         let seq = self.fn_seq;
         let sig = Signature::new(CallConv::SystemV);
@@ -439,7 +496,9 @@ fn compile_body(
             }
 
             HirInstr::Const { dst, val } => {
-                if terminated { continue; }
+                if terminated {
+                    continue;
+                }
                 let (t, p) = emit_const(builder, module, val)?;
                 builder.def_var(var_tags[*dst], t);
                 builder.def_var(var_pays[*dst], p);
@@ -453,7 +512,9 @@ fn compile_body(
             }
 
             HirInstr::Copy { dst, src } => {
-                if terminated { continue; }
+                if terminated {
+                    continue;
+                }
                 let t = builder.use_var(var_tags[*src]);
                 let p = builder.use_var(var_pays[*src]);
                 builder.def_var(var_tags[*dst], t);
@@ -467,7 +528,9 @@ fn compile_body(
             }
 
             HirInstr::Load { dst, name } => {
-                if terminated { continue; }
+                if terminated {
+                    continue;
+                }
                 if let Some(&fn_idx) = fn_name_map.get(name.as_str()) {
                     slot_compiled_fn.insert(*dst, fn_idx);
                 }
@@ -479,7 +542,9 @@ fn compile_body(
             }
 
             HirInstr::Store { name, src } => {
-                if terminated { continue; }
+                if terminated {
+                    continue;
+                }
                 let st = builder.use_var(var_tags[*src]);
                 let sp = builder.use_var(var_pays[*src]);
                 let nptr = builder.ins().iconst(types::I64, name.as_ptr() as i64);
@@ -487,8 +552,16 @@ fn compile_body(
                 emit_store_global(builder, module, nptr, nlen, st, sp)?;
             }
 
-            HirInstr::BinOp { dst, op, lhs, rhs, typed } => {
-                if terminated { continue; }
+            HirInstr::BinOp {
+                dst,
+                op,
+                lhs,
+                rhs,
+                typed,
+            } => {
+                if terminated {
+                    continue;
+                }
                 let lt = builder.use_var(var_tags[*lhs]);
                 let lp = builder.use_var(var_pays[*lhs]);
                 let rt = builder.use_var(var_tags[*rhs]);
@@ -509,14 +582,14 @@ fn compile_body(
                         BinOpKind::Mul => "soplang_mul",
                         BinOpKind::Div => "soplang_div",
                         BinOpKind::Mod => "soplang_mod",
-                        BinOpKind::Eq  => "soplang_eq",
-                        BinOpKind::Ne  => "soplang_ne",
-                        BinOpKind::Lt  => "soplang_lt",
-                        BinOpKind::Le  => "soplang_le",
-                        BinOpKind::Gt  => "soplang_gt",
-                        BinOpKind::Ge  => "soplang_ge",
+                        BinOpKind::Eq => "soplang_eq",
+                        BinOpKind::Ne => "soplang_ne",
+                        BinOpKind::Lt => "soplang_lt",
+                        BinOpKind::Le => "soplang_le",
+                        BinOpKind::Gt => "soplang_gt",
+                        BinOpKind::Ge => "soplang_ge",
                         BinOpKind::And => "soplang_and",
-                        BinOpKind::Or  => "soplang_or",
+                        BinOpKind::Or => "soplang_or",
                     };
                     let (dt, dp) = call_rt(builder, module, fname, &[lt, lp, rt, rp])?;
                     (dt, dp, SlotNum::Dyn)
@@ -529,7 +602,9 @@ fn compile_body(
             }
 
             HirInstr::UnOp { dst, op, src } => {
-                if terminated { continue; }
+                if terminated {
+                    continue;
+                }
                 let st = builder.use_var(var_tags[*src]);
                 let sp = builder.use_var(var_pays[*src]);
                 let sk = kinds.get(*src).copied().unwrap_or(SlotNum::Dyn);
@@ -556,7 +631,9 @@ fn compile_body(
             }
 
             HirInstr::BuildList { dst, items } => {
-                if terminated { continue; }
+                if terminated {
+                    continue;
+                }
                 let (mut lt, mut lp) = call_rt(builder, module, "soplang_list_new", &[])?;
                 for &item in items {
                     let it = builder.use_var(var_tags[item]);
@@ -570,14 +647,21 @@ fn compile_body(
             }
 
             HirInstr::BuildObject { dst, pairs } => {
-                if terminated { continue; }
+                if terminated {
+                    continue;
+                }
                 let (mut ot, mut opay) = call_rt(builder, module, "soplang_object_new", &[])?;
                 for (key, slot) in pairs {
                     let vt = builder.use_var(var_tags[*slot]);
                     let vp = builder.use_var(var_pays[*slot]);
                     let kptr = builder.ins().iconst(types::I64, key.as_ptr() as i64);
                     let klen = builder.ins().iconst(types::I64, key.len() as i64);
-                    let r = call_rt(builder, module, "soplang_set_prop", &[ot, opay, kptr, klen, vt, vp])?;
+                    let r = call_rt(
+                        builder,
+                        module,
+                        "soplang_set_prop",
+                        &[ot, opay, kptr, klen, vt, vp],
+                    )?;
                     ot = r.0;
                     opay = r.1;
                 }
@@ -586,7 +670,9 @@ fn compile_body(
             }
 
             HirInstr::GetIndex { dst, obj, idx } => {
-                if terminated { continue; }
+                if terminated {
+                    continue;
+                }
                 let ot = builder.use_var(var_tags[*obj]);
                 let opay = builder.use_var(var_pays[*obj]);
                 let it = builder.use_var(var_tags[*idx]);
@@ -597,48 +683,72 @@ fn compile_body(
             }
 
             HirInstr::SetIndex { obj, idx, val } => {
-                if terminated { continue; }
+                if terminated {
+                    continue;
+                }
                 let ot = builder.use_var(var_tags[*obj]);
                 let opay = builder.use_var(var_pays[*obj]);
                 let it = builder.use_var(var_tags[*idx]);
                 let ip = builder.use_var(var_pays[*idx]);
                 let vt = builder.use_var(var_tags[*val]);
                 let vp = builder.use_var(var_pays[*val]);
-                let _ = call_rt(builder, module, "soplang_set_index", &[ot, opay, it, ip, vt, vp])?;
+                let _ = call_rt(
+                    builder,
+                    module,
+                    "soplang_set_index",
+                    &[ot, opay, it, ip, vt, vp],
+                )?;
             }
 
             HirInstr::GetProp { dst, obj, prop } => {
-                if terminated { continue; }
+                if terminated {
+                    continue;
+                }
                 let ot = builder.use_var(var_tags[*obj]);
                 let opay = builder.use_var(var_pays[*obj]);
                 let kptr = builder.ins().iconst(types::I64, prop.as_ptr() as i64);
                 let klen = builder.ins().iconst(types::I64, prop.len() as i64);
-                let (dt, dp) = call_rt(builder, module, "soplang_get_prop", &[ot, opay, kptr, klen])?;
+                let (dt, dp) =
+                    call_rt(builder, module, "soplang_get_prop", &[ot, opay, kptr, klen])?;
                 builder.def_var(var_tags[*dst], dt);
                 builder.def_var(var_pays[*dst], dp);
             }
 
             HirInstr::SetProp { obj, prop, val } => {
-                if terminated { continue; }
+                if terminated {
+                    continue;
+                }
                 let ot = builder.use_var(var_tags[*obj]);
                 let opay = builder.use_var(var_pays[*obj]);
                 let vt = builder.use_var(var_tags[*val]);
                 let vp = builder.use_var(var_pays[*val]);
                 let kptr = builder.ins().iconst(types::I64, prop.as_ptr() as i64);
                 let klen = builder.ins().iconst(types::I64, prop.len() as i64);
-                let _ = call_rt(builder, module, "soplang_set_prop", &[ot, opay, kptr, klen, vt, vp])?;
+                let _ = call_rt(
+                    builder,
+                    module,
+                    "soplang_set_prop",
+                    &[ot, opay, kptr, klen, vt, vp],
+                )?;
             }
 
             HirInstr::Call { dst, callee, args } => {
-                if terminated { continue; }
-                if let Some(&fn_idx) = slot_compiled_fn.get(callee) {
+                if terminated {
+                    continue;
+                }
+                let direct_fn = slot_compiled_fn
+                    .get(callee)
+                    .copied()
+                    .filter(|&idx| args.len() == compiled_fns[idx].n_params);
+                if let Some(fn_idx) = direct_fn {
                     let fi = &compiled_fns[fn_idx];
                     let mut call_args = Vec::new();
                     for a in args {
                         call_args.push(builder.use_var(var_tags[*a]));
                         call_args.push(builder.use_var(var_pays[*a]));
                     }
-                    let (dt, dp) = emit_direct_call(builder, module, &fi.func_id, fi.n_params, &call_args)?;
+                    let (dt, dp) =
+                        emit_direct_call(builder, module, &fi.func_id, fi.n_params, &call_args)?;
                     builder.def_var(var_tags[*dst], dt);
                     builder.def_var(var_pays[*dst], dp);
                 } else {
@@ -654,8 +764,15 @@ fn compile_body(
                 }
             }
 
-            HirInstr::CallMethod { dst, obj, method, args } => {
-                if terminated { continue; }
+            HirInstr::CallMethod {
+                dst,
+                obj,
+                method,
+                args,
+            } => {
+                if terminated {
+                    continue;
+                }
                 let ot = builder.use_var(var_tags[*obj]);
                 let opay = builder.use_var(var_pays[*obj]);
                 let arg_vals: Vec<(Value, Value)> = args
@@ -668,22 +785,58 @@ fn compile_body(
             }
 
             HirInstr::Jump(target) => {
-                if terminated { continue; }
+                if terminated {
+                    continue;
+                }
                 builder.ins().jump(block_map[target], &[]);
                 terminated = true;
             }
 
-            HirInstr::JumpIf { cond, on_true, on_false } => {
-                if terminated { continue; }
+            HirInstr::JumpIf {
+                cond,
+                on_true,
+                on_false,
+            } => {
+                if terminated {
+                    continue;
+                }
+                let t = builder.use_var(var_tags[*cond]);
                 let p = builder.use_var(var_pays[*cond]);
+                let (_, p) = call_rt(builder, module, "soplang_truthy", &[t, p])?;
                 let zero = builder.ins().iconst(types::I64, 0);
                 let test = builder.ins().icmp(IntCC::NotEqual, p, zero);
-                builder.ins().brif(test, block_map[on_true], &[], block_map[on_false], &[]);
+                builder
+                    .ins()
+                    .brif(test, block_map[on_true], &[], block_map[on_false], &[]);
                 terminated = true;
             }
 
+            HirInstr::RangeContinue {
+                dst,
+                current,
+                end,
+                step,
+            } => {
+                if terminated {
+                    continue;
+                }
+                let args = [
+                    builder.use_var(var_tags[*current]),
+                    builder.use_var(var_pays[*current]),
+                    builder.use_var(var_tags[*end]),
+                    builder.use_var(var_pays[*end]),
+                    builder.use_var(var_tags[*step]),
+                    builder.use_var(var_pays[*step]),
+                ];
+                let (t, p) = call_rt(builder, module, "soplang_range_continue", &args)?;
+                builder.def_var(var_tags[*dst], t);
+                builder.def_var(var_pays[*dst], p);
+            }
+
             HirInstr::Return { val } => {
-                if terminated { continue; }
+                if terminated {
+                    continue;
+                }
                 let t = builder.use_var(var_tags[*val]);
                 let p = builder.use_var(var_pays[*val]);
                 builder.ins().return_(&[t, p]);
@@ -691,13 +844,21 @@ fn compile_body(
             }
 
             HirInstr::Break(target) | HirInstr::Continue(target) => {
-                if terminated { continue; }
+                if terminated {
+                    continue;
+                }
                 builder.ins().jump(block_map[target], &[]);
                 terminated = true;
             }
 
-            HirInstr::CheckType { src, type_tag, name } => {
-                if terminated { continue; }
+            HirInstr::CheckType {
+                src,
+                type_tag,
+                name,
+            } => {
+                if terminated {
+                    continue;
+                }
                 let st = builder.use_var(var_tags[*src]);
                 let sp = builder.use_var(var_pays[*src]);
                 let et = builder.ins().iconst(types::I64, *type_tag as i64);
@@ -711,8 +872,14 @@ fn compile_body(
                 builder.ins().call(fref, &[st, sp, et, nptr, nlen]);
             }
 
-            HirInstr::CheckClass { src, class_name, var_name } => {
-                if terminated { continue; }
+            HirInstr::CheckClass {
+                src,
+                class_name,
+                var_name,
+            } => {
+                if terminated {
+                    continue;
+                }
                 let st = builder.use_var(var_tags[*src]);
                 let sp = builder.use_var(var_pays[*src]);
                 let cptr = builder.ins().iconst(types::I64, class_name.as_ptr() as i64);
@@ -728,7 +895,9 @@ fn compile_body(
             }
 
             HirInstr::MarkConst { name } => {
-                if terminated { continue; }
+                if terminated {
+                    continue;
+                }
                 let nptr = builder.ins().iconst(types::I64, name.as_ptr() as i64);
                 let nlen = builder.ins().iconst(types::I64, name.len() as i64);
                 let sig = make_sig(2, 0);
@@ -739,8 +908,14 @@ fn compile_body(
                 builder.ins().call(fref, &[nptr, nlen]);
             }
 
-            HirInstr::NewInstance { dst, class_name, args } => {
-                if terminated { continue; }
+            HirInstr::NewInstance {
+                dst,
+                class_name,
+                args,
+            } => {
+                if terminated {
+                    continue;
+                }
                 let arg_vals: Vec<(Value, Value)> = args
                     .iter()
                     .map(|a| (builder.use_var(var_tags[*a]), builder.use_var(var_pays[*a])))
@@ -753,35 +928,51 @@ fn compile_body(
             HirInstr::Pop { .. } => {}
 
             HirInstr::TryBegin { catch: _ } => {
-                if terminated { continue; }
+                if terminated {
+                    continue;
+                }
                 call_rt_void(builder, module, "soplang_try_begin", &[])?;
             }
 
             HirInstr::TryEnd => {
-                if terminated { continue; }
+                if terminated {
+                    continue;
+                }
                 call_rt_void(builder, module, "soplang_try_end", &[])?;
             }
 
             HirInstr::CheckThrow { catch } => {
-                if terminated { continue; }
+                if terminated {
+                    continue;
+                }
                 let catch_block = block_map[catch];
                 let continue_block = builder.create_block();
                 let pending = call_rt_i64(builder, module, "soplang_has_pending_error", &[])?;
                 let zero = builder.ins().iconst(types::I64, 0);
                 let test = builder.ins().icmp(IntCC::NotEqual, pending, zero);
-                builder.ins().brif(test, catch_block, &[], continue_block, &[]);
+                builder
+                    .ins()
+                    .brif(test, catch_block, &[], continue_block, &[]);
                 builder.switch_to_block(continue_block);
             }
 
             HirInstr::BindError { dst } => {
-                if terminated { continue; }
+                if terminated {
+                    continue;
+                }
                 let (t, p) = call_rt(builder, module, "soplang_get_caught_error", &[])?;
                 builder.def_var(var_tags[*dst], t);
                 builder.def_var(var_pays[*dst], p);
             }
 
-            HirInstr::MakeClosure { dst, fn_name, captures } => {
-                if terminated { continue; }
+            HirInstr::MakeClosure {
+                dst,
+                fn_name,
+                captures,
+            } => {
+                if terminated {
+                    continue;
+                }
                 let arg_vals: Vec<(Value, Value)> = captures
                     .iter()
                     .map(|s| (builder.use_var(var_tags[*s]), builder.use_var(var_pays[*s])))
@@ -856,15 +1047,19 @@ fn call_rt_void(
 fn emit_store_global(
     builder: &mut FunctionBuilder,
     module: &mut cranelift_jit::JITModule,
-    name_ptr: Value, name_len: Value,
-    tag: Value, payload: Value,
+    name_ptr: Value,
+    name_len: Value,
+    tag: Value,
+    payload: Value,
 ) -> Result<(), SoplangError> {
     let sig = make_sig(4, 0);
     let fid = module
         .declare_function("soplang_store_global", Linkage::Import, &sig)
         .map_err(|e| runtime_error(e.to_string(), 0, 0))?;
     let fref = module.declare_func_in_func(fid, builder.func);
-    builder.ins().call(fref, &[name_ptr, name_len, tag, payload]);
+    builder
+        .ins()
+        .call(fref, &[name_ptr, name_len, tag, payload]);
     Ok(())
 }
 
@@ -879,7 +1074,11 @@ fn float_to_bits(builder: &mut FunctionBuilder, val: Value) -> Value {
     builder.ins().bitcast(types::I64, MemFlags::new(), val)
 }
 
-fn emit_native_neg(builder: &mut FunctionBuilder, kind: SlotNum, payload: Value) -> (Value, Value, SlotNum) {
+fn emit_native_neg(
+    builder: &mut FunctionBuilder,
+    kind: SlotNum,
+    payload: Value,
+) -> (Value, Value, SlotNum) {
     match kind {
         SlotNum::Float => {
             let f = payload_as_float(builder, kind, payload);
@@ -909,12 +1108,12 @@ fn emit_native_binop(
     rt: Value,
     rp: Value,
 ) -> Result<Option<(Value, Value, SlotNum)>, SoplangError> {
-    let use_float = matches!(op, BinOpKind::Div)
-        || lk == SlotNum::Float
-        || rk == SlotNum::Float;
+    let use_float = matches!(op, BinOpKind::Div) || lk == SlotNum::Float || rk == SlotNum::Float;
     let result_kind = match op {
         BinOpKind::Div => SlotNum::Float,
-        BinOpKind::Add | BinOpKind::Sub | BinOpKind::Mul | BinOpKind::Mod if use_float => SlotNum::Float,
+        BinOpKind::Add | BinOpKind::Sub | BinOpKind::Mul | BinOpKind::Mod if use_float => {
+            SlotNum::Float
+        }
         BinOpKind::Add | BinOpKind::Sub | BinOpKind::Mul | BinOpKind::Mod => SlotNum::Int,
         _ => SlotNum::Dyn,
     };
@@ -938,7 +1137,10 @@ fn emit_native_binop(
                     BinOpKind::Mul => builder.ins().fmul(l, r),
                     _ => builder.ins().fdiv(l, r),
                 };
-                (builder.ins().iconst(types::I64, 2), float_to_bits(builder, f))
+                (
+                    builder.ins().iconst(types::I64, 2),
+                    float_to_bits(builder, f),
+                )
             }
             BinOpKind::Mod if !use_float => (
                 builder.ins().iconst(types::I64, 1),
@@ -951,9 +1153,17 @@ fn emit_native_binop(
                 let whole = builder.ins().trunc(quot);
                 let scaled = builder.ins().fmul(whole, r);
                 let rem = builder.ins().fsub(l, scaled);
-                (builder.ins().iconst(types::I64, 2), float_to_bits(builder, rem))
+                (
+                    builder.ins().iconst(types::I64, 2),
+                    float_to_bits(builder, rem),
+                )
             }
-            BinOpKind::Eq | BinOpKind::Ne | BinOpKind::Lt | BinOpKind::Le | BinOpKind::Gt | BinOpKind::Ge => {
+            BinOpKind::Eq
+            | BinOpKind::Ne
+            | BinOpKind::Lt
+            | BinOpKind::Le
+            | BinOpKind::Gt
+            | BinOpKind::Ge => {
                 let flag = if !use_float {
                     let cc = match op {
                         BinOpKind::Eq => IntCC::Equal,
@@ -982,7 +1192,10 @@ fn emit_native_binop(
                     builder.ins().uextend(types::I64, flag),
                 )
             }
-            _ => (builder.ins().iconst(types::I64, 0), builder.ins().iconst(types::I64, 0)),
+            _ => (
+                builder.ins().iconst(types::I64, 0),
+                builder.ins().iconst(types::I64, 0),
+            ),
         }
     };
 
@@ -1007,7 +1220,11 @@ fn emit_native_binop(
     builder.ins().brif(is_zero, zero_bb, &[], ok_bb, &[]);
 
     builder.switch_to_block(zero_bb);
-    let fname = if op == BinOpKind::Div { "soplang_div" } else { "soplang_mod" };
+    let fname = if op == BinOpKind::Div {
+        "soplang_div"
+    } else {
+        "soplang_mod"
+    };
     let (zt, zp) = call_rt(builder, module, fname, &[lt, lp, rt, rp])?;
     let zargs = [
         cranelift::codegen::ir::BlockArg::from(zt),
@@ -1090,11 +1307,18 @@ fn emit_make_closure(
     let n_val = builder.ins().iconst(types::I64, n as i64);
     if n == 0 {
         let null_ptr = builder.ins().iconst(types::I64, 0);
-        return call_rt(builder, module, "soplang_make_closure", &[nptr, nlen, n_val, null_ptr]);
+        return call_rt(
+            builder,
+            module,
+            "soplang_make_closure",
+            &[nptr, nlen, n_val, null_ptr],
+        );
     }
     let size = (n * 16) as u32;
     let slot = builder.func.create_sized_stack_slot(StackSlotData::new(
-        StackSlotKind::ExplicitSlot, size, 3,
+        StackSlotKind::ExplicitSlot,
+        size,
+        3,
     ));
     let base = builder.ins().stack_addr(types::I64, slot, 0);
     for (i, (t, p)) in captures.iter().enumerate() {
@@ -1102,13 +1326,19 @@ fn emit_make_closure(
         builder.ins().store(MemFlags::trusted(), *t, base, off);
         builder.ins().store(MemFlags::trusted(), *p, base, off + 8);
     }
-    call_rt(builder, module, "soplang_make_closure", &[nptr, nlen, n_val, base])
+    call_rt(
+        builder,
+        module,
+        "soplang_make_closure",
+        &[nptr, nlen, n_val, base],
+    )
 }
 
 fn emit_soplang_call(
     builder: &mut FunctionBuilder,
     module: &mut cranelift_jit::JITModule,
-    ct: Value, cp: Value,
+    ct: Value,
+    cp: Value,
     args: &[(Value, Value)],
 ) -> Result<(Value, Value), SoplangError> {
     let n = args.len();
@@ -1119,7 +1349,9 @@ fn emit_soplang_call(
     }
     let size = (n * 16) as u32;
     let slot = builder.func.create_sized_stack_slot(StackSlotData::new(
-        StackSlotKind::ExplicitSlot, size, 3,
+        StackSlotKind::ExplicitSlot,
+        size,
+        3,
     ));
     let base = builder.ins().stack_addr(types::I64, slot, 0);
     for (i, (t, p)) in args.iter().enumerate() {
@@ -1134,7 +1366,8 @@ fn emit_soplang_call(
 fn emit_call_method(
     builder: &mut FunctionBuilder,
     module: &mut cranelift_jit::JITModule,
-    ot: Value, opay: Value,
+    ot: Value,
+    opay: Value,
     method: &str,
     args: &[(Value, Value)],
 ) -> Result<(Value, Value), SoplangError> {
@@ -1150,7 +1383,9 @@ fn emit_call_method(
     } else {
         let size = (n * 16) as u32;
         let slot = builder.func.create_sized_stack_slot(StackSlotData::new(
-            StackSlotKind::ExplicitSlot, size, 3,
+            StackSlotKind::ExplicitSlot,
+            size,
+            3,
         ));
         let base = builder.ins().stack_addr(types::I64, slot, 0);
         for (i, (t, p)) in args.iter().enumerate() {
@@ -1161,7 +1396,12 @@ fn emit_call_method(
         (base, builder.ins().iconst(types::I64, n as i64))
     };
 
-    call_rt(builder, module, "soplang_call_method", &[ot, opay, mptr, mlen, args_ptr, n_val])
+    call_rt(
+        builder,
+        module,
+        "soplang_call_method",
+        &[ot, opay, mptr, mlen, args_ptr, n_val],
+    )
 }
 
 fn emit_new_instance(
@@ -1181,7 +1421,9 @@ fn emit_new_instance(
     } else {
         let size = (n * 16) as u32;
         let slot = builder.func.create_sized_stack_slot(StackSlotData::new(
-            StackSlotKind::ExplicitSlot, size, 3,
+            StackSlotKind::ExplicitSlot,
+            size,
+            3,
         ));
         let base = builder.ins().stack_addr(types::I64, slot, 0);
         for (i, (t, p)) in args.iter().enumerate() {

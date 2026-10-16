@@ -38,7 +38,7 @@ The script will:
 ## Run
 
 ```cmd
-target\release\soplang.exe examples\hello.sop
+target\release\soplang.exe examples\01_hello.sop
 target\release\soplang.exe -i
 ```
 

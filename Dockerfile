@@ -1,7 +1,7 @@
 # Build stage
 FROM rust:1-bookworm AS builder
 
-ARG VERSION=2.0.0-beta
+ARG VERSION=dev
 ARG BUILD_DATE=unknown
 ARG VCS_REF=unknown
 
@@ -17,7 +17,7 @@ RUN cargo build --release
 # Runtime stage
 FROM debian:bookworm-slim
 
-ARG VERSION=2.0.0-beta
+ARG VERSION=dev
 ARG BUILD_DATE=unknown
 ARG VCS_REF=unknown
 

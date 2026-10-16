@@ -1,9 +1,6 @@
 name: Build and Push Docker Images
 
 on:
-  push:
-    tags:
-      - "v*"
   release:
     types: [published]
   workflow_dispatch:
@@ -25,48 +22,59 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@v4
-        with:
-          images: |
-            soplang/soplang
-            ghcr.io/${{ github.repository }}
-          tags: |
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
-            type=ref,event=branch
-            type=ref,event=pr
-            type=sha
-            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', github.event.repository.default_branch) }}
+        uses: docker/setup-buildx-action@v4
 
       - name: Generate version from git tag or manual input
         id: version
         run: |
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
-          elif [[ "${{ github.ref_type }}" == "tag" && "${{ github.ref }}" == refs/tags/v* ]]; then
-            VERSION=${GITHUB_REF#refs/tags/v}
-            echo "VERSION=$VERSION" >> $GITHUB_ENV
+            VERSION=${{ github.event.inputs.version }}
           elif [[ "${{ github.event_name }}" == "release" ]]; then
             VERSION=${{ github.event.release.tag_name }}
             VERSION=${VERSION#v}
-            echo "VERSION=$VERSION" >> $GITHUB_ENV
           else
-            echo "VERSION=latest" >> $GITHUB_ENV
+            VERSION=latest
           fi
-          echo "Version set to: ${{ env.VERSION }}"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
+          echo "Version set to: $VERSION"
+
+      - name: Set registry targets
+        id: registries
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: |
+          echo "images<<EOF" >> $GITHUB_OUTPUT
+          echo "ghcr.io/${{ github.repository }}" >> $GITHUB_OUTPUT
+          if [[ -n "$DOCKERHUB_USERNAME" && -n "$DOCKERHUB_TOKEN" ]]; then
+            echo "soplang/soplang" >> $GITHUB_OUTPUT
+            echo "dockerhub=true" >> $GITHUB_OUTPUT
+          else
+            echo "dockerhub=false" >> $GITHUB_OUTPUT
+          fi
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ steps.registries.outputs.images }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=sha
+            type=raw,value=${{ env.VERSION }},enable=${{ github.event_name == 'workflow_dispatch' }}
+            type=raw,value=latest,enable=${{ github.event_name == 'release' && !github.event.release.prerelease }}
 
       # Login to Docker Hub (if secrets are available)
       - name: Login to Docker Hub
-        uses: docker/login-action@v2
-        if: ${{ env.DOCKERHUB_USERNAME != '' && env.DOCKERHUB_TOKEN != '' }}
+        uses: docker/login-action@v4
+        if: steps.registries.outputs.dockerhub == 'true'
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -77,33 +85,18 @@ jobs:
 
       # Login to GitHub Container Registry (always available with GITHUB_TOKEN)
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v2
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Determine which registries to push to
-      - name: Set registry targets
-        id: registries
-        run: |
-          # Default to GitHub Container Registry only
-          TARGETS="ghcr.io/${{ github.repository }}"
-
-          # Add Docker Hub if credentials are available
-          if [[ -n "${{ secrets.DOCKERHUB_USERNAME }}" && -n "${{ secrets.DOCKERHUB_TOKEN }}" ]]; then
-            TARGETS="${TARGETS},soplang/soplang"
-          fi
-
-          echo "targets=${TARGETS}" >> $GITHUB_OUTPUT
-
       # Build and push Docker images
       - name: Build and push Docker images
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v7
         with:
           context: .
           push: true
-          # Use the determined target registries
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
@@ -111,7 +104,7 @@ jobs:
           platforms: linux/amd64
           build-args: |
             VERSION=${{ env.VERSION }}
-            BUILD_DATE=${{ steps.meta.outputs.labels['org.opencontainers.image.created'] }}
+            BUILD_DATE=${{ env.BUILD_DATE }}
             VCS_REF=${{ github.sha }}
 
       # Verify Docker Hub Repository and provide appropriate guidance
@@ -119,7 +112,7 @@ jobs:
         run: |
           echo "✅ Build and push completed!"
 
-          if [[ -n "${{ secrets.DOCKERHUB_USERNAME }}" && -n "${{ secrets.DOCKERHUB_TOKEN }}" ]]; then
+          if [[ "${{ steps.registries.outputs.dockerhub }}" == "true" ]]; then
             echo "Docker Hub image should be available at: https://hub.docker.com/r/soplang/soplang"
             echo "To verify availability (may take a few minutes):"
             echo "docker pull soplang/soplang:latest"

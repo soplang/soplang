@@ -10,11 +10,11 @@ use crate::frontend::ast::{Expr, Literal, Param, Stmt, TypeAnnotation};
 #[derive(Debug, Default)]
 pub struct SymbolTable {
     /// Stack of scopes (inner to outer). Scope 0 = global.
-    pub scopes:    Vec<Scope>,
+    pub scopes: Vec<Scope>,
     /// Per-function metadata (params, local count, captures).
     pub functions: Vec<FunctionMeta>,
     /// Class name -> metadata (methods, parent).
-    pub classes:   HashMap<String, ClassMeta>,
+    pub classes: HashMap<String, ClassMeta>,
     /// Anonymous expression address -> deterministic compiler-internal name.
     pub anonymous_functions: HashMap<usize, String>,
     /// Globals carried in from a REPL session. Top-level uses load/store them
@@ -29,30 +29,30 @@ pub struct Scope {
 
 #[derive(Debug, Clone)]
 pub struct VarInfo {
-    pub slot:        usize,
-    pub type_ann:    TypeAnnotation,
-    pub is_const:    bool,
+    pub slot: usize,
+    pub type_ann: TypeAnnotation,
+    pub is_const: bool,
     pub is_captured: bool,
 }
 
 #[derive(Debug, Clone)]
 pub struct FunctionMeta {
-    pub name:        String,
+    pub name: String,
     pub param_slots: Vec<usize>,
     pub param_types: Vec<TypeAnnotation>,
-    pub return_ann:  TypeAnnotation,
+    pub return_ann: TypeAnnotation,
     pub local_count: usize,
-    pub captures:    Vec<String>,
+    pub captures: Vec<String>,
     /// Variable name -> VarInfo for this function's scope (params + locals).
-    pub scope_vars:  HashMap<String, VarInfo>,
-    pub class_name:  Option<String>,
-    pub is_method:   bool,
+    pub scope_vars: HashMap<String, VarInfo>,
+    pub class_name: Option<String>,
+    pub is_method: bool,
 }
 
 #[derive(Debug, Clone)]
 pub struct ClassMeta {
-    pub name:    String,
-    pub parent:  Option<String>,
+    pub name: String,
+    pub parent: Option<String>,
     /// Method name -> mangled function name (e.g. "salaam" -> "Bisad::salaam").
     pub methods: HashMap<String, String>,
 }
@@ -142,7 +142,7 @@ pub struct AnalyzeOptions {
 #[derive(Debug, Clone)]
 struct FunctionSig {
     params: Vec<TypeAnnotation>,
-    ret:    TypeAnnotation,
+    ret: TypeAnnotation,
 }
 
 /// Run semantic analysis with options (e.g. strict typing mode).
@@ -165,10 +165,163 @@ pub fn analyze_into(
     if sym.scopes.is_empty() {
         sym.scopes.push(Scope::default());
     }
+    validate_control_flow(stmts, false, 0)?;
     let fn_sigs = collect_function_sigs(stmts);
     analyze_block(stmts, sym, &opts, &fn_sigs, None, None, None)?;
     validate_classes(sym)?;
     Ok(())
+}
+
+fn validate_control_flow(
+    stmts: &[Stmt],
+    in_function: bool,
+    loop_depth: usize,
+) -> Result<(), SoplangError> {
+    for stmt in stmts {
+        match stmt {
+            Stmt::Return(value) => {
+                if !in_function {
+                    return Err(control_flow_error(
+                        "'celi' waxaa lagu isticmaali karaa hawl gudaheeda kaliya",
+                        "Geli 'celi' gudaha hawl.",
+                    ));
+                }
+                if let Some(value) = value {
+                    validate_control_expr(value)?;
+                }
+            }
+            Stmt::Break => {
+                if loop_depth == 0 {
+                    return Err(control_flow_error(
+                        "'jooji' waxaa lagu isticmaali karaa wareeg gudaheeda kaliya",
+                        "Geli 'jooji' gudaha inta ama kuceli.",
+                    ));
+                }
+            }
+            Stmt::Continue => {
+                if loop_depth == 0 {
+                    return Err(control_flow_error(
+                        "'soco' waxaa lagu isticmaali karaa wareeg gudaheeda kaliya",
+                        "Geli 'soco' gudaha inta ama kuceli.",
+                    ));
+                }
+            }
+            Stmt::FuncDef { body, .. } => validate_control_flow(body, true, 0)?,
+            Stmt::ClassDef { body, .. } => validate_control_flow(body, false, 0)?,
+            Stmt::If {
+                cond,
+                then_body,
+                elseifs,
+                else_body,
+            } => {
+                validate_control_expr(cond)?;
+                validate_control_flow(then_body, in_function, loop_depth)?;
+                for (cond, body) in elseifs {
+                    validate_control_expr(cond)?;
+                    validate_control_flow(body, in_function, loop_depth)?;
+                }
+                if let Some(body) = else_body {
+                    validate_control_flow(body, in_function, loop_depth)?;
+                }
+            }
+            Stmt::Switch {
+                expr,
+                cases,
+                default,
+            } => {
+                validate_control_expr(expr)?;
+                for (case, body) in cases {
+                    validate_control_expr(case)?;
+                    validate_control_flow(body, in_function, loop_depth)?;
+                }
+                if let Some(body) = default {
+                    validate_control_flow(body, in_function, loop_depth)?;
+                }
+            }
+            Stmt::For {
+                start,
+                end,
+                step,
+                body,
+                ..
+            } => {
+                validate_control_expr(start)?;
+                validate_control_expr(end)?;
+                if let Some(step) = step {
+                    validate_control_expr(step)?;
+                }
+                validate_control_flow(body, in_function, loop_depth + 1)?;
+            }
+            Stmt::While { cond, body } => {
+                validate_control_expr(cond)?;
+                validate_control_flow(body, in_function, loop_depth + 1)?;
+            }
+            Stmt::TryCatch {
+                try_body,
+                catch_body,
+                ..
+            } => {
+                validate_control_flow(try_body, in_function, loop_depth)?;
+                validate_control_flow(catch_body, in_function, loop_depth)?;
+            }
+            Stmt::Block(body) => validate_control_flow(body, in_function, loop_depth)?,
+            Stmt::VarDecl { value, .. } | Stmt::Expr(value) => validate_control_expr(value)?,
+            Stmt::Assign { target, value, .. } => {
+                validate_control_expr(target)?;
+                validate_control_expr(value)?;
+            }
+            Stmt::Import(_) => {}
+        }
+    }
+    Ok(())
+}
+
+fn validate_control_expr(expr: &Expr) -> Result<(), SoplangError> {
+    match expr {
+        Expr::AnonymousFunc { body, .. } => validate_control_flow(body, true, 0),
+        Expr::BinaryOp { left, right, .. }
+        | Expr::Index {
+            obj: left,
+            idx: right,
+        } => {
+            validate_control_expr(left)?;
+            validate_control_expr(right)
+        }
+        Expr::UnaryOp { expr, .. } | Expr::Property { obj: expr, .. } => {
+            validate_control_expr(expr)
+        }
+        Expr::Call { args, .. } | Expr::New { args, .. } | Expr::List(args) => {
+            for arg in args {
+                validate_control_expr(arg)?;
+            }
+            Ok(())
+        }
+        Expr::MethodCall { obj, args, .. } => {
+            validate_control_expr(obj)?;
+            for arg in args {
+                validate_control_expr(arg)?;
+            }
+            Ok(())
+        }
+        Expr::Object(pairs) => {
+            for (_, value) in pairs {
+                validate_control_expr(value)?;
+            }
+            Ok(())
+        }
+        Expr::Literal(_) | Expr::Identifier(_) => Ok(()),
+    }
+}
+
+fn control_flow_error(message: &str, hint: &str) -> SoplangError {
+    type_error_ex(
+        message,
+        0,
+        0,
+        ErrorMeta::default()
+            .with_code(codes::E022_TYPE_MISMATCH)
+            .with_hint(hint),
+    )
 }
 
 fn validate_classes(sym: &SymbolTable) -> Result<(), SoplangError> {
@@ -222,7 +375,15 @@ fn analyze_block(
     enclosing_fn: Option<&str>,
 ) -> Result<(), SoplangError> {
     for s in stmts {
-        analyze_stmt(s, sym, opts, fn_sigs, current_return, current_class, enclosing_fn)?;
+        analyze_stmt(
+            s,
+            sym,
+            opts,
+            fn_sigs,
+            current_return,
+            current_class,
+            enclosing_fn,
+        )?;
     }
     Ok(())
 }
@@ -237,7 +398,14 @@ fn analyze_stmt(
     enclosing_fn: Option<&str>,
 ) -> Result<(), SoplangError> {
     match stmt {
-        Stmt::VarDecl { name, type_ann, is_const, value, line, col } => {
+        Stmt::VarDecl {
+            name,
+            type_ann,
+            is_const,
+            value,
+            line,
+            col,
+        } => {
             if opts.strict && type_ann == &TypeAnnotation::Dynamic {
                 return Err(type_error_ex(
                     format!("'{}' waa dynamic laakiin 'strict mode' waa shidan yahay", name),
@@ -299,19 +467,18 @@ fn analyze_stmt(
             if type_ann != &TypeAnnotation::Dynamic {
                 if let Some(expr_ty) = infer_expr_type(value, sym, fn_sigs) {
                     if !is_type_compatible(sym, type_ann, &expr_ty) {
-                        return Err(type_mismatch_error(
-                            name,
-                            type_ann,
-                            &expr_ty,
-                            *line,
-                            *col,
-                        ));
+                        return Err(type_mismatch_error(name, type_ann, &expr_ty, *line, *col));
                     }
                 }
             }
             analyze_expr(value, sym, opts, fn_sigs, current_class, enclosing_fn)?;
         }
-        Stmt::Assign { target, value, line, col } => {
+        Stmt::Assign {
+            target,
+            value,
+            line,
+            col,
+        } => {
             if let Expr::Identifier(name) = target {
                 let var = resolve_name(sym, &name, None).ok_or_else(|| {
                     type_error_ex(
@@ -352,8 +519,17 @@ fn analyze_stmt(
             }
             analyze_expr(value, sym, opts, fn_sigs, current_class, enclosing_fn)?;
         }
-        Stmt::FuncDef { name, params, return_ann, body } => {
+        Stmt::FuncDef {
+            name,
+            params,
+            return_ann,
+            body,
+        } => {
             let is_method = current_class.is_some() && enclosing_fn.is_none();
+            let initial_abi_params = params.len() + usize::from(is_method);
+            if initial_abi_params > 8 {
+                return Err(too_many_abi_params(name, initial_abi_params));
+            }
             if is_method {
                 if params.iter().any(|p| p.name == "nafta") {
                     return Err(type_error_ex(
@@ -374,7 +550,9 @@ fn analyze_stmt(
                         0,
                         ErrorMeta::default()
                             .with_code(codes::E022_TYPE_MISMATCH)
-                            .with_hint("Strict mode: qor nooca celi sida ') : abn {' ama ') : qoraal {'."),
+                            .with_hint(
+                                "Strict mode: qor nooca celi sida ') : abn {' ama ') : qoraal {'.",
+                            ),
                     ));
                 }
                 if params.iter().any(|p| p.type_ann == TypeAnnotation::Dynamic) {
@@ -384,7 +562,9 @@ fn analyze_stmt(
                         0,
                         ErrorMeta::default()
                             .with_code(codes::E022_TYPE_MISMATCH)
-                            .with_hint("Strict mode: qor nooca param kasta, tusaale: hawl f(abn x, qoraal y)."),
+                            .with_hint(
+                            "Strict mode: qor nooca param kasta, tusaale: hawl f(abn x, qoraal y).",
+                        ),
                     ));
                 }
             }
@@ -395,7 +575,11 @@ fn analyze_stmt(
             } else {
                 name.clone()
             };
-            let class_name = if is_method { current_class.map(str::to_string) } else { None };
+            let class_name = if is_method {
+                current_class.map(str::to_string)
+            } else {
+                None
+            };
             let mut func_scope = Scope::default();
             let mut param_slots: Vec<usize> = Vec::new();
             if is_method {
@@ -473,6 +657,9 @@ fn analyze_stmt(
                     );
                 }
             }
+            if !captures.is_empty() && params.len() + 1 > 8 {
+                return Err(too_many_abi_params(name, params.len() + 1));
+            }
             let scope = sym.scopes.pop().unwrap();
             let local_count = scope.vars.len();
             sym.functions.push(FunctionMeta {
@@ -523,7 +710,9 @@ fn analyze_stmt(
                             0,
                             ErrorMeta::default()
                                 .with_code(codes::E020_REDECLARED)
-                                .with_hint("Magacyada hawlgallada qaabka waa in ay noqdaan kuwo gaar ah."),
+                                .with_hint(
+                                    "Magacyada hawlgallada qaabka waa in ay noqdaan kuwo gaar ah.",
+                                ),
                         ));
                     }
                     methods.insert(mname.clone(), mangle_method(name, mname));
@@ -539,28 +728,83 @@ fn analyze_stmt(
             );
             analyze_block(body, sym, opts, fn_sigs, current_return, Some(name), None)?;
         }
-        Stmt::If { cond, then_body, elseifs, else_body } => {
+        Stmt::If {
+            cond,
+            then_body,
+            elseifs,
+            else_body,
+        } => {
             analyze_expr(cond, sym, opts, fn_sigs, current_class, enclosing_fn)?;
-            analyze_block(then_body, sym, opts, fn_sigs, current_return, current_class, enclosing_fn)?;
+            analyze_block(
+                then_body,
+                sym,
+                opts,
+                fn_sigs,
+                current_return,
+                current_class,
+                enclosing_fn,
+            )?;
             for (c, b) in elseifs {
                 analyze_expr(c, sym, opts, fn_sigs, current_class, enclosing_fn)?;
-                analyze_block(b, sym, opts, fn_sigs, current_return, current_class, enclosing_fn)?;
+                analyze_block(
+                    b,
+                    sym,
+                    opts,
+                    fn_sigs,
+                    current_return,
+                    current_class,
+                    enclosing_fn,
+                )?;
             }
             if let Some(eb) = else_body {
-                analyze_block(eb, sym, opts, fn_sigs, current_return, current_class, enclosing_fn)?;
+                analyze_block(
+                    eb,
+                    sym,
+                    opts,
+                    fn_sigs,
+                    current_return,
+                    current_class,
+                    enclosing_fn,
+                )?;
             }
         }
-        Stmt::Switch { expr, cases, default } => {
+        Stmt::Switch {
+            expr,
+            cases,
+            default,
+        } => {
             analyze_expr(expr, sym, opts, fn_sigs, current_class, enclosing_fn)?;
             for (v, body) in cases {
                 analyze_expr(v, sym, opts, fn_sigs, current_class, enclosing_fn)?;
-                analyze_block(body, sym, opts, fn_sigs, current_return, current_class, enclosing_fn)?;
+                analyze_block(
+                    body,
+                    sym,
+                    opts,
+                    fn_sigs,
+                    current_return,
+                    current_class,
+                    enclosing_fn,
+                )?;
             }
             if let Some(d) = default {
-                analyze_block(d, sym, opts, fn_sigs, current_return, current_class, enclosing_fn)?;
+                analyze_block(
+                    d,
+                    sym,
+                    opts,
+                    fn_sigs,
+                    current_return,
+                    current_class,
+                    enclosing_fn,
+                )?;
             }
         }
-        Stmt::For { var, start, end, step, body } => {
+        Stmt::For {
+            var,
+            start,
+            end,
+            step,
+            body,
+        } => {
             // Loop variable is in scope for the body
             let scope = sym.scopes.last_mut().unwrap();
             if !scope.vars.contains_key(var) {
@@ -580,11 +824,27 @@ fn analyze_stmt(
             if let Some(s) = step {
                 analyze_expr(s, sym, opts, fn_sigs, current_class, enclosing_fn)?;
             }
-            analyze_block(body, sym, opts, fn_sigs, current_return, current_class, enclosing_fn)?;
+            analyze_block(
+                body,
+                sym,
+                opts,
+                fn_sigs,
+                current_return,
+                current_class,
+                enclosing_fn,
+            )?;
         }
         Stmt::While { cond, body } => {
             analyze_expr(cond, sym, opts, fn_sigs, current_class, enclosing_fn)?;
-            analyze_block(body, sym, opts, fn_sigs, current_return, current_class, enclosing_fn)?;
+            analyze_block(
+                body,
+                sym,
+                opts,
+                fn_sigs,
+                current_return,
+                current_class,
+                enclosing_fn,
+            )?;
         }
         Stmt::Return(Some(e)) => {
             analyze_expr(e, sym, opts, fn_sigs, current_class, enclosing_fn)?;
@@ -593,12 +853,18 @@ fn analyze_stmt(
                     if let Some(expr_ty) = infer_expr_type(e, sym, fn_sigs) {
                         if !is_type_compatible(sym, ret_ann, &expr_ty) {
                             return Err(type_error_ex(
-                                format!("nooca celi '{}' ma waafaqsana nooca hawsha '{}'", ty_str(&expr_ty), ty_str(ret_ann)),
+                                format!(
+                                    "nooca celi '{}' ma waafaqsana nooca hawsha '{}'",
+                                    ty_str(&expr_ty),
+                                    ty_str(ret_ann)
+                                ),
                                 0,
                                 0,
                                 ErrorMeta::default()
                                     .with_code(codes::E022_TYPE_MISMATCH)
-                                    .with_hint("Hubi in 'celi' uu la mid yahay nooca lagu qoray hawsha."),
+                                    .with_hint(
+                                        "Hubi in 'celi' uu la mid yahay nooca lagu qoray hawsha.",
+                                    ),
                             ));
                         }
                     }
@@ -609,7 +875,10 @@ fn analyze_stmt(
             if let Some(ret_ann) = current_return {
                 if ret_ann != &TypeAnnotation::Dynamic {
                     return Err(type_error_ex(
-                        format!("hawshu waxay rabtaa '{}' laakiin celi qiimo ma leh", ty_str(ret_ann)),
+                        format!(
+                            "hawshu waxay rabtaa '{}' laakiin celi qiimo ma leh",
+                            ty_str(ret_ann)
+                        ),
                         0,
                         0,
                         ErrorMeta::default()
@@ -620,28 +889,55 @@ fn analyze_stmt(
             }
         }
         Stmt::Break | Stmt::Continue => {}
-        Stmt::TryCatch { try_body, err_var, catch_body, .. } => {
-            analyze_block(try_body, sym, opts, fn_sigs, current_return, current_class, enclosing_fn)?;
+        Stmt::TryCatch {
+            try_body,
+            err_var,
+            catch_body,
+            ..
+        } => {
+            analyze_block(
+                try_body,
+                sym,
+                opts,
+                fn_sigs,
+                current_return,
+                current_class,
+                enclosing_fn,
+            )?;
             sym.scopes.push(Scope::default());
             {
                 let scope = sym.scopes.last_mut().unwrap();
                 scope.vars.insert(
                     err_var.clone(),
                     VarInfo {
-                        slot:        0,
-                        type_ann:    TypeAnnotation::Dynamic,
-                        is_const:    false,
+                        slot: 0,
+                        type_ann: TypeAnnotation::Dynamic,
+                        is_const: false,
                         is_captured: false,
                     },
                 );
             }
-            analyze_block(catch_body, sym, opts, fn_sigs, current_return, current_class, enclosing_fn)?;
+            analyze_block(
+                catch_body,
+                sym,
+                opts,
+                fn_sigs,
+                current_return,
+                current_class,
+                enclosing_fn,
+            )?;
             sym.scopes.pop();
         }
         Stmt::Import(_) => {}
-        Stmt::Block(stmts) => {
-            analyze_block(stmts, sym, opts, fn_sigs, current_return, current_class, enclosing_fn)?
-        }
+        Stmt::Block(stmts) => analyze_block(
+            stmts,
+            sym,
+            opts,
+            fn_sigs,
+            current_return,
+            current_class,
+            enclosing_fn,
+        )?,
         Stmt::Expr(e) => analyze_expr(e, sym, opts, fn_sigs, current_class, enclosing_fn)?,
     }
     Ok(())
@@ -683,7 +979,9 @@ fn analyze_expr(
             analyze_expr(left, sym, opts, fn_sigs, current_class, enclosing_fn)?;
             analyze_expr(right, sym, opts, fn_sigs, current_class, enclosing_fn)?;
         }
-        Expr::UnaryOp { expr: e, .. } => analyze_expr(e, sym, opts, fn_sigs, current_class, enclosing_fn)?,
+        Expr::UnaryOp { expr: e, .. } => {
+            analyze_expr(e, sym, opts, fn_sigs, current_class, enclosing_fn)?
+        }
         Expr::Call { name, args } => {
             for a in args {
                 analyze_expr(a, sym, opts, fn_sigs, current_class, enclosing_fn)?;
@@ -775,7 +1073,9 @@ fn analyze_expr(
             analyze_expr(obj, sym, opts, fn_sigs, current_class, enclosing_fn)?;
             analyze_expr(idx, sym, opts, fn_sigs, current_class, enclosing_fn)?;
         }
-        Expr::Property { obj, .. } => analyze_expr(obj, sym, opts, fn_sigs, current_class, enclosing_fn)?,
+        Expr::Property { obj, .. } => {
+            analyze_expr(obj, sym, opts, fn_sigs, current_class, enclosing_fn)?
+        }
         Expr::List(exprs) => {
             for e in exprs {
                 analyze_expr(e, sym, opts, fn_sigs, current_class, enclosing_fn)?;
@@ -800,13 +1100,89 @@ fn analyze_expr(
             for a in args {
                 analyze_expr(a, sym, opts, fn_sigs, current_class, enclosing_fn)?;
             }
+            let mut owner = Some(class_name.as_str());
+            let mut constructor = None;
+            let mut seen = HashSet::new();
+            while let Some(name) = owner {
+                if !seen.insert(name.to_string()) {
+                    break;
+                }
+                let Some(class) = sym.classes.get(name) else {
+                    break;
+                };
+                if let Some(mangled) = class.methods.get("dhaw") {
+                    constructor = fn_sigs.get(mangled);
+                    break;
+                }
+                owner = class.parent.as_deref();
+            }
+            if let Some(sig) = constructor {
+                if sig.params.len() != args.len() {
+                    return Err(type_error_ex(
+                        format!(
+                            "dhaw() ee qaabka '{}' wuxuu u baahan yahay {} dood, laakiin {} ayaa la bixiyay",
+                            class_name,
+                            sig.params.len(),
+                            args.len()
+                        ),
+                        0,
+                        0,
+                        ErrorMeta::default()
+                            .with_code(codes::E022_TYPE_MISMATCH)
+                            .with_hint("Hubi tirada doodaha aad siisay cusub."),
+                    ));
+                }
+                for (index, (argument, expected)) in args.iter().zip(&sig.params).enumerate() {
+                    if expected == &TypeAnnotation::Dynamic {
+                        continue;
+                    }
+                    if let Some(found) = infer_expr_type(argument, sym, fn_sigs) {
+                        if !is_type_compatible(sym, expected, &found) {
+                            return Err(type_error_ex(
+                                format!(
+                                    "doodda {} ee dhaw() waa '{}', laakiin '{}' ayaa la helay",
+                                    index + 1,
+                                    ty_str(expected),
+                                    ty_str(&found)
+                                ),
+                                0,
+                                0,
+                                ErrorMeta::default()
+                                    .with_code(codes::E022_TYPE_MISMATCH)
+                                    .with_hint("La jaanqaad noocyada doodaha ee dhaw()."),
+                            ));
+                        }
+                    }
+                }
+            } else if !args.is_empty() {
+                return Err(type_error_ex(
+                    format!("Qaabka '{}' ma laha dhaw() qaata doodo", class_name),
+                    0,
+                    0,
+                    ErrorMeta::default()
+                        .with_code(codes::E022_TYPE_MISMATCH)
+                        .with_hint("Ka saar doodaha ama ku dar dhaw() qaabka."),
+                ));
+            }
         }
-        Expr::AnonymousFunc { params, return_ann, body } => {
+        Expr::AnonymousFunc {
+            params,
+            return_ann,
+            body,
+        } => {
             let key = expr as *const Expr as usize;
             let name = format!("#anonymous{}", sym.anonymous_functions.len());
             sym.anonymous_functions.insert(key, name.clone());
             analyze_anonymous_function(
-                &name, params, return_ann, body, sym, opts, fn_sigs, current_class, enclosing_fn,
+                &name,
+                params,
+                return_ann,
+                body,
+                sym,
+                opts,
+                fn_sigs,
+                current_class,
+                enclosing_fn,
             )?;
         }
     }
@@ -824,6 +1200,9 @@ fn analyze_anonymous_function(
     current_class: Option<&str>,
     enclosing_fn: Option<&str>,
 ) -> Result<(), SoplangError> {
+    if params.len() > 8 {
+        return Err(too_many_abi_params(name, params.len()));
+    }
     if opts.strict {
         if return_ann == &TypeAnnotation::Dynamic {
             return Err(type_error_ex(
@@ -842,7 +1221,9 @@ fn analyze_anonymous_function(
                 0,
                 ErrorMeta::default()
                     .with_code(codes::E022_TYPE_MISMATCH)
-                    .with_hint("Strict mode: qor nooca param kasta, tusaale: hawl(abn x, qoraal y)."),
+                    .with_hint(
+                        "Strict mode: qor nooca param kasta, tusaale: hawl(abn x, qoraal y).",
+                    ),
             ));
         }
     }
@@ -871,7 +1252,15 @@ fn analyze_anonymous_function(
     for param in params {
         ensure_known_class(sym, &param.type_ann)?;
     }
-    analyze_block(body, sym, opts, fn_sigs, Some(return_ann), current_class, Some(fn_name.as_str()))?;
+    analyze_block(
+        body,
+        sym,
+        opts,
+        fn_sigs,
+        Some(return_ann),
+        current_class,
+        Some(fn_name.as_str()),
+    )?;
 
     let mut captures = Vec::new();
     if enclosing_fn.is_some() {
@@ -891,7 +1280,13 @@ fn analyze_anonymous_function(
         }
         let missing: Vec<String> = captures
             .iter()
-            .filter(|capture| !sym.scopes.last().unwrap().vars.contains_key(capture.as_str()))
+            .filter(|capture| {
+                !sym.scopes
+                    .last()
+                    .unwrap()
+                    .vars
+                    .contains_key(capture.as_str())
+            })
             .cloned()
             .collect();
         for capture in missing {
@@ -909,6 +1304,10 @@ fn analyze_anonymous_function(
         }
     }
 
+    if !captures.is_empty() && params.len() + 1 > 8 {
+        return Err(too_many_abi_params(name, params.len() + 1));
+    }
+
     let scope = sym.scopes.pop().unwrap();
     sym.functions.push(FunctionMeta {
         name: fn_name,
@@ -922,6 +1321,20 @@ fn analyze_anonymous_function(
         is_method: false,
     });
     Ok(())
+}
+
+fn too_many_abi_params(name: &str, count: usize) -> SoplangError {
+    type_error_ex(
+        format!(
+            "hawl '{}' waxay leedahay {} dood oo ABI ah; ugu badnaan waa 8",
+            name, count
+        ),
+        0,
+        0,
+        ErrorMeta::default()
+            .with_code(codes::E022_TYPE_MISMATCH)
+            .with_hint("Yaree doodaha hawsha ama ku ururi walax ama teed."),
+    )
 }
 
 // ---------------------------------------------------------------------------
@@ -953,7 +1366,8 @@ fn infer_expr_type(
                     // Numeric ops: if any side is Jajab → Jajab, else Abn
                     if matches!(lt, TypeAnnotation::Jajab) || matches!(rt, TypeAnnotation::Jajab) {
                         Some(TypeAnnotation::Jajab)
-                    } else if matches!(lt, TypeAnnotation::Abn) && matches!(rt, TypeAnnotation::Abn) {
+                    } else if matches!(lt, TypeAnnotation::Abn) && matches!(rt, TypeAnnotation::Abn)
+                    {
                         Some(TypeAnnotation::Abn)
                     } else {
                         None
@@ -1090,7 +1504,9 @@ fn analyze_assign_target(
             analyze_expr(obj, sym, opts, fn_sigs, current_class, enclosing_fn)?;
             analyze_expr(idx, sym, opts, fn_sigs, current_class, enclosing_fn)?;
         }
-        Expr::Property { obj, .. } => analyze_expr(obj, sym, opts, fn_sigs, current_class, enclosing_fn)?,
+        Expr::Property { obj, .. } => {
+            analyze_expr(obj, sym, opts, fn_sigs, current_class, enclosing_fn)?
+        }
         _ => {}
     }
     Ok(())
@@ -1263,7 +1679,12 @@ fn note_free_stmt(stmt: &Stmt, sym: &SymbolTable, caps: &mut Vec<String>) {
         | Stmt::Continue
         | Stmt::Import(_)
         | Stmt::Return(None) => {}
-        Stmt::If { cond, then_body, elseifs, else_body } => {
+        Stmt::If {
+            cond,
+            then_body,
+            elseifs,
+            else_body,
+        } => {
             note_free_expr(cond, sym, caps);
             note_free_stmts(then_body, sym, caps);
             for (c, b) in elseifs {
@@ -1274,7 +1695,11 @@ fn note_free_stmt(stmt: &Stmt, sym: &SymbolTable, caps: &mut Vec<String>) {
                 note_free_stmts(b, sym, caps);
             }
         }
-        Stmt::Switch { expr, cases, default } => {
+        Stmt::Switch {
+            expr,
+            cases,
+            default,
+        } => {
             note_free_expr(expr, sym, caps);
             for (v, b) in cases {
                 note_free_expr(v, sym, caps);
@@ -1284,7 +1709,13 @@ fn note_free_stmt(stmt: &Stmt, sym: &SymbolTable, caps: &mut Vec<String>) {
                 note_free_stmts(b, sym, caps);
             }
         }
-        Stmt::For { start, end, step, body, .. } => {
+        Stmt::For {
+            start,
+            end,
+            step,
+            body,
+            ..
+        } => {
             note_free_expr(start, sym, caps);
             note_free_expr(end, sym, caps);
             if let Some(s) = step {
@@ -1297,7 +1728,11 @@ fn note_free_stmt(stmt: &Stmt, sym: &SymbolTable, caps: &mut Vec<String>) {
             note_free_stmts(body, sym, caps);
         }
         Stmt::Return(Some(e)) => note_free_expr(e, sym, caps),
-        Stmt::TryCatch { try_body, catch_body, .. } => {
+        Stmt::TryCatch {
+            try_body,
+            catch_body,
+            ..
+        } => {
             note_free_stmts(try_body, sym, caps);
             note_free_stmts(catch_body, sym, caps);
         }

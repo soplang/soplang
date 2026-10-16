@@ -97,6 +97,7 @@ All new development (compiler, JIT, AOT, CLI) happens here in the Rust implement
 - [Getting started](docs/index.md)
 - [Build guide](docs/BUILD_GUIDE.md) — Build from source on Windows, macOS, and Linux
 - [Language reference](docs/language/keywords.md)
+- [Migrating to Soplang 3](docs/MIGRATION_V3.md)
 - [Installation](docs/installation.md)
 - [Contributing](docs/CONTRIBUTING.md)
 - [Rust implementation plan (complete)](IMPLEMENTATION_PLAN.md) — Phases 1–7 done

@@ -35,6 +35,18 @@ fn test_parse_var_decl() {
 }
 
 #[test]
+fn test_optional_semicolons_between_statements_and_blocks() {
+    let source = r#"
+        ; door x = 1;;
+        hawl value() { celi; };
+        haddii (run) { qor(x); };
+    "#;
+    let tokens = Lexer::new(source).tokenize().unwrap();
+    let stmts = Parser::new(tokens).parse().unwrap();
+    assert_eq!(stmts.len(), 3);
+}
+
+#[test]
 fn test_parse_if_then() {
     let source = r#"
         haddii (run) {

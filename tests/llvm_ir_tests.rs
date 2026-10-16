@@ -270,6 +270,41 @@ fn test_llvm_ir_anonymous_functions_as_inline_callbacks() {
 }
 
 #[test]
+fn test_llvm_ir_v3_runtime_and_short_circuit() {
+    assert_eq!(
+        run_llvm(
+            "v3_runtime",
+            r#"
+            door calls = 0;
+            hawl touch() { calls = calls + 1; celi run; }
+            door skipped_and = been && touch();
+            door skipped_or = run || touch();
+            qor(calls);
+
+            qor(abn("42"));
+            door text = "éSoomaali";
+            qor(text[-1]);
+            qor(text.dherer());
+
+            door nums = teed(1, 2, 3);
+            nums.geli(1, 9);
+            qor(nums.isku_gee(hawl(total, item) { celi total + item; }, 0));
+            qor(nums.qaar(hawl(item) { celi item == 9; }));
+
+            door qof = {};
+            qof["magac"] = "Ayaan";
+            qor(qof.hel("magac"));
+            qor(dhammeystir(3.6));
+
+            door identity = hawl(value) { celi value; };
+            fasax { identity(); } qabo (e) { qor("arity"); }
+            "#,
+        ),
+        "0\n42\ni\n9\n15\nrun\nAyaan\n4\narity\n"
+    );
+}
+
+#[test]
 fn test_llvm_ir_standard_library_values_and_argument_counts() {
     assert_eq!(
         run_llvm(
@@ -366,5 +401,44 @@ fn test_llvm_ir_native_numeric_ops_and_zero_fallback() {
     assert_eq!(
         String::from_utf8(out.stdout).expect("utf8"),
         "14\n6\n40\n2.5\n2\n15.5\n1.5\nrun\n-10\n-5.5\n7\n1a\ndiv zero\nmod zero\nfloat zero\n"
+    );
+}
+
+#[test]
+fn test_llvm_ir_truthiness_ranges_and_runtime_types() {
+    assert_eq!(
+        run_llvm(
+            "truthiness_ranges_types",
+            r#"
+            haddii ("") { qor("bad") } ugudambeyn { qor("empty string") }
+            haddii (teed()) { qor("bad") } ugudambeyn { qor("empty list") }
+            haddii ({}) { qor("bad") } ugudambeyn { qor("empty object") }
+            haddii (-0.0) { qor("bad") } ugudambeyn { qor("negative zero") }
+            haddii ("x") { qor("text") }
+
+            kuceli (i 3 ilaa 1 :: -1) { qor(i) }
+            fasax {
+                kuceli (i 1 ilaa 3 :: 0) { qor("bad") }
+            } qabo (e) { qor("zero step") }
+
+            hawl dynamic_value() { celi "wrong" }
+            abn number = 1
+            fasax { number = dynamic_value() } qabo (e) { qor("assignment") }
+
+            hawl typed_return() : abn {
+                door value = { result: "wrong" }
+                celi value.hel("result")
+            }
+            fasax { typed_return() } qabo (e) { qor("return") }
+
+            hawl typed_parameter(abn value) { celi value }
+            door callable = typed_parameter
+            fasax { callable("wrong") } qabo (e) { qor("parameter") }
+            "#,
+        ),
+        concat!(
+            "empty string\nempty list\nempty object\nnegative zero\ntext\n",
+            "3\n2\n1\nzero step\nassignment\nreturn\nparameter\n"
+        )
     );
 }

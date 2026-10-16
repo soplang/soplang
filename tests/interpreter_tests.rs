@@ -10,6 +10,11 @@ fn run_program(source: &str) -> String {
         .arg(source)
         .output()
         .expect("run soplang");
+    assert!(
+        out.status.success(),
+        "program failed:\n{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
     String::from_utf8(out.stdout).unwrap()
 }
 
@@ -41,6 +46,32 @@ fn test_for_loop() {
     "#,
     );
     assert_eq!(output, "1\n2\n3\n4\n");
+}
+
+#[test]
+fn test_truthiness_descending_ranges_and_runtime_types() {
+    let output = run_program(
+        r#"
+        haddii ("") { qor("bad") } ugudambeyn { qor("empty") }
+        haddii (teed()) { qor("bad") } ugudambeyn { qor("list") }
+        haddii ({}) { qor("bad") } ugudambeyn { qor("object") }
+        haddii (-0.0) { qor("bad") } ugudambeyn { qor("zero") }
+        kuceli (i 3 ilaa 1 :: -1) { qor(i) }
+        fasax { kuceli (i 1 ilaa 3 :: 0) {} } qabo (e) { qor("step") }
+
+        hawl wrong() { celi "wrong" }
+        abn number = 1
+        fasax { number = wrong() } qabo (e) { qor("assignment") }
+
+        hawl typed(abn value) { celi value }
+        door callable = typed
+        fasax { callable("wrong") } qabo (e) { qor("parameter") }
+        "#,
+    );
+    assert_eq!(
+        output,
+        "empty\nlist\nobject\nzero\n3\n2\n1\nstep\nassignment\nparameter\n"
+    );
 }
 
 #[test]
@@ -253,6 +284,72 @@ fn test_anonymous_functions_as_inline_callbacks() {
     "#,
     );
     assert_eq!(output, "10\n[2, 4, 6, 8]\n[2, 4]\n[3, 6, 9, 12]\n15\n");
+}
+
+#[test]
+fn test_v3_language_and_standard_library() {
+    let output = run_program(
+        r#"
+        door calls = 0;
+        hawl touch() { calls = calls + 1; celi run; }
+        door skipped_and = been && touch();
+        door skipped_or = run || touch();
+        qor(calls);
+
+        qor(abn(" 42 "));
+        qor(jajab("3.5"));
+        fasax { baaxad(0, 3, 0); } qabo (e) { qor("range"); }
+
+        door text = "éSoomaali";
+        qor(text[0]);
+        qor(text[-1]);
+        qor(text[-20]);
+        qor(text.dherer());
+        qor("  hi  ".masax_bilow());
+        qor("  hi  ".masax_dhamaad());
+        qor("banana".tiri("an"));
+        qor("ha".ku_celi(3));
+        qor("banana".raadi_dambe("an"));
+
+        door nums = teed(1, 2, 3);
+        nums.geli(1, 9);
+        qor(nums);
+        qor(nums.ka_saar(-1));
+        qor(nums.koowaad());
+        qor(nums.ugu_dambeeya());
+        qor(nums.isku_gee(hawl(total, item) { celi total + item; }, 0));
+        qor(nums.dhammaan(hawl(item) { celi item > 0; }));
+        qor(nums.qaar(hawl(item) { celi item == 9; }));
+        qor(nums[-20]);
+        fasax { nums[20] = 4; } qabo (e) { qor("index"); }
+
+        door qof = { magac: "Ayaan" };
+        qor(qof["magac"]);
+        qof["da"] = 20;
+        qor(qof.hel("da", 0));
+        qof.dhig("dal", "Soomaaliya");
+        qor(qof.ka_qaad("dal"));
+        qor(qof.hel("maqan", "default"));
+
+        qor(dhammeystir(3.6));
+        qor(sugan(-5));
+        qor(ugu_yar(8, 2, 5));
+        qor(ugu_weyn(8, 2, 5));
+        qor(awood(2, 3));
+        qor(xidid(9));
+
+        door identity = hawl(value) { celi value; };
+        fasax { identity(); } qabo (e) { qor("arity"); }
+        "#,
+    );
+    assert_eq!(
+        output,
+        concat!(
+            "0\n42\n3.5\nrange\né\ni\nmaran\n9\nhi  \n  hi\n2\nhahaha\n3\n",
+            "[1, 9, 2, 3]\n3\n1\n2\n12\nrun\nrun\nmaran\nindex\n",
+            "Ayaan\n20\nSoomaaliya\ndefault\n4\n5\n2\n8\n8\n3\narity\n"
+        )
+    );
 }
 
 #[test]

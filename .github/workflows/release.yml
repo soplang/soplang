@@ -10,25 +10,23 @@ on:
 # Add explicit permissions for the GITHUB_TOKEN
 permissions:
   contents: write
-  pull-requests: write
-  issues: write
-  packages: write # Added for GitHub Container Registry
 
 jobs:
   draft-release:
     name: Draft Release Process
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0 # Fetch all history for changelog generation
           # Add token for checkout to allow pushing later
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v7
         with:
           python-version: "3.x"
 
@@ -42,6 +40,18 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "VERSION_NUM=$VERSION_NUM" >> $GITHUB_ENV
           echo "Version extracted: $VERSION (number: $VERSION_NUM)"
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Validate release version and tests
+        run: |
+          CARGO_VERSION=$(sed -n 's/^version = "\([^"]*\)"/\1/p' Cargo.toml | head -n 1)
+          if [[ "$CARGO_VERSION" != "${{ env.VERSION_NUM }}" ]]; then
+            echo "Cargo.toml version $CARGO_VERSION does not match release branch ${{ env.VERSION_NUM }}"
+            exit 1
+          fi
+          cargo test --locked
 
       # Update the CHANGELOG.md file
       - name: Install changelog generator
@@ -118,14 +128,14 @@ jobs:
           echo "" >> release_template.md
           echo "| Platform | File | Checksum |" >> release_template.md
           echo "|----------|------|----------|" >> release_template.md
-          echo "| Windows  | [soplang-${{ env.VERSION_NUM }}-windows.exe](replace_with_actual_link) | TBD |" >> release_template.md
-          echo "| Linux    | [soplang-${{ env.VERSION_NUM }}-linux.deb](replace_with_actual_link)   | TBD |" >> release_template.md
-          echo "| macOS    | [soplang-${{ env.VERSION_NUM }}-macos.dmg](replace_with_actual_link)   | TBD |" >> release_template.md
+          echo "| Windows  | [soplang-setup.exe](replace_with_actual_link) | TBD |" >> release_template.md
+          echo "| Linux    | [soplang_${{ env.VERSION_NUM }}_amd64.deb](replace_with_actual_link) | TBD |" >> release_template.md
+          echo "| macOS    | [Soplang-${{ env.VERSION_NUM }}.dmg](replace_with_actual_link) | TBD |" >> release_template.md
           echo "" >> release_template.md
 
           echo "## 🐳 Docker Images" >> release_template.md
           echo "" >> release_template.md
-          echo "Docker images are automatically built and pushed to Docker Hub and GitHub Container Registry:" >> release_template.md
+          echo "Docker images are published to GitHub Container Registry and, when credentials are configured, Docker Hub:" >> release_template.md
           echo "" >> release_template.md
           echo "```bash" >> release_template.md
           echo "# Pull from Docker Hub" >> release_template.md
@@ -157,12 +167,11 @@ jobs:
           echo "" >> release_template.md
           echo "## 📝 Release Checklist" >> release_template.md
           echo "" >> release_template.md
-          echo "- [ ] Build Windows binary (soplang-${{ env.VERSION_NUM }}-windows.exe)" >> release_template.md
-          echo "- [ ] Build Linux binary (soplang-${{ env.VERSION_NUM }}-linux.deb)" >> release_template.md
-          echo "- [ ] Build macOS binary (soplang-${{ env.VERSION_NUM }}-macos.dmg)" >> release_template.md
+          echo "- [ ] Build Windows installer (soplang-setup.exe)" >> release_template.md
+          echo "- [ ] Build Linux package (soplang_${{ env.VERSION_NUM }}_amd64.deb)" >> release_template.md
+          echo "- [ ] Build macOS image (Soplang-${{ env.VERSION_NUM }}.dmg)" >> release_template.md
           echo "- [ ] Upload all binaries as assets" >> release_template.md
           echo "- [ ] Calculate and add SHA256 checksums to the table" >> release_template.md
-          echo "- [ ] Verify Docker images were built and pushed successfully" >> release_template.md
           echo "- [ ] Remove this checklist section" >> release_template.md
           echo "- [ ] Publish the release" >> release_template.md
 
@@ -208,7 +217,7 @@ jobs:
           git push origin ${{ env.VERSION }}
 
       - name: Create GitHub Draft Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ env.VERSION }}
           name: "Soplang ${{ env.VERSION }}"
@@ -231,7 +240,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
 
       - name: Extract version
         id: extract_version

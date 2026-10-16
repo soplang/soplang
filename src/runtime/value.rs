@@ -1,7 +1,7 @@
 //! Runtime values for Soplang.
 
 use std::cell::RefCell;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::fmt;
 use std::rc::Rc;
 
@@ -72,21 +72,50 @@ enum ValueDebug<'a> {
 
 impl PartialEq for Value {
     fn eq(&self, other: &Self) -> bool {
-        match (self, other) {
-            (Value::Int(a), Value::Int(b)) => a == b,
-            (Value::Float(a), Value::Float(b)) => a == b,
-            (Value::Str(a), Value::Str(b)) => a == b,
-            (Value::Bool(a), Value::Bool(b)) => a == b,
-            (Value::Null, Value::Null) => true,
-            (Value::List(a), Value::List(b)) => Rc::ptr_eq(a, b) || *a.borrow() == *b.borrow(),
-            (Value::Object(a), Value::Object(b)) => Rc::ptr_eq(a, b) || *a.borrow() == *b.borrow(),
-            (Value::Function(a), Value::Function(b)) => a == b,
-            (Value::Closure(a), Value::Closure(b)) => a == b,
-            (Value::NativeFunction(a), Value::NativeFunction(b)) => std::ptr::eq(
-                *a as *const (), *b as *const (),
-            ),
-            _ => false,
+        value_eq(self, other, &mut HashSet::new())
+    }
+}
+
+fn value_eq(a: &Value, b: &Value, seen: &mut HashSet<(u8, usize, usize)>) -> bool {
+    match (a, b) {
+        (Value::Int(a), Value::Int(b)) => a == b,
+        (Value::Float(a), Value::Float(b)) => a == b,
+        (Value::Str(a), Value::Str(b)) => a == b,
+        (Value::Bool(a), Value::Bool(b)) => a == b,
+        (Value::Null, Value::Null) => true,
+        (Value::List(a), Value::List(b)) => {
+            if Rc::ptr_eq(a, b) {
+                return true;
+            }
+            let pair = (0, Rc::as_ptr(a) as usize, Rc::as_ptr(b) as usize);
+            if !seen.insert(pair) {
+                return true;
+            }
+            let a = a.borrow();
+            let b = b.borrow();
+            a.len() == b.len() && a.iter().zip(b.iter()).all(|(a, b)| value_eq(a, b, seen))
         }
+        (Value::Object(a), Value::Object(b)) => {
+            if Rc::ptr_eq(a, b) {
+                return true;
+            }
+            let pair = (1, Rc::as_ptr(a) as usize, Rc::as_ptr(b) as usize);
+            if !seen.insert(pair) {
+                return true;
+            }
+            let a = a.borrow();
+            let b = b.borrow();
+            a.len() == b.len()
+                && a.iter().all(|(key, value)| {
+                    b.get(key).is_some_and(|other| value_eq(value, other, seen))
+                })
+        }
+        (Value::Function(a), Value::Function(b)) => a == b,
+        (Value::Closure(a), Value::Closure(b)) => a == b,
+        (Value::NativeFunction(a), Value::NativeFunction(b)) => {
+            std::ptr::eq(*a as *const (), *b as *const ())
+        }
+        _ => false,
     }
 }
 
@@ -129,51 +158,16 @@ impl fmt::Display for FunctionId {
 
 impl fmt::Display for Value {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Value::Int(n) => write!(f, "{}", n),
-            Value::Float(x) => {
-                if x.fract() == 0.0 && x.is_finite() {
-                    write!(f, "{}", *x as i64)
-                } else {
-                    write!(f, "{}", x)
-                }
-            }
-            Value::Str(s) => write!(f, "{}", s),
-            Value::Bool(b) => write!(f, "{}", if *b { "run" } else { "been" }),
-            Value::Null => write!(f, "maran"),
-            Value::List(lst) => {
-                let v = lst.borrow();
-                write!(f, "[")?;
-                for (i, item) in v.iter().enumerate() {
-                    if i > 0 {
-                        write!(f, ", ")?;
-                    }
-                    write!(f, "{}", item)?;
-                }
-                write!(f, "]")
-            }
-            Value::Object(obj) => {
-                let m = obj.borrow();
-                let mut keys: Vec<_> = m.keys().collect();
-                keys.sort();
-                write!(f, "{{")?;
-                for (i, k) in keys.iter().enumerate() {
-                    if i > 0 {
-                        write!(f, ", ")?;
-                    }
-                    write!(f, "{}: {}", k, m.get(*k).unwrap())?;
-                }
-                write!(f, "}}")
-            }
-            Value::Function(id) => write!(f, "{}", id),
-            Value::NativeFunction(_) => write!(f, "<hawl>"),
-            Value::Closure(_) => write!(f, "<hawl>"),
-        }
+        f.write_str(&format_value(self, &mut HashSet::new()))
     }
 }
 
 /// String conversion for stdlib and qor.
 pub fn value_to_string(v: &Value) -> String {
+    format_value(v, &mut HashSet::new())
+}
+
+fn format_value(v: &Value, seen: &mut HashSet<(u8, usize)>) -> String {
     match v {
         Value::Bool(true) => "run".to_string(),
         Value::Bool(false) => "been".to_string(),
@@ -188,17 +182,27 @@ pub fn value_to_string(v: &Value) -> String {
         }
         Value::Str(s) => s.clone(),
         Value::List(lst) => {
+            let id = (0, Rc::as_ptr(lst) as usize);
+            if !seen.insert(id) {
+                return "[...]".to_string();
+            }
             let v = lst.borrow();
-            let parts: Vec<String> = v.iter().map(value_to_string).collect();
+            let parts: Vec<String> = v.iter().map(|value| format_value(value, seen)).collect();
+            seen.remove(&id);
             format!("[{}]", parts.join(", "))
         }
         Value::Object(obj) => {
+            let id = (1, Rc::as_ptr(obj) as usize);
+            if !seen.insert(id) {
+                return "{...}".to_string();
+            }
             let m = obj.borrow();
             let mut pairs: Vec<_> = m
                 .iter()
-                .map(|(k, val)| format!("{}: {}", k, value_to_string(val)))
+                .map(|(k, val)| format!("{}: {}", k, format_value(val, seen)))
                 .collect();
             pairs.sort();
+            seen.remove(&id);
             format!("{{{}}}", pairs.join(", "))
         }
         Value::Function(id) => format!("{}", id),

@@ -6,7 +6,7 @@ This compact grammar describes the syntax accepted by the Soplang parser. See
 ## Program and statements
 
 ```ebnf
-program          = { statement } .
+program          = { ";" } { statement { ";" } } .
 statement        = declaration
                  | assignment
                  | function_def
@@ -21,8 +21,10 @@ statement        = declaration
                  | "jooji"
                  | "soco"
                  | expression_stmt .
-block            = { statement } .
+block            = { ";" } { statement { ";" } } .
 ```
+
+Semicolons are optional statement separators.
 
 ## Declarations and assignment
 

@@ -34,6 +34,8 @@ declare %SoplangValue @soplang_gt(%SoplangValue, %SoplangValue)
 declare %SoplangValue @soplang_ge(%SoplangValue, %SoplangValue)
 declare %SoplangValue @soplang_and(%SoplangValue, %SoplangValue)
 declare %SoplangValue @soplang_or(%SoplangValue, %SoplangValue)
+declare %SoplangValue @soplang_truthy(%SoplangValue)
+declare %SoplangValue @soplang_range_continue(%SoplangValue, %SoplangValue, %SoplangValue)
 declare %SoplangValue @soplang_get_builtin(ptr, i64)
 declare void @soplang_store_global(ptr, i64, i64, i64)
 declare %SoplangValue @soplang_call(%SoplangValue, ptr, i32)
@@ -213,7 +215,7 @@ struct Keep(*const ());
 unsafe impl Sync for Keep {}
 
 #[used]
-static KEEP: [Keep; 43] = [
+static KEEP: [Keep; 45] = [
     Keep(soplang::runtime::soplang_int as *const ()),
     Keep(soplang::runtime::soplang_float as *const ()),
     Keep(soplang::runtime::soplang_str as *const ()),
@@ -234,6 +236,8 @@ static KEEP: [Keep; 43] = [
     Keep(soplang::runtime::soplang_ge as *const ()),
     Keep(soplang::runtime::soplang_and as *const ()),
     Keep(soplang::runtime::soplang_or as *const ()),
+    Keep(soplang::runtime::soplang_truthy as *const ()),
+    Keep(soplang::runtime::soplang_range_continue as *const ()),
     Keep(soplang::runtime::soplang_get_builtin as *const ()),
     Keep(soplang::runtime::soplang_store_global as *const ()),
     Keep(soplang::runtime::soplang_call as *const ()),
@@ -697,7 +701,8 @@ impl<'a> FnEmit<'a> {
                 on_true,
                 on_false,
             } => {
-                let (_, pay) = self.load_slot(*cond);
+                let sv = self.unary("soplang_truthy", *cond);
+                let (_, pay) = self.unpack(&sv);
                 let c = self.fresh();
                 self.line(format!("  {c} = icmp ne i64 {pay}, 0"));
                 self.line(format!(
@@ -705,8 +710,23 @@ impl<'a> FnEmit<'a> {
                 ));
                 Ok(true)
             }
+            HirInstr::RangeContinue {
+                dst,
+                current,
+                end,
+                step,
+            } => {
+                let sv = self.call_three("soplang_range_continue", *current, *end, *step);
+                self.unpack_store(&sv, *dst);
+                Ok(false)
+            }
             HirInstr::Call { dst, callee, args } => {
-                if let Some(&idx) = self.slot_fn.get(callee) {
+                let direct_fn = self
+                    .slot_fn
+                    .get(callee)
+                    .copied()
+                    .filter(|&idx| args.len() == self.fns[idx].n_params);
+                if let Some(idx) = direct_fn {
                     let llvm_name = self.fns[idx].llvm_name.clone();
                     let n_params = self.fns[idx].n_params;
                     let mut parts = Vec::new();
@@ -1215,6 +1235,18 @@ fn slot_hi(body: &[HirInstr]) -> usize {
             }
             HirInstr::Return { val } => mx = mx.max(*val + 1),
             HirInstr::JumpIf { cond, .. } => mx = mx.max(*cond + 1),
+            HirInstr::RangeContinue {
+                dst,
+                current,
+                end,
+                step,
+            } => {
+                mx = mx
+                    .max(*dst + 1)
+                    .max(*current + 1)
+                    .max(*end + 1)
+                    .max(*step + 1)
+            }
             HirInstr::CheckType { src, .. } | HirInstr::CheckClass { src, .. } => {
                 mx = mx.max(*src + 1)
             }

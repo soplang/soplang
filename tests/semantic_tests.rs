@@ -5,6 +5,14 @@ use std::path::Path;
 
 use soplang::{semantic, Lexer, Parser};
 
+fn analyze_source(source: &str) -> Result<(), String> {
+    let tokens = Lexer::new(source).tokenize().map_err(|e| e.to_string())?;
+    let stmts = Parser::new(tokens).parse().map_err(|e| e.to_string())?;
+    semantic::analyze(&stmts)
+        .map(|_| ())
+        .map_err(|e| e.to_string())
+}
+
 fn run_semantic(path: &Path) -> Result<(), String> {
     let source = fs::read_to_string(path).map_err(|e| e.to_string())?;
     let tokens = Lexer::new(&source).tokenize().map_err(|e| e.to_string())?;
@@ -28,7 +36,10 @@ fn test_semantic_all_examples() {
     sop_files.sort();
 
     for path in sop_files {
-        let name = path.file_stem().and_then(|s| s.to_str()).unwrap_or_default();
+        let name = path
+            .file_stem()
+            .and_then(|s| s.to_str())
+            .unwrap_or_default();
         // Skip examples that are intentionally type-error tests.
         if name.contains("type_error") || name.contains("reassignment") {
             continue;
@@ -56,8 +67,14 @@ fn test_semantic_mangles_class_methods() {
     let tokens = Lexer::new(source).tokenize().unwrap();
     let stmts = Parser::new(tokens).parse().unwrap();
     let sym = semantic::analyze(&stmts).unwrap();
-    assert!(sym.functions.iter().any(|f| f.name == "A::foo" && f.is_method));
-    assert!(sym.functions.iter().any(|f| f.name == "B::bar" && f.is_method));
+    assert!(sym
+        .functions
+        .iter()
+        .any(|f| f.name == "A::foo" && f.is_method));
+    assert!(sym
+        .functions
+        .iter()
+        .any(|f| f.name == "B::bar" && f.is_method));
     assert_eq!(sym.classes.get("B").unwrap().parent.as_deref(), Some("A"));
 }
 
@@ -82,6 +99,45 @@ fn test_semantic_rejects_self_parent() {
     let stmts = Parser::new(tokens).parse().unwrap();
     let err = semantic::analyze(&stmts).unwrap_err().to_string();
     assert!(err.contains("meel-wareeg"), "{err}");
+}
+
+#[test]
+fn test_semantic_rejects_invalid_control_flow() {
+    for source in [
+        "celi 1",
+        "jooji",
+        "soco",
+        "intay (run) { hawl inner() { jooji } }",
+        "door f = hawl() { soco }",
+        "hawl outer() { qaab A { celi 1 } }",
+    ] {
+        assert!(analyze_source(source).is_err(), "accepted: {source}");
+    }
+
+    assert!(analyze_source("hawl f() { celi 1 }").is_ok());
+    assert!(analyze_source("intay (run) { jooji }").is_ok());
+}
+
+#[test]
+fn test_semantic_rejects_functions_beyond_compiled_call_abi() {
+    let nine_params = "hawl f(a,b,c,d,e,f,g,h,i) { celi a }";
+    assert!(analyze_source(nine_params).is_err());
+
+    let method_with_eight_args = r#"
+        qaab A { hawl f(a,b,c,d,e,f,g,h) { celi a } }
+    "#;
+    assert!(analyze_source(method_with_eight_args).is_err());
+
+    let captured_closure_with_eight_args = r#"
+        hawl outer() {
+            door captured = 1
+            door callback = hawl(a,b,c,d,e,f,g,h) { celi captured }
+            celi callback
+        }
+    "#;
+    assert!(analyze_source(captured_closure_with_eight_args).is_err());
+
+    assert!(analyze_source("hawl f(a,b,c,d,e,f,g,h) { celi a }").is_ok());
 }
 
 #[test]
@@ -140,16 +196,48 @@ fn test_semantic_rejects_unknown_parent() {
 }
 
 #[test]
+fn test_constructor_arguments_are_validated() {
+    let wrong_count = r#"
+        qaab Qof { hawl dhaw(qoraal magac) { nafta.magac = magac } }
+        door qof = cusub Qof()
+    "#;
+    let tokens = Lexer::new(wrong_count).tokenize().unwrap();
+    let stmts = Parser::new(tokens).parse().unwrap();
+    let error = semantic::analyze(&stmts).unwrap_err().to_string();
+    assert!(error.contains("dhaw"), "{error}");
+
+    let wrong_type = r#"
+        qaab Qof { hawl dhaw(qoraal magac) { nafta.magac = magac } }
+        door qof = cusub Qof(7)
+    "#;
+    let tokens = Lexer::new(wrong_type).tokenize().unwrap();
+    let stmts = Parser::new(tokens).parse().unwrap();
+    let error = semantic::analyze(&stmts).unwrap_err().to_string();
+    assert!(error.contains("qoraal"), "{error}");
+
+    let inherited = r#"
+        qaab Waalid { hawl dhaw(qoraal magac) { nafta.magac = magac } }
+        qaab Ilmo dhaxal Waalid { hawl magac() { celi nafta.magac } }
+        door ilmo = cusub Ilmo("Ayaan")
+    "#;
+    let tokens = Lexer::new(inherited).tokenize().unwrap();
+    let stmts = Parser::new(tokens).parse().unwrap();
+    assert!(semantic::analyze(&stmts).is_ok());
+}
+
+#[test]
 fn test_import_resolves_and_merges() {
-    use std::path::Path;
     use soplang::frontend::imports;
     use soplang::Stmt;
+    use std::path::Path;
 
     let main = Path::new("examples/16_import.sop");
     let source = std::fs::read_to_string(main).unwrap();
     let tokens = Lexer::new(&source).tokenize().unwrap();
     let stmts = imports::resolve_imports(Parser::new(tokens).parse().unwrap(), Some(main)).unwrap();
-    assert!(stmts.iter().any(|s| matches!(s, Stmt::FuncDef { name, .. } if name == "laba")));
+    assert!(stmts
+        .iter()
+        .any(|s| matches!(s, Stmt::FuncDef { name, .. } if name == "laba")));
     let sym = semantic::analyze(&stmts).unwrap();
     assert!(sym.functions.iter().any(|f| f.name == "laba"));
 }

@@ -15,6 +15,13 @@ if (-not (Get-Command cargo -ErrorAction SilentlyContinue)) {
     exit 1
 }
 
+$cargoToml = Get-Content (Join-Path $projectRoot "Cargo.toml") -Raw
+if ($cargoToml -notmatch '(?m)^version = "([^"]+)"') {
+    Write-Host "Could not read the package version from Cargo.toml." -ForegroundColor Red
+    exit 1
+}
+$version = $Matches[1]
+
 # Build release binary
 Write-Host "Building release binary..." -ForegroundColor Cyan
 cargo build --release
@@ -41,7 +48,7 @@ if (Test-Path "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe") {
 
 if ($iscc) {
     Write-Host "Creating installer with Inno Setup..." -ForegroundColor Cyan
-    & $iscc "windows\soplang_setup.iss"
+    & $iscc "/DMyAppVersion=$version" "windows\soplang_setup.iss"
     Write-Host "Installer: $projectRoot\windows\Output\soplang-setup.exe" -ForegroundColor Green
 } else {
     Write-Host "Inno Setup not found. Skipping installer. Install from https://jrsoftware.org/isdl.php to create soplang-setup.exe" -ForegroundColor Yellow

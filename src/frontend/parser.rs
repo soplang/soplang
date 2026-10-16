@@ -1,12 +1,12 @@
 //! Recursive descent parser: tokens → AST (Vec<Stmt>).
 //! Parser for Soplang. IMPLEMENTATION_PLAN Phase 2.
 
-use crate::error::{parser_error, SoplangError};
 use super::ast::{Expr, Literal, Param, Stmt, TypeAnnotation};
 use super::token::{Token, TokenType};
+use crate::error::{parser_error, SoplangError};
 
 pub struct Parser {
-    tokens:  Vec<Token>,
+    tokens: Vec<Token>,
     current: usize,
 }
 
@@ -18,7 +18,12 @@ impl Parser {
     pub fn parse(&mut self) -> Result<Vec<Stmt>, SoplangError> {
         let mut stmts = Vec::new();
         while !self.at_end() {
+            if self.check(TokenType::Semicolon) {
+                self.advance();
+                continue;
+            }
             stmts.push(self.parse_stmt()?);
+            self.consume_semicolons();
         }
         Ok(stmts)
     }
@@ -26,10 +31,14 @@ impl Parser {
     /// Parse the entire input as a single expression (for REPL / -c). Fails if there is extra input.
     pub fn parse_single_expression(&mut self) -> Result<Expr, SoplangError> {
         let e = self.parse_logical()?;
+        self.consume_semicolons();
         if !self.at_end() {
             let t = self.peek();
             return Err(parser_error(
-                format!("Waxaa la filayay hal weedh oo qudha, laakiin waxaa ka haray {}", token_name_expected(&TokenType::Eof)),
+                format!(
+                    "Waxaa la filayay hal weedh oo qudha, laakiin waxaa ka haray {}",
+                    token_name_expected(&TokenType::Eof)
+                ),
                 t.line,
                 t.col,
             ));
@@ -65,11 +74,19 @@ impl Parser {
         if self.current < self.tokens.len() && self.tokens[self.current].kind != TokenType::Eof {
             self.current += 1;
         }
-        self.tokens.get(self.current.saturating_sub(1)).unwrap_or_else(|| self.tokens.last().unwrap())
+        self.tokens
+            .get(self.current.saturating_sub(1))
+            .unwrap_or_else(|| self.tokens.last().unwrap())
     }
 
     fn check(&self, kind: TokenType) -> bool {
         !self.at_end() && std::mem::discriminant(&self.peek().kind) == std::mem::discriminant(&kind)
+    }
+
+    fn consume_semicolons(&mut self) {
+        while self.check(TokenType::Semicolon) {
+            self.advance();
+        }
     }
 
     fn expect(&mut self, kind: TokenType) -> Result<&Token, SoplangError> {
@@ -118,7 +135,12 @@ impl Parser {
             TokenType::Identifier if self.looks_like_class_decl() => {
                 let class_name = self.peek().lexeme.clone();
                 self.advance();
-                return self.parse_var_decl_rest(TypeAnnotation::Class(class_name), false, line, col);
+                return self.parse_var_decl_rest(
+                    TypeAnnotation::Class(class_name),
+                    false,
+                    line,
+                    col,
+                );
             }
             TokenType::Identifier | TokenType::Nafta | TokenType::Waalid => {
                 return self.parse_identifier_stmt(line, col)
@@ -129,8 +151,12 @@ impl Parser {
         // Static type keywords
         if matches!(
             t.kind,
-            TokenType::Abn | TokenType::Jajab | TokenType::Qoraal | TokenType::Bool
-                | TokenType::Teed | TokenType::Walax
+            TokenType::Abn
+                | TokenType::Jajab
+                | TokenType::Qoraal
+                | TokenType::Bool
+                | TokenType::Teed
+                | TokenType::Walax
         ) {
             return self.parse_var_decl_static(line, col);
         }
@@ -154,8 +180,12 @@ impl Parser {
         self.advance(); // madoor
         let (type_ann, is_static) = if matches!(
             self.peek().kind,
-            TokenType::Abn | TokenType::Jajab | TokenType::Qoraal | TokenType::Bool
-                | TokenType::Teed | TokenType::Walax
+            TokenType::Abn
+                | TokenType::Jajab
+                | TokenType::Qoraal
+                | TokenType::Bool
+                | TokenType::Teed
+                | TokenType::Walax
         ) {
             (token_to_type_ann(&self.peek().kind), true)
         } else if self.looks_like_class_decl() {
@@ -229,7 +259,10 @@ impl Parser {
                 Ok("nafta".to_string())
             }
             _ => Err(parser_error(
-                format!("Waxaa la filayay magac doorsame, laakiin waxaa la helay {:?}", t.lexeme),
+                format!(
+                    "Waxaa la filayay magac doorsame, laakiin waxaa la helay {:?}",
+                    t.lexeme
+                ),
                 t.line,
                 t.col,
             )),
@@ -248,7 +281,9 @@ impl Parser {
         })
     }
 
-    fn parse_function_tail(&mut self) -> Result<(Vec<Param>, TypeAnnotation, Vec<Stmt>), SoplangError> {
+    fn parse_function_tail(
+        &mut self,
+    ) -> Result<(Vec<Param>, TypeAnnotation, Vec<Stmt>), SoplangError> {
         self.expect(TokenType::LParen)?;
         let mut params = Vec::new();
         while !self.check(TokenType::RParen) {
@@ -339,12 +374,16 @@ impl Parser {
         self.advance(); // qor
         let arg = self.parse_logical()?;
         Ok(Stmt::Expr(Expr::Call {
-            name:   "qor".to_string(),
-            args:   vec![arg],
+            name: "qor".to_string(),
+            args: vec![arg],
         }))
     }
 
-    fn parse_function_call_stmt(&mut self, _line: usize, _col: usize) -> Result<Stmt, SoplangError> {
+    fn parse_function_call_stmt(
+        &mut self,
+        _line: usize,
+        _col: usize,
+    ) -> Result<Stmt, SoplangError> {
         let name = self.peek().lexeme.clone();
         self.advance(); // gelin or similar
         let call = self.parse_call_rest(name)?;
@@ -547,11 +586,7 @@ impl Parser {
                 ));
             }
         }
-        Ok(Stmt::ClassDef {
-            name,
-            parent,
-            body,
-        })
+        Ok(Stmt::ClassDef { name, parent, body })
     }
 
     fn parse_block(&mut self) -> Result<Stmt, SoplangError> {
@@ -564,7 +599,12 @@ impl Parser {
     fn parse_block_stmts(&mut self) -> Result<Vec<Stmt>, SoplangError> {
         let mut stmts = Vec::new();
         while !self.check(TokenType::RBrace) && !self.at_end() {
+            if self.check(TokenType::Semicolon) {
+                self.advance();
+                continue;
+            }
             stmts.push(self.parse_stmt()?);
+            self.consume_semicolons();
         }
         Ok(stmts)
     }
@@ -588,13 +628,13 @@ impl Parser {
                     self.expect(TokenType::LParen)?; // consume '('
                     let args = self.parse_call_args()?;
                     left = Expr::MethodCall {
-                        obj:    Box::new(left),
+                        obj: Box::new(left),
                         method: prop,
                         args,
                     };
                 } else {
                     left = Expr::Property {
-                        obj:  Box::new(left),
+                        obj: Box::new(left),
                         prop,
                     };
                 }
@@ -668,7 +708,7 @@ impl Parser {
             self.advance();
             let right = self.parse_comparison()?;
             left = Expr::BinaryOp {
-                op:   op.to_string(),
+                op: op.to_string(),
                 left: Box::new(left),
                 right: Box::new(right),
             };
@@ -709,7 +749,7 @@ impl Parser {
             };
             let right = self.parse_expression()?;
             left = Expr::BinaryOp {
-                op:   op.to_string(),
+                op: op.to_string(),
                 left: Box::new(left),
                 right: Box::new(right),
             };
@@ -734,7 +774,7 @@ impl Parser {
             };
             let right = self.parse_term()?;
             left = Expr::BinaryOp {
-                op:   op.to_string(),
+                op: op.to_string(),
                 left: Box::new(left),
                 right: Box::new(right),
             };
@@ -763,7 +803,7 @@ impl Parser {
             };
             let right = self.parse_factor()?;
             left = Expr::BinaryOp {
-                op:   op.to_string(),
+                op: op.to_string(),
                 left: Box::new(left),
                 right: Box::new(right),
             };
@@ -776,7 +816,7 @@ impl Parser {
             self.advance();
             let expr = self.parse_factor()?;
             return Ok(Expr::UnaryOp {
-                op:   "!".to_string(),
+                op: "!".to_string(),
                 expr: Box::new(expr),
             });
         }
@@ -784,7 +824,7 @@ impl Parser {
             self.advance();
             let expr = self.parse_factor()?;
             return Ok(Expr::UnaryOp {
-                op:   "-".to_string(),
+                op: "-".to_string(),
                 expr: Box::new(expr),
             });
         }
@@ -806,13 +846,13 @@ impl Parser {
                     self.expect(TokenType::LParen)?; // consume '('
                     let args = self.parse_call_args()?;
                     expr = Expr::MethodCall {
-                        obj:    Box::new(expr),
+                        obj: Box::new(expr),
                         method: prop,
                         args,
                     };
                 } else {
                     expr = Expr::Property {
-                        obj:  Box::new(expr),
+                        obj: Box::new(expr),
                         prop,
                     };
                 }
@@ -892,8 +932,14 @@ impl Parser {
             }
             TokenType::LBracket => self.parse_list_literal(),
             TokenType::LBrace => self.parse_object_literal(),
-            TokenType::Identifier | TokenType::Qor | TokenType::Gelin | TokenType::Abn
-            | TokenType::Jajab | TokenType::Qoraal | TokenType::Bool | TokenType::Teed
+            TokenType::Identifier
+            | TokenType::Qor
+            | TokenType::Gelin
+            | TokenType::Abn
+            | TokenType::Jajab
+            | TokenType::Qoraal
+            | TokenType::Bool
+            | TokenType::Teed
             | TokenType::Walax => {
                 let name = self.current_token_call_name();
                 self.advance();
@@ -904,7 +950,10 @@ impl Parser {
                 }
             }
             _ => Err(parser_error(
-                format!("Waxaa la filayay expression, laakiin waxaa la helay {:?}", self.peek().lexeme),
+                format!(
+                    "Waxaa la filayay expression, laakiin waxaa la helay {:?}",
+                    self.peek().lexeme
+                ),
                 line,
                 col,
             )),
@@ -1015,7 +1064,9 @@ mod tests {
             Stmt::Expr(Expr::Call { name, args }) => {
                 assert_eq!(name, "qor");
                 assert_eq!(args.len(), 1);
-                assert!(matches!(&args[0], Expr::Literal(Literal::Str(s)) if s == "Salaan, Adduunka!"));
+                assert!(
+                    matches!(&args[0], Expr::Literal(Literal::Str(s)) if s == "Salaan, Adduunka!")
+                );
             }
             _ => panic!("expected qor(...) statement"),
         }

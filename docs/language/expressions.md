@@ -47,7 +47,7 @@ qor(qof.magac)
 door magac = qoraal(25)
 ```
 
-Use methods such as `jar()` for slices; bracket syntax accepts one index.
+Use methods such as `jar()` for slices; bracket syntax accepts one index. List and string indexes may be negative, and string positions count Unicode characters. Objects accept string keys in brackets for computed reads and writes.
 
 ## Classes and functions
 

@@ -216,7 +216,7 @@ fn main() {
 ```
 
 ### Deliverable
-`cargo run -- examples/hello.sop` prints all tokens with line/col information.
+`cargo run -- examples/01_hello.sop` prints all tokens with line/col information.
 
 ---
 
@@ -327,7 +327,7 @@ impl Parser {
 Implement `Display` for `Expr` and `Stmt` to print a tree view for debugging.
 
 ### Deliverable
-`cargo run -- examples/hello.sop --ast` prints the parsed AST. Parser handles all 43 example files without errors.
+`cargo run -- examples/01_hello.sop --ast` prints the parsed AST. The parser handles the current example suite without errors.
 
 ---
 
@@ -443,7 +443,7 @@ impl Interpreter {
 | `&&` `\|\|` | short-circuit → `Bool` | | | |
 
 ### Deliverable
-`cargo run -- examples/01_dynamic_typing.sop` through `examples/09_while_loops.sop` all produce correct output.
+The programs in `examples/` produce the expected output.
 
 ---
 
@@ -534,7 +534,7 @@ fn exec_try_catch(&mut self, try_body: &[Stmt], err_var: &str, catch_body: &[Stm
 ```
 
 ### Deliverable
-All 43 example files run correctly. Functions, OOP, imports all working.
+The current example suite runs correctly. Functions, OOP, and imports work.
 
 ---
 
@@ -552,7 +552,7 @@ pub fn get_builtin_functions() -> HashMap<String, Value> {
     m.insert("qor".into(),    Value::NativeFunction(builtin_qor));
     m.insert("gelin".into(),  Value::NativeFunction(builtin_gelin));
     m.insert("nooc".into(),   Value::NativeFunction(builtin_nooc));
-    // ... all 14 builtins
+    // ... all 20 builtins
     m
 }
 
@@ -596,9 +596,9 @@ fn eval_method_call(&mut self, obj_expr: &Expr, method: &str, arg_exprs: &[Expr]
 
 Implement the full method tables from the analysis:
 
-- **List (12):** `kasaar`, `dherer`, `kudar`, `leeyahay`, `nuqul`, `nadiifi`, `rog`, `habee`, `shaandhee`, `jar`, `aaddin`, `muuji`
-- **Object (8):** `fure`, `leeyahay`, `tir`, `kudar`, `nuqul`, `nadiifi`, `qiime`, `lamaane`
-- **String (12):** `qeybi`, `leeyahay`, `dhamaad`, `bilow`, `beddel`, `beddel_dhammaan`, `kudar`, `jar`, `xarafaha_weyn`, `xarfaha_yaryar`, `masax`, `raadi`
+- **List (19):** `kasaar`, `dherer`, `kudar`, `leeyahay`, `nuqul`, `nadiifi`, `rog`, `habee`, `shaandhee`, `jar`, `aaddin`, `muuji`, `geli`, `ka_saar`, `koowaad`, `ugu_dambeeya`, `isku_gee`, `dhammaan`, `qaar`
+- **Object (11):** `fure`, `leeyahay`, `tir`, `kudar`, `nuqul`, `nadiifi`, `qiime`, `lamaane`, `hel`, `dhig`, `ka_qaad`
+- **String (18):** `qeybi`, `leeyahay`, `dhamaad`, `bilow`, `beddel`, `beddel_dhammaan`, `kudar`, `jar`, `xarfaha_waaweyn`, `xarfaha_yaryar`, `masax`, `raadi`, `dherer`, `masax_bilow`, `masax_dhamaad`, `tiri`, `ku_celi`, `raadi_dambe`
 
 For `shaandhee` (filter) and `aaddin` (map), the argument is a `Value::Function` — call it through the interpreter's function-call machinery.
 
@@ -757,7 +757,7 @@ fn test_example_file(path: &Path) {
 }
 ```
 
-Pre-generate expected output files by running `python -m psrc examples/XX.sop > examples/XX.expected` for all 43 examples.
+Add a matching `.expected` file when an example needs an output regression check.
 
 #### 7.3 — Benchmarks
 
@@ -799,9 +799,9 @@ bench:
 
 ### Deliverable
 - All Rust unit + integration tests pass (`cargo test`)
-- Rust binary produces byte-identical output for all 43 examples
+- Examples with `.expected` fixtures match the Rust binary output
 - Benchmark shows measurable speedup over Python
-- `make build` + `make run FILE=examples/hello.sop` works from repo root
+- `make build` + `make run FILE=examples/01_hello.sop` works from repo root
 
 ---
 
@@ -829,15 +829,11 @@ Optional / future:
 After each phase, run the following checks before moving to the next phase:
 
 ```bash
-# Run example files with Rust binary and compare to Python output
-for f in examples/*.sop; do
-    expected=$(python -m psrc "$f" 2>&1)
-    actual=$(./target/release/soplang "$f" 2>&1)
-    if [ "$expected" != "$actual" ]; then
-        echo "MISMATCH: $f"
-        diff <(echo "$expected") <(echo "$actual")
-    fi
-done
+# Run unit and integration tests without the slower AOT cases
+cargo test -- --skip test_aot
+
+# Run the LLVM integration suite explicitly
+cargo test --test llvm_ir_tests
 ```
 
 Phase-specific checkpoints:
@@ -845,12 +841,12 @@ Phase-specific checkpoints:
 | Phase | Check |
 |-------|-------|
 | 1 | Lexer outputs correct token stream for all examples |
-| 2 | Parser produces no errors on all 43 example files |
+| 2 | Parser produces no errors on the current example suite |
 | 3 | Examples 01–09 (variables, ops, control flow, loops) match Python |
 | 4 | Examples 10–20 (functions, classes, import) match Python |
 | 5 | Examples 20–43 (stdlib, string/list/object methods) match Python |
 | 6 | CLI flags, REPL, and error messages match Python shell |
-| 7 | All 43 examples pass; `cargo test` 100% green |
+| 7 | Example regressions pass; `cargo test` is green |
 
 ---
 
@@ -862,7 +858,7 @@ Phase-specific checkpoints:
 | **2** | `ast.rs`, `parser.rs` | Typed AST, all examples parse cleanly |
 | **3** | `value.rs`, `env.rs`, `interpreter.rs` (core) | Variables, arithmetic, control flow, loops |
 | **4** | `interpreter.rs` (functions/classes/import) | Functions, OOP, imports, try/catch |
-| **5** | `stdlib.rs` | All 46 built-in functions and methods |
+| **5** | `stdlib.rs` | All 68 built-in functions and methods |
 | **6** | `shell.rs`, `main.rs` | REPL, CLI flags, coloured errors |
 | **7** | `tests/`, benchmarks, Makefile | 100% test coverage, benchmarks, primary binary |
 

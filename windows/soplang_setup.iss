@@ -1,5 +1,7 @@
 #define MyAppName "Soplang"
-#define MyAppVersion "2.0.0"
+#ifndef MyAppVersion
+#define MyAppVersion "0.0.0"
+#endif
 #define MyAppPublisher "Soplang Software Foundation"
 #define MyAppURL "https://www.soplang.org/"
 #define MyAppExeName "soplang.exe"
@@ -10,8 +12,8 @@
 AppId={{F1C77F9E-F26A-4D23-9A8B-CF3D26AE5A18}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
-AppVerName={#MyAppName} Interpreter
-UninstallDisplayName={#MyAppName} Interpreter
+AppVerName={#MyAppName} Compiler
+UninstallDisplayName={#MyAppName} Compiler
 AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
@@ -29,7 +31,7 @@ VersionInfoVersion={#MyAppVersion}
 VersionInfoCompany={#MyAppPublisher}
 VersionInfoDescription=Installer for {#MyAppName}
 VersionInfoCopyright=© 2025 {#MyAppPublisher}
-VersionInfoProductName={#MyAppName} Interpreter
+VersionInfoProductName={#MyAppName} Compiler
 VersionInfoProductVersion={#MyAppVersion}
 
 

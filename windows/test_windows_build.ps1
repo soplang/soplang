@@ -6,6 +6,8 @@ param (
     [string]$SoplangExePath = ".\dist\soplang\soplang.exe"
 )
 
+$script:failed = $false
+
 # Function to display test results
 function Show-TestResult {
     param (
@@ -17,6 +19,7 @@ function Show-TestResult {
     if ($Success) {
         Write-Host "✓ $TestName" -ForegroundColor Green
     } else {
+        $script:failed = $true
         Write-Host "✗ $TestName" -ForegroundColor Red
         Write-Host "  Output: $Output" -ForegroundColor Red
     }
@@ -35,7 +38,7 @@ Write-Host ""
 
 # Test 1: Check version
 $output = & $SoplangExePath -v 2>&1
-$success = $output -match "Soplang: The Somali Programming Language"
+$success = $output -match '^soplang \d+\.\d+\.\d+'
 Show-TestResult -TestName "Version Check" -Success $success -Output $output
 
 # Test 2: Execute a simple code snippet
@@ -45,7 +48,7 @@ Show-TestResult -TestName "Code Execution" -Success $success -Output $output
 
 # Test 3: Create and run a test file with .sop extension (primary)
 $testFilePath1 = ".\windows\test_file.sop"
-"qor(`"This is a test .sop file for Soplang on Windows`");" | Out-File -FilePath $testFilePath1
+"qor(`"This is a test .sop file for Soplang on Windows`")" | Out-File -FilePath $testFilePath1
 
 $output = & $SoplangExePath $testFilePath1 2>&1
 $success = $output -match "This is a test .sop file for Soplang on Windows"
@@ -53,7 +56,7 @@ Show-TestResult -TestName "Primary (.sop) File Execution" -Success $success -Out
 
 # Test 4: Create and run a test file with .so extension (secondary)
 $testFilePath2 = ".\windows\test_file.so"
-"qor(`"This is a test .so file for Soplang on Windows`");" | Out-File -FilePath $testFilePath2
+"qor(`"This is a test .so file for Soplang on Windows`")" | Out-File -FilePath $testFilePath2
 
 $output = & $SoplangExePath $testFilePath2 2>&1
 $success = $output -match "This is a test .so file for Soplang on Windows"
@@ -69,3 +72,6 @@ if (Test-Path $testFilePath2) {
 
 Write-Host ""
 Write-Host "Testing completed." -ForegroundColor Cyan
+if ($script:failed) {
+    exit 1
+}

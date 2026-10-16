@@ -4,19 +4,18 @@ Soplang is available as a Docker image, making it easy to run on any platform wi
 
 ## Docker Images
 
-Soplang Docker images are automatically built and published to:
+Soplang Docker images are automatically published to:
 
-1. **Docker Hub**: [soplang/soplang](https://hub.docker.com/r/soplang/soplang)
-2. **GitHub Container Registry**: [ghcr.io/soplang/soplang](https://github.com/soplang/soplang/pkgs/container/soplang)
+1. **GitHub Container Registry**: [ghcr.io/soplang/soplang](https://github.com/soplang/soplang/pkgs/container/soplang)
+2. **Docker Hub**, when repository credentials are configured: [soplang/soplang](https://hub.docker.com/r/soplang/soplang)
 
 ## Available Tags
 
 - `latest` - Always points to the latest stable release
-- `x.y.z` - Specific version (e.g., `0.1.0`)
-- `x.y` - Latest patch version of a minor release (e.g., `0.1`)
-- `x` - Latest minor version of a major release (e.g., `0`)
-- `main` - Built from the main branch (may be unstable)
-- `<commit-sha>` - Specific commit (for debugging)
+- `x.y.z` - Specific version (e.g., `3.0.0`)
+- `x.y` - Latest patch version of a minor release (e.g., `3.0`)
+- `x` - Latest minor version of a major release (e.g., `3`)
+- `sha-<commit>` - Image for the release commit
 
 ## Usage
 

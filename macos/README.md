@@ -28,18 +28,18 @@ The script will:
 
 1. Run `cargo build --release`
 2. Create **dist/Soplang.app** (macOS app bundle)
-3. If `create-dmg` is installed, create **macos/Soplang-2.0.0.dmg**
+3. If `create-dmg` is installed, create **macos/Soplang-&lt;version&gt;.dmg**
 
 ## Output
 
 - **Binary:** `target/release/soplang`
 - **App bundle:** `dist/Soplang.app`
-- **DMG:** `macos/Soplang-2.0.0.dmg` (if create-dmg installed)
+- **DMG:** `macos/Soplang-<version>.dmg` (if create-dmg installed)
 
 ## Run
 
 ```bash
-./target/release/soplang examples/hello.sop
+./target/release/soplang examples/01_hello.sop
 ./target/release/soplang -i
 # Or: open dist/Soplang.app
 ```

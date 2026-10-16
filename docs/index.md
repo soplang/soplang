@@ -13,6 +13,7 @@ Soplang is the Somali programming language, designed to make programming accessi
 - [Keywords and Grammar](language/keywords.md) - Complete reference of Soplang keywords and language structure
 - [Expressions](language/expressions.md) - Detailed explanation of expressions and operator usage
 - [Grammar Specification](language/grammar.md) - Formal grammar specification in EBNF
+- [Migrating to Soplang 3](MIGRATION_V3.md) - Breaking changes and new runtime behavior
 
 ### Examples
 - [Examples Guide](examples/EXAMPLES.md) - Guide to the example programs

@@ -13,6 +13,11 @@ CYAN='\033[0;36m'
 YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m'
+VERSION="$(sed -n 's/^version = "\([^"]*\)"/\1/p' Cargo.toml | head -n 1)"
+if [[ -z "$VERSION" ]]; then
+    echo -e "${RED}Error: could not read the package version from Cargo.toml.${NC}"
+    exit 1
+fi
 
 echo -e "${CYAN}Soplang macOS Build${NC}"
 echo -e "${CYAN}===================${NC}"
@@ -39,7 +44,7 @@ cp "$BINARY" dist/Soplang.app/Contents/MacOS/soplang
 chmod +x dist/Soplang.app/Contents/MacOS/soplang
 
 # Minimal Info.plist
-cat > dist/Soplang.app/Contents/Info.plist << 'PLIST'
+cat > dist/Soplang.app/Contents/Info.plist << PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -53,7 +58,7 @@ cat > dist/Soplang.app/Contents/Info.plist << 'PLIST'
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
-    <string>2.0.0</string>
+    <string>$VERSION</string>
     <key>CFBundleVersion</key>
     <string>1</string>
     <key>LSMinimumSystemVersion</key>
@@ -68,7 +73,7 @@ echo -e "${GREEN}App bundle: dist/Soplang.app${NC}"
 
 # Optional: create DMG if create-dmg is available
 if command -v create-dmg &>/dev/null; then
-    DMG_NAME="Soplang-2.0.0.dmg"
+    DMG_NAME="Soplang-$VERSION.dmg"
     echo -e "${CYAN}Creating disk image...${NC}"
     rm -f "macos/$DMG_NAME"
     create-dmg --volname "Soplang" --window-size 500 300 --app-drop-link 380 150 \

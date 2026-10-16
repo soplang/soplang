@@ -8,9 +8,9 @@ use std::collections::{HashMap, HashSet};
 use std::os::raw::c_int;
 use std::rc::Rc;
 
-use crate::error::{runtime_error, type_error, SoplangError};
 use super::stdlib;
 use super::value::{value_to_string, NativeFn, Value};
+use crate::error::{runtime_error, type_error, SoplangError};
 
 const TAG_THROW: u8 = 8;
 
@@ -76,7 +76,11 @@ pub extern "C" fn soplang_try_end() {
 /// Returns 1 if a runtime error is pending inside an active try block.
 #[no_mangle]
 pub extern "C" fn soplang_has_pending_error() -> c_int {
-    if has_pending_error() { 1 } else { 0 }
+    if has_pending_error() {
+        1
+    } else {
+        0
+    }
 }
 
 /// Return the caught error message as a Soplang string value.
@@ -101,8 +105,8 @@ pub const TAG_CLOSURE: u8 = 9;
 #[repr(C)]
 #[derive(Clone, Copy, Debug)]
 pub struct SoplangValue {
-    pub tag:   u8,
-    pub _pad:  [u8; 7],
+    pub tag: u8,
+    pub _pad: [u8; 7],
     pub payload: i64,
 }
 
@@ -114,7 +118,11 @@ impl Default for SoplangValue {
 
 impl SoplangValue {
     pub fn null() -> Self {
-        Self { tag: TAG_NULL, _pad: [0; 7], payload: 0 }
+        Self {
+            tag: TAG_NULL,
+            _pad: [0; 7],
+            payload: 0,
+        }
     }
 }
 
@@ -135,7 +143,7 @@ const INSTANCE_CLASS_FIELD: &str = "__class__";
 
 #[derive(Clone)]
 struct ClassRegistryEntry {
-    parent:  Option<String>,
+    parent: Option<String>,
     methods: HashMap<String, i64>,
 }
 
@@ -219,27 +227,68 @@ fn obj_get(idx: i64) -> Rc<RefCell<HashMap<String, Value>>> {
 pub fn value_to_soplang(v: &Value) -> SoplangValue {
     match v {
         Value::Null => SoplangValue::null(),
-        Value::Int(n) => SoplangValue { tag: TAG_INT, _pad: [0; 7], payload: *n },
-        Value::Float(x) => SoplangValue { tag: TAG_FLOAT, _pad: [0; 7], payload: x.to_bits() as i64 },
-        Value::Bool(b) => SoplangValue { tag: TAG_BOOL, _pad: [0; 7], payload: if *b { 1 } else { 0 } },
-        Value::Str(s) => SoplangValue { tag: TAG_STR, _pad: [0; 7], payload: str_alloc(s.clone()) },
-        Value::List(l) => SoplangValue { tag: TAG_LIST, _pad: [0; 7], payload: list_alloc(Rc::clone(l)) },
-        Value::Object(o) => SoplangValue { tag: TAG_OBJECT, _pad: [0; 7], payload: obj_alloc(Rc::clone(o)) },
-        Value::Function(id) => SoplangValue { tag: TAG_FUNC, _pad: [0; 7], payload: id.0 as i64 },
-        Value::Closure(p) => SoplangValue { tag: TAG_CLOSURE, _pad: [0; 7], payload: *p },
+        Value::Int(n) => SoplangValue {
+            tag: TAG_INT,
+            _pad: [0; 7],
+            payload: *n,
+        },
+        Value::Float(x) => SoplangValue {
+            tag: TAG_FLOAT,
+            _pad: [0; 7],
+            payload: x.to_bits() as i64,
+        },
+        Value::Bool(b) => SoplangValue {
+            tag: TAG_BOOL,
+            _pad: [0; 7],
+            payload: if *b { 1 } else { 0 },
+        },
+        Value::Str(s) => SoplangValue {
+            tag: TAG_STR,
+            _pad: [0; 7],
+            payload: str_alloc(s.clone()),
+        },
+        Value::List(l) => SoplangValue {
+            tag: TAG_LIST,
+            _pad: [0; 7],
+            payload: list_alloc(Rc::clone(l)),
+        },
+        Value::Object(o) => SoplangValue {
+            tag: TAG_OBJECT,
+            _pad: [0; 7],
+            payload: obj_alloc(Rc::clone(o)),
+        },
+        Value::Function(id) => SoplangValue {
+            tag: TAG_FUNC,
+            _pad: [0; 7],
+            payload: id.0 as i64,
+        },
+        Value::Closure(p) => SoplangValue {
+            tag: TAG_CLOSURE,
+            _pad: [0; 7],
+            payload: *p,
+        },
         Value::NativeFunction(f) => {
             ensure_builtins();
             for (name, v) in stdlib::get_builtin_functions() {
                 if let Value::NativeFunction(g) = v {
                     if std::ptr::fn_addr_eq(*f, g) {
-                        let idx = BUILTIN_INDICES.with(|b| b.borrow().as_ref().unwrap().get(&name).copied());
+                        let idx = BUILTIN_INDICES
+                            .with(|b| b.borrow().as_ref().unwrap().get(&name).copied());
                         if let Some(i) = idx {
-                            return SoplangValue { tag: TAG_FUNC, _pad: [0; 7], payload: i };
+                            return SoplangValue {
+                                tag: TAG_FUNC,
+                                _pad: [0; 7],
+                                payload: i,
+                            };
                         }
                     }
                 }
             }
-            SoplangValue { tag: TAG_FUNC, _pad: [0; 7], payload: -1 }
+            SoplangValue {
+                tag: TAG_FUNC,
+                _pad: [0; 7],
+                payload: -1,
+            }
         }
     }
 }
@@ -253,7 +302,9 @@ pub fn soplang_to_value(sv: SoplangValue) -> Result<Value, SoplangError> {
         TAG_STR => Ok(Value::Str(str_get(sv.payload))),
         TAG_LIST => Ok(Value::List(list_get(sv.payload))),
         TAG_OBJECT => Ok(Value::Object(obj_get(sv.payload))),
-        TAG_FUNC => Ok(Value::Function(super::value::FunctionId(sv.payload as usize))),
+        TAG_FUNC => Ok(Value::Function(super::value::FunctionId(
+            sv.payload as usize,
+        ))),
         TAG_CLOSURE => Ok(Value::Closure(sv.payload)),
         _ => Err(runtime_error(format!("Invalid tag {}", sv.tag), 0, 0)),
     }
@@ -333,7 +384,11 @@ fn add_impl(a: Value, b: Value) -> Result<Value, SoplangError> {
         (Value::Float(x), Value::Float(y)) => Ok(Value::Float(x + y)),
         (Value::Str(a), b) => Ok(Value::Str(format!("{}{}", a, val_to_str(b)))),
         (a, Value::Str(b)) => Ok(Value::Str(format!("{}{}", val_to_str(a), b))),
-        _ => Err(runtime_error("Isku dar waa in ay noqdaan tiro ama qoraal", 0, 0)),
+        _ => Err(runtime_error(
+            "Isku dar waa in ay noqdaan tiro ama qoraal",
+            0,
+            0,
+        )),
     }
 }
 
@@ -363,7 +418,11 @@ fn mul_impl(a: Value, b: Value) -> Result<Value, SoplangError> {
         (Value::Int(n), Value::Float(y)) => Ok(Value::Float(*n as f64 * y)),
         (Value::Float(x), Value::Int(m)) => Ok(Value::Float(x * *m as f64)),
         (Value::Float(x), Value::Float(y)) => Ok(Value::Float(x * y)),
-        _ => Err(runtime_error("Isku dhufashada waa in ay noqdaan tiro", 0, 0)),
+        _ => Err(runtime_error(
+            "Isku dhufashada waa in ay noqdaan tiro",
+            0,
+            0,
+        )),
     }
 }
 
@@ -481,19 +540,58 @@ pub extern "C" fn soplang_not(a: SoplangValue) -> SoplangValue {
     }
 }
 
+#[no_mangle]
+pub extern "C" fn soplang_truthy(value: SoplangValue) -> SoplangValue {
+    match soplang_to_value(value) {
+        Ok(value) => value_to_soplang(&Value::Bool(value.is_truthy())),
+        Err(error) => handle_runtime_error(error),
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn soplang_range_continue(
+    current: SoplangValue,
+    end: SoplangValue,
+    step: SoplangValue,
+) -> SoplangValue {
+    fn number(value: SoplangValue) -> Result<f64, SoplangError> {
+        match soplang_to_value(value)? {
+            Value::Int(value) => Ok(value as f64),
+            Value::Float(value) => Ok(value),
+            _ => Err(runtime_error("kuceli wuxuu u baahan yahay tirooyin", 0, 0)),
+        }
+    }
+
+    let result = (|| {
+        let current = number(current)?;
+        let end = number(end)?;
+        let step = number(step)?;
+        if !current.is_finite() || !end.is_finite() || !step.is_finite() {
+            return Err(runtime_error("kuceli ma aqbalo tiro aan xad lahayn", 0, 0));
+        }
+        if step == 0.0 {
+            return Err(runtime_error("tallaabada kuceli ma noqon karto eber", 0, 0));
+        }
+        Ok(Value::Bool(if step > 0.0 {
+            current <= end
+        } else {
+            current >= end
+        }))
+    })();
+
+    match result {
+        Ok(value) => value_to_soplang(&value),
+        Err(error) => handle_runtime_error(error),
+    }
+}
+
 fn cmp_eq(a: &Value, b: &Value) -> bool {
     match (a, b) {
         (Value::Int(n), Value::Int(m)) => n == m,
         (Value::Float(x), Value::Float(y)) => x == y,
         (Value::Int(n), Value::Float(y)) => *n as f64 == *y,
         (Value::Float(x), Value::Int(m)) => *x == *m as f64,
-        (Value::Str(a), Value::Str(b)) => a == b,
-        (Value::Bool(a), Value::Bool(b)) => a == b,
-        (Value::Null, Value::Null) => true,
-        (Value::List(a), Value::List(b)) => Rc::ptr_eq(a, b) || *a.borrow() == *b.borrow(),
-        (Value::Object(a), Value::Object(b)) => Rc::ptr_eq(a, b) || *a.borrow() == *b.borrow(),
-        (Value::Function(a), Value::Function(b)) => a == b,
-        _ => false,
+        _ => a == b,
     }
 }
 
@@ -520,7 +618,11 @@ fn cmp_lt(a: &Value, b: &Value) -> Result<bool, SoplangError> {
         (Value::Int(n), Value::Float(y)) => Ok((*n as f64) < *y),
         (Value::Float(x), Value::Int(m)) => Ok(*x < *m as f64),
         (Value::Str(a), Value::Str(b)) => Ok(a < b),
-        _ => Err(runtime_error("Is barbar dhig waa in ay noqdaan tiro ama qoraal", 0, 0)),
+        _ => Err(runtime_error(
+            "Is barbar dhig waa in ay noqdaan tiro ama qoraal",
+            0,
+            0,
+        )),
     }
 }
 
@@ -631,46 +733,82 @@ pub extern "C" fn soplang_get_index(obj: SoplangValue, idx: SoplangValue) -> Sop
     match (soplang_to_value(obj), soplang_to_value(idx)) {
         (Ok(Value::List(l)), Ok(Value::Int(i))) => {
             let v = l.borrow();
-            let i = if i < 0 {
-                (v.len() as i64 + i).max(0) as usize
-            } else {
-                i as usize
-            };
-            v.get(i).cloned().map(|x| value_to_soplang(&x)).unwrap_or_else(SoplangValue::null)
+            let position = if i < 0 { v.len() as i64 + i } else { i };
+            if position < 0 {
+                return SoplangValue::null();
+            }
+            v.get(position as usize)
+                .cloned()
+                .map(|value| value_to_soplang(&value))
+                .unwrap_or_else(SoplangValue::null)
         }
         (Ok(Value::Str(s)), Ok(Value::Int(i))) => {
-            let len = s.len() as i64;
-            let i = if i < 0 {
-                (len + i).max(0).min(len - 1)
-            } else {
-                i.min(len - 1)
-            };
-            if i >= 0 && (i as usize) < s.len() {
-                let ch = s.chars().nth(i as usize).map(|c| c.to_string()).unwrap_or_default();
-                value_to_soplang(&Value::Str(ch))
-            } else {
-                SoplangValue::null()
-            }
+            let len = s.chars().count() as i64;
+            let position = if i < 0 { len + i } else { i };
+            s.chars()
+                .nth(position.max(0) as usize)
+                .filter(|_| position >= 0 && position < len)
+                .map(|ch| value_to_soplang(&Value::Str(ch.to_string())))
+                .unwrap_or_else(SoplangValue::null)
         }
-        _ => SoplangValue::null(),
+        (Ok(Value::Object(o)), Ok(Value::Str(key))) => o
+            .borrow()
+            .get(&key)
+            .cloned()
+            .map(|value| value_to_soplang(&value))
+            .unwrap_or_else(SoplangValue::null),
+        (Ok(Value::List(_)) | Ok(Value::Str(_)), Ok(_)) => handle_runtime_error(type_error(
+            "Tusmada teed ama qoraal waa in ay noqoto abn",
+            0,
+            0,
+        )),
+        (Ok(Value::Object(_)), Ok(_)) => {
+            handle_runtime_error(type_error("Furaha walaxdu waa in uu noqdo qoraal", 0, 0))
+        }
+        _ => handle_runtime_error(type_error("Qiimahan lama tusi karo", 0, 0)),
     }
 }
 
 #[no_mangle]
-pub extern "C" fn soplang_set_index(obj: SoplangValue, idx: SoplangValue, val: SoplangValue) -> SoplangValue {
-    match (soplang_to_value(obj), soplang_to_value(idx), soplang_to_value(val)) {
+pub extern "C" fn soplang_set_index(
+    obj: SoplangValue,
+    idx: SoplangValue,
+    val: SoplangValue,
+) -> SoplangValue {
+    match (
+        soplang_to_value(obj),
+        soplang_to_value(idx),
+        soplang_to_value(val),
+    ) {
         (Ok(Value::List(l)), Ok(Value::Int(i)), Ok(v)) => {
-            let i = if i < 0 {
-                (l.borrow().len() as i64 + i).max(0) as usize
-            } else {
-                i as usize
-            };
-            if i < l.borrow().len() {
-                l.borrow_mut()[i] = v;
+            let len = l.borrow().len() as i64;
+            let position = if i < 0 { len + i } else { i };
+            if position < 0 || position >= len {
+                return handle_runtime_error(runtime_error(
+                    "Tusmadu way ka baxsan tahay teedka",
+                    0,
+                    0,
+                ));
             }
+            l.borrow_mut()[position as usize] = v;
             value_to_soplang(&Value::List(l))
         }
-        _ => SoplangValue::null(),
+        (Ok(Value::Object(o)), Ok(Value::Str(key)), Ok(v)) => {
+            o.borrow_mut().insert(key, v);
+            value_to_soplang(&Value::Object(o))
+        }
+        (Ok(Value::List(_)), Ok(_), Ok(_)) => {
+            handle_runtime_error(type_error("Tusmada teedku waa in ay noqoto abn", 0, 0))
+        }
+        (Ok(Value::Object(_)), Ok(_), Ok(_)) => {
+            handle_runtime_error(type_error("Furaha walaxdu waa in uu noqdo qoraal", 0, 0))
+        }
+        (Ok(Value::Str(_)), _, _) => handle_runtime_error(type_error(
+            "Qoraal toos looma beddeli karo tusmo ahaan",
+            0,
+            0,
+        )),
+        _ => handle_runtime_error(type_error("Qiimahan tusmo laguma beddeli karo", 0, 0)),
     }
 }
 
@@ -693,7 +831,12 @@ pub extern "C" fn soplang_get_prop(obj: SoplangValue, name: *const u8, len: usiz
 }
 
 #[no_mangle]
-pub extern "C" fn soplang_set_prop(obj: SoplangValue, name: *const u8, len: usize, val: SoplangValue) -> SoplangValue {
+pub extern "C" fn soplang_set_prop(
+    obj: SoplangValue,
+    name: *const u8,
+    len: usize,
+    val: SoplangValue,
+) -> SoplangValue {
     if name.is_null() {
         return SoplangValue::null();
     }
@@ -854,22 +997,30 @@ fn dispatch_instance_method(
     method: &str,
     args: &[Value],
 ) -> Result<Value, SoplangError> {
-    let class_name = get_instance_class(o).ok_or_else(|| {
-        runtime_error("Walaxkan ma ahan tusaale fasal", 0, 0)
-    })?;
+    let class_name = get_instance_class(o)
+        .ok_or_else(|| runtime_error("Walaxkan ma ahan tusaale fasal", 0, 0))?;
     let fn_idx = resolve_method_fn_index(&class_name, method).ok_or_else(|| {
         runtime_error(
-            format!(
-                "Hawl '{}' lama helin qaabka '{}'",
-                method, class_name
-            ),
+            format!("Hawl '{}' lama helin qaabka '{}'", method, class_name),
             0,
             0,
         )
     })?;
-    let entry = compiled_fn_entry(fn_idx).ok_or_else(|| {
-        runtime_error(format!("Hawl '{}' lama diyaarin", method), 0, 0)
-    })?;
+    let entry = compiled_fn_entry(fn_idx)
+        .ok_or_else(|| runtime_error(format!("Hawl '{}' lama diyaarin", method), 0, 0))?;
+    let expected = entry.n_params.saturating_sub(1);
+    if args.len() != expected {
+        return Err(type_error(
+            format!(
+                "hawl '{}' waxay u baahan tahay {} dood, laakiin {} ayaa la bixiyay",
+                method,
+                expected,
+                args.len()
+            ),
+            0,
+            0,
+        ));
+    }
     let instance_sv = value_to_soplang(&Value::Object(Rc::clone(o)));
     let mut call_args = vec![instance_sv];
     for a in args {
@@ -912,6 +1063,19 @@ pub extern "C" fn soplang_new_instance(
 
     if let Some(fn_idx) = resolve_constructor_fn_index(&class_name) {
         if let Some(entry) = compiled_fn_entry(fn_idx) {
+            let expected = entry.n_params.saturating_sub(1);
+            if user_args.len() != expected {
+                return handle_runtime_error(type_error(
+                    format!(
+                        "dhaw() ee qaabka '{}' wuxuu u baahan yahay {} dood, laakiin {} ayaa la bixiyay",
+                        class_name,
+                        expected,
+                        user_args.len()
+                    ),
+                    0,
+                    0,
+                ));
+            }
             let instance_sv = value_to_soplang(&instance);
             let mut call_args = vec![instance_sv];
             for a in &user_args {
@@ -922,6 +1086,12 @@ pub extern "C" fn soplang_new_instance(
                 Err(e) => return handle_runtime_error(e),
             }
         }
+    } else if !user_args.is_empty() {
+        return handle_runtime_error(type_error(
+            format!("Qaabka '{}' ma laha dhaw() qaata doodo", class_name),
+            0,
+            0,
+        ));
     }
 
     value_to_soplang(&Value::Object(instance_rc))
@@ -946,12 +1116,9 @@ pub extern "C" fn soplang_register_class(
     let parent = if parent_ptr.is_null() || parent_len == 0 {
         None
     } else {
-        Some(
-            unsafe {
-                String::from_utf8_lossy(std::slice::from_raw_parts(parent_ptr, parent_len))
-                    .into_owned()
-            },
-        )
+        Some(unsafe {
+            String::from_utf8_lossy(std::slice::from_raw_parts(parent_ptr, parent_len)).into_owned()
+        })
     };
     let method = unsafe {
         String::from_utf8_lossy(std::slice::from_raw_parts(method_ptr, method_len)).into_owned()
@@ -982,9 +1149,7 @@ pub extern "C" fn soplang_call_method(
     let method = if method_ptr.is_null() || method_len == 0 {
         ""
     } else {
-        unsafe {
-            std::str::from_utf8_unchecked(std::slice::from_raw_parts(method_ptr, method_len))
-        }
+        unsafe { std::str::from_utf8_unchecked(std::slice::from_raw_parts(method_ptr, method_len)) }
     };
     let obj_val = match soplang_to_value(obj) {
         Ok(v) => v,
@@ -1004,7 +1169,11 @@ pub extern "C" fn soplang_call_method(
         Value::List(l) => dispatch_list_method(l, method, &argv),
         Value::Object(o) => dispatch_object_method(o, method, &argv),
         Value::Str(s) => dispatch_string_method(s, method, &argv),
-        _ => Err(runtime_error(format!("No method '{}' on this type", method), 0, 0)),
+        _ => Err(runtime_error(
+            format!("No method '{}' on this type", method),
+            0,
+            0,
+        )),
     };
     match result {
         Ok(v) => value_to_soplang(&v),
@@ -1012,7 +1181,30 @@ pub extern "C" fn soplang_call_method(
     }
 }
 
-fn call_compiled_fn(ptr: *const u8, n_params: usize, args: *const SoplangValue, n: i32) -> SoplangValue {
+fn call_compiled_fn(
+    ptr: *const u8,
+    n_params: usize,
+    args: *const SoplangValue,
+    n: i32,
+) -> SoplangValue {
+    if n_params > 8 {
+        return handle_runtime_error(runtime_error(
+            "hawl la soo ururiyey ma qaadan karto wax ka badan 8 dood oo ABI ah",
+            0,
+            0,
+        ));
+    }
+    if n < 0 || n as usize != n_params {
+        return handle_runtime_error(type_error(
+            format!(
+                "Hawshu waxay u baahan tahay {} dood, laakiin {} ayaa la bixiyay",
+                n_params,
+                n.max(0)
+            ),
+            0,
+            0,
+        ));
+    }
     let mut raw: Vec<i64> = Vec::with_capacity(n_params * 2);
     for i in 0..n_params {
         if !args.is_null() && (i as i32) < n {
@@ -1039,24 +1231,52 @@ fn call_compiled_fn(ptr: *const u8, n_params: usize, args: *const SoplangValue, 
                 f(raw[0], raw[1], raw[2], raw[3])
             }
             3 => {
-                let f: extern "C" fn(i64, i64, i64, i64, i64, i64) -> (i64, i64) = std::mem::transmute(ptr);
+                let f: extern "C" fn(i64, i64, i64, i64, i64, i64) -> (i64, i64) =
+                    std::mem::transmute(ptr);
                 f(raw[0], raw[1], raw[2], raw[3], raw[4], raw[5])
             }
             4 => {
-                let f: extern "C" fn(i64, i64, i64, i64, i64, i64, i64, i64) -> (i64, i64) = std::mem::transmute(ptr);
-                f(raw[0], raw[1], raw[2], raw[3], raw[4], raw[5], raw[6], raw[7])
+                let f: extern "C" fn(i64, i64, i64, i64, i64, i64, i64, i64) -> (i64, i64) =
+                    std::mem::transmute(ptr);
+                f(
+                    raw[0], raw[1], raw[2], raw[3], raw[4], raw[5], raw[6], raw[7],
+                )
             }
             _ => {
-                let f: extern "C" fn(i64, i64, i64, i64, i64, i64, i64, i64,
-                    i64, i64, i64, i64, i64, i64, i64, i64) -> (i64, i64) = std::mem::transmute(ptr);
+                let f: extern "C" fn(
+                    i64,
+                    i64,
+                    i64,
+                    i64,
+                    i64,
+                    i64,
+                    i64,
+                    i64,
+                    i64,
+                    i64,
+                    i64,
+                    i64,
+                    i64,
+                    i64,
+                    i64,
+                    i64,
+                ) -> (i64, i64) = std::mem::transmute(ptr);
                 let mut a = [0i64; 16];
-                for (i, v) in raw.iter().enumerate().take(16) { a[i] = *v; }
-                f(a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7],
-                  a[8], a[9], a[10], a[11], a[12], a[13], a[14], a[15])
+                for (i, v) in raw.iter().enumerate().take(16) {
+                    a[i] = *v;
+                }
+                f(
+                    a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8], a[9], a[10], a[11],
+                    a[12], a[13], a[14], a[15],
+                )
             }
         }
     };
-    SoplangValue { tag: ret_tag as u8, _pad: [0; 7], payload: ret_pay }
+    SoplangValue {
+        tag: ret_tag as u8,
+        _pad: [0; 7],
+        payload: ret_pay,
+    }
 }
 
 fn dispatch_list_method(
@@ -1067,7 +1287,11 @@ fn dispatch_list_method(
     match method {
         "shaandhee" => {
             if args.len() != 1 {
-                return Err(runtime_error("shaandhee() waa in uu qaato 1 qiimo (hawl)", 0, 0));
+                return Err(runtime_error(
+                    "shaandhee() waa in uu qaato 1 qiimo (hawl)",
+                    0,
+                    0,
+                ));
             }
             let func_val = &args[0];
             let callee_sv = value_to_soplang(func_val);
@@ -1085,7 +1309,11 @@ fn dispatch_list_method(
         }
         "aaddin" => {
             if args.len() != 1 {
-                return Err(runtime_error("aaddin() waa in uu qaato 1 qiimo (hawl)", 0, 0));
+                return Err(runtime_error(
+                    "aaddin() waa in uu qaato 1 qiimo (hawl)",
+                    0,
+                    0,
+                ));
             }
             let func_val = &args[0];
             let callee_sv = value_to_soplang(func_val);
@@ -1097,17 +1325,62 @@ fn dispatch_list_method(
             }
             Ok(Value::List(Rc::new(RefCell::new(out))))
         }
+        "isku_gee" => {
+            if args.len() != 2 {
+                return Err(type_error(
+                    "isku_gee() wuxuu u baahan yahay hawl iyo qiime bilow ah",
+                    0,
+                    0,
+                ));
+            }
+            let callee = value_to_soplang(&args[0]);
+            let mut accumulator = args[1].clone();
+            for item in l.borrow().iter() {
+                let call_args = [value_to_soplang(&accumulator), value_to_soplang(item)];
+                let result = soplang_call(callee, call_args.as_ptr(), call_args.len() as i32);
+                accumulator = soplang_to_value(result)?;
+            }
+            Ok(accumulator)
+        }
+        "dhammaan" | "qaar" => {
+            if args.len() != 1 {
+                return Err(type_error(
+                    format!("{}() wuxuu u baahan yahay 1 hawl", method),
+                    0,
+                    0,
+                ));
+            }
+            let callee = value_to_soplang(&args[0]);
+            let want_every = method == "dhammaan";
+            for item in l.borrow().iter() {
+                let item = value_to_soplang(item);
+                let result = soplang_call(callee, &item, 1);
+                let truthy = soplang_to_value(result)?.is_truthy();
+                if (want_every && !truthy) || (!want_every && truthy) {
+                    return Ok(Value::Bool(!want_every));
+                }
+            }
+            Ok(Value::Bool(want_every))
+        }
         "kasaar" => super::stdlib::list_kasaar(Rc::clone(l), args),
         "dherer" => super::stdlib::list_dherer(Rc::clone(l), args),
-        "kudar"  => super::stdlib::list_kudar(Rc::clone(l), args),
+        "kudar" => super::stdlib::list_kudar(Rc::clone(l), args),
         "leeyahay" => super::stdlib::list_leeyahay(Rc::clone(l), args),
-        "nuqul"  => super::stdlib::list_nuqul(Rc::clone(l), args),
+        "nuqul" => super::stdlib::list_nuqul(Rc::clone(l), args),
         "nadiifi" => super::stdlib::list_nadiifi(Rc::clone(l), args),
-        "rog"    => super::stdlib::list_rog(Rc::clone(l), args),
-        "habee"  => super::stdlib::list_habee(Rc::clone(l), args),
-        "jar"    => super::stdlib::list_jar(Rc::clone(l), args),
-        "muuji"  => super::stdlib::list_muuji(Rc::clone(l), args),
-        _ => Err(runtime_error(format!("Unknown list method: {}", method), 0, 0)),
+        "rog" => super::stdlib::list_rog(Rc::clone(l), args),
+        "habee" => super::stdlib::list_habee(Rc::clone(l), args),
+        "jar" => super::stdlib::list_jar(Rc::clone(l), args),
+        "muuji" => super::stdlib::list_muuji(Rc::clone(l), args),
+        "geli" => super::stdlib::list_geli(Rc::clone(l), args),
+        "ka_saar" => super::stdlib::list_ka_saar(Rc::clone(l), args),
+        "koowaad" => super::stdlib::list_koowaad(Rc::clone(l), args),
+        "ugu_dambeeya" => super::stdlib::list_ugu_dambeeya(Rc::clone(l), args),
+        _ => Err(runtime_error(
+            format!("Unknown list method: {}", method),
+            0,
+            0,
+        )),
     }
 }
 
@@ -1117,39 +1390,52 @@ fn dispatch_object_method(
     args: &[Value],
 ) -> Result<Value, SoplangError> {
     match method {
-        "fure"    => super::stdlib::object_fure(Rc::clone(o), args),
+        "fure" => super::stdlib::object_fure(Rc::clone(o), args),
         "leeyahay" => super::stdlib::object_leeyahay(Rc::clone(o), args),
-        "tir"     => super::stdlib::object_tir(Rc::clone(o), args),
-        "kudar"   => super::stdlib::object_kudar(Rc::clone(o), args),
-        "nuqul"   => super::stdlib::object_nuqul(Rc::clone(o), args),
+        "tir" => super::stdlib::object_tir(Rc::clone(o), args),
+        "kudar" => super::stdlib::object_kudar(Rc::clone(o), args),
+        "nuqul" => super::stdlib::object_nuqul(Rc::clone(o), args),
         "nadiifi" => super::stdlib::object_nadiifi(Rc::clone(o), args),
-        "qiime"   => super::stdlib::object_qiime(Rc::clone(o), args),
+        "qiime" => super::stdlib::object_qiime(Rc::clone(o), args),
         "lamaane" => super::stdlib::object_lamaane(Rc::clone(o), args),
-        _ => Err(runtime_error(format!("Unknown object method: {}", method), 0, 0)),
+        "hel" => super::stdlib::object_hel(Rc::clone(o), args),
+        "dhig" => super::stdlib::object_dhig(Rc::clone(o), args),
+        "ka_qaad" => super::stdlib::object_ka_qaad(Rc::clone(o), args),
+        _ => Err(runtime_error(
+            format!("Unknown object method: {}", method),
+            0,
+            0,
+        )),
     }
 }
 
-fn dispatch_string_method(
-    s: &str,
-    method: &str,
-    args: &[Value],
-) -> Result<Value, SoplangError> {
+fn dispatch_string_method(s: &str, method: &str, args: &[Value]) -> Result<Value, SoplangError> {
     match method {
-        "qeybi"    => super::stdlib::string_qeybi(s.to_string(), args),
+        "qeybi" => super::stdlib::string_qeybi(s.to_string(), args),
         "leeyahay" => super::stdlib::string_leeyahay(s.to_string(), args),
-        "dhamaad"  => super::stdlib::string_dhamaad(s.to_string(), args),
-        "bilow"    => super::stdlib::string_bilow(s.to_string(), args),
-        "beddel"   => super::stdlib::string_beddel(s.to_string(), args),
+        "dhamaad" => super::stdlib::string_dhamaad(s.to_string(), args),
+        "bilow" => super::stdlib::string_bilow(s.to_string(), args),
+        "beddel" => super::stdlib::string_beddel(s.to_string(), args),
         "beddel_dhammaan" => super::stdlib::string_beddel_dhammaan(s.to_string(), args),
-        "kudar"    => super::stdlib::string_kudar(s.to_string(), args),
-        "jar"      => super::stdlib::string_jar(s.to_string(), args),
+        "kudar" => super::stdlib::string_kudar(s.to_string(), args),
+        "jar" => super::stdlib::string_jar(s.to_string(), args),
         "xarfaha_waaweyn" | "xarafaha_weyn" => {
             super::stdlib::string_xarfaha_waaweyn(s.to_string(), args)
         }
-        "xarfaha_yaryar"  => super::stdlib::string_xarfaha_yaryar(s.to_string(), args),
-        "masax"    => super::stdlib::string_masax(s.to_string(), args),
-        "raadi"    => super::stdlib::string_raadi(s.to_string(), args),
-        _ => Err(runtime_error(format!("Unknown string method: {}", method), 0, 0)),
+        "xarfaha_yaryar" => super::stdlib::string_xarfaha_yaryar(s.to_string(), args),
+        "masax" => super::stdlib::string_masax(s.to_string(), args),
+        "raadi" => super::stdlib::string_raadi(s.to_string(), args),
+        "dherer" => super::stdlib::string_dherer(s.to_string(), args),
+        "masax_bilow" => super::stdlib::string_masax_bilow(s.to_string(), args),
+        "masax_dhamaad" => super::stdlib::string_masax_dhamaad(s.to_string(), args),
+        "tiri" => super::stdlib::string_tiri(s.to_string(), args),
+        "ku_celi" => super::stdlib::string_ku_celi(s.to_string(), args),
+        "raadi_dambe" => super::stdlib::string_raadi_dambe(s.to_string(), args),
+        _ => Err(runtime_error(
+            format!("Unknown string method: {}", method),
+            0,
+            0,
+        )),
     }
 }
 
@@ -1161,7 +1447,9 @@ pub fn store_global(name: &str, val: SoplangValue) {
 /// Store a global variable by name (C ABI).
 #[no_mangle]
 pub extern "C" fn soplang_store_global(name: *const u8, len: usize, tag: i64, payload: i64) {
-    if name.is_null() { return; }
+    if name.is_null() {
+        return;
+    }
     let key = unsafe { std::slice::from_raw_parts(name, len) };
     let key = String::from_utf8_lossy(key).into_owned();
     let is_const = CONST_GLOBALS.with(|c| c.borrow().contains(&key));
@@ -1173,14 +1461,20 @@ pub extern "C" fn soplang_store_global(name: *const u8, len: usize, tag: i64, pa
         ));
         return;
     }
-    let sv = SoplangValue { tag: tag as u8, _pad: [0; 7], payload };
+    let sv = SoplangValue {
+        tag: tag as u8,
+        _pad: [0; 7],
+        payload,
+    };
     GLOBAL_VARS.with(|g| g.borrow_mut().insert(key, sv));
 }
 
 /// Mark a global as constant (C ABI).
 #[no_mangle]
 pub extern "C" fn soplang_mark_const(name: *const u8, len: usize) {
-    if name.is_null() { return; }
+    if name.is_null() {
+        return;
+    }
     let key = unsafe { std::slice::from_raw_parts(name, len) };
     let key = String::from_utf8_lossy(key).into_owned();
     CONST_GLOBALS.with(|c| c.borrow_mut().insert(key));
@@ -1199,10 +1493,13 @@ pub extern "C" fn soplang_check_class(
     if class_ptr.is_null() || class_len == 0 {
         return;
     }
-    let expected = unsafe {
-        std::str::from_utf8_unchecked(std::slice::from_raw_parts(class_ptr, class_len))
+    let expected =
+        unsafe { std::str::from_utf8_unchecked(std::slice::from_raw_parts(class_ptr, class_len)) };
+    let sv = SoplangValue {
+        tag: tag as u8,
+        _pad: [0; 7],
+        payload,
     };
-    let sv = SoplangValue { tag: tag as u8, _pad: [0; 7], payload };
     let val = soplang_to_value(sv).unwrap_or(Value::Null);
     if instance_matches_class(&val, expected) {
         return;
@@ -1243,7 +1540,9 @@ fn instance_matches_class(val: &Value, expected: &str) -> bool {
             return false;
         }
         let next = CLASS_REGISTRY.with(|r| {
-            r.borrow().get(&current).and_then(|entry| entry.parent.clone())
+            r.borrow()
+                .get(&current)
+                .and_then(|entry| entry.parent.clone())
         });
         match next {
             Some(parent) => current = parent,
@@ -1255,12 +1554,27 @@ fn instance_matches_class(val: &Value, expected: &str) -> bool {
 /// Runtime type validation for typed variable assignment (C ABI).
 /// expected_type: 1=abn, 2=jajab, 3=qoraal, 4=bool, 5=teed, 6=walax, 0=dynamic(skip).
 #[no_mangle]
-pub extern "C" fn soplang_check_type(tag: i64, payload: i64, expected_type: i64, name_ptr: *const u8, name_len: usize) {
-    if expected_type == 0 { return; }
-    let sv = SoplangValue { tag: tag as u8, _pad: [0; 7], payload };
+pub extern "C" fn soplang_check_type(
+    tag: i64,
+    payload: i64,
+    expected_type: i64,
+    name_ptr: *const u8,
+    name_len: usize,
+) {
+    if expected_type == 0 {
+        return;
+    }
+    let sv = SoplangValue {
+        tag: tag as u8,
+        _pad: [0; 7],
+        payload,
+    };
     let val = soplang_to_value(sv).unwrap_or(Value::Null);
     let ok = match expected_type {
-        1 => matches!(val, Value::Int(_)) || matches!(&val, Value::Float(x) if x.fract() == 0.0 && x.is_finite()),
+        1 => {
+            matches!(val, Value::Int(_))
+                || matches!(&val, Value::Float(x) if x.fract() == 0.0 && x.is_finite())
+        }
         2 => matches!(val, Value::Float(_)) || matches!(val, Value::Int(_)),
         3 => matches!(val, Value::Str(_)),
         4 => matches!(val, Value::Bool(_)),
@@ -1269,14 +1583,25 @@ pub extern "C" fn soplang_check_type(tag: i64, payload: i64, expected_type: i64,
         _ => true,
     };
     if !ok {
-        let name = if name_ptr.is_null() { "" } else {
+        let name = if name_ptr.is_null() {
+            ""
+        } else {
             unsafe { std::str::from_utf8_unchecked(std::slice::from_raw_parts(name_ptr, name_len)) }
         };
         let type_name = match expected_type {
-            1 => "abn", 2 => "jajab", 3 => "qoraal", 4 => "bool", 5 => "teed", 6 => "walax", _ => "?",
+            1 => "abn",
+            2 => "jajab",
+            3 => "qoraal",
+            4 => "bool",
+            5 => "teed",
+            6 => "walax",
+            _ => "?",
         };
         let err = type_error(
-            format!("'{}' waa {} laakin qiimaheeda '{}' ma ahan {}", name, type_name, val, type_name),
+            format!(
+                "'{}' waa {} laakin qiimaheeda '{}' ma ahan {}",
+                name, type_name, val, type_name
+            ),
             0,
             0,
         );
@@ -1299,9 +1624,18 @@ pub extern "C" fn soplang_get_builtin(name: *const u8, len: usize) -> SoplangVal
     let key = String::from_utf8_lossy(key).into_owned();
     let idx = BUILTIN_INDICES.with(|b| b.borrow().as_ref().and_then(|m| m.get(&key).copied()));
     if let Some(i) = idx {
-        return SoplangValue { tag: TAG_FUNC, _pad: [0; 7], payload: i };
+        return SoplangValue {
+            tag: TAG_FUNC,
+            _pad: [0; 7],
+            payload: i,
+        };
     }
-    GLOBAL_VARS.with(|g| g.borrow().get(&key).copied().unwrap_or_else(SoplangValue::null))
+    GLOBAL_VARS.with(|g| {
+        g.borrow()
+            .get(&key)
+            .copied()
+            .unwrap_or_else(SoplangValue::null)
+    })
 }
 
 /// Register a compiled function pointer so soplang_call can dispatch to it.
@@ -1371,8 +1705,15 @@ pub extern "C" fn soplang_make_closure(
             env.push(unsafe { *args.add(i) });
         }
     }
-    let data = Box::leak(Box::new(ClosureData { fn_index: callee.payload, env }));
-    SoplangValue { tag: TAG_CLOSURE, _pad: [0; 7], payload: data as *mut ClosureData as i64 }
+    let data = Box::leak(Box::new(ClosureData {
+        fn_index: callee.payload,
+        env,
+    }));
+    SoplangValue {
+        tag: TAG_CLOSURE,
+        _pad: [0; 7],
+        payload: data as *mut ClosureData as i64,
+    }
 }
 
 /// Read one captured value. `env_ptr` is the closure data pointer.
@@ -1382,7 +1723,10 @@ pub extern "C" fn soplang_capture_get(env_ptr: i64, index: i64) -> SoplangValue 
         return SoplangValue::null();
     }
     let data = unsafe { &*(env_ptr as *const ClosureData) };
-    data.env.get(index as usize).copied().unwrap_or_else(SoplangValue::null)
+    data.env
+        .get(index as usize)
+        .copied()
+        .unwrap_or_else(SoplangValue::null)
 }
 
 fn call_closure(callee: SoplangValue, args: *const SoplangValue, n: i32) -> SoplangValue {
@@ -1391,7 +1735,11 @@ fn call_closure(callee: SoplangValue, args: *const SoplangValue, n: i32) -> Sopl
     }
     let data = unsafe { &*(callee.payload as *const ClosureData) };
     let mut full = Vec::with_capacity(1 + n.max(0) as usize);
-    full.push(SoplangValue { tag: TAG_NULL, _pad: [0; 7], payload: callee.payload });
+    full.push(SoplangValue {
+        tag: TAG_NULL,
+        _pad: [0; 7],
+        payload: callee.payload,
+    });
     if !args.is_null() && n > 0 {
         for i in 0..n as usize {
             full.push(unsafe { *args.add(i) });
@@ -1408,6 +1756,18 @@ fn call_closure(callee: SoplangValue, args: *const SoplangValue, n: i32) -> Sopl
         }
     });
     if let Some(entry) = entry {
+        let expected = entry.n_params.saturating_sub(1);
+        if n < 0 || n as usize != expected {
+            return handle_runtime_error(type_error(
+                format!(
+                    "Hawshu waxay u baahan tahay {} dood, laakiin {} ayaa la bixiyay",
+                    expected,
+                    n.max(0)
+                ),
+                0,
+                0,
+            ));
+        }
         call_compiled_fn(entry.ptr, entry.n_params, full.as_ptr(), full.len() as i32)
     } else {
         SoplangValue::null()
@@ -1416,7 +1776,11 @@ fn call_closure(callee: SoplangValue, args: *const SoplangValue, n: i32) -> Sopl
 
 /// Call a callee with args. Callee is TAG_FUNC (native or user) or TAG_CLOSURE.
 #[no_mangle]
-pub extern "C" fn soplang_call(callee: SoplangValue, args: *const SoplangValue, n: i32) -> SoplangValue {
+pub extern "C" fn soplang_call(
+    callee: SoplangValue,
+    args: *const SoplangValue,
+    n: i32,
+) -> SoplangValue {
     if let Some(v) = short_circuit_if_pending() {
         return v;
     }

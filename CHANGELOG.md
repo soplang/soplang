@@ -10,15 +10,25 @@ All notable changes to this project will be documented in this file.
 
 * **Cranelift pipeline.** `soplang file.sop` lexes, parses, resolves `keen`, analyzes, lowers to HIR, and JIT-compiles with Cranelift. The tree-walking interpreter is not in this repo.
 * **REPL session.** The shell keeps one Cranelift context, so functions, classes, and globals survive across lines.
-* **Standalone `--build`.** `soplang --build file.sop` inlines `keen` imports and embeds that program in a Cargo runner. The binary JIT-compiles at process start. Direct LLVM IR is not wired up yet.
+* **Standalone LLVM builds.** `soplang --build file.sop` resolves `keen`, lowers the program to textual LLVM IR, and links a native executable with `clang` and `rustc`.
 * **Native `abn` and `jajab`.** Static integer and float slots emit native arithmetic. `door`, strings, and other dynamic values stay on the tagged runtime. Division and modulo by zero still use that runtime so `fasax` can catch them.
+* **Classes and closures.** Inheritance, `waalid`, class-typed variables, captured environments, and anonymous callback functions work in both compiler backends.
+* **V3 collection APIs.** Lists support indexed insertion and removal, first/last access, reduce, every, and some. Objects support computed keys, safe lookup, assignment, and removal. Strings include length, directional trim, occurrence count, repetition, and last-index lookup.
+* **V3 numeric APIs.** Numeric strings can be converted with `abn` and `jajab`; rounding, absolute value, minimum, maximum, power, and square root are available as built-ins.
 * **Tests and benchmarks.** Unit tests, integration tests (examples vs `.expected`), and Criterion benchmarks. Makefile targets: `build`, `run`, `shell`, `test`, `bench`.
 
 ### Changed
 
-* **Runtime is the Cranelift JIT.** Run via `cargo build --release` and `./target/release/soplang`.
-* README and [COMPILER_PLAN.md](COMPILER_PLAN.md) describe the current pipeline. Phases 1–4 and 6 are done. Phase 5 (real LLVM) is still ahead.
-* **Soplang 2.0 vocabulary.** The language reference and examples now use the final keyword spellings, including `qor`, `gelin`, `abn`, `teed`, `xul`, `muuji`, `tir`, and `maran`.
+* **Two compiler backends.** Normal execution uses the Cranelift JIT, while `--build` uses the LLVM AOT backend. Compiler phases 1–6 are complete.
+* **Soplang 3 vocabulary.** The language reference and examples use the final keyword spellings, including `qor`, `gelin`, `abn`, `teed`, `xul`, `muuji`, `tir`, and `maran`.
+* **Predictable evaluation.** Logical operators short circuit, strings index by Unicode characters, negative indexes have consistent bounds, and callable argument counts are enforced at runtime.
+* **Optional semicolons.** Statements may use semicolons consistently while newline-oriented source remains valid.
+
+### Fixed
+
+* Constructor argument counts and types are validated, including inherited constructors.
+* `baaxad()` rejects fractional bounds and a zero step instead of silently truncating or returning an empty list.
+* Invalid list writes and index types now produce catchable errors.
 
 ---
 

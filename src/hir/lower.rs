@@ -52,49 +52,140 @@ pub enum SlotNum {
 
 #[derive(Debug, Clone)]
 pub enum HirInstr {
-    Const { dst: Slot, val: HirConst },
-    Copy { dst: Slot, src: Slot },
-    Load { dst: Slot, name: String },
-    Store { name: String, src: Slot },
-    BinOp { dst: Slot, op: BinOpKind, lhs: Slot, rhs: Slot, typed: bool },
-    UnOp { dst: Slot, op: UnOpKind, src: Slot },
-    BuildList { dst: Slot, items: Vec<Slot> },
-    BuildObject { dst: Slot, pairs: Vec<(String, Slot)> },
-    GetIndex { dst: Slot, obj: Slot, idx: Slot },
-    SetIndex { obj: Slot, idx: Slot, val: Slot },
-    GetProp { dst: Slot, obj: Slot, prop: String },
-    SetProp { obj: Slot, prop: String, val: Slot },
+    Const {
+        dst: Slot,
+        val: HirConst,
+    },
+    Copy {
+        dst: Slot,
+        src: Slot,
+    },
+    Load {
+        dst: Slot,
+        name: String,
+    },
+    Store {
+        name: String,
+        src: Slot,
+    },
+    BinOp {
+        dst: Slot,
+        op: BinOpKind,
+        lhs: Slot,
+        rhs: Slot,
+        typed: bool,
+    },
+    UnOp {
+        dst: Slot,
+        op: UnOpKind,
+        src: Slot,
+    },
+    BuildList {
+        dst: Slot,
+        items: Vec<Slot>,
+    },
+    BuildObject {
+        dst: Slot,
+        pairs: Vec<(String, Slot)>,
+    },
+    GetIndex {
+        dst: Slot,
+        obj: Slot,
+        idx: Slot,
+    },
+    SetIndex {
+        obj: Slot,
+        idx: Slot,
+        val: Slot,
+    },
+    GetProp {
+        dst: Slot,
+        obj: Slot,
+        prop: String,
+    },
+    SetProp {
+        obj: Slot,
+        prop: String,
+        val: Slot,
+    },
     Label(LabelId),
     Jump(LabelId),
-    JumpIf { cond: Slot, on_true: LabelId, on_false: LabelId },
-    Call { dst: Slot, callee: Slot, args: Vec<Slot> },
-    CallMethod { dst: Slot, obj: Slot, method: String, args: Vec<Slot> },
-    Return { val: Slot },
+    JumpIf {
+        cond: Slot,
+        on_true: LabelId,
+        on_false: LabelId,
+    },
+    RangeContinue {
+        dst: Slot,
+        current: Slot,
+        end: Slot,
+        step: Slot,
+    },
+    Call {
+        dst: Slot,
+        callee: Slot,
+        args: Vec<Slot>,
+    },
+    CallMethod {
+        dst: Slot,
+        obj: Slot,
+        method: String,
+        args: Vec<Slot>,
+    },
+    Return {
+        val: Slot,
+    },
     Break(LabelId),
     Continue(LabelId),
-    TryBegin { catch: LabelId },
+    TryBegin {
+        catch: LabelId,
+    },
     TryEnd,
-    BindError { dst: Slot },
-    CheckThrow { catch: LabelId },
-    Pop { dst: Slot }, // discard value (for expr stmt)
-    CheckType { src: Slot, type_tag: u8, name: String },
+    BindError {
+        dst: Slot,
+    },
+    CheckThrow {
+        catch: LabelId,
+    },
+    Pop {
+        dst: Slot,
+    }, // discard value (for expr stmt)
+    CheckType {
+        src: Slot,
+        type_tag: u8,
+        name: String,
+    },
     /// Value must be an instance of `class_name` or a subclass.
-    CheckClass { src: Slot, class_name: String, var_name: String },
-    MarkConst { name: String },
-    NewInstance { dst: Slot, class_name: String, args: Vec<Slot> },
+    CheckClass {
+        src: Slot,
+        class_name: String,
+        var_name: String,
+    },
+    MarkConst {
+        name: String,
+    },
+    NewInstance {
+        dst: Slot,
+        class_name: String,
+        args: Vec<Slot>,
+    },
     /// Nested function value: compiled function plus the captured slots.
-    MakeClosure { dst: Slot, fn_name: String, captures: Vec<Slot> },
+    MakeClosure {
+        dst: Slot,
+        fn_name: String,
+        captures: Vec<Slot>,
+    },
 }
 
 #[derive(Debug, Clone)]
 pub struct HirFunction {
-    pub name:        String,
-    pub params:      Vec<Slot>,
+    pub name: String,
+    pub params: Vec<Slot>,
     pub local_count: usize,
-    pub body:        Vec<HirInstr>,
-    pub is_static:   bool,
+    pub body: Vec<HirInstr>,
+    pub is_static: bool,
     /// Numeric kind of local slots, indexed by slot. Temps are not included.
-    pub local_nums:  Vec<SlotNum>,
+    pub local_nums: Vec<SlotNum>,
     /// Locals filled from the closure environment. Empty means no env parameter.
     pub capture_slots: Vec<Slot>,
 }
@@ -102,7 +193,7 @@ pub struct HirFunction {
 #[derive(Debug, Default, Clone)]
 pub struct HirModule {
     pub functions: Vec<HirFunction>,
-    pub top_level:  Vec<HirInstr>,
+    pub top_level: Vec<HirInstr>,
     /// Numeric kind of top-level variable slots, indexed by slot.
     pub top_nums: Vec<SlotNum>,
 }
@@ -114,7 +205,9 @@ impl fmt::Display for HirInstr {
             HirInstr::Copy { dst, src } => write!(f, "  %{} = copy %{}", dst, src),
             HirInstr::Load { dst, name } => write!(f, "  %{} = load {}", dst, name),
             HirInstr::Store { name, src } => write!(f, "  store {} %{}", name, src),
-            HirInstr::BinOp { dst, op, lhs, rhs, .. } => {
+            HirInstr::BinOp {
+                dst, op, lhs, rhs, ..
+            } => {
                 write!(f, "  %{} = %{} {:?} %{}", dst, lhs, op, rhs)
             }
             HirInstr::UnOp { dst, op, src } => write!(f, "  %{} = {:?} %{}", dst, op, src),
@@ -144,9 +237,23 @@ impl fmt::Display for HirInstr {
             HirInstr::SetProp { obj, prop, val } => write!(f, "  %{}.{} = %{}", obj, prop, val),
             HirInstr::Label(id) => write!(f, "L{}:", id),
             HirInstr::Jump(id) => write!(f, "  jump L{}", id),
-            HirInstr::JumpIf { cond, on_true, on_false } => {
+            HirInstr::JumpIf {
+                cond,
+                on_true,
+                on_false,
+            } => {
                 write!(f, "  jump_if %{} L{} L{}", cond, on_true, on_false)
             }
+            HirInstr::RangeContinue {
+                dst,
+                current,
+                end,
+                step,
+            } => write!(
+                f,
+                "  %{} = range_continue %{} %{} %{}",
+                dst, current, end, step
+            ),
             HirInstr::Call { dst, callee, args } => {
                 write!(f, "  %{} = call %{}(", dst, callee)?;
                 for (i, a) in args.iter().enumerate() {
@@ -157,7 +264,12 @@ impl fmt::Display for HirInstr {
                 }
                 write!(f, ")")
             }
-            HirInstr::CallMethod { dst, obj, method, args } => {
+            HirInstr::CallMethod {
+                dst,
+                obj,
+                method,
+                args,
+            } => {
                 write!(f, "  %{} = %{}.{}(", dst, obj, method)?;
                 for (i, a) in args.iter().enumerate() {
                     if i > 0 {
@@ -175,12 +287,24 @@ impl fmt::Display for HirInstr {
             HirInstr::CheckThrow { catch } => write!(f, "  check_throw L{}", catch),
             HirInstr::BindError { dst } => write!(f, "  bind_error %{}", dst),
             HirInstr::Pop { dst } => write!(f, "  pop %{}", dst),
-            HirInstr::CheckType { src, type_tag, name } => write!(f, "  check_type %{} {} {}", src, type_tag, name),
-            HirInstr::CheckClass { src, class_name, var_name } => {
+            HirInstr::CheckType {
+                src,
+                type_tag,
+                name,
+            } => write!(f, "  check_type %{} {} {}", src, type_tag, name),
+            HirInstr::CheckClass {
+                src,
+                class_name,
+                var_name,
+            } => {
                 write!(f, "  check_class %{} {} {}", src, class_name, var_name)
             }
             HirInstr::MarkConst { name } => write!(f, "  mark_const {}", name),
-            HirInstr::NewInstance { dst, class_name, args } => {
+            HirInstr::NewInstance {
+                dst,
+                class_name,
+                args,
+            } => {
                 write!(f, "  %{} = new {}(", dst, class_name)?;
                 for (i, a) in args.iter().enumerate() {
                     if i > 0 {
@@ -190,7 +314,11 @@ impl fmt::Display for HirInstr {
                 }
                 write!(f, ")")
             }
-            HirInstr::MakeClosure { dst, fn_name, captures } => {
+            HirInstr::MakeClosure {
+                dst,
+                fn_name,
+                captures,
+            } => {
                 write!(f, "  %{} = closure {} [", dst, fn_name)?;
                 for (i, s) in captures.iter().enumerate() {
                     if i > 0 {
@@ -233,17 +361,18 @@ fn un_op_from_str(op: &str) -> Option<UnOpKind> {
 
 /// Lowers AST to HIR using the symbol table.
 pub struct HirLowering<'a> {
-    sym:        &'a SymbolTable,
-    body:       Vec<HirInstr>,
-    next_slot:  Slot,
+    sym: &'a SymbolTable,
+    body: Vec<HirInstr>,
+    next_slot: Slot,
     next_label: LabelId,
     loop_stack: Vec<(LabelId, LabelId)>, // (break_label, continue_label)
-    func_scope:  Option<&'a std::collections::HashMap<String, crate::semantic::VarInfo>>,
-    catch_var:  Option<(String, Slot)>,
+    func_scope: Option<&'a std::collections::HashMap<String, crate::semantic::VarInfo>>,
+    catch_var: Option<(String, Slot)>,
     /// Class whose method is being lowered. `waalid` starts lookup at its parent.
     enclosing_class: Option<&'a str>,
     /// Function being lowered. Nested `hawl` names are `parent::name`.
     enclosing_fn: Option<&'a str>,
+    return_ann: Option<TypeAnnotation>,
     nums: Vec<SlotNum>,
     /// Variable slots keep the kind from their type annotation.
     fixed: Vec<bool>,
@@ -261,6 +390,7 @@ impl<'a> HirLowering<'a> {
             catch_var: None,
             enclosing_class: None,
             enclosing_fn: None,
+            return_ann: None,
             nums: Vec::new(),
             fixed: Vec::new(),
         };
@@ -282,7 +412,8 @@ impl<'a> HirLowering<'a> {
             func_bodies_len,
             "function metadata and bodies diverged"
         );
-        let functions: Vec<HirFunction> = sym.functions
+        let functions: Vec<HirFunction> = sym
+            .functions
             .iter()
             .zip(func_bodies.into_iter())
             .map(|(fm, body_stmts)| {
@@ -296,6 +427,7 @@ impl<'a> HirLowering<'a> {
                     catch_var: None,
                     enclosing_class: fm.class_name.as_deref(),
                     enclosing_fn: Some(fm.name.as_str()),
+                    return_ann: Some(fm.return_ann.clone()),
                     nums: Vec::new(),
                     fixed: Vec::new(),
                 };
@@ -306,24 +438,19 @@ impl<'a> HirLowering<'a> {
                     .iter()
                     .filter_map(|name| fm.scope_vars.get(name).map(|info| info.slot))
                     .collect();
-                for (name, info) in &fm.scope_vars {
-                    if let TypeAnnotation::Class(class) = &info.type_ann {
-                        inner.emit(HirInstr::CheckClass {
-                            src: info.slot,
-                            class_name: class.clone(),
-                            var_name: name.clone(),
-                        });
-                    }
+                let implicit = usize::from(fm.is_method);
+                for (slot, ann) in fm.param_slots[implicit..].iter().zip(&fm.param_types) {
+                    inner.emit_type_check(*slot, ann, "dood");
                 }
                 for s in body_stmts {
                     inner.lower_stmt(s);
                 }
                 HirFunction {
-                    name:        fm.name.clone(),
-                    params:      fm.param_slots.clone(),
+                    name: fm.name.clone(),
+                    params: fm.param_slots.clone(),
                     local_count: fm.local_count,
-                    body:        inner.body,
-                    is_static:   false,
+                    body: inner.body,
+                    is_static: false,
                     local_nums,
                     capture_slots,
                 }
@@ -412,7 +539,13 @@ impl<'a> HirLowering<'a> {
                 | BinOpKind::Ge
         );
         let typed = numeric && lk != SlotNum::Dyn && rk != SlotNum::Dyn;
-        self.emit(HirInstr::BinOp { dst, op, lhs, rhs, typed });
+        self.emit(HirInstr::BinOp {
+            dst,
+            op,
+            lhs,
+            rhs,
+            typed,
+        });
         let result = if !typed {
             SlotNum::Dyn
         } else {
@@ -434,7 +567,11 @@ impl<'a> HirLowering<'a> {
     fn emit_unop(&mut self, dst: Slot, op: UnOpKind, src: Slot) {
         self.ensure_slot(src);
         self.emit(HirInstr::UnOp { dst, op, src });
-        let num = if op == UnOpKind::Neg { self.nums[src] } else { SlotNum::Dyn };
+        let num = if op == UnOpKind::Neg {
+            self.nums[src]
+        } else {
+            SlotNum::Dyn
+        };
         self.set_temp_num(dst, num);
     }
 
@@ -456,15 +593,26 @@ impl<'a> HirLowering<'a> {
         let mut arg_slots = vec![nafta];
         arg_slots.extend(args.iter().map(|a| self.lower_expr(a)));
         let callee = self.alloc_slot();
-        self.emit(HirInstr::Load { dst: callee, name: mangled });
+        self.emit(HirInstr::Load {
+            dst: callee,
+            name: mangled,
+        });
         let dst = self.alloc_slot();
-        self.emit(HirInstr::Call { dst, callee, args: arg_slots });
+        self.emit(HirInstr::Call {
+            dst,
+            callee,
+            args: arg_slots,
+        });
         Some(dst)
     }
 
     fn var_ann(&self, name: &str) -> Option<TypeAnnotation> {
         if self.func_scope.is_some() {
-            return self.func_scope.unwrap().get(name).map(|v| v.type_ann.clone());
+            return self
+                .func_scope
+                .unwrap()
+                .get(name)
+                .map(|v| v.type_ann.clone());
         }
         resolve_name(self.sym, name, None).map(|v| v.type_ann.clone())
     }
@@ -503,17 +651,29 @@ impl<'a> HirLowering<'a> {
 
     fn lower_stmt(&mut self, stmt: &Stmt) {
         match stmt {
-            Stmt::VarDecl { name, value, type_ann, is_const, .. } => {
+            Stmt::VarDecl {
+                name,
+                value,
+                type_ann,
+                is_const,
+                ..
+            } => {
                 let val_slot = self.lower_expr(value);
+                self.emit_type_check(val_slot, type_ann, name);
                 if let Some(slot) = self.resolve_slot(name) {
                     self.emit_copy(slot, val_slot);
                     if self.func_scope.is_none() {
-                        self.emit(HirInstr::Store { name: name.clone(), src: val_slot });
+                        self.emit(HirInstr::Store {
+                            name: name.clone(),
+                            src: val_slot,
+                        });
                     }
                 } else {
-                    self.emit(HirInstr::Store { name: name.clone(), src: val_slot });
+                    self.emit(HirInstr::Store {
+                        name: name.clone(),
+                        src: val_slot,
+                    });
                 }
-                self.emit_type_check(val_slot, type_ann, name);
                 if *is_const && self.func_scope.is_none() {
                     self.emit(HirInstr::MarkConst { name: name.clone() });
                 }
@@ -522,30 +682,40 @@ impl<'a> HirLowering<'a> {
                 let val_slot = self.lower_expr(value);
                 match target {
                     Expr::Identifier(n) => {
+                        if let Some(ann) = self.var_ann(n) {
+                            self.emit_type_check(val_slot, &ann, n);
+                        }
                         if let Some(slot) = self.resolve_slot(n) {
                             self.emit_copy(slot, val_slot);
                             if self.func_scope.is_none() {
-                                self.emit(HirInstr::Store { name: n.clone(), src: val_slot });
+                                self.emit(HirInstr::Store {
+                                    name: n.clone(),
+                                    src: val_slot,
+                                });
                             }
                         } else {
-                            self.emit(HirInstr::Store { name: n.clone(), src: val_slot });
-                        }
-                        if let Some(TypeAnnotation::Class(class)) = self.var_ann(n) {
-                            self.emit(HirInstr::CheckClass {
+                            self.emit(HirInstr::Store {
+                                name: n.clone(),
                                 src: val_slot,
-                                class_name: class,
-                                var_name: n.clone(),
                             });
                         }
                     }
                     Expr::Index { obj, idx } => {
                         let obj_slot = self.lower_expr(obj);
                         let idx_slot = self.lower_expr(idx);
-                        self.emit(HirInstr::SetIndex { obj: obj_slot, idx: idx_slot, val: val_slot });
+                        self.emit(HirInstr::SetIndex {
+                            obj: obj_slot,
+                            idx: idx_slot,
+                            val: val_slot,
+                        });
                     }
                     Expr::Property { obj, prop } => {
                         let obj_slot = self.lower_expr(obj);
-                        self.emit(HirInstr::SetProp { obj: obj_slot, prop: prop.clone(), val: val_slot });
+                        self.emit(HirInstr::SetProp {
+                            obj: obj_slot,
+                            prop: prop.clone(),
+                            val: val_slot,
+                        });
                     }
                     _ => {}
                 }
@@ -569,16 +739,30 @@ impl<'a> HirLowering<'a> {
                 if caps.is_empty() {
                     self.emit(HirInstr::Load { dst, name: mangled });
                 } else {
-                    let slots: Vec<Slot> = caps.iter().filter_map(|c| self.resolve_slot(c)).collect();
-                    self.emit(HirInstr::MakeClosure { dst, fn_name: mangled, captures: slots });
+                    let slots: Vec<Slot> =
+                        caps.iter().filter_map(|c| self.resolve_slot(c)).collect();
+                    self.emit(HirInstr::MakeClosure {
+                        dst,
+                        fn_name: mangled,
+                        captures: slots,
+                    });
                 }
             }
-            Stmt::If { cond, then_body, elseifs, else_body } => {
+            Stmt::If {
+                cond,
+                then_body,
+                elseifs,
+                else_body,
+            } => {
                 let end_label = self.new_label();
                 let else_start = self.new_label();
                 let cond_slot = self.lower_expr(cond);
                 let then_label = self.new_label();
-                self.emit(HirInstr::JumpIf { cond: cond_slot, on_true: then_label, on_false: else_start });
+                self.emit(HirInstr::JumpIf {
+                    cond: cond_slot,
+                    on_true: then_label,
+                    on_false: else_start,
+                });
                 self.emit(HirInstr::Label(then_label));
                 for s in then_body {
                     self.lower_stmt(s);
@@ -589,7 +773,11 @@ impl<'a> HirLowering<'a> {
                     let next_else = self.new_label();
                     let next_then = self.new_label();
                     let cond2_slot = self.lower_expr(c);
-                    self.emit(HirInstr::JumpIf { cond: cond2_slot, on_true: next_then, on_false: next_else });
+                    self.emit(HirInstr::JumpIf {
+                        cond: cond2_slot,
+                        on_true: next_then,
+                        on_false: next_else,
+                    });
                     self.emit(HirInstr::Label(next_then));
                     for s in body {
                         self.lower_stmt(s);
@@ -604,7 +792,11 @@ impl<'a> HirLowering<'a> {
                 }
                 self.emit(HirInstr::Label(end_label));
             }
-            Stmt::Switch { expr, cases, default } => {
+            Stmt::Switch {
+                expr,
+                cases,
+                default,
+            } => {
                 let expr_slot = self.lower_expr(expr);
                 let end_label = self.new_label();
                 for (v, body) in cases {
@@ -613,7 +805,11 @@ impl<'a> HirLowering<'a> {
                     self.emit_binop(eq_slot, BinOpKind::Eq, expr_slot, case_val);
                     let match_label = self.new_label();
                     let next_case = self.new_label();
-                    self.emit(HirInstr::JumpIf { cond: eq_slot, on_true: match_label, on_false: next_case });
+                    self.emit(HirInstr::JumpIf {
+                        cond: eq_slot,
+                        on_true: match_label,
+                        on_false: next_case,
+                    });
                     self.emit(HirInstr::Label(match_label));
                     for s in body {
                         self.lower_stmt(s);
@@ -628,37 +824,50 @@ impl<'a> HirLowering<'a> {
                 }
                 self.emit(HirInstr::Label(end_label));
             }
-            Stmt::For { var, start, end, step, body } => {
+            Stmt::For {
+                var,
+                start,
+                end,
+                step,
+                body,
+            } => {
                 let break_lbl = self.new_label();
                 let cond_lbl = self.new_label();
                 let incr_lbl = self.new_label();
                 self.loop_stack.push((break_lbl, incr_lbl));
                 let start_slot = self.lower_expr(start);
                 let end_slot = self.lower_expr(end);
-                let step_slot = step.as_ref().map(|s| self.lower_expr(s));
+                let step_slot = if let Some(step) = step {
+                    self.lower_expr(step)
+                } else {
+                    let one = self.alloc_slot();
+                    self.emit_const(one, HirConst::Int(1));
+                    one
+                };
                 let var_slot = self.resolve_slot(var).unwrap_or_else(|| self.alloc_slot());
                 self.emit_copy(var_slot, start_slot);
                 self.emit(HirInstr::Label(cond_lbl));
                 let cond_slot = self.alloc_slot();
-                self.emit_binop(cond_slot, BinOpKind::Le, var_slot, end_slot);
+                self.emit(HirInstr::RangeContinue {
+                    dst: cond_slot,
+                    current: var_slot,
+                    end: end_slot,
+                    step: step_slot,
+                });
                 let body_start = self.new_label();
-                self.emit(HirInstr::JumpIf { cond: cond_slot, on_true: body_start, on_false: break_lbl });
+                self.emit(HirInstr::JumpIf {
+                    cond: cond_slot,
+                    on_true: body_start,
+                    on_false: break_lbl,
+                });
                 self.emit(HirInstr::Label(body_start));
                 for s in body {
                     self.lower_stmt(s);
                 }
                 self.emit(HirInstr::Label(incr_lbl));
-                if let Some(ss) = step_slot {
-                    let new_var = self.alloc_slot();
-                    self.emit_binop(new_var, BinOpKind::Add, var_slot, ss);
-                    self.emit_copy(var_slot, new_var);
-                } else {
-                    let one = self.alloc_slot();
-                    self.emit_const(one, HirConst::Int(1));
-                    let new_var = self.alloc_slot();
-                    self.emit_binop(new_var, BinOpKind::Add, var_slot, one);
-                    self.emit_copy(var_slot, new_var);
-                }
+                let new_var = self.alloc_slot();
+                self.emit_binop(new_var, BinOpKind::Add, var_slot, step_slot);
+                self.emit_copy(var_slot, new_var);
                 self.emit(HirInstr::Jump(cond_lbl));
                 self.emit(HirInstr::Label(break_lbl));
                 self.loop_stack.pop();
@@ -670,7 +879,11 @@ impl<'a> HirLowering<'a> {
                 self.emit(HirInstr::Label(cont_lbl));
                 let cond_slot = self.lower_expr(cond);
                 let body_lbl = self.new_label();
-                self.emit(HirInstr::JumpIf { cond: cond_slot, on_true: body_lbl, on_false: break_lbl });
+                self.emit(HirInstr::JumpIf {
+                    cond: cond_slot,
+                    on_true: body_lbl,
+                    on_false: break_lbl,
+                });
                 self.emit(HirInstr::Label(body_lbl));
                 for s in body {
                     self.lower_stmt(s);
@@ -688,6 +901,9 @@ impl<'a> HirLowering<'a> {
                     }
                     Some(e) => self.lower_expr(e),
                 };
+                if let Some(ann) = self.return_ann.clone() {
+                    self.emit_type_check(slot, &ann, "celi");
+                }
                 self.emit(HirInstr::Return { val: slot });
             }
             Stmt::Break => {
@@ -700,7 +916,11 @@ impl<'a> HirLowering<'a> {
                     self.emit(HirInstr::Continue(*lbl));
                 }
             }
-            Stmt::TryCatch { try_body, err_var, catch_body } => {
+            Stmt::TryCatch {
+                try_body,
+                err_var,
+                catch_body,
+            } => {
                 let catch_label = self.new_label();
                 self.emit(HirInstr::TryBegin { catch: catch_label });
                 for s in try_body {
@@ -753,16 +973,43 @@ impl<'a> HirLowering<'a> {
                 if let Some(var_slot) = self.resolve_slot(name) {
                     self.emit_copy(slot, var_slot);
                 } else {
-                    self.emit(HirInstr::Load { dst: slot, name: name.clone() });
+                    self.emit(HirInstr::Load {
+                        dst: slot,
+                        name: name.clone(),
+                    });
                 }
                 slot
             }
             Expr::BinaryOp { op, left, right } => {
                 let lhs = self.lower_expr(left);
-                let rhs = self.lower_expr(right);
                 let dst = self.alloc_slot();
                 if let Some(kind) = bin_op_from_str(op) {
-                    self.emit_binop(dst, kind, lhs, rhs);
+                    if matches!(kind, BinOpKind::And | BinOpKind::Or) {
+                        let right_label = self.new_label();
+                        let short_label = self.new_label();
+                        let end_label = self.new_label();
+                        let (on_true, on_false) = if kind == BinOpKind::And {
+                            (right_label, short_label)
+                        } else {
+                            (short_label, right_label)
+                        };
+                        self.emit(HirInstr::JumpIf {
+                            cond: lhs,
+                            on_true,
+                            on_false,
+                        });
+                        self.emit(HirInstr::Label(short_label));
+                        self.emit_const(dst, HirConst::Bool(kind == BinOpKind::Or));
+                        self.emit(HirInstr::Jump(end_label));
+                        self.emit(HirInstr::Label(right_label));
+                        let rhs = self.lower_expr(right);
+                        self.emit_binop(dst, kind, lhs, rhs);
+                        self.emit(HirInstr::Jump(end_label));
+                        self.emit(HirInstr::Label(end_label));
+                    } else {
+                        let rhs = self.lower_expr(right);
+                        self.emit_binop(dst, kind, lhs, rhs);
+                    }
                 }
                 dst
             }
@@ -779,11 +1026,18 @@ impl<'a> HirLowering<'a> {
                 if let Some(slot) = self.resolve_slot(name) {
                     self.emit_copy(callee, slot);
                 } else {
-                    self.emit(HirInstr::Load { dst: callee, name: name.clone() });
+                    self.emit(HirInstr::Load {
+                        dst: callee,
+                        name: name.clone(),
+                    });
                 }
                 let arg_slots: Vec<Slot> = args.iter().map(|a| self.lower_expr(a)).collect();
                 let dst = self.alloc_slot();
-                self.emit(HirInstr::Call { dst, callee, args: arg_slots });
+                self.emit(HirInstr::Call {
+                    dst,
+                    callee,
+                    args: arg_slots,
+                });
                 dst
             }
             Expr::AnonymousFunc { .. } => {
@@ -812,7 +1066,11 @@ impl<'a> HirLowering<'a> {
                         .iter()
                         .filter_map(|capture| self.resolve_slot(capture))
                         .collect();
-                    self.emit(HirInstr::MakeClosure { dst, fn_name, captures: capture_slots });
+                    self.emit(HirInstr::MakeClosure {
+                        dst,
+                        fn_name,
+                        captures: capture_slots,
+                    });
                 }
                 dst
             }
@@ -827,20 +1085,33 @@ impl<'a> HirLowering<'a> {
                 let obj_slot = self.lower_expr(obj);
                 let arg_slots: Vec<Slot> = args.iter().map(|a| self.lower_expr(a)).collect();
                 let dst = self.alloc_slot();
-                self.emit(HirInstr::CallMethod { dst, obj: obj_slot, method: method.clone(), args: arg_slots });
+                self.emit(HirInstr::CallMethod {
+                    dst,
+                    obj: obj_slot,
+                    method: method.clone(),
+                    args: arg_slots,
+                });
                 dst
             }
             Expr::Index { obj, idx } => {
                 let obj_slot = self.lower_expr(obj);
                 let idx_slot = self.lower_expr(idx);
                 let dst = self.alloc_slot();
-                self.emit(HirInstr::GetIndex { dst, obj: obj_slot, idx: idx_slot });
+                self.emit(HirInstr::GetIndex {
+                    dst,
+                    obj: obj_slot,
+                    idx: idx_slot,
+                });
                 dst
             }
             Expr::Property { obj, prop } => {
                 let obj_slot = self.lower_expr(obj);
                 let dst = self.alloc_slot();
-                self.emit(HirInstr::GetProp { dst, obj: obj_slot, prop: prop.clone() });
+                self.emit(HirInstr::GetProp {
+                    dst,
+                    obj: obj_slot,
+                    prop: prop.clone(),
+                });
                 dst
             }
             Expr::List(exprs) => {
@@ -850,15 +1121,25 @@ impl<'a> HirLowering<'a> {
                 dst
             }
             Expr::Object(pairs) => {
-                let pair_slots: Vec<(String, Slot)> = pairs.iter().map(|(k, v)| (k.clone(), self.lower_expr(v))).collect();
+                let pair_slots: Vec<(String, Slot)> = pairs
+                    .iter()
+                    .map(|(k, v)| (k.clone(), self.lower_expr(v)))
+                    .collect();
                 let dst = self.alloc_slot();
-                self.emit(HirInstr::BuildObject { dst, pairs: pair_slots });
+                self.emit(HirInstr::BuildObject {
+                    dst,
+                    pairs: pair_slots,
+                });
                 dst
             }
             Expr::New { class_name, args } => {
                 let arg_slots: Vec<Slot> = args.iter().map(|a| self.lower_expr(a)).collect();
                 let dst = self.alloc_slot();
-                self.emit(HirInstr::NewInstance { dst, class_name: class_name.clone(), args: arg_slots });
+                self.emit(HirInstr::NewInstance {
+                    dst,
+                    class_name: class_name.clone(),
+                    args: arg_slots,
+                });
                 dst
             }
         }
@@ -911,7 +1192,12 @@ fn collect_funcs_stmt<'a>(stmt: &'a Stmt, out: &mut Vec<&'a [Stmt]>) {
             collect_funcs_expr(target, out);
             collect_funcs_expr(value, out);
         }
-        Stmt::If { cond, then_body, elseifs, else_body } => {
+        Stmt::If {
+            cond,
+            then_body,
+            elseifs,
+            else_body,
+        } => {
             collect_funcs_expr(cond, out);
             collect_funcs(then_body, out);
             for (condition, b) in elseifs {
@@ -922,7 +1208,11 @@ fn collect_funcs_stmt<'a>(stmt: &'a Stmt, out: &mut Vec<&'a [Stmt]>) {
                 collect_funcs(b, out);
             }
         }
-        Stmt::Switch { expr, cases, default } => {
+        Stmt::Switch {
+            expr,
+            cases,
+            default,
+        } => {
             collect_funcs_expr(expr, out);
             for (value, b) in cases {
                 collect_funcs_expr(value, out);
@@ -932,7 +1222,13 @@ fn collect_funcs_stmt<'a>(stmt: &'a Stmt, out: &mut Vec<&'a [Stmt]>) {
                 collect_funcs(b, out);
             }
         }
-        Stmt::For { start, end, step, body, .. } => {
+        Stmt::For {
+            start,
+            end,
+            step,
+            body,
+            ..
+        } => {
             collect_funcs_expr(start, out);
             collect_funcs_expr(end, out);
             if let Some(step) = step {
@@ -944,7 +1240,11 @@ fn collect_funcs_stmt<'a>(stmt: &'a Stmt, out: &mut Vec<&'a [Stmt]>) {
             collect_funcs_expr(cond, out);
             collect_funcs(body, out);
         }
-        Stmt::TryCatch { try_body, catch_body, .. } => {
+        Stmt::TryCatch {
+            try_body,
+            catch_body,
+            ..
+        } => {
             collect_funcs(try_body, out);
             collect_funcs(catch_body, out);
         }

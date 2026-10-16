@@ -409,7 +409,7 @@ pub fn run_source(source: &str, path: Option<&Path>) -> Result<(), SoplangError>
 
 ### Deliverable
 
-- All 43 examples produce correct output via `soplang file.sop`. Integration tests (`.expected`) pass.
+- The current example suite runs through `soplang file.sop`, and examples with `.expected` fixtures pass their integration checks.
 
 ---
 

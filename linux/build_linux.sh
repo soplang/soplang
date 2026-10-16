@@ -14,7 +14,12 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m'
 
-VERSION="${SOPLANG_VERSION:-2.0.0}"
+CARGO_VERSION="$(sed -n 's/^version = "\([^"]*\)"/\1/p' Cargo.toml | head -n 1)"
+if [[ -z "$CARGO_VERSION" ]]; then
+    echo -e "${RED}Error: could not read the package version from Cargo.toml.${NC}"
+    exit 1
+fi
+VERSION="$CARGO_VERSION"
 ARCH="$(uname -m)"
 [[ "$ARCH" == "x86_64" ]] && DEB_ARCH="amd64" || DEB_ARCH="$ARCH"
 
