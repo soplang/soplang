@@ -1,0 +1,11 @@
+// Hawl la celiyo waxay xafidaysaa qiimaha ay qabatay.
+hawl samee(factor) {
+    celi hawl(x) { celi x * factor }
+}
+door laban = samee(2)
+door tirooyin = [1, 2, 3]
+qor(tirooyin.aaddin(laban))
+qor(tirooyin.shaandhee(hawl(x) { celi x > 1 }))
+qor(tirooyin.ururi(hawl(a, b) { celi a * b }, 1))
+qor(tirooyin.dhammaan(hawl(x) { celi x > 0 }))
+qor(tirooyin.qaar(hawl(x) { celi x == 2 }))

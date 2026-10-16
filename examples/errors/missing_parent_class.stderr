@@ -1,0 +1,5 @@
+Khalad nooc: Qaab 'Ilmo' wuxuu ka dhaxlay 'Maqan' laakiin qaabkaas ma jiro [E021] safka 1, tiirka 1
+     --> examples/errors/missing_parent_class.sop:1:1
+   1 │   qaab Ilmo dhaxal Maqan {
+     │   ^^^^
+     └─ Hubi in qaabka waalidka uu ka horreeyo qaabka ilmaha.

@@ -213,3 +213,20 @@ global value. Accepted numeric values are converted to their annotated runtime
 representation: integral floats become `abn` and integers become `jajab`.
 Fractional floats remain invalid for integer annotations. This corrects stale
 reads, invalid writes, and mismatched native numeric representations.
+
+## Source diagnostics
+
+Errors now show Somali phase names (`ereyayn`, `naxwe`, `nooc`, `fulin`, and
+`soo-dejin`) with the original file, line, column, source line, and caret.
+Compiled LLVM executables retain the relevant source line for runtime errors;
+`keen` imports retain their own file locations. Unclosed strings/comments point
+to the opening delimiter. CLI/REPL expression echo preserves original columns.
+
+Columns count Unicode scalar values, and the displayed caret accounts for tabs,
+combining marks, and wide characters. `--no-color` and `NO_COLOR=1` produce plain
+output. Uncaught failures exit with status 1 and write diagnostics to stderr.
+Caught errors remain message strings. Unknown variable reads now report a
+Somali error instead of silently producing `maran`.
+
+See the [intentional error examples](../examples/errors/README.md) for checked
+examples of each diagnostic category.

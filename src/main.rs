@@ -7,7 +7,7 @@ use std::time::{Duration, Instant};
 
 use clap::Parser as ClapParser;
 
-use soplang::{build_source, cli::Shell, format_error_with_source, maybe_wrap_for_repl, run_source};
+use soplang::{build_source, cli::Shell, format_error_with_source, run_source};
 
 #[derive(ClapParser)]
 #[command(
@@ -17,16 +17,27 @@ use soplang::{build_source, cli::Shell, format_error_with_source, maybe_wrap_for
     after_help = "With no arguments, starts the interactive REPL.\n  Use -i after a file/example to run it then continue in the REPL."
 )]
 struct Cli {
-    #[arg(long, help = "Build .sop file into standalone executable (AOT); requires FILENAME")]
+    #[arg(
+        long,
+        help = "Build .sop file into standalone executable (AOT); requires FILENAME"
+    )]
     build: bool,
 
     #[arg(short = 'o', long, help = "Output binary path (used with --build)")]
     output: Option<PathBuf>,
 
-    #[arg(long, default_value_t = 2, help = "AOT optimization level: 0..3 (used with --build)")]
+    #[arg(
+        long,
+        default_value_t = 2,
+        help = "AOT optimization level: 0..3 (used with --build)"
+    )]
     opt_level: u8,
 
-    #[arg(short, long, help = "Quiet: no build success message (used with --build)")]
+    #[arg(
+        short,
+        long,
+        help = "Quiet: no build success message (used with --build)"
+    )]
     quiet: bool,
 
     #[arg(short, long, help = "Execute code snippet and exit")]
@@ -38,7 +49,11 @@ struct Cli {
     #[arg(short, long, help = "Run example N from examples/ (1-based)")]
     example: Option<usize>,
 
-    #[arg(short, long, help = "After running file/example, open interactive REPL")]
+    #[arg(
+        short,
+        long,
+        help = "After running file/example, open interactive REPL"
+    )]
     interactive: bool,
 
     #[arg(help = "Path to .sop file (to run, or to build when using --build; omit to start REPL)")]
@@ -75,7 +90,11 @@ fn main() {
         let source = match fs::read_to_string(&path) {
             Ok(s) => s,
             Err(e) => {
-                eprintln!("Khalad: Ma suurtagelin in la akhriyo faylka '{}': {}", path.display(), e);
+                eprintln!(
+                    "Khalad: Ma suurtagelin in la akhriyo faylka '{}': {}",
+                    path.display(),
+                    e
+                );
                 process::exit(1);
             }
         };
@@ -104,7 +123,13 @@ fn main() {
         let out_build = out.clone();
         let path_for_build = path.clone();
         let build_handle = thread::spawn(move || {
-            build_source(&source, Some(&path_for_build), &out_build, opt_level, strict)
+            build_source(
+                &source,
+                Some(&path_for_build),
+                &out_build,
+                opt_level,
+                strict,
+            )
         });
 
         let spin = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴'];
@@ -121,7 +146,12 @@ fn main() {
 
         match result {
             Ok(()) => {
-                print!("\r{: <50}\rDhisiddu waa ay dhammaatay: {} ({:.1}s)\n", "", out.display(), elapsed);
+                print!(
+                    "\r{: <50}\rDhisiddu waa ay dhammaatay: {} ({:.1}s)\n",
+                    "",
+                    out.display(),
+                    elapsed
+                );
                 let _ = std::io::stdout().flush();
                 return;
             }
@@ -134,23 +164,26 @@ fn main() {
         }
     }
 
-    let run_then_maybe_shell = |path: PathBuf, source: String| {
-        match run_source(&source, Some(&path), cli.ast, cli.hir, cli.strict) {
-            Ok(()) => {
-                if cli.interactive {
-                    run_shell(cli.strict);
-                }
+    let run_then_maybe_shell = |path: PathBuf, source: String| match run_source(
+        &source,
+        Some(&path),
+        cli.ast,
+        cli.hir,
+        cli.strict,
+    ) {
+        Ok(()) => {
+            if cli.interactive {
+                run_shell(cli.strict);
             }
-            Err(e) => {
-                eprintln!("{}", format_error_with_source(&e, Some(&source)));
-                process::exit(1);
-            }
+        }
+        Err(e) => {
+            eprintln!("{}", format_error_with_source(&e, Some(&source)));
+            process::exit(1);
         }
     };
 
     if let Some(code) = &cli.command {
-        let to_run = maybe_wrap_for_repl(code);
-        match run_source(&to_run, None, false, false, cli.strict) {
+        match run_source(code, None, false, false, cli.strict) {
             Ok(()) => process::exit(0),
             Err(e) => {
                 eprintln!("{}", format_error_with_source(&e, Some(code)));
@@ -163,7 +196,11 @@ fn main() {
         match fs::read_to_string(path) {
             Ok(source) => run_then_maybe_shell(path.clone(), source),
             Err(e) => {
-                eprintln!("Khalad: Ma suurtagelin in la akhriyo faylka '{}': {}", path.display(), e);
+                eprintln!(
+                    "Khalad: Ma suurtagelin in la akhriyo faylka '{}': {}",
+                    path.display(),
+                    e
+                );
                 process::exit(1);
             }
         }
@@ -192,7 +229,11 @@ fn main() {
         let source = match fs::read_to_string(path) {
             Ok(s) => s,
             Err(e) => {
-                eprintln!("Khalad: Ma suurtagelin in la akhriyo faylka '{}': {}", path.display(), e);
+                eprintln!(
+                    "Khalad: Ma suurtagelin in la akhriyo faylka '{}': {}",
+                    path.display(),
+                    e
+                );
                 process::exit(1);
             }
         };
@@ -227,6 +268,12 @@ fn example_path(n: usize) -> Option<PathBuf> {
         .ok()?
         .filter_map(|e| e.ok().map(|e| e.path()))
         .filter(|p| p.extension().map(|e| e == "sop").unwrap_or(false))
+        .filter(|p| {
+            !p.file_stem()
+                .unwrap_or_default()
+                .to_string_lossy()
+                .starts_with('_')
+        })
         .collect();
     paths.sort();
     paths.into_iter().nth(n - 1)

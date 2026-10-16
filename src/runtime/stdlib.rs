@@ -16,7 +16,11 @@ fn err_runtime(msg: impl Into<String>) -> SoplangError {
     runtime_error(msg, 0, 0)
 }
 
-fn expect_arity(args: &[Value], name: &str, expected: usize) -> Result<(), SoplangError> {
+pub(crate) fn expect_arity(
+    args: &[Value],
+    name: &str,
+    expected: usize,
+) -> Result<(), SoplangError> {
     if args.len() == expected {
         Ok(())
     } else {
@@ -347,6 +351,24 @@ pub fn builtin_awood(args: Vec<Value>) -> Result<Value, SoplangError> {
     ))
 }
 
+pub fn builtin_duub(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "duub", 1)?;
+    builtin_dhammeystir(args)
+}
+
+pub fn builtin_yar(args: Vec<Value>) -> Result<Value, SoplangError> {
+    numeric_extreme(args, "yar", true)
+}
+
+pub fn builtin_weyn(args: Vec<Value>) -> Result<Value, SoplangError> {
+    numeric_extreme(args, "weyn", false)
+}
+
+pub fn builtin_jibbaar(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "jibbaar", 2)?;
+    builtin_awood(args)
+}
+
 pub fn builtin_xidid(args: Vec<Value>) -> Result<Value, SoplangError> {
     expect_arity(&args, "xidid", 1)?;
     let value = to_number(&args[0])?;
@@ -379,11 +401,11 @@ pub fn get_builtin_functions() -> HashMap<String, Value> {
     m.insert("sugan".into(), Value::NativeFunction(builtin_sugan));
     m.insert("ugu_yar".into(), Value::NativeFunction(builtin_ugu_yar));
     m.insert("ugu_weyn".into(), Value::NativeFunction(builtin_ugu_weyn));
-    m.insert("yar".into(), Value::NativeFunction(builtin_ugu_yar));
-    m.insert("weyn".into(), Value::NativeFunction(builtin_ugu_weyn));
+    m.insert("yar".into(), Value::NativeFunction(builtin_yar));
+    m.insert("weyn".into(), Value::NativeFunction(builtin_weyn));
     m.insert("awood".into(), Value::NativeFunction(builtin_awood));
-    m.insert("jibbaar".into(), Value::NativeFunction(builtin_awood));
-    m.insert("duub".into(), Value::NativeFunction(builtin_dhammeystir));
+    m.insert("jibbaar".into(), Value::NativeFunction(builtin_jibbaar));
+    m.insert("duub".into(), Value::NativeFunction(builtin_duub));
     m.insert("xidid".into(), Value::NativeFunction(builtin_xidid));
     m
 }
@@ -939,11 +961,22 @@ pub fn string_tiri(s: String, args: &[Value]) -> Result<Value, SoplangError> {
     Ok(Value::Int(s.matches(&needle).count() as i64))
 }
 
+pub fn string_kuceli(s: String, args: &[Value]) -> Result<Value, SoplangError> {
+    repeat_string(s, args, "kuceli")
+}
+
 pub fn string_ku_celi(s: String, args: &[Value]) -> Result<Value, SoplangError> {
-    expect_arity(args, "ku_celi", 1)?;
-    let count = to_integer(&args[0], "ku_celi")?;
+    repeat_string(s, args, "ku_celi")
+}
+
+fn repeat_string(s: String, args: &[Value], name: &str) -> Result<Value, SoplangError> {
+    expect_arity(args, name, 1)?;
+    let count = to_integer(&args[0], name)?;
     if count < 0 {
-        return Err(err_runtime("ku_celi() tiradiisu taban ma noqon karto"));
+        return Err(err_runtime(format!(
+            "{}() tiradiisu taban ma noqon karto",
+            name
+        )));
     }
     Ok(Value::Str(s.repeat(count as usize)))
 }

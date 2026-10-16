@@ -8,11 +8,52 @@ use crate::error::{parser_error, SoplangError};
 pub struct Parser {
     tokens: Vec<Token>,
     current: usize,
+    source: Option<(Option<std::path::PathBuf>, Vec<String>)>,
 }
 
 impl Parser {
     pub fn new(tokens: Vec<Token>) -> Self {
-        Self { tokens, current: 0 }
+        Self {
+            tokens,
+            current: 0,
+            source: None,
+        }
+    }
+
+    /// Keep locations for compiler execution; the plain parser API stays unwrapped.
+    pub fn with_source(mut self, source: &str, path: Option<&std::path::Path>) -> Self {
+        self.source = Some((
+            path.map(std::path::Path::to_path_buf),
+            source.split('\n').map(str::to_string).collect(),
+        ));
+        self
+    }
+
+    fn span(&self, token: &Token) -> Option<crate::error::SourceSpan> {
+        let (file, lines) = self.source.as_ref()?;
+        Some(crate::error::SourceSpan {
+            file: Some(
+                file.clone()
+                    .unwrap_or_else(|| std::path::PathBuf::from("<command>")),
+            ),
+            line: token.line,
+            col: token.col,
+            end_col: token.col + token.lexeme.chars().count().max(1) - 1,
+            source_line: lines
+                .get(token.line.saturating_sub(1))
+                .cloned()
+                .unwrap_or_default(),
+        })
+    }
+
+    fn locate(&self, expr: Expr, token: &Token) -> Expr {
+        match self.span(token) {
+            Some(span) => Expr::Located {
+                span,
+                expr: Box::new(expr),
+            },
+            None => expr,
+        }
     }
 
     pub fn parse(&mut self) -> Result<Vec<Stmt>, SoplangError> {
@@ -136,6 +177,18 @@ impl Parser {
     }
 
     fn parse_stmt(&mut self) -> Result<Stmt, SoplangError> {
+        let token = self.peek().clone();
+        let stmt = self.parse_stmt_inner()?;
+        Ok(match self.span(&token) {
+            Some(span) => Stmt::Located {
+                span,
+                stmt: Box::new(stmt),
+            },
+            None => stmt,
+        })
+    }
+
+    fn parse_stmt_inner(&mut self) -> Result<Stmt, SoplangError> {
         let t = self.peek();
         let (line, col) = (t.line, t.col);
 
@@ -607,7 +660,7 @@ impl Parser {
             }
             _ => {
                 return Err(parser_error(
-                    "Waxaa la filayay qoraal (file path)",
+                    "Waxaa la filayay qoraal ah jidka faylka",
                     t.line,
                     t.col,
                 ));
@@ -631,12 +684,16 @@ impl Parser {
         let body = self.parse_block_stmts()?;
         self.expect(TokenType::RBrace)?;
         for s in &body {
-            if !matches!(s, Stmt::FuncDef { .. }) {
-                return Err(parser_error(
-                    "Jirka qaabka waa in uu ka koobnaado hawl (methods) kaliya",
-                    line,
-                    col,
-                ));
+            if !matches!(s.unlocated(), Stmt::FuncDef { .. }) {
+                let error = parser_error("Jirka qaabka waa in uu ka koobnaado hawlo kaliya", 0, 0);
+                return Err(match s {
+                    Stmt::Located { span, .. } => span.attach(error),
+                    _ => parser_error(
+                        "Jirka qaabka waa in uu ka koobnaado hawlo kaliya",
+                        line,
+                        col,
+                    ),
+                });
             }
         }
         Ok(Stmt::ClassDef { name, parent, body })
@@ -671,34 +728,46 @@ impl Parser {
         self.advance();
 
         // Chain of .prop and [index] - then maybe = expr
-        let mut left = Expr::Identifier(name);
+        let marker = self.tokens[self.current - 1].clone();
+        let mut left = self.locate(Expr::Identifier(name), &marker);
 
         while self.check(TokenType::Dot) || self.check(TokenType::LBracket) {
             if self.check(TokenType::Dot) {
                 self.advance();
+                let marker = self.peek().clone();
                 let prop = self.expect_member_name()?;
                 if self.check(TokenType::LParen) {
                     self.expect(TokenType::LParen)?; // consume '('
                     let args = self.parse_call_args()?;
-                    left = Expr::MethodCall {
-                        obj: Box::new(left),
-                        method: prop,
-                        args,
-                    };
+                    left = self.locate(
+                        Expr::MethodCall {
+                            obj: Box::new(left),
+                            method: prop,
+                            args,
+                        },
+                        &marker,
+                    );
                 } else {
-                    left = Expr::Property {
-                        obj: Box::new(left),
-                        prop,
-                    };
+                    left = self.locate(
+                        Expr::Property {
+                            obj: Box::new(left),
+                            prop,
+                        },
+                        &marker,
+                    );
                 }
             } else {
+                let marker = self.peek().clone();
                 self.advance(); // [
                 let idx = self.parse_logical()?;
                 self.expect(TokenType::RBracket)?;
-                left = Expr::Index {
-                    obj: Box::new(left),
-                    idx: Box::new(idx),
-                };
+                left = self.locate(
+                    Expr::Index {
+                        obj: Box::new(left),
+                        idx: Box::new(idx),
+                    },
+                    &marker,
+                );
             }
         }
 
@@ -717,13 +786,13 @@ impl Parser {
             self.expect(TokenType::LParen)?; // consume '('
             let args = self.parse_call_args()?;
             let call = Expr::Call {
-                name: match &left {
+                name: match left.unlocated() {
                     Expr::Identifier(n) => n.clone(),
                     _ => return Err(parser_error("Waxaa la filayay magac hawl", line, col)),
                 },
                 args,
             };
-            return Ok(Stmt::Expr(call));
+            return Ok(Stmt::Expr(self.locate(call, &marker)));
         }
 
         Ok(Stmt::Expr(left))
@@ -752,6 +821,7 @@ impl Parser {
     fn parse_logical(&mut self) -> Result<Expr, SoplangError> {
         let mut left = self.parse_comparison()?;
         loop {
+            let marker = self.peek().clone();
             let tok = self.peek();
             let (op, _line, _col) = match &tok.kind {
                 TokenType::Or => ("||", tok.line, tok.col),
@@ -760,11 +830,14 @@ impl Parser {
             };
             self.advance();
             let right = self.parse_comparison()?;
-            left = Expr::BinaryOp {
-                op: op.to_string(),
-                left: Box::new(left),
-                right: Box::new(right),
-            };
+            left = self.locate(
+                Expr::BinaryOp {
+                    op: op.to_string(),
+                    left: Box::new(left),
+                    right: Box::new(right),
+                },
+                &marker,
+            );
         }
         Ok(left)
     }
@@ -772,6 +845,7 @@ impl Parser {
     fn parse_comparison(&mut self) -> Result<Expr, SoplangError> {
         let mut left = self.parse_expression()?;
         loop {
+            let marker = self.peek().clone();
             let t = self.peek();
             let op = match &t.kind {
                 TokenType::EqEq => {
@@ -801,11 +875,14 @@ impl Parser {
                 _ => break,
             };
             let right = self.parse_expression()?;
-            left = Expr::BinaryOp {
-                op: op.to_string(),
-                left: Box::new(left),
-                right: Box::new(right),
-            };
+            left = self.locate(
+                Expr::BinaryOp {
+                    op: op.to_string(),
+                    left: Box::new(left),
+                    right: Box::new(right),
+                },
+                &marker,
+            );
         }
         Ok(left)
     }
@@ -813,6 +890,7 @@ impl Parser {
     fn parse_expression(&mut self) -> Result<Expr, SoplangError> {
         let mut left = self.parse_term()?;
         loop {
+            let marker = self.peek().clone();
             let t = self.peek();
             let op = match &t.kind {
                 TokenType::Plus => {
@@ -826,11 +904,14 @@ impl Parser {
                 _ => break,
             };
             let right = self.parse_term()?;
-            left = Expr::BinaryOp {
-                op: op.to_string(),
-                left: Box::new(left),
-                right: Box::new(right),
-            };
+            left = self.locate(
+                Expr::BinaryOp {
+                    op: op.to_string(),
+                    left: Box::new(left),
+                    right: Box::new(right),
+                },
+                &marker,
+            );
         }
         Ok(left)
     }
@@ -838,6 +919,7 @@ impl Parser {
     fn parse_term(&mut self) -> Result<Expr, SoplangError> {
         let mut left = self.parse_factor()?;
         loop {
+            let marker = self.peek().clone();
             let t = self.peek();
             let op = match &t.kind {
                 TokenType::Star => {
@@ -855,16 +937,25 @@ impl Parser {
                 _ => break,
             };
             let right = self.parse_factor()?;
-            left = Expr::BinaryOp {
-                op: op.to_string(),
-                left: Box::new(left),
-                right: Box::new(right),
-            };
+            left = self.locate(
+                Expr::BinaryOp {
+                    op: op.to_string(),
+                    left: Box::new(left),
+                    right: Box::new(right),
+                },
+                &marker,
+            );
         }
         Ok(left)
     }
 
     fn parse_factor(&mut self) -> Result<Expr, SoplangError> {
+        let marker = self.peek().clone();
+        let expr = self.parse_factor_inner()?;
+        Ok(self.locate(expr, &marker))
+    }
+
+    fn parse_factor_inner(&mut self) -> Result<Expr, SoplangError> {
         if self.check(TokenType::Not) {
             self.advance();
             let expr = self.parse_factor()?;
@@ -894,29 +985,40 @@ impl Parser {
         loop {
             if self.check(TokenType::Dot) {
                 self.advance();
+                let marker = self.peek().clone();
                 let prop = self.expect_member_name()?;
                 if self.check(TokenType::LParen) {
                     self.expect(TokenType::LParen)?; // consume '('
                     let args = self.parse_call_args()?;
-                    expr = Expr::MethodCall {
-                        obj: Box::new(expr),
-                        method: prop,
-                        args,
-                    };
+                    expr = self.locate(
+                        Expr::MethodCall {
+                            obj: Box::new(expr),
+                            method: prop,
+                            args,
+                        },
+                        &marker,
+                    );
                 } else {
-                    expr = Expr::Property {
-                        obj: Box::new(expr),
-                        prop,
-                    };
+                    expr = self.locate(
+                        Expr::Property {
+                            obj: Box::new(expr),
+                            prop,
+                        },
+                        &marker,
+                    );
                 }
             } else if self.check(TokenType::LBracket) {
+                let marker = self.peek().clone();
                 self.advance();
                 let idx = self.parse_logical()?;
                 self.expect(TokenType::RBracket)?;
-                expr = Expr::Index {
-                    obj: Box::new(expr),
-                    idx: Box::new(idx),
-                };
+                expr = self.locate(
+                    Expr::Index {
+                        obj: Box::new(expr),
+                        idx: Box::new(idx),
+                    },
+                    &marker,
+                );
             } else {
                 break;
             }
@@ -925,6 +1027,12 @@ impl Parser {
     }
 
     fn parse_primary(&mut self) -> Result<Expr, SoplangError> {
+        let marker = self.peek().clone();
+        let expr = self.parse_primary_inner()?;
+        Ok(self.locate(expr, &marker))
+    }
+
+    fn parse_primary_inner(&mut self) -> Result<Expr, SoplangError> {
         let line = self.peek().line;
         let col = self.peek().col;
 
@@ -1004,7 +1112,7 @@ impl Parser {
             }
             _ => Err(parser_error(
                 format!(
-                    "Waxaa la filayay expression, laakiin waxaa la helay {:?}",
+                    "Waxaa la filayay weedh, laakiin waxaa la helay {:?}",
                     self.peek().lexeme
                 ),
                 line,
@@ -1036,7 +1144,7 @@ impl Parser {
                 _ => {
                     let t = self.peek();
                     return Err(parser_error(
-                        "Waxaa la filayay magac astaame (identifier ama qoraal)",
+                        "Waxaa la filayay magac astaame (magac ama qoraal)",
                         t.line,
                         t.col,
                     ));

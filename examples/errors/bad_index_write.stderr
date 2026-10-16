@@ -1,0 +1,4 @@
+Khalad fulin: Tusmadu way ka baxsan tahay teedka safka 2, tiirka 5
+     --> examples/errors/bad_index_write.sop:2:5
+   2 │       tirooyin[9] = 5
+     │       ^^^^^^^^

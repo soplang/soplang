@@ -1,0 +1,5 @@
+Khalad nooc: Ma bedeli kartid qiimaha doorsamaha madoor 'x' [E020] safka 2, tiirka 5
+     --> examples/errors/constant_assignment.sop:2:5
+   2 │       x = 2
+     │       ^
+     └─ Doorsamaha madoor ma beddeli karaan qiimahooda. Isticmaal 'door' haddii aad rabto mid beddeli kara.

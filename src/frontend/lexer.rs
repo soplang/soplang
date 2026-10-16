@@ -3,17 +3,17 @@
 use std::iter::Peekable;
 use std::str::Chars;
 
-use crate::error::{codes, lexer_error_ex, ErrorMeta, SoplangError};
 use super::token::{Token, TokenType};
+use crate::error::{codes, lexer_error_ex, ErrorMeta, SoplangError};
 
 pub struct Lexer<'a> {
     #[allow(dead_code)]
-    source:  &'a str,
-    chars:   Peekable<Chars<'a>>,
-    line:    usize,
-    col:     usize,
+    source: &'a str,
+    chars: Peekable<Chars<'a>>,
+    line: usize,
+    col: usize,
     /// Byte offset of `current` in `source`.
-    index:   usize,
+    index: usize,
     current: Option<char>,
 }
 
@@ -21,7 +21,14 @@ impl<'a> Lexer<'a> {
     pub fn new(source: &'a str) -> Self {
         let mut chars = source.chars().peekable();
         let current = chars.next();
-        Self { source, chars, line: 1, col: 1, index: 0, current }
+        Self {
+            source,
+            chars,
+            line: 1,
+            col: 1,
+            index: 0,
+            current,
+        }
     }
 
     pub fn tokenize(&mut self) -> Result<Vec<Token>, SoplangError> {
@@ -100,7 +107,8 @@ impl<'a> Lexer<'a> {
                 }
                 return Err(lexer_error_ex(
                     format!("Xaraf aan la filayn: {}", c),
-                    line, col,
+                    line,
+                    col,
                     ErrorMeta::default().with_code(codes::E001_UNEXPECTED_CHAR),
                 ));
             }
@@ -112,7 +120,8 @@ impl<'a> Lexer<'a> {
                 }
                 return Err(lexer_error_ex(
                     format!("Xaraf aan la filayn: {}", c),
-                    line, col,
+                    line,
+                    col,
                     ErrorMeta::default().with_code(codes::E001_UNEXPECTED_CHAR),
                 ));
             }
@@ -135,7 +144,8 @@ impl<'a> Lexer<'a> {
                 _ => {
                     return Err(lexer_error_ex(
                         format!("Xaraf aan la aqoon: {}", c),
-                        line, col,
+                        line,
+                        col,
                         ErrorMeta::default().with_code(codes::E001_UNEXPECTED_CHAR),
                     ));
                 }
@@ -143,7 +153,13 @@ impl<'a> Lexer<'a> {
             self.advance();
             return Ok(Token::new(kind, lexeme, line, col, start));
         }
-        Ok(Token::new(TokenType::Eof, "", self.line, self.col, self.index))
+        Ok(Token::new(
+            TokenType::Eof,
+            "",
+            self.line,
+            self.col,
+            self.index,
+        ))
     }
 
     fn advance(&mut self) {
@@ -184,6 +200,7 @@ impl<'a> Lexer<'a> {
             }
             return Ok(true);
         }
+        let (start_line, start_col) = (self.line, self.col);
         self.advance();
         self.advance();
         while self.current.is_some() {
@@ -196,14 +213,18 @@ impl<'a> Lexer<'a> {
         }
         Err(lexer_error_ex(
             "Faallo aan la xidhin",
-            self.line, self.col,
+            start_line,
+            start_col,
             ErrorMeta::default().with_code(codes::E003_UNTERMINATED_COMMENT),
         ))
     }
 
     fn read_identifier(&mut self, start_line: usize, start_col: usize, start: usize) -> Token {
         let mut s = String::new();
-        while self.current.map_or(false, |c| c.is_alphanumeric() || c == '_') {
+        while self
+            .current
+            .map_or(false, |c| c.is_alphanumeric() || c == '_')
+        {
             s.push(self.current.unwrap());
             self.advance();
         }
@@ -213,14 +234,23 @@ impl<'a> Lexer<'a> {
 
     fn read_number(&mut self, start_line: usize, start_col: usize, start: usize) -> Token {
         let mut s = String::new();
-        while self.current.map_or(false, |c| c.is_ascii_digit() || c == '.') {
+        while self
+            .current
+            .map_or(false, |c| c.is_ascii_digit() || c == '.')
+        {
             s.push(self.current.unwrap());
             self.advance();
         }
         Token::new(TokenType::Number, s, start_line, start_col, start)
     }
 
-    fn read_string(&mut self, quote: char, start_line: usize, start_col: usize, start: usize) -> Result<Token, SoplangError> {
+    fn read_string(
+        &mut self,
+        quote: char,
+        start_line: usize,
+        start_col: usize,
+        start: usize,
+    ) -> Result<Token, SoplangError> {
         self.advance();
         let mut s = String::new();
         while self.current.is_some() && self.current != Some(quote) {
@@ -231,11 +261,18 @@ impl<'a> Lexer<'a> {
         }
         if self.current == Some(quote) {
             self.advance();
-            Ok(Token::new(TokenType::String, s, start_line, start_col, start))
+            Ok(Token::new(
+                TokenType::String,
+                s,
+                start_line,
+                start_col,
+                start,
+            ))
         } else {
             Err(lexer_error_ex(
                 "Qoraal aan la xidhin",
-                self.line, self.col,
+                start_line,
+                start_col,
                 ErrorMeta::default().with_code(codes::E002_UNTERMINATED_STRING),
             ))
         }

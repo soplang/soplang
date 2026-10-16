@@ -1,0 +1,5 @@
+Khalad nooc: Magaca 'x' mar hore ayaa la qeexay [E020] safka 2, tiirka 1
+     --> examples/errors/duplicate_declaration.sop:2:1
+   2 │   door x = 2
+     │   ^^^^
+     └─ Magacan ayaa mar hore la isticmaalay. Fadlan isticmaal magac kale.

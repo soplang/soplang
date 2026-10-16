@@ -1,0 +1,4 @@
+Khalad fulin: kuceli() tiradiisu taban ma noqon karto safka 2, tiirka 11
+     --> examples/errors/negative_repeat.sop:2:11
+   2 │       qor(q.kuceli(-1))
+     │             ^^^^^^

@@ -1,0 +1,5 @@
+Khalad nooc: Qaab 'A' wuxuu ka dhaxlaa meel-wareeg [E021] safka 1, tiirka 1
+     --> examples/errors/inheritance_cycle.sop:1:1
+   1 │   qaab A dhaxal B {}
+     │   ^^^^
+     └─ Qaabku ma dhaxli karo naftiisa ama qaab uu ka dhaxlo.

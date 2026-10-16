@@ -1,0 +1,4 @@
+Khalad ereyayn: Xaraf aan la aqoon: @ [E001] safka 3, tiirka 9
+     --> examples/errors/unexpected_character.sop:3:9
+   3 │       qor(@)
+     │           ^

@@ -38,11 +38,13 @@ Soplang 3.0 establishes the release baseline:
 - Classes, inheritance, constructors, and `waalid`.
 - Lists, objects, Unicode strings, and short-circuit logic.
 - Numeric ranges, conditionals, switch statements, and loops.
-- Catchable runtime failures with `fasax` and `qabo`.
+- Catchable runtime failures with `tijaabi` and `qabo` (`fasax` remains supported).
 - File imports with `keen`.
 - Cranelift JIT execution and a persistent interactive REPL.
 - LLVM AOT compilation to standalone native binaries.
-- Cross-platform packages and automated release infrastructure.
+- Canonical collection names, safe defaults, integer slicing bounds, occurrence counting, and Unicode string endpoints.
+- Somali diagnostics with original files, token locations, and Unicode-aware carets in both backends.
+- Cross-platform packaging scripts and automated release infrastructure.
 
 ## Soplang 3.1 — runtime stability and diagnostics
 
@@ -62,7 +64,7 @@ tracing collection before an implementation is selected.
 
 ### Diagnostics and errors
 
-1. Preserve filenames, lines, and columns through HIR and both backends.
+1. Preserve filenames, lines, and columns through HIR and both backends. **Completed for 3.0**, including imported files and source carets.
 2. Produce compiled function stack traces.
 3. Add user-raised structured errors.
 4. Add guaranteed cleanup blocks equivalent to `finally`.
@@ -111,7 +113,7 @@ parser and iterator protocol are implemented.
 | Value | Planned operations |
 | --- | --- |
 | String | character classification, capitalization, title casing, padding, partitioning, lines, words, and formatting |
-| List | occurrence count, remove by value, extend in place, unique values, enumerate, zip, sum, and callback-based sorting |
+| List | remove by value, extend in place, unique values, enumerate, zip, sum, and callback-based sorting |
 | Object | insert when absent, merge in place, map entries, filter entries, and nested-path lookup |
 | Number | logarithms, trigonometry, constants, clamping, and seeded random generation |
 

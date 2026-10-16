@@ -1,0 +1,2 @@
+door q = "Soomaali"
+    qor(q.kuceli(-1))

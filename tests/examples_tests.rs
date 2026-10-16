@@ -1,85 +1,103 @@
-//! Integration tests: run example files, assert stdout.
-//! 7.1: ad-hoc example checks. 7.2: each example vs .expected file.
+//! Run every public example and compare its exit status and standard output.
 
 use std::fs;
+use std::io::Write;
 use std::path::{Path, PathBuf};
-use std::process::Command;
+use std::process::{Command, Output, Stdio};
 
-fn run_file(path: &Path) -> String {
-    run_file_with_stdin(path, None)
+fn examples() -> Vec<PathBuf> {
+    let mut paths: Vec<_> = fs::read_dir("examples")
+        .expect("examples directory")
+        .map(|entry| entry.unwrap().path())
+        .filter(|path| path.extension().is_some_and(|ext| ext == "sop"))
+        .filter(|path| !path.file_stem().unwrap().to_string_lossy().starts_with('_'))
+        .collect();
+    paths.sort();
+    paths
 }
 
-/// Run a .sop file, optionally with stdin (e.g. for gelin() in 13_input.sop).
-fn run_file_with_stdin(path: &Path, stdin: Option<&str>) -> String {
-    let exe = env!("CARGO_BIN_EXE_soplang");
-    let mut cmd = Command::new(exe);
-    cmd.arg(path);
-    if let Some(input) = stdin {
-        use std::io::Write;
-        cmd.stdin(std::process::Stdio::piped());
-        let mut child = cmd.spawn().expect("spawn soplang");
-        if let Some(mut stdin_write) = child.stdin.take() {
-            stdin_write.write_all(input.as_bytes()).expect("write stdin");
-        }
-        let out = child.wait_with_output().expect("wait soplang");
-        return String::from_utf8(out.stdout).unwrap();
+fn command_output(mut command: Command, input: Option<&str>) -> Output {
+    command.stdout(Stdio::piped()).stderr(Stdio::piped());
+    if input.is_some() {
+        command.stdin(Stdio::piped());
     }
-    let out = cmd.output().expect("run soplang");
-    String::from_utf8(out.stdout).unwrap()
+    let mut child = command.spawn().expect("start example");
+    if let Some(input) = input {
+        child
+            .stdin
+            .take()
+            .unwrap()
+            .write_all(input.as_bytes())
+            .unwrap();
+    }
+    child.wait_with_output().expect("finish example")
 }
 
-/// Path to .expected for a .sop file (e.g. examples/15_classes.sop -> examples/15_classes.expected).
-fn expected_path(sop_path: &Path) -> PathBuf {
-    sop_path
-        .with_file_name(sop_path.file_stem().unwrap_or_default().to_string_lossy().to_string() + ".expected")
+fn check_output(path: &Path, output: Output) {
+    assert!(
+        output.status.success(),
+        "{} failed: {}",
+        path.display(),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        output.stderr.is_empty(),
+        "{} wrote stderr: {}",
+        path.display(),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let expected_path = path.with_extension("expected");
+    let expected =
+        fs::read_to_string(&expected_path).expect("every public example must have expected output");
+    assert_eq!(
+        String::from_utf8(output.stdout)
+            .unwrap()
+            .replace("\r\n", "\n"),
+        expected.replace("\r\n", "\n"),
+        "{} stdout",
+        path.display()
+    );
 }
 
-#[test]
-fn test_example_hello() {
-    let path = Path::new("examples/01_hello.sop");
-    let output = run_file(path);
-    assert_eq!(output, "Salaan, Adduunka!\n");
-}
-
-/// Phase 7.2: Run each examples/*.sop that has a .expected file; assert stdout matches.
-/// Regenerate .expected: see examples/README.md.
-/// Skips the random example and any .sop without a .expected file.
 #[test]
 fn test_each_example_against_expected() {
-    let examples_dir = Path::new("examples");
-    let dir = match fs::read_dir(examples_dir) {
-        Ok(d) => d,
-        Err(_) => return,
-    };
-    let mut sop_paths: Vec<PathBuf> = dir
-        .filter_map(|e| e.ok())
-        .map(|e| e.path())
-        .filter(|p| p.extension().map(|e| e == "sop").unwrap_or(false))
-        .collect();
-    sop_paths.sort();
-
-    for sop_path in sop_paths {
-        let stem = sop_path.file_stem().and_then(|s| s.to_str()).unwrap_or("");
-        if stem == "14_random" {
-            continue; // non-deterministic (xul)
+    for path in examples() {
+        let mut command = Command::new(env!("CARGO_BIN_EXE_soplang"));
+        command.arg("--no-color");
+        if path.file_stem().unwrap() == "23_strict_types" {
+            command.arg("--strict");
         }
-        let expected_path = expected_path(&sop_path);
-        if !expected_path.exists() {
-            continue;
-        }
-        let expected = fs::read_to_string(&expected_path).unwrap_or_default();
-        // 13_input.sop uses gelin(); feed stdin so output is deterministic.
-        let actual = if stem == "13_input" {
-            run_file_with_stdin(&sop_path, Some("TestUser\n"))
-        } else {
-            run_file(&sop_path)
-        };
-        assert_eq!(
-            actual,
-            expected,
-            "example {} stdout did not match {}",
-            sop_path.display(),
-            expected_path.display()
-        );
+        command.arg(&path);
+        let input = (path.file_stem().unwrap() == "13_input").then_some("TestUser\n");
+        check_output(&path, command_output(command, input));
     }
+}
+
+#[test]
+fn test_aot_each_example_against_expected() {
+    let dir = std::env::temp_dir().join(format!("soplang_examples_{}", std::process::id()));
+    fs::create_dir_all(&dir).unwrap();
+    for path in examples() {
+        let binary = dir
+            .join(path.file_stem().unwrap())
+            .with_extension(std::env::consts::EXE_EXTENSION);
+        let mut build = Command::new(env!("CARGO_BIN_EXE_soplang"));
+        build.args(["--no-color", "--build", "--quiet"]);
+        if path.file_stem().unwrap() == "23_strict_types" {
+            build.arg("--strict");
+        }
+        let result = build.arg(&path).arg("-o").arg(&binary).output().unwrap();
+        assert!(
+            result.status.success(),
+            "{} build: {}",
+            path.display(),
+            String::from_utf8_lossy(&result.stderr)
+        );
+        let input = (path.file_stem().unwrap() == "13_input").then_some("TestUser\n");
+        let mut command = Command::new(&binary);
+        command.env("NO_COLOR", "1");
+        check_output(&path, command_output(command, input));
+        fs::remove_file(binary).unwrap();
+    }
+    fs::remove_dir(dir).unwrap();
 }

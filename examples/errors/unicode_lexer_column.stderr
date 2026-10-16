@@ -1,0 +1,4 @@
+Khalad ereyayn: Xaraf aan la aqoon: @ [E001] safka 1, tiirka 20
+     --> examples/errors/unicode_lexer_column.sop:1:20
+   1 │   door q = "é🙂"; qor(@)
+     │                       ^

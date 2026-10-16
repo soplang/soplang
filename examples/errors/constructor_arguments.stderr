@@ -1,0 +1,5 @@
+Khalad nooc: dhaw() ee qaabka 'Qof' wuxuu u baahan yahay 1 dood, laakiin 0 ayaa la bixiyay [E022] safka 2, tiirka 12
+     --> examples/errors/constructor_arguments.sop:2:12
+   2 │   door qof = cusub Qof()
+     │              ^^^^^
+     └─ Hubi tirada doodaha aad siisay cusub.

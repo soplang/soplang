@@ -42,6 +42,10 @@ fn short_circuit_if_pending() -> Option<SoplangValue> {
 }
 
 fn handle_runtime_error(e: SoplangError) -> SoplangValue {
+    let e = CURRENT_SOURCE.with(|source| match source.borrow().as_ref() {
+        Some(span) => span.attach(e),
+        None => e,
+    });
     let msg = error_message(&e);
     if TRY_DEPTH.with(|d| d.get()) > 0 {
         PENDING_ERROR.with(|p| *p.borrow_mut() = Some(msg));
@@ -49,14 +53,57 @@ fn handle_runtime_error(e: SoplangError) -> SoplangValue {
     } else {
         use std::io::Write;
         let _ = std::io::stdout().flush();
-        eprintln!("{}", e);
+        eprintln!("{}", crate::error::format_error_with_source(&e, None));
         std::process::exit(1);
     }
 }
 
 thread_local! {
+    static CURRENT_SOURCE: RefCell<Option<crate::error::SourceSpan>> = RefCell::new(None);
     static TRY_DEPTH: Cell<u32> = Cell::new(0);
     static PENDING_ERROR: RefCell<Option<String>> = RefCell::new(None);
+}
+
+/// Set the source token for the next runtime operation in either backend.
+#[no_mangle]
+pub extern "C" fn soplang_set_location(
+    file_ptr: *const u8,
+    file_len: usize,
+    line: usize,
+    col: usize,
+    end_col: usize,
+    text_ptr: *const u8,
+    text_len: usize,
+) {
+    if file_ptr.is_null() || text_ptr.is_null() {
+        return;
+    }
+    let file = unsafe { String::from_utf8_lossy(std::slice::from_raw_parts(file_ptr, file_len)) };
+    let text = unsafe { String::from_utf8_lossy(std::slice::from_raw_parts(text_ptr, text_len)) };
+    CURRENT_SOURCE.with(|source| {
+        let mut source = source.borrow_mut();
+        if let Some(current) = source.as_mut() {
+            // Most consecutive operations share a line. Avoid allocating file
+            // and line strings for every arithmetic operation in a loop.
+            if current.file.as_ref().and_then(|p| p.to_str()) != Some(file.as_ref()) {
+                current.file = Some(std::path::PathBuf::from(file.as_ref()));
+            }
+            if current.source_line != text {
+                current.source_line = text.into_owned();
+            }
+            current.line = line;
+            current.col = col;
+            current.end_col = end_col;
+        } else {
+            *source = Some(crate::error::SourceSpan {
+                file: Some(std::path::PathBuf::from(file.as_ref())),
+                line,
+                col,
+                end_col,
+                source_line: text.into_owned(),
+            });
+        }
+    });
 }
 
 /// Begin a try block.
@@ -1348,6 +1395,12 @@ fn dispatch_list_method(
     method: &str,
     args: &[Value],
 ) -> Result<Value, SoplangError> {
+    // Report the spelling used at the call site when validating aliases.
+    match method {
+        "raadi" => super::stdlib::expect_arity(args, method, 1)?,
+        "hore" | "dambe" => super::stdlib::expect_arity(args, method, 0)?,
+        _ => {}
+    }
     match method {
         "shaandhee" => {
             if args.len() != 1 {
@@ -1454,6 +1507,12 @@ fn dispatch_object_method(
     method: &str,
     args: &[Value],
 ) -> Result<Value, SoplangError> {
+    // Report the spelling used at the call site when validating aliases.
+    match method {
+        "furayaal" | "qiimayaal" | "lammaanayaal" => super::stdlib::expect_arity(args, method, 0)?,
+        "midee" => super::stdlib::expect_arity(args, method, 1)?,
+        _ => {}
+    }
     match method {
         "furayaal" | "fure" => super::stdlib::object_fure(Rc::clone(o), args),
         "dherer" => super::stdlib::object_dherer(Rc::clone(o), args),
@@ -1478,6 +1537,12 @@ fn dispatch_object_method(
 }
 
 fn dispatch_string_method(s: &str, method: &str, args: &[Value]) -> Result<Value, SoplangError> {
+    // Report the spelling used at the call site when validating aliases.
+    match method {
+        "weynee" | "yaree" | "masax_dhammaad" => super::stdlib::expect_arity(args, method, 0)?,
+        "xiriiri" | "dhammaad" => super::stdlib::expect_arity(args, method, 1)?,
+        _ => {}
+    }
     match method {
         "qeybi" => super::stdlib::string_qeybi(s.to_string(), args),
         "leeyahay" => super::stdlib::string_leeyahay(s.to_string(), args),
@@ -1502,7 +1567,8 @@ fn dispatch_string_method(s: &str, method: &str, args: &[Value]) -> Result<Value
             super::stdlib::string_masax_dhamaad(s.to_string(), args)
         }
         "tiri" => super::stdlib::string_tiri(s.to_string(), args),
-        "kuceli" | "ku_celi" => super::stdlib::string_ku_celi(s.to_string(), args),
+        "kuceli" => super::stdlib::string_kuceli(s.to_string(), args),
+        "ku_celi" => super::stdlib::string_ku_celi(s.to_string(), args),
         "raadi_dambe" => super::stdlib::string_raadi_dambe(s.to_string(), args),
         _ => Err(runtime_error(
             format!("Qoraalku ma laha hawl la yiraahdo '{}'.", method),
@@ -1707,7 +1773,14 @@ pub extern "C" fn soplang_get_builtin(name: *const u8, len: usize) -> SoplangVal
             payload: i,
         };
     }
-    SoplangValue::null()
+    handle_runtime_error(crate::error::type_error_ex(
+        format!("Magaca '{}' lama aqoonsan", key),
+        0,
+        0,
+        crate::error::ErrorMeta::default()
+            .with_code(crate::error::codes::E021_UNDECLARED)
+            .with_hint("Magacan qeex ka hor intaadan isticmaalin."),
+    ))
 }
 
 /// Register a compiled function pointer so soplang_call can dispatch to it.

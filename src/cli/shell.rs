@@ -6,7 +6,7 @@ use std::path::Path;
 use rustyline::error::ReadlineError;
 use rustyline::DefaultEditor;
 
-use crate::{format_error_with_source, maybe_wrap_for_repl, run_source};
+use crate::{format_error_with_source, run_source};
 
 use super::ReplSession;
 
@@ -50,7 +50,11 @@ impl Shell {
             let _ = editor.load_history(&p);
         }
         let session = ReplSession::new(strict).expect("Cranelift JIT");
-        Self { editor, strict, session }
+        Self {
+            editor,
+            strict,
+            session,
+        }
     }
 
     pub fn run(&mut self) {
@@ -140,8 +144,11 @@ impl Shell {
                     return false;
                 }
                 match fs::read_to_string(path) {
-                    Ok(source) => self.execute_at(&source, Some(Path::new(path)), false),
-                    Err(e) => eprintln!("Khalad: Ma suurtagelin in la akhriyo faylka '{}': {}", path, e),
+                    Ok(source) => self.execute_at(&source, Some(Path::new(path))),
+                    Err(e) => eprintln!(
+                        "Khalad: Ma suurtagelin in la akhriyo faylka '{}': {}",
+                        path, e
+                    ),
                 }
             }
             "/ast" => {
@@ -170,16 +177,11 @@ impl Shell {
     }
 
     fn execute(&mut self, source: &str) {
-        self.execute_at(source, None, true);
+        self.execute_at(source, None);
     }
 
-    fn execute_at(&mut self, source: &str, path: Option<&Path>, wrap: bool) {
-        let to_run = if wrap {
-            maybe_wrap_for_repl(source)
-        } else {
-            source.to_string()
-        };
-        if let Err(e) = self.session.eval(&to_run, path) {
+    fn execute_at(&mut self, source: &str, path: Option<&Path>) {
+        if let Err(e) = self.session.eval(source, path) {
             eprintln!("{}", format_error_with_source(&e, Some(source)));
         }
     }

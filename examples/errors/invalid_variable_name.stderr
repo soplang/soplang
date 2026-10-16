@@ -1,0 +1,4 @@
+Khalad naxwe: Waxaa la filayay magac doorsame, laakiin waxaa la helay "12" safka 1, tiirka 6
+     --> examples/errors/invalid_variable_name.sop:1:6
+   1 │   door 12 = 3
+     │        ^

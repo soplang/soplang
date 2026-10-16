@@ -1,0 +1,5 @@
+Khalad nooc: Magaca 'magac' lama aqoonsan [E021] safka 2, tiirka 5
+     --> examples/errors/undeclared_assignment.sop:2:5
+   2 │       magac = 1
+     │       ^^^^^
+     └─ Doorsame cusub ku qeex 'door' ama 'madoor' ka hor intaadan isticmaalin.

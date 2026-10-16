@@ -1,0 +1,5 @@
+Khalad nooc: 'jooji' waxaa lagu isticmaali karaa wareeg gudaheeda kaliya [E022] safka 2, tiirka 5
+     --> examples/errors/break_outside_loop.sop:2:5
+   2 │       jooji
+     │       ^^^^^
+     └─ Geli 'jooji' gudaha inta ama kuceli.

@@ -1,0 +1,4 @@
+abn tiro = 3
+hawl qoraalkayga() { celi "qoraal" }
+hawl beddel() { tiro = qoraalkayga() }
+beddel()

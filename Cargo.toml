@@ -13,6 +13,7 @@ cranelift-module = "0.125"
 cranelift-native = "0.125"
 rustyline = "14"
 thiserror = "1.0"
+unicode-width = "0.1.14"
 
 [dev-dependencies]
 criterion = { version = "0.5", features = ["html_reports"] }

@@ -1,0 +1,5 @@
+Khalad nooc: 'tiro' waa abn laakin qiimaheeda 'qoraal' ma ahan abn [E022] safka 2, tiirka 1
+     --> examples/errors/type_mismatch.sop:2:1
+   2 │   abn tiro = "Salaan"
+     │   ^^^
+     └─ Hubi in nooca qiimaha uu la mid yahay nooca lagu qeexay doorsamaha.

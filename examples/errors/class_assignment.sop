@@ -1,0 +1,5 @@
+qaab A {}
+qaab B {}
+A qof = cusub A()
+door kale = { qof: cusub B() }
+    qof = kale.hel("qof")

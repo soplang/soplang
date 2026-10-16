@@ -1,0 +1,11 @@
+// Magacyadii hore weli way shaqeeyaan.
+door tirooyin = [1, 2, 3]
+qor(tirooyin.koowaad() == tirooyin.hore())
+qor(tirooyin.ugu_dambeeya() == tirooyin.dambe())
+qor(tirooyin.muuji(2) == tirooyin.raadi(2))
+qor(ugu_yar(2, 1) == yar(2, 1))
+qor(awood(2, 3) == jibbaar(2, 3))
+qaab Qof { hawl dhaw(magac) { nafta.magac = magac } }
+door qof = cusub Qof("Ayaan")
+qor(qof.magac)
+fasax { qor(1 / 0) } qabo (e) { qor("Qabtay") }

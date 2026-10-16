@@ -52,6 +52,7 @@ pub enum SlotNum {
 
 #[derive(Debug, Clone)]
 pub enum HirInstr {
+    SetLocation(Box<crate::error::SourceSpan>),
     Const {
         dst: Slot,
         val: HirConst,
@@ -201,6 +202,7 @@ pub struct HirModule {
 impl fmt::Display for HirInstr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            HirInstr::SetLocation(span) => write!(f, "  location {}:{}", span.line, span.col),
             HirInstr::Const { dst, val } => write!(f, "  %{} = const {:?}", dst, val),
             HirInstr::Copy { dst, src } => write!(f, "  %{} = copy %{}", dst, src),
             HirInstr::Load { dst, name } => write!(f, "  %{} = load {}", dst, name),
@@ -376,6 +378,7 @@ pub struct HirLowering<'a> {
     nums: Vec<SlotNum>,
     /// Variable slots keep the kind from their type annotation.
     fixed: Vec<bool>,
+    current_span: Option<crate::error::SourceSpan>,
 }
 
 impl<'a> HirLowering<'a> {
@@ -393,6 +396,7 @@ impl<'a> HirLowering<'a> {
             return_ann: None,
             nums: Vec::new(),
             fixed: Vec::new(),
+            current_span: None,
         };
         if let Some(scope) = sym.scopes.first() {
             lower.prepare_vars(&scope.vars);
@@ -400,7 +404,7 @@ impl<'a> HirLowering<'a> {
         let top_nums = lower.nums.clone();
         let func_bodies = collect_func_bodies(stmts);
         for s in stmts {
-            match s {
+            match s.unlocated() {
                 Stmt::FuncDef { .. } | Stmt::ClassDef { .. } => {}
                 _ => lower.lower_stmt(s),
             }
@@ -430,6 +434,7 @@ impl<'a> HirLowering<'a> {
                     return_ann: Some(fm.return_ann.clone()),
                     nums: Vec::new(),
                     fixed: Vec::new(),
+                    current_span: None,
                 };
                 inner.prepare_vars(&fm.scope_vars);
                 let local_nums = inner.nums.clone();
@@ -582,6 +587,30 @@ impl<'a> HirLowering<'a> {
     }
 
     fn emit(&mut self, instr: HirInstr) {
+        if matches!(
+            instr,
+            HirInstr::Load { .. }
+                | HirInstr::Store { .. }
+                | HirInstr::BinOp { .. }
+                | HirInstr::UnOp { .. }
+                | HirInstr::BuildList { .. }
+                | HirInstr::BuildObject { .. }
+                | HirInstr::GetIndex { .. }
+                | HirInstr::SetIndex { .. }
+                | HirInstr::GetProp { .. }
+                | HirInstr::SetProp { .. }
+                | HirInstr::Call { .. }
+                | HirInstr::CallMethod { .. }
+                | HirInstr::NewInstance { .. }
+                | HirInstr::CheckType { .. }
+                | HirInstr::CheckClass { .. }
+                | HirInstr::RangeContinue { .. }
+        ) {
+            if let Some(span) = &self.current_span {
+                self.body
+                    .push(HirInstr::SetLocation(Box::new(span.clone())));
+            }
+        }
         self.body.push(instr);
     }
 
@@ -691,6 +720,11 @@ impl<'a> HirLowering<'a> {
 
     fn lower_stmt(&mut self, stmt: &Stmt) {
         match stmt {
+            Stmt::Located { span, stmt } => {
+                let previous = self.current_span.replace(span.clone());
+                self.lower_stmt(stmt);
+                self.current_span = previous;
+            }
             Stmt::VarDecl {
                 name,
                 value,
@@ -720,7 +754,7 @@ impl<'a> HirLowering<'a> {
             }
             Stmt::Assign { target, value, .. } => {
                 let val_slot = self.lower_expr(value);
-                match target {
+                match target.unlocated() {
                     Expr::Identifier(n) => {
                         if let Some(ann) = self.var_ann(n) {
                             self.emit_type_check(val_slot, &ann, n);
@@ -1020,6 +1054,12 @@ impl<'a> HirLowering<'a> {
 
     fn lower_expr(&mut self, expr: &Expr) -> Slot {
         match expr {
+            Expr::Located { span, expr } => {
+                let previous = self.current_span.replace(span.clone());
+                let result = self.lower_expr(expr);
+                self.current_span = previous;
+                result
+            }
             Expr::Literal(lit) => {
                 let slot = self.alloc_slot();
                 let val = match lit {
@@ -1125,7 +1165,7 @@ impl<'a> HirLowering<'a> {
                 dst
             }
             Expr::MethodCall { obj, method, args } => {
-                if let Expr::Identifier(recv) = obj.as_ref() {
+                if let Expr::Identifier(recv) = obj.unlocated() {
                     if recv == "waalid" {
                         if let Some(slot) = self.lower_parent_call(method, args) {
                             return slot;
@@ -1232,6 +1272,7 @@ fn collect_funcs<'a>(stmts: &'a [Stmt], out: &mut Vec<&'a [Stmt]>) {
 
 fn collect_funcs_stmt<'a>(stmt: &'a Stmt, out: &mut Vec<&'a [Stmt]>) {
     match stmt {
+        Stmt::Located { stmt, .. } => collect_funcs_stmt(stmt, out),
         Stmt::FuncDef { body, .. } => {
             collect_funcs(body, out);
             out.push(body);
@@ -1306,6 +1347,7 @@ fn collect_funcs_stmt<'a>(stmt: &'a Stmt, out: &mut Vec<&'a [Stmt]>) {
 
 fn collect_funcs_expr<'a>(expr: &'a Expr, out: &mut Vec<&'a [Stmt]>) {
     match expr {
+        Expr::Located { expr, .. } => collect_funcs_expr(expr, out),
         Expr::Literal(_) | Expr::Identifier(_) => {}
         Expr::BinaryOp { left, right, .. } => {
             collect_funcs_expr(left, out);

@@ -1,0 +1,15 @@
+door tirooyin = [10, 20]
+tirooyin.geli([30, 40])
+qor(tirooyin)
+qor(tirooyin.midee([50]))
+qor(tirooyin.saar())
+tirooyin.dhig(0, 15)
+qor(tirooyin.hel(-1))
+qor(tirooyin.jar())
+qor(tirooyin.jar(1, 0))
+qor([1, 2, 1].tiri(1))
+door qof = { magac: "Ayaan", da: 25 }
+qor(qof.dherer())
+qor(qof.furayaal())
+qor(qof.midee({ da: 26 }).hel("da"))
+qor(qof.saar("da"))

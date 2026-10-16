@@ -1,0 +1,4 @@
+Khalad nooc: masax() jihadu waa inay noqotaa 'hore' ama 'dambe' safka 2, tiirka 11
+     --> examples/errors/bad_direction.sop:2:11
+   2 │       qor(q.masax("bidix"))
+     │             ^^^^^

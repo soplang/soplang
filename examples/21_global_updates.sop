@@ -1,0 +1,14 @@
+door tiro = 0
+hawl kordhi() { tiro = tiro + 1 }
+kordhi()
+qor(tiro)
+intay (tiro < 3) { kordhi() }
+qor(tiro)
+abn abyoone = 2.0
+jajab jajabkayga = 2
+hawl beddel() { abyoone = 3.0; jajabkayga = 3 }
+beddel()
+qor(abyoone * 2)
+qor(jajabkayga + 0.5)
+qor(nooc(abyoone))
+qor(nooc(jajabkayga))

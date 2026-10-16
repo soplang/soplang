@@ -1,0 +1,4 @@
+Khalad nooc: Hawsha 'aaddin()' waxay u baahan tahay dood hawl ah safka 2, tiirka 18
+     --> examples/errors/invalid_empty_callback.sop:2:18
+   2 │       qor(tirooyin.aaddin(3))
+     │                    ^^^^^^

@@ -1,0 +1,4 @@
+Khalad nooc: Furaha waa in uu noqdo qoraal safka 2, tiirka 11
+     --> examples/errors/object_key_type.sop:2:11
+   2 │       qor(w.hel(1))
+     │             ^^^

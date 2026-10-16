@@ -962,6 +962,7 @@ dependencies = [
  "criterion",
  "rustyline",
  "thiserror",
+ "unicode-width",
 ]
 
 [[package]]

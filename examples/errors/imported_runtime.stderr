@@ -1,0 +1,4 @@
+Khalad fulin: Tiro looma qaybin karo eber. safka 2, tiirka 12
+     --> examples/errors/support/_runtime.sop:2:12
+   2 │       celi 8 / 0
+     │              ^

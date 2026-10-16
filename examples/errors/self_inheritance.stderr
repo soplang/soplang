@@ -1,0 +1,5 @@
+Khalad nooc: Qaab 'Qof' wuxuu ka dhaxlaa meel-wareeg [E021] safka 1, tiirka 1
+     --> examples/errors/self_inheritance.sop:1:1
+   1 │   qaab Qof dhaxal Qof {
+     │   ^^^^
+     └─ Qaabku ma dhaxli karo naftiisa ama qaab uu ka dhaxlo.

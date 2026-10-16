@@ -1,0 +1,5 @@
+Khalad nooc: 'celi' waxaa lagu isticmaali karaa hawl gudaheeda kaliya [E022] safka 2, tiirka 5
+     --> examples/errors/return_outside_function.sop:2:5
+   2 │       celi 1
+     │       ^^^^
+     └─ Geli 'celi' gudaha hawl.

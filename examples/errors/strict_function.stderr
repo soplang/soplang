@@ -1,0 +1,5 @@
+Khalad nooc: hawl 'laban' ma leh nooc celi cad [E022] safka 1, tiirka 1
+     --> examples/errors/strict_function.sop:1:1
+   1 │   hawl laban(x) { celi x * 2 }
+     │   ^^^^
+     └─ Habka adag: qor nooca qiimaha la celinayo sida ') : abn {' ama ') : qoraal {'.

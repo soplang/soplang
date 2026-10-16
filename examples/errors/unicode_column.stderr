@@ -1,0 +1,4 @@
+Khalad fulin: Tiro looma qaybin karo eber. safka 1, tiirka 27
+     --> examples/errors/unicode_column.sop:1:27
+   1 │   door q = "é🙂"; door n = 1 / 0
+     │                              ^

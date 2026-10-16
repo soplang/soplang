@@ -1,0 +1,5 @@
+Khalad nooc: doodda 1 ee 'aqbal' waa 'abn', laakiin 'qoraal' ayaa la helay [E022] safka 2, tiirka 5
+     --> examples/errors/function_argument_type.sop:2:5
+   2 │       aqbal("qoraal")
+     │       ^^^^^
+     └─ La jaanqaad noocyada doodaha ee qeexidda hawsha.

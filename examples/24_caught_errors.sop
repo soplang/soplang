@@ -1,0 +1,16 @@
+door qaladaad = 0
+tijaabi { qor(1 / 0) } qabo (e) {
+    qor("Qaybin eber ah ayaa la qabtay")
+    qaladaad = qaladaad + 1
+}
+door tirooyin = []
+tijaabi { tirooyin.saar() } qabo (e) {
+    qor("Teed madhan ayaa la qabtay")
+    qaladaad = qaladaad + 1
+}
+tijaabi { qor("abc".jar(1.5)) } qabo (e) {
+    qor("Tusmo aan abn ahayn ayaa la qabtay")
+    qaladaad = qaladaad + 1
+}
+qor(qaladaad)
+qor("Fulintu way sii socotaa")

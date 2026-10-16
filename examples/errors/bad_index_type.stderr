@@ -1,0 +1,4 @@
+Khalad nooc: Tusmada teed ama qoraal waa in ay noqoto abn safka 2, tiirka 17
+     --> examples/errors/bad_index_type.sop:2:17
+   2 │       qor(tirooyin["kow"])
+     │                   ^

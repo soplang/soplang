@@ -1,0 +1,2 @@
+door f = hawl(x) { celi x }
+    f()

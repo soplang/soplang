@@ -1,0 +1,4 @@
+Khalad fulin: Hawlgalka (%) ma aqbalo qaybiye eber ah. safka 2, tiirka 14
+     --> examples/errors/modulo_zero.sop:2:14
+   2 │       qor(tiro % 0)
+     │                ^

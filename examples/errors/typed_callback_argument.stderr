@@ -1,0 +1,4 @@
+Khalad nooc: 'dood' waa abn laakin qiimaheeda 'qoraal' ma ahan abn safka 3, tiirka 5
+     --> examples/errors/typed_callback_argument.sop:3:5
+   3 │       f("qoraal")
+     │       ^

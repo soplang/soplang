@@ -31,8 +31,12 @@ pub fn run_source(
     dump_hir: bool,
     strict: bool,
 ) -> Result<(), SoplangError> {
-    let tokens = Lexer::new(source).tokenize()?;
-    let stmts = frontend::imports::resolve_imports(Parser::new(tokens).parse()?, path)?;
+    let parsed = if path.is_none() {
+        frontend::parse_snippet(source)?
+    } else {
+        frontend::parse_source(source, path)?
+    };
+    let stmts = frontend::imports::resolve_imports(parsed, path)?;
     if print_ast {
         for s in &stmts {
             print!("{}", s);
@@ -93,9 +97,8 @@ pub fn build_source(
     opt_level: u8,
     strict: bool,
 ) -> Result<(), SoplangError> {
-    let bundled = frontend::imports::bundle_source(source, source_path)?;
-    let tokens = Lexer::new(&bundled).tokenize()?;
-    let stmts = Parser::new(tokens).parse()?;
+    let parsed = frontend::parse_source(source, source_path)?;
+    let stmts = frontend::imports::resolve_imports(parsed, source_path)?;
     let sym = semantic::analyze_with_options(
         &stmts,
         semantic::AnalyzeOptions {

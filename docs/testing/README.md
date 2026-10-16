@@ -6,13 +6,15 @@ These pages describe how to test the Soplang compiler and how to check Soplang p
 
 Tests check user-visible behavior of the Rust compiler:
 
-1. **Example programs** in `examples/*.sop` show language features. A file with a matching `.expected` is compared against stdout.
+1. **Example programs** in `examples/*.sop` show language features. Every numbered file has `.expected` stdout and runs through both backends.
 2. **Unit tests** cover the lexer, parser, semantic analysis, HIR, and runtime.
 3. **Integration tests** run the `soplang` binary on short programs and on example files.
-4. **Benchmarks** measure the Cranelift JIT. See [benchmarks/README.md](../../benchmarks/README.md).
+4. **Diagnostic examples** in `examples/errors/` check Somali messages, original files, line/column positions, and caret alignment.
+5. **Benchmarks** measure the Cranelift JIT. See [benchmarks/README.md](../../benchmarks/README.md).
 
 ## Pages
 
+- [Release verification](RELEASE_VERIFICATION.md) — local results and remaining distribution gates
 - [Test methodology](TEST_METHODOLOGY.md) — what the suites cover and how to run them
 - [Example programs](EXAMPLES.md) — the programs under `examples/`
 - [Debugging](DEBUGGING.md) — errors in Soplang programs, and `--ast` / `--hir` for the compiler
@@ -26,11 +28,13 @@ From the repository root:
 cargo build --release
 ./target/release/soplang examples/01_hello.sop
 
-# Tests. AOT tests compile a small Cargo project and are slower.
-cargo test
+# All tests, including LLVM compilation of valid and failing examples.
+cargo test --locked
 
 # Skip the AOT tests
-cargo test -- --skip test_aot
+cargo test --locked -- --skip test_aot
+
+cargo test --locked --test diagnostic_tests
 
 # One integration test
 cargo test --test interpreter_tests test_hello_world

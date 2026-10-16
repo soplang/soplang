@@ -1,0 +1,7 @@
+hawl dibadda() {
+    hawl gudaha() {
+        celi 4 / 0
+    }
+    celi gudaha()
+}
+dibadda()

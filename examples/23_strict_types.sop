@@ -1,0 +1,6 @@
+// Ku socodsii --strict; dood kasta iyo qiimaha la celiyo waxay leeyihiin nooc.
+hawl laban(abn x) : abn { celi x * 2 }
+abn tiro = 3
+qor(laban(tiro))
+jajab qiime = 2
+qor(qiime + 0.5)

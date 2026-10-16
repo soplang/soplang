@@ -1,0 +1,4 @@
+Khalad nooc: 'qof' waa A laakin qiimaheeda '{__class__: B}' ma ahan A safka 5, tiirka 5
+     --> examples/errors/class_assignment.sop:5:5
+   5 │       qof = kale.hel("qof")
+     │       ^^^

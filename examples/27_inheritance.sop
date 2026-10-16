@@ -1,0 +1,11 @@
+qaab Xayawaan {
+    hawl dhis(magac) { nafta.magac = magac }
+    hawl cod() { celi nafta.magac }
+}
+qaab Bisad dhaxal Xayawaan {
+    hawl dhis(magac) { waalid.dhis(magac) }
+    hawl cod() { celi waalid.cod() + ": Mia" }
+}
+Xayawaan x = cusub Bisad("Bilan")
+qor(x.cod())
+qor(x.magac)

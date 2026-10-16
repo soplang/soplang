@@ -1,0 +1,5 @@
+Khalad nooc: Hawl 'maqan' lama helin waalidka qaabka 'B' [E021] safka 3, tiirka 30
+     --> examples/errors/unknown_parent_method.sop:3:30
+   3 │       hawl cod() { celi waalid.maqan() }
+     │                                ^^^^^
+     └─ Hubi in hawlka uu ku jiro qaabka waalidka.

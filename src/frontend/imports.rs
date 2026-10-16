@@ -7,7 +7,7 @@ use std::path::{Path, PathBuf};
 use crate::error::{codes, import_error_ex, ErrorMeta, SoplangError};
 use crate::frontend::ast::Stmt;
 use crate::frontend::token::TokenType;
-use crate::frontend::{Lexer, Parser};
+use crate::frontend::Lexer;
 
 /// Inline `keen` imports into one source string, in program order.
 ///
@@ -132,6 +132,9 @@ fn flatten_imports(
 
     for stmt in stmts {
         match stmt {
+            Stmt::Located { span, stmt } if matches!(stmt.unlocated(), Stmt::Import(_)) => {
+                flatten_imports(vec![*stmt], source_path, out, seen).map_err(|e| span.attach(e))?;
+            }
             Stmt::Import(path) => {
                 let import_path = resolve_import_path(&base_dir, &path)?;
                 let canon = import_path.canonicalize().map_err(|_| {
@@ -157,8 +160,7 @@ fn flatten_imports(
                             .with_hint("Hubi in faylka uu jiro oo akhriska loo ogol yahay."),
                     )
                 })?;
-                let tokens = Lexer::new(&source).tokenize()?;
-                let imported = Parser::new(tokens).parse()?;
+                let imported = super::parse_source(&source, Some(&import_path))?;
                 flatten_imports(imported, Some(&import_path), out, seen)?;
             }
             other => out.push(other),

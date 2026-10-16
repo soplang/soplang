@@ -258,7 +258,7 @@ fn test_import_resolves_and_merges() {
     let stmts = imports::resolve_imports(Parser::new(tokens).parse().unwrap(), Some(main)).unwrap();
     assert!(stmts
         .iter()
-        .any(|s| matches!(s, Stmt::FuncDef { name, .. } if name == "laba")));
+        .any(|s| matches!(s.unlocated(), Stmt::FuncDef { name, .. } if name == "laba")));
     let sym = semantic::analyze(&stmts).unwrap();
     assert!(sym.functions.iter().any(|f| f.name == "laba"));
 }

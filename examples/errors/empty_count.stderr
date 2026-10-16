@@ -1,0 +1,4 @@
+Khalad nooc: tiri() qoraalka la raadinayo madhan ma noqon karo safka 2, tiirka 11
+     --> examples/errors/empty_count.sop:2:11
+   2 │       qor(q.tiri(""))
+     │             ^^^^

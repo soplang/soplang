@@ -1,0 +1,4 @@
+Khalad fulin: Tallaabada baaxad() eber ma noqon karto safka 1, tiirka 9
+     --> examples/errors/range_zero_step.sop:1:9
+   1 │       qor(baaxad(1, 3, 0))
+     │           ^^^^^^

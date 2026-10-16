@@ -32,11 +32,12 @@ pub mod codes {
 /// Optional metadata for an error (code, span end, hint, file).
 #[derive(Debug, Clone, Default)]
 pub struct ErrorMeta {
-    pub code:    Option<&'static str>,
+    pub code: Option<&'static str>,
     pub end_line: Option<usize>,
-    pub end_col:  Option<usize>,
-    pub hint:    Option<String>,
-    pub file:    Option<PathBuf>,
+    pub end_col: Option<usize>,
+    pub hint: Option<String>,
+    pub file: Option<PathBuf>,
+    pub source_line: Option<String>,
 }
 
 impl ErrorMeta {
@@ -59,26 +60,127 @@ impl ErrorMeta {
     }
 }
 
+/// One source token, retained through compilation for precise diagnostics.
+#[derive(Debug, Clone)]
+pub struct SourceSpan {
+    pub file: Option<PathBuf>,
+    pub line: usize,
+    pub col: usize,
+    pub end_col: usize,
+    pub source_line: String,
+}
+
+impl SourceSpan {
+    pub fn attach(&self, mut error: SoplangError) -> SoplangError {
+        let (line, col, meta) = match &mut error {
+            SoplangError::Lexer {
+                line, col, meta, ..
+            }
+            | SoplangError::Parser {
+                line, col, meta, ..
+            }
+            | SoplangError::Runtime {
+                line, col, meta, ..
+            }
+            | SoplangError::Type {
+                line, col, meta, ..
+            }
+            | SoplangError::Import {
+                line, col, meta, ..
+            } => (line, col, meta),
+        };
+        if *line == 0 {
+            *line = self.line;
+            *col = self.col;
+        }
+        if meta.file.is_none() {
+            meta.file = self.file.clone();
+        }
+        if *line == self.line && meta.source_line.is_none() {
+            meta.source_line = Some(self.source_line.clone());
+            if *col == self.col {
+                meta.end_line = Some(self.line);
+                meta.end_col = Some(self.end_col);
+            }
+        }
+        error
+    }
+}
+
 #[derive(Debug)]
 pub enum SoplangError {
-    Lexer { msg: String, line: usize, col: usize, meta: ErrorMeta },
-    Parser { msg: String, line: usize, col: usize, meta: ErrorMeta },
-    Runtime { msg: String, line: usize, col: usize, meta: ErrorMeta },
-    Type { msg: String, line: usize, col: usize, meta: ErrorMeta },
-    Import { msg: String, line: usize, col: usize, meta: ErrorMeta },
+    Lexer {
+        msg: String,
+        line: usize,
+        col: usize,
+        meta: ErrorMeta,
+    },
+    Parser {
+        msg: String,
+        line: usize,
+        col: usize,
+        meta: ErrorMeta,
+    },
+    Runtime {
+        msg: String,
+        line: usize,
+        col: usize,
+        meta: ErrorMeta,
+    },
+    Type {
+        msg: String,
+        line: usize,
+        col: usize,
+        meta: ErrorMeta,
+    },
+    Import {
+        msg: String,
+        line: usize,
+        col: usize,
+        meta: ErrorMeta,
+    },
 }
 
 impl fmt::Display for SoplangError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let (kind, msg, line, col, code) = match self {
-            SoplangError::Lexer { msg, line, col, meta } => ("lexer", msg, line, col, meta.code),
-            SoplangError::Parser { msg, line, col, meta } => ("parser", msg, line, col, meta.code),
-            SoplangError::Runtime { msg, line, col, meta } => ("runtime", msg, line, col, meta.code),
-            SoplangError::Type { msg, line, col, meta } => ("nooc", msg, line, col, meta.code),
-            SoplangError::Import { msg, line, col, meta } => ("import", msg, line, col, meta.code),
+            SoplangError::Lexer {
+                msg,
+                line,
+                col,
+                meta,
+            } => ("ereyayn", msg, line, col, meta.code),
+            SoplangError::Parser {
+                msg,
+                line,
+                col,
+                meta,
+            } => ("naxwe", msg, line, col, meta.code),
+            SoplangError::Runtime {
+                msg,
+                line,
+                col,
+                meta,
+            } => ("fulin", msg, line, col, meta.code),
+            SoplangError::Type {
+                msg,
+                line,
+                col,
+                meta,
+            } => ("nooc", msg, line, col, meta.code),
+            SoplangError::Import {
+                msg,
+                line,
+                col,
+                meta,
+            } => ("soo-dejin", msg, line, col, meta.code),
         };
         let code_str = code.map(|c| format!(" [{}]", c)).unwrap_or_default();
-        write!(f, "Khalad {}: {}{} safka {}, tiirka {}", kind, msg, code_str, line, col)
+        write!(
+            f,
+            "Khalad {}: {}{} safka {}, tiirka {}",
+            kind, msg, code_str, line, col
+        )
     }
 }
 
@@ -124,32 +226,107 @@ impl SoplangError {
 }
 
 pub fn lexer_error(msg: impl Into<String>, line: usize, col: usize) -> SoplangError {
-    SoplangError::Lexer { msg: msg.into(), line, col, meta: ErrorMeta::default() }
+    SoplangError::Lexer {
+        msg: msg.into(),
+        line,
+        col,
+        meta: ErrorMeta::default(),
+    }
 }
-pub fn lexer_error_ex(msg: impl Into<String>, line: usize, col: usize, meta: ErrorMeta) -> SoplangError {
-    SoplangError::Lexer { msg: msg.into(), line, col, meta }
+pub fn lexer_error_ex(
+    msg: impl Into<String>,
+    line: usize,
+    col: usize,
+    meta: ErrorMeta,
+) -> SoplangError {
+    SoplangError::Lexer {
+        msg: msg.into(),
+        line,
+        col,
+        meta,
+    }
 }
 pub fn parser_error(msg: impl Into<String>, line: usize, col: usize) -> SoplangError {
-    SoplangError::Parser { msg: msg.into(), line, col, meta: ErrorMeta::default() }
+    SoplangError::Parser {
+        msg: msg.into(),
+        line,
+        col,
+        meta: ErrorMeta::default(),
+    }
 }
-pub fn parser_error_ex(msg: impl Into<String>, line: usize, col: usize, meta: ErrorMeta) -> SoplangError {
-    SoplangError::Parser { msg: msg.into(), line, col, meta }
+pub fn parser_error_ex(
+    msg: impl Into<String>,
+    line: usize,
+    col: usize,
+    meta: ErrorMeta,
+) -> SoplangError {
+    SoplangError::Parser {
+        msg: msg.into(),
+        line,
+        col,
+        meta,
+    }
 }
 pub fn runtime_error(msg: impl Into<String>, line: usize, col: usize) -> SoplangError {
-    SoplangError::Runtime { msg: msg.into(), line, col, meta: ErrorMeta::default() }
+    SoplangError::Runtime {
+        msg: msg.into(),
+        line,
+        col,
+        meta: ErrorMeta::default(),
+    }
 }
-pub fn runtime_error_ex(msg: impl Into<String>, line: usize, col: usize, meta: ErrorMeta) -> SoplangError {
-    SoplangError::Runtime { msg: msg.into(), line, col, meta }
+pub fn runtime_error_ex(
+    msg: impl Into<String>,
+    line: usize,
+    col: usize,
+    meta: ErrorMeta,
+) -> SoplangError {
+    SoplangError::Runtime {
+        msg: msg.into(),
+        line,
+        col,
+        meta,
+    }
 }
 pub fn type_error(msg: impl Into<String>, line: usize, col: usize) -> SoplangError {
-    SoplangError::Type { msg: msg.into(), line, col, meta: ErrorMeta::default() }
+    SoplangError::Type {
+        msg: msg.into(),
+        line,
+        col,
+        meta: ErrorMeta::default(),
+    }
 }
-pub fn type_error_ex(msg: impl Into<String>, line: usize, col: usize, meta: ErrorMeta) -> SoplangError {
-    SoplangError::Type { msg: msg.into(), line, col, meta }
+pub fn type_error_ex(
+    msg: impl Into<String>,
+    line: usize,
+    col: usize,
+    meta: ErrorMeta,
+) -> SoplangError {
+    SoplangError::Type {
+        msg: msg.into(),
+        line,
+        col,
+        meta,
+    }
 }
 pub fn import_error(msg: impl Into<String>, line: usize, col: usize) -> SoplangError {
-    SoplangError::Import { msg: msg.into(), line, col, meta: ErrorMeta::default() }
+    SoplangError::Import {
+        msg: msg.into(),
+        line,
+        col,
+        meta: ErrorMeta::default(),
+    }
 }
-pub fn import_error_ex(msg: impl Into<String>, line: usize, col: usize, meta: ErrorMeta) -> SoplangError {
-    SoplangError::Import { msg: msg.into(), line, col, meta }
+pub fn import_error_ex(
+    msg: impl Into<String>,
+    line: usize,
+    col: usize,
+    meta: ErrorMeta,
+) -> SoplangError {
+    SoplangError::Import {
+        msg: msg.into(),
+        line,
+        col,
+        meta,
+    }
 }

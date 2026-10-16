@@ -1,0 +1,4 @@
+Khalad nooc: Qiimaha 'Salaan' looma beddeli karo abn safka 2, tiirka 9
+     --> examples/errors/bad_conversion.sop:2:9
+   2 │       qor(abn("Salaan"))
+     │           ^^^

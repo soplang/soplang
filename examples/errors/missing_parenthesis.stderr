@@ -1,0 +1,4 @@
+Khalad naxwe: Waxaa la filayay ')', laakiin waxaa la helay "" safka 1, tiirka 6
+     --> examples/errors/missing_parenthesis.sop:1:6
+   1 │   qor(1
+     │        ^

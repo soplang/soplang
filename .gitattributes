@@ -1,0 +1,3 @@
+# Diagnostic snapshots preserve source whitespace; the TSV's last field may be empty.
+examples/errors/*.stderr whitespace=-blank-at-eol
+examples/errors/cases.tsv whitespace=-blank-at-eol

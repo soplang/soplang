@@ -8,6 +8,9 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+* **Somali diagnostics with source locations.** Lexer, parser, semantic, and runtime failures retain original files, token columns, source lines, and caret spans through Cranelift and LLVM, including imports. Carets account for tabs, accents, combining marks, emoji, and wide characters.
+* **Complete example checks.** All 28 numbered programs have expected output; 63 intentional failures have diagnostic snapshots and expected locations. Both compiler paths check exit statuses and output, with dedicated strict-mode, command-expression, and REPL coverage.
+
 * **Collection symmetry.** Strings support `hore()` and `dambe()` for first/last Unicode characters; lists support `tiri(value)` for occurrence counting. Both lists and strings accept zero, one, or two integer slice bounds.
 
 * **Explicit collection combination.** `geli(value)` appends one value, including nested lists; `midee` combines lists or objects into a new shallow collection; separator strings use `xiriiri` to join values. Legacy `kudar` behavior remains supported.
@@ -39,6 +42,12 @@ All notable changes to this project will be documented in this file.
 * **Optional semicolons.** Statements may use semicolons consistently while newline-oriented source remains valid.
 
 ### Fixed
+
+* Canonical API argument errors report the spelling used at the call site; large line numbers preserve caret alignment.
+* Unclosed strings and comments point to the opening delimiter. Invalid class contents point to the offending statement. EOF diagnostics retain empty final source lines.
+* LLVM builds resolve imports as source-located ASTs, preserving imported-file errors instead of reporting positions in a concatenated source buffer.
+* CLI and REPL expression echo wraps the AST, preserving the original source columns.
+* Unknown variable reads produce a Somali error instead of silently returning `maran`.
 
 * Global updates from functions and callbacks reach top-level reads and calls, including variables that shadow built-in names. Numeric loop indexes are shared with functions, and REPL snippets observe the current values.
 * Function writes to typed globals enforce type and class checks. Failed assignments preserve previous global values, and accepted numeric values use their annotated runtime representation.

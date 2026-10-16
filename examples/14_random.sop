@@ -1,3 +1,6 @@
 door r = xul(1, 10)
 qor("xul(1,10) waa [1,10)")
 qor(nooc(r))
+qor(r >= 1 && r < 10)
+door mid = xul(["a", "b", "c"])
+qor(["a", "b", "c"].leeyahay(mid))

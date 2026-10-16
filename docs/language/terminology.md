@@ -317,7 +317,7 @@ in a separate editorial stage.
 | REPL file loading   | `/akhrifayl`, `/load`                                                                                                                        | Review joined spelling only with a compatibility plan.                                         |
 | Compiler inspection | `/ast`, `/hir`, `--ast`, `--hir`                                                                                                             | Retain acronyms; explain AST and HIR rather than presenting them as translated Somali words.   |
 | CLI flags           | `--build`, `--output`, `--opt-level`, `--quiet`, `--command`, `--file`, `--example`, `--interactive`, `--strict`, `--no-color`, version/help | Preserve command spellings; review human-readable help.                                        |
-| Error headings      | `Khalad`, `lexer`, `parser`, `runtime`, `nooc`, `import`                                                                                     | Agree Somali labels and technical explanations; retain machine-readable error codes.           |
+| Error headings      | `Khalad`, `ereyayn`, `naxwe`, `fulin`, `nooc`, `soo-dejin`                                                                                     | Agree Somali labels and technical explanations; retain machine-readable error codes.           |
 | Argument validation | `dood`, `qiimo`, `param`                                                                                                                     | Use `dood` for call arguments and `qiime` for values; define parameter terminology separately. |
 | Type checking       | `dynamic`, `strict mode`, `abn`, `jajab`                                                                                                     | Refer to actual source type names and explain static/dynamic behavior in plain Somali.         |
 | Arithmetic errors   | `Habka`, `Tixgacaysi`                                                                                                                        | Replace unclear operation wording with direct explanations of what failed.                     |
@@ -416,3 +416,16 @@ registry][dict-sources] and [technical glossary source registry][math-sources].
 
 [dict-l]: https://github.com/somastllc/somali-language-standard/blob/9bcab5e420d67406cb021c8fcf89df3aeb270675/resources/qaamuus/16-l.md
 [dict-u]: https://github.com/somastllc/somali-language-standard/blob/9bcab5e420d67406cb021c8fcf89df3aeb270675/resources/qaamuus/26-u.md
+
+## Diagnostic location implementation
+
+The phase headings use Somali explanatory terms: `ereyayn` (lexing), `naxwe`
+(parsing), `nooc` (semantic/type validation), `fulin` (runtime), and `soo-dejin`
+(imports). `Khalad` remains the shared heading. These are Soplang editorial
+choices; no SLS computing-standard approval is implied.
+
+Original filenames and token positions pass through parsing, HIR, Cranelift,
+and LLVM. Errors show the relevant source line and a caret, including inside
+imported functions. Columns count Unicode scalar values, while caret spacing
+uses display width and four-column tab stops. The checked error corpus covers
+these details. Existing codes and caught-message string behavior remain intact.

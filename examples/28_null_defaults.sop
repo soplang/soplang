@@ -1,0 +1,11 @@
+door tirooyin = [maran, 20]
+door qof = { magac: maran }
+qor(tirooyin.hel(0, 99))
+qor(tirooyin.hel(9, 99))
+qor(qof.leeyahay("magac"))
+qor(qof.hel("magac", "Ayaan"))
+qor(qof.hel("maqan", "Ayaan"))
+qor("".hore())
+qor([].dambe())
+qor(tirooyin.raadi(99))
+qor("Salaan".raadi("maqan"))

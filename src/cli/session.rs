@@ -5,7 +5,7 @@ use std::path::Path;
 
 use crate::backend::cranelift::CraneliftBackend;
 use crate::error::SoplangError;
-use crate::frontend::{Lexer, Parser};
+use crate::frontend::{parse_snippet, parse_source};
 use crate::hir::HirLowering;
 use crate::runtime;
 use crate::semantic::{self, AnalyzeOptions, ClassMeta, Scope, SymbolTable, VarInfo};
@@ -33,8 +33,12 @@ impl ReplSession {
     /// Compile and run one snippet. `path` is set when the snippet comes from a file.
     pub fn eval(&mut self, source: &str, path: Option<&Path>) -> Result<(), SoplangError> {
         runtime::reset_try_state();
-        let tokens = Lexer::new(source).tokenize()?;
-        let stmts = crate::frontend::imports::resolve_imports(Parser::new(tokens).parse()?, path)?;
+        let parsed = if path.is_none() {
+            parse_snippet(source)?
+        } else {
+            parse_source(source, path)?
+        };
+        let stmts = crate::frontend::imports::resolve_imports(parsed, path)?;
         let mut sym = self.prelude();
         semantic::analyze_into(
             &mut sym,

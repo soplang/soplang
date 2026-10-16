@@ -1,0 +1,14 @@
+kuceli (i 3 ilaa 1 :: -1) {
+    haddii (i == 2) { soco }
+    qor(i)
+}
+kuceli (j 1 ilaa 5) {
+    haddii (j == 3) { jooji }
+    qor(j)
+}
+qor(been && (1 / 0))
+qor(run || (1 / 0))
+door dhibco = 2
+haddii (dhibco == 1) { qor("kow") }
+kale (dhibco == 2) { qor("laba") }
+kale { qor("kale") }

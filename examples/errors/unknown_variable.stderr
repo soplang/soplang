@@ -1,0 +1,5 @@
+Khalad nooc: Magaca 'magac' lama aqoonsan [E021] safka 2, tiirka 9
+     --> examples/errors/unknown_variable.sop:2:9
+   2 │       qor(magac)
+     │           ^^^^^
+     └─ Magacan qeex ka hor intaadan isticmaalin.

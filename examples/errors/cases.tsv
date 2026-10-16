@@ -1,0 +1,64 @@
+# phase	file	line	column	message fragment
+compile	unexpected_character.sop	3	9	Xaraf aan la aqoon
+compile	unterminated_string.sop	2	14	
+compile	unterminated_comment.sop	1	1	
+compile	missing_parenthesis.sop	1	6	
+compile	missing_value.sop	2	1	
+compile	invalid_variable_name.sop	1	6	
+compile	class_body.sop	2	5	
+compile	constant_assignment.sop	2	5	madoor
+compile	duplicate_declaration.sop	2	1	mar hore
+compile	type_mismatch.sop	2	1	
+compile	undeclared_assignment.sop	2	5	lama aqoonsan
+compile	return_outside_function.sop	2	5	
+compile	break_outside_loop.sop	2	5	
+compile	continue_outside_loop.sop	2	5	
+compile	missing_parent_class.sop	1	1	
+compile	self_inheritance.sop	1	1	
+compile	function_arguments.sop	2	5	dood
+compile	function_argument_type.sop	2	5	doodda
+compile	constructor_arguments.sop	2	12	dood
+compile	parent_outside_class.sop	2	16	waalid
+strict	strict_variable.sop	1	1	Habka adag
+strict	strict_function.sop	1	1	Habka adag
+compile	missing_import.sop	2	1	ma helin
+runtime	division_zero.sop	2	14	eber
+runtime	modulo_zero.sop	2	14	eber
+runtime	float_division_zero.sop	2	14	eber
+runtime	bad_operand.sop	2	11	
+runtime	bad_conversion.sop	2	9	abn
+runtime	unknown_variable.sop	2	9	lama aqoonsan
+runtime	not_callable.sop	2	5	
+runtime	unknown_method.sop	2	14	ma laha hawl
+runtime	bad_index_type.sop	2	17	abn
+runtime	bad_index_write.sop	2	5	
+runtime	empty_removal.sop	2	14	
+runtime	slice_fraction.sop	2	21	abn
+runtime	negative_repeat.sop	2	11	taban
+runtime	empty_count.sop	2	11	
+runtime	bad_direction.sop	2	11	hore
+runtime	zero_step.sop	1	1	
+runtime	closure_arguments.sop	2	5	dood
+runtime	callback_failure.sop	2	49	eber
+runtime	nested_function_failure.sop	3	16	eber
+runtime	unicode_column.sop	1	27	eber
+runtime	tab_column.sop	1	8	eber
+runtime	wide_character_column.sop	1	24	eber
+compile	unicode_lexer_column.sop	1	20	
+runtime	imported_runtime.sop	2	12	eber
+compile	imported_type.sop	2	1	
+compile	imported_lexer.sop	2	5	
+compile	invalid_number.sop	1	5	
+compile	missing_block.sop	3	1	
+compile	unknown_class.sop	1	12	
+compile	inheritance_cycle.sop	1	1	
+compile	unknown_parent_method.sop	3	30	
+runtime	typed_global_write.sop	3	17	
+runtime	typed_return.sop	3	5	
+runtime	typed_callback_argument.sop	3	5	
+runtime	class_assignment.sop	5	5	
+runtime	negative_index_write.sop	2	5	
+runtime	object_key_type.sop	2	11	
+runtime	range_zero_step.sop	1	9	
+runtime	invalid_empty_callback.sop	2	18	
+runtime	native_argument_count.sop	1	9	

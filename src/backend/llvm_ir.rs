@@ -14,6 +14,7 @@ use crate::semantic::SymbolTable;
 
 const DECLS: &str = r#"%SoplangValue = type { i8, i64 }
 
+declare void @soplang_set_location(ptr, i64, i64, i64, i64, ptr, i64)
 declare %SoplangValue @soplang_int(i64)
 declare %SoplangValue @soplang_float(double)
 declare %SoplangValue @soplang_str(ptr, i64)
@@ -215,7 +216,8 @@ struct Keep(*const ());
 unsafe impl Sync for Keep {}
 
 #[used]
-static KEEP: [Keep; 45] = [
+static KEEP: [Keep; 46] = [
+    Keep(soplang::runtime::soplang_set_location as *const ()),
     Keep(soplang::runtime::soplang_int as *const ()),
     Keep(soplang::runtime::soplang_float as *const ()),
     Keep(soplang::runtime::soplang_str as *const ()),
@@ -582,6 +584,18 @@ impl<'a> FnEmit<'a> {
 
     fn instr(&mut self, instr: &HirInstr) -> Result<bool, SoplangError> {
         match instr {
+            HirInstr::SetLocation(span) => {
+                let file = span
+                    .file
+                    .as_ref()
+                    .and_then(|p| p.to_str())
+                    .unwrap_or("<command>");
+                let (fp, fl) = self.str_ptr(file);
+                let (tp, tl) = self.str_ptr(&span.source_line);
+                self.line(format!("  call void @soplang_set_location(ptr {fp}, i64 {fl}, i64 {}, i64 {}, i64 {}, ptr {tp}, i64 {tl})", span.line, span.col, span.end_col));
+                Ok(false)
+            }
+
             HirInstr::Const { dst, val } => {
                 let sv = match val {
                     HirConst::Int(n) => self.call_sv("soplang_int", &format!("i64 {n}")),

@@ -1,0 +1,4 @@
+Khalad nooc: Hawsha 'duub()' waxay qaadataa 1 dood, laakiin 0 ayaa la bixiyay safka 1, tiirka 9
+     --> examples/errors/native_argument_count.sop:1:9
+   1 │       qor(duub())
+     │           ^^^^

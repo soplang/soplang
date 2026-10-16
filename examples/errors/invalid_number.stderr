@@ -1,0 +1,4 @@
+Khalad naxwe: Tiro aan sax ahayn: 1.2.3 safka 1, tiirka 5
+     --> examples/errors/invalid_number.sop:1:5
+   1 │   qor(1.2.3)
+     │       ^

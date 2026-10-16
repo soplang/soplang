@@ -1,0 +1,3 @@
+hawl tiro(abn x) { celi x }
+door f = tiro
+    f("qoraal")

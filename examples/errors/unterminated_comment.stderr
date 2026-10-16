@@ -1,0 +1,4 @@
+Khalad ereyayn: Faallo aan la xidhin [E003] safka 1, tiirka 1
+     --> examples/errors/unterminated_comment.sop:1:1
+   1 │   /* Faallo aan la xirin
+     │   ^

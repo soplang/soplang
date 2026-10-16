@@ -41,6 +41,7 @@ fn register_runtime_symbols(builder: &mut JITBuilder) {
             $b.symbol(stringify!($name), runtime::$name as *const u8);
         };
     }
+    sym!(builder, soplang_set_location);
     sym!(builder, soplang_int);
     sym!(builder, soplang_float);
     sym!(builder, soplang_str);
@@ -486,6 +487,32 @@ fn compile_body(
 
     for instr in body {
         match instr {
+            HirInstr::SetLocation(span) => {
+                if terminated {
+                    continue;
+                }
+                let file = span
+                    .file
+                    .as_ref()
+                    .and_then(|p| p.to_str())
+                    .unwrap_or("<command>");
+                let args = [
+                    file.as_ptr() as i64,
+                    file.len() as i64,
+                    span.line as i64,
+                    span.col as i64,
+                    span.end_col as i64,
+                    span.source_line.as_ptr() as i64,
+                    span.source_line.len() as i64,
+                ]
+                .map(|value| builder.ins().iconst(types::I64, value));
+                let fid = module
+                    .declare_function("soplang_set_location", Linkage::Import, &make_sig(7, 0))
+                    .map_err(|e| runtime_error(e.to_string(), 0, 0))?;
+                let fref = module.declare_func_in_func(fid, builder.func);
+                builder.ins().call(fref, &args);
+            }
+
             HirInstr::Label(id) => {
                 let blk = block_map[id];
                 if !terminated {

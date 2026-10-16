@@ -1,0 +1,5 @@
+Khalad nooc: Qaab 'Maqan' lama aqoonsan [E021] safka 1, tiirka 12
+     --> examples/errors/unknown_class.sop:1:12
+   1 │   door qof = cusub Maqan()
+     │              ^^^^^
+     └─ Hubi in qaabka uu ka horreeyo isticmaalkiisa.

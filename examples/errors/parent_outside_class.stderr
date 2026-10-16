@@ -1,0 +1,5 @@
+Khalad nooc: 'waalid' waxaa loo isticmaali karaa gudaha hawlgallada qaabka kaliya [E021] safka 2, tiirka 16
+     --> examples/errors/parent_outside_class.sop:2:16
+   2 │       qor(waalid.cod())
+     │                  ^^^
+     └─ Isticmaal 'waalid' gudaha hawl ku jirta qaabka.

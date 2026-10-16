@@ -1,0 +1,5 @@
+Khalad nooc: 'da' waa abn laakin qiimaheeda 'qoraal' ma ahan abn [E022] safka 2, tiirka 1
+     --> examples/errors/support/_semantic.sop:2:1
+   2 │   abn da = "qoraal"
+     │   ^^^
+     └─ Hubi in nooca qiimaha uu la mid yahay nooca lagu qeexay doorsamaha.

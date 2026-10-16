@@ -1,0 +1,4 @@
+Khalad fulin: '1' ma ahan hawl, lama wici karo safka 2, tiirka 5
+     --> examples/errors/not_callable.sop:2:5
+   2 │       x()
+     │       ^

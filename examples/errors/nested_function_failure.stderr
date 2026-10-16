@@ -1,0 +1,4 @@
+Khalad fulin: Tiro looma qaybin karo eber. safka 3, tiirka 16
+     --> examples/errors/nested_function_failure.sop:3:16
+   3 │           celi 4 / 0
+     │                  ^

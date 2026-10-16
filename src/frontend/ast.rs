@@ -41,15 +41,19 @@ impl fmt::Display for Literal {
 /// Expressions (produce values).
 #[derive(Debug, Clone)]
 pub enum Expr {
+    Located {
+        span: crate::error::SourceSpan,
+        expr: Box<Expr>,
+    },
     Literal(Literal),
     Identifier(String),
     BinaryOp {
-        op:   String,
+        op: String,
         left: Box<Expr>,
         right: Box<Expr>,
     },
     UnaryOp {
-        op:   String,
+        op: String,
         expr: Box<Expr>,
     },
     /// Function call: name(args)
@@ -59,15 +63,15 @@ pub enum Expr {
     },
     /// Anonymous function expression: hawl(params) { body }
     AnonymousFunc {
-        params:     Vec<Param>,
+        params: Vec<Param>,
         return_ann: TypeAnnotation,
-        body:       Vec<Stmt>,
+        body: Vec<Stmt>,
     },
     /// obj.method(args)
     MethodCall {
-        obj:    Box<Expr>,
+        obj: Box<Expr>,
         method: String,
-        args:   Vec<Expr>,
+        args: Vec<Expr>,
     },
     /// arr[idx]
     Index {
@@ -76,7 +80,7 @@ pub enum Expr {
     },
     /// obj.prop
     Property {
-        obj:  Box<Expr>,
+        obj: Box<Expr>,
         prop: String,
     },
     List(Vec<Expr>),
@@ -84,13 +88,23 @@ pub enum Expr {
     /// cusub ClassName(args)
     New {
         class_name: String,
-        args:       Vec<Expr>,
+        args: Vec<Expr>,
     },
+}
+
+impl Expr {
+    pub fn unlocated(&self) -> &Self {
+        match self {
+            Self::Located { expr, .. } => expr.unlocated(),
+            other => other,
+        }
+    }
 }
 
 impl fmt::Display for Expr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            Expr::Located { expr, .. } => write!(f, "{}", expr),
             Expr::Literal(l) => write!(f, "{}", l),
             Expr::Identifier(s) => write!(f, "{}", s),
             Expr::BinaryOp { op, left, right } => {
@@ -107,7 +121,9 @@ impl fmt::Display for Expr {
                 }
                 write!(f, ")")
             }
-            Expr::AnonymousFunc { params, return_ann, .. } => {
+            Expr::AnonymousFunc {
+                params, return_ann, ..
+            } => {
                 write!(f, "hawl(")?;
                 for (i, p) in params.iter().enumerate() {
                     if i > 0 {
@@ -183,59 +199,63 @@ fn type_annotation_name(ann: &TypeAnnotation) -> &str {
 /// Function parameter (name only for now).
 #[derive(Debug, Clone)]
 pub struct Param {
-    pub name:     String,
+    pub name: String,
     pub type_ann: TypeAnnotation,
 }
 
 /// Statements (side effects; optional line for errors).
 #[derive(Debug, Clone)]
 pub enum Stmt {
+    Located {
+        span: crate::error::SourceSpan,
+        stmt: Box<Stmt>,
+    },
     VarDecl {
-        name:     String,
+        name: String,
         type_ann: TypeAnnotation,
         is_const: bool,
-        value:    Expr,
+        value: Expr,
         #[allow(dead_code)] // Phase 3 error reporting
-        line:     usize,
+        line: usize,
         #[allow(dead_code)]
-        col:      usize,
+        col: usize,
     },
     Assign {
         target: Expr,
-        value:  Expr,
+        value: Expr,
         #[allow(dead_code)] // Phase 3 error reporting
-        line:   usize,
+        line: usize,
         #[allow(dead_code)]
-        col:    usize,
+        col: usize,
     },
     FuncDef {
-        name:       String,
-        params:     Vec<Param>,
+        name: String,
+        params: Vec<Param>,
         return_ann: TypeAnnotation,
-        body:       Vec<Stmt>,
+        body: Vec<Stmt>,
     },
     ClassDef {
-        name:   String,
+        name: String,
         parent: Option<String>,
-        body:   Vec<Stmt>,
+        body: Vec<Stmt>,
     },
     If {
-        cond:      Expr,
+        cond: Expr,
         then_body: Vec<Stmt>,
-        elseifs:   Vec<(Expr, Vec<Stmt>)>,
+        elseifs: Vec<(Expr, Vec<Stmt>)>,
         else_body: Option<Vec<Stmt>>,
     },
     Switch {
-        expr:   Expr,
-        cases:  Vec<(Expr, Vec<Stmt>)>,
+        expr: Expr,
+        cases: Vec<(Expr, Vec<Stmt>)>,
         default: Option<Vec<Stmt>>,
     },
     For {
-        var:   String,
+        var: String,
         start: Expr,
-        end:   Expr,
-        step:  Option<Expr>,
-        body:  Vec<Stmt>,
+        end: Expr,
+        step: Option<Expr>,
+        body: Vec<Stmt>,
     },
     While {
         cond: Expr,
@@ -245,8 +265,8 @@ pub enum Stmt {
     Break,
     Continue,
     TryCatch {
-        try_body:   Vec<Stmt>,
-        err_var:   String,
+        try_body: Vec<Stmt>,
+        err_var: String,
         catch_body: Vec<Stmt>,
     },
     Import(String),
@@ -255,15 +275,31 @@ pub enum Stmt {
 }
 
 impl Stmt {
+    pub fn unlocated(&self) -> &Self {
+        match self {
+            Self::Located { stmt, .. } => stmt.unlocated(),
+            other => other,
+        }
+    }
+
     /// Pretty-print with indentation (for debug AST output).
     pub fn fmt_with_depth(&self, f: &mut fmt::Formatter<'_>, depth: usize) -> fmt::Result {
         const INDENT: &str = "  ";
         let pad = INDENT.repeat(depth);
         let pad_inner = INDENT.repeat(depth + 1);
         match self {
-            Stmt::VarDecl { name, type_ann, is_const, value, .. } => {
+            Stmt::Located { stmt, .. } => stmt.fmt_with_depth(f, depth),
+            Stmt::VarDecl {
+                name,
+                type_ann,
+                is_const,
+                value,
+                ..
+            } => {
                 let ty = match type_ann {
-                    TypeAnnotation::Dynamic => if *is_const { "madoor" } else { "door" }.to_string(),
+                    TypeAnnotation::Dynamic => {
+                        if *is_const { "madoor" } else { "door" }.to_string()
+                    }
                     TypeAnnotation::Abn => "abn".to_string(),
                     TypeAnnotation::Jajab => "jajab".to_string(),
                     TypeAnnotation::Qoraal => "qoraal".to_string(),
@@ -275,7 +311,12 @@ impl Stmt {
                 writeln!(f, "{}{} {} = {};", pad, ty, name, value)
             }
             Stmt::Assign { target, value, .. } => writeln!(f, "{}{} = {};", pad, target, value),
-            Stmt::FuncDef { name, params, return_ann, body } => {
+            Stmt::FuncDef {
+                name,
+                params,
+                return_ann,
+                body,
+            } => {
                 write!(f, "{}hawl {}(", pad, name)?;
                 for (i, p) in params.iter().enumerate() {
                     if i > 0 {
@@ -320,7 +361,12 @@ impl Stmt {
                 }
                 writeln!(f, "{}}}", pad)
             }
-            Stmt::If { cond, then_body, elseifs, else_body } => {
+            Stmt::If {
+                cond,
+                then_body,
+                elseifs,
+                else_body,
+            } => {
                 writeln!(f, "{}haddii ({}) {{", pad, cond)?;
                 for s in then_body {
                     s.fmt_with_depth(f, depth + 1)?;
@@ -341,7 +387,11 @@ impl Stmt {
                 }
                 Ok(())
             }
-            Stmt::Switch { expr, cases, default } => {
+            Stmt::Switch {
+                expr,
+                cases,
+                default,
+            } => {
                 writeln!(f, "{}dooro ({}) {{", pad, expr)?;
                 for (v, stmts) in cases {
                     writeln!(f, "{}xaalad {} {{", pad_inner, v)?;
@@ -359,7 +409,13 @@ impl Stmt {
                 }
                 writeln!(f, "{}}}", pad)
             }
-            Stmt::For { var, start, end, step, body } => {
+            Stmt::For {
+                var,
+                start,
+                end,
+                step,
+                body,
+            } => {
                 write!(f, "{}kuceli ({} {} ilaa {}", pad, var, start, end)?;
                 if let Some(s) = step {
                     write!(f, " :: {}", s)?;
@@ -381,7 +437,11 @@ impl Stmt {
             Stmt::Return(None) => writeln!(f, "{}celi;", pad),
             Stmt::Break => writeln!(f, "{}jooji;", pad),
             Stmt::Continue => writeln!(f, "{}soco;", pad),
-            Stmt::TryCatch { try_body, err_var, catch_body } => {
+            Stmt::TryCatch {
+                try_body,
+                err_var,
+                catch_body,
+            } => {
                 writeln!(f, "{}fasax {{", pad)?;
                 for s in try_body {
                     s.fmt_with_depth(f, depth + 1)?;

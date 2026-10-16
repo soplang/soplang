@@ -20,6 +20,7 @@ pub struct SymbolTable {
     /// Globals carried in from a REPL session. Top-level uses load/store them
     /// instead of treating their old slots as locals of the new snippet.
     pub session_globals: HashSet<String>,
+    pub class_spans: HashMap<String, crate::error::SourceSpan>,
 }
 
 #[derive(Debug, Default, Clone)]
@@ -183,6 +184,10 @@ fn validate_control_flow(
 ) -> Result<(), SoplangError> {
     for stmt in stmts {
         match stmt {
+            Stmt::Located { span, stmt } => {
+                validate_control_flow(std::slice::from_ref(stmt.as_ref()), in_function, loop_depth)
+                    .map_err(|e| span.attach(e))?
+            }
             Stmt::Return(value) => {
                 if !in_function {
                     return Err(control_flow_error(
@@ -282,6 +287,7 @@ fn validate_control_flow(
 
 fn validate_control_expr(expr: &Expr) -> Result<(), SoplangError> {
     match expr {
+        Expr::Located { span, expr } => validate_control_expr(expr).map_err(|e| span.attach(e)),
         Expr::AnonymousFunc { body, .. } => validate_control_flow(body, true, 0),
         Expr::BinaryOp { left, right, .. }
         | Expr::Index {
@@ -329,18 +335,24 @@ fn control_flow_error(message: &str, hint: &str) -> SoplangError {
 }
 
 fn validate_classes(sym: &SymbolTable) -> Result<(), SoplangError> {
-    for meta in sym.classes.values() {
+    let mut classes: Vec<_> = sym.classes.values().collect();
+    classes.sort_by(|a, b| a.name.cmp(&b.name));
+    for meta in classes {
         let mut seen = HashSet::new();
         let mut current = Some(meta.name.clone());
         while let Some(name) = current {
             if !seen.insert(name.clone()) {
-                return Err(type_error_ex(
-                    format!("Qaab '{}' wuxuu ka dhaxlaa meel-wareeg", meta.name),
-                    0,
-                    0,
-                    ErrorMeta::default()
-                        .with_code(codes::E021_UNDECLARED)
-                        .with_hint("Qaabku ma dhaxli karo naftiisa ama qaab uu ka dhaxlo."),
+                return Err(attach_class_error(
+                    sym,
+                    &meta.name,
+                    type_error_ex(
+                        format!("Qaab '{}' wuxuu ka dhaxlaa meel-wareeg", meta.name),
+                        0,
+                        0,
+                        ErrorMeta::default()
+                            .with_code(codes::E021_UNDECLARED)
+                            .with_hint("Qaabku ma dhaxli karo naftiisa ama qaab uu ka dhaxlo."),
+                    ),
                 ));
             }
             let Some(node) = sym.classes.get(&name) else {
@@ -348,16 +360,20 @@ fn validate_classes(sym: &SymbolTable) -> Result<(), SoplangError> {
             };
             if let Some(ref parent) = node.parent {
                 if !sym.classes.contains_key(parent) {
-                    return Err(type_error_ex(
-                        format!(
-                            "Qaab '{}' wuxuu ka dhaxlay '{}' laakiin qaabkaas ma jiro",
-                            node.name, parent
+                    return Err(attach_class_error(
+                        sym,
+                        &meta.name,
+                        type_error_ex(
+                            format!(
+                                "Qaab '{}' wuxuu ka dhaxlay '{}' laakiin qaabkaas ma jiro",
+                                node.name, parent
+                            ),
+                            0,
+                            0,
+                            ErrorMeta::default()
+                                .with_code(codes::E021_UNDECLARED)
+                                .with_hint("Hubi in qaabka waalidka uu ka horreeyo qaabka ilmaha."),
                         ),
-                        0,
-                        0,
-                        ErrorMeta::default()
-                            .with_code(codes::E021_UNDECLARED)
-                            .with_hint("Hubi in qaabka waalidka uu ka horreeyo qaabka ilmaha."),
                     ));
                 }
                 current = Some(parent.clone());
@@ -367,6 +383,13 @@ fn validate_classes(sym: &SymbolTable) -> Result<(), SoplangError> {
         }
     }
     Ok(())
+}
+
+fn attach_class_error(sym: &SymbolTable, name: &str, error: SoplangError) -> SoplangError {
+    match sym.class_spans.get(name) {
+        Some(span) => span.attach(error),
+        None => error,
+    }
 }
 
 fn analyze_block(
@@ -402,6 +425,21 @@ fn analyze_stmt(
     enclosing_fn: Option<&str>,
 ) -> Result<(), SoplangError> {
     match stmt {
+        Stmt::Located { span, stmt } => {
+            if let Stmt::ClassDef { name, .. } = stmt.unlocated() {
+                sym.class_spans.insert(name.clone(), span.clone());
+            }
+            analyze_stmt(
+                stmt,
+                sym,
+                opts,
+                fn_sigs,
+                current_return,
+                current_class,
+                enclosing_fn,
+            )
+            .map_err(|e| span.attach(e))?;
+        }
         Stmt::VarDecl {
             name,
             type_ann,
@@ -483,7 +521,7 @@ fn analyze_stmt(
             line,
             col,
         } => {
-            if let Expr::Identifier(name) = target {
+            if let Expr::Identifier(name) = target.unlocated() {
                 let var = resolve_name(sym, &name, None).ok_or_else(|| {
                     type_error_ex(
                         format!("Magaca '{}' lama aqoonsan", name),
@@ -706,7 +744,7 @@ fn analyze_stmt(
             }
             let mut methods = HashMap::new();
             for s in body {
-                if let Stmt::FuncDef { name: mname, .. } = s {
+                if let Stmt::FuncDef { name: mname, .. } = s.unlocated() {
                     if methods.contains_key(mname) {
                         return Err(type_error_ex(
                             format!("Hawl '{}' ayaa laba jeer ku jirta qaabka '{}'", mname, name),
@@ -956,6 +994,10 @@ fn analyze_expr(
     enclosing_fn: Option<&str>,
 ) -> Result<(), SoplangError> {
     match expr {
+        Expr::Located { span, expr } => {
+            analyze_expr(expr, sym, opts, fn_sigs, current_class, enclosing_fn)
+                .map_err(|e| span.attach(e))?
+        }
         Expr::Literal(_) => {}
         Expr::Identifier(name) => {
             if name == "nafta" && current_class.is_none() {
@@ -1032,7 +1074,7 @@ fn analyze_expr(
             }
         }
         Expr::MethodCall { obj, method, args } => {
-            if let Expr::Identifier(recv) = obj.as_ref() {
+            if let Expr::Identifier(recv) = obj.unlocated() {
                 if recv == "waalid" {
                     let class = current_class.ok_or_else(|| {
                         type_error_ex(
@@ -1355,6 +1397,7 @@ fn infer_expr_type(
     fn_sigs: &HashMap<String, FunctionSig>,
 ) -> Option<TypeAnnotation> {
     match expr {
+        Expr::Located { expr, .. } => infer_expr_type(expr, sym, fn_sigs),
         Expr::Literal(l) => Some(match l {
             Literal::Int(_) => TypeAnnotation::Abn,
             Literal::Float(_) => TypeAnnotation::Jajab,
@@ -1508,6 +1551,10 @@ fn analyze_assign_target(
     enclosing_fn: Option<&str>,
 ) -> Result<(), SoplangError> {
     match target {
+        Expr::Located { span, expr } => {
+            analyze_assign_target(expr, sym, opts, fn_sigs, current_class, enclosing_fn)
+                .map_err(|e| span.attach(e))?
+        }
         Expr::Index { obj, idx } => {
             analyze_expr(obj, sym, opts, fn_sigs, current_class, enclosing_fn)?;
             analyze_expr(idx, sym, opts, fn_sigs, current_class, enclosing_fn)?;
@@ -1533,6 +1580,9 @@ fn collect_function_sigs_rec(
 ) {
     for s in stmts {
         match s {
+            Stmt::Located { stmt, .. } => {
+                collect_function_sigs_rec(std::slice::from_ref(stmt.as_ref()), out, current_class)
+            }
             Stmt::FuncDef {
                 name,
                 params,
@@ -1631,6 +1681,7 @@ fn note_name(name: &str, sym: &SymbolTable, caps: &mut Vec<String>) {
 
 fn note_free_expr(expr: &Expr, sym: &SymbolTable, caps: &mut Vec<String>) {
     match expr {
+        Expr::Located { expr, .. } => note_free_expr(expr, sym, caps),
         Expr::Literal(_) => {}
         Expr::Identifier(name) => note_name(name, sym, caps),
         Expr::BinaryOp { left, right, .. } => {
@@ -1676,6 +1727,7 @@ fn note_free_expr(expr: &Expr, sym: &SymbolTable, caps: &mut Vec<String>) {
 
 fn note_free_stmt(stmt: &Stmt, sym: &SymbolTable, caps: &mut Vec<String>) {
     match stmt {
+        Stmt::Located { stmt, .. } => note_free_stmt(stmt, sym, caps),
         Stmt::VarDecl { value, .. } => note_free_expr(value, sym, caps),
         Stmt::Assign { target, value, .. } => {
             note_free_expr(target, sym, caps);
