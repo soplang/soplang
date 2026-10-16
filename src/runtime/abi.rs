@@ -973,7 +973,11 @@ fn resolve_method_fn_index(class_name: &str, method: &str) -> Option<i64> {
         let mut current = Some(class_name.to_string());
         while let Some(cn) = current {
             if let Some(entry) = reg.get(&cn) {
-                if let Some(&idx) = entry.methods.get(method) {
+                if let Some(&idx) = entry.methods.get(method).or_else(|| match method {
+                    "dhis" => entry.methods.get("dhaw"),
+                    "dhaw" => entry.methods.get("dhis"),
+                    _ => None,
+                }) {
                     return Some(idx);
                 }
                 current = entry.parent.clone();
@@ -986,7 +990,7 @@ fn resolve_method_fn_index(class_name: &str, method: &str) -> Option<i64> {
 }
 
 fn resolve_constructor_fn_index(class_name: &str) -> Option<i64> {
-    resolve_method_fn_index(class_name, "dhaw")
+    resolve_method_fn_index(class_name, "dhis")
 }
 
 /// Register all classes from semantic analysis after compiled functions are in globals.
@@ -1068,7 +1072,7 @@ pub extern "C" fn soplang_new_instance(
     args_ptr: *const SoplangValue,
     n: i32,
 ) -> SoplangValue {
-    if class_ptr.is_null() || class_len == 0 {
+    if class_ptr.is_null() || class_len == 0 || has_pending_error() {
         return SoplangValue::null();
     }
     let class_name = unsafe {
@@ -1315,6 +1319,30 @@ fn call_compiled_fn(
     }
 }
 
+fn collection_callback(value: &Value, name: &str) -> Result<SoplangValue, SoplangError> {
+    match value {
+        Value::Function(_) | Value::NativeFunction(_) | Value::Closure(_) => {
+            Ok(value_to_soplang(value))
+        }
+        _ => Err(type_error(
+            format!("Hawsha '{}()' waxay u baahan tahay dood hawl ah", name),
+            0,
+            0,
+        )),
+    }
+}
+
+fn call_collection_callback(
+    callee: SoplangValue,
+    args: &[SoplangValue],
+) -> Result<Value, SoplangError> {
+    let result = soplang_call(callee, args.as_ptr(), args.len() as i32);
+    if let Some(message) = PENDING_ERROR.with(|error| error.borrow().clone()) {
+        return Err(runtime_error(message, 0, 0));
+    }
+    soplang_to_value(result)
+}
+
 fn dispatch_list_method(
     l: &Rc<RefCell<Vec<Value>>>,
     method: &str,
@@ -1329,16 +1357,13 @@ fn dispatch_list_method(
                     0,
                 ));
             }
-            let func_val = &args[0];
-            let callee_sv = value_to_soplang(func_val);
+            let callee_sv = collection_callback(&args[0], method)?;
             let mut out = Vec::new();
-            for item in l.borrow().iter() {
-                let item_sv = value_to_soplang(item);
-                let result = soplang_call(callee_sv, &item_sv as *const SoplangValue, 1);
-                if let Ok(v) = soplang_to_value(result) {
-                    if v.is_truthy() {
-                        out.push(item.clone());
-                    }
+            let items = l.borrow().clone();
+            for item in items {
+                let item_sv = value_to_soplang(&item);
+                if call_collection_callback(callee_sv, &[item_sv])?.is_truthy() {
+                    out.push(item);
                 }
             }
             Ok(Value::List(Rc::new(RefCell::new(out))))
@@ -1351,30 +1376,29 @@ fn dispatch_list_method(
                     0,
                 ));
             }
-            let func_val = &args[0];
-            let callee_sv = value_to_soplang(func_val);
+            let callee_sv = collection_callback(&args[0], method)?;
             let mut out = Vec::new();
-            for item in l.borrow().iter() {
-                let item_sv = value_to_soplang(item);
-                let result = soplang_call(callee_sv, &item_sv as *const SoplangValue, 1);
-                out.push(soplang_to_value(result).unwrap_or(Value::Null));
+            let items = l.borrow().clone();
+            for item in items {
+                let item_sv = value_to_soplang(&item);
+                out.push(call_collection_callback(callee_sv, &[item_sv])?);
             }
             Ok(Value::List(Rc::new(RefCell::new(out))))
         }
-        "isku_gee" => {
+        "ururi" | "isku_gee" => {
             if args.len() != 2 {
                 return Err(type_error(
-                    "isku_gee() wuxuu u baahan yahay hawl iyo qiime bilow ah",
+                    format!("{}() wuxuu u baahan yahay hawl iyo qiime bilow ah", method),
                     0,
                     0,
                 ));
             }
-            let callee = value_to_soplang(&args[0]);
+            let callee = collection_callback(&args[0], method)?;
             let mut accumulator = args[1].clone();
-            for item in l.borrow().iter() {
-                let call_args = [value_to_soplang(&accumulator), value_to_soplang(item)];
-                let result = soplang_call(callee, call_args.as_ptr(), call_args.len() as i32);
-                accumulator = soplang_to_value(result)?;
+            let items = l.borrow().clone();
+            for item in items {
+                let call_args = [value_to_soplang(&accumulator), value_to_soplang(&item)];
+                accumulator = call_collection_callback(callee, &call_args)?;
             }
             Ok(accumulator)
         }
@@ -1386,12 +1410,12 @@ fn dispatch_list_method(
                     0,
                 ));
             }
-            let callee = value_to_soplang(&args[0]);
+            let callee = collection_callback(&args[0], method)?;
             let want_every = method == "dhammaan";
-            for item in l.borrow().iter() {
-                let item = value_to_soplang(item);
-                let result = soplang_call(callee, &item, 1);
-                let truthy = soplang_to_value(result)?.is_truthy();
+            let items = l.borrow().clone();
+            for item in items {
+                let item = value_to_soplang(&item);
+                let truthy = call_collection_callback(callee, &[item])?.is_truthy();
                 if (want_every && !truthy) || (!want_every && truthy) {
                     return Ok(Value::Bool(!want_every));
                 }
@@ -1400,18 +1424,23 @@ fn dispatch_list_method(
         }
         "kasaar" => super::stdlib::list_kasaar(Rc::clone(l), args),
         "dherer" => super::stdlib::list_dherer(Rc::clone(l), args),
+        "hel" => super::stdlib::list_hel(Rc::clone(l), args),
+        "dhig" => super::stdlib::list_dhig(Rc::clone(l), args),
+        "saar" => super::stdlib::list_saar(Rc::clone(l), args),
         "kudar" => super::stdlib::list_kudar(Rc::clone(l), args),
+        "midee" => super::stdlib::list_midee(Rc::clone(l), args),
         "leeyahay" => super::stdlib::list_leeyahay(Rc::clone(l), args),
         "nuqul" => super::stdlib::list_nuqul(Rc::clone(l), args),
         "nadiifi" => super::stdlib::list_nadiifi(Rc::clone(l), args),
         "rog" => super::stdlib::list_rog(Rc::clone(l), args),
         "habee" => super::stdlib::list_habee(Rc::clone(l), args),
         "jar" => super::stdlib::list_jar(Rc::clone(l), args),
-        "muuji" => super::stdlib::list_muuji(Rc::clone(l), args),
+        "tiri" => super::stdlib::list_tiri(Rc::clone(l), args),
+        "raadi" | "muuji" => super::stdlib::list_muuji(Rc::clone(l), args),
         "geli" => super::stdlib::list_geli(Rc::clone(l), args),
         "ka_saar" => super::stdlib::list_ka_saar(Rc::clone(l), args),
-        "koowaad" => super::stdlib::list_koowaad(Rc::clone(l), args),
-        "ugu_dambeeya" => super::stdlib::list_ugu_dambeeya(Rc::clone(l), args),
+        "hore" | "koowaad" => super::stdlib::list_koowaad(Rc::clone(l), args),
+        "dambe" | "ugu_dambeeya" => super::stdlib::list_ugu_dambeeya(Rc::clone(l), args),
         _ => Err(runtime_error(
             format!("Teedku ma laha hawl la yiraahdo '{}'.", method),
             0,
@@ -1426,14 +1455,17 @@ fn dispatch_object_method(
     args: &[Value],
 ) -> Result<Value, SoplangError> {
     match method {
-        "fure" => super::stdlib::object_fure(Rc::clone(o), args),
+        "furayaal" | "fure" => super::stdlib::object_fure(Rc::clone(o), args),
+        "dherer" => super::stdlib::object_dherer(Rc::clone(o), args),
+        "saar" => super::stdlib::object_saar(Rc::clone(o), args),
         "leeyahay" => super::stdlib::object_leeyahay(Rc::clone(o), args),
         "tir" => super::stdlib::object_tir(Rc::clone(o), args),
         "kudar" => super::stdlib::object_kudar(Rc::clone(o), args),
+        "midee" => super::stdlib::object_kudar(Rc::clone(o), args),
         "nuqul" => super::stdlib::object_nuqul(Rc::clone(o), args),
         "nadiifi" => super::stdlib::object_nadiifi(Rc::clone(o), args),
-        "qiime" => super::stdlib::object_qiime(Rc::clone(o), args),
-        "lamaane" => super::stdlib::object_lamaane(Rc::clone(o), args),
+        "qiimayaal" | "qiime" => super::stdlib::object_qiime(Rc::clone(o), args),
+        "lammaanayaal" | "lamaane" => super::stdlib::object_lamaane(Rc::clone(o), args),
         "hel" => super::stdlib::object_hel(Rc::clone(o), args),
         "dhig" => super::stdlib::object_dhig(Rc::clone(o), args),
         "ka_qaad" => super::stdlib::object_ka_qaad(Rc::clone(o), args),
@@ -1449,23 +1481,28 @@ fn dispatch_string_method(s: &str, method: &str, args: &[Value]) -> Result<Value
     match method {
         "qeybi" => super::stdlib::string_qeybi(s.to_string(), args),
         "leeyahay" => super::stdlib::string_leeyahay(s.to_string(), args),
-        "dhamaad" => super::stdlib::string_dhamaad(s.to_string(), args),
+        "dhammaad" | "dhamaad" => super::stdlib::string_dhamaad(s.to_string(), args),
         "bilow" => super::stdlib::string_bilow(s.to_string(), args),
         "beddel" => super::stdlib::string_beddel(s.to_string(), args),
         "beddel_dhammaan" => super::stdlib::string_beddel_dhammaan(s.to_string(), args),
-        "kudar" => super::stdlib::string_kudar(s.to_string(), args),
+        "xiriiri" | "kudar" => super::stdlib::string_kudar(s.to_string(), args),
         "jar" => super::stdlib::string_jar(s.to_string(), args),
-        "xarfaha_waaweyn" | "xarafaha_weyn" => {
+        "weynee" | "xarfaha_waaweyn" | "xarafaha_weyn" => {
             super::stdlib::string_xarfaha_waaweyn(s.to_string(), args)
         }
-        "xarfaha_yaryar" => super::stdlib::string_xarfaha_yaryar(s.to_string(), args),
+        "yaree" | "xarfaha_yaryar" => super::stdlib::string_xarfaha_yaryar(s.to_string(), args),
         "masax" => super::stdlib::string_masax(s.to_string(), args),
         "raadi" => super::stdlib::string_raadi(s.to_string(), args),
         "dherer" => super::stdlib::string_dherer(s.to_string(), args),
+        "hel" => super::stdlib::string_hel(s.to_string(), args),
+        "hore" => super::stdlib::string_hore(s.to_string(), args),
+        "dambe" => super::stdlib::string_dambe(s.to_string(), args),
         "masax_bilow" => super::stdlib::string_masax_bilow(s.to_string(), args),
-        "masax_dhamaad" => super::stdlib::string_masax_dhamaad(s.to_string(), args),
+        "masax_dhammaad" | "masax_dhamaad" => {
+            super::stdlib::string_masax_dhamaad(s.to_string(), args)
+        }
         "tiri" => super::stdlib::string_tiri(s.to_string(), args),
-        "ku_celi" => super::stdlib::string_ku_celi(s.to_string(), args),
+        "kuceli" | "ku_celi" => super::stdlib::string_ku_celi(s.to_string(), args),
         "raadi_dambe" => super::stdlib::string_raadi_dambe(s.to_string(), args),
         _ => Err(runtime_error(
             format!("Qoraalku ma laha hawl la yiraahdo '{}'.", method),
@@ -1483,7 +1520,8 @@ pub fn store_global(name: &str, val: SoplangValue) {
 /// Store a global variable by name (C ABI).
 #[no_mangle]
 pub extern "C" fn soplang_store_global(name: *const u8, len: usize, tag: i64, payload: i64) {
-    if name.is_null() {
+    // A failed check or RHS must not overwrite the previous global value.
+    if name.is_null() || has_pending_error() {
         return;
     }
     let key = unsafe { std::slice::from_raw_parts(name, len) };
@@ -1597,7 +1635,7 @@ pub extern "C" fn soplang_check_type(
     name_ptr: *const u8,
     name_len: usize,
 ) {
-    if expected_type == 0 {
+    if expected_type == 0 || has_pending_error() {
         return;
     }
     let sv = SoplangValue {
@@ -1658,6 +1696,9 @@ pub extern "C" fn soplang_get_builtin(name: *const u8, len: usize) -> SoplangVal
     ensure_builtins();
     let key = unsafe { std::slice::from_raw_parts(name, len) };
     let key = String::from_utf8_lossy(key).into_owned();
+    if let Some(value) = GLOBAL_VARS.with(|g| g.borrow().get(&key).copied()) {
+        return value;
+    }
     let idx = BUILTIN_INDICES.with(|b| b.borrow().as_ref().and_then(|m| m.get(&key).copied()));
     if let Some(i) = idx {
         return SoplangValue {
@@ -1666,12 +1707,7 @@ pub extern "C" fn soplang_get_builtin(name: *const u8, len: usize) -> SoplangVal
             payload: i,
         };
     }
-    GLOBAL_VARS.with(|g| {
-        g.borrow()
-            .get(&key)
-            .copied()
-            .unwrap_or_else(SoplangValue::null)
-    })
+    SoplangValue::null()
 }
 
 /// Register a compiled function pointer so soplang_call can dispatch to it.

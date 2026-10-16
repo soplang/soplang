@@ -1,13 +1,13 @@
 abn x = 10
 haddii (x > 5) {
   qor("weyn")
-} ugudambeyn {
+} kale {
   qor("yar")
 }
 haddii (x > 20) {
   qor("a")
-} haddii_kale (x > 8) {
+} kale (x > 8) {
   qor("b")
-} ugudambeyn {
+} kale {
   qor("c")
 }

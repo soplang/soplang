@@ -1,0 +1,119 @@
+hawl hubi(shuruud, magac) {
+    haddii (!shuruud) { qor("FAILED: " + magac) }
+}
+
+hawl tijaabi(x) { celi x + 1 }
+hubi(tijaabi(4) == 5, "contextual spelling preserves function")
+door box = { tijaabi: 7 }
+hubi(box.tijaabi == 7, "contextual spelling preserves property")
+door calls = 0
+tijaabi { qor(1 / 0) } qabo (e) { calls = calls + 1 }
+fasax { qor(1 / 0) } qabo (e) { calls = calls + 1 }
+hubi(calls == 2, "old and new try spellings")
+hubi(jibbaar(2, 3) == 8, "canonical exponentiation")
+hubi(jibbaar(2, 3) == awood(2, 3), "exponentiation alias")
+hubi("test".dhammaad("st"), "canonical suffix")
+hubi("test".dhammaad("st") == "test".dhamaad("st"), "suffix alias")
+hubi(" x  ".masax_dhammaad() == " x", "canonical trailing trim")
+hubi(" x  ".masax_dhammaad() == " x  ".masax_dhamaad(), "trim alias")
+
+hubi(yar(8, 3, 6) == 3, "minimum")
+hubi(weyn(8, 3, 6) == 8, "maximum")
+hubi(yar(8, 3, 6) == ugu_yar(8, 3, 6), "minimum alias")
+hubi(weyn(8, 3, 6) == ugu_weyn(8, 3, 6), "maximum alias")
+hubi(nooc(yar(8.5, 3, 6)) == "jajab", "mixed minimum type")
+hubi(nooc(weyn(8.5, 3, 6)) == "jajab", "mixed maximum type")
+door values = [10, 20, 30]
+hubi(values.hore() == 10, "first item")
+hubi(values.dambe() == 30, "last item")
+hubi(values.hore() == values.koowaad(), "first alias")
+hubi(values.dambe() == values.ugu_dambeeya(), "last alias")
+hubi(teed().hore() == maran, "empty first")
+hubi(teed().dambe() == maran, "empty last")
+
+door branch = 0
+haddii (been) { branch = 1 }
+kale ((1 + 1) == 3) { branch = 2 }
+kale ((1 + 1) == 2) {
+    haddii (been) { branch = 3 } kale { branch = 4 }
+} kale { branch = 5 }
+hubi(branch == 4, "conditional and nested kale")
+haddii (been) { branch = 1 }
+haddii_kale (been) { branch = 2 }
+kale { branch = 6 }
+hubi(branch == 6, "legacy conditional with canonical fallback")
+haddii (been) { branch = 1 }
+kale (been) { branch = 2 }
+ugudambeyn { branch = 7 }
+hubi(branch == 7, "canonical conditional with legacy fallback")
+dooro (9) { xaalad 1 { branch = 1 } kale { branch = 8 } }
+hubi(branch == 8, "switch fallback")
+dooro (1) { xaalad 1 { branch = 9 } kale { branch = 10 } }
+hubi(branch == 9, "matching switch case")
+
+hawl kale(x) { celi x + 1 }
+hawl aqbal(kale) { celi kale }
+haddii (run) {} kale(4)
+hubi(kale(4) == 5, "contextual kale preserves function calls")
+hubi(aqbal(7) == 7, "contextual kale preserves parameters")
+door other = { kale: 3 }
+hubi(other.kale == 3, "contextual kale preserves property")
+
+qaab Legacy {
+    hawl dhaw(qoraal name) { nafta.name = name }
+}
+qaab Modern dhaxal Legacy {
+    hawl dhis(qoraal name) { waalid.dhis(name + "!") }
+}
+qaab OldChild dhaxal Modern {
+    hawl dhaw(qoraal name) { waalid.dhaw(name + "?") }
+}
+qaab Inherited dhaxal Modern { hawl read() { celi nafta.name } }
+door modern = cusub Modern("A")
+hubi(modern.name == "A!", "modern child calls legacy parent")
+door child = cusub OldChild("B")
+hubi(child.name == "B?!", "nearest legacy constructor overrides modern ancestor")
+door inherited = cusub Inherited("C")
+hubi(inherited.read() == "C!", "inherited modern constructor")
+modern.dhaw("D")
+hubi(modern.name == "D!", "explicit legacy call falls back to modern constructor")
+
+qaab Both {
+    hawl dhis() { nafta.name = "modern" }
+    hawl dhaw(qoraal name) { nafta.name = name }
+}
+door both = cusub Both()
+hubi(both.name == "modern", "canonical constructor wins within class")
+both.dhaw("legacy")
+hubi(both.name == "legacy", "explicit legacy method remains callable")
+
+qaab Custom {
+    hawl dhis() {}
+    hawl hel(x) { celi "custom read" }
+    hawl saar() { celi "custom remove" }
+    hawl dherer() { celi 99 }
+}
+door custom = cusub Custom()
+hubi(custom.hel(0) == "custom read", "custom read method wins")
+hubi(custom.saar() == "custom remove", "custom removal method wins")
+hubi(custom.dherer() == 99, "custom length method wins")
+
+door errors = 0
+tijaabi { jibbaar(2) } qabo (e) { errors = errors + 1 }
+tijaabi { awood(2) } qabo (e) { errors = errors + 1 }
+tijaabi { qor("test".dhammaad()) } qabo (e) { errors = errors + 1 }
+tijaabi { qor("test".dhamaad()) } qabo (e) { errors = errors + 1 }
+tijaabi { qor("test".masax_dhammaad(1)) } qabo (e) { errors = errors + 1 }
+tijaabi { qor("test".masax_dhamaad(1)) } qabo (e) { errors = errors + 1 }
+tijaabi { modern.dhis() } qabo (e) { errors = errors + 1 }
+tijaabi { modern.dhaw() } qabo (e) { errors = errors + 1 }
+door arguments = { name: 7 }
+tijaabi { door invalid = cusub Modern(arguments.hel("name")) } qabo (e) { errors = errors + 1 }
+hubi(errors == 9, "canonical and legacy validation failures")
+door simple_errors = 0
+tijaabi { yar() } qabo (e) { simple_errors = simple_errors + 1 }
+tijaabi { weyn() } qabo (e) { simple_errors = simple_errors + 1 }
+tijaabi { values.hore(1) } qabo (e) { simple_errors = simple_errors + 1 }
+tijaabi { values.dambe(1) } qabo (e) { simple_errors = simple_errors + 1 }
+hubi(simple_errors == 4, "short names preserve argument validation")
+qor("approved vocabulary ok")

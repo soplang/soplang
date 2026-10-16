@@ -1,0 +1,71 @@
+hawl hubi(shuruud, magac) {
+    haddii (!shuruud) { qor("FAILED: " + magac) }
+}
+
+door letters = ["é", "S", "o", "🙂"]
+door text = "éSo🙂"
+hubi(letters.jar() == letters && text.jar() == text, "no-argument slice")
+hubi(letters.jar(1) == ["S", "o", "🙂"] && text.jar(1) == "So🙂", "start-only slice")
+hubi(letters.jar(1, 3) == ["S", "o"] && text.jar(1, 3) == "So", "exclusive end")
+hubi(letters.jar(-2) == ["o", "🙂"] && text.jar(-2) == "o🙂", "negative start")
+hubi(letters.jar(0, -1) == ["é", "S", "o"] && text.jar(0, -1) == "éSo", "negative end")
+hubi(letters.jar(-99, 99) == letters && text.jar(-99, 99) == text, "clamp bounds")
+hubi(letters.jar(3, 1) == [] && text.jar(3, 1) == "", "reversed slice is empty")
+hubi(letters.jar(2, 2) == [] && text.jar(2, 2) == "", "equal bounds")
+hubi(letters.jar(99) == [] && text.jar(99) == "", "start beyond end")
+hubi(letters.jar(0, -99) == [] && text.jar(0, -99) == "", "end before beginning")
+hubi(letters.jar(-99, -99) == [] && text.jar(-99, -99) == "", "both bounds before beginning")
+hubi([].jar() == [] && "".jar() == "", "empty slice")
+hubi(letters.jar((-9223372036854775807 - 1), 9223372036854775807) == letters, "extreme integer bounds")
+
+door copy = letters.jar()
+copy.dhig(0, "changed")
+hubi(letters.hore() == "é", "full slice copies outer list")
+door nested = [[1]]
+nested.jar().hore().dhig(0, 2)
+hubi(nested.hore().hore() == 2, "slice is shallow")
+hubi(text.hore() == "é" && text.dambe() == "🙂", "first and last characters")
+hubi("".hore() == maran && "".dambe() == maran, "empty character endpoints")
+hubi("é".hore() == "é".dambe(), "single character endpoints")
+hubi(text == "éSo🙂", "string methods preserve receiver")
+
+door values = [1, 1.0, maran, 1, [2], [2]]
+hubi(values.tiri(1) == 2 && values.tiri(1.0) == 1, "count follows existing list equality")
+hubi(values.tiri(maran) == 1 && values.tiri(99) == 0, "null and missing counts")
+hubi(values.tiri([2]) == 2 && [].tiri(1) == 0, "structural and empty counts")
+hubi(values.dherer() == 6, "count preserves list")
+hubi("ééé".tiri("éé") == 1, "substring matches stay non-overlapping")
+
+// Preserve the existing search-miss results through this compatibility release.
+hubi(values.raadi(99) == maran && values.muuji(99) == maran, "list search miss compatibility")
+hubi(text.raadi("missing") == -1, "string first search miss compatibility")
+hubi(text.raadi("missing", "dambe") == -1, "string last search miss compatibility")
+hubi(text.raadi_dambe("missing") == -1, "legacy string search miss compatibility")
+hubi(values.raadi(1) == 0 && text.raadi("é") == 0, "index zero is a match")
+
+qaab Custom {
+    hawl hore() { celi "custom first" }
+    hawl dambe() { celi "custom last" }
+    hawl tiri(x) { celi 99 }
+}
+door custom = cusub Custom()
+hubi(custom.hore() == "custom first" && custom.dambe() == "custom last", "custom endpoints")
+hubi(custom.tiri(1) == 99, "custom count")
+
+door errors = 0
+tijaabi { letters.jar(1.5) } qabo (e) { errors = errors + 1 }
+tijaabi { qor(text.jar(1.5)) } qabo (e) { errors = errors + 1 }
+tijaabi { letters.jar(0, 2.0) } qabo (e) { errors = errors + 1 }
+tijaabi { qor(text.jar(0, 2.0)) } qabo (e) { errors = errors + 1 }
+tijaabi { letters.jar("1") } qabo (e) { errors = errors + 1 }
+tijaabi { qor(text.jar("1")) } qabo (e) { errors = errors + 1 }
+tijaabi { letters.jar(0, 1, 2) } qabo (e) { errors = errors + 1 }
+tijaabi { qor(text.jar(0, 1, 2)) } qabo (e) { errors = errors + 1 }
+tijaabi { qor(text.hore(1)) } qabo (e) { errors = errors + 1 }
+tijaabi { qor(text.dambe(1)) } qabo (e) { errors = errors + 1 }
+tijaabi { values.tiri() } qabo (e) { errors = errors + 1 }
+tijaabi { values.tiri(1, 2) } qabo (e) { errors = errors + 1 }
+tijaabi { qor(text.jar(maran)) } qabo (e) { errors = errors + 1 }
+tijaabi { letters.jar(run) } qabo (e) { errors = errors + 1 }
+hubi(errors == 14, "catchable collection argument failures")
+qor("collection consistency ok")

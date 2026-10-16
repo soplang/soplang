@@ -1,7 +1,7 @@
 teed liis = [1, 2, 3]
 qor(liis)
 qor(liis[0])
-liis.kudar(4)
+liis.geli(4)
 qor(liis)
 qor(liis.dherer())
 door nuqul = liis.nuqul()

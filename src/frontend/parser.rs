@@ -63,6 +63,36 @@ impl Parser {
             && matches!(self.peek_nth(2).kind, TokenType::Assign)
     }
 
+    /// Recognize a contextual branch without consuming an ordinary `kale(...)`
+    /// call following an if statement. A conditional header must end in `{`.
+    fn looks_like_kale_branch(&self) -> bool {
+        if self.peek().kind != TokenType::Identifier || self.peek().lexeme != "kale" {
+            return false;
+        }
+        if self.peek_nth(1).kind == TokenType::LBrace {
+            return true;
+        }
+        if self.peek_nth(1).kind != TokenType::LParen {
+            return false;
+        }
+        let mut depth = 1usize;
+        for index in self.current + 2..self.tokens.len() {
+            match self.tokens[index].kind {
+                TokenType::LParen => depth += 1,
+                TokenType::RParen => {
+                    depth -= 1;
+                    if depth == 0 {
+                        return self.tokens.get(index + 1).map(|token| &token.kind)
+                            == Some(&TokenType::LBrace);
+                    }
+                }
+                TokenType::Eof => break,
+                _ => {}
+            }
+        }
+        false
+    }
+
     fn peek(&self) -> &Token {
         if self.current >= self.tokens.len() {
             return self.tokens.last().unwrap();
@@ -108,6 +138,15 @@ impl Parser {
     fn parse_stmt(&mut self) -> Result<Stmt, SoplangError> {
         let t = self.peek();
         let (line, col) = (t.line, t.col);
+
+        // Contextual spelling: existing variables and functions named tijaabi
+        // remain valid; only `tijaabi {` starts a protected block.
+        if t.kind == TokenType::Identifier
+            && t.lexeme == "tijaabi"
+            && self.tokens.get(self.current + 1).map(|t| &t.kind) == Some(&TokenType::LBrace)
+        {
+            return self.parse_try_catch(line, col);
+        }
 
         match &t.kind {
             TokenType::Haddii => return self.parse_if(line, col),
@@ -269,6 +308,14 @@ impl Parser {
         }
     }
 
+    fn expect_member_name(&mut self) -> Result<String, SoplangError> {
+        if self.check(TokenType::Kuceli) {
+            self.advance();
+            return Ok("kuceli".to_string());
+        }
+        self.expect_identifier()
+    }
+
     fn parse_func_def(&mut self) -> Result<Stmt, SoplangError> {
         self.advance(); // hawl
         let name = self.expect_identifier()?;
@@ -400,7 +447,9 @@ impl Parser {
         self.expect(TokenType::RBrace)?;
 
         let mut elseifs = Vec::new();
-        while self.check(TokenType::HaddiiKale) {
+        while self.check(TokenType::HaddiiKale)
+            || (self.looks_like_kale_branch() && self.peek_nth(1).kind == TokenType::LParen)
+        {
             self.advance();
             self.expect(TokenType::LParen)?;
             let elif_cond = self.parse_logical()?;
@@ -411,7 +460,9 @@ impl Parser {
             elseifs.push((elif_cond, elif_body));
         }
 
-        let else_body = if self.check(TokenType::Ugudambeyn) {
+        let else_body = if self.check(TokenType::Ugudambeyn)
+            || (self.looks_like_kale_branch() && self.peek_nth(1).kind == TokenType::LBrace)
+        {
             self.advance();
             self.expect(TokenType::LBrace)?;
             let b = self.parse_block_stmts()?;
@@ -447,7 +498,9 @@ impl Parser {
                 let body = self.parse_block_stmts()?;
                 self.expect(TokenType::RBrace)?;
                 cases.push((case_val, body));
-            } else if self.check(TokenType::Ugudambeyn) {
+            } else if self.check(TokenType::Ugudambeyn)
+                || (self.looks_like_kale_branch() && self.peek_nth(1).kind == TokenType::LBrace)
+            {
                 self.advance();
                 self.expect(TokenType::LBrace)?;
                 default = Some(self.parse_block_stmts()?);
@@ -455,7 +508,7 @@ impl Parser {
             } else {
                 let t = self.peek();
                 return Err(parser_error(
-                    "Waxaa la filayay 'xaalad' ama 'ugudambeyn'",
+                    "Waxaa la filayay 'xaalad' ama 'kale' (ama 'ugudambeyn')",
                     t.line,
                     t.col,
                 ));
@@ -525,7 +578,7 @@ impl Parser {
     }
 
     fn parse_try_catch(&mut self, _line: usize, _col: usize) -> Result<Stmt, SoplangError> {
-        self.advance(); // fasax
+        self.advance(); // tijaabi or fasax
         self.expect(TokenType::LBrace)?;
         let try_body = self.parse_block_stmts()?;
         self.expect(TokenType::RBrace)?;
@@ -623,7 +676,7 @@ impl Parser {
         while self.check(TokenType::Dot) || self.check(TokenType::LBracket) {
             if self.check(TokenType::Dot) {
                 self.advance();
-                let prop = self.expect_identifier()?;
+                let prop = self.expect_member_name()?;
                 if self.check(TokenType::LParen) {
                     self.expect(TokenType::LParen)?; // consume '('
                     let args = self.parse_call_args()?;
@@ -841,7 +894,7 @@ impl Parser {
         loop {
             if self.check(TokenType::Dot) {
                 self.advance();
-                let prop = self.expect_identifier()?;
+                let prop = self.expect_member_name()?;
                 if self.check(TokenType::LParen) {
                     self.expect(TokenType::LParen)?; // consume '('
                     let args = self.parse_call_args()?;

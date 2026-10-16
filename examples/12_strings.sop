@@ -1,11 +1,11 @@
 qoraal s = "Salaan Adduunka"
 qor(s.bilow("Salaan"))
-qor(s.dhamaad("ka"))
+qor(s.dhammaad("ka"))
 qor(s.leeyahay("Adduun"))
 qor(s.qeybi(" "))
 qor(s.beddel("Adduunka", "Soplang"))
 teed parts = ["a", "b", "c"]
 qoraal delim = "-"
-qor(delim.kudar(parts))
+qor(delim.xiriiri(parts))
 qor(s.jar(0, 5))
 qor(dherer(s))

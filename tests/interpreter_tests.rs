@@ -19,6 +19,46 @@ fn run_program(source: &str) -> String {
 }
 
 #[test]
+fn test_shared_collection_contracts() {
+    assert_eq!(
+        run_program(include_str!("fixtures/shared_collections.sop")),
+        "shared collections ok\n"
+    );
+}
+
+#[test]
+fn test_approved_vocabulary_and_constructor_compatibility() {
+    assert_eq!(
+        run_program(include_str!("fixtures/approved_vocabulary.sop")),
+        "approved vocabulary ok\n"
+    );
+}
+
+#[test]
+fn test_collection_operations() {
+    assert_eq!(
+        run_program(include_str!("fixtures/collection_operations.sop")),
+        "collection operations ok\n"
+    );
+}
+
+#[test]
+fn test_collection_consistency() {
+    assert_eq!(
+        run_program(include_str!("fixtures/collection_consistency.sop")),
+        "collection consistency ok\n"
+    );
+}
+
+#[test]
+fn test_global_updates() {
+    assert_eq!(
+        run_program(include_str!("fixtures/global_updates.sop")),
+        "global updates ok\n"
+    );
+}
+
+#[test]
 fn test_hello_world() {
     let output = run_program(r#"qor("Salaan, Adduunka!")"#);
     assert_eq!(output, "Salaan, Adduunka!\n");
@@ -458,6 +498,40 @@ fn test_try_catch_runtime() {
     "#,
     );
     assert_eq!(output, "ok\n");
+}
+
+#[test]
+fn test_repl_global_updates_across_snippets() {
+    let mut session = soplang::ReplSession::new(false).expect("session");
+    session
+        .eval(
+            "door total = 0 hawl increment() { total = total + 1 } increment() door observed = total",
+            None,
+        )
+        .unwrap();
+    assert_eq!(global_int("total"), 1);
+    assert_eq!(global_int("observed"), 1);
+    session
+        .eval("increment() total = total + 1 observed = total", None)
+        .unwrap();
+    assert_eq!(global_int("total"), 3);
+    assert_eq!(global_int("observed"), 3);
+    session
+        .eval(
+            "kuceli (index 1 ilaa 3) { observed = observed + index }",
+            None,
+        )
+        .unwrap();
+    assert_eq!(global_int("observed"), 9);
+    assert_eq!(global_int("index"), 4);
+    session
+        .eval(
+            "kuceli (index 1 ilaa 2) { observed = observed + index }",
+            None,
+        )
+        .unwrap();
+    assert_eq!(global_int("observed"), 12);
+    assert_eq!(global_int("index"), 3);
 }
 
 #[test]

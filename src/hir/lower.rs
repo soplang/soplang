@@ -607,14 +607,12 @@ impl<'a> HirLowering<'a> {
     }
 
     fn var_ann(&self, name: &str) -> Option<TypeAnnotation> {
-        if self.func_scope.is_some() {
-            return self
-                .func_scope
-                .unwrap()
-                .get(name)
-                .map(|v| v.type_ann.clone());
+        if let Some((catch_name, _)) = &self.catch_var {
+            if catch_name == name {
+                return Some(TypeAnnotation::Dynamic);
+            }
         }
-        resolve_name(self.sym, name, None).map(|v| v.type_ann.clone())
+        resolve_name(self.sym, name, self.func_scope).map(|v| v.type_ann)
     }
 
     fn emit_type_check(&mut self, src: Slot, ann: &TypeAnnotation, name: &str) {
@@ -631,6 +629,24 @@ impl<'a> HirLowering<'a> {
                 name: name.to_string(),
             }),
         }
+        // Accepted numeric values must have the representation promised by the
+        // annotation before a native slot or a shared global receives them.
+        let conversion = match ann {
+            TypeAnnotation::Abn => "abn",
+            TypeAnnotation::Jajab => "jajab",
+            _ => return,
+        };
+        let callee = self.alloc_slot();
+        self.emit(HirInstr::Load {
+            dst: callee,
+            name: conversion.to_string(),
+        });
+        self.emit(HirInstr::Call {
+            dst: src,
+            callee,
+            args: vec![src],
+        });
+        self.set_temp_num(src, num_of_ann(ann));
     }
 
     fn resolve_slot(&self, name: &str) -> Option<Slot> {
@@ -646,6 +662,30 @@ impl<'a> HirLowering<'a> {
             None
         } else {
             resolve_name(self.sym, name, None).map(|v| v.slot)
+        }
+    }
+
+    fn is_global(&self, name: &str) -> bool {
+        self.func_scope.is_none()
+            && self.catch_var.as_ref().map(|(name, _)| name.as_str()) != Some(name)
+    }
+
+    /// Functions and callbacks can replace globals. Refresh top-level slots on
+    /// every read, preserving their annotated numeric kinds for native lowering.
+    fn load_name(&mut self, dst: Slot, name: &str) {
+        if let Some(slot) = self.resolve_slot(name) {
+            if self.is_global(name) {
+                self.emit(HirInstr::Load {
+                    dst: slot,
+                    name: name.to_string(),
+                });
+            }
+            self.emit_copy(dst, slot);
+        } else {
+            self.emit(HirInstr::Load {
+                dst,
+                name: name.to_string(),
+            });
         }
     }
 
@@ -846,7 +886,19 @@ impl<'a> HirLowering<'a> {
                 };
                 let var_slot = self.resolve_slot(var).unwrap_or_else(|| self.alloc_slot());
                 self.emit_copy(var_slot, start_slot);
+                if self.is_global(var) {
+                    self.emit(HirInstr::Store {
+                        name: var.clone(),
+                        src: var_slot,
+                    });
+                }
                 self.emit(HirInstr::Label(cond_lbl));
+                if self.is_global(var) {
+                    self.emit(HirInstr::Load {
+                        dst: var_slot,
+                        name: var.clone(),
+                    });
+                }
                 let cond_slot = self.alloc_slot();
                 self.emit(HirInstr::RangeContinue {
                     dst: cond_slot,
@@ -865,9 +917,21 @@ impl<'a> HirLowering<'a> {
                     self.lower_stmt(s);
                 }
                 self.emit(HirInstr::Label(incr_lbl));
+                if self.is_global(var) {
+                    self.emit(HirInstr::Load {
+                        dst: var_slot,
+                        name: var.clone(),
+                    });
+                }
                 let new_var = self.alloc_slot();
                 self.emit_binop(new_var, BinOpKind::Add, var_slot, step_slot);
                 self.emit_copy(var_slot, new_var);
+                if self.is_global(var) {
+                    self.emit(HirInstr::Store {
+                        name: var.clone(),
+                        src: var_slot,
+                    });
+                }
                 self.emit(HirInstr::Jump(cond_lbl));
                 self.emit(HirInstr::Label(break_lbl));
                 self.loop_stack.pop();
@@ -970,14 +1034,7 @@ impl<'a> HirLowering<'a> {
             }
             Expr::Identifier(name) => {
                 let slot = self.alloc_slot();
-                if let Some(var_slot) = self.resolve_slot(name) {
-                    self.emit_copy(slot, var_slot);
-                } else {
-                    self.emit(HirInstr::Load {
-                        dst: slot,
-                        name: name.clone(),
-                    });
-                }
+                self.load_name(slot, name);
                 slot
             }
             Expr::BinaryOp { op, left, right } => {
@@ -1023,14 +1080,7 @@ impl<'a> HirLowering<'a> {
             }
             Expr::Call { name, args } => {
                 let callee = self.alloc_slot();
-                if let Some(slot) = self.resolve_slot(name) {
-                    self.emit_copy(callee, slot);
-                } else {
-                    self.emit(HirInstr::Load {
-                        dst: callee,
-                        name: name.clone(),
-                    });
-                }
+                self.load_name(callee, name);
                 let arg_slots: Vec<Slot> = args.iter().map(|a| self.lower_expr(a)).collect();
                 let dst = self.alloc_slot();
                 self.emit(HirInstr::Call {

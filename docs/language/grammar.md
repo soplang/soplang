@@ -43,16 +43,16 @@ An identifier used as a type is a class name.
 
 ```ebnf
 if_stmt          = "haddii" "(" expression ")" "{" block "}"
-                   { "haddii_kale" "(" expression ")" "{" block "}" }
-                   [ "ugudambeyn" "{" block "}" ] .
+                   { ( "kale" | "haddii_kale" ) "(" expression ")" "{" block "}" }
+                   [ ( "kale" | "ugudambeyn" ) "{" block "}" ] .
 switch_stmt      = "dooro" "(" expression ")" "{"
                    { "xaalad" expression "{" block "}" }
-                   [ "ugudambeyn" "{" block "}" ]
+                   [ ( "kale" | "ugudambeyn" ) "{" block "}" ]
                    "}" .
 for_stmt         = "kuceli" "(" identifier expression "ilaa" expression
                    [ "::" expression ] ")" "{" block "}" .
 while_stmt       = "intay" "(" expression ")" "{" block "}" .
-try_catch        = "fasax" "{" block "}" "qabo" "(" identifier ")"
+try_catch        = ( "tijaabi" | "fasax" ) "{" block "}" "qabo" "(" identifier ")"
                    "{" block "}" .
 return_stmt      = "celi" [ expression ] .
 ```
@@ -92,8 +92,8 @@ primary          = literal
                  | function_expr
                  | "(" expression ")" .
 call             = identifier "(" [ arguments ] ")" .
-method_call      = "." identifier "(" [ arguments ] ")" .
-member           = "." identifier .
+method_call      = member "(" [ arguments ] ")" .
+member           = "." ( identifier | "kuceli" ) .
 subscript        = "[" expression "]" .
 arguments        = expression { "," expression } .
 list_literal     = "[" [ arguments ] "]" .
@@ -101,3 +101,15 @@ object_literal   = "{" [ object_entry { "," object_entry } ] "}" .
 object_entry     = ( identifier | string ) ":" expression .
 literal          = number | string | "run" | "been" | "maran" .
 ```
+
+`tijaabi` is contextual: only `tijaabi {` starts a try block. It remains an
+identifier in variable, function, call, and property positions.
+
+`kale` is contextual after an if branch or inside a switch. `kale (condition)`
+starts an additional conditional branch only when the closing parenthesis is
+followed by `{`; `kale {` starts a fallback branch. Elsewhere `kale` remains an
+identifier. `haddii_kale` and `ugudambeyn` remain compatibility spellings.
+
+`kuceli` remains the numeric loop keyword. After a dot it is also a member
+name, so `text.kuceli(3)` repeats a string. This exception does not reserve
+other method names or change user-defined identifiers.

@@ -1,0 +1,113 @@
+hawl hubi(shuruud, magac) {
+    haddii (!shuruud) { qor("FAILED: " + magac) }
+}
+
+door counter = 0
+hawl bump() { counter = counter + 1; celi counter }
+bump()
+hubi(counter == 1, "function writes reach main")
+counter = counter + 1
+hubi(counter == 2 && bump() == 3, "main and function share current value")
+hubi(counter == 3, "second function write reaches main")
+door before = counter
+hubi(before + bump() == 7 && counter == 4, "expression operands are evaluated values")
+door seen = []
+intay (counter < 7) { seen.geli(counter); bump() }
+hubi(seen == [4, 5, 6] && counter == 7, "while observes callback updates")
+counter = 0
+door mapped = [1, 2, 3].aaddin(hawl(x) { counter = counter + x; celi counter })
+hubi(counter == 6 && mapped == [1, 3, 6], "anonymous callback updates")
+hawl make_update(amount) { celi hawl() { counter = counter + amount; celi counter } }
+door update = make_update(4)
+hubi(update() == 10 && counter == 10, "capturing closure writes global")
+hawl shadow(counter) { counter = counter + 99; celi counter }
+hubi(shadow(1) == 100 && counter == 10, "parameter shadowing stays local")
+hawl local() { door counter = 1; counter = counter + 1; celi counter }
+hubi(local() == 2 && counter == 10, "local declaration stays local")
+
+door text = "before"
+door flag = been
+door record = { value: 1 }
+door sequence = [1]
+hawl replace() { text = "after"; flag = run; record = { value: 2 }; sequence = [2] }
+replace()
+hubi(text == "after" && flag, "string and boolean replacement")
+hubi(record.value == 2 && sequence.hore() == 2, "object and list replacement")
+hawl first() { celi 1 }
+hawl second() { celi 2 }
+door callable = first
+hawl replace_callable() { callable = second }
+replace_callable()
+hubi(callable() == 2, "global callable replacement")
+
+door index = 0
+hawl read_index() { celi index }
+hawl advance_index() { index = index + 1 }
+door indexes = []
+kuceli (index 1 ilaa 3) {
+    indexes.geli(read_index())
+    haddii (index == 1) { advance_index() }
+}
+hubi(indexes == [1, 3] && index == 4, "loop index shared with functions")
+indexes.nadiifi()
+kuceli (index 3 ilaa 1 :: -1) {
+    haddii (index == 2) { soco }
+    indexes.geli(read_index())
+}
+hubi(indexes == [3, 1] && index == 0, "descending loop and continue")
+kuceli (index 1 ilaa 3) { jooji }
+hubi(index == 1, "break preserves published index")
+
+abn integer = 1
+jajab decimal = 1.5
+qoraal typed_text = "before"
+hawl set_typed() { integer = integer + 2; decimal = decimal + 0.5; typed_text = "after" }
+set_typed()
+hubi(integer == 3 && integer * 2 == 6, "typed integer update")
+hubi(decimal == 2.0 && decimal * 2.0 == 4.0, "typed float update")
+hubi(typed_text == "after", "typed string update")
+hawl set_mixed() { integer = 3.0; decimal = 2 }
+set_mixed()
+hubi(integer * 2 == 6 && nooc(integer) == "abn", "integral float normalized for native integer")
+hubi(decimal * 2.0 == 4.0 && nooc(decimal) == "jajab", "integer normalized for native float")
+abn converted_int = 2.0
+jajab converted_float = 2
+hubi(converted_int + 1 == 3 && converted_float + 0.5 == 2.5, "numeric declarations normalize representation")
+hawl wrong() { celi "wrong" }
+hawl wrong_integer() { integer = wrong() }
+hawl wrong_decimal() { decimal = wrong() }
+hawl wrong_number() { celi 7 }
+hawl wrong_text() { typed_text = wrong_number() }
+qaab A { hawl dhis() {} hawl name() { celi "A" } }
+qaab B { hawl dhis() {} hawl name() { celi "B" } }
+A instance = cusub A()
+door other = cusub B()
+hawl wrong_instance() { celi other }
+hawl wrong_class() { instance = wrong_instance() }
+door errors = 0
+tijaabi { wrong_integer() } qabo (e) { errors = errors + 1 }
+tijaabi { wrong_decimal() } qabo (e) { errors = errors + 1 }
+tijaabi { wrong_text() } qabo (e) { errors = errors + 1 }
+tijaabi { wrong_class() } qabo (e) { errors = errors + 1 }
+hubi(errors == 4, "function writes enforce global types")
+hubi(integer == 3 && decimal == 2.0 && typed_text == "after", "failed global writes preserve values")
+hubi(instance.name() == "A", "failed class write preserves instance")
+door original_error = ""
+tijaabi { qor(1 / 0) } qabo (e) { original_error = e }
+tijaabi { integer = 1 / 0 } qabo (e) { hubi(e == original_error, "type check preserves RHS error") }
+hubi(integer == 3, "failed RHS preserves global")
+qaab Mutator { hawl update() { counter = counter + 1 } }
+door mutator = cusub Mutator()
+door before_method = counter
+mutator.update()
+hubi(counter == before_method + 1, "method updates global")
+door before_error = counter
+hawl write_then_fail() { bump(); celi 1 / 0 }
+tijaabi { write_then_fail() } qabo (e) { hubi(counter == before_error + 1, "catch sees completed global writes") }
+door builtin_yar = yar
+door yar = 41
+hawl get_shadow() { celi yar }
+hubi(yar == 41 && get_shadow() == 41, "global variables shadow builtins consistently")
+yar = builtin_yar
+hubi(yar(3, 2) == 2, "restored builtin remains callable")
+qor("global updates ok")

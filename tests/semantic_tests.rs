@@ -13,6 +13,27 @@ fn analyze_source(source: &str) -> Result<(), String> {
         .map_err(|e| e.to_string())
 }
 
+#[test]
+fn test_canonical_constructor_validation_and_parent_aliases() {
+    for constructor in ["dhis", "dhaw"] {
+        let definition =
+            format!("qaab Parent {{ hawl {constructor}(qoraal name) {{ nafta.name = name }} }}");
+        assert!(analyze_source(&format!("{definition} door x = cusub Parent()")).is_err());
+        assert!(analyze_source(&format!("{definition} door x = cusub Parent(1)")).is_err());
+        assert!(analyze_source(&format!(
+            "{definition} qaab Child dhaxal Parent {{ hawl read() {{ celi nafta.name }} }} door x = cusub Child(1)"
+        )).is_err());
+        for parent_call in ["dhis", "dhaw"] {
+            assert!(analyze_source(&format!(
+                "{definition} qaab Child dhaxal Parent {{ hawl dhis(qoraal name) {{ waalid.{parent_call}(name) }} }} door x = cusub Child(\"A\")"
+            )).is_ok());
+            assert!(analyze_source(&format!(
+                "{definition} qaab Child dhaxal Parent {{ hawl dhis() {{ waalid.{parent_call}() }} }}"
+            )).is_err());
+        }
+    }
+}
+
 fn run_semantic(path: &Path) -> Result<(), String> {
     let source = fs::read_to_string(path).map_err(|e| e.to_string())?;
     let tokens = Lexer::new(&source).tokenize().map_err(|e| e.to_string())?;

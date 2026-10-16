@@ -1,0 +1,90 @@
+hawl hubi(shuruud, magac) {
+    haddii (!shuruud) { qor("FAILED: " + magac) }
+}
+
+door t = [10, maran, 30]
+door w = { a: 10, b: maran }
+door s = "éS"
+hubi(t.dherer() == 3, "list length")
+hubi(w.dherer() == 2, "object length")
+hubi(s.dherer() == 2, "character length")
+hubi(t.leeyahay(10), "list membership")
+hubi(w.leeyahay("b"), "key storing null")
+hubi(s.leeyahay("é"), "substring membership")
+hubi(t.hel(0) == 10, "list read")
+hubi(t.hel(-1) == 30, "negative list read")
+hubi(t.hel(1, 99) == maran, "stored null overrides default")
+hubi(t.hel(99, 42) == 42, "list default")
+hubi(t.hel(-99) == maran, "missing negative list index")
+hubi(w.hel("a") == 10, "object read")
+hubi(w.hel("b", 99) == maran, "stored null object value")
+hubi(w.hel("missing", 42) == 42, "object default")
+hubi(s.hel(0) == "é", "Unicode read")
+hubi(s.hel(-1) == "S", "negative character read")
+hubi(s.hel(99, "fallback") == "fallback", "string default")
+hubi(s.hel(-99) == maran, "missing negative character")
+hubi(teed().hel(0) == maran, "empty list read")
+hubi("".hel(-1) == maran, "empty string read")
+
+door alias = t
+hubi(t.dhig(-1, 31) == t, "list assignment result")
+hubi(alias.hel(2) == 31, "list assignment mutates receiver")
+hubi(w.dhig("c", 12) == w, "object assignment result")
+hubi(w.hel("c") == 12, "object assignment inserts")
+hubi(t.saar() == 31, "pop result")
+hubi(t.saar(0) == 10, "indexed removal result")
+hubi(t.dherer() == 1, "removal length")
+hubi(t.saar(-1) == maran, "remove stored null")
+hubi(t.dherer() == 0, "negative removal mutation")
+hubi(w.saar("b") == maran, "remove keyed null")
+hubi(!w.leeyahay("b"), "key was removed")
+hubi(w.saar("missing") == maran, "missing keyed removal")
+
+door old = [1, 2, 3]
+hubi(old.kasaar() == 3, "legacy pop")
+hubi(old.ka_saar(-1) == 2, "legacy indexed removal")
+hubi(old.raadi(1) == old.muuji(1), "search alias")
+hubi(old.raadi(99) == maran, "list search miss")
+hubi(s.raadi("missing") == -1, "legacy string search miss")
+hubi(w.ka_qaad("c") == 12, "legacy keyed removal")
+hubi(w.tir("a") == w, "legacy deletion returns object")
+hubi(w.dherer() == 0, "object empty after removal")
+
+door nested = [1]
+door outer = teed(nested)
+door copied = outer.nuqul()
+copied.hel(0).dhig(0, 2)
+hubi(outer.hel(0).hel(0) == 2, "list copy shares nested values")
+copied.dhig(0, [9])
+hubi(outer.hel(0).hel(0) == 2, "list outer copy is independent")
+door object = { inner: nested }
+door copy = object.nuqul()
+copy.hel("inner").dhig(0, 3)
+hubi(object.hel("inner").hel(0) == 3, "object copy shares nested values")
+copy.dhig("inner", [9])
+hubi(object.hel("inner").hel(0) == 3, "object outer copy is independent")
+hubi(copied.nadiifi().dherer() == 0, "list clear result")
+hubi(copy.nadiifi().dherer() == 0, "object clear result")
+
+door errors = 0
+tijaabi { t.saar() } qabo (e) { errors = errors + 1 }
+tijaabi { old.saar(99) } qabo (e) { errors = errors + 1 }
+tijaabi { old.saar(0, 1) } qabo (e) { errors = errors + 1 }
+tijaabi { old.saar("0") } qabo (e) { errors = errors + 1 }
+tijaabi { old.hel(0.0) } qabo (e) { errors = errors + 1 }
+tijaabi { old.hel() } qabo (e) { errors = errors + 1 }
+tijaabi { old.dhig(99, 7) } qabo (e) { errors = errors + 1 }
+tijaabi { w.saar() } qabo (e) { errors = errors + 1 }
+tijaabi { w.saar(1) } qabo (e) { errors = errors + 1 }
+tijaabi { w.dherer(1) } qabo (e) { errors = errors + 1 }
+tijaabi { s.hel("0") } qabo (e) { errors = errors + 1 }
+tijaabi { s.dhig(0, "x") } qabo (e) { errors = errors + 1 }
+hubi(errors == 12, "catchable argument and bounds failures")
+hubi(old.hel(0) == 1, "failed mutations preserve list")
+
+// A supplied default is evaluated normally even when the entry exists.
+door calls = [0]
+hawl fallback() { calls.dhig(0, calls.hel(0) + 1); celi 99 }
+hubi(old.hel(0, fallback()) == 1, "existing entry wins")
+hubi(calls.hel(0) == 1, "default expression is eager")
+qor("shared collections ok")

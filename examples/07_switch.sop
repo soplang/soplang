@@ -3,11 +3,11 @@ dooro (n) {
   xaalad 1 { qor("hal") }
   xaalad 2 { qor("laba") }
   xaalad 3 { qor("saddex") }
-  ugudambeyn { qor("kale") }
+  kale { qor("kale") }
 }
 qoraal lang = "Somali"
 dooro (lang) {
   xaalad "English" { qor("Hello") }
   xaalad "Somali" { qor("Salaan") }
-  ugudambeyn { qor("?") }
+  kale { qor("?") }
 }

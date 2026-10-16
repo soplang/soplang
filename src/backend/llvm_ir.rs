@@ -619,10 +619,13 @@ impl<'a> FnEmit<'a> {
                 self.set_kind(*dst, self.kind(*src));
                 if let Some(idx) = self.slot_fn.get(src).copied() {
                     self.slot_fn.insert(*dst, idx);
+                } else {
+                    self.slot_fn.remove(dst);
                 }
                 Ok(false)
             }
             HirInstr::Load { dst, name } => {
+                self.slot_fn.remove(dst);
                 if let Some(idx) = self.fn_index(name) {
                     if !self.fns[idx].has_env {
                         self.slot_fn.insert(*dst, idx);
@@ -631,6 +634,7 @@ impl<'a> FnEmit<'a> {
                 let (p, n) = self.str_ptr(name);
                 let sv = self.call_sv("soplang_get_builtin", &format!("ptr {p}, i64 {n}"));
                 self.unpack_store(&sv, *dst);
+                self.set_kind(*dst, SlotNum::Dyn);
                 Ok(false)
             }
             HirInstr::Store { name, src } => {

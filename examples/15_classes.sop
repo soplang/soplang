@@ -5,7 +5,7 @@ qaab Xayawaan {
 }
 
 qaab Bisad dhaxal Xayawaan {
-    hawl dhaw(magac) {
+    hawl dhis(magac) {
         nafta.magac = magac
     }
     hawl salaam() {

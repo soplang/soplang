@@ -1,0 +1,148 @@
+hawl hubi(shuruud, magac) {
+    haddii (!shuruud) { qor("FAILED: " + magac) }
+}
+
+door items = [1]
+door nested = [2, 3]
+hubi(items.geli(nested) == items, "append returns receiver")
+hubi(items.dherer() == 2 && items.hel(1) == nested, "append nested list as one item")
+items.geli(1, 4)
+hubi(items.hel(1) == 4, "legacy indexed insertion")
+door joined = items.midee([5])
+hubi(joined.dherer() == 4 && items.dherer() == 3, "concatenation is pure")
+joined.dhig(0, 99)
+hubi(items.hel(0) == 1, "concatenation copies outer list")
+joined.hel(2).dhig(0, 8)
+hubi(nested.hel(0) == 8, "concatenation is shallow")
+hubi(items.midee(items).dherer() == 6, "self concatenation")
+door legacy = [1]
+legacy.kudar(2)
+hubi(legacy.dherer() == 2, "legacy scalar append")
+hubi(legacy.kudar([3]).dherer() == 3 && legacy.dherer() == 2, "legacy list concat")
+
+door left = { a: 1, b: 2 }
+door right = { b: 3, c: 4 }
+door merged = left.midee(right)
+hubi(merged.hel("b") == 3 && left.hel("b") == 2, "merge right wins without mutation")
+merged.dhig("a", 99)
+hubi(left.hel("a") == 1 && right.dherer() == 2, "merge copies outer object")
+hubi(left.midee(left) == left.kudar(left), "legacy and self merge")
+hubi(left.furayaal() == ["a", "b"], "sorted keys")
+hubi(left.qiimayaal() == [1, 2], "values follow sorted keys")
+hubi(left.lammaanayaal() == [["a", 1], ["b", 2]], "pairs follow sorted keys")
+hubi(left.fure() == left.furayaal(), "legacy keys")
+hubi(left.qiime() == left.qiimayaal(), "legacy values")
+hubi(left.lamaane() == left.lammaanayaal(), "legacy pairs")
+hubi("/".xiriiri(["a", 2, "é"]) == "a/2/é", "join converts values")
+hubi("/".xiriiri([]) == "", "empty join")
+hubi("/".xiriiri([1, 2]) == "/".kudar([1, 2]), "legacy join")
+
+door numbers = [2, 3, 4]
+hubi(numbers.ururi(hawl(a, b) { celi a * b }, 1) == 24, "general fold")
+hubi(numbers.ururi(hawl(a, b) { celi a + qoraal(b) }, "") == "234", "text fold")
+hubi([].ururi(hawl(a, b) { celi b }, 7) == 7, "empty fold")
+hubi(numbers.isku_gee(hawl(a, b) { celi a * b }, 1) == 24, "legacy fold")
+hawl make_fold(factor) { celi hawl(a, b) { celi a + b * factor } }
+hubi(numbers.ururi(make_fold(2), 0) == 18, "fold captures")
+
+// Iteration snapshots the outer list, allowing callbacks to mutate its source.
+door source = [1, 2, 3]
+door mapped = source.aaddin(hawl(x) { source.geli(9); celi x * 2 })
+hubi(mapped == [2, 4, 6] && source.dherer() == 6, "map snapshot")
+source = [1, 2, 3]
+door filtered = source.shaandhee(hawl(x) { source.nadiifi(); celi x > 1 })
+hubi(filtered == [2, 3] && source.dherer() == 0, "filter snapshot")
+source = [1, 2, 3]
+hubi(source.ururi(hawl(a, b) { source.nadiifi(); celi a + b }, 0) == 6, "fold snapshot")
+source = [1, 2, 3]
+hubi(source.dhammaan(hawl(x) { source.nadiifi(); celi x > 0 }), "every snapshot")
+source = [1, 2, 3]
+hubi(source.qaar(hawl(x) { source.nadiifi(); celi x == 3 }), "some snapshot")
+hubi([].dhammaan(hawl(x) { celi been }), "empty every")
+hubi(![].qaar(hawl(x) { celi run }), "empty some")
+
+door calls = [0]
+hawl fail(x) { calls.dhig(0, calls.hel(0) + 1); celi 1 / 0 }
+hawl fail_fold(a, b) { celi fail(b) }
+door original = ""
+tijaabi { qor(1 / 0) } qabo (e) { original = e }
+door caught = 0
+tijaabi { numbers.aaddin(fail) } qabo (e) { hubi(e == original, "map preserves error"); caught = caught + 1 }
+tijaabi { numbers.shaandhee(fail) } qabo (e) { hubi(e == original, "filter preserves error"); caught = caught + 1 }
+tijaabi { numbers.ururi(fail_fold, 0) } qabo (e) { hubi(e == original, "fold preserves error"); caught = caught + 1 }
+tijaabi { numbers.dhammaan(fail) } qabo (e) { hubi(e == original, "every preserves error"); caught = caught + 1 }
+tijaabi { numbers.qaar(fail) } qabo (e) { hubi(e == original, "some preserves error"); caught = caught + 1 }
+hubi(caught == 5 && calls.hel(0) == 5, "callback errors stop iteration")
+calls.dhig(0, 0)
+hubi(numbers.qaar(hawl(x) { calls.dhig(0, calls.hel(0) + 1); celi run }), "some short circuit")
+hubi(!numbers.dhammaan(hawl(x) { calls.dhig(0, calls.hel(0) + 1); celi been }), "every short circuit")
+hubi(calls.hel(0) == 2, "predicates stop after first decisive result")
+
+door text = "  éAbé  "
+hubi(text.masax() == "éAbé", "trim both")
+hubi(text.masax("hore") == "éAbé  ", "trim first")
+hubi(text.masax("dambe") == "  éAbé", "trim last")
+hubi(text.masax("hore") == text.masax_bilow(), "legacy trim first")
+hubi(text.masax("dambe") == text.masax_dhammaad(), "legacy trim last")
+hubi("　é　".masax() == "é", "Unicode whitespace")
+hubi(text.raadi("é") == 2 && text.raadi("é", "hore") == 2, "first character index")
+hubi(text.raadi("é", "dambe") == 5, "last character index")
+hubi(text.raadi("é", "dambe") == text.raadi_dambe("é"), "legacy last search")
+hubi(text.raadi("missing", "dambe") == -1, "last search miss")
+hubi("é".raadi("", "dambe") == 1, "empty needle at end")
+hubi("ééé".beddel("é", "a") == "aéé", "replace first")
+hubi("ééé".beddel("é", "a", 2) == "aaé", "replace count")
+hubi("ééé".beddel("é", "a", 0) == "ééé", "replace zero")
+hubi("ééé".beddel("é", "a", maran) == "aaa", "replace all")
+hubi(text.beddel("é", "a", maran) == text.beddel_dhammaan("é", "a"), "legacy replace all")
+hubi("é".beddel("", "-", maran) == "-é-", "empty replacement target")
+hubi("éß".weynee() == "ÉSS", "Unicode uppercase")
+hubi("ÉSS".yaree() == "éss", "Unicode lowercase")
+hubi(text.weynee() == text.xarfaha_waaweyn(), "legacy uppercase")
+hubi(text.weynee() == text.xarafaha_weyn(), "older uppercase alias")
+hubi(text.yaree() == text.xarfaha_yaryar(), "legacy lowercase")
+hubi("é".kuceli(3) == "ééé" && "é".kuceli(0) == "", "repeat keyword after dot")
+hubi(text.kuceli(2) == text.ku_celi(2), "legacy repeat")
+text.kuceli(1)
+door loops = 0
+kuceli (i 1 ilaa 2) { loops = loops + 1 }
+hubi(loops == 2, "loop keyword preserved")
+hubi(duub(2.5) == 3 && duub(-2.5) == -3, "round halves away from zero")
+hubi(duub(2.4) == dhammeystir(2.4), "legacy rounding")
+hubi(xidid(9) == 3.0, "square root keeps explicit contract")
+
+qaab Custom {
+    hawl geli(x) { celi x + 1 }
+    hawl midee(x) { celi x + 2 }
+    hawl ururi(x) { celi x + 3 }
+    hawl furayaal() { celi "custom" }
+}
+door custom = cusub Custom()
+hubi(custom.geli(1) == 2 && custom.midee(1) == 3, "custom method precedence")
+hubi(custom.ururi(1) == 4 && custom.furayaal() == "custom", "custom vocabulary methods")
+
+door errors = 0
+tijaabi { items.geli() } qabo (e) { errors = errors + 1 }
+tijaabi { items.geli(99, 5) } qabo (e) { errors = errors + 1 }
+tijaabi { items.midee(5) } qabo (e) { errors = errors + 1 }
+tijaabi { left.midee([]) } qabo (e) { errors = errors + 1 }
+tijaabi { qor("/".xiriiri(1)) } qabo (e) { errors = errors + 1 }
+tijaabi { qor(text.masax("bad")) } qabo (e) { errors = errors + 1 }
+tijaabi { qor(text.masax(1)) } qabo (e) { errors = errors + 1 }
+tijaabi { qor(text.raadi("é", "bad")) } qabo (e) { errors = errors + 1 }
+tijaabi { qor(text.raadi("é", 1)) } qabo (e) { errors = errors + 1 }
+tijaabi { qor(text.beddel("é", "a", -1)) } qabo (e) { errors = errors + 1 }
+tijaabi { qor(text.beddel("é", "a", 1.5)) } qabo (e) { errors = errors + 1 }
+tijaabi { qor(text.kuceli(-1)) } qabo (e) { errors = errors + 1 }
+tijaabi { qor(text.kuceli(1.5)) } qabo (e) { errors = errors + 1 }
+tijaabi { qor([].aaddin(1)) } qabo (e) { errors = errors + 1 }
+tijaabi { qor([].shaandhee(1)) } qabo (e) { errors = errors + 1 }
+tijaabi { qor([].ururi(1, 0)) } qabo (e) { errors = errors + 1 }
+tijaabi { qor([].dhammaan(1)) } qabo (e) { errors = errors + 1 }
+tijaabi { qor([].qaar(1)) } qabo (e) { errors = errors + 1 }
+tijaabi { qor(numbers.ururi(hawl(a, b) { celi a })) } qabo (e) { errors = errors + 1 }
+tijaabi { qor(left.furayaal(1)) } qabo (e) { errors = errors + 1 }
+tijaabi { qor(duub()) } qabo (e) { errors = errors + 1 }
+hubi(errors == 21, "catchable invalid arguments")
+hubi(items.dherer() == 3, "failed mutations preserve source")
+qor("collection operations ok")

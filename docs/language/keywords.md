@@ -3,8 +3,8 @@
 This document provides a reference for all keywords in the Soplang programming language, along with their meanings and examples of usage.
 
 The [terminology review](terminology.md) records current names, source evidence,
-and naming decisions. Approved replacements remain planned until their aliases
-are implemented; this reference documents the currently supported spellings.
+and naming decisions. This reference uses implemented canonical spellings;
+compatibility names are listed below. The collection design record explains shared operation contracts.
 
 ## Variable Declaration Keywords
 
@@ -25,8 +25,8 @@ are implemented; this reference documents the currently supported spellings.
 | Keyword       | Meaning            | English Equivalent | Example                                      |
 | ------------- | ------------------ | ------------------- | --------------------------------------------- |
 | `haddii`      | If statement       | `if`                | `haddii (x > 10) { qor("Weyn") }`             |
-| `haddii_kale` | Else if statement  | `else if`           | `haddii_kale (x == 10) { qor("Dhexe") }`      |
-| `ugudambeyn`  | Else statement     | `else`              | `ugudambeyn { qor("Yar") }`                   |
+| `kale` | Else if statement  | `else if`           | `kale (x == 10) { qor("Dhexe") }`      |
+| `kale`  | Else/default statement     | `else`              | `kale { qor("Yar") }`                   |
 | `dooro`       | Switch statement   | `switch`            | `dooro (x) { xaalad 1 { qor("Hal") } }`       |
 | `xaalad`      | Case clause        | `case`              | `xaalad "A" { qor("Case A") }`                |
 | `kuceli`      | For loop           | `for`               | `kuceli (i 1 ilaa 5) { qor(i) }`              |
@@ -35,6 +35,22 @@ are implemented; this reference documents the currently supported spellings.
 | `intay`       | While loop         | `while`             | `intay (x < 5) { qor(x) }`                    |
 | `jooji`       | Break statement    | `break`             | `haddii (x == 3) { jooji }`                   |
 | `soco`        | Continue statement | `continue`          | `haddii (x == 3) { soco }`                    |
+
+`kale` is contextual. After an `haddii` branch, `kale (condition) { ... }`
+adds another conditional branch, while `kale { ... }` is the fallback. Inside
+`dooro`, `kale { ... }` supplies the default case. Existing names such as
+`hawl kale(x)` and calls such as `kale(1)` remain valid; a conditional branch
+header must be followed by `{`.
+
+```soplang
+haddii (da < 18) {
+    qor("Ilmo")
+} kale (da < 60) {
+    qor("Qof weyn")
+} kale {
+    qor("Waayeel")
+}
+```
 
 ## Function Keywords
 
@@ -111,15 +127,15 @@ these explanations do not establish a historical abbreviation or SLS approval.
 | `dherer` | Count list items, object keys, or string characters | `len()`/`.length` | `door n = dherer(qoraal)`             |
 | `xul`    | Get random value                             | `random()`           | `door n = xul(1, 6)`                      |
 | `baaxad` | Create an integer range                      | `range()`            | `door n = baaxad(1, 5)`                   |
-| `dhammeystir` | Round to the nearest integer            | `round()`            | `door n = dhammeystir(4.6)`               |
+| `duub` | Round to the nearest integer            | `round()`            | `door n = duub(4.6)`               |
 | `sugan`  | Get the absolute value                       | `abs()`              | `door n = sugan(-5)`                      |
-| `ugu_yar` | Get the smallest numeric argument           | `min()`              | `door n = ugu_yar(4, 2, 8)`               |
-| `ugu_weyn` | Get the largest numeric argument           | `max()`              | `door n = ugu_weyn(4, 2, 8)`              |
-| `awood`  | Raise a number to a power                    | `pow()`              | `door n = awood(2, 3)`                    |
+| `yar` | Get the smallest numeric argument           | `min()`              | `door n = yar(4, 2, 8)`               |
+| `weyn` | Get the largest numeric argument           | `max()`              | `door n = weyn(4, 2, 8)`              |
+| `jibbaar`  | Raise a number to a power                    | `pow()`              | `door n = jibbaar(2, 3)`                    |
 | `xidid`  | Calculate a square root                      | `sqrt()`             | `door n = xidid(9)`                       |
 
 `daji()` rounds toward negative infinity and `kor()` toward positive infinity.
-`dhammeystir()` rounds to the nearest integer, with halfway values rounded away
+`duub()` rounds to the nearest integer, with halfway values rounded away
 from zero. `xidid()` computes only a square root, not an arbitrary root.
 
 `xul()` returns a floating-point number in `[0, 1)`. `xul(a, b)` returns a floating-point number in `[a, b)`. `xul(teed)` returns one item and reports an error for an empty list.
@@ -146,98 +162,166 @@ qor(baaxad(2, 6))  // [2, 3, 4, 5]
 qor(baaxad(1, 10, 2))  // [1, 3, 5, 7, 9]
 ```
 
-`baaxad` accepts integers only. A zero step reports an error that can be caught with `fasax` and `qabo`.
+`baaxad` accepts integers only. A zero step reports an error that can be caught with `tijaabi` and `qabo`.
+
+## Shared collection operations
+
+Lists and objects share `dherer`, `leeyahay`, `hel`, `dhig`, `saar`, `nadiifi`,
+and `nuqul` where applicable. Strings share `dherer`, `leeyahay`, and `hel`;
+strings remain immutable.
+
+- `hel(position, default?)` reads a list item or Unicode character;
+  `hel(key, default?)` reads an object value. Missing entries return the supplied
+  default or `maran`. A present `maran` value is returned unchanged. Defaults
+  are evaluated normally even when an entry exists.
+- List and string positions must be integers and may be negative. Object keys
+  must be strings. Invalid argument types report catchable errors.
+- `dhig(index, value)` replaces an existing list item; `dhig(key, value)` inserts
+  or replaces an object entry. Both mutate and return the receiver. An invalid
+  list position reports an error before mutation; use `geli` for insertion.
+- List `saar()` removes the last item; `saar(index)` removes an indexed item.
+  Both return the removed value and reject empty or out-of-range removals.
+  Object `saar(key)` returns the removed value or `maran` for a missing key.
+- `nadiifi()` mutates and returns the receiver. `nuqul()` returns a shallow copy.
+
+```soplang
+door tirooyin = [10, 20, 30]
+door qof = { magac: "Ayaan", da: 25 }
+qor(tirooyin.hel(-1))
+qor(qof.dherer())
+tirooyin.dhig(0, 15)
+qof.dhig("da", 26)
+qor(tirooyin.saar())
+qor(qof.saar("da"))
+```
+
+### Slicing, endpoints, counting, and search
+
+Lists and strings accept `jar()`, `jar(start)`, or `jar(start, end)`. Bounds
+must be integers. The default start is zero and the default end is the length;
+negative bounds count from the end. Bounds are clamped to the collection. The
+start is included and the end excluded. Equal or reversed normalized bounds
+produce an empty result. Slicing leaves the receiver unchanged; list slices are
+shallow copies. String positions count Unicode characters.
+
+`hore()`/`dambe()` return the first/last item or character, or `maran` when
+empty. List `tiri(value)` counts matching values using the same equality rules
+as list membership and search, including structural collection equality and
+distinct integer/float values. String `tiri(sub)` counts non-overlapping matches
+and rejects an empty substring.
+
+Search has one compatibility exception: missing list `raadi`/`muuji` results
+are `maran`, while string `raadi`/`raadi_dambe` results are `-1`. A successful
+search returns an integer position, including zero. Test misses explicitly
+rather than relying on the truthiness of a search result.
 
 ## List Methods
 
 | Method            | English Equivalent        | Description                     | Example                                 |
 | ------------------ | --------------------------- | ---------------------------------- | ------------------------------------------ |
 | `dherer()`         | `length()`                  | Get list length                    | `numbers.dherer()`                        |
-| `kudar(item)`      | `push()` or `append()`      | Add item to the original list      | `numbers.kudar(5)`                        |
-| `kasaar()`         | `pop()`                      | Remove and return last item        | `door last = numbers.kasaar()`            |
-| `kudar(teed)`      | `concat()`                   | Concatenate lists                  | `door all = list1.kudar(list2)`           |
+| `hel(index, default?)` | `get()` | Read by index or return a default | `numbers.hel(-1, maran)` |
+| `dhig(index, value)` | indexed assignment | Replace an existing item and return the list | `numbers.dhig(0, 5)` |
+| `geli(item)`      | `push()` or `append()`      | Add item to the original list      | `numbers.geli(5)`                        |
+| `saar()`           | `pop()`                      | Remove and return last item        | `door last = numbers.saar()`            |
+| `midee(teed)`      | `concat()`                   | Concatenate lists                  | `door all = list1.midee(list2)`           |
 | `leeyahay(x)`      | `contains()`/`includes()`   | Check if item exists               | `haddii (list.leeyahay(x)) {...}`         |
 | `nuqul()`          | `copy()`                     | Create a shallow copy              | `door copy = list.nuqul()`                |
 | `nadiifi()`        | `clear()`                    | Remove all items from the original list | `list.nadiifi()`                     |
 | `rog()`            | `reverse()`                  | Reverse the original list          | `list.rog()`                              |
 | `habee()`          | `sort()`                     | Sort the original list in ascending order | `list.habee()`                    |
-| `jar(a, b)`        | `slice(a, b)`                | Return a new list; start included, end excluded         | `door subset = numbers.jar(1, 3)`         |
+| `jar(start?, end?)`        | `slice(a, b)`                | Return a new list; start included, end excluded         | `door subset = numbers.jar(1, 3)`         |
 | `aaddin(func)`     | `map(func)`                   | Transform items with function      | `door doubled = nums.aaddin(hawl(x) { celi x * 2 })` |
 | `shaandhee(func)`  | `filter(func)`                | Filter items with function         | `door evens = nums.shaandhee(hawl(x) { celi x % 2 == 0 })` |
-| `muuji(item)`      | `indexOf(item)`               | Find index of item                 | `door idx = nums.muuji(5)`                |
+| `raadi(item)`      | `indexOf(item)`               | Find index of item                 | `door idx = nums.raadi(5)`                |
+| `tiri(value)` | `count()` | Count equal list items | `numbers.tiri(5)` |
 | `geli(index, item)` | `insert(index, item)`         | Insert into the original list      | `numbers.geli(1, 5)`                      |
-| `ka_saar(index)`   | `remove(index)`                | Remove and return an indexed item  | `door item = numbers.ka_saar(1)`          |
-| `koowaad()`        | `first()`                      | Return first item or `maran`       | `door item = numbers.koowaad()`           |
-| `ugu_dambeeya()`   | `last()`                       | Return last item or `maran`        | `door item = numbers.ugu_dambeeya()`      |
-| `isku_gee(func, bilow)` | `reduce(func, initial)`  | Fold with an arbitrary callback, not only addition          | `nums.isku_gee(hawl(a, b) { celi a + b }, 0)` |
+| `saar(index)`   | `remove(index)`                | Remove and return an indexed item  | `door item = numbers.saar(1)`          |
+| `hore()`        | `first()`                      | Return first item or `maran`       | `door item = numbers.hore()`           |
+| `dambe()`   | `last()`                       | Return last item or `maran`        | `door item = numbers.dambe()`      |
+| `ururi(func, bilow)` | `reduce(func, initial)`  | Fold with an arbitrary callback, not only addition          | `nums.ururi(hawl(a, b) { celi a + b }, 0)` |
 | `dhammaan(func)`   | `every(func)`                  | Test whether every item matches    | `nums.dhammaan(hawl(x) { celi x > 0 })`   |
 | `qaar(func)`       | `some(func)`                   | Test whether any item matches      | `nums.qaar(hawl(x) { celi x == 5 })`      |
 
-`kudar(teed)` returns a concatenated copy. `nuqul()` and `jar()` also return new lists. `kasaar()` and `ka_saar()` return the removed value. Methods that otherwise mutate a list return the original list after changing it. Nested lists and objects remain shared when copied.
+`midee(teed)` returns a concatenated copy without mutating either input. `geli(item)` always appends one item, including a nested list. `nuqul()` and `jar()` also return new lists. `saar()` and `saar(index)` return the removed value. Methods that otherwise mutate a list return the original list after changing it. Nested lists and objects remain shared when copied.
 
-`muuji(item)` returns the first matching index or `maran` when no item matches.
-`isku_gee(func, bilow)` is a general left fold: its callback receives the
+`hore()` and `dambe()` return the first and last list items without modifying
+the list. Strings use the same names for Unicode characters. Both return
+`maran` for an empty receiver. Objects have no built-in
+positional first/last methods.
+
+`raadi(item)` returns the first matching index or `maran` when no item matches.
+`ururi(func, bilow)` is a general left fold: its callback receives the
 accumulated value and the next item. It can multiply values, construct text, or
 perform other accumulation; its behavior is not restricted to summation.
+
+Map, filter, fold, every, and some validate callbacks even on empty lists.
+Each iterates a shallow snapshot, allowing callbacks to modify the original
+list without changing the remaining iteration sequence. Callback errors stop
+the operation and propagate to `qabo`. `dhammaan` and `qaar` stop at the first
+decisive result; on an empty list they return `run` and `been`, respectively.
 
 ## Object Methods
 
 | Method        | English Equivalent   | Description             | Example                               |
 | -------------- | ---------------------- | -------------------------- | ---------------------------------------- |
-| `fure()`      | `keys()`               | Get all keys              | `door keys = obj.fure()`               |
-| `qiime()`     | `values()`             | Get all values             | `door values = obj.qiime()`            |
-| `lamaane()`   | `entries()`            | Get key-value pairs        | `door pairs = obj.lamaane()`           |
+| `dherer()` | `length()` | Count keys | `obj.dherer()` |
+| `furayaal()`      | `keys()`               | Get all keys              | `door keys = obj.furayaal()`               |
+| `qiimayaal()`     | `values()`             | Get all values             | `door values = obj.qiimayaal()`            |
+| `lammaanayaal()`   | `entries()`            | Get key-value pairs        | `door pairs = obj.lammaanayaal()`           |
 | `leeyahay(x)` | `hasOwnProperty()`     | Check if key exists        | `haddii (obj.leeyahay("name")) {...}`  |
-| `tir(x)`      | `delete property`      | Delete from the original object | `obj.tir("oldProp")`              |
-| `kudar(obj)`  | `merge()`/`assign()`   | Return a merged copy       | `door merged = obj1.kudar(obj2)`       |
+| `midee(obj)`  | `merge()`/`assign()`   | Return a merged copy       | `door merged = obj1.midee(obj2)`       |
 | `nuqul()`     | `copy()`               | Create a shallow copy      | `door copy = obj.nuqul()`              |
 | `nadiifi()`   | `clear()`              | Remove all original properties | `obj.nadiifi()`                    |
 | `hel(key, default?)` | `get()`            | Get a key or optional default  | `obj.hel("name", "Unknown")`     |
 | `dhig(key, value)` | `set()`              | Set a computed key             | `obj.dhig("name", "Ali")`        |
-| `ka_qaad(key)` | `remove()`              | Remove and return a value      | `door old = obj.ka_qaad("name")`  |
+| `saar(key)` | `remove()`              | Remove and return a value      | `door old = obj.saar("name")`  |
 
-Objects also support computed bracket access: `obj["name"]` and `obj["name"] = "Ali"`. Object `nuqul()` is shallow: nested lists and objects remain shared. `tir(key)` returns the object, whereas `ka_qaad(key)` returns the removed value or `maran`.
+Objects also support computed bracket access: `obj["name"]` and `obj["name"] = "Ali"`. Object `nuqul()` is shallow: nested lists and objects remain shared. `tir(key)` returns the object, whereas `saar(key)` returns the removed value or `maran`.
+
+Object key, value, and pair lists follow sorted-key order. `midee` returns a
+new shallow object; the right input wins overlapping keys. Neither input is
+mutated.
 
 ## String Methods
 
 | Method             | English Equivalent | Description                             | Example                                  |
 | -------------------- | --------------------- | ------------------------------------------ | ------------------------------------------- |
+| `hore()` | first character | First Unicode character or `maran` | `text.hore()` |
+| `dambe()` | last character | Last Unicode character or `maran` | `text.dambe()` |
+| `hel(index, default?)` | character lookup | Read a Unicode character or return a default | `text.hel(-1, "")` |
 | `qeybi(xad)`        | `split()`             | Split string by delimiter                  | `door parts = text.qeybi(",")`             |
 | `leeyahay(sub)`     | `includes()`          | Check if string contains substring         | `haddii (text.leeyahay("search")) {...}`   |
-| `dhamaad(sub)`      | `endsWith()`          | Check if string ends with substring        | `haddii (text.dhamaad("ing")) {...}`       |
+| `dhammaad(sub)`      | `endsWith()`          | Check if string ends with substring        | `haddii (text.dhammaad("ing")) {...}`       |
 | `bilow(sub)`        | `startsWith()`        | Check if string starts with substring      | `haddii (text.bilow("http")) {...}`        |
-| `beddel(x, y)`      | `replace()`           | Replace substring x with y                 | `door new = text.beddel("old", "new")`     |
-| `kudar(teed)`       | `join()`               | Join list of strings with separator        | `door text = ", ".kudar(names)`            |
-| `jar(start, end)`   | `slice()`              | Slice by character position                 | `door sub = text.jar(0, 3)`                |
-| `xarfaha_waaweyn()` | `toUpperCase()`        | Convert string to uppercase                | `door n = q.xarfaha_waaweyn()`             |
-| `xarfaha_yaryar()`  | `toLowerCase()`        | Convert string to lowercase                | `door n = q.xarfaha_yaryar()`              |
-| `masax()`           | `trim()`               | Remove leading/trailing whitespace         | `door n = q.masax()`                       |
-| `raadi(sub)`        | `indexOf()`            | Find the index of a substring              | `door n = q.raadi("pro")`                  |
-| `beddel_dhammaan(x, y)` | `replaceAll()`     | Replace all occurrences of x with y        | `door n = q.beddel_dhammaan("a", "x")`     |
+| `beddel(x, y, count?)`      | `replace()`           | Replace first match, a limited count, or all with `maran` | `door new = text.beddel("old", "new")`     |
+| `xiriiri(teed)`       | `join()`               | Join string representations with separator        | `door text = ", ".xiriiri(names)`            |
+| `jar(start?, end?)`   | `slice()`              | Slice by character position                 | `door sub = text.jar(0, 3)`                |
+| `weynee()` | `toUpperCase()`        | Convert string to uppercase                | `door n = q.weynee()`             |
+| `yaree()`  | `toLowerCase()`        | Convert string to lowercase                | `door n = q.yaree()`              |
+| `masax(direction?)`           | `trim()`               | Trim both ends, or `"hore"`/`"dambe"` | `door n = q.masax()`                       |
+| `raadi(sub, direction?)`        | `indexOf()`            | Find first/last character index | `door n = q.raadi("pro")`                  |
 | `dherer()`          | `length`              | Count Unicode characters                    | `door n = q.dherer()`                       |
-| `masax_bilow()`     | `trimStart()`         | Remove leading whitespace                   | `door n = q.masax_bilow()`                  |
-| `masax_dhamaad()`   | `trimEnd()`           | Remove trailing whitespace                  | `door n = q.masax_dhamaad()`                |
 | `tiri(sub)`         | `count()`             | Count non-overlapping occurrences           | `door n = q.tiri("ab")`                    |
-| `ku_celi(n)`        | `repeat()`            | Repeat the string                           | `door n = q.ku_celi(3)`                     |
-| `raadi_dambe(sub)`  | `lastIndexOf()`       | Find the last character position            | `door n = q.raadi_dambe("ab")`             |
+| `kuceli(n)`        | `repeat()`            | Repeat the string                           | `door n = q.kuceli(3)`                     |
 
-String positions and bracket indexes count characters rather than UTF-8 bytes. `jar()` and bracket indexing accept negative positions from the end. Missing indexes return `maran`; `raadi()` and `raadi_dambe()` return `-1` when they find no match. Calls with the wrong number of arguments report an error that can be caught with `fasax` and `qabo`.
+String positions and bracket indexes count characters rather than UTF-8 bytes. `jar()` and bracket indexing accept negative positions from the end. Missing indexes return `maran`; `raadi()` returns `-1` when it finds no match. Calls with the wrong number of arguments report an error that can be caught with `tijaabi` and `qabo`.
 
-### xarfaha_waaweyn (Uppercase)
+### weynee (Uppercase)
 **Isticmaal:**
 
 ```soplang
 door q = "soplang"
-door natiijo = q.xarfaha_waaweyn()
+door natiijo = q.weynee()
 qor(natiijo)  # SOPLANG
 ```
 
-### xarfaha_yaryar (Lowercase)
+### yaree (Lowercase)
 **Isticmaal:**
 
 ```soplang
 door q = "SOPLANG"
-door natiijo = q.xarfaha_yaryar()
+door natiijo = q.yaree()
 qor(natiijo)  # soplang
 ```
 
@@ -259,14 +343,27 @@ door natiijo = q.raadi("pro")
 qor(natiijo)  # 8
 ```
 
-### beddel_dhammaan (Replace All)
+### beddel (Replace All)
 **Isticmaal:**
 
 ```soplang
 door q = "abaaba"
-door natiijo = q.beddel_dhammaan("a", "x")
+door natiijo = q.beddel("a", "x", maran)
 qor(natiijo)  # xbxxbx
 ```
+
+`masax()` trims both ends; `masax("hore")` trims only leading whitespace and
+`masax("dambe")` only trailing whitespace. `raadi(sub)` and `raadi(sub, "hore")`
+search from the beginning; `raadi(sub, "dambe")` returns the last match.
+Unsupported direction values report catchable errors.
+
+`beddel(old, new)` replaces the first occurrence. A third nonnegative integer
+limits replacements; zero leaves the text unchanged. Passing `maran` as the
+third argument replaces all occurrences. Empty search text matches character
+boundaries. `xiriiri(list)` joins the string representations of values, including
+non-string values. `weynee` and `yaree` use Unicode case conversion. `kuceli`
+requires a nonnegative integer count and is accepted after a dot without changing
+the numeric loop syntax.
 
 ## Object-Oriented Programming (OOP)
 
@@ -277,7 +374,7 @@ qor(natiijo)  # xbxxbx
 | `cusub`  | Create a new instance                       | `new`             | `door b = cusub Bisad("Mia")`               |
 | `nafta`  | Current instance (self)                     | `this` / `self`  | `nafta.magac = magac`                       |
 | `waalid` | Call a method on the parent class           | `super`          | `celi waalid.cod()`                         |
-| `dhaw`   | Constructor method (auto-called by `cusub`) | `constructor`    | `hawl dhaw(magac) { nafta.magac = magac }`  |
+| `dhis`   | Constructor method (auto-called by `cusub`) | `constructor`    | `hawl dhis(magac) { nafta.magac = magac }`  |
 
 **Class example:**
 
@@ -289,7 +386,7 @@ qaab Xayawaan {
 }
 
 qaab Bisad dhaxal Xayawaan {
-    hawl dhaw(magac) {
+    hawl dhis(magac) {
         nafta.magac = magac
     }
     hawl salaam() {
@@ -314,7 +411,7 @@ Notes:
 | Keyword | Meaning | English | Example |
 | --------- | ---------- | ---------- | ---------- |
 | `keen`  | Import another `.sop` file       | `import` | `keen "lib.sop"`                          |
-| `fasax` | Start a protected try block      | `try`    | `fasax { ... } qabo (e) { ... }`          |
+| `tijaabi` | Start a protected try block      | `try`    | `tijaabi { ... } qabo (e) { ... }`          |
 | `qabo`  | Catch block with error variable  | `catch`  | `qabo (khalad) { qor(khalad) }`           |
 
 **Import example:**
@@ -329,11 +426,83 @@ Imported files are resolved relative to the current file's directory. Top-level 
 **Try/catch example:**
 
 ```soplang
-fasax {
+tijaabi {
     qor(1 / 0)
 } qabo (khalad) {
     qor("Qabtay: " + khalad)
 }
 ```
 
-Runtime errors inside the `fasax` block are caught; the error message is bound to the variable in `qabo (...)`.
+Runtime errors inside the `tijaabi` block are caught; the error message is bound to the variable in `qabo (...)`.
+
+## Compatibility spellings
+
+| Canonical API | Supported earlier spelling |
+| --- | --- |
+| Constructor `dhis()` | `dhaw()` |
+| Try block `tijaabi { ... } qabo (e) { ... }` | `fasax { ... } qabo (e) { ... }` |
+| `jibbaar(a, b)` | `awood(a, b)` |
+| List `raadi(item)` | `muuji(item)` |
+| String `dhammaad(suffix)` | `dhamaad(suffix)` |
+| List `saar()` | `kasaar()` |
+| List `saar(index)` | `ka_saar(index)` |
+| Object `saar(key)` | `ka_qaad(key)` |
+| Object removal returning the receiver | `tir(key)`; different return contract from `saar` |
+| List `hore()` | `koowaad()` |
+| List `dambe()` | `ugu_dambeeya()` |
+| `yar(...)` | `ugu_yar(...)` |
+| `weyn(...)` | `ugu_weyn(...)` |
+| List `ururi(func, initial)` | `isku_gee(func, initial)` |
+| List/object `midee(other)` | `kudar(other)`; list argument concatenates without mutation |
+| String `xiriiri(list)` | `kudar(list)` |
+| String `weynee()` | `xarfaha_waaweyn()`, `xarafaha_weyn()` |
+| String `yaree()` | `xarfaha_yaryar()` |
+| String `masax("hore")` | `masax_bilow()` |
+| String `masax("dambe")` | `masax_dhammaad()`, `masax_dhamaad()` |
+| String `raadi(sub, "dambe")` | `raadi_dambe(sub)` |
+| String `beddel(old, new, maran)` | `beddel_dhammaan(old, new)` |
+| String `kuceli(count)` | `ku_celi(count)` |
+| `duub(value)` | `dhammeystir(value)` |
+| Object `furayaal()`, `qiimayaal()`, `lammaanayaal()` | `fure()`, `qiime()`, `lamaane()` |
+| `kale (condition) { ... }` | `haddii_kale (condition) { ... }` |
+| `kale { ... }` | `ugudambeyn { ... }` in conditionals and switches |
+
+`tijaabi` is contextual: it starts a try block only before `{`. Existing
+variables, functions, and properties named `tijaabi` remain valid. `qabo` is
+unchanged.
+
+Automatic construction searches the nearest class first, preferring its `dhis`
+over its `dhaw`, then walks to its parent. Explicit constructor calls, including
+`waalid.dhis()` and `waalid.dhaw()`, prefer the requested spelling in each class
+and fall back to the other spelling before moving to the next ancestor. If a
+class defines both, both methods remain explicitly callable.
+
+Legacy object `tir(key)` remains supported and returns the receiver; it is not
+a direct alias of `saar(key)`, which returns the removed value. Existing `kudar`
+overloads also preserve their mutation and copying behavior.
+
+List `kudar(value)` retains its original type-dependent behavior: scalar values
+append in place, while a list argument produces a concatenated copy. Prefer
+`geli(value)` for adding exactly one item, including a nested list, and `midee`
+for combining collections.
+
+## Global updates
+
+Functions, methods, and callbacks share the current value of a global variable
+with top-level code. Global variables take precedence over built-in names,
+matching local shadowing. Replacing a scalar, list, object, or callable is visible on
+the next read. Function parameters and local declarations still shadow globals;
+closure captures of enclosing local variables retain their existing snapshot
+semantics.
+
+Top-level numeric loop indexes are published to globals and can be read or
+updated by functions during the loop. The increment uses the current index,
+including any update from the body. The final index remains available after
+the loop; `jooji` preserves the index at the break.
+
+Typed global writes inside functions enforce the same type and class checks as
+top-level writes. Rejected assignments preserve the previous global value.
+An accepted integral float is converted to `abn` for an integer annotation, and
+an accepted integer is converted to `jajab` for a floating-point annotation,
+keeping the representation consistent with native arithmetic. Fractional floats
+are rejected for `abn` annotations; use `abn(value)` for explicit truncation.

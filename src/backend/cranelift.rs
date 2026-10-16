@@ -524,6 +524,8 @@ fn compile_body(
                 }
                 if let Some(&fn_idx) = slot_compiled_fn.get(src) {
                     slot_compiled_fn.insert(*dst, fn_idx);
+                } else {
+                    slot_compiled_fn.remove(dst);
                 }
             }
 
@@ -533,6 +535,11 @@ fn compile_body(
                 }
                 if let Some(&fn_idx) = fn_name_map.get(name.as_str()) {
                     slot_compiled_fn.insert(*dst, fn_idx);
+                } else {
+                    slot_compiled_fn.remove(dst);
+                }
+                if !seeded[*dst] {
+                    kinds[*dst] = SlotNum::Dyn;
                 }
                 let ptr_val = builder.ins().iconst(types::I64, name.as_ptr() as i64);
                 let len_val = builder.ins().iconst(types::I64, name.len() as i64);

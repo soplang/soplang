@@ -3,6 +3,60 @@
 use soplang::{Expr, Lexer, Parser, Stmt};
 
 #[test]
+fn test_contextual_kale_branches_and_calls() {
+    let source = r#"
+        door kale = 1
+        hawl f(kale) { celi kale }
+        haddii (run) {} kale((1 + 1) == 2) {} kale {}
+        haddii (run) {} kale(1)
+        dooro (1) { xaalad 1 {} kale {} }
+    "#;
+    let tokens = Lexer::new(source).tokenize().unwrap();
+    let stmts = Parser::new(tokens).parse().unwrap();
+    assert!(matches!(&stmts[0], Stmt::VarDecl { name, .. } if name == "kale"));
+    assert!(
+        matches!(&stmts[2], Stmt::If { elseifs, else_body: Some(_), .. } if elseifs.len() == 1)
+    );
+    assert!(matches!(&stmts[3], Stmt::If { elseifs, else_body: None, .. } if elseifs.is_empty()));
+    assert!(matches!(&stmts[4], Stmt::Expr(Expr::Call { name, .. }) if name == "kale"));
+    assert!(matches!(
+        &stmts[5],
+        Stmt::Switch {
+            default: Some(_),
+            ..
+        }
+    ));
+
+    for invalid in [
+        "haddii (run) {} kale (run) {",
+        "haddii (run) {} kale ((run) {}",
+        "dooro (1) { kale (run) {} }",
+    ] {
+        let tokens = Lexer::new(invalid).tokenize().unwrap();
+        assert!(Parser::new(tokens).parse().is_err(), "accepted: {invalid}");
+    }
+}
+
+#[test]
+fn test_contextual_tijaabi_preserves_identifiers() {
+    let source = r#"
+        door tijaabi = 1
+        tijaabi = tijaabi + 1
+        hawl f(tijaabi) { celi tijaabi }
+        hawl tijaabi(x) { celi x }
+        tijaabi(2)
+        tijaabi { qor(1 / 0) } qabo (e) { qor(e) }
+        fasax { qor(1 / 0) } qabo (e) { qor(e) }
+    "#;
+    let tokens = Lexer::new(source).tokenize().unwrap();
+    let stmts = Parser::new(tokens).parse().unwrap();
+    assert!(matches!(&stmts[0], Stmt::VarDecl { name, .. } if name == "tijaabi"));
+    assert!(matches!(&stmts[4], Stmt::Expr(Expr::Call { name, .. }) if name == "tijaabi"));
+    assert!(matches!(&stmts[5], Stmt::TryCatch { .. }));
+    assert!(matches!(&stmts[6], Stmt::TryCatch { .. }));
+}
+
+#[test]
 fn test_parse_hello() {
     let source = r#"qor("Salaan, Adduunka!")"#;
     let mut lexer = Lexer::new(source);

@@ -83,6 +83,61 @@ fn run_llvm(name: &str, source: &str) -> String {
 }
 
 #[test]
+fn test_llvm_shared_collection_contracts() {
+    assert_eq!(
+        run_llvm(
+            "shared_collections",
+            include_str!("fixtures/shared_collections.sop")
+        ),
+        "shared collections ok\n"
+    );
+}
+
+#[test]
+fn test_llvm_approved_vocabulary_and_constructor_compatibility() {
+    assert_eq!(
+        run_llvm(
+            "approved_vocabulary",
+            include_str!("fixtures/approved_vocabulary.sop")
+        ),
+        "approved vocabulary ok\n"
+    );
+}
+
+#[test]
+fn test_llvm_collection_operations() {
+    assert_eq!(
+        run_llvm(
+            "collection_operations",
+            include_str!("fixtures/collection_operations.sop")
+        ),
+        "collection operations ok\n"
+    );
+}
+
+#[test]
+fn test_llvm_collection_consistency() {
+    assert_eq!(
+        run_llvm(
+            "collection_consistency",
+            include_str!("fixtures/collection_consistency.sop")
+        ),
+        "collection consistency ok\n"
+    );
+}
+
+#[test]
+fn test_llvm_global_updates() {
+    assert_eq!(
+        run_llvm(
+            "global_updates",
+            include_str!("fixtures/global_updates.sop")
+        ),
+        "global updates ok\n"
+    );
+}
+
+#[test]
 fn test_llvm_ir_lists_objects_try_classes_and_closures() {
     assert_eq!(
         run_llvm(

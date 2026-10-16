@@ -108,8 +108,12 @@ pub fn resolve_parent_method(
                     .with_hint("Hubi in qaabka waalidka uu ka horreeyo qaabka ilmaha."),
             ));
         };
-        if meta.methods.contains_key(method) {
-            return Ok(mangle_method(&current, method));
+        if let Some(mangled) = meta.methods.get(method).or_else(|| match method {
+            "dhis" => meta.methods.get("dhaw"),
+            "dhaw" => meta.methods.get("dhis"),
+            _ => None,
+        }) {
+            return Ok(mangled.clone());
         }
         match meta.parent.clone() {
             Some(next) => current = next,
@@ -1110,7 +1114,11 @@ fn analyze_expr(
                 let Some(class) = sym.classes.get(name) else {
                     break;
                 };
-                if let Some(mangled) = class.methods.get("dhaw") {
+                if let Some(mangled) = class
+                    .methods
+                    .get("dhis")
+                    .or_else(|| class.methods.get("dhaw"))
+                {
                     constructor = fn_sigs.get(mangled);
                     break;
                 }

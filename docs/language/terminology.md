@@ -1,9 +1,14 @@
 # Soplang 3 terminology review
 
-Status: **Naming decisions recorded; documentation and diagnostics stage**.
-The approved names below are ready for implementation. Their aliases are not
-yet implemented; the inventory continues to describe the current public API.
-Other candidate names remain pending.
+Status: **Approved vocabulary and shared collection contracts implemented**.
+The approved names below and their compatibility spellings are available in
+Soplang 3. The original inventory records the audit baseline; the language
+reference describes the current API. The original inventory below is historical; completed decisions follow it.
+
+The [shared collection API proposal](collection-api-proposal.md) reviews
+operation families and underscore simplification. Its shared `saar`, `hel`,
+`dhig`, and length contracts are implemented. The additional simplifications and addition/combination contracts are also
+implemented; the design record states their exact behavior.
 
 All work belongs to Soplang 3. No version 4 transition or removal of existing
 names is scheduled. The [language reference](keywords.md) describes the current
@@ -42,7 +47,7 @@ The inventory uses these labels:
 | Review  | A public naming decision is required; see the candidate table.                        |
 | Alias   | An alternative is already implemented.                                                |
 
-## Keywords, types, and special syntax
+## Baseline inventory: keywords, types, and special syntax
 
 Sources: [lexer](../../src/frontend/lexer.rs), [parser](../../src/frontend/parser.rs),
 and [grammar](grammar.md).
@@ -117,7 +122,7 @@ because their callable behavior needs a separate definition.
 | `awood`       | Exponentiation                                           | Review mathematical sense.                                                                                             |
 | `xidid`       | Square root                                              | Explain the square-root restriction; review whether the name should be explicit.                                       |
 
-## Collection methods
+## Baseline inventory: collection methods
 
 Sources: [method dispatch](../../src/runtime/abi.rs) and
 [method implementations](../../src/runtime/stdlib.rs). Names are scoped to the
@@ -189,52 +194,121 @@ receiver type. A shared spelling does not guarantee shared mutation behavior.
 
 ## Approved public-name decisions
 
-T01, T02, T03, T05, and T06 are approved as Soplang terminology. These are
+The decisions below are implemented as Soplang 3 terminology. These are
 project decisions informed by SLS evidence, not SLS computing standards.
-Implementation is pending in the next vocabulary stage, within version 3;
-no minor or patch release number is assigned yet.
+Implementation is included in the current Soplang 3 development tree. Existing
+spellings remain supported; no removal release is scheduled.
 
 | ID | Current spelling to retain as an alias | Approved canonical spelling | Behavior to preserve |
 | --- | --- | --- | --- |
 | T01 | Constructor `dhaw()` | `dhis()` | Construction, argument validation, inheritance, and parent constructor calls. |
 | T02 | Try block `fasax` | `tijaabi` | The existing `qabo` grammar and runtime error handling. |
 | T03 | Exponentiation `awood()` | `jibbaar()` | Numeric conversion, arity, and floating-point exponentiation. |
+| T04 | Rounding `dhammeystir()` | `duub()` | Nearest integer, halfway away from zero. |
 | T05 | List `muuji(item)` | List `raadi(item)` | First matching index; `maran` when no item matches. |
 | T06 | String `dhamaad(sub)` | String `dhammaad(sub)` | Suffix predicate and argument validation. |
-| T06 | String `masax_dhamaad()` | String `masax_dhammaad()` | Removal of trailing whitespace. |
+| T08 | Object `fure()`, `qiime()`, `lamaane()` | `furayaal()`, `qiimayaal()`, `lammaanayaal()` | Keys, values, and pairs in sorted-key order. |
+| T09 | List `isku_gee(callback, initial)` | `ururi(callback, initial)` | General left fold, including nonnumeric accumulators. |
+| T10 | Branch `haddii_kale`, fallback `ugudambeyn` | Contextual `kale (condition)` and `kale` | Existing if/switch branching; preserve ordinary identifiers named `kale`. |
+| T13 | List `koowaad()` | `hore()` | First item or `maran` for an empty list. |
+| T14 | List `ugu_dambeeya()` | `dambe()` | Last item or `maran` for an empty list. |
+| T15 | `ugu_yar(...)`, `ugu_weyn(...)` | `yar(...)`, `weyn(...)` | Numeric minimum/maximum; preserve arity and result types. |
+| T16 | List/object `kudar(other)` | `midee(other)` | New shallow combined collection; right object keys win. |
+| T17 | String `kudar(list)` | `xiriiri(list)` | Join string representations using the receiver as separator. |
+| T18 | `xarfaha_waaweyn()`, `xarafaha_weyn()`, `xarfaha_yaryar()` | `weynee()`, `yaree()` | Unicode uppercase/lowercase conversion. |
+| T19 | `masax_bilow()`, `masax_dhamaad()`, `masax_dhammaad()` | `masax("hore")`, `masax("dambe")` | Directional whitespace trimming; no argument trims both ends. |
+| T20 | `raadi_dambe(sub)` | `raadi(sub, "dambe")` | Last Unicode character index or `-1`; default search stays first. |
+| T21 | `beddel_dhammaan(old, new)` | `beddel(old, new, maran)` | Replace all; optional nonnegative integer limits count, omitted count replaces first. |
+| T22 | String `ku_celi(count)` | `kuceli(count)` | Nonnegative integer repetition; allowed after dot without changing loops. |
 
-No spelling in this table should be presented as callable or accepted syntax
-until its implementation and compatibility tests pass. Constructors require a
-lookup rule for old and new spellings across inheritance. The try spelling
-requires a strategy for existing identifiers named `tijaabi`.
+`tijaabi` is contextual before `{`, preserving existing identifier uses.
+Automatic construction checks each class for `dhis`, then `dhaw`, before its
+parent. Explicit method and parent calls prefer the requested spelling within
+each class, then its counterpart, before the next ancestor. Both methods remain
+explicitly callable when a class defines both. Tests exercise these rules in
+Cranelift JIT and LLVM AOT binaries.
 
-## Decision rationale and remaining review
+The additional short names `hore`, `dambe`, `yar`, and `weyn` are contextual
+API choices: lists and strings supply first/last position context and numeric selection
+supplies minimum/maximum context. These choices do not claim that an adjective
+alone is a full mathematical translation. Contextual `kale` leaves future
+cleanup/finally terminology open.
 
-Rows T01, T02, T03, T05, and T06 explain the approved choices above. T04, T07,
-T08, T09, T10, and T12 remain pending; their possible alternatives are not
-selected. T11 retains the current short identifiers with explanations.
+## Implemented shared collection contracts
+
+| Operation | List | Object | String |
+| --- | --- | --- | --- |
+| Length | `dherer()` | `dherer()` | `dherer()` |
+| Membership | `leeyahay(value)` | `leeyahay(key)` | `leeyahay(substring)` |
+| Read | `hel(index, default?)` | `hel(key, default?)` | `hel(index, default?)` |
+| Assign | `dhig(index, value)` | `dhig(key, value)` | Not applicable; immutable |
+| Remove | `saar()` or `saar(index)` | `saar(key)` | Not applicable; immutable |
+| Clear | `nadiifi()` | `nadiifi()` | Not applicable; immutable |
+| Shallow copy | `nuqul()` | `nuqul()` | Not needed for immutable values |
+| Combine | `midee(list)` | `midee(object)` | `xiriiri(list)` joins using the separator receiver |
+| Insert | `geli(value)` or `geli(index, value)` | `dhig(key, value)` | Not applicable; immutable |
+| Endpoints | `hore()`, `dambe()` | Not positional | `hore()`, `dambe()` |
+| Count matches | `tiri(value)` | Use membership for a unique key | `tiri(substring)` |
+| Slice | `jar(start?, end?)` | Not positional | `jar(start?, end?)` |
+
+Removal returns the removed value. Legacy `kasaar()`, `ka_saar(index)`, and
+`ka_qaad(key)` preserve their signatures. `tir(key)` still returns the object
+and therefore remains a distinct compatibility wrapper. The receiver supplies
+addressing context: integer positions for lists/strings and string object keys.
+See the [language reference](keywords.md#shared-collection-operations) for
+defaults, bounds, and mutation returns. Shared slicing uses integer bounds,
+negative offsets, clamping, and empty results for reversed bounds. First/last
+methods return `maran` for empty lists and strings. List counting uses the same
+value equality as membership and search; string counting uses non-overlapping
+substring matches. Search-miss results retain their receiver-specific behavior
+for compatibility.
+
+## Decision rationale
+
+The historical inventory above identifies the original questions. The following
+records resolve them for this stage. T07 retains `xidid` specifically for square
+root; T11 retains the short type/declaration identifiers; T12 retains `Khalad`
+without imposing a new spelling on diagnostic headings.
 
 | ID  | Current name or concept           | Candidate and recommendation                                                             | Evidence and remaining decision                                                                                                                                                                   |
 | --- | --------------------------------- | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| T01 | Constructor `dhaw` | Approved: `dhis()`; retain `dhaw()` as a compatibility alias. | [Dictionary Dh][dict-dh] associates `dhaw` with unrelated senses and `dhis` with building. Implementation must define constructor precedence across old and new spellings. |
-| T02 | Try keyword `fasax` | Approved: `tijaabi`; retain `fasax` as a compatibility spelling. | [Dictionary F][dict-f]: permission or leave; [Dictionary T][dict-t]: `tijaabi`. Implementation must preserve existing identifier uses. |
+| T01 | Constructor `dhaw` | Approved: `dhis()`; retain `dhaw()` as a compatibility alias. | [Dictionary Dh][dict-dh] associates `dhaw` with unrelated senses and `dhis` with building. Implemented precedence is specified in the approved decision above. |
+| T02 | Try keyword `fasax` | Approved: `tijaabi`; retain `fasax` as a compatibility spelling. | [Dictionary F][dict-f]: permission or leave; [Dictionary T][dict-t]: `tijaabi`. Contextual parsing preserves existing identifier uses. |
 | T03 | Exponentiation `awood` | Approved: `jibbaar()`; retain `awood()` as a compatibility alias. | [Math glossary][math]: Power — Jibbaar. [Dictionary A][dict-a] distinguishes ability and physical power. |
-| T04 | Rounding `dhammeystir`            | Choose a rounding-specific form after reviewing *duubid*; no exact replacement selected. | [Math glossary][math]: Rounding off — Duubid. [Dictionary Dh][dict-dh]: `dhammaystir` means completion. Do not treat a spelling-only change as a complete semantic fix.                           |
+| T04 | Rounding `dhammeystir` | Implemented: `duub`; earlier spelling retained. | [Math glossary][math] records rounding off as *duubid*. The verb form and API use are Soplang decisions; nearest rounding uses halfway away from zero. |
 | T05 | List index lookup `muuji` | Approved: list `raadi(item)`; retain `muuji(item)` as a compatibility alias. | [Dictionary M][dict-m]: showing; [Dictionary R][dict-r]: searching. Preserve `maran` for a missing list item; string search retains its existing `-1` result. |
-| T06 | String `dhamaad`, `masax_dhamaad` | Approved: `dhammaad`, `masax_dhammaad`; retain both previous spellings as aliases. | [Dictionary Dh][dict-dh] records doubled `m`. Alias behavior must match existing suffix and whitespace operations. |
-| T07 | Square root `xidid`               | Keep with an explicit definition, or introduce an explicit square-root name.             | [Dictionary X][dict-x] supports general root; [Math glossary][math] gives square-root phrases. Exact identifier spelling remains open.                                                            |
-| T08 | Object `fure`, `qiime`, `lamaane` | Review plural naming as one family; `furayaasha()` is a candidate for keys.              | [Dictionary F][dict-f] and [math glossary][math] support key terminology, not approval of a complete computing API family. Confirm morphology and consistent identifier style.                    |
-| T09 | General fold `isku_gee`           | Select a general accumulation term, or retain with an explicit definition.               | [Math glossary][math] records addition terminology; the callback may multiply or build strings or objects. Literal mathematical reduce does not automatically name a programming fold.            |
-| T10 | Else/default `ugudambeyn`         | Review together with future cleanup vocabulary; no replacement selected.                 | Resolve meaning, spelling, if/switch grammar, and the future equivalent of `finally` together. No mechanical split or vowel rewrite.                                                              |
+| T06 | String `dhamaad`, `masax_dhamaad` | Implemented: `dhammaad` and the corrected trim alias `masax_dhammaad`; directional trim now prefers `masax("dambe")` (T19). | [Dictionary Dh][dict-dh] records doubled `m`. Alias behavior must match existing suffix and whitespace operations. |
+| T07 | Square root `xidid` | Retain with an explicit square-root definition. | [Dictionary X][dict-x] supports general root; the [math glossary][math] has square-root phrases. No arbitrary-root overload is added. |
+| T08 | Object `fure`, `qiime`, `lamaane` | Implemented: `furayaal`, `qiimayaal`, `lammaanayaal`; earlier names retained. | [Dictionary F][dict-f] records the key plural `-rayaal`; [Dictionary Q][dict-q] records *qiime* and [Dictionary L][dict-l] records *lammaane*. The complete plural API family is a Soplang choice, not an SLS standard. |
+| T09 | General fold `isku_gee` | Implemented: `ururi`; earlier spelling retained. | [Dictionary U][dict-u] records gathering. Accumulation covers arbitrary callbacks, including multiplication and string building. |
+| T10 | Else/default `ugudambeyn` | Implemented: contextual `kale`; `kale (condition)` also replaces `haddii_kale`. | Additional branches and fallbacks share one name. Existing spellings remain supported. This does not define future cleanup/finally syntax. |
 | T11 | `abn`, `door`, `madoor`           | Retain; document as project short forms with proposed long-form explanations.            | [Dictionary A][dict-a], [Dictionary D][dict-d], [Dictionary M][dict-m]. Do not assert an unrecorded historical etymology.                                                                         |
-| T12 | Diagnostic `Khalad` / `qalad`     | Choose a consistent editorial form after speaker review.                                 | [Dictionary Q][dict-q] attests `qalad`; absence of `khalad` from that source alone does not prove invalidity.                                                                                     |
+| T12 | Diagnostic `Khalad` / `qalad` | Retain `Khalad` headings and existing machine-readable codes. | [Dictionary Q][dict-q] attests `qalad`; this does not establish that `khalad` is invalid. Further editorial changes require their own evidence. |
+
+### Collection and string choices
+
+- **T16–T17:** [Dictionary M][dict-m] attests `midee` for unifying; [Dictionary
+  X][dict-x] attests `xiriiri` for connecting. Collections combine into a new
+  shallow value; separator strings join text. `geli(value)` appends exactly one
+  entry, including a nested list, while `geli(index, value)` keeps indexed
+  insertion. Legacy list `kudar` still selects append or concatenation based on
+  the argument type and therefore is not a direct alias of `geli`.
+- **T18:** `weynee` and `yaree` use the string receiver to establish letter-case
+  context. These are project API choices; the numeric globals remain `weyn`
+  and `yar`.
+- **T19–T21:** Explicit `"hore"`/`"dambe"` directions and a replacement count
+  keep related operations under one name. `maran` means unlimited replacements;
+  no count means one. Invalid directions and fractional/negative counts report
+  catchable errors. Earlier separate methods keep their signatures.
+- **T22:** `kuceli` is recognized as a member name after a dot as well as a loop
+  keyword in statement position. No new global keyword is introduced.
 
 ## CLI and diagnostic inventory
 
 The inventory covers the public surfaces below. The wording changes in this
 stage clarify arithmetic, method lookup, conversion, argument counts, and
-strict-mode messages. Error-heading spelling and additional translations remain
-under review.
+strict-mode messages. Existing error headings are retained; additional translations can be reviewed
+in a separate editorial stage.
 
 | Surface             | Current vocabulary                                                                                                                           | Planned review                                                                                 |
 | ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
@@ -277,9 +351,11 @@ collection.
    and LLVM AOT tests; update examples, changelog, and migration notes.
 
 Existing vocabulary remains supported unless a separate compatibility decision
-is made. Do not reassign a name to a different meaning, merge `kasaar()` with
-`ka_saar(index)`, or change return values as a side effect of a rename. Aliases
-must share type checking, arity, mutation, and error behavior.
+is made. Do not reassign a name to a different meaning or change return values
+as a side effect of a rename. The approved shared collection contracts combine
+pop and indexed removal under `saar` while preserving both existing signatures.
+Aliases must share type checking, arity, mutation, and
+error behavior; wrappers with different return values must be labelled as such.
 
 Keyword aliases need an explicit identifier-collision strategy. Constructor
 aliases need a deterministic lookup rule across inheritance and `waalid`.
@@ -337,3 +413,6 @@ registry][dict-sources] and [technical glossary source registry][math-sources].
 [dict-sources]: https://github.com/somastllc/somali-language-standard/blob/9bcab5e420d67406cb021c8fcf89df3aeb270675/resources/qaamuus/00-sources.md
 [math-sources]: https://github.com/somastllc/somali-language-standard/blob/9bcab5e420d67406cb021c8fcf89df3aeb270675/resources/erey-bixin/00-sources.md
 [cc-by]: https://creativecommons.org/licenses/by/4.0/
+
+[dict-l]: https://github.com/somastllc/somali-language-standard/blob/9bcab5e420d67406cb021c8fcf89df3aeb270675/resources/qaamuus/16-l.md
+[dict-u]: https://github.com/somastllc/somali-language-standard/blob/9bcab5e420d67406cb021c8fcf89df3aeb270675/resources/qaamuus/26-u.md
