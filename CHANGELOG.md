@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [3.0.0] - 2026-10-17
+
 ### Added
 
 * **Relocatable compiler packages.** Linux archives/Debian packages, Windows archives/installers, macOS bundles, and Docker include matching runtime libraries and Rust toolchain metadata. Package checks run every public example and diagnostic outside the source checkout.

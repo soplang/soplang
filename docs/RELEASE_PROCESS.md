@@ -47,10 +47,8 @@ and targets the exact tested source revision. Automation does not rewrite the
 changelog or add a commit. Update and commit the changelog during review.
 
 Prerelease versions produce a prerelease draft. Review every download, signing
-requirement, platform result, and note before publishing manually. A release
-candidate is recommended before 3.0.0 final. The package version remains 3.0.0
-until a maintainer chooses a candidate version; this document does not select
-or publish a version.
+requirement, platform result, and note before publishing manually. The package version for this release is 3.0.0. Future 3.x releases can use
+candidate versions before their final publication.
 
 Publishing triggers the existing Docker registry workflow. Stable releases also
 trigger AUR publication when its credentials are configured. Prereleases must not replace stable `latest`, `3`, or
