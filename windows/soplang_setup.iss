@@ -32,6 +32,7 @@ OutputBaseFilename=soplang-setup
 Compression=lzma
 SolidCompression=yes
 ChangesEnvironment=yes
+ChangesAssociations=yes
 #if FileExists("soplang_icon.ico")
 SetupIconFile=soplang_icon.ico
 #endif
@@ -58,7 +59,6 @@ Source: "..\dist\soplang\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdi
 #if FileExists("soplang_icon.ico")
 Source: "soplang_icon.ico"; DestDir: "{app}"; Flags: ignoreversion
 #endif
-Source: "file_association.reg"; DestDir: "{app}"; Flags: ignoreversion
 Source: "soplang_cmd.bat"; DestDir: "{app}"; Flags: ignoreversion
 Source: "soplang_launcher.bat"; DestDir: "{app}"; Flags: ignoreversion
 
@@ -115,7 +115,7 @@ begin
   Paths := Paths + ';' + Path;
 
   { Overwrite path environment variable }
-  RegWriteStringValue(HKEY_LOCAL_MACHINE, EnvironmentKey, 'Path', Paths);
+  RegWriteExpandStringValue(HKEY_LOCAL_MACHINE, EnvironmentKey, 'Path', Paths);
 end;
 
 procedure CurStepChanged(CurStep: TSetupStep);
@@ -142,7 +142,7 @@ begin
   Delete(Paths, P - 1, Length(Path) + 1);
 
   { Overwrite path environment variable }
-  RegWriteStringValue(HKEY_LOCAL_MACHINE, EnvironmentKey, 'Path', Paths);
+  RegWriteExpandStringValue(HKEY_LOCAL_MACHINE, EnvironmentKey, 'Path', Paths);
 end;
 
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);

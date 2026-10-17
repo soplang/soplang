@@ -46,6 +46,8 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+* Native executables publish through a same-volume rename, avoiding writable-handle races in parallel execution. Windows installation preserves PATH expansion, and the command launcher forwards arguments and exit status.
+
 * Windows linker sidecars stay in the build scratch directory; only the finished executable is copied to the requested output path. Native release checks also install, execute, and remove Linux and Windows packages.
 
 * JIT function references use far calls so macOS ARM64 allocations can exceed the direct branch range. Windows builds retain native import-library paths and packages bundle those libraries.

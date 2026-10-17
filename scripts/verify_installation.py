@@ -60,10 +60,15 @@ def windows(installer):
     def normalized(path):
         return os.path.normcase(os.path.realpath(os.path.expandvars(str(path))))
 
-    def path_entries():
+    def path_value():
         with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE,
                             r"SYSTEM\CurrentControlSet\Control\Session Manager\Environment") as key:
-            return [normalized(entry) for entry in winreg.QueryValueEx(key, "Path")[0].split(";") if entry]
+            return winreg.QueryValueEx(key, "Path")
+
+    def path_entries():
+        return [normalized(entry) for entry in path_value()[0].split(";") if entry]
+
+    original_path, original_kind = path_value()
 
     with tempfile.TemporaryDirectory(prefix="soplang installer check ") as temp:
         work = Path(temp)
@@ -73,6 +78,7 @@ def windows(installer):
         try:
             installed_cli(directory / "soplang.exe", work)
             assert normalized(directory) in path_entries(), "PATH was not updated"
+            assert path_value()[1] == winreg.REG_EXPAND_SZ, "PATH lost environment-variable expansion"
             for extension in (".sop", ".so"):
                 with winreg.OpenKey(winreg.HKEY_CLASSES_ROOT, extension) as key:
                     assert winreg.QueryValueEx(key, "")[0] == "SoplangFile"
@@ -89,6 +95,9 @@ def windows(installer):
         assert not (directory / "soplang.exe").exists(), "executable remains after removal"
         assert not (directory / "lib/soplang").exists(), "runtime remains after removal"
         assert normalized(directory) not in path_entries(), "PATH remains after removal"
+        assert path_value()[0] == original_path, "existing PATH entries changed"
+        if original_kind == winreg.REG_EXPAND_SZ:
+            assert path_value()[1] == original_kind, "PATH registry type changed"
         for extension in (".sop", ".so"):
             try:
                 with winreg.OpenKey(winreg.HKEY_CLASSES_ROOT, extension) as key:

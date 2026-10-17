@@ -245,7 +245,15 @@ pub fn link_llvm_binary_with_opt(ir: &str, out: &Path, opt_level: u8) -> Result<
             0,
         ));
     }
-    fs::copy(&linked, out).map_err(|e| runtime_error(e.to_string(), 0, 0))?;
+    match fs::rename(&linked, out) {
+        Ok(()) => {}
+        // The system temp directory and requested output may be on different
+        // volumes (notably C: and D: on Windows runners).
+        Err(error) if error.kind() == std::io::ErrorKind::CrossesDevices => {
+            fs::copy(&linked, out).map_err(|e| runtime_error(e.to_string(), 0, 0))?;
+        }
+        Err(error) => return Err(runtime_error(error.to_string(), 0, 0)),
+    }
     Ok(())
 }
 
