@@ -2,7 +2,7 @@
 
 > The Somali Programming Language
 
-Soplang is a programming language with syntax inspired by Somali, making programming more accessible to Somali speakers. It combines static and dynamic typing in one language with a focus on clarity and ease of use.
+Soplang is a programming language with Somali keywords. It supports static and dynamic typing, functions, closures, and classes.
 
 **Soplang 3.0.0 is available** for Linux x86_64, Windows x64, macOS Apple Silicon, and Docker. Get the [release packages](https://github.com/soplang/soplang/releases/tag/v3.0.0) or follow the [installation guide](docs/installation.md).
 
@@ -21,11 +21,11 @@ The implementation is in Rust. Files and the REPL use Cranelift JIT; `--build` p
 
 ## Features
 
-- **Dual type system** — Static typing (`abn`, `qoraal`, etc.) and dynamic typing (`door`)
-- **Somali-based syntax** — Keywords and concepts in Somali
-- **Modern paradigms** — Functional, procedural, and object-oriented support
-- **Interactive shell** — one Cranelift session, so functions, classes, and globals survive across lines
-- **Compiled execution** — Cranelift JIT for running files; `--build` produces a standalone binary
+- Static typing with `abn`, `qoraal`, and other type annotations; dynamic typing with `door`.
+- Somali keywords and diagnostic messages with source locations.
+- Functions, closures, classes, and inheritance.
+- A persistent REPL that keeps functions, classes, and globals across lines.
+- Cranelift JIT for running programs and LLVM for building native executables.
 
 ## Example
 
@@ -57,6 +57,21 @@ cargo build --release --locked
 
 Or: `make build`, `make run FILE=examples/01_hello.sop`, `make shell`, `make test`, `make bench`.
 
+### Docker
+
+The Linux amd64 image includes the compiler and native build toolchain:
+
+```sh
+docker run --platform linux/amd64 --rm soplang/soplang:3.0.0 --version
+docker run --platform linux/amd64 --rm -it soplang/soplang:3.0.0
+docker run --platform linux/amd64 --rm -v "$PWD:/scripts:ro" \
+  soplang/soplang:3.0.0 examples/01_hello.sop
+```
+
+The file example assumes you are in this repository. See the
+[Docker guide](docs/docker.md) for mounting your own programs and building
+executables.
+
 ### CLI notes
 
 - `soplang <file.sop>`: run via Cranelift JIT.
@@ -68,7 +83,7 @@ Or: `make build`, `make run FILE=examples/01_hello.sop`, `make shell`, `make tes
 
 `soplang file.sop` and the REPL share one pipeline: lex, parse, resolve `keen`, analyze, lower to HIR, then Cranelift. Numeric operations with known static types can use native integer and float instructions. Dynamic values and remaining validation/conversion steps go through the tagged runtime; a type annotation alone does not guarantee a faster program.
 
-`soplang --build file.sop` resolves `keen`, lowers the program to HIR, emits textual LLVM IR, and links a native binary with system `clang` (15+) and the matching `rustc`. Installed packages include the required runtime libraries; keep the package intact. See [package installation](docs/INSTALLING_PACKAGES.md). `--opt-level` selects optimization level 0–3. The binary runs without Soplang or the source files beside it.
+`soplang --build file.sop` resolves `keen`, lowers the program to HIR, emits textual LLVM IR, and links a native binary with system `clang` (15+) and the matching `rustc`. Installed packages include the required runtime libraries; keep the package intact. See [package installation](docs/INSTALLING_PACKAGES.md). `--opt-level` selects optimization level 0 to 3. The binary runs without Soplang or the source files beside it.
 
 ## Benchmark results
 
@@ -97,7 +112,7 @@ costs are separate. These are workstation results, not universal language speed 
 
 ## Legacy interpreter
 
-The legacy tree‑walking interpreter has been moved to a dedicated repository:
+The legacy tree-walking interpreter has been moved to a dedicated repository:
 
 - [`soplang/soplang-interpreter`](https://github.com/soplang/soplang-interpreter)
 
@@ -106,14 +121,15 @@ All new development (compiler, JIT, AOT, CLI) happens here in the Rust implement
 ## Documentation
 
 - [Getting started](docs/index.md)
-- [Build guide](docs/BUILD_GUIDE.md) — Build from source on Windows, macOS, and Linux
+- [Build guide](docs/BUILD_GUIDE.md): build from source on Windows, macOS, and Linux
+- [Docker guide](docs/docker.md): run programs and build executables in a container
 - [Language reference](docs/language/keywords.md)
 - [Migrating to Soplang 3](docs/MIGRATION_V3.md)
-- [Soplang 3 roadmap](ROADMAP.md) — Planned `3.x` language, runtime, library, and tooling work
+- [Soplang 3 roadmap](ROADMAP.md): planned `3.x` language, runtime, library, and tooling work
 - [Installation](docs/installation.md)
 - [Contributing](docs/CONTRIBUTING.md)
-- [Rust implementation plan (complete)](IMPLEMENTATION_PLAN.md) — Phases 1–7 done
-- [Compiler plan](COMPILER_PLAN.md) — Cranelift run path and LLVM AOT build path
+- [Rust implementation plan (complete)](IMPLEMENTATION_PLAN.md): phases 1 through 7
+- [Compiler plan](COMPILER_PLAN.md): Cranelift execution and LLVM builds
 
 ## License
 

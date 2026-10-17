@@ -118,7 +118,7 @@ jobs:
       # Verify Docker Hub Repository and provide appropriate guidance
       - name: Verify Docker Push
         run: |
-          echo "✅ Build and push completed!"
+          echo "Build and push completed."
 
           if [[ "${{ steps.registries.outputs.dockerhub }}" == "true" ]]; then
             echo "Docker Hub image should be available at: https://hub.docker.com/r/soplang/soplang"

@@ -1,81 +1,129 @@
-# Soplang 3 with Docker
+# Soplang Docker image
 
-The public Linux amd64 image is available as
-[`soplang/soplang:3.0.0`](https://hub.docker.com/r/soplang/soplang).
-It includes Rust 1.94.0, clang 16, the system linker, and the matching Soplang
-runtime libraries for `--build`. Programs run as the unprivileged `soplang` user.
+Soplang is a programming language with Somali keywords. Soplang 3 is written
+in Rust and uses Cranelift JIT to run programs and LLVM to build native
+executables.
 
-## Run a program or the REPL
+The [`soplang/soplang:3.0.0`](https://hub.docker.com/r/soplang/soplang) image
+targets Linux amd64. It includes Rust 1.94.0, clang 16, a system linker, and
+the matching runtime libraries needed by `--build`. It runs as the
+unprivileged `soplang` user.
+
+## Quick start
+
+Check the installed version:
 
 ```sh
-docker run --rm soplang/soplang:3.0.0 --version
-docker run --rm -v "$PWD:/scripts:ro" soplang/soplang:3.0.0 program.sop
-docker run -it --rm soplang/soplang:3.0.0
+docker run --platform linux/amd64 --rm soplang/soplang:3.0.0 --version
 ```
 
-Paths are relative to the mounted `/scripts` directory. From the repository
-root, an example can be run as follows:
+Start the interactive shell:
 
 ```sh
-docker run --rm -v "$PWD:/scripts:ro" soplang/soplang:3.0.0 examples/01_hello.sop
+docker run --platform linux/amd64 --rm -it soplang/soplang:3.0.0
 ```
 
-Use `-i` for piped input and `-it` for an interactive terminal:
+Run a code snippet:
 
 ```sh
-printf 'TestUser\n' | docker run --rm -i -v "$PWD:/scripts:ro" \
-  soplang/soplang:3.0.0 examples/13_input.sop
+docker run --platform linux/amd64 --rm soplang/soplang:3.0.0 \
+  -c 'qor("Salaan, Adduunka!")'
+```
+
+The commands specify `linux/amd64` because that is the published image's
+platform. Other host architectures require Docker's emulation support.
+
+## Run a source file
+
+Save this program as `hello.sop`:
+
+```sop
+qor("Salaan, Adduunka!")
+```
+
+Mount its directory at `/scripts` and pass the filename:
+
+```sh
+docker run --platform linux/amd64 --rm -v "$PWD:/scripts:ro" \
+  soplang/soplang:3.0.0 hello.sop
+```
+
+Paths inside the container are relative to `/scripts`. Mount the complete
+project directory when a program uses `keen` to import other files. The
+`:ro` suffix makes the source mount read-only.
+
+In PowerShell, use a bind mount with the current directory's full path:
+
+```powershell
+docker run --platform linux/amd64 --rm --mount "type=bind,source=$($PWD.Path),target=/scripts,readonly" soplang/soplang:3.0.0 hello.sop
+```
+
+For piped input, add `-i`:
+
+```sh
+printf 'Ayaan\n' | docker run --platform linux/amd64 --rm -i \
+  soplang/soplang:3.0.0 -c 'qor(gelin())'
 ```
 
 ## Build a native executable
 
-Mount a writable directory for the output. On Linux, matching the host user ID
-helps preserve ownership of generated files:
+Use a writable mount so `--build` can save its output. On Linux, match the
+host user's ID so the output belongs to that user:
 
 ```sh
-docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/scripts" \
-  soplang/soplang:3.0.0 --build program.sop -o program
+docker run --platform linux/amd64 --rm --user "$(id -u):$(id -g)" \
+  -v "$PWD:/scripts" \
+  soplang/soplang:3.0.0 --build hello.sop -o hello
 ```
 
-A container-built executable targets Linux amd64 and the container's system
-libraries. It does not become a macOS or Windows executable. See
-[package requirements](INSTALLING_PACKAGES.md) for native toolchain details.
+The selected user must have write access to the mounted directory. For
+Docker Desktop on Windows, use the PowerShell mount syntax above without
+`readonly`, omit `--user`, and pass `--build hello.sop -o hello`.
 
-## Registry tags and availability
+Run the built program in the same image:
 
-Stable release publication sets these Docker Hub tags:
+```sh
+docker run --platform linux/amd64 --rm -v "$PWD:/scripts:ro" \
+  --entrypoint /scripts/hello soplang/soplang:3.0.0
+```
+
+The executable targets Linux amd64 and the container's system libraries.
+It can run on a compatible Linux system without Soplang. Building for macOS
+or Windows requires the corresponding native build environment. See the
+[package requirements](https://github.com/soplang/soplang/blob/main/docs/INSTALLING_PACKAGES.md).
+
+## Image tags
 
 | Tag | Meaning |
 | --- | --- |
-| `3.0.0` | This release |
+| `3.0.0` | Soplang 3.0.0 |
 | `3.0` | Latest stable patch in the 3.0 line |
 | `3` | Latest stable release in the 3.x line |
 | `latest` | Latest stable release |
 | `sha-<commit>` | Release source revision |
 
-Pin a version for repeatable use. Prereleases do not replace stable aliases.
-The published `3.0.0` and `latest` manifests matched in the release checks;
-the pulled image passed version, JIT, and LLVM native-build smoke tests.
+Use a specific version in scripts and deployments. Prereleases do not replace
+stable aliases. Published images are also uploaded to
+`ghcr.io/soplang/soplang`; anonymous access depends on the GitHub package's
+visibility. The commands above use Docker Hub.
 
-The workflow also uploads to `ghcr.io/soplang/soplang`. Anonymous pulls were
-still rejected in the 2026-10-17 documentation check; GitHub package visibility
-must be Public before it can serve as an unauthenticated mirror. Docker Hub
-is the verified public download. See the
-[release verification record](testing/RELEASE_VERIFICATION.md).
-
-## Build and verify the image locally
+## Build the image from source
 
 ```sh
-git clone https://github.com/soplang/soplang.git
+git clone --branch v3.0.0 --depth 1 https://github.com/soplang/soplang.git
 cd soplang
 docker build -t soplang:local .
 docker run --rm soplang:local --version
 ```
 
-The image entrypoint is `soplang`; arguments after the image name are CLI flags
-or source paths. Use `--entrypoint` to run other tools. The complete package
-checker is documented in the [release process](RELEASE_PROCESS.md).
+The image entrypoint is `soplang`. Arguments after the image name are compiler
+options or source paths. Override `--entrypoint` to run another tool.
 
-For compiler development and tests, use the source workflow in
-[Contributing](CONTRIBUTING.md). Release images contain the installed compiler
-and toolchain; compiling a changed checkout requires building that source.
+## Documentation
+
+- [Language documentation](https://www.soplang.org/docs)
+- [Source code](https://github.com/soplang/soplang)
+- [Release packages](https://github.com/soplang/soplang/releases/tag/v3.0.0)
+- [Release verification](https://github.com/soplang/soplang/blob/main/docs/testing/RELEASE_VERIFICATION.md)
+- [Bug reports](https://github.com/soplang/soplang/issues)
+- [MIT license](https://github.com/soplang/soplang/blob/main/LICENSE)

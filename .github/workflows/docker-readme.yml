@@ -1,0 +1,34 @@
+name: Update Docker Hub README
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - docs/docker.md
+      - .github/workflows/docker-readme.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docker-hub-readme
+  cancel-in-progress: false
+
+jobs:
+  readme:
+    name: Update repository description
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Update Docker Hub README
+        uses: peter-evans/dockerhub-description@1b9a80c056b620d92cedb9d9b5a223409c68ddfa # v5
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          repository: soplang/soplang
+          short-description: Soplang 3 compiler with Somali syntax, Cranelift JIT, and LLVM native builds.
+          readme-filepath: docs/docker.md

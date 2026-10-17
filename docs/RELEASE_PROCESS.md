@@ -56,6 +56,19 @@ trigger AUR publication when its credentials are configured. Prereleases must no
 AUR installation after publication; the local image check cannot verify a
 registry upload. No publication is performed by the local packaging scripts.
 
+## Docker Hub README
+
+`docs/docker.md` is the source for the public Docker Hub README. The
+`Update Docker Hub README` workflow publishes it when that file or its workflow
+changes on `main`. It can also be run manually. It uses the existing
+`DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` secrets and does not rebuild or push
+images.
+
+The Docker Hub account must have repository Admin access, and the personal
+access token must have the read/write/delete scope required by the description
+action. Keep links absolute so they work on both GitHub and Docker Hub. Check
+the workflow result and the public repository description after an update.
+
 ## Installed build requirements
 
 See [Installing packages](INSTALLING_PACKAGES.md). Native builds require clang,
