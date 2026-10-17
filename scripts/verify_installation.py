@@ -73,8 +73,10 @@ def windows(installer):
     with tempfile.TemporaryDirectory(prefix="soplang installer check ") as temp:
         work = Path(temp)
         directory = work / "Soplang"
+        install_log = work / "install.log"
+        uninstall_log = work / "uninstall.log"
         success(command([installer, "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/SP-",
-                         f"/DIR={directory}", "/TASKS=addtopath,fileassociation"]))
+                         f"/DIR={directory}", f"/LOG={install_log}", "/TASKS=addtopath,fileassociation"]))
         try:
             installed_cli(directory / "soplang.exe", work)
             assert normalized(directory) in path_entries(), "PATH was not updated"
@@ -87,7 +89,13 @@ def windows(installer):
                 associated_exe = association.split('"')[1]
                 assert Path(associated_exe).samefile(directory / "soplang.exe"), association
         finally:
-            success(command([directory / "unins000.exe", "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART"]))
+            success(command([directory / "unins000.exe", "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART",
+                             f"/LOG={uninstall_log}"]))
+            for log in (install_log, uninstall_log):
+                if log.exists():
+                    for line in log.read_text(encoding="utf-8-sig", errors="replace").splitlines():
+                        if "PATH entry" in line:
+                            print(line)
         for _ in range(75):
             if not (directory / "soplang.exe").exists():
                 break

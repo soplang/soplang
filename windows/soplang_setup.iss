@@ -100,53 +100,79 @@ Root: HKCU; Subkey: "Software\Classes\Applications\{#MyAppExeName}\SupportedType
 const
   EnvironmentKey = 'SYSTEM\CurrentControlSet\Control\Session Manager\Environment';
 
+function PathEntryMatches(Entry, Path: string): Boolean;
+begin
+  { Resolve 8.3 aliases while the installation directory still exists. }
+  Result := CompareText(
+    GetShortName(RemoveBackslashUnlessRoot(RemoveQuotes(Trim(Entry)))),
+    GetShortName(RemoveBackslashUnlessRoot(Path))) = 0;
+end;
+
+function FindPathEntry(Paths, Path: string; var First, Last: Integer): Boolean;
+begin
+  First := 1;
+  while First <= Length(Paths) do begin
+    Last := First;
+    while (Last <= Length(Paths)) and (Paths[Last] <> ';') do
+      Last := Last + 1;
+    if PathEntryMatches(Copy(Paths, First, Last - First), Path) then begin
+      Result := True;
+      exit;
+    end;
+    First := Last + 1;
+  end;
+  Result := False;
+end;
+
 procedure EnvAddPath(Path: string);
 var
   Paths: string;
+  First, Last: Integer;
 begin
-  { Retrieve current path }
   if not RegQueryStringValue(HKEY_LOCAL_MACHINE, EnvironmentKey, 'Path', Paths) then
     Paths := '';
+  if FindPathEntry(Paths, Path, First, Last) then exit;
 
-  { Skip if already in path }
-  if Pos(';' + Uppercase(Path) + ';', ';' + Uppercase(Paths) + ';') > 0 then exit;
-
-  { Add path to end }
-  Paths := Paths + ';' + Path;
-
-  { Overwrite path environment variable }
-  RegWriteExpandStringValue(HKEY_LOCAL_MACHINE, EnvironmentKey, 'Path', Paths);
+  if Paths <> '' then Paths := Paths + ';';
+  Paths := Paths + Path;
+  if not RegWriteExpandStringValue(HKEY_LOCAL_MACHINE, EnvironmentKey, 'Path', Paths) then
+    RaiseException('Could not add Soplang to PATH');
+  Log('Added Soplang PATH entry: ' + Path);
 end;
 
 procedure CurStepChanged(CurStep: TSetupStep);
 begin
   if CurStep = ssPostInstall then
-    if IsTaskSelected('addtopath') then
+    if WizardIsTaskSelected('addtopath') then
       EnvAddPath(ExpandConstant('{app}'));
 end;
 
 procedure RemovePath(Path: string);
 var
   Paths: string;
-  P: Integer;
+  First, Last: Integer;
 begin
-  { Retrieve current path }
-  if not RegQueryStringValue(HKEY_LOCAL_MACHINE, EnvironmentKey, 'Path', Paths) then
+  if not RegQueryStringValue(HKEY_LOCAL_MACHINE, EnvironmentKey, 'Path', Paths) then exit;
+  if not FindPathEntry(Paths, Path, First, Last) then begin
+    Log('Soplang PATH entry not found: ' + Path);
+    exit;
+  end;
+
+  { Remove this entry and one separator, preserving every other entry. }
+  if First > 1 then
+    Delete(Paths, First - 1, Last - First + 1)
+  else if Last <= Length(Paths) then
+    Delete(Paths, First, Last - First + 1)
+  else
     Paths := '';
 
-  { Skip if not found in path }
-  P := Pos(';' + Uppercase(Path) + ';', ';' + Uppercase(Paths) + ';');
-  if P = 0 then exit;
-
-  { Update path }
-  Delete(Paths, P - 1, Length(Path) + 1);
-
-  { Overwrite path environment variable }
-  RegWriteExpandStringValue(HKEY_LOCAL_MACHINE, EnvironmentKey, 'Path', Paths);
+  if not RegWriteExpandStringValue(HKEY_LOCAL_MACHINE, EnvironmentKey, 'Path', Paths) then
+    RaiseException('Could not remove Soplang from PATH');
+  Log('Removed Soplang PATH entry: ' + Path);
 end;
 
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 begin
-  if CurUninstallStep = usPostUninstall then
+  if CurUninstallStep = usUninstall then
     RemovePath(ExpandConstant('{app}'));
 end;
