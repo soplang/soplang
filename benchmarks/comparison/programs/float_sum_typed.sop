@@ -1,0 +1,6 @@
+hawl compute() {
+    jajab total = 0.0
+    kuceli (i 1 ilaa 100000) { total = total + 0.5 }
+    celi abn(total)
+}
+qor(compute())

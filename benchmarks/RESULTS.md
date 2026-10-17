@@ -1,4 +1,9 @@
-# Soplang Compiler Benchmarks
+# Historical Soplang Compiler Benchmarks
+
+These are older, compiler-only, in-process results. They are not the v3.0.0
+comparison with Python and v2. See the [current comparison](comparison/RESULTS.md).
+Some historical workload labels undercount inclusive loop bounds; the current
+comparison uses separate, explicitly checked workloads.
 
 > Auto-generated on **2026-02-20 11:07:46 UTC**
 > System: `Linux 6.18.7-arch1-1 x86_64` | `rustc 1.91.1 (ed61e7d7e 2025-11-07)` | `cargo 1.91.1 (ea2d97820 2025-10-10)`

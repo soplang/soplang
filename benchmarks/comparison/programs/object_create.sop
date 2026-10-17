@@ -1,0 +1,9 @@
+hawl compute() {
+    door total = 0
+    kuceli (i 0 ilaa 4999) {
+        door point = {x: i, y: i * 2}
+        total = total + point.x + point.y
+    }
+    celi total
+}
+qor(compute())

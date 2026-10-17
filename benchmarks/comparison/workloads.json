@@ -1,0 +1,52 @@
+[
+  {
+    "name": "startup",
+    "description": "Minimal program; process and language startup",
+    "expected": "1\n"
+  },
+  {
+    "name": "integer_sum",
+    "description": "100,000 integer additions with dynamic Soplang locals",
+    "expected": "5000050000\n"
+  },
+  {
+    "name": "integer_sum_typed",
+    "description": "100,000 integer additions with an abn accumulator",
+    "expected": "5000050000\n"
+  },
+  {
+    "name": "float_sum_typed",
+    "description": "100,000 exact binary-float additions with a jajab accumulator",
+    "expected": "50000\n"
+  },
+  {
+    "name": "nested_loops",
+    "description": "200 by 200 iterations; 40,000 increments",
+    "expected": "40000\n"
+  },
+  {
+    "name": "fibonacci",
+    "description": "Recursive fib(25); 242,785 function invocations",
+    "expected": "75025\n"
+  },
+  {
+    "name": "function_calls",
+    "description": "20,000 calls to a one-argument increment function",
+    "expected": "20000\n"
+  },
+  {
+    "name": "list_push_index",
+    "description": "Append 5,000 integers, then sum 5,000 indexed reads",
+    "expected": "12502500\n"
+  },
+  {
+    "name": "object_create",
+    "description": "Create 5,000 two-field objects/dicts and sum both fields",
+    "expected": "37492500\n"
+  },
+  {
+    "name": "string_concat",
+    "description": "5,000 single-character concatenations; print final length",
+    "expected": "5000\n"
+  }
+]

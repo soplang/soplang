@@ -1,0 +1,5 @@
+hawl fib(n) {
+    haddii (n < 2) { celi n }
+    celi fib(n - 1) + fib(n - 2)
+}
+qor(fib(25))

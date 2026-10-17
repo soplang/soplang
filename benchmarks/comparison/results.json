@@ -1,0 +1,7895 @@
+{
+  "schema_version": 1,
+  "started_at": "2026-10-17T03:22:22.092333+00:00",
+  "machine": {
+    "platform": "Linux-7.2.6-arch2-1-x86_64-with-glibc2.44",
+    "cpu": "11th Gen Intel(R) Core(TM) i7-1185G7 @ 3.00GHz",
+    "logical_cpus": 8,
+    "cpu_affinity": [
+      2
+    ],
+    "load_average_at_start": [
+      1.54833984375,
+      1.349609375,
+      1.25244140625
+    ]
+  },
+  "python": {
+    "version": "3.14.7 (main, Aug 10 2026, 07:46:56) [GCC 16.1.1 20260728]",
+    "executable": "/home/sharafdin/Documents/Goobo-Labs/soplang/target/benchmark-comparison/venv/bin/python",
+    "implementation": "CPython",
+    "compiler": "GCC 16.1.1 20260728",
+    "configure_args": "'--prefix=/usr' '--enable-shared' '--with-computed-gotos' '--enable-optimizations' '--with-lto' '--enable-ipv6' '--with-system-expat' '--with-dbmliborder=gdbm:ndbm' '--with-system-libmpdec' '--enable-loadable-sqlite-extensions' '--without-ensurepip' '--with-tzpath=/usr/share/zoneinfo' 'CFLAGS=-march=x86-64 -mtune=generic -O3 -pipe -fno-plt -fexceptions         -Wp,-D_FORTIFY_SOURCE=3 -Wformat -Werror=format-security         -fstack-clash-protection -fcf-protection         -fno-omit-frame-pointer -mno-omit-leaf-frame-pointer -g -ffile-prefix-map=/build/python/src=/usr/src/debug/python -flto=auto -ffat-lto-objects' 'LDFLAGS=-Wl,-O1 -Wl,--sort-common -Wl,--as-needed -Wl,-z,relro -Wl,-z,now          -Wl,-z,pack-relative-relocs -flto=auto'",
+    "debug": false,
+    "gil_enabled": true,
+    "jit_enabled": false
+  },
+  "v3": {
+    "commit": "0a3d36e44dd65a0add6f6dac285d774e439d37ff",
+    "compiler_sources_sha256": "ca67aa9cefe57e4c7e5f1f31e92781a4b480e8584d5d6df9d974eb3476f943a0",
+    "compiler_changes": [],
+    "version": "soplang 3.0.0",
+    "binary": "/home/sharafdin/Documents/Goobo-Labs/soplang/target/release/soplang",
+    "binary_sha256": "caf3ed05bbbdce31ff1b7401bb3320899c397c86a9fbc8963fbc040209c6553e",
+    "build": {
+      "command": [
+        "cargo",
+        "build",
+        "--release",
+        "--locked",
+        "--lib",
+        "--bin",
+        "soplang",
+        "--message-format=json"
+      ],
+      "elapsed_ns": 72495046
+    },
+    "source_attribution": "working tree"
+  },
+  "tool_versions": {
+    "rustc": "rustc 1.94.0 (4a4ef493e 2026-03-02)",
+    "cargo": "cargo 1.94.0 (85eff7c80 2026-01-15)",
+    "clang": "clang version 22.1.8\nTarget: x86_64-pc-linux-gnu\nThread model: posix\nInstalledDir: /usr/bin"
+  },
+  "configuration": {
+    "python": "/home/sharafdin/Documents/Goobo-Labs/soplang/target/benchmark-comparison/venv/bin/python",
+    "v2_ref": "v2.0.0",
+    "v3_bin": "/home/sharafdin/Documents/Goobo-Labs/soplang/target/release/soplang",
+    "samples": 25,
+    "warmups": 5,
+    "timeout": 90,
+    "seed": 1729,
+    "cpu": 2,
+    "opt_level": 2,
+    "only": null,
+    "output": "/home/sharafdin/Documents/Goobo-Labs/soplang/benchmarks/comparison",
+    "environment": {
+      "PYTHONHASHSEED": "0",
+      "NO_COLOR": "1"
+    }
+  },
+  "runner_sha256": "8214987ef156cc87c9730483890222c44826ced478b157a945370b5373282326",
+  "manifest_sha256": "93ceb78c5be378931e6f0e9d75dea5c7a6e3632d9e1b17c6fdd904e2dc9224d3",
+  "workloads": [
+    {
+      "name": "startup",
+      "description": "Minimal program; process and language startup",
+      "expected": "1\n",
+      "commands": {
+        "python": [
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/target/benchmark-comparison/venv/bin/python",
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/benchmarks/comparison/programs/startup.py"
+        ],
+        "soplang2": [
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/target/benchmark-comparison/venv/bin/python",
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/benchmarks/comparison/run_v2.py",
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/target/benchmark-comparison/run-xznmo7db/v2",
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/benchmarks/comparison/programs/startup.sop"
+        ],
+        "soplang3_jit": [
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/target/release/soplang",
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/benchmarks/comparison/programs/startup.sop"
+        ],
+        "soplang3_llvm": [
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/target/benchmark-comparison/run-xznmo7db/startup"
+        ]
+      },
+      "llvm_build_command": [
+        "/home/sharafdin/Documents/Goobo-Labs/soplang/target/release/soplang",
+        "--build",
+        "--quiet",
+        "--opt-level",
+        "2",
+        "/home/sharafdin/Documents/Goobo-Labs/soplang/benchmarks/comparison/programs/startup.sop",
+        "-o",
+        "/home/sharafdin/Documents/Goobo-Labs/soplang/target/benchmark-comparison/run-xznmo7db/startup"
+      ],
+      "llvm_build_ns": 113190156,
+      "source_sha256": {
+        "soplang": "80fb23b9713788c7147c5c560b9e6d87b8599ef121a0171e218ba10b619e49a4",
+        "python": "cc42155088fca5730758db72b2a5bca33112a941dfaa2d43098ec422ce4ea213"
+      },
+      "engines": {
+        "python": {
+          "samples": 25,
+          "median_ns": 11194476,
+          "mean_ns": 11390083.08,
+          "stdev_ns": 999761.1043562657,
+          "min_ns": 9514850,
+          "max_ns": 13509467,
+          "p25_ns": 10886104.0,
+          "p75_ns": 11557178.0
+        },
+        "soplang2": {
+          "samples": 25,
+          "median_ns": 52341963,
+          "mean_ns": 52292773.72,
+          "stdev_ns": 2825805.699849094,
+          "min_ns": 47256657,
+          "max_ns": 59390690,
+          "p25_ns": 50888762.0,
+          "p75_ns": 53655743.0
+        },
+        "soplang3_jit": {
+          "samples": 25,
+          "median_ns": 2845589,
+          "mean_ns": 2993854.32,
+          "stdev_ns": 515583.3870924534,
+          "min_ns": 2395700,
+          "max_ns": 4921897,
+          "p25_ns": 2704606.0,
+          "p75_ns": 3215683.0
+        },
+        "soplang3_llvm": {
+          "samples": 25,
+          "median_ns": 1972432,
+          "mean_ns": 2039319.28,
+          "stdev_ns": 313329.4246446169,
+          "min_ns": 1709121,
+          "max_ns": 2686810,
+          "p25_ns": 1787117.0,
+          "p75_ns": 2099789.0
+        }
+      }
+    },
+    {
+      "name": "integer_sum",
+      "description": "100,000 integer additions with dynamic Soplang locals",
+      "expected": "5000050000\n",
+      "commands": {
+        "python": [
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/target/benchmark-comparison/venv/bin/python",
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/benchmarks/comparison/programs/integer_sum.py"
+        ],
+        "soplang2": [
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/target/benchmark-comparison/venv/bin/python",
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/benchmarks/comparison/run_v2.py",
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/target/benchmark-comparison/run-xznmo7db/v2",
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/benchmarks/comparison/programs/integer_sum.sop"
+        ],
+        "soplang3_jit": [
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/target/release/soplang",
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/benchmarks/comparison/programs/integer_sum.sop"
+        ],
+        "soplang3_llvm": [
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/target/benchmark-comparison/run-xznmo7db/integer_sum"
+        ]
+      },
+      "llvm_build_command": [
+        "/home/sharafdin/Documents/Goobo-Labs/soplang/target/release/soplang",
+        "--build",
+        "--quiet",
+        "--opt-level",
+        "2",
+        "/home/sharafdin/Documents/Goobo-Labs/soplang/benchmarks/comparison/programs/integer_sum.sop",
+        "-o",
+        "/home/sharafdin/Documents/Goobo-Labs/soplang/target/benchmark-comparison/run-xznmo7db/integer_sum"
+      ],
+      "llvm_build_ns": 126049757,
+      "source_sha256": {
+        "soplang": "bdf9c6f27cbc6fd8ede6f4c6402972eb045472d3a8f770c4af8c063627f7d5f0",
+        "python": "1bc3fe71a8a2442ee8fc70cc658f4de02fc16f4ff7bf354f6bac5923b5fbb5f5"
+      },
+      "engines": {
+        "python": {
+          "samples": 25,
+          "median_ns": 13960343,
+          "mean_ns": 13918253.96,
+          "stdev_ns": 682578.6459498324,
+          "min_ns": 12765033,
+          "max_ns": 15711736,
+          "p25_ns": 13413488.0,
+          "p75_ns": 14379243.0
+        },
+        "soplang2": {
+          "samples": 25,
+          "median_ns": 222053473,
+          "mean_ns": 227217864.88,
+          "stdev_ns": 14991965.680512555,
+          "min_ns": 213039814,
+          "max_ns": 273684824,
+          "p25_ns": 219259625.0,
+          "p75_ns": 228934546.0
+        },
+        "soplang3_jit": {
+          "samples": 25,
+          "median_ns": 42773509,
+          "mean_ns": 43005309.52,
+          "stdev_ns": 1103646.6358028778,
+          "min_ns": 41142085,
+          "max_ns": 46183899,
+          "p25_ns": 42298447.0,
+          "p75_ns": 43476946.0
+        },
+        "soplang3_llvm": {
+          "samples": 25,
+          "median_ns": 41790686,
+          "mean_ns": 42175390.56,
+          "stdev_ns": 1159289.84410673,
+          "min_ns": 40908292,
+          "max_ns": 45760246,
+          "p25_ns": 41254834.0,
+          "p75_ns": 42647445.0
+        }
+      }
+    },
+    {
+      "name": "integer_sum_typed",
+      "description": "100,000 integer additions with an abn accumulator",
+      "expected": "5000050000\n",
+      "commands": {
+        "python": [
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/target/benchmark-comparison/venv/bin/python",
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/benchmarks/comparison/programs/integer_sum_typed.py"
+        ],
+        "soplang2": [
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/target/benchmark-comparison/venv/bin/python",
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/benchmarks/comparison/run_v2.py",
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/target/benchmark-comparison/run-xznmo7db/v2",
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/benchmarks/comparison/programs/integer_sum_typed.sop"
+        ],
+        "soplang3_jit": [
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/target/release/soplang",
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/benchmarks/comparison/programs/integer_sum_typed.sop"
+        ],
+        "soplang3_llvm": [
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/target/benchmark-comparison/run-xznmo7db/integer_sum_typed"
+        ]
+      },
+      "llvm_build_command": [
+        "/home/sharafdin/Documents/Goobo-Labs/soplang/target/release/soplang",
+        "--build",
+        "--quiet",
+        "--opt-level",
+        "2",
+        "/home/sharafdin/Documents/Goobo-Labs/soplang/benchmarks/comparison/programs/integer_sum_typed.sop",
+        "-o",
+        "/home/sharafdin/Documents/Goobo-Labs/soplang/target/benchmark-comparison/run-xznmo7db/integer_sum_typed"
+      ],
+      "llvm_build_ns": 111519588,
+      "source_sha256": {
+        "soplang": "9342b93e4823f6a4561e214343c28f49f77492be2b92df77919ead1981a72b87",
+        "python": "1bc3fe71a8a2442ee8fc70cc658f4de02fc16f4ff7bf354f6bac5923b5fbb5f5"
+      },
+      "engines": {
+        "python": {
+          "samples": 25,
+          "median_ns": 13791055,
+          "mean_ns": 14109866.72,
+          "stdev_ns": 819608.1766539688,
+          "min_ns": 13021772,
+          "max_ns": 16020237,
+          "p25_ns": 13555793.0,
+          "p75_ns": 14891517.0
+        },
+        "soplang2": {
+          "samples": 25,
+          "median_ns": 280631261,
+          "mean_ns": 292154648.64,
+          "stdev_ns": 21541722.20051141,
+          "min_ns": 271986764,
+          "max_ns": 355692367,
+          "p25_ns": 279085423.0,
+          "p75_ns": 294849085.0
+        },
+        "soplang3_jit": {
+          "samples": 25,
+          "median_ns": 83952248,
+          "mean_ns": 89325073.76,
+          "stdev_ns": 11322103.182838839,
+          "min_ns": 82734898,
+          "max_ns": 132408246,
+          "p25_ns": 83630598.0,
+          "p75_ns": 88363049.0
+        },
+        "soplang3_llvm": {
+          "samples": 25,
+          "median_ns": 83268228,
+          "mean_ns": 86985903.04,
+          "stdev_ns": 7045209.448988733,
+          "min_ns": 81317652,
+          "max_ns": 106799545,
+          "p25_ns": 82590239.0,
+          "p75_ns": 88413073.0
+        }
+      }
+    },
+    {
+      "name": "float_sum_typed",
+      "description": "100,000 exact binary-float additions with a jajab accumulator",
+      "expected": "50000\n",
+      "commands": {
+        "python": [
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/target/benchmark-comparison/venv/bin/python",
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/benchmarks/comparison/programs/float_sum_typed.py"
+        ],
+        "soplang2": [
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/target/benchmark-comparison/venv/bin/python",
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/benchmarks/comparison/run_v2.py",
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/target/benchmark-comparison/run-xznmo7db/v2",
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/benchmarks/comparison/programs/float_sum_typed.sop"
+        ],
+        "soplang3_jit": [
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/target/release/soplang",
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/benchmarks/comparison/programs/float_sum_typed.sop"
+        ],
+        "soplang3_llvm": [
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/target/benchmark-comparison/run-xznmo7db/float_sum_typed"
+        ]
+      },
+      "llvm_build_command": [
+        "/home/sharafdin/Documents/Goobo-Labs/soplang/target/release/soplang",
+        "--build",
+        "--quiet",
+        "--opt-level",
+        "2",
+        "/home/sharafdin/Documents/Goobo-Labs/soplang/benchmarks/comparison/programs/float_sum_typed.sop",
+        "-o",
+        "/home/sharafdin/Documents/Goobo-Labs/soplang/target/benchmark-comparison/run-xznmo7db/float_sum_typed"
+      ],
+      "llvm_build_ns": 116036537,
+      "source_sha256": {
+        "soplang": "bc3ce7f67da016ebc004f887801fc10b49bc9455846cf743fa71a978f3a046da",
+        "python": "b5122d10f1799da98b281211c4e994f87740ad3b6b281a0189a134641c9a5d0e"
+      },
+      "engines": {
+        "python": {
+          "samples": 25,
+          "median_ns": 15389705,
+          "mean_ns": 15836904.92,
+          "stdev_ns": 1465438.0819204121,
+          "min_ns": 13903116,
+          "max_ns": 19217041,
+          "p25_ns": 14859977.0,
+          "p75_ns": 16576167.0
+        },
+        "soplang2": {
+          "samples": 25,
+          "median_ns": 321467185,
+          "mean_ns": 335157086.32,
+          "stdev_ns": 41841538.77547558,
+          "min_ns": 298339969,
+          "max_ns": 489482652,
+          "p25_ns": 317685148.0,
+          "p75_ns": 328968447.0
+        },
+        "soplang3_jit": {
+          "samples": 25,
+          "median_ns": 100254437,
+          "mean_ns": 103904522.52,
+          "stdev_ns": 9566249.500502663,
+          "min_ns": 96584026,
+          "max_ns": 139644146,
+          "p25_ns": 98851755.0,
+          "p75_ns": 104888176.0
+        },
+        "soplang3_llvm": {
+          "samples": 25,
+          "median_ns": 102938494,
+          "mean_ns": 105328788.36,
+          "stdev_ns": 9473672.197433816,
+          "min_ns": 94417966,
+          "max_ns": 141190617,
+          "p25_ns": 99950155.0,
+          "p75_ns": 108118568.0
+        }
+      }
+    },
+    {
+      "name": "nested_loops",
+      "description": "200 by 200 iterations; 40,000 increments",
+      "expected": "40000\n",
+      "commands": {
+        "python": [
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/target/benchmark-comparison/venv/bin/python",
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/benchmarks/comparison/programs/nested_loops.py"
+        ],
+        "soplang2": [
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/target/benchmark-comparison/venv/bin/python",
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/benchmarks/comparison/run_v2.py",
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/target/benchmark-comparison/run-xznmo7db/v2",
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/benchmarks/comparison/programs/nested_loops.sop"
+        ],
+        "soplang3_jit": [
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/target/release/soplang",
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/benchmarks/comparison/programs/nested_loops.sop"
+        ],
+        "soplang3_llvm": [
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/target/benchmark-comparison/run-xznmo7db/nested_loops"
+        ]
+      },
+      "llvm_build_command": [
+        "/home/sharafdin/Documents/Goobo-Labs/soplang/target/release/soplang",
+        "--build",
+        "--quiet",
+        "--opt-level",
+        "2",
+        "/home/sharafdin/Documents/Goobo-Labs/soplang/benchmarks/comparison/programs/nested_loops.sop",
+        "-o",
+        "/home/sharafdin/Documents/Goobo-Labs/soplang/target/benchmark-comparison/run-xznmo7db/nested_loops"
+      ],
+      "llvm_build_ns": 128071496,
+      "source_sha256": {
+        "soplang": "ad8c198395469f9a3a0033e6a2ecc916dabfc0ce1a63641a51839904ec45126f",
+        "python": "a34d12082f53849bb65b2cc71d96b8e041d850a95e00493125a55971e15b6903"
+      },
+      "engines": {
+        "python": {
+          "samples": 25,
+          "median_ns": 13114874,
+          "mean_ns": 13018378.4,
+          "stdev_ns": 589543.2227789438,
+          "min_ns": 11437816,
+          "max_ns": 14058281,
+          "p25_ns": 12817018.0,
+          "p75_ns": 13362483.0
+        },
+        "soplang2": {
+          "samples": 25,
+          "median_ns": 129016240,
+          "mean_ns": 129287866.16,
+          "stdev_ns": 6598282.434097639,
+          "min_ns": 120492823,
+          "max_ns": 149262285,
+          "p25_ns": 124304764.0,
+          "p75_ns": 131717111.0
+        },
+        "soplang3_jit": {
+          "samples": 25,
+          "median_ns": 22305453,
+          "mean_ns": 22539341.84,
+          "stdev_ns": 1194893.498356258,
+          "min_ns": 21300214,
+          "max_ns": 26205945,
+          "p25_ns": 21884280.0,
+          "p75_ns": 22698535.0
+        },
+        "soplang3_llvm": {
+          "samples": 25,
+          "median_ns": 21195562,
+          "mean_ns": 21469301.04,
+          "stdev_ns": 1003558.1845498745,
+          "min_ns": 20228057,
+          "max_ns": 24432386,
+          "p25_ns": 20582688.0,
+          "p75_ns": 21955061.0
+        }
+      }
+    },
+    {
+      "name": "fibonacci",
+      "description": "Recursive fib(25); 242,785 function invocations",
+      "expected": "75025\n",
+      "commands": {
+        "python": [
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/target/benchmark-comparison/venv/bin/python",
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/benchmarks/comparison/programs/fibonacci.py"
+        ],
+        "soplang2": [
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/target/benchmark-comparison/venv/bin/python",
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/benchmarks/comparison/run_v2.py",
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/target/benchmark-comparison/run-xznmo7db/v2",
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/benchmarks/comparison/programs/fibonacci.sop"
+        ],
+        "soplang3_jit": [
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/target/release/soplang",
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/benchmarks/comparison/programs/fibonacci.sop"
+        ],
+        "soplang3_llvm": [
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/target/benchmark-comparison/run-xznmo7db/fibonacci"
+        ]
+      },
+      "llvm_build_command": [
+        "/home/sharafdin/Documents/Goobo-Labs/soplang/target/release/soplang",
+        "--build",
+        "--quiet",
+        "--opt-level",
+        "2",
+        "/home/sharafdin/Documents/Goobo-Labs/soplang/benchmarks/comparison/programs/fibonacci.sop",
+        "-o",
+        "/home/sharafdin/Documents/Goobo-Labs/soplang/target/benchmark-comparison/run-xznmo7db/fibonacci"
+      ],
+      "llvm_build_ns": 113276366,
+      "source_sha256": {
+        "soplang": "df426ed905864300a5d733032749a3da375def1316faa80244c50f2099160984",
+        "python": "0d89ff2b86579646bcd0c53ff35d2cb91fa70e498c111cca676707ed245b982c"
+      },
+      "engines": {
+        "python": {
+          "samples": 25,
+          "median_ns": 20876636,
+          "mean_ns": 21528409.44,
+          "stdev_ns": 3067390.098148561,
+          "min_ns": 18169220,
+          "max_ns": 34451083,
+          "p25_ns": 19967270.0,
+          "p75_ns": 22110856.0
+        },
+        "soplang2": {
+          "samples": 25,
+          "median_ns": 1265456795,
+          "mean_ns": 1317169618.96,
+          "stdev_ns": 130418999.20536086,
+          "min_ns": 1180879601,
+          "max_ns": 1685150095,
+          "p25_ns": 1214774866.0,
+          "p75_ns": 1430840079.0
+        },
+        "soplang3_jit": {
+          "samples": 25,
+          "median_ns": 171612492,
+          "mean_ns": 173137163.12,
+          "stdev_ns": 8381142.676039985,
+          "min_ns": 162541952,
+          "max_ns": 201114486,
+          "p25_ns": 167435657.0,
+          "p75_ns": 177067775.0
+        },
+        "soplang3_llvm": {
+          "samples": 25,
+          "median_ns": 142998892,
+          "mean_ns": 149414079,
+          "stdev_ns": 17704615.644011687,
+          "min_ns": 133161136,
+          "max_ns": 203275060,
+          "p25_ns": 140514065.0,
+          "p75_ns": 152109894.0
+        }
+      }
+    },
+    {
+      "name": "function_calls",
+      "description": "20,000 calls to a one-argument increment function",
+      "expected": "20000\n",
+      "commands": {
+        "python": [
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/target/benchmark-comparison/venv/bin/python",
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/benchmarks/comparison/programs/function_calls.py"
+        ],
+        "soplang2": [
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/target/benchmark-comparison/venv/bin/python",
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/benchmarks/comparison/run_v2.py",
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/target/benchmark-comparison/run-xznmo7db/v2",
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/benchmarks/comparison/programs/function_calls.sop"
+        ],
+        "soplang3_jit": [
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/target/release/soplang",
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/benchmarks/comparison/programs/function_calls.sop"
+        ],
+        "soplang3_llvm": [
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/target/benchmark-comparison/run-xznmo7db/function_calls"
+        ]
+      },
+      "llvm_build_command": [
+        "/home/sharafdin/Documents/Goobo-Labs/soplang/target/release/soplang",
+        "--build",
+        "--quiet",
+        "--opt-level",
+        "2",
+        "/home/sharafdin/Documents/Goobo-Labs/soplang/benchmarks/comparison/programs/function_calls.sop",
+        "-o",
+        "/home/sharafdin/Documents/Goobo-Labs/soplang/target/benchmark-comparison/run-xznmo7db/function_calls"
+      ],
+      "llvm_build_ns": 148650233,
+      "source_sha256": {
+        "soplang": "54bf33af36d5410caeb849b946cf0a0b27f57f5ac4270b396472299d3bf276ad",
+        "python": "7ecb20154a37e5f36740cd6425ba1073a2f90db49d981352e4426dc8286c82e9"
+      },
+      "engines": {
+        "python": {
+          "samples": 25,
+          "median_ns": 15821144,
+          "mean_ns": 18277809.32,
+          "stdev_ns": 7308405.155325651,
+          "min_ns": 12315913,
+          "max_ns": 46359731,
+          "p25_ns": 13882540.0,
+          "p75_ns": 19301538.0
+        },
+        "soplang2": {
+          "samples": 25,
+          "median_ns": 205234780,
+          "mean_ns": 207823177.48,
+          "stdev_ns": 53717498.45089049,
+          "min_ns": 141077964,
+          "max_ns": 305775689,
+          "p25_ns": 165928475.0,
+          "p75_ns": 256473041.0
+        },
+        "soplang3_jit": {
+          "samples": 25,
+          "median_ns": 26082592,
+          "mean_ns": 26921349.16,
+          "stdev_ns": 6863094.404126755,
+          "min_ns": 19471499,
+          "max_ns": 45938375,
+          "p25_ns": 22549981.0,
+          "p75_ns": 28110341.0
+        },
+        "soplang3_llvm": {
+          "samples": 25,
+          "median_ns": 23973309,
+          "mean_ns": 24858144.88,
+          "stdev_ns": 6028384.359823585,
+          "min_ns": 18051618,
+          "max_ns": 42845868,
+          "p25_ns": 21076346.0,
+          "p75_ns": 26780683.0
+        }
+      }
+    },
+    {
+      "name": "list_push_index",
+      "description": "Append 5,000 integers, then sum 5,000 indexed reads",
+      "expected": "12502500\n",
+      "commands": {
+        "python": [
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/target/benchmark-comparison/venv/bin/python",
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/benchmarks/comparison/programs/list_push_index.py"
+        ],
+        "soplang2": [
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/target/benchmark-comparison/venv/bin/python",
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/benchmarks/comparison/run_v2.py",
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/target/benchmark-comparison/run-xznmo7db/v2",
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/benchmarks/comparison/programs/list_push_index.sop"
+        ],
+        "soplang3_jit": [
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/target/release/soplang",
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/benchmarks/comparison/programs/list_push_index.sop"
+        ],
+        "soplang3_llvm": [
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/target/benchmark-comparison/run-xznmo7db/list_push_index"
+        ]
+      },
+      "llvm_build_command": [
+        "/home/sharafdin/Documents/Goobo-Labs/soplang/target/release/soplang",
+        "--build",
+        "--quiet",
+        "--opt-level",
+        "2",
+        "/home/sharafdin/Documents/Goobo-Labs/soplang/benchmarks/comparison/programs/list_push_index.sop",
+        "-o",
+        "/home/sharafdin/Documents/Goobo-Labs/soplang/target/benchmark-comparison/run-xznmo7db/list_push_index"
+      ],
+      "llvm_build_ns": 131226574,
+      "source_sha256": {
+        "soplang": "3c74b49dde5da60d01922e974afd4a4bf33603883ddda4285ec7894b4ef20338",
+        "python": "876f7a8257d52eee26ea440e05f312ba9d288dacf5db245b6d2c7ea8200ffe65"
+      },
+      "engines": {
+        "python": {
+          "samples": 25,
+          "median_ns": 12163647,
+          "mean_ns": 12332845.76,
+          "stdev_ns": 932165.5348344466,
+          "min_ns": 11137725,
+          "max_ns": 14104866,
+          "p25_ns": 11571167.0,
+          "p75_ns": 13171809.0
+        },
+        "soplang2": {
+          "samples": 25,
+          "median_ns": 80565540,
+          "mean_ns": 82117448.84,
+          "stdev_ns": 7701067.560132782,
+          "min_ns": 75860414,
+          "max_ns": 115972185,
+          "p25_ns": 78254436.0,
+          "p75_ns": 83877043.0
+        },
+        "soplang3_jit": {
+          "samples": 25,
+          "median_ns": 9739662,
+          "mean_ns": 9892947.28,
+          "stdev_ns": 1313219.517434681,
+          "min_ns": 8857754,
+          "max_ns": 15741125,
+          "p25_ns": 9176842.0,
+          "p75_ns": 9986053.0
+        },
+        "soplang3_llvm": {
+          "samples": 25,
+          "median_ns": 8161005,
+          "mean_ns": 8243551.8,
+          "stdev_ns": 441419.1028914585,
+          "min_ns": 7514948,
+          "max_ns": 9580757,
+          "p25_ns": 7963383.0,
+          "p75_ns": 8533504.0
+        }
+      }
+    },
+    {
+      "name": "object_create",
+      "description": "Create 5,000 two-field objects/dicts and sum both fields",
+      "expected": "37492500\n",
+      "commands": {
+        "python": [
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/target/benchmark-comparison/venv/bin/python",
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/benchmarks/comparison/programs/object_create.py"
+        ],
+        "soplang2": [
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/target/benchmark-comparison/venv/bin/python",
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/benchmarks/comparison/run_v2.py",
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/target/benchmark-comparison/run-xznmo7db/v2",
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/benchmarks/comparison/programs/object_create.sop"
+        ],
+        "soplang3_jit": [
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/target/release/soplang",
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/benchmarks/comparison/programs/object_create.sop"
+        ],
+        "soplang3_llvm": [
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/target/benchmark-comparison/run-xznmo7db/object_create"
+        ]
+      },
+      "llvm_build_command": [
+        "/home/sharafdin/Documents/Goobo-Labs/soplang/target/release/soplang",
+        "--build",
+        "--quiet",
+        "--opt-level",
+        "2",
+        "/home/sharafdin/Documents/Goobo-Labs/soplang/benchmarks/comparison/programs/object_create.sop",
+        "-o",
+        "/home/sharafdin/Documents/Goobo-Labs/soplang/target/benchmark-comparison/run-xznmo7db/object_create"
+      ],
+      "llvm_build_ns": 117099105,
+      "source_sha256": {
+        "soplang": "26ab758764ce17aa40a01224d5c8928a861f250752ee9e6ce382119bec72dc2b",
+        "python": "eda20afb919ec521be6df86905f24381fbb2f908362374bd47847ad535ecc686"
+      },
+      "engines": {
+        "python": {
+          "samples": 25,
+          "median_ns": 15321075,
+          "mean_ns": 16087706.92,
+          "stdev_ns": 3363713.7276027584,
+          "min_ns": 12080275,
+          "max_ns": 26704994,
+          "p25_ns": 14132831.0,
+          "p75_ns": 16614643.0
+        },
+        "soplang2": {
+          "samples": 25,
+          "median_ns": 98817261,
+          "mean_ns": 103910754.72,
+          "stdev_ns": 17154502.576192234,
+          "min_ns": 80696170,
+          "max_ns": 140480107,
+          "p25_ns": 91657302.0,
+          "p75_ns": 108528764.0
+        },
+        "soplang3_jit": {
+          "samples": 25,
+          "median_ns": 25333973,
+          "mean_ns": 27228249.68,
+          "stdev_ns": 6661724.503876566,
+          "min_ns": 21448643,
+          "max_ns": 47355713,
+          "p25_ns": 23104865.0,
+          "p75_ns": 27710657.0
+        },
+        "soplang3_llvm": {
+          "samples": 25,
+          "median_ns": 23677385,
+          "mean_ns": 24241030.2,
+          "stdev_ns": 3896033.425988711,
+          "min_ns": 19589994,
+          "max_ns": 32571454,
+          "p25_ns": 20975181.0,
+          "p75_ns": 26940348.0
+        }
+      }
+    },
+    {
+      "name": "string_concat",
+      "description": "5,000 single-character concatenations; print final length",
+      "expected": "5000\n",
+      "commands": {
+        "python": [
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/target/benchmark-comparison/venv/bin/python",
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/benchmarks/comparison/programs/string_concat.py"
+        ],
+        "soplang2": [
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/target/benchmark-comparison/venv/bin/python",
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/benchmarks/comparison/run_v2.py",
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/target/benchmark-comparison/run-xznmo7db/v2",
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/benchmarks/comparison/programs/string_concat.sop"
+        ],
+        "soplang3_jit": [
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/target/release/soplang",
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/benchmarks/comparison/programs/string_concat.sop"
+        ],
+        "soplang3_llvm": [
+          "/home/sharafdin/Documents/Goobo-Labs/soplang/target/benchmark-comparison/run-xznmo7db/string_concat"
+        ]
+      },
+      "llvm_build_command": [
+        "/home/sharafdin/Documents/Goobo-Labs/soplang/target/release/soplang",
+        "--build",
+        "--quiet",
+        "--opt-level",
+        "2",
+        "/home/sharafdin/Documents/Goobo-Labs/soplang/benchmarks/comparison/programs/string_concat.sop",
+        "-o",
+        "/home/sharafdin/Documents/Goobo-Labs/soplang/target/benchmark-comparison/run-xznmo7db/string_concat"
+      ],
+      "llvm_build_ns": 154183217,
+      "source_sha256": {
+        "soplang": "7c9d6b062d022e085b3a9db07717b0eed966435fd261236435a56680f232c007",
+        "python": "bdc5e7d65548081b8b2e8ffd6ad5571da1ea491bfddff16047cf6d6d9174fabd"
+      },
+      "engines": {
+        "python": {
+          "samples": 25,
+          "median_ns": 12074916,
+          "mean_ns": 12166571.52,
+          "stdev_ns": 643721.9885996412,
+          "min_ns": 11213275,
+          "max_ns": 13400881,
+          "p25_ns": 11628675.0,
+          "p75_ns": 12314335.0
+        },
+        "soplang2": {
+          "samples": 25,
+          "median_ns": 66099144,
+          "mean_ns": 66633612.68,
+          "stdev_ns": 2687829.0860341755,
+          "min_ns": 62993754,
+          "max_ns": 75191316,
+          "p25_ns": 64832610.0,
+          "p75_ns": 67897406.0
+        },
+        "soplang3_jit": {
+          "samples": 25,
+          "median_ns": 13142499,
+          "mean_ns": 13276765.08,
+          "stdev_ns": 667052.1052602088,
+          "min_ns": 12592723,
+          "max_ns": 15794632,
+          "p25_ns": 12888773.0,
+          "p75_ns": 13496316.0
+        },
+        "soplang3_llvm": {
+          "samples": 25,
+          "median_ns": 11717821,
+          "mean_ns": 11854378.72,
+          "stdev_ns": 475625.55584089464,
+          "min_ns": 11121443,
+          "max_ns": 13299051,
+          "p25_ns": 11482295.0,
+          "p75_ns": 12144748.0
+        }
+      }
+    }
+  ],
+  "v2": {
+    "ref": "v2.0.0",
+    "commit": "b9f6457715e90028237239065f22ad7daa674d0b",
+    "reported_version": "2.0.0-beta",
+    "archive_sha256": "e7f8b761ce4f2e2cde956682bc096420002128f150cb27820f38e7654b4fcd96",
+    "launcher_sha256": "c9d75f8f7b1ca7ad9d282dcf5fa77f1df0822efd57762f7523f3226ff6b841bb"
+  },
+  "finished_at": "2026-10-17T03:24:21.696990+00:00",
+  "samples": [
+    {
+      "workload": "startup",
+      "engine": "python",
+      "round": 0,
+      "elapsed_ns": 10617131,
+      "execution_order": 0
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang3_llvm",
+      "round": 0,
+      "elapsed_ns": 1964776,
+      "execution_order": 1
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang2",
+      "round": 0,
+      "elapsed_ns": 54502702,
+      "execution_order": 2
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang3_jit",
+      "round": 0,
+      "elapsed_ns": 2743836,
+      "execution_order": 3
+    },
+    {
+      "workload": "startup",
+      "engine": "python",
+      "round": 1,
+      "elapsed_ns": 11261513,
+      "execution_order": 4
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang2",
+      "round": 1,
+      "elapsed_ns": 53710656,
+      "execution_order": 5
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang3_jit",
+      "round": 1,
+      "elapsed_ns": 2704606,
+      "execution_order": 6
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang3_llvm",
+      "round": 1,
+      "elapsed_ns": 1724606,
+      "execution_order": 7
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang3_jit",
+      "round": 2,
+      "elapsed_ns": 2575529,
+      "execution_order": 8
+    },
+    {
+      "workload": "startup",
+      "engine": "python",
+      "round": 2,
+      "elapsed_ns": 11440306,
+      "execution_order": 9
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang3_llvm",
+      "round": 2,
+      "elapsed_ns": 2362163,
+      "execution_order": 10
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang2",
+      "round": 2,
+      "elapsed_ns": 51096477,
+      "execution_order": 11
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang2",
+      "round": 3,
+      "elapsed_ns": 52009293,
+      "execution_order": 12
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang3_llvm",
+      "round": 3,
+      "elapsed_ns": 1980563,
+      "execution_order": 13
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang3_jit",
+      "round": 3,
+      "elapsed_ns": 2619230,
+      "execution_order": 14
+    },
+    {
+      "workload": "startup",
+      "engine": "python",
+      "round": 3,
+      "elapsed_ns": 10985570,
+      "execution_order": 15
+    },
+    {
+      "workload": "startup",
+      "engine": "python",
+      "round": 4,
+      "elapsed_ns": 10956735,
+      "execution_order": 16
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang2",
+      "round": 4,
+      "elapsed_ns": 50959891,
+      "execution_order": 17
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang3_jit",
+      "round": 4,
+      "elapsed_ns": 2573098,
+      "execution_order": 18
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang3_llvm",
+      "round": 4,
+      "elapsed_ns": 2489771,
+      "execution_order": 19
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang3_llvm",
+      "round": 5,
+      "elapsed_ns": 1709121,
+      "execution_order": 20
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang2",
+      "round": 5,
+      "elapsed_ns": 51172278,
+      "execution_order": 21
+    },
+    {
+      "workload": "startup",
+      "engine": "python",
+      "round": 5,
+      "elapsed_ns": 10286946,
+      "execution_order": 22
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang3_jit",
+      "round": 5,
+      "elapsed_ns": 3657996,
+      "execution_order": 23
+    },
+    {
+      "workload": "startup",
+      "engine": "python",
+      "round": 6,
+      "elapsed_ns": 13509467,
+      "execution_order": 24
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang2",
+      "round": 6,
+      "elapsed_ns": 50447926,
+      "execution_order": 25
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang3_jit",
+      "round": 6,
+      "elapsed_ns": 3441107,
+      "execution_order": 26
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang3_llvm",
+      "round": 6,
+      "elapsed_ns": 1751775,
+      "execution_order": 27
+    },
+    {
+      "workload": "startup",
+      "engine": "python",
+      "round": 7,
+      "elapsed_ns": 11557178,
+      "execution_order": 28
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang3_jit",
+      "round": 7,
+      "elapsed_ns": 3368351,
+      "execution_order": 29
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang2",
+      "round": 7,
+      "elapsed_ns": 47647954,
+      "execution_order": 30
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang3_llvm",
+      "round": 7,
+      "elapsed_ns": 2667763,
+      "execution_order": 31
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang3_jit",
+      "round": 8,
+      "elapsed_ns": 2883613,
+      "execution_order": 32
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang3_llvm",
+      "round": 8,
+      "elapsed_ns": 1722521,
+      "execution_order": 33
+    },
+    {
+      "workload": "startup",
+      "engine": "python",
+      "round": 8,
+      "elapsed_ns": 13119029,
+      "execution_order": 34
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang2",
+      "round": 8,
+      "elapsed_ns": 48988498,
+      "execution_order": 35
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang2",
+      "round": 9,
+      "elapsed_ns": 50183230,
+      "execution_order": 36
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang3_jit",
+      "round": 9,
+      "elapsed_ns": 2683250,
+      "execution_order": 37
+    },
+    {
+      "workload": "startup",
+      "engine": "python",
+      "round": 9,
+      "elapsed_ns": 9514850,
+      "execution_order": 38
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang3_llvm",
+      "round": 9,
+      "elapsed_ns": 1852373,
+      "execution_order": 39
+    },
+    {
+      "workload": "startup",
+      "engine": "python",
+      "round": 10,
+      "elapsed_ns": 10111281,
+      "execution_order": 40
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang3_jit",
+      "round": 10,
+      "elapsed_ns": 3358775,
+      "execution_order": 41
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang3_llvm",
+      "round": 10,
+      "elapsed_ns": 1719628,
+      "execution_order": 42
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang2",
+      "round": 10,
+      "elapsed_ns": 48407436,
+      "execution_order": 43
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang3_jit",
+      "round": 11,
+      "elapsed_ns": 2760994,
+      "execution_order": 44
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang2",
+      "round": 11,
+      "elapsed_ns": 47256657,
+      "execution_order": 45
+    },
+    {
+      "workload": "startup",
+      "engine": "python",
+      "round": 11,
+      "elapsed_ns": 11752019,
+      "execution_order": 46
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang3_llvm",
+      "round": 11,
+      "elapsed_ns": 2017085,
+      "execution_order": 47
+    },
+    {
+      "workload": "startup",
+      "engine": "python",
+      "round": 12,
+      "elapsed_ns": 11481233,
+      "execution_order": 48
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang3_llvm",
+      "round": 12,
+      "elapsed_ns": 2003960,
+      "execution_order": 49
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang3_jit",
+      "round": 12,
+      "elapsed_ns": 2967941,
+      "execution_order": 50
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang2",
+      "round": 12,
+      "elapsed_ns": 52622178,
+      "execution_order": 51
+    },
+    {
+      "workload": "startup",
+      "engine": "python",
+      "round": 13,
+      "elapsed_ns": 11176022,
+      "execution_order": 52
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang2",
+      "round": 13,
+      "elapsed_ns": 52341963,
+      "execution_order": 53
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang3_llvm",
+      "round": 13,
+      "elapsed_ns": 1972432,
+      "execution_order": 54
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang3_jit",
+      "round": 13,
+      "elapsed_ns": 2500314,
+      "execution_order": 55
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang3_jit",
+      "round": 14,
+      "elapsed_ns": 3215683,
+      "execution_order": 56
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang2",
+      "round": 14,
+      "elapsed_ns": 52804122,
+      "execution_order": 57
+    },
+    {
+      "workload": "startup",
+      "engine": "python",
+      "round": 14,
+      "elapsed_ns": 10693435,
+      "execution_order": 58
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang3_llvm",
+      "round": 14,
+      "elapsed_ns": 2686810,
+      "execution_order": 59
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang3_jit",
+      "round": 15,
+      "elapsed_ns": 3348731,
+      "execution_order": 60
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang2",
+      "round": 15,
+      "elapsed_ns": 55624693,
+      "execution_order": 61
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang3_llvm",
+      "round": 15,
+      "elapsed_ns": 1982361,
+      "execution_order": 62
+    },
+    {
+      "workload": "startup",
+      "engine": "python",
+      "round": 15,
+      "elapsed_ns": 11010613,
+      "execution_order": 63
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang3_llvm",
+      "round": 16,
+      "elapsed_ns": 2085775,
+      "execution_order": 64
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang3_jit",
+      "round": 16,
+      "elapsed_ns": 3014393,
+      "execution_order": 65
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang2",
+      "round": 16,
+      "elapsed_ns": 53655743,
+      "execution_order": 66
+    },
+    {
+      "workload": "startup",
+      "engine": "python",
+      "round": 16,
+      "elapsed_ns": 12342316,
+      "execution_order": 67
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang2",
+      "round": 17,
+      "elapsed_ns": 52817137,
+      "execution_order": 68
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang3_jit",
+      "round": 17,
+      "elapsed_ns": 2818276,
+      "execution_order": 69
+    },
+    {
+      "workload": "startup",
+      "engine": "python",
+      "round": 17,
+      "elapsed_ns": 13443401,
+      "execution_order": 70
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang3_llvm",
+      "round": 17,
+      "elapsed_ns": 2678942,
+      "execution_order": 71
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang3_jit",
+      "round": 18,
+      "elapsed_ns": 2845589,
+      "execution_order": 72
+    },
+    {
+      "workload": "startup",
+      "engine": "python",
+      "round": 18,
+      "elapsed_ns": 10710036,
+      "execution_order": 73
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang2",
+      "round": 18,
+      "elapsed_ns": 53622674,
+      "execution_order": 74
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang3_llvm",
+      "round": 18,
+      "elapsed_ns": 2099789,
+      "execution_order": 75
+    },
+    {
+      "workload": "startup",
+      "engine": "python",
+      "round": 19,
+      "elapsed_ns": 11060292,
+      "execution_order": 76
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang2",
+      "round": 19,
+      "elapsed_ns": 55715053,
+      "execution_order": 77
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang3_jit",
+      "round": 19,
+      "elapsed_ns": 2985198,
+      "execution_order": 78
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang3_llvm",
+      "round": 19,
+      "elapsed_ns": 1905797,
+      "execution_order": 79
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang2",
+      "round": 20,
+      "elapsed_ns": 50888762,
+      "execution_order": 80
+    },
+    {
+      "workload": "startup",
+      "engine": "python",
+      "round": 20,
+      "elapsed_ns": 12911839,
+      "execution_order": 81
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang3_jit",
+      "round": 20,
+      "elapsed_ns": 2948244,
+      "execution_order": 82
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang3_llvm",
+      "round": 20,
+      "elapsed_ns": 1867793,
+      "execution_order": 83
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang3_llvm",
+      "round": 21,
+      "elapsed_ns": 1726403,
+      "execution_order": 84
+    },
+    {
+      "workload": "startup",
+      "engine": "python",
+      "round": 21,
+      "elapsed_ns": 11194476,
+      "execution_order": 85
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang2",
+      "round": 21,
+      "elapsed_ns": 51753060,
+      "execution_order": 86
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang3_jit",
+      "round": 21,
+      "elapsed_ns": 2786787,
+      "execution_order": 87
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang3_llvm",
+      "round": 22,
+      "elapsed_ns": 1787117,
+      "execution_order": 88
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang3_jit",
+      "round": 22,
+      "elapsed_ns": 2395700,
+      "execution_order": 89
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang2",
+      "round": 22,
+      "elapsed_ns": 56665550,
+      "execution_order": 90
+    },
+    {
+      "workload": "startup",
+      "engine": "python",
+      "round": 22,
+      "elapsed_ns": 11477220,
+      "execution_order": 91
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang3_llvm",
+      "round": 23,
+      "elapsed_ns": 1947624,
+      "execution_order": 92
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang2",
+      "round": 23,
+      "elapsed_ns": 59390690,
+      "execution_order": 93
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang3_jit",
+      "round": 23,
+      "elapsed_ns": 2727220,
+      "execution_order": 94
+    },
+    {
+      "workload": "startup",
+      "engine": "python",
+      "round": 23,
+      "elapsed_ns": 11253065,
+      "execution_order": 95
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang2",
+      "round": 24,
+      "elapsed_ns": 53034720,
+      "execution_order": 96
+    },
+    {
+      "workload": "startup",
+      "engine": "python",
+      "round": 24,
+      "elapsed_ns": 10886104,
+      "execution_order": 97
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang3_llvm",
+      "round": 24,
+      "elapsed_ns": 2276034,
+      "execution_order": 98
+    },
+    {
+      "workload": "startup",
+      "engine": "soplang3_jit",
+      "round": 24,
+      "elapsed_ns": 4921897,
+      "execution_order": 99
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang2",
+      "round": 0,
+      "elapsed_ns": 222413773,
+      "execution_order": 100
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang3_jit",
+      "round": 0,
+      "elapsed_ns": 43687998,
+      "execution_order": 101
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "python",
+      "round": 0,
+      "elapsed_ns": 15711736,
+      "execution_order": 102
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang3_llvm",
+      "round": 0,
+      "elapsed_ns": 45760246,
+      "execution_order": 103
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang3_jit",
+      "round": 1,
+      "elapsed_ns": 44426680,
+      "execution_order": 104
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang3_llvm",
+      "round": 1,
+      "elapsed_ns": 42602831,
+      "execution_order": 105
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang2",
+      "round": 1,
+      "elapsed_ns": 225358217,
+      "execution_order": 106
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "python",
+      "round": 1,
+      "elapsed_ns": 13044683,
+      "execution_order": 107
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "python",
+      "round": 2,
+      "elapsed_ns": 13413488,
+      "execution_order": 108
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang3_jit",
+      "round": 2,
+      "elapsed_ns": 45328134,
+      "execution_order": 109
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang3_llvm",
+      "round": 2,
+      "elapsed_ns": 43388012,
+      "execution_order": 110
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang2",
+      "round": 2,
+      "elapsed_ns": 273684824,
+      "execution_order": 111
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang3_llvm",
+      "round": 3,
+      "elapsed_ns": 43698697,
+      "execution_order": 112
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "python",
+      "round": 3,
+      "elapsed_ns": 14430151,
+      "execution_order": 113
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang3_jit",
+      "round": 3,
+      "elapsed_ns": 43400301,
+      "execution_order": 114
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang2",
+      "round": 3,
+      "elapsed_ns": 224127093,
+      "execution_order": 115
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "python",
+      "round": 4,
+      "elapsed_ns": 13831940,
+      "execution_order": 116
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang3_llvm",
+      "round": 4,
+      "elapsed_ns": 42861927,
+      "execution_order": 117
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang3_jit",
+      "round": 4,
+      "elapsed_ns": 42191839,
+      "execution_order": 118
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang2",
+      "round": 4,
+      "elapsed_ns": 220251454,
+      "execution_order": 119
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang3_llvm",
+      "round": 5,
+      "elapsed_ns": 42647445,
+      "execution_order": 120
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang3_jit",
+      "round": 5,
+      "elapsed_ns": 42352708,
+      "execution_order": 121
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang2",
+      "round": 5,
+      "elapsed_ns": 241178287,
+      "execution_order": 122
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "python",
+      "round": 5,
+      "elapsed_ns": 13964325,
+      "execution_order": 123
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "python",
+      "round": 6,
+      "elapsed_ns": 14219497,
+      "execution_order": 124
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang2",
+      "round": 6,
+      "elapsed_ns": 228934546,
+      "execution_order": 125
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang3_llvm",
+      "round": 6,
+      "elapsed_ns": 41422666,
+      "execution_order": 126
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang3_jit",
+      "round": 6,
+      "elapsed_ns": 43752154,
+      "execution_order": 127
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang3_jit",
+      "round": 7,
+      "elapsed_ns": 42676344,
+      "execution_order": 128
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang3_llvm",
+      "round": 7,
+      "elapsed_ns": 41216785,
+      "execution_order": 129
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang2",
+      "round": 7,
+      "elapsed_ns": 217455408,
+      "execution_order": 130
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "python",
+      "round": 7,
+      "elapsed_ns": 13139362,
+      "execution_order": 131
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang2",
+      "round": 8,
+      "elapsed_ns": 213039814,
+      "execution_order": 132
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang3_jit",
+      "round": 8,
+      "elapsed_ns": 43476946,
+      "execution_order": 133
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "python",
+      "round": 8,
+      "elapsed_ns": 12961723,
+      "execution_order": 134
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang3_llvm",
+      "round": 8,
+      "elapsed_ns": 42126234,
+      "execution_order": 135
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang3_llvm",
+      "round": 9,
+      "elapsed_ns": 42046392,
+      "execution_order": 136
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang2",
+      "round": 9,
+      "elapsed_ns": 222053473,
+      "execution_order": 137
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang3_jit",
+      "round": 9,
+      "elapsed_ns": 41932624,
+      "execution_order": 138
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "python",
+      "round": 9,
+      "elapsed_ns": 13392380,
+      "execution_order": 139
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang3_llvm",
+      "round": 10,
+      "elapsed_ns": 41254834,
+      "execution_order": 140
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "python",
+      "round": 10,
+      "elapsed_ns": 14379243,
+      "execution_order": 141
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang3_jit",
+      "round": 10,
+      "elapsed_ns": 42298447,
+      "execution_order": 142
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang2",
+      "round": 10,
+      "elapsed_ns": 220653498,
+      "execution_order": 143
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang3_llvm",
+      "round": 11,
+      "elapsed_ns": 41239703,
+      "execution_order": 144
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "python",
+      "round": 11,
+      "elapsed_ns": 13998648,
+      "execution_order": 145
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang3_jit",
+      "round": 11,
+      "elapsed_ns": 42428995,
+      "execution_order": 146
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang2",
+      "round": 11,
+      "elapsed_ns": 216212857,
+      "execution_order": 147
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang2",
+      "round": 12,
+      "elapsed_ns": 217896077,
+      "execution_order": 148
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang3_jit",
+      "round": 12,
+      "elapsed_ns": 41142085,
+      "execution_order": 149
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "python",
+      "round": 12,
+      "elapsed_ns": 13709921,
+      "execution_order": 150
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang3_llvm",
+      "round": 12,
+      "elapsed_ns": 41790686,
+      "execution_order": 151
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "python",
+      "round": 13,
+      "elapsed_ns": 13609737,
+      "execution_order": 152
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang3_jit",
+      "round": 13,
+      "elapsed_ns": 43231590,
+      "execution_order": 153
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang2",
+      "round": 13,
+      "elapsed_ns": 219259625,
+      "execution_order": 154
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang3_llvm",
+      "round": 13,
+      "elapsed_ns": 41769102,
+      "execution_order": 155
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang2",
+      "round": 14,
+      "elapsed_ns": 253708179,
+      "execution_order": 156
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang3_llvm",
+      "round": 14,
+      "elapsed_ns": 44295617,
+      "execution_order": 157
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang3_jit",
+      "round": 14,
+      "elapsed_ns": 46183899,
+      "execution_order": 158
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "python",
+      "round": 14,
+      "elapsed_ns": 14761345,
+      "execution_order": 159
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "python",
+      "round": 15,
+      "elapsed_ns": 12765033,
+      "execution_order": 160
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang3_llvm",
+      "round": 15,
+      "elapsed_ns": 41052132,
+      "execution_order": 161
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang3_jit",
+      "round": 15,
+      "elapsed_ns": 43606685,
+      "execution_order": 162
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang2",
+      "round": 15,
+      "elapsed_ns": 214507963,
+      "execution_order": 163
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang3_llvm",
+      "round": 16,
+      "elapsed_ns": 41694389,
+      "execution_order": 164
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "python",
+      "round": 16,
+      "elapsed_ns": 14737122,
+      "execution_order": 165
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang3_jit",
+      "round": 16,
+      "elapsed_ns": 41958966,
+      "execution_order": 166
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang2",
+      "round": 16,
+      "elapsed_ns": 214827571,
+      "execution_order": 167
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang2",
+      "round": 17,
+      "elapsed_ns": 222888187,
+      "execution_order": 168
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "python",
+      "round": 17,
+      "elapsed_ns": 14229961,
+      "execution_order": 169
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang3_jit",
+      "round": 17,
+      "elapsed_ns": 42947950,
+      "execution_order": 170
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang3_llvm",
+      "round": 17,
+      "elapsed_ns": 42796734,
+      "execution_order": 171
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang3_llvm",
+      "round": 18,
+      "elapsed_ns": 42506964,
+      "execution_order": 172
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang3_jit",
+      "round": 18,
+      "elapsed_ns": 42767940,
+      "execution_order": 173
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang2",
+      "round": 18,
+      "elapsed_ns": 233660732,
+      "execution_order": 174
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "python",
+      "round": 18,
+      "elapsed_ns": 13960343,
+      "execution_order": 175
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "python",
+      "round": 19,
+      "elapsed_ns": 14632152,
+      "execution_order": 176
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang3_jit",
+      "round": 19,
+      "elapsed_ns": 42526471,
+      "execution_order": 177
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang2",
+      "round": 19,
+      "elapsed_ns": 219793388,
+      "execution_order": 178
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang3_llvm",
+      "round": 19,
+      "elapsed_ns": 41570273,
+      "execution_order": 179
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang2",
+      "round": 20,
+      "elapsed_ns": 237904907,
+      "execution_order": 180
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "python",
+      "round": 20,
+      "elapsed_ns": 13806103,
+      "execution_order": 181
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang3_jit",
+      "round": 20,
+      "elapsed_ns": 42997347,
+      "execution_order": 182
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang3_llvm",
+      "round": 20,
+      "elapsed_ns": 41976834,
+      "execution_order": 183
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "python",
+      "round": 21,
+      "elapsed_ns": 13483631,
+      "execution_order": 184
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang2",
+      "round": 21,
+      "elapsed_ns": 222522667,
+      "execution_order": 185
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang3_jit",
+      "round": 21,
+      "elapsed_ns": 42932734,
+      "execution_order": 186
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang3_llvm",
+      "round": 21,
+      "elapsed_ns": 40984313,
+      "execution_order": 187
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "python",
+      "round": 22,
+      "elapsed_ns": 14174249,
+      "execution_order": 188
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang2",
+      "round": 22,
+      "elapsed_ns": 219619410,
+      "execution_order": 189
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang3_jit",
+      "round": 22,
+      "elapsed_ns": 42773509,
+      "execution_order": 190
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang3_llvm",
+      "round": 22,
+      "elapsed_ns": 41523607,
+      "execution_order": 191
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang2",
+      "round": 23,
+      "elapsed_ns": 257949808,
+      "execution_order": 192
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang3_jit",
+      "round": 23,
+      "elapsed_ns": 42067940,
+      "execution_order": 193
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "python",
+      "round": 23,
+      "elapsed_ns": 14437919,
+      "execution_order": 194
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang3_llvm",
+      "round": 23,
+      "elapsed_ns": 40908292,
+      "execution_order": 195
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang3_jit",
+      "round": 24,
+      "elapsed_ns": 42042452,
+      "execution_order": 196
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang3_llvm",
+      "round": 24,
+      "elapsed_ns": 41250049,
+      "execution_order": 197
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "soplang2",
+      "round": 24,
+      "elapsed_ns": 220544864,
+      "execution_order": 198
+    },
+    {
+      "workload": "integer_sum",
+      "engine": "python",
+      "round": 24,
+      "elapsed_ns": 13161657,
+      "execution_order": 199
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "python",
+      "round": 0,
+      "elapsed_ns": 13713136,
+      "execution_order": 200
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang2",
+      "round": 0,
+      "elapsed_ns": 279382798,
+      "execution_order": 201
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang3_jit",
+      "round": 0,
+      "elapsed_ns": 83642657,
+      "execution_order": 202
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang3_llvm",
+      "round": 0,
+      "elapsed_ns": 82951747,
+      "execution_order": 203
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "python",
+      "round": 1,
+      "elapsed_ns": 14505639,
+      "execution_order": 204
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang2",
+      "round": 1,
+      "elapsed_ns": 286455365,
+      "execution_order": 205
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang3_jit",
+      "round": 1,
+      "elapsed_ns": 85017914,
+      "execution_order": 206
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang3_llvm",
+      "round": 1,
+      "elapsed_ns": 83211438,
+      "execution_order": 207
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang3_jit",
+      "round": 2,
+      "elapsed_ns": 83952248,
+      "execution_order": 208
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang2",
+      "round": 2,
+      "elapsed_ns": 276386696,
+      "execution_order": 209
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang3_llvm",
+      "round": 2,
+      "elapsed_ns": 83317064,
+      "execution_order": 210
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "python",
+      "round": 2,
+      "elapsed_ns": 13362939,
+      "execution_order": 211
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang3_llvm",
+      "round": 3,
+      "elapsed_ns": 84209629,
+      "execution_order": 212
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang3_jit",
+      "round": 3,
+      "elapsed_ns": 83630598,
+      "execution_order": 213
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang2",
+      "round": 3,
+      "elapsed_ns": 294849085,
+      "execution_order": 214
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "python",
+      "round": 3,
+      "elapsed_ns": 13021772,
+      "execution_order": 215
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang2",
+      "round": 4,
+      "elapsed_ns": 278295428,
+      "execution_order": 216
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang3_llvm",
+      "round": 4,
+      "elapsed_ns": 82717252,
+      "execution_order": 217
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "python",
+      "round": 4,
+      "elapsed_ns": 14894201,
+      "execution_order": 218
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang3_jit",
+      "round": 4,
+      "elapsed_ns": 83264019,
+      "execution_order": 219
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang3_llvm",
+      "round": 5,
+      "elapsed_ns": 83828489,
+      "execution_order": 220
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "python",
+      "round": 5,
+      "elapsed_ns": 13587710,
+      "execution_order": 221
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang3_jit",
+      "round": 5,
+      "elapsed_ns": 83798731,
+      "execution_order": 222
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang2",
+      "round": 5,
+      "elapsed_ns": 279251016,
+      "execution_order": 223
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang2",
+      "round": 6,
+      "elapsed_ns": 278395894,
+      "execution_order": 224
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang3_llvm",
+      "round": 6,
+      "elapsed_ns": 106799545,
+      "execution_order": 225
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang3_jit",
+      "round": 6,
+      "elapsed_ns": 89832334,
+      "execution_order": 226
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "python",
+      "round": 6,
+      "elapsed_ns": 13737219,
+      "execution_order": 227
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang3_llvm",
+      "round": 7,
+      "elapsed_ns": 82590239,
+      "execution_order": 228
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang3_jit",
+      "round": 7,
+      "elapsed_ns": 84676500,
+      "execution_order": 229
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang2",
+      "round": 7,
+      "elapsed_ns": 279049201,
+      "execution_order": 230
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "python",
+      "round": 7,
+      "elapsed_ns": 13555793,
+      "execution_order": 231
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang3_llvm",
+      "round": 8,
+      "elapsed_ns": 84541131,
+      "execution_order": 232
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "python",
+      "round": 8,
+      "elapsed_ns": 13870523,
+      "execution_order": 233
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang2",
+      "round": 8,
+      "elapsed_ns": 289607332,
+      "execution_order": 234
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang3_jit",
+      "round": 8,
+      "elapsed_ns": 87478581,
+      "execution_order": 235
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang2",
+      "round": 9,
+      "elapsed_ns": 280215161,
+      "execution_order": 236
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang3_llvm",
+      "round": 9,
+      "elapsed_ns": 83237730,
+      "execution_order": 237
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "python",
+      "round": 9,
+      "elapsed_ns": 13720008,
+      "execution_order": 238
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang3_jit",
+      "round": 9,
+      "elapsed_ns": 87511085,
+      "execution_order": 239
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang3_llvm",
+      "round": 10,
+      "elapsed_ns": 82266808,
+      "execution_order": 240
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang2",
+      "round": 10,
+      "elapsed_ns": 271986764,
+      "execution_order": 241
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "python",
+      "round": 10,
+      "elapsed_ns": 14090445,
+      "execution_order": 242
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang3_jit",
+      "round": 10,
+      "elapsed_ns": 82909554,
+      "execution_order": 243
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang2",
+      "round": 11,
+      "elapsed_ns": 279085423,
+      "execution_order": 244
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "python",
+      "round": 11,
+      "elapsed_ns": 14636181,
+      "execution_order": 245
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang3_llvm",
+      "round": 11,
+      "elapsed_ns": 82549248,
+      "execution_order": 246
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang3_jit",
+      "round": 11,
+      "elapsed_ns": 82734898,
+      "execution_order": 247
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "python",
+      "round": 12,
+      "elapsed_ns": 13228759,
+      "execution_order": 248
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang2",
+      "round": 12,
+      "elapsed_ns": 279489446,
+      "execution_order": 249
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang3_jit",
+      "round": 12,
+      "elapsed_ns": 84496088,
+      "execution_order": 250
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang3_llvm",
+      "round": 12,
+      "elapsed_ns": 82114332,
+      "execution_order": 251
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "python",
+      "round": 13,
+      "elapsed_ns": 13144173,
+      "execution_order": 252
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang2",
+      "round": 13,
+      "elapsed_ns": 288025378,
+      "execution_order": 253
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang3_llvm",
+      "round": 13,
+      "elapsed_ns": 83268228,
+      "execution_order": 254
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang3_jit",
+      "round": 13,
+      "elapsed_ns": 83851900,
+      "execution_order": 255
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang3_llvm",
+      "round": 14,
+      "elapsed_ns": 81317652,
+      "execution_order": 256
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang3_jit",
+      "round": 14,
+      "elapsed_ns": 83724390,
+      "execution_order": 257
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "python",
+      "round": 14,
+      "elapsed_ns": 13105267,
+      "execution_order": 258
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang2",
+      "round": 14,
+      "elapsed_ns": 279316197,
+      "execution_order": 259
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang3_llvm",
+      "round": 15,
+      "elapsed_ns": 82574173,
+      "execution_order": 260
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "python",
+      "round": 15,
+      "elapsed_ns": 14093261,
+      "execution_order": 261
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang2",
+      "round": 15,
+      "elapsed_ns": 282065898,
+      "execution_order": 262
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang3_jit",
+      "round": 15,
+      "elapsed_ns": 83891056,
+      "execution_order": 263
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang3_llvm",
+      "round": 16,
+      "elapsed_ns": 82959950,
+      "execution_order": 264
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang3_jit",
+      "round": 16,
+      "elapsed_ns": 83460814,
+      "execution_order": 265
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang2",
+      "round": 16,
+      "elapsed_ns": 280631261,
+      "execution_order": 266
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "python",
+      "round": 16,
+      "elapsed_ns": 13672114,
+      "execution_order": 267
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang2",
+      "round": 17,
+      "elapsed_ns": 294656709,
+      "execution_order": 268
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "python",
+      "round": 17,
+      "elapsed_ns": 13446463,
+      "execution_order": 269
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang3_jit",
+      "round": 17,
+      "elapsed_ns": 83608729,
+      "execution_order": 270
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang3_llvm",
+      "round": 17,
+      "elapsed_ns": 81873031,
+      "execution_order": 271
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "python",
+      "round": 18,
+      "elapsed_ns": 13791055,
+      "execution_order": 272
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang3_jit",
+      "round": 18,
+      "elapsed_ns": 83326246,
+      "execution_order": 273
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang2",
+      "round": 18,
+      "elapsed_ns": 274063011,
+      "execution_order": 274
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang3_llvm",
+      "round": 18,
+      "elapsed_ns": 85665581,
+      "execution_order": 275
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang3_jit",
+      "round": 19,
+      "elapsed_ns": 88363049,
+      "execution_order": 276
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang3_llvm",
+      "round": 19,
+      "elapsed_ns": 88413073,
+      "execution_order": 277
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang2",
+      "round": 19,
+      "elapsed_ns": 301552091,
+      "execution_order": 278
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "python",
+      "round": 19,
+      "elapsed_ns": 15393891,
+      "execution_order": 279
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "python",
+      "round": 20,
+      "elapsed_ns": 15056317,
+      "execution_order": 280
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang3_llvm",
+      "round": 20,
+      "elapsed_ns": 97657456,
+      "execution_order": 281
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang3_jit",
+      "round": 20,
+      "elapsed_ns": 132408246,
+      "execution_order": 282
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang2",
+      "round": 20,
+      "elapsed_ns": 355692367,
+      "execution_order": 283
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang3_jit",
+      "round": 21,
+      "elapsed_ns": 108465856,
+      "execution_order": 284
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "python",
+      "round": 21,
+      "elapsed_ns": 16020237,
+      "execution_order": 285
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang2",
+      "round": 21,
+      "elapsed_ns": 330689723,
+      "execution_order": 286
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang3_llvm",
+      "round": 21,
+      "elapsed_ns": 98378765,
+      "execution_order": 287
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang3_llvm",
+      "round": 22,
+      "elapsed_ns": 95594897,
+      "execution_order": 288
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang2",
+      "round": 22,
+      "elapsed_ns": 313326700,
+      "execution_order": 289
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "python",
+      "round": 22,
+      "elapsed_ns": 14891517,
+      "execution_order": 290
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang3_jit",
+      "round": 22,
+      "elapsed_ns": 96708909,
+      "execution_order": 291
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang3_llvm",
+      "round": 23,
+      "elapsed_ns": 93990439,
+      "execution_order": 292
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang2",
+      "round": 23,
+      "elapsed_ns": 328860912,
+      "execution_order": 293
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang3_jit",
+      "round": 23,
+      "elapsed_ns": 99260155,
+      "execution_order": 294
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "python",
+      "round": 23,
+      "elapsed_ns": 15025004,
+      "execution_order": 295
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang3_llvm",
+      "round": 24,
+      "elapsed_ns": 98619679,
+      "execution_order": 296
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang2",
+      "round": 24,
+      "elapsed_ns": 322536360,
+      "execution_order": 297
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "python",
+      "round": 24,
+      "elapsed_ns": 15183044,
+      "execution_order": 298
+    },
+    {
+      "workload": "integer_sum_typed",
+      "engine": "soplang3_jit",
+      "round": 24,
+      "elapsed_ns": 103112287,
+      "execution_order": 299
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang3_jit",
+      "round": 0,
+      "elapsed_ns": 104888176,
+      "execution_order": 300
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "python",
+      "round": 0,
+      "elapsed_ns": 15916274,
+      "execution_order": 301
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang3_llvm",
+      "round": 0,
+      "elapsed_ns": 101776819,
+      "execution_order": 302
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang2",
+      "round": 0,
+      "elapsed_ns": 321467185,
+      "execution_order": 303
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang3_jit",
+      "round": 1,
+      "elapsed_ns": 103519543,
+      "execution_order": 304
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang2",
+      "round": 1,
+      "elapsed_ns": 324097718,
+      "execution_order": 305
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "python",
+      "round": 1,
+      "elapsed_ns": 16576167,
+      "execution_order": 306
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang3_llvm",
+      "round": 1,
+      "elapsed_ns": 100361671,
+      "execution_order": 307
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang3_jit",
+      "round": 2,
+      "elapsed_ns": 99496135,
+      "execution_order": 308
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang2",
+      "round": 2,
+      "elapsed_ns": 328968447,
+      "execution_order": 309
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "python",
+      "round": 2,
+      "elapsed_ns": 14859977,
+      "execution_order": 310
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang3_llvm",
+      "round": 2,
+      "elapsed_ns": 104075005,
+      "execution_order": 311
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "python",
+      "round": 3,
+      "elapsed_ns": 16839619,
+      "execution_order": 312
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang3_jit",
+      "round": 3,
+      "elapsed_ns": 98851755,
+      "execution_order": 313
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang2",
+      "round": 3,
+      "elapsed_ns": 317685148,
+      "execution_order": 314
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang3_llvm",
+      "round": 3,
+      "elapsed_ns": 99808191,
+      "execution_order": 315
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang3_jit",
+      "round": 4,
+      "elapsed_ns": 99494872,
+      "execution_order": 316
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang2",
+      "round": 4,
+      "elapsed_ns": 318309401,
+      "execution_order": 317
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "python",
+      "round": 4,
+      "elapsed_ns": 14657262,
+      "execution_order": 318
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang3_llvm",
+      "round": 4,
+      "elapsed_ns": 100666648,
+      "execution_order": 319
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang2",
+      "round": 5,
+      "elapsed_ns": 323229072,
+      "execution_order": 320
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang3_jit",
+      "round": 5,
+      "elapsed_ns": 117357928,
+      "execution_order": 321
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang3_llvm",
+      "round": 5,
+      "elapsed_ns": 111326434,
+      "execution_order": 322
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "python",
+      "round": 5,
+      "elapsed_ns": 15102328,
+      "execution_order": 323
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang2",
+      "round": 6,
+      "elapsed_ns": 321811788,
+      "execution_order": 324
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang3_jit",
+      "round": 6,
+      "elapsed_ns": 100254437,
+      "execution_order": 325
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang3_llvm",
+      "round": 6,
+      "elapsed_ns": 98394684,
+      "execution_order": 326
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "python",
+      "round": 6,
+      "elapsed_ns": 13975524,
+      "execution_order": 327
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang2",
+      "round": 7,
+      "elapsed_ns": 364299707,
+      "execution_order": 328
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang3_llvm",
+      "round": 7,
+      "elapsed_ns": 115913021,
+      "execution_order": 329
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "python",
+      "round": 7,
+      "elapsed_ns": 16454933,
+      "execution_order": 330
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang3_jit",
+      "round": 7,
+      "elapsed_ns": 106352145,
+      "execution_order": 331
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang3_llvm",
+      "round": 8,
+      "elapsed_ns": 102938494,
+      "execution_order": 332
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang3_jit",
+      "round": 8,
+      "elapsed_ns": 99004740,
+      "execution_order": 333
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "python",
+      "round": 8,
+      "elapsed_ns": 15543720,
+      "execution_order": 334
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang2",
+      "round": 8,
+      "elapsed_ns": 315521627,
+      "execution_order": 335
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang3_llvm",
+      "round": 9,
+      "elapsed_ns": 100880015,
+      "execution_order": 336
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang2",
+      "round": 9,
+      "elapsed_ns": 318607935,
+      "execution_order": 337
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "python",
+      "round": 9,
+      "elapsed_ns": 14478397,
+      "execution_order": 338
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang3_jit",
+      "round": 9,
+      "elapsed_ns": 99295020,
+      "execution_order": 339
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang3_llvm",
+      "round": 10,
+      "elapsed_ns": 99205562,
+      "execution_order": 340
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang2",
+      "round": 10,
+      "elapsed_ns": 312020766,
+      "execution_order": 341
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "python",
+      "round": 10,
+      "elapsed_ns": 15034309,
+      "execution_order": 342
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang3_jit",
+      "round": 10,
+      "elapsed_ns": 96610453,
+      "execution_order": 343
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang2",
+      "round": 11,
+      "elapsed_ns": 317767277,
+      "execution_order": 344
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang3_llvm",
+      "round": 11,
+      "elapsed_ns": 103958772,
+      "execution_order": 345
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang3_jit",
+      "round": 11,
+      "elapsed_ns": 101288186,
+      "execution_order": 346
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "python",
+      "round": 11,
+      "elapsed_ns": 14986106,
+      "execution_order": 347
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "python",
+      "round": 12,
+      "elapsed_ns": 15095198,
+      "execution_order": 348
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang2",
+      "round": 12,
+      "elapsed_ns": 318735298,
+      "execution_order": 349
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang3_jit",
+      "round": 12,
+      "elapsed_ns": 97568971,
+      "execution_order": 350
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang3_llvm",
+      "round": 12,
+      "elapsed_ns": 99394467,
+      "execution_order": 351
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang2",
+      "round": 13,
+      "elapsed_ns": 315267435,
+      "execution_order": 352
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang3_llvm",
+      "round": 13,
+      "elapsed_ns": 99950155,
+      "execution_order": 353
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "python",
+      "round": 13,
+      "elapsed_ns": 14750799,
+      "execution_order": 354
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang3_jit",
+      "round": 13,
+      "elapsed_ns": 97275792,
+      "execution_order": 355
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang2",
+      "round": 14,
+      "elapsed_ns": 314782971,
+      "execution_order": 356
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "python",
+      "round": 14,
+      "elapsed_ns": 15389705,
+      "execution_order": 357
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang3_jit",
+      "round": 14,
+      "elapsed_ns": 96584026,
+      "execution_order": 358
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang3_llvm",
+      "round": 14,
+      "elapsed_ns": 95977477,
+      "execution_order": 359
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "python",
+      "round": 15,
+      "elapsed_ns": 15344661,
+      "execution_order": 360
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang2",
+      "round": 15,
+      "elapsed_ns": 311571405,
+      "execution_order": 361
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang3_jit",
+      "round": 15,
+      "elapsed_ns": 96847429,
+      "execution_order": 362
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang3_llvm",
+      "round": 15,
+      "elapsed_ns": 94417966,
+      "execution_order": 363
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang2",
+      "round": 16,
+      "elapsed_ns": 298339969,
+      "execution_order": 364
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "python",
+      "round": 16,
+      "elapsed_ns": 15594551,
+      "execution_order": 365
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang3_llvm",
+      "round": 16,
+      "elapsed_ns": 108118568,
+      "execution_order": 366
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang3_jit",
+      "round": 16,
+      "elapsed_ns": 103377504,
+      "execution_order": 367
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang3_llvm",
+      "round": 17,
+      "elapsed_ns": 102370662,
+      "execution_order": 368
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang2",
+      "round": 17,
+      "elapsed_ns": 341665217,
+      "execution_order": 369
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "python",
+      "round": 17,
+      "elapsed_ns": 16998571,
+      "execution_order": 370
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang3_jit",
+      "round": 17,
+      "elapsed_ns": 111582163,
+      "execution_order": 371
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang3_jit",
+      "round": 18,
+      "elapsed_ns": 119518476,
+      "execution_order": 372
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "python",
+      "round": 18,
+      "elapsed_ns": 18956433,
+      "execution_order": 373
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang2",
+      "round": 18,
+      "elapsed_ns": 489482652,
+      "execution_order": 374
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang3_llvm",
+      "round": 18,
+      "elapsed_ns": 141190617,
+      "execution_order": 375
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang3_jit",
+      "round": 19,
+      "elapsed_ns": 139644146,
+      "execution_order": 376
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang2",
+      "round": 19,
+      "elapsed_ns": 436350486,
+      "execution_order": 377
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "python",
+      "round": 19,
+      "elapsed_ns": 19217041,
+      "execution_order": 378
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang3_llvm",
+      "round": 19,
+      "elapsed_ns": 118608526,
+      "execution_order": 379
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang3_llvm",
+      "round": 20,
+      "elapsed_ns": 110549237,
+      "execution_order": 380
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang2",
+      "round": 20,
+      "elapsed_ns": 330446465,
+      "execution_order": 381
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang3_jit",
+      "round": 20,
+      "elapsed_ns": 98841535,
+      "execution_order": 382
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "python",
+      "round": 20,
+      "elapsed_ns": 13903116,
+      "execution_order": 383
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang2",
+      "round": 21,
+      "elapsed_ns": 318257716,
+      "execution_order": 384
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang3_llvm",
+      "round": 21,
+      "elapsed_ns": 105732674,
+      "execution_order": 385
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang3_jit",
+      "round": 21,
+      "elapsed_ns": 101009379,
+      "execution_order": 386
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "python",
+      "round": 21,
+      "elapsed_ns": 14486558,
+      "execution_order": 387
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang3_jit",
+      "round": 22,
+      "elapsed_ns": 99579204,
+      "execution_order": 388
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang2",
+      "round": 22,
+      "elapsed_ns": 327117293,
+      "execution_order": 389
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang3_llvm",
+      "round": 22,
+      "elapsed_ns": 103419126,
+      "execution_order": 390
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "python",
+      "round": 22,
+      "elapsed_ns": 18428015,
+      "execution_order": 391
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang3_llvm",
+      "round": 23,
+      "elapsed_ns": 104344384,
+      "execution_order": 392
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang2",
+      "round": 23,
+      "elapsed_ns": 365131613,
+      "execution_order": 393
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang3_jit",
+      "round": 23,
+      "elapsed_ns": 105993605,
+      "execution_order": 394
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "python",
+      "round": 23,
+      "elapsed_ns": 15783703,
+      "execution_order": 395
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang3_jit",
+      "round": 24,
+      "elapsed_ns": 103377443,
+      "execution_order": 396
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang2",
+      "round": 24,
+      "elapsed_ns": 327992567,
+      "execution_order": 397
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "python",
+      "round": 24,
+      "elapsed_ns": 17549656,
+      "execution_order": 398
+    },
+    {
+      "workload": "float_sum_typed",
+      "engine": "soplang3_llvm",
+      "round": 24,
+      "elapsed_ns": 109840534,
+      "execution_order": 399
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "python",
+      "round": 0,
+      "elapsed_ns": 14058281,
+      "execution_order": 400
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang3_jit",
+      "round": 0,
+      "elapsed_ns": 23366846,
+      "execution_order": 401
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang2",
+      "round": 0,
+      "elapsed_ns": 139588742,
+      "execution_order": 402
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang3_llvm",
+      "round": 0,
+      "elapsed_ns": 22012168,
+      "execution_order": 403
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang3_llvm",
+      "round": 1,
+      "elapsed_ns": 22245718,
+      "execution_order": 404
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang2",
+      "round": 1,
+      "elapsed_ns": 135866835,
+      "execution_order": 405
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "python",
+      "round": 1,
+      "elapsed_ns": 13644412,
+      "execution_order": 406
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang3_jit",
+      "round": 1,
+      "elapsed_ns": 22374298,
+      "execution_order": 407
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "python",
+      "round": 2,
+      "elapsed_ns": 13678072,
+      "execution_order": 408
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang3_jit",
+      "round": 2,
+      "elapsed_ns": 22905238,
+      "execution_order": 409
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang2",
+      "round": 2,
+      "elapsed_ns": 133621132,
+      "execution_order": 410
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang3_llvm",
+      "round": 2,
+      "elapsed_ns": 21636430,
+      "execution_order": 411
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang3_jit",
+      "round": 3,
+      "elapsed_ns": 22305453,
+      "execution_order": 412
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang3_llvm",
+      "round": 3,
+      "elapsed_ns": 21198313,
+      "execution_order": 413
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "python",
+      "round": 3,
+      "elapsed_ns": 12680472,
+      "execution_order": 414
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang2",
+      "round": 3,
+      "elapsed_ns": 127071978,
+      "execution_order": 415
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang2",
+      "round": 4,
+      "elapsed_ns": 130396637,
+      "execution_order": 416
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "python",
+      "round": 4,
+      "elapsed_ns": 12398751,
+      "execution_order": 417
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang3_llvm",
+      "round": 4,
+      "elapsed_ns": 21876201,
+      "execution_order": 418
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang3_jit",
+      "round": 4,
+      "elapsed_ns": 22600493,
+      "execution_order": 419
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang3_jit",
+      "round": 5,
+      "elapsed_ns": 21884280,
+      "execution_order": 420
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang3_llvm",
+      "round": 5,
+      "elapsed_ns": 21111134,
+      "execution_order": 421
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang2",
+      "round": 5,
+      "elapsed_ns": 129818738,
+      "execution_order": 422
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "python",
+      "round": 5,
+      "elapsed_ns": 13244645,
+      "execution_order": 423
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang3_llvm",
+      "round": 6,
+      "elapsed_ns": 22106090,
+      "execution_order": 424
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "python",
+      "round": 6,
+      "elapsed_ns": 13411487,
+      "execution_order": 425
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang2",
+      "round": 6,
+      "elapsed_ns": 131717111,
+      "execution_order": 426
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang3_jit",
+      "round": 6,
+      "elapsed_ns": 22951338,
+      "execution_order": 427
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang3_llvm",
+      "round": 7,
+      "elapsed_ns": 23538250,
+      "execution_order": 428
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang2",
+      "round": 7,
+      "elapsed_ns": 149262285,
+      "execution_order": 429
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang3_jit",
+      "round": 7,
+      "elapsed_ns": 26205945,
+      "execution_order": 430
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "python",
+      "round": 7,
+      "elapsed_ns": 13722920,
+      "execution_order": 431
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang3_llvm",
+      "round": 8,
+      "elapsed_ns": 24432386,
+      "execution_order": 432
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "python",
+      "round": 8,
+      "elapsed_ns": 12991984,
+      "execution_order": 433
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang3_jit",
+      "round": 8,
+      "elapsed_ns": 25705778,
+      "execution_order": 434
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang2",
+      "round": 8,
+      "elapsed_ns": 138021716,
+      "execution_order": 435
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang2",
+      "round": 9,
+      "elapsed_ns": 131197808,
+      "execution_order": 436
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "python",
+      "round": 9,
+      "elapsed_ns": 13169524,
+      "execution_order": 437
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang3_jit",
+      "round": 9,
+      "elapsed_ns": 23746462,
+      "execution_order": 438
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang3_llvm",
+      "round": 9,
+      "elapsed_ns": 22420985,
+      "execution_order": 439
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang3_jit",
+      "round": 10,
+      "elapsed_ns": 22698535,
+      "execution_order": 440
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang2",
+      "round": 10,
+      "elapsed_ns": 134040232,
+      "execution_order": 441
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "python",
+      "round": 10,
+      "elapsed_ns": 13487993,
+      "execution_order": 442
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang3_llvm",
+      "round": 10,
+      "elapsed_ns": 21737459,
+      "execution_order": 443
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "python",
+      "round": 11,
+      "elapsed_ns": 13362483,
+      "execution_order": 444
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang3_llvm",
+      "round": 11,
+      "elapsed_ns": 21955061,
+      "execution_order": 445
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang2",
+      "round": 11,
+      "elapsed_ns": 129785984,
+      "execution_order": 446
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang3_jit",
+      "round": 11,
+      "elapsed_ns": 22575759,
+      "execution_order": 447
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang3_llvm",
+      "round": 12,
+      "elapsed_ns": 21854209,
+      "execution_order": 448
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang3_jit",
+      "round": 12,
+      "elapsed_ns": 21998227,
+      "execution_order": 449
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "python",
+      "round": 12,
+      "elapsed_ns": 13105784,
+      "execution_order": 450
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang2",
+      "round": 12,
+      "elapsed_ns": 120492823,
+      "execution_order": 451
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "python",
+      "round": 13,
+      "elapsed_ns": 12949143,
+      "execution_order": 452
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang2",
+      "round": 13,
+      "elapsed_ns": 121774602,
+      "execution_order": 453
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang3_jit",
+      "round": 13,
+      "elapsed_ns": 22155674,
+      "execution_order": 454
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang3_llvm",
+      "round": 13,
+      "elapsed_ns": 20861903,
+      "execution_order": 455
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang3_jit",
+      "round": 14,
+      "elapsed_ns": 21504024,
+      "execution_order": 456
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang2",
+      "round": 14,
+      "elapsed_ns": 125669534,
+      "execution_order": 457
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "python",
+      "round": 14,
+      "elapsed_ns": 13114874,
+      "execution_order": 458
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang3_llvm",
+      "round": 14,
+      "elapsed_ns": 20228057,
+      "execution_order": 459
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "python",
+      "round": 15,
+      "elapsed_ns": 12985258,
+      "execution_order": 460
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang3_jit",
+      "round": 15,
+      "elapsed_ns": 21370106,
+      "execution_order": 461
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang2",
+      "round": 15,
+      "elapsed_ns": 123818152,
+      "execution_order": 462
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang3_llvm",
+      "round": 15,
+      "elapsed_ns": 21195562,
+      "execution_order": 463
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "python",
+      "round": 16,
+      "elapsed_ns": 12899320,
+      "execution_order": 464
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang3_llvm",
+      "round": 16,
+      "elapsed_ns": 21035638,
+      "execution_order": 465
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang2",
+      "round": 16,
+      "elapsed_ns": 122369523,
+      "execution_order": 466
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang3_jit",
+      "round": 16,
+      "elapsed_ns": 22157364,
+      "execution_order": 467
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang3_llvm",
+      "round": 17,
+      "elapsed_ns": 20553919,
+      "execution_order": 468
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang2",
+      "round": 17,
+      "elapsed_ns": 122240632,
+      "execution_order": 469
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "python",
+      "round": 17,
+      "elapsed_ns": 13286319,
+      "execution_order": 470
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang3_jit",
+      "round": 17,
+      "elapsed_ns": 21300214,
+      "execution_order": 471
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang3_jit",
+      "round": 18,
+      "elapsed_ns": 21625803,
+      "execution_order": 472
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "python",
+      "round": 18,
+      "elapsed_ns": 11925079,
+      "execution_order": 473
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang2",
+      "round": 18,
+      "elapsed_ns": 126135078,
+      "execution_order": 474
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang3_llvm",
+      "round": 18,
+      "elapsed_ns": 20582688,
+      "execution_order": 475
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang3_llvm",
+      "round": 19,
+      "elapsed_ns": 20312152,
+      "execution_order": 476
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang3_jit",
+      "round": 19,
+      "elapsed_ns": 21566292,
+      "execution_order": 477
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "python",
+      "round": 19,
+      "elapsed_ns": 11437816,
+      "execution_order": 478
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang2",
+      "round": 19,
+      "elapsed_ns": 125815282,
+      "execution_order": 479
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang3_llvm",
+      "round": 20,
+      "elapsed_ns": 20575853,
+      "execution_order": 480
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang3_jit",
+      "round": 20,
+      "elapsed_ns": 21520642,
+      "execution_order": 481
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "python",
+      "round": 20,
+      "elapsed_ns": 13200024,
+      "execution_order": 482
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang2",
+      "round": 20,
+      "elapsed_ns": 124304764,
+      "execution_order": 483
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang2",
+      "round": 21,
+      "elapsed_ns": 122979603,
+      "execution_order": 484
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang3_llvm",
+      "round": 21,
+      "elapsed_ns": 20474349,
+      "execution_order": 485
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "python",
+      "round": 21,
+      "elapsed_ns": 13229256,
+      "execution_order": 486
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang3_jit",
+      "round": 21,
+      "elapsed_ns": 22381205,
+      "execution_order": 487
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "python",
+      "round": 22,
+      "elapsed_ns": 12817018,
+      "execution_order": 488
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang3_jit",
+      "round": 22,
+      "elapsed_ns": 22312989,
+      "execution_order": 489
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang3_llvm",
+      "round": 22,
+      "elapsed_ns": 21194706,
+      "execution_order": 490
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang2",
+      "round": 22,
+      "elapsed_ns": 129174898,
+      "execution_order": 491
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang3_jit",
+      "round": 23,
+      "elapsed_ns": 22251439,
+      "execution_order": 492
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "python",
+      "round": 23,
+      "elapsed_ns": 12339461,
+      "execution_order": 493
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang2",
+      "round": 23,
+      "elapsed_ns": 129016240,
+      "execution_order": 494
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang3_llvm",
+      "round": 23,
+      "elapsed_ns": 20525929,
+      "execution_order": 495
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang3_jit",
+      "round": 24,
+      "elapsed_ns": 22019142,
+      "execution_order": 496
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "python",
+      "round": 24,
+      "elapsed_ns": 12319084,
+      "execution_order": 497
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang2",
+      "round": 24,
+      "elapsed_ns": 128016325,
+      "execution_order": 498
+    },
+    {
+      "workload": "nested_loops",
+      "engine": "soplang3_llvm",
+      "round": 24,
+      "elapsed_ns": 21067366,
+      "execution_order": 499
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "python",
+      "round": 0,
+      "elapsed_ns": 21054773,
+      "execution_order": 500
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang2",
+      "round": 0,
+      "elapsed_ns": 1238366769,
+      "execution_order": 501
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang3_llvm",
+      "round": 0,
+      "elapsed_ns": 160562351,
+      "execution_order": 502
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang3_jit",
+      "round": 0,
+      "elapsed_ns": 181372898,
+      "execution_order": 503
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang2",
+      "round": 1,
+      "elapsed_ns": 1285390661,
+      "execution_order": 504
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang3_jit",
+      "round": 1,
+      "elapsed_ns": 177067775,
+      "execution_order": 505
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang3_llvm",
+      "round": 1,
+      "elapsed_ns": 142208077,
+      "execution_order": 506
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "python",
+      "round": 1,
+      "elapsed_ns": 20314160,
+      "execution_order": 507
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "python",
+      "round": 2,
+      "elapsed_ns": 19967270,
+      "execution_order": 508
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang3_llvm",
+      "round": 2,
+      "elapsed_ns": 146097799,
+      "execution_order": 509
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang2",
+      "round": 2,
+      "elapsed_ns": 1265456795,
+      "execution_order": 510
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang3_jit",
+      "round": 2,
+      "elapsed_ns": 173444637,
+      "execution_order": 511
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang3_llvm",
+      "round": 3,
+      "elapsed_ns": 143301507,
+      "execution_order": 512
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "python",
+      "round": 3,
+      "elapsed_ns": 20699538,
+      "execution_order": 513
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang2",
+      "round": 3,
+      "elapsed_ns": 1216960981,
+      "execution_order": 514
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang3_jit",
+      "round": 3,
+      "elapsed_ns": 171362060,
+      "execution_order": 515
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang3_llvm",
+      "round": 4,
+      "elapsed_ns": 140514065,
+      "execution_order": 516
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang3_jit",
+      "round": 4,
+      "elapsed_ns": 184474729,
+      "execution_order": 517
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang2",
+      "round": 4,
+      "elapsed_ns": 1257998702,
+      "execution_order": 518
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "python",
+      "round": 4,
+      "elapsed_ns": 22593040,
+      "execution_order": 519
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang3_llvm",
+      "round": 5,
+      "elapsed_ns": 141030632,
+      "execution_order": 520
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang3_jit",
+      "round": 5,
+      "elapsed_ns": 166100116,
+      "execution_order": 521
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang2",
+      "round": 5,
+      "elapsed_ns": 1180879601,
+      "execution_order": 522
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "python",
+      "round": 5,
+      "elapsed_ns": 20760158,
+      "execution_order": 523
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang2",
+      "round": 6,
+      "elapsed_ns": 1196806479,
+      "execution_order": 524
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "python",
+      "round": 6,
+      "elapsed_ns": 20038196,
+      "execution_order": 525
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang3_llvm",
+      "round": 6,
+      "elapsed_ns": 142102196,
+      "execution_order": 526
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang3_jit",
+      "round": 6,
+      "elapsed_ns": 170831233,
+      "execution_order": 527
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang3_llvm",
+      "round": 7,
+      "elapsed_ns": 136059525,
+      "execution_order": 528
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang3_jit",
+      "round": 7,
+      "elapsed_ns": 165302179,
+      "execution_order": 529
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "python",
+      "round": 7,
+      "elapsed_ns": 18169220,
+      "execution_order": 530
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang2",
+      "round": 7,
+      "elapsed_ns": 1214774866,
+      "execution_order": 531
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang3_llvm",
+      "round": 8,
+      "elapsed_ns": 139600216,
+      "execution_order": 532
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "python",
+      "round": 8,
+      "elapsed_ns": 19792836,
+      "execution_order": 533
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang2",
+      "round": 8,
+      "elapsed_ns": 1222561428,
+      "execution_order": 534
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang3_jit",
+      "round": 8,
+      "elapsed_ns": 171625762,
+      "execution_order": 535
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang3_llvm",
+      "round": 9,
+      "elapsed_ns": 142162624,
+      "execution_order": 536
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang2",
+      "round": 9,
+      "elapsed_ns": 1280022460,
+      "execution_order": 537
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang3_jit",
+      "round": 9,
+      "elapsed_ns": 174309510,
+      "execution_order": 538
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "python",
+      "round": 9,
+      "elapsed_ns": 21372871,
+      "execution_order": 539
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang2",
+      "round": 10,
+      "elapsed_ns": 1205518858,
+      "execution_order": 540
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang3_llvm",
+      "round": 10,
+      "elapsed_ns": 142998892,
+      "execution_order": 541
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "python",
+      "round": 10,
+      "elapsed_ns": 20549075,
+      "execution_order": 542
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang3_jit",
+      "round": 10,
+      "elapsed_ns": 166464523,
+      "execution_order": 543
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang2",
+      "round": 11,
+      "elapsed_ns": 1191685776,
+      "execution_order": 544
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang3_jit",
+      "round": 11,
+      "elapsed_ns": 172958558,
+      "execution_order": 545
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang3_llvm",
+      "round": 11,
+      "elapsed_ns": 135896154,
+      "execution_order": 546
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "python",
+      "round": 11,
+      "elapsed_ns": 20876636,
+      "execution_order": 547
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang2",
+      "round": 12,
+      "elapsed_ns": 1206973780,
+      "execution_order": 548
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "python",
+      "round": 12,
+      "elapsed_ns": 19000338,
+      "execution_order": 549
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang3_llvm",
+      "round": 12,
+      "elapsed_ns": 138983977,
+      "execution_order": 550
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang3_jit",
+      "round": 12,
+      "elapsed_ns": 162541952,
+      "execution_order": 551
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang2",
+      "round": 13,
+      "elapsed_ns": 1256575855,
+      "execution_order": 552
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang3_llvm",
+      "round": 13,
+      "elapsed_ns": 153175536,
+      "execution_order": 553
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang3_jit",
+      "round": 13,
+      "elapsed_ns": 169775930,
+      "execution_order": 554
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "python",
+      "round": 13,
+      "elapsed_ns": 20921174,
+      "execution_order": 555
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang2",
+      "round": 14,
+      "elapsed_ns": 1184492082,
+      "execution_order": 556
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang3_llvm",
+      "round": 14,
+      "elapsed_ns": 141159879,
+      "execution_order": 557
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "python",
+      "round": 14,
+      "elapsed_ns": 19741603,
+      "execution_order": 558
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang3_jit",
+      "round": 14,
+      "elapsed_ns": 168509472,
+      "execution_order": 559
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang3_jit",
+      "round": 15,
+      "elapsed_ns": 165498828,
+      "execution_order": 560
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "python",
+      "round": 15,
+      "elapsed_ns": 19617549,
+      "execution_order": 561
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang3_llvm",
+      "round": 15,
+      "elapsed_ns": 147549819,
+      "execution_order": 562
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang2",
+      "round": 15,
+      "elapsed_ns": 1325895271,
+      "execution_order": 563
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang3_llvm",
+      "round": 16,
+      "elapsed_ns": 158964131,
+      "execution_order": 564
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang2",
+      "round": 16,
+      "elapsed_ns": 1461737520,
+      "execution_order": 565
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang3_jit",
+      "round": 16,
+      "elapsed_ns": 179559070,
+      "execution_order": 566
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "python",
+      "round": 16,
+      "elapsed_ns": 21061991,
+      "execution_order": 567
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang2",
+      "round": 17,
+      "elapsed_ns": 1430840079,
+      "execution_order": 568
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang3_llvm",
+      "round": 17,
+      "elapsed_ns": 156100732,
+      "execution_order": 569
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "python",
+      "round": 17,
+      "elapsed_ns": 24342643,
+      "execution_order": 570
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang3_jit",
+      "round": 17,
+      "elapsed_ns": 201114486,
+      "execution_order": 571
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang2",
+      "round": 18,
+      "elapsed_ns": 1349665748,
+      "execution_order": 572
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang3_llvm",
+      "round": 18,
+      "elapsed_ns": 148545059,
+      "execution_order": 573
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang3_jit",
+      "round": 18,
+      "elapsed_ns": 172356183,
+      "execution_order": 574
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "python",
+      "round": 18,
+      "elapsed_ns": 19689405,
+      "execution_order": 575
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang3_jit",
+      "round": 19,
+      "elapsed_ns": 167435657,
+      "execution_order": 576
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang3_llvm",
+      "round": 19,
+      "elapsed_ns": 135798281,
+      "execution_order": 577
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang2",
+      "round": 19,
+      "elapsed_ns": 1456100249,
+      "execution_order": 578
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "python",
+      "round": 19,
+      "elapsed_ns": 22110856,
+      "execution_order": 579
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang3_jit",
+      "round": 20,
+      "elapsed_ns": 184102722,
+      "execution_order": 580
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang2",
+      "round": 20,
+      "elapsed_ns": 1685150095,
+      "execution_order": 581
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang3_llvm",
+      "round": 20,
+      "elapsed_ns": 202819039,
+      "execution_order": 582
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "python",
+      "round": 20,
+      "elapsed_ns": 34451083,
+      "execution_order": 583
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang2",
+      "round": 21,
+      "elapsed_ns": 1436878636,
+      "execution_order": 584
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "python",
+      "round": 21,
+      "elapsed_ns": 22253616,
+      "execution_order": 585
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang3_llvm",
+      "round": 21,
+      "elapsed_ns": 152109894,
+      "execution_order": 586
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang3_jit",
+      "round": 21,
+      "elapsed_ns": 177949908,
+      "execution_order": 587
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang3_jit",
+      "round": 22,
+      "elapsed_ns": 168267134,
+      "execution_order": 588
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang2",
+      "round": 22,
+      "elapsed_ns": 1493097367,
+      "execution_order": 589
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang3_llvm",
+      "round": 22,
+      "elapsed_ns": 203275060,
+      "execution_order": 590
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "python",
+      "round": 22,
+      "elapsed_ns": 24136901,
+      "execution_order": 591
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang2",
+      "round": 23,
+      "elapsed_ns": 1480192279,
+      "execution_order": 592
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "python",
+      "round": 23,
+      "elapsed_ns": 22672349,
+      "execution_order": 593
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang3_llvm",
+      "round": 23,
+      "elapsed_ns": 151175394,
+      "execution_order": 594
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang3_jit",
+      "round": 23,
+      "elapsed_ns": 171612492,
+      "execution_order": 595
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang3_jit",
+      "round": 24,
+      "elapsed_ns": 164391264,
+      "execution_order": 596
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang3_llvm",
+      "round": 24,
+      "elapsed_ns": 133161136,
+      "execution_order": 597
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "soplang2",
+      "round": 24,
+      "elapsed_ns": 1405218137,
+      "execution_order": 598
+    },
+    {
+      "workload": "fibonacci",
+      "engine": "python",
+      "round": 24,
+      "elapsed_ns": 22022955,
+      "execution_order": 599
+    },
+    {
+      "workload": "function_calls",
+      "engine": "python",
+      "round": 0,
+      "elapsed_ns": 14906555,
+      "execution_order": 600
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang3_llvm",
+      "round": 0,
+      "elapsed_ns": 19359678,
+      "execution_order": 601
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang2",
+      "round": 0,
+      "elapsed_ns": 149714025,
+      "execution_order": 602
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang3_jit",
+      "round": 0,
+      "elapsed_ns": 21131094,
+      "execution_order": 603
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang3_jit",
+      "round": 1,
+      "elapsed_ns": 20452363,
+      "execution_order": 604
+    },
+    {
+      "workload": "function_calls",
+      "engine": "python",
+      "round": 1,
+      "elapsed_ns": 13478897,
+      "execution_order": 605
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang3_llvm",
+      "round": 1,
+      "elapsed_ns": 18051618,
+      "execution_order": 606
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang2",
+      "round": 1,
+      "elapsed_ns": 143235263,
+      "execution_order": 607
+    },
+    {
+      "workload": "function_calls",
+      "engine": "python",
+      "round": 2,
+      "elapsed_ns": 13571007,
+      "execution_order": 608
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang2",
+      "round": 2,
+      "elapsed_ns": 143729516,
+      "execution_order": 609
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang3_llvm",
+      "round": 2,
+      "elapsed_ns": 18414132,
+      "execution_order": 610
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang3_jit",
+      "round": 2,
+      "elapsed_ns": 20107953,
+      "execution_order": 611
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang2",
+      "round": 3,
+      "elapsed_ns": 146162563,
+      "execution_order": 612
+    },
+    {
+      "workload": "function_calls",
+      "engine": "python",
+      "round": 3,
+      "elapsed_ns": 13882540,
+      "execution_order": 613
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang3_jit",
+      "round": 3,
+      "elapsed_ns": 20140743,
+      "execution_order": 614
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang3_llvm",
+      "round": 3,
+      "elapsed_ns": 18820790,
+      "execution_order": 615
+    },
+    {
+      "workload": "function_calls",
+      "engine": "python",
+      "round": 4,
+      "elapsed_ns": 12315913,
+      "execution_order": 616
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang2",
+      "round": 4,
+      "elapsed_ns": 145435586,
+      "execution_order": 617
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang3_jit",
+      "round": 4,
+      "elapsed_ns": 19471499,
+      "execution_order": 618
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang3_llvm",
+      "round": 4,
+      "elapsed_ns": 18487422,
+      "execution_order": 619
+    },
+    {
+      "workload": "function_calls",
+      "engine": "python",
+      "round": 5,
+      "elapsed_ns": 12430098,
+      "execution_order": 620
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang2",
+      "round": 5,
+      "elapsed_ns": 141077964,
+      "execution_order": 621
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang3_jit",
+      "round": 5,
+      "elapsed_ns": 19703637,
+      "execution_order": 622
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang3_llvm",
+      "round": 5,
+      "elapsed_ns": 18653873,
+      "execution_order": 623
+    },
+    {
+      "workload": "function_calls",
+      "engine": "python",
+      "round": 6,
+      "elapsed_ns": 12855078,
+      "execution_order": 624
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang2",
+      "round": 6,
+      "elapsed_ns": 256473041,
+      "execution_order": 625
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang3_llvm",
+      "round": 6,
+      "elapsed_ns": 42845868,
+      "execution_order": 626
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang3_jit",
+      "round": 6,
+      "elapsed_ns": 38554629,
+      "execution_order": 627
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang3_llvm",
+      "round": 7,
+      "elapsed_ns": 27837048,
+      "execution_order": 628
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang2",
+      "round": 7,
+      "elapsed_ns": 305775689,
+      "execution_order": 629
+    },
+    {
+      "workload": "function_calls",
+      "engine": "python",
+      "round": 7,
+      "elapsed_ns": 27313873,
+      "execution_order": 630
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang3_jit",
+      "round": 7,
+      "elapsed_ns": 34572756,
+      "execution_order": 631
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang3_llvm",
+      "round": 8,
+      "elapsed_ns": 27488019,
+      "execution_order": 632
+    },
+    {
+      "workload": "function_calls",
+      "engine": "python",
+      "round": 8,
+      "elapsed_ns": 19715233,
+      "execution_order": 633
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang2",
+      "round": 8,
+      "elapsed_ns": 223079096,
+      "execution_order": 634
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang3_jit",
+      "round": 8,
+      "elapsed_ns": 28110341,
+      "execution_order": 635
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang3_llvm",
+      "round": 9,
+      "elapsed_ns": 25568715,
+      "execution_order": 636
+    },
+    {
+      "workload": "function_calls",
+      "engine": "python",
+      "round": 9,
+      "elapsed_ns": 16639682,
+      "execution_order": 637
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang3_jit",
+      "round": 9,
+      "elapsed_ns": 27837846,
+      "execution_order": 638
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang2",
+      "round": 9,
+      "elapsed_ns": 302575807,
+      "execution_order": 639
+    },
+    {
+      "workload": "function_calls",
+      "engine": "python",
+      "round": 10,
+      "elapsed_ns": 24245512,
+      "execution_order": 640
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang3_jit",
+      "round": 10,
+      "elapsed_ns": 38521305,
+      "execution_order": 641
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang3_llvm",
+      "round": 10,
+      "elapsed_ns": 31641294,
+      "execution_order": 642
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang2",
+      "round": 10,
+      "elapsed_ns": 258555138,
+      "execution_order": 643
+    },
+    {
+      "workload": "function_calls",
+      "engine": "python",
+      "round": 11,
+      "elapsed_ns": 46359731,
+      "execution_order": 644
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang3_llvm",
+      "round": 11,
+      "elapsed_ns": 34114427,
+      "execution_order": 645
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang2",
+      "round": 11,
+      "elapsed_ns": 276810585,
+      "execution_order": 646
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang3_jit",
+      "round": 11,
+      "elapsed_ns": 45938375,
+      "execution_order": 647
+    },
+    {
+      "workload": "function_calls",
+      "engine": "python",
+      "round": 12,
+      "elapsed_ns": 26743491,
+      "execution_order": 648
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang3_llvm",
+      "round": 12,
+      "elapsed_ns": 35583028,
+      "execution_order": 649
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang2",
+      "round": 12,
+      "elapsed_ns": 300293547,
+      "execution_order": 650
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang3_jit",
+      "round": 12,
+      "elapsed_ns": 36387035,
+      "execution_order": 651
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang2",
+      "round": 13,
+      "elapsed_ns": 261541242,
+      "execution_order": 652
+    },
+    {
+      "workload": "function_calls",
+      "engine": "python",
+      "round": 13,
+      "elapsed_ns": 19301538,
+      "execution_order": 653
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang3_llvm",
+      "round": 13,
+      "elapsed_ns": 25410624,
+      "execution_order": 654
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang3_jit",
+      "round": 13,
+      "elapsed_ns": 26418023,
+      "execution_order": 655
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang2",
+      "round": 14,
+      "elapsed_ns": 216873423,
+      "execution_order": 656
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang3_llvm",
+      "round": 14,
+      "elapsed_ns": 23973309,
+      "execution_order": 657
+    },
+    {
+      "workload": "function_calls",
+      "engine": "python",
+      "round": 14,
+      "elapsed_ns": 17021699,
+      "execution_order": 658
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang3_jit",
+      "round": 14,
+      "elapsed_ns": 26197979,
+      "execution_order": 659
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang3_jit",
+      "round": 15,
+      "elapsed_ns": 24975514,
+      "execution_order": 660
+    },
+    {
+      "workload": "function_calls",
+      "engine": "python",
+      "round": 15,
+      "elapsed_ns": 15620840,
+      "execution_order": 661
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang2",
+      "round": 15,
+      "elapsed_ns": 214347220,
+      "execution_order": 662
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang3_llvm",
+      "round": 15,
+      "elapsed_ns": 26780683,
+      "execution_order": 663
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang3_jit",
+      "round": 16,
+      "elapsed_ns": 28218618,
+      "execution_order": 664
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang2",
+      "round": 16,
+      "elapsed_ns": 205234780,
+      "execution_order": 665
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang3_llvm",
+      "round": 16,
+      "elapsed_ns": 23300114,
+      "execution_order": 666
+    },
+    {
+      "workload": "function_calls",
+      "engine": "python",
+      "round": 16,
+      "elapsed_ns": 16306707,
+      "execution_order": 667
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang3_llvm",
+      "round": 17,
+      "elapsed_ns": 24157743,
+      "execution_order": 668
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang2",
+      "round": 17,
+      "elapsed_ns": 207302746,
+      "execution_order": 669
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang3_jit",
+      "round": 17,
+      "elapsed_ns": 26879484,
+      "execution_order": 670
+    },
+    {
+      "workload": "function_calls",
+      "engine": "python",
+      "round": 17,
+      "elapsed_ns": 18785687,
+      "execution_order": 671
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang2",
+      "round": 18,
+      "elapsed_ns": 219256720,
+      "execution_order": 672
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang3_jit",
+      "round": 18,
+      "elapsed_ns": 26599726,
+      "execution_order": 673
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang3_llvm",
+      "round": 18,
+      "elapsed_ns": 24731299,
+      "execution_order": 674
+    },
+    {
+      "workload": "function_calls",
+      "engine": "python",
+      "round": 18,
+      "elapsed_ns": 17472953,
+      "execution_order": 675
+    },
+    {
+      "workload": "function_calls",
+      "engine": "python",
+      "round": 19,
+      "elapsed_ns": 15821144,
+      "execution_order": 676
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang3_jit",
+      "round": 19,
+      "elapsed_ns": 26082592,
+      "execution_order": 677
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang3_llvm",
+      "round": 19,
+      "elapsed_ns": 23125766,
+      "execution_order": 678
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang2",
+      "round": 19,
+      "elapsed_ns": 179991800,
+      "execution_order": 679
+    },
+    {
+      "workload": "function_calls",
+      "engine": "python",
+      "round": 20,
+      "elapsed_ns": 24701772,
+      "execution_order": 680
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang2",
+      "round": 20,
+      "elapsed_ns": 192987471,
+      "execution_order": 681
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang3_llvm",
+      "round": 20,
+      "elapsed_ns": 23567543,
+      "execution_order": 682
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang3_jit",
+      "round": 20,
+      "elapsed_ns": 24512842,
+      "execution_order": 683
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang2",
+      "round": 21,
+      "elapsed_ns": 188843505,
+      "execution_order": 684
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang3_llvm",
+      "round": 21,
+      "elapsed_ns": 25742620,
+      "execution_order": 685
+    },
+    {
+      "workload": "function_calls",
+      "engine": "python",
+      "round": 21,
+      "elapsed_ns": 15434318,
+      "execution_order": 686
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang3_jit",
+      "round": 21,
+      "elapsed_ns": 23234164,
+      "execution_order": 687
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang2",
+      "round": 22,
+      "elapsed_ns": 174002651,
+      "execution_order": 688
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang3_llvm",
+      "round": 22,
+      "elapsed_ns": 21076346,
+      "execution_order": 689
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang3_jit",
+      "round": 22,
+      "elapsed_ns": 22944796,
+      "execution_order": 690
+    },
+    {
+      "workload": "function_calls",
+      "engine": "python",
+      "round": 22,
+      "elapsed_ns": 13865844,
+      "execution_order": 691
+    },
+    {
+      "workload": "function_calls",
+      "engine": "python",
+      "round": 23,
+      "elapsed_ns": 14032312,
+      "execution_order": 692
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang2",
+      "round": 23,
+      "elapsed_ns": 165928475,
+      "execution_order": 693
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang3_llvm",
+      "round": 23,
+      "elapsed_ns": 21560735,
+      "execution_order": 694
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang3_jit",
+      "round": 23,
+      "elapsed_ns": 23490434,
+      "execution_order": 695
+    },
+    {
+      "workload": "function_calls",
+      "engine": "python",
+      "round": 24,
+      "elapsed_ns": 14122809,
+      "execution_order": 696
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang3_llvm",
+      "round": 24,
+      "elapsed_ns": 21160928,
+      "execution_order": 697
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang3_jit",
+      "round": 24,
+      "elapsed_ns": 22549981,
+      "execution_order": 698
+    },
+    {
+      "workload": "function_calls",
+      "engine": "soplang2",
+      "round": 24,
+      "elapsed_ns": 176351584,
+      "execution_order": 699
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang3_jit",
+      "round": 0,
+      "elapsed_ns": 10088471,
+      "execution_order": 700
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang3_llvm",
+      "round": 0,
+      "elapsed_ns": 8007289,
+      "execution_order": 701
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "python",
+      "round": 0,
+      "elapsed_ns": 11310103,
+      "execution_order": 702
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang2",
+      "round": 0,
+      "elapsed_ns": 84871459,
+      "execution_order": 703
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang3_jit",
+      "round": 1,
+      "elapsed_ns": 9830168,
+      "execution_order": 704
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang2",
+      "round": 1,
+      "elapsed_ns": 82394641,
+      "execution_order": 705
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "python",
+      "round": 1,
+      "elapsed_ns": 13968674,
+      "execution_order": 706
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang3_llvm",
+      "round": 1,
+      "elapsed_ns": 8533504,
+      "execution_order": 707
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang3_jit",
+      "round": 2,
+      "elapsed_ns": 9934526,
+      "execution_order": 708
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang2",
+      "round": 2,
+      "elapsed_ns": 85524367,
+      "execution_order": 709
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang3_llvm",
+      "round": 2,
+      "elapsed_ns": 8246916,
+      "execution_order": 710
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "python",
+      "round": 2,
+      "elapsed_ns": 13182631,
+      "execution_order": 711
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang3_llvm",
+      "round": 3,
+      "elapsed_ns": 8162604,
+      "execution_order": 712
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang2",
+      "round": 3,
+      "elapsed_ns": 80272587,
+      "execution_order": 713
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang3_jit",
+      "round": 3,
+      "elapsed_ns": 9460476,
+      "execution_order": 714
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "python",
+      "round": 3,
+      "elapsed_ns": 11859277,
+      "execution_order": 715
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang3_jit",
+      "round": 4,
+      "elapsed_ns": 9727521,
+      "execution_order": 716
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang3_llvm",
+      "round": 4,
+      "elapsed_ns": 7940573,
+      "execution_order": 717
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang2",
+      "round": 4,
+      "elapsed_ns": 80263526,
+      "execution_order": 718
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "python",
+      "round": 4,
+      "elapsed_ns": 11492616,
+      "execution_order": 719
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "python",
+      "round": 5,
+      "elapsed_ns": 12281193,
+      "execution_order": 720
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang3_llvm",
+      "round": 5,
+      "elapsed_ns": 8312106,
+      "execution_order": 721
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang3_jit",
+      "round": 5,
+      "elapsed_ns": 9166439,
+      "execution_order": 722
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang2",
+      "round": 5,
+      "elapsed_ns": 78254436,
+      "execution_order": 723
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang2",
+      "round": 6,
+      "elapsed_ns": 75860414,
+      "execution_order": 724
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang3_jit",
+      "round": 6,
+      "elapsed_ns": 9131892,
+      "execution_order": 725
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "python",
+      "round": 6,
+      "elapsed_ns": 11356788,
+      "execution_order": 726
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang3_llvm",
+      "round": 6,
+      "elapsed_ns": 7730147,
+      "execution_order": 727
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "python",
+      "round": 7,
+      "elapsed_ns": 12222321,
+      "execution_order": 728
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang3_llvm",
+      "round": 7,
+      "elapsed_ns": 7514948,
+      "execution_order": 729
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang2",
+      "round": 7,
+      "elapsed_ns": 77785079,
+      "execution_order": 730
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang3_jit",
+      "round": 7,
+      "elapsed_ns": 8857754,
+      "execution_order": 731
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "python",
+      "round": 8,
+      "elapsed_ns": 11571167,
+      "execution_order": 732
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang3_jit",
+      "round": 8,
+      "elapsed_ns": 9176842,
+      "execution_order": 733
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang2",
+      "round": 8,
+      "elapsed_ns": 77792861,
+      "execution_order": 734
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang3_llvm",
+      "round": 8,
+      "elapsed_ns": 7963383,
+      "execution_order": 735
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang3_jit",
+      "round": 9,
+      "elapsed_ns": 9092895,
+      "execution_order": 736
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang2",
+      "round": 9,
+      "elapsed_ns": 75940272,
+      "execution_order": 737
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "python",
+      "round": 9,
+      "elapsed_ns": 11137725,
+      "execution_order": 738
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang3_llvm",
+      "round": 9,
+      "elapsed_ns": 7829884,
+      "execution_order": 739
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang3_llvm",
+      "round": 10,
+      "elapsed_ns": 7840151,
+      "execution_order": 740
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "python",
+      "round": 10,
+      "elapsed_ns": 11854144,
+      "execution_order": 741
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang2",
+      "round": 10,
+      "elapsed_ns": 78326518,
+      "execution_order": 742
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang3_jit",
+      "round": 10,
+      "elapsed_ns": 9044276,
+      "execution_order": 743
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang2",
+      "round": 11,
+      "elapsed_ns": 115972185,
+      "execution_order": 744
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang3_llvm",
+      "round": 11,
+      "elapsed_ns": 9580757,
+      "execution_order": 745
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang3_jit",
+      "round": 11,
+      "elapsed_ns": 15741125,
+      "execution_order": 746
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "python",
+      "round": 11,
+      "elapsed_ns": 12577630,
+      "execution_order": 747
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang3_jit",
+      "round": 12,
+      "elapsed_ns": 10666230,
+      "execution_order": 748
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang2",
+      "round": 12,
+      "elapsed_ns": 86583855,
+      "execution_order": 749
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "python",
+      "round": 12,
+      "elapsed_ns": 12997533,
+      "execution_order": 750
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang3_llvm",
+      "round": 12,
+      "elapsed_ns": 8595347,
+      "execution_order": 751
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang3_llvm",
+      "round": 13,
+      "elapsed_ns": 8757605,
+      "execution_order": 752
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "python",
+      "round": 13,
+      "elapsed_ns": 13340288,
+      "execution_order": 753
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang2",
+      "round": 13,
+      "elapsed_ns": 85830860,
+      "execution_order": 754
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang3_jit",
+      "round": 13,
+      "elapsed_ns": 9739662,
+      "execution_order": 755
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang3_llvm",
+      "round": 14,
+      "elapsed_ns": 8975747,
+      "execution_order": 756
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang2",
+      "round": 14,
+      "elapsed_ns": 83877043,
+      "execution_order": 757
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang3_jit",
+      "round": 14,
+      "elapsed_ns": 10511316,
+      "execution_order": 758
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "python",
+      "round": 14,
+      "elapsed_ns": 13171809,
+      "execution_order": 759
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "python",
+      "round": 15,
+      "elapsed_ns": 13650879,
+      "execution_order": 760
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang3_jit",
+      "round": 15,
+      "elapsed_ns": 10092057,
+      "execution_order": 761
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang3_llvm",
+      "round": 15,
+      "elapsed_ns": 8666777,
+      "execution_order": 762
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang2",
+      "round": 15,
+      "elapsed_ns": 82270382,
+      "execution_order": 763
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang2",
+      "round": 16,
+      "elapsed_ns": 84533636,
+      "execution_order": 764
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang3_llvm",
+      "round": 16,
+      "elapsed_ns": 8557707,
+      "execution_order": 765
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "python",
+      "round": 16,
+      "elapsed_ns": 14104866,
+      "execution_order": 766
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang3_jit",
+      "round": 16,
+      "elapsed_ns": 10390660,
+      "execution_order": 767
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "python",
+      "round": 17,
+      "elapsed_ns": 11715886,
+      "execution_order": 768
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang2",
+      "round": 17,
+      "elapsed_ns": 79272812,
+      "execution_order": 769
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang3_jit",
+      "round": 17,
+      "elapsed_ns": 9762700,
+      "execution_order": 770
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang3_llvm",
+      "round": 17,
+      "elapsed_ns": 8206184,
+      "execution_order": 771
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang2",
+      "round": 18,
+      "elapsed_ns": 80719385,
+      "execution_order": 772
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "python",
+      "round": 18,
+      "elapsed_ns": 13767618,
+      "execution_order": 773
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang3_jit",
+      "round": 18,
+      "elapsed_ns": 9448289,
+      "execution_order": 774
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang3_llvm",
+      "round": 18,
+      "elapsed_ns": 8113809,
+      "execution_order": 775
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang2",
+      "round": 19,
+      "elapsed_ns": 80733088,
+      "execution_order": 776
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "python",
+      "round": 19,
+      "elapsed_ns": 11840865,
+      "execution_order": 777
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang3_llvm",
+      "round": 19,
+      "elapsed_ns": 8161005,
+      "execution_order": 778
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang3_jit",
+      "round": 19,
+      "elapsed_ns": 9860943,
+      "execution_order": 779
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang2",
+      "round": 20,
+      "elapsed_ns": 80565540,
+      "execution_order": 780
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "python",
+      "round": 20,
+      "elapsed_ns": 11734254,
+      "execution_order": 781
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang3_jit",
+      "round": 20,
+      "elapsed_ns": 9845979,
+      "execution_order": 782
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang3_llvm",
+      "round": 20,
+      "elapsed_ns": 8102383,
+      "execution_order": 783
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang3_llvm",
+      "round": 21,
+      "elapsed_ns": 7891024,
+      "execution_order": 784
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang2",
+      "round": 21,
+      "elapsed_ns": 80941349,
+      "execution_order": 785
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "python",
+      "round": 21,
+      "elapsed_ns": 11448170,
+      "execution_order": 786
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang3_jit",
+      "round": 21,
+      "elapsed_ns": 9542230,
+      "execution_order": 787
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "python",
+      "round": 22,
+      "elapsed_ns": 12163647,
+      "execution_order": 788
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang3_llvm",
+      "round": 22,
+      "elapsed_ns": 8265431,
+      "execution_order": 789
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang2",
+      "round": 22,
+      "elapsed_ns": 78697205,
+      "execution_order": 790
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang3_jit",
+      "round": 22,
+      "elapsed_ns": 9210376,
+      "execution_order": 791
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "python",
+      "round": 23,
+      "elapsed_ns": 12388485,
+      "execution_order": 792
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang2",
+      "round": 23,
+      "elapsed_ns": 77990037,
+      "execution_order": 793
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang3_jit",
+      "round": 23,
+      "elapsed_ns": 9986053,
+      "execution_order": 794
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang3_llvm",
+      "round": 23,
+      "elapsed_ns": 8113561,
+      "execution_order": 795
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "python",
+      "round": 24,
+      "elapsed_ns": 11182575,
+      "execution_order": 796
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang3_jit",
+      "round": 24,
+      "elapsed_ns": 9014802,
+      "execution_order": 797
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang3_llvm",
+      "round": 24,
+      "elapsed_ns": 8019953,
+      "execution_order": 798
+    },
+    {
+      "workload": "list_push_index",
+      "engine": "soplang2",
+      "round": 24,
+      "elapsed_ns": 77662684,
+      "execution_order": 799
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang2",
+      "round": 0,
+      "elapsed_ns": 90295642,
+      "execution_order": 800
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang3_jit",
+      "round": 0,
+      "elapsed_ns": 22843111,
+      "execution_order": 801
+    },
+    {
+      "workload": "object_create",
+      "engine": "python",
+      "round": 0,
+      "elapsed_ns": 13257374,
+      "execution_order": 802
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang3_llvm",
+      "round": 0,
+      "elapsed_ns": 20494416,
+      "execution_order": 803
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang2",
+      "round": 1,
+      "elapsed_ns": 85975111,
+      "execution_order": 804
+    },
+    {
+      "workload": "object_create",
+      "engine": "python",
+      "round": 1,
+      "elapsed_ns": 13164024,
+      "execution_order": 805
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang3_llvm",
+      "round": 1,
+      "elapsed_ns": 19740834,
+      "execution_order": 806
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang3_jit",
+      "round": 1,
+      "elapsed_ns": 21783229,
+      "execution_order": 807
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang2",
+      "round": 2,
+      "elapsed_ns": 80696170,
+      "execution_order": 808
+    },
+    {
+      "workload": "object_create",
+      "engine": "python",
+      "round": 2,
+      "elapsed_ns": 12080275,
+      "execution_order": 809
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang3_jit",
+      "round": 2,
+      "elapsed_ns": 22995552,
+      "execution_order": 810
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang3_llvm",
+      "round": 2,
+      "elapsed_ns": 19608982,
+      "execution_order": 811
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang3_jit",
+      "round": 3,
+      "elapsed_ns": 21448643,
+      "execution_order": 812
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang3_llvm",
+      "round": 3,
+      "elapsed_ns": 19589994,
+      "execution_order": 813
+    },
+    {
+      "workload": "object_create",
+      "engine": "python",
+      "round": 3,
+      "elapsed_ns": 14132831,
+      "execution_order": 814
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang2",
+      "round": 3,
+      "elapsed_ns": 91000054,
+      "execution_order": 815
+    },
+    {
+      "workload": "object_create",
+      "engine": "python",
+      "round": 4,
+      "elapsed_ns": 13317346,
+      "execution_order": 816
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang3_llvm",
+      "round": 4,
+      "elapsed_ns": 20068744,
+      "execution_order": 817
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang2",
+      "round": 4,
+      "elapsed_ns": 83938756,
+      "execution_order": 818
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang3_jit",
+      "round": 4,
+      "elapsed_ns": 21604394,
+      "execution_order": 819
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang2",
+      "round": 5,
+      "elapsed_ns": 98817261,
+      "execution_order": 820
+    },
+    {
+      "workload": "object_create",
+      "engine": "python",
+      "round": 5,
+      "elapsed_ns": 18371273,
+      "execution_order": 821
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang3_llvm",
+      "round": 5,
+      "elapsed_ns": 29291647,
+      "execution_order": 822
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang3_jit",
+      "round": 5,
+      "elapsed_ns": 31998309,
+      "execution_order": 823
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang3_llvm",
+      "round": 6,
+      "elapsed_ns": 19873784,
+      "execution_order": 824
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang3_jit",
+      "round": 6,
+      "elapsed_ns": 21703567,
+      "execution_order": 825
+    },
+    {
+      "workload": "object_create",
+      "engine": "python",
+      "round": 6,
+      "elapsed_ns": 12879786,
+      "execution_order": 826
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang2",
+      "round": 6,
+      "elapsed_ns": 105539622,
+      "execution_order": 827
+    },
+    {
+      "workload": "object_create",
+      "engine": "python",
+      "round": 7,
+      "elapsed_ns": 16614643,
+      "execution_order": 828
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang2",
+      "round": 7,
+      "elapsed_ns": 106781677,
+      "execution_order": 829
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang3_jit",
+      "round": 7,
+      "elapsed_ns": 26781812,
+      "execution_order": 830
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang3_llvm",
+      "round": 7,
+      "elapsed_ns": 24926387,
+      "execution_order": 831
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang3_jit",
+      "round": 8,
+      "elapsed_ns": 26076207,
+      "execution_order": 832
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang2",
+      "round": 8,
+      "elapsed_ns": 140480107,
+      "execution_order": 833
+    },
+    {
+      "workload": "object_create",
+      "engine": "python",
+      "round": 8,
+      "elapsed_ns": 15534687,
+      "execution_order": 834
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang3_llvm",
+      "round": 8,
+      "elapsed_ns": 28312958,
+      "execution_order": 835
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang3_llvm",
+      "round": 9,
+      "elapsed_ns": 32571454,
+      "execution_order": 836
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang2",
+      "round": 9,
+      "elapsed_ns": 135831239,
+      "execution_order": 837
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang3_jit",
+      "round": 9,
+      "elapsed_ns": 44906543,
+      "execution_order": 838
+    },
+    {
+      "workload": "object_create",
+      "engine": "python",
+      "round": 9,
+      "elapsed_ns": 26704994,
+      "execution_order": 839
+    },
+    {
+      "workload": "object_create",
+      "engine": "python",
+      "round": 10,
+      "elapsed_ns": 22898850,
+      "execution_order": 840
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang2",
+      "round": 10,
+      "elapsed_ns": 132368600,
+      "execution_order": 841
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang3_jit",
+      "round": 10,
+      "elapsed_ns": 29339511,
+      "execution_order": 842
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang3_llvm",
+      "round": 10,
+      "elapsed_ns": 27049234,
+      "execution_order": 843
+    },
+    {
+      "workload": "object_create",
+      "engine": "python",
+      "round": 11,
+      "elapsed_ns": 17590443,
+      "execution_order": 844
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang2",
+      "round": 11,
+      "elapsed_ns": 120468338,
+      "execution_order": 845
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang3_jit",
+      "round": 11,
+      "elapsed_ns": 29168688,
+      "execution_order": 846
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang3_llvm",
+      "round": 11,
+      "elapsed_ns": 23677385,
+      "execution_order": 847
+    },
+    {
+      "workload": "object_create",
+      "engine": "python",
+      "round": 12,
+      "elapsed_ns": 15416627,
+      "execution_order": 848
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang2",
+      "round": 12,
+      "elapsed_ns": 135899686,
+      "execution_order": 849
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang3_llvm",
+      "round": 12,
+      "elapsed_ns": 25472030,
+      "execution_order": 850
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang3_jit",
+      "round": 12,
+      "elapsed_ns": 27533265,
+      "execution_order": 851
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang3_jit",
+      "round": 13,
+      "elapsed_ns": 26652180,
+      "execution_order": 852
+    },
+    {
+      "workload": "object_create",
+      "engine": "python",
+      "round": 13,
+      "elapsed_ns": 16390989,
+      "execution_order": 853
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang3_llvm",
+      "round": 13,
+      "elapsed_ns": 24574063,
+      "execution_order": 854
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang2",
+      "round": 13,
+      "elapsed_ns": 94618803,
+      "execution_order": 855
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang2",
+      "round": 14,
+      "elapsed_ns": 92085639,
+      "execution_order": 856
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang3_llvm",
+      "round": 14,
+      "elapsed_ns": 21126867,
+      "execution_order": 857
+    },
+    {
+      "workload": "object_create",
+      "engine": "python",
+      "round": 14,
+      "elapsed_ns": 15227266,
+      "execution_order": 858
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang3_jit",
+      "round": 14,
+      "elapsed_ns": 23208054,
+      "execution_order": 859
+    },
+    {
+      "workload": "object_create",
+      "engine": "python",
+      "round": 15,
+      "elapsed_ns": 14160109,
+      "execution_order": 860
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang3_llvm",
+      "round": 15,
+      "elapsed_ns": 20975181,
+      "execution_order": 861
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang3_jit",
+      "round": 15,
+      "elapsed_ns": 23104865,
+      "execution_order": 862
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang2",
+      "round": 15,
+      "elapsed_ns": 114279933,
+      "execution_order": 863
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang3_jit",
+      "round": 16,
+      "elapsed_ns": 36107372,
+      "execution_order": 864
+    },
+    {
+      "workload": "object_create",
+      "engine": "python",
+      "round": 16,
+      "elapsed_ns": 21322960,
+      "execution_order": 865
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang3_llvm",
+      "round": 16,
+      "elapsed_ns": 29935336,
+      "execution_order": 866
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang2",
+      "round": 16,
+      "elapsed_ns": 108528764,
+      "execution_order": 867
+    },
+    {
+      "workload": "object_create",
+      "engine": "python",
+      "round": 17,
+      "elapsed_ns": 15629177,
+      "execution_order": 868
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang2",
+      "round": 17,
+      "elapsed_ns": 103855830,
+      "execution_order": 869
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang3_jit",
+      "round": 17,
+      "elapsed_ns": 27710657,
+      "execution_order": 870
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang3_llvm",
+      "round": 17,
+      "elapsed_ns": 26940348,
+      "execution_order": 871
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang2",
+      "round": 18,
+      "elapsed_ns": 97842110,
+      "execution_order": 872
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang3_llvm",
+      "round": 18,
+      "elapsed_ns": 23030591,
+      "execution_order": 873
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang3_jit",
+      "round": 18,
+      "elapsed_ns": 25333973,
+      "execution_order": 874
+    },
+    {
+      "workload": "object_create",
+      "engine": "python",
+      "round": 18,
+      "elapsed_ns": 14121217,
+      "execution_order": 875
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang2",
+      "round": 19,
+      "elapsed_ns": 96061627,
+      "execution_order": 876
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang3_llvm",
+      "round": 19,
+      "elapsed_ns": 22055953,
+      "execution_order": 877
+    },
+    {
+      "workload": "object_create",
+      "engine": "python",
+      "round": 19,
+      "elapsed_ns": 15059123,
+      "execution_order": 878
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang3_jit",
+      "round": 19,
+      "elapsed_ns": 24420372,
+      "execution_order": 879
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang2",
+      "round": 20,
+      "elapsed_ns": 91094322,
+      "execution_order": 880
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang3_jit",
+      "round": 20,
+      "elapsed_ns": 25584120,
+      "execution_order": 881
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang3_llvm",
+      "round": 20,
+      "elapsed_ns": 24507341,
+      "execution_order": 882
+    },
+    {
+      "workload": "object_create",
+      "engine": "python",
+      "round": 20,
+      "elapsed_ns": 14385143,
+      "execution_order": 883
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang2",
+      "round": 21,
+      "elapsed_ns": 99267307,
+      "execution_order": 884
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang3_llvm",
+      "round": 21,
+      "elapsed_ns": 23597266,
+      "execution_order": 885
+    },
+    {
+      "workload": "object_create",
+      "engine": "python",
+      "round": 21,
+      "elapsed_ns": 14478704,
+      "execution_order": 886
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang3_jit",
+      "round": 21,
+      "elapsed_ns": 25073119,
+      "execution_order": 887
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang3_llvm",
+      "round": 22,
+      "elapsed_ns": 24624346,
+      "execution_order": 888
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang2",
+      "round": 22,
+      "elapsed_ns": 92017652,
+      "execution_order": 889
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang3_jit",
+      "round": 22,
+      "elapsed_ns": 23762662,
+      "execution_order": 890
+    },
+    {
+      "workload": "object_create",
+      "engine": "python",
+      "round": 22,
+      "elapsed_ns": 15321075,
+      "execution_order": 891
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang3_jit",
+      "round": 23,
+      "elapsed_ns": 24210324,
+      "execution_order": 892
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang3_llvm",
+      "round": 23,
+      "elapsed_ns": 22163772,
+      "execution_order": 893
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang2",
+      "round": 23,
+      "elapsed_ns": 91657302,
+      "execution_order": 894
+    },
+    {
+      "workload": "object_create",
+      "engine": "python",
+      "round": 23,
+      "elapsed_ns": 15577747,
+      "execution_order": 895
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang2",
+      "round": 24,
+      "elapsed_ns": 108367316,
+      "execution_order": 896
+    },
+    {
+      "workload": "object_create",
+      "engine": "python",
+      "round": 24,
+      "elapsed_ns": 18556010,
+      "execution_order": 897
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang3_llvm",
+      "round": 24,
+      "elapsed_ns": 31816842,
+      "execution_order": 898
+    },
+    {
+      "workload": "object_create",
+      "engine": "soplang3_jit",
+      "round": 24,
+      "elapsed_ns": 47355713,
+      "execution_order": 899
+    },
+    {
+      "workload": "string_concat",
+      "engine": "python",
+      "round": 0,
+      "elapsed_ns": 13400881,
+      "execution_order": 900
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang3_llvm",
+      "round": 0,
+      "elapsed_ns": 12022911,
+      "execution_order": 901
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang3_jit",
+      "round": 0,
+      "elapsed_ns": 15794632,
+      "execution_order": 902
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang2",
+      "round": 0,
+      "elapsed_ns": 75191316,
+      "execution_order": 903
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang3_jit",
+      "round": 1,
+      "elapsed_ns": 13527090,
+      "execution_order": 904
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang2",
+      "round": 1,
+      "elapsed_ns": 70387282,
+      "execution_order": 905
+    },
+    {
+      "workload": "string_concat",
+      "engine": "python",
+      "round": 1,
+      "elapsed_ns": 13139158,
+      "execution_order": 906
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang3_llvm",
+      "round": 1,
+      "elapsed_ns": 11714823,
+      "execution_order": 907
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang3_llvm",
+      "round": 2,
+      "elapsed_ns": 12479979,
+      "execution_order": 908
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang3_jit",
+      "round": 2,
+      "elapsed_ns": 13873216,
+      "execution_order": 909
+    },
+    {
+      "workload": "string_concat",
+      "engine": "python",
+      "round": 2,
+      "elapsed_ns": 12314335,
+      "execution_order": 910
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang2",
+      "round": 2,
+      "elapsed_ns": 67973394,
+      "execution_order": 911
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang3_llvm",
+      "round": 3,
+      "elapsed_ns": 13299051,
+      "execution_order": 912
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang3_jit",
+      "round": 3,
+      "elapsed_ns": 12605577,
+      "execution_order": 913
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang2",
+      "round": 3,
+      "elapsed_ns": 65207735,
+      "execution_order": 914
+    },
+    {
+      "workload": "string_concat",
+      "engine": "python",
+      "round": 3,
+      "elapsed_ns": 11628675,
+      "execution_order": 915
+    },
+    {
+      "workload": "string_concat",
+      "engine": "python",
+      "round": 4,
+      "elapsed_ns": 13381418,
+      "execution_order": 916
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang2",
+      "round": 4,
+      "elapsed_ns": 66723686,
+      "execution_order": 917
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang3_jit",
+      "round": 4,
+      "elapsed_ns": 12980973,
+      "execution_order": 918
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang3_llvm",
+      "round": 4,
+      "elapsed_ns": 12308920,
+      "execution_order": 919
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang3_llvm",
+      "round": 5,
+      "elapsed_ns": 11573338,
+      "execution_order": 920
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang2",
+      "round": 5,
+      "elapsed_ns": 66099144,
+      "execution_order": 921
+    },
+    {
+      "workload": "string_concat",
+      "engine": "python",
+      "round": 5,
+      "elapsed_ns": 11623645,
+      "execution_order": 922
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang3_jit",
+      "round": 5,
+      "elapsed_ns": 13510036,
+      "execution_order": 923
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang3_jit",
+      "round": 6,
+      "elapsed_ns": 12592723,
+      "execution_order": 924
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang3_llvm",
+      "round": 6,
+      "elapsed_ns": 11642644,
+      "execution_order": 925
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang2",
+      "round": 6,
+      "elapsed_ns": 67397524,
+      "execution_order": 926
+    },
+    {
+      "workload": "string_concat",
+      "engine": "python",
+      "round": 6,
+      "elapsed_ns": 12208832,
+      "execution_order": 927
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang3_jit",
+      "round": 7,
+      "elapsed_ns": 13142499,
+      "execution_order": 928
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang2",
+      "round": 7,
+      "elapsed_ns": 65621641,
+      "execution_order": 929
+    },
+    {
+      "workload": "string_concat",
+      "engine": "python",
+      "round": 7,
+      "elapsed_ns": 11540462,
+      "execution_order": 930
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang3_llvm",
+      "round": 7,
+      "elapsed_ns": 12392196,
+      "execution_order": 931
+    },
+    {
+      "workload": "string_concat",
+      "engine": "python",
+      "round": 8,
+      "elapsed_ns": 11606964,
+      "execution_order": 932
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang3_jit",
+      "round": 8,
+      "elapsed_ns": 12732150,
+      "execution_order": 933
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang2",
+      "round": 8,
+      "elapsed_ns": 65710203,
+      "execution_order": 934
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang3_llvm",
+      "round": 8,
+      "elapsed_ns": 12286159,
+      "execution_order": 935
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang3_jit",
+      "round": 9,
+      "elapsed_ns": 13021116,
+      "execution_order": 936
+    },
+    {
+      "workload": "string_concat",
+      "engine": "python",
+      "round": 9,
+      "elapsed_ns": 12074916,
+      "execution_order": 937
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang2",
+      "round": 9,
+      "elapsed_ns": 62993754,
+      "execution_order": 938
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang3_llvm",
+      "round": 9,
+      "elapsed_ns": 11996062,
+      "execution_order": 939
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang2",
+      "round": 10,
+      "elapsed_ns": 69034273,
+      "execution_order": 940
+    },
+    {
+      "workload": "string_concat",
+      "engine": "python",
+      "round": 10,
+      "elapsed_ns": 13282560,
+      "execution_order": 941
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang3_llvm",
+      "round": 10,
+      "elapsed_ns": 12144748,
+      "execution_order": 942
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang3_jit",
+      "round": 10,
+      "elapsed_ns": 13470150,
+      "execution_order": 943
+    },
+    {
+      "workload": "string_concat",
+      "engine": "python",
+      "round": 11,
+      "elapsed_ns": 12281016,
+      "execution_order": 944
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang3_llvm",
+      "round": 11,
+      "elapsed_ns": 12163463,
+      "execution_order": 945
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang3_jit",
+      "round": 11,
+      "elapsed_ns": 13301961,
+      "execution_order": 946
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang2",
+      "round": 11,
+      "elapsed_ns": 68619419,
+      "execution_order": 947
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang3_jit",
+      "round": 12,
+      "elapsed_ns": 13490252,
+      "execution_order": 948
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang2",
+      "round": 12,
+      "elapsed_ns": 70279704,
+      "execution_order": 949
+    },
+    {
+      "workload": "string_concat",
+      "engine": "python",
+      "round": 12,
+      "elapsed_ns": 12255483,
+      "execution_order": 950
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang3_llvm",
+      "round": 12,
+      "elapsed_ns": 11418956,
+      "execution_order": 951
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang3_llvm",
+      "round": 13,
+      "elapsed_ns": 11873590,
+      "execution_order": 952
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang2",
+      "round": 13,
+      "elapsed_ns": 66993195,
+      "execution_order": 953
+    },
+    {
+      "workload": "string_concat",
+      "engine": "python",
+      "round": 13,
+      "elapsed_ns": 12816799,
+      "execution_order": 954
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang3_jit",
+      "round": 13,
+      "elapsed_ns": 12888773,
+      "execution_order": 955
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang2",
+      "round": 14,
+      "elapsed_ns": 66892827,
+      "execution_order": 956
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang3_jit",
+      "round": 14,
+      "elapsed_ns": 13658732,
+      "execution_order": 957
+    },
+    {
+      "workload": "string_concat",
+      "engine": "python",
+      "round": 14,
+      "elapsed_ns": 12853138,
+      "execution_order": 958
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang3_llvm",
+      "round": 14,
+      "elapsed_ns": 12024332,
+      "execution_order": 959
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang3_jit",
+      "round": 15,
+      "elapsed_ns": 12759304,
+      "execution_order": 960
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang2",
+      "round": 15,
+      "elapsed_ns": 66507188,
+      "execution_order": 961
+    },
+    {
+      "workload": "string_concat",
+      "engine": "python",
+      "round": 15,
+      "elapsed_ns": 11605788,
+      "execution_order": 962
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang3_llvm",
+      "round": 15,
+      "elapsed_ns": 11473071,
+      "execution_order": 963
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang3_llvm",
+      "round": 16,
+      "elapsed_ns": 11448151,
+      "execution_order": 964
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang3_jit",
+      "round": 16,
+      "elapsed_ns": 13150882,
+      "execution_order": 965
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang2",
+      "round": 16,
+      "elapsed_ns": 64832610,
+      "execution_order": 966
+    },
+    {
+      "workload": "string_concat",
+      "engine": "python",
+      "round": 16,
+      "elapsed_ns": 12040096,
+      "execution_order": 967
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang3_llvm",
+      "round": 17,
+      "elapsed_ns": 11537640,
+      "execution_order": 968
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang2",
+      "round": 17,
+      "elapsed_ns": 63884164,
+      "execution_order": 969
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang3_jit",
+      "round": 17,
+      "elapsed_ns": 12617719,
+      "execution_order": 970
+    },
+    {
+      "workload": "string_concat",
+      "engine": "python",
+      "round": 17,
+      "elapsed_ns": 12268121,
+      "execution_order": 971
+    },
+    {
+      "workload": "string_concat",
+      "engine": "python",
+      "round": 18,
+      "elapsed_ns": 11718984,
+      "execution_order": 972
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang3_llvm",
+      "round": 18,
+      "elapsed_ns": 11937378,
+      "execution_order": 973
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang3_jit",
+      "round": 18,
+      "elapsed_ns": 13002347,
+      "execution_order": 974
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang2",
+      "round": 18,
+      "elapsed_ns": 63037583,
+      "execution_order": 975
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang3_llvm",
+      "round": 19,
+      "elapsed_ns": 11121443,
+      "execution_order": 976
+    },
+    {
+      "workload": "string_concat",
+      "engine": "python",
+      "round": 19,
+      "elapsed_ns": 11538757,
+      "execution_order": 977
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang3_jit",
+      "round": 19,
+      "elapsed_ns": 12637795,
+      "execution_order": 978
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang2",
+      "round": 19,
+      "elapsed_ns": 65858866,
+      "execution_order": 979
+    },
+    {
+      "workload": "string_concat",
+      "engine": "python",
+      "round": 20,
+      "elapsed_ns": 11678152,
+      "execution_order": 980
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang3_jit",
+      "round": 20,
+      "elapsed_ns": 13072861,
+      "execution_order": 981
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang2",
+      "round": 20,
+      "elapsed_ns": 64606407,
+      "execution_order": 982
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang3_llvm",
+      "round": 20,
+      "elapsed_ns": 11717821,
+      "execution_order": 983
+    },
+    {
+      "workload": "string_concat",
+      "engine": "python",
+      "round": 21,
+      "elapsed_ns": 11643822,
+      "execution_order": 984
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang3_jit",
+      "round": 21,
+      "elapsed_ns": 13496316,
+      "execution_order": 985
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang2",
+      "round": 21,
+      "elapsed_ns": 63961583,
+      "execution_order": 986
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang3_llvm",
+      "round": 21,
+      "elapsed_ns": 11284740,
+      "execution_order": 987
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang2",
+      "round": 22,
+      "elapsed_ns": 64388739,
+      "execution_order": 988
+    },
+    {
+      "workload": "string_concat",
+      "engine": "python",
+      "round": 22,
+      "elapsed_ns": 11777884,
+      "execution_order": 989
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang3_jit",
+      "round": 22,
+      "elapsed_ns": 13471097,
+      "execution_order": 990
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang3_llvm",
+      "round": 22,
+      "elapsed_ns": 11482295,
+      "execution_order": 991
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang3_llvm",
+      "round": 23,
+      "elapsed_ns": 11480167,
+      "execution_order": 992
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang2",
+      "round": 23,
+      "elapsed_ns": 65740674,
+      "execution_order": 993
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang3_jit",
+      "round": 23,
+      "elapsed_ns": 13007956,
+      "execution_order": 994
+    },
+    {
+      "workload": "string_concat",
+      "engine": "python",
+      "round": 23,
+      "elapsed_ns": 11213275,
+      "execution_order": 995
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang3_llvm",
+      "round": 24,
+      "elapsed_ns": 11535590,
+      "execution_order": 996
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang2",
+      "round": 24,
+      "elapsed_ns": 67897406,
+      "execution_order": 997
+    },
+    {
+      "workload": "string_concat",
+      "engine": "soplang3_jit",
+      "round": 24,
+      "elapsed_ns": 14112970,
+      "execution_order": 998
+    },
+    {
+      "workload": "string_concat",
+      "engine": "python",
+      "round": 24,
+      "elapsed_ns": 12271127,
+      "execution_order": 999
+    }
+  ]
+}

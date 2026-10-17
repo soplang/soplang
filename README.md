@@ -12,7 +12,7 @@ Soplang is a programming language with syntax inspired by Somali, making program
 |------|-------------|
 | **src/** | Rust implementation: lexer, parser, semantic, HIR, runtime, Cranelift JIT, and AOT build backend. |
 | **examples/** | Soplang example programs (`.sop` files). |
-| **benchmarks/** | Compiler benchmark programs, [RESULTS.md](benchmarks/RESULTS.md), [README](benchmarks/README.md), and `run_benchmarks.sh` to regenerate results. |
+| **benchmarks/** | [Python/v2/v3 comparison](benchmarks/comparison/RESULTS.md), paired workloads, raw timings, charts, and internal Criterion benchmarks. |
 | **legacy-interpreter/** | Legacy interpreter code, now in the separate repo [`soplang/soplang-interpreter`](https://github.com/soplang/soplang-interpreter). |
 | **docs/** | Documentation (installation, language reference, contributing). |
 | **windows/**, **linux/**, **macos/** | Platform-specific build and packaging scripts. |
@@ -70,19 +70,18 @@ Or: `make build`, `make run FILE=examples/01_hello.sop`, `make shell`, `make tes
 
 ## Benchmark results
 
-The **compiler** (Cranelift JIT) is benchmarked with [Criterion](https://github.com/bheisler/criterion.rs). Summary (release build, in-process):
+The [Python vs Soplang 2 vs Soplang 3 comparison](benchmarks/comparison/RESULTS.md)
+measures ten equivalent workloads with checked output: Python, the tagged v2
+interpreter, v3 Cranelift JIT, and v3 LLVM executables. It includes
+[raw samples](benchmarks/comparison/samples.csv), a [chart](benchmarks/comparison/results.svg),
+and [reproduction instructions](benchmarks/comparison/README.md).
 
-| Benchmark | Mean time |
-|-----------|-----------|
-| fib(25) recursive | ~25.6 ms |
-| loop sum 1..100k | ~9.9 ms |
-| nested loops 200×200 | ~4.2 ms |
-| string concat 1k | ~0.67 ms |
-| list ops 5k elements | ~1.3 ms |
-| object create 2k | ~252 µs |
+Times include process startup. JIT compilation is included; LLVM build time is
+reported separately. Results apply to the measured workloads and machine.
 
-**How to run:** `cargo bench` or `bash benchmarks/run_benchmarks.sh` (regenerates RESULTS.md).  
-**Details:** [benchmarks/RESULTS.md](benchmarks/RESULTS.md). **Benchmark names and performance notes:** [benchmarks/README.md](benchmarks/README.md).
+`cargo bench` runs the separate in-process Criterion suite. See
+[benchmarks/README.md](benchmarks/README.md) for both suites and the historical
+compiler-only measurements.
 
 ## Legacy interpreter
 

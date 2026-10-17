@@ -1,0 +1,2 @@
+# The v2 package imports its shell even when using the core file runner.
+colorama==0.4.6

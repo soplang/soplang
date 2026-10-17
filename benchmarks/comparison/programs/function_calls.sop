@@ -1,0 +1,7 @@
+hawl add_one(value) { celi value + 1 }
+hawl compute() {
+    door total = 0
+    kuceli (i 1 ilaa 20000) { total = add_one(total) }
+    celi total
+}
+qor(compute())

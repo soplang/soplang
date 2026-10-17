@@ -1,0 +1,8 @@
+hawl compute() {
+    door values = []
+    kuceli (i 1 ilaa 5000) { values.kudar(i) }
+    door total = 0
+    kuceli (i 0 ilaa 4999) { total = total + values[i] }
+    celi total
+}
+qor(compute())

@@ -10,7 +10,7 @@ Tests check user-visible behavior of the Rust compiler:
 2. **Unit tests** cover the lexer, parser, semantic analysis, HIR, and runtime.
 3. **Integration tests** run the `soplang` binary on short programs and on example files.
 4. **Diagnostic examples** in `examples/errors/` check Somali messages, original files, line/column positions, and caret alignment.
-5. **Benchmarks** measure the Cranelift JIT. See [benchmarks/README.md](../../benchmarks/README.md).
+5. **Benchmarks** include the in-process Cranelift suite and a fresh-process Python/v2/v3 comparison. See [benchmarks/README.md](../../benchmarks/README.md).
 
 ## Pages
 

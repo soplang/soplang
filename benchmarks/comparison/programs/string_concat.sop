@@ -1,0 +1,6 @@
+hawl compute() {
+    door text = ""
+    kuceli (i 1 ilaa 5000) { text = text + "a" }
+    celi dherer(text)
+}
+qor(compute())

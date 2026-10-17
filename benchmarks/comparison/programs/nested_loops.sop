@@ -1,0 +1,8 @@
+hawl compute() {
+    door total = 0
+    kuceli (i 1 ilaa 200) {
+        kuceli (j 1 ilaa 200) { total = total + 1 }
+    }
+    celi total
+}
+qor(compute())

@@ -18,7 +18,7 @@ Tests check what a Soplang program prints and which errors the compiler reports.
 
 `tests/interpreter_tests.rs` is an integration suite. It spawns the compiler binary. It does not walk an AST.
 
-Benchmarks live under `benchmarks/` and run with `cargo bench`. They time the Cranelift JIT, not a second implementation.
+The in-process Cranelift benchmarks run with `cargo bench`. The separate [Python/v2/v3 comparison](../../benchmarks/comparison/README.md) runs equivalent programs in fresh processes and validates every output. It exports the original v2 tag for measurement; v2 is not part of the compiler test pipeline.
 
 ## Running
 
@@ -30,7 +30,7 @@ cargo test --test interpreter_tests test_nested_function_keeps_outer_local
 cargo bench
 ```
 
-AOT tests invoke `cargo build` for a generated runner, so the full `cargo test` is slower than the other suites.
+AOT tests emit LLVM IR and invoke clang and rustc to build executables, so the full `cargo test` requires both tools.
 
 `make test` and `make bench` call the same Cargo commands.
 
