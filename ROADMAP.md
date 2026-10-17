@@ -7,7 +7,7 @@ and tests are complete.
 
 ## Version policy
 
-Soplang is on the **version 3 product line**. The current release target is
+Soplang is on the **version 3 product line**. The released baseline is
 `3.0.0`, and planned releases use `3.x.y` versions.
 
 - `3.x.0` releases may add compatible language, runtime, library, and tooling
@@ -27,6 +27,36 @@ compatibility obligations.
 The [terminology review](docs/language/terminology.md) records the existing
 vocabulary, evidence, proposed changes, and compatibility decisions required
 before introducing new canonical names.
+
+## Implementation priorities
+
+File access and web application development are planned standard-library and
+runtime capabilities. Their dependency order is:
+
+| Order | Capability | Planned milestone |
+| --- | --- | --- |
+| 1 | Memory reclamation, resource cleanup, and recoverable execution errors | 3.1 runtime foundations |
+| 2 | Iteration, byte arrays, and stronger function and data contracts | 3.2 language foundations |
+| 3 | Text files, directories, paths, JSON, and application configuration | First part of 3.3 |
+| 4 | HTTP client and a limited HTTP server for JSON APIs | After the file and data foundations in 3.3 |
+| 5 | Modules, packages, and web application facilities such as middleware and database access | 3.4 and subsequent 3.x additions |
+| 6 | Concurrent request handling, asynchronous I/O, streaming, and WebSockets | 3.6 after its runtime prerequisites |
+
+Whole-file text operations can be implemented independently of binary streams.
+A limited sequential HTTP server can precede public async syntax. Concurrent
+servers require an explicit execution and isolation model before release.
+
+The initial web API should use simple route registration and request/response
+objects inspired by Express, with explicit server configuration and shutdown
+inspired by Go. Its implementation belongs in the Rust runtime and must work
+with both Cranelift JIT execution and LLVM-built executables. The first server
+targets JSON APIs; HTML rendering, forms, uploads, and database integrations
+follow separately.
+
+These milestones express order and intended scope, not delivery dates. Public
+Somali names, signatures, and the underlying Rust HTTP library require focused
+design review before implementation. Documentation remains in English, with
+Soplang syntax and actual Somali diagnostic output preserved.
 
 ## Soplang 3.0 — compiled language foundation
 
@@ -58,6 +88,8 @@ and reports failures precisely.
 3. Preserve cycle-safe collection formatting and equality.
 4. Add stress tests for long-running programs and REPL sessions.
 5. Keep Cranelift JIT and LLVM AOT runtime behavior identical.
+6. Define ownership and cleanup for external resources such as file handles
+   and network connections.
 
 The memory design must compare reference counting, reusable handle tables, and
 tracing collection before an implementation is selected.
@@ -69,6 +101,21 @@ tracing collection before an implementation is selected.
 3. Add user-raised structured errors.
 4. Add guaranteed cleanup blocks equivalent to `finally`.
 5. Preserve error causes when one error wraps another.
+
+### Foundations for long-running applications
+
+1. Add an execution boundary that lets a server contain a request-handler
+   failure, return an error response, and continue serving requests.
+2. Reclaim temporary request values and retained callbacks according to the
+   memory model; test repeated successful and failing requests for unbounded
+   memory growth.
+3. Define the lifetime of globals, closures, request data, and application state.
+4. Keep existing CLI behavior: an uncaught top-level failure still reports a
+   Somali diagnostic and exits unsuccessfully.
+
+The current runtime's thread-local heaps and values must not be passed to
+arbitrary worker threads. Concurrent execution needs the isolation and value
+ownership design planned for 3.6.
 
 ### Strings and calls
 
@@ -120,21 +167,56 @@ parser and iterator protocol are implemented.
 ## Soplang 3.3 — files, structured data, and networking
 
 This release grows the standard library after runtime resource handling is in
-place.
+place. Implement file and JSON foundations first, followed by the HTTP client
+and limited JSON server. Each part must pass its own release gates before the
+next depends on it.
 
-### Files and paths
+### Initial text file access
 
-1. Read, write, and append text files.
-2. Read and write byte arrays.
-3. Guarantee safe resource cleanup.
-4. Query file existence and metadata.
-5. Copy, move, rename, and delete files.
-6. Create, inspect, and remove directories.
-7. Join and normalize cross-platform paths.
+1. Read an entire UTF-8 text file into a string.
+2. Create or overwrite a text file with an explicit write operation.
+3. Append text with a separate operation that preserves existing content.
+4. Open and close resources automatically for these convenience operations,
+   including when an operation fails.
+5. Report missing files, permission failures, invalid UTF-8, and other I/O
+   failures as catchable Somali errors with source locations.
+
+Writing replaces existing content; appending is a distinct operation. Text
+operations must not silently replace invalid UTF-8. Relative filesystem paths
+are resolved from the process working directory. `keen` keeps its existing
+rule of resolving imports relative to the importing source file.
+
+### File management, directories, and paths
+
+1. Query existence, file type, size, and modification time.
+2. Copy, move, rename, and delete files.
+3. Create directories, list their entries, and remove directories.
+4. Join paths and resolve relative paths across Linux, Windows, and macOS.
+5. Specify overwrite behavior, recursive directory operations, symbolic-link
+   handling, and cross-filesystem moves before publishing the API.
+
+Filesystem APIs should live in a dedicated standard-library module with short,
+consistent Somali names. Where operations match existing collection APIs,
+reuse their vocabulary and contracts where practical. Module names and method
+names remain design decisions until the terminology review is complete.
+
+### Binary files and advanced file access
+
+After the initial text API and byte-array type are available, add:
+
+1. Whole-file byte reads and writes.
+2. Explicit open handles, access modes, flush, and close operations.
+3. Line-by-line reading, bounded chunks, and streaming large files.
+4. File positions and seeking.
+5. Atomic replacement where supported, with documented platform guarantees.
+
+Handles require guaranteed cleanup on success and failure, including early
+returns. File watching is a later 3.x extension. Basic text access does not
+wait for handles, streaming, or file watching.
 
 ### Structured data and utilities
 
-1. JSON parsing and generation.
+1. JSON parsing and generation, available before JSON HTTP handlers.
 2. CSV reading and writing.
 3. URL encoding and decoding.
 4. Base64 encoding and decoding.
@@ -142,6 +224,11 @@ place.
 6. Date, time, duration, parsing, and formatting APIs.
 7. Program arguments and environment variables.
 8. Child processes, exit codes, and captured command output.
+
+JSON conversion must define how Soplang values map to JSON, how malformed
+input is reported, and which values cannot be serialized. JSON parse and
+serialization failures must be catchable. Program arguments and environment
+variables provide configuration for file-based tools and server applications.
 
 ### Synchronous HTTP client
 
@@ -158,7 +245,39 @@ The first network API should provide:
    network availability.
 
 The HTTP API should use a dedicated module. Its Somali module and method names
-must be decided before becoming public.
+must be decided before becoming public. This milestone must supply the minimum
+standard-library module access needed by file, JSON, and HTTP APIs; the complete
+user-defined namespace and package system remains planned for 3.4.
+
+### Initial HTTP server for JSON APIs
+
+The first server should provide a small application API backed by a maintained
+Rust HTTP implementation:
+
+1. Register handlers for GET, POST, PUT, PATCH, and DELETE routes.
+2. Match fixed paths and named path parameters such as `/users/:id`.
+3. Expose request method, path, query parameters, headers, and bounded text or
+   JSON request bodies.
+4. Construct responses with status codes, headers, text, JSON, and redirects.
+5. Return predictable 404 responses and contain handler failures as 500
+   responses while keeping the server running.
+6. Configure host and port, request-body limits, connection limits, and read
+   and write timeouts.
+7. Stop accepting requests and release server resources on graceful shutdown.
+8. Run the same application through JIT during development and as an LLVM-built
+   native executable for deployment.
+
+The initial execution model may handle one request at a time. Document that
+limitation and verify that repeated requests do not leak runtime values or
+resources. Public async/await syntax is not a prerequisite for this milestone.
+Production readiness requires memory, failure-isolation, resource-limit, and
+shutdown tests; accepting an HTTP request alone is not sufficient.
+
+Route registration, handler signatures, request/response lifetimes, and error
+propagation require an API proposal. Request/response values need a supported
+way to call retained Soplang functions and closures through both backends.
+Express-like ergonomics and Go-like server configuration guide the design;
+the final Somali API and internal Rust library have not been selected.
 
 ### Lower-level networking
 
@@ -169,8 +288,8 @@ After the HTTP client is stable, 3.3 may add:
 - UDP sockets.
 - A WebSocket client.
 
-An HTTP server framework waits for the concurrency and asynchronous I/O work in
-3.6.
+Advanced concurrent servers, streaming bodies, and WebSocket servers follow
+the concurrency and asynchronous I/O work in 3.6.
 
 ## Soplang 3.4 — modules and packages
 
@@ -196,6 +315,25 @@ An HTTP server framework waits for the concurrency and asynchronous I/O work in
 Package downloads will use the HTTP and archive foundations from 3.3. Whether
 the first package source is Git repositories or a dedicated registry remains a
 design decision.
+
+### Web application facilities
+
+After the initial JSON server and module interfaces are stable, develop these
+as standard-library or package additions across 3.4 and later 3.x releases:
+
+1. Composable routers and middleware with a defined execution order and error
+   propagation contract.
+2. Static file responses with a configured document root and path containment.
+3. HTML responses, template rendering, and form parsing.
+4. Bounded multipart uploads and downloads, with streaming dependent on 3.6.
+5. Cookies and sessions, with documented storage and expiration behavior.
+6. Database drivers, beginning with a separately selected database and covering
+   parameterized queries, transactions, connection lifetimes, and cleanup.
+
+Database support is a separate deliverable from serving JSON APIs. Database
+selection, session storage, and template engines need their own proposals;
+the initial server does not commit the language to a particular framework or
+database abstraction.
 
 ## Soplang 3.5 — developer tooling
 
@@ -253,15 +391,19 @@ APIs.
 The project must decide whether Soplang exposes explicit async/await syntax or
 uses another task model before this work begins.
 
-### Server capabilities
+### Advanced server capabilities
 
-1. HTTP server primitives.
-2. Routing and middleware foundations.
-3. Request and response objects.
-4. Streaming bodies.
-5. WebSocket servers.
-6. Graceful shutdown.
-7. Connection, request, and resource limits.
+Build on the sequential JSON server and request/response API from 3.3:
+
+1. Concurrent request handling with explicit isolation and safe application
+   state sharing.
+2. Cancellation and deadlines propagated through handlers and I/O.
+3. Streaming request and response bodies with backpressure.
+4. WebSocket servers and defined connection lifetimes.
+5. Graceful draining of active requests and connections during shutdown.
+6. Bounded queues and limits on concurrent requests and retained resources.
+7. Stress and load tests covering slow clients, disconnects, failures, and
+   sustained memory use.
 
 ## Later Soplang 3.x — advanced ecosystem
 
@@ -292,6 +434,12 @@ their implementation release begins:
 5. Networking: the HTTP module API and lower-level socket abstractions.
 6. Concurrency: tasks and channels, async/await, or another model.
 7. Packages: Git-based sources, a dedicated registry, or a staged combination.
+8. Filesystem: Somali vocabulary, access modes, cleanup, overwrite behavior,
+   directory recursion, path rules, and platform-specific guarantees.
+9. Web APIs: route registration, handler callbacks, request/response types,
+   middleware, error containment, and the Rust HTTP implementation.
+10. Web application integrations: database drivers, templates, and session
+    storage, delivered independently after the initial JSON server.
 
 ## Release requirements
 
@@ -304,4 +452,10 @@ Every Soplang 3 release must:
 5. Document new syntax and public APIs in the language reference.
 6. Include migration notes for changed behavior.
 7. Build and verify supported platform and container artifacts.
+8. Test filesystem APIs in temporary directories on supported platforms,
+   including UTF-8, binary data where supported, failed operations, path
+   behavior, and resource cleanup.
+9. Test servers with controlled local clients through both backends, covering
+   routing, JSON, request limits, handler failures, shutdown, and repeated
+   requests without unbounded memory growth.
 
