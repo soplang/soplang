@@ -1,280 +1,115 @@
-# Soplang Installation Guide
+# Installing Soplang 3
 
-This guide provides detailed instructions for installing Soplang on Windows, Linux, and macOS platforms.
+[Soplang 3.0.0](https://github.com/soplang/soplang/releases/tag/v3.0.0) is available
+for Linux x86_64, Windows x64, and macOS Apple Silicon. A Linux amd64 Docker
+image includes the compiler and its native build toolchain.
 
-## Quick Start
+## Release packages
 
-For the fastest way to get started:
+Download the package for your platform and the release's combined `SHA256SUMS`.
 
-1. **Download Soplang**: Get the latest version from our [official Soplang releases page](https://github.com/sharafdin/soplang/releases)
-2. **Choose your installer**: Select the appropriate installer for your platform (.exe for Windows, .deb/.rpm for Linux, .dmg for macOS)
-3. **Follow platform-specific instructions**: See the relevant section below for your operating system
+| Platform | Package | Requirements |
+| --- | --- | --- |
+| Linux x86_64 | `soplang_3.0.0_amd64.deb` or `soplang-3.0.0-linux-x86_64.tar.gz` | glibc 2.39 or later; libgcc |
+| Windows x64 | `soplang-setup.exe` or `soplang-3.0.0-windows-AMD64.zip` | Native Windows x64 environment |
+| macOS Apple Silicon | `soplang-3.0.0-macos-arm64.tar.gz` | The app bundle declares macOS 14.8.9 or later |
 
-## Table of Contents
+The Windows installer is unsigned; the macOS archive is not notarized.
+This release provides archives and a Debian package; RPM and DMG assets are
+not attached to v3.0.0. The macOS builder can optionally generate a DMG locally.
 
-- [Universal Installation Method](#universal-installation-method)
-- [Windows Installation](#windows-installation)
-  - [Using the Installer](#using-the-installer)
-  - [Building from Source on Windows](#building-from-source-on-windows)
-  - [Troubleshooting Windows Installation](#troubleshooting-windows-installation)
-- [Linux Installation](#linux-installation)
-  - [Using Package Manager](#using-package-manager)
-  - [Building from Source on Linux](#building-from-source-on-linux)
-  - [Troubleshooting Linux Installation](#troubleshooting-linux-installation)
-- [macOS Installation](#macos-installation)
-  - [Using the DMG Image](#using-the-dmg-image)
-  - [Building from Source on macOS](#building-from-source-on-macos)
-  - [Troubleshooting macOS Installation](#troubleshooting-macos-installation)
-- [Verifying Your Installation](#verifying-your-installation)
-- [Next Steps](#next-steps)
+All native platforms passed the [release verification gates](testing/RELEASE_VERIFICATION.md).
 
-## Universal Installation Method (Rust)
+### Verify downloads
 
-The primary way to build Soplang is via Cargo:
+Keep `SHA256SUMS` next to your downloads. On Linux/macOS, check a selected
+file against its entry, or use the full manifest after downloading all assets:
 
-```bash
-# Clone the repository
-git clone https://github.com/sharafdin/soplang.git
-cd soplang
+```sh
+# Linux, when all listed assets are present:
+sha256sum -c SHA256SUMS
 
-# Build release binary
-cargo build --release
-
-# Run Soplang
-./target/release/soplang examples/01_hello.sop
-./target/release/soplang -i   # Interactive REPL
+# macOS, when all listed assets are present:
+shasum -a 256 -c SHA256SUMS
 ```
 
-**Prerequisites:** [Rust toolchain](https://rustup.rs/) (rustc, cargo).
+On Windows, compare `Get-FileHash <download> -Algorithm SHA256` with the matching
+line in `SHA256SUMS`. The manifest covers packages for all platforms.
 
-## Windows Installation
+## Linux
 
-### Using the Installer
+Install the Debian package:
 
-1. Download the Soplang installer (`soplang-setup.exe`) from the [official Soplang releases page](https://github.com/sharafdin/soplang/releases).
-2. Run the installer and follow the on-screen instructions.
-3. During installation, you can choose to:
-   - Add Soplang to the PATH environment variable
-   - Create desktop and Start menu shortcuts
-   - Associate `.sop` and `.so` files with Soplang
-
-After installation, you can:
-- Run Soplang from the Start menu
-- Double-click `.sop` or `.so` files to run them with Soplang
-- Open a Command Prompt and type `soplang` to start the REPL
-
-### Building from Source on Windows
-
-#### Prerequisites
-
-- [Rust toolchain](https://rustup.rs/) (rustc, cargo)
-- Git - [Download Git](https://git-scm.com/download/win)
-
-For creating Windows installers, you may also need Inno Setup 6 and platform-specific packaging scripts.
-
-#### Build Steps
-
-1. Clone the repository:
-   ```powershell
-   git clone https://github.com/sharafdin/soplang.git
-   cd soplang/windows
-   ```
-
-2. Build with Cargo:
-   ```powershell
-   cargo build --release
-   ```
-
-3. The binary will be at:
-   - `target\release\soplang.exe`
-
-4. Run the installer to install Soplang on your system.
-
-### Troubleshooting Windows Installation
-
-- **Missing Rust**: Install via [rustup.rs](https://rustup.rs/)
-- **Build errors**: Ensure `cargo build --release` completes; check for missing Visual Studio Build Tools on Windows
-- **"Publisher: Unknown" warning**: This is normal if the installer isn't digitally signed
-- **File association issues**: Ensure you selected the file association option during installation
-
-## Linux Installation
-
-### Using Package Manager
-
-#### Debian/Ubuntu and Derivatives
-
-1. Download the `.deb` package from the [official Soplang releases page](https://github.com/sharafdin/soplang/releases).
-2. Install using:
-```bash
-sudo dpkg -i soplang_<version>_amd64.deb
+```sh
+sudo dpkg -i soplang_3.0.0_amd64.deb
+soplang --version
 ```
 
-If there are dependency issues:
-```bash
-sudo apt install -f
+Or extract the archive:
+
+```sh
+tar -xzf soplang-3.0.0-linux-x86_64.tar.gz
+./soplang/soplang --version
 ```
 
-#### Fedora/RHEL and Derivatives
+Keep the archive's executable and `lib/soplang` together. Add the extracted
+`soplang` directory to PATH if desired. Debian installs the executable at
+`/usr/bin/soplang` and runtime libraries at `/usr/lib/soplang`.
 
-1. Download the `.rpm` package from the [official Soplang releases page](https://github.com/sharafdin/soplang/releases).
-2. Install using:
-```bash
-sudo rpm -i soplang-<version>.x86_64.rpm
+## Windows
+
+Run `soplang-setup.exe`. Its optional tasks add Soplang to PATH and associate
+`.sop` and `.so` source files. Open a new terminal after installation:
+
+```powershell
+soplang --version
+soplang -c 'qor("Salaan!")'
 ```
 
-### Building from Source on Linux
+Alternatively, extract the ZIP and run `soplang.exe` inside the extracted
+`soplang` directory. Keep its `lib` directory beside the executable.
 
-#### Prerequisites
+## macOS
 
-1. Install the Rust toolchain:
-   ```bash
-   # Debian/Ubuntu
-   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+Extract the Apple Silicon archive:
 
-   # Fedora/RHEL
-   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-   ```
+```sh
+tar -xzf soplang-3.0.0-macos-arm64.tar.gz
+./Soplang.app/Contents/MacOS/soplang --version
+```
 
-2. Install ImageMagick (for icon conversion):
-   ```bash
-   # Debian/Ubuntu
-   sudo apt install imagemagick
+This is a command-line application. Keep the complete app bundle and add its
+`Contents/MacOS` directory to PATH if desired. Intel Mac packages are not part
+of this release; [build from source](BUILD_GUIDE.md) for other targets.
 
-   # Fedora/RHEL
-   sudo dnf install imagemagick
-   ```
+## Docker
 
-3. Install packaging tools (optional):
-   ```bash
-   # Debian/Ubuntu
-   sudo apt install dpkg-dev
+The public image is available from Docker Hub:
 
-   # Fedora/RHEL
-   sudo dnf install rpm-build
-   ```
+```sh
+docker run --rm soplang/soplang:3.0.0 --version
+docker run --rm -v "$PWD:/scripts:ro" soplang/soplang:3.0.0 program.sop
+docker run -it --rm soplang/soplang:3.0.0
+```
 
-#### Build Steps
+See [Docker usage](docker.md) for native builds, writable mounts, and registry
+availability.
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/sharafdin/soplang.git
-   cd soplang/linux
-   ```
+## Run programs and build executables
 
-2. Make the build script executable:
-   ```bash
-   chmod +x build_linux.sh
-   ```
+```sh
+soplang program.sop
+soplang -c 'qor("Salaan!")'
+soplang
+soplang --build program.sop -o program
+```
 
-3. Run the build script:
-   ```bash
-   ./build_linux.sh
-   ```
+JIT execution and the REPL do not need Rust or clang. Native `--build` requires
+clang, a platform linker/SDK, and the exact Rust toolchain recorded in the
+package. Official v3.0.0 packages use Rust 1.94.0. See
+[installed build requirements](INSTALLING_PACKAGES.md) before building programs.
+The Docker image includes these tools.
 
-4. After the build completes, you'll find:
-   - Standalone executable: `dist/soplang/soplang`
-   - Debian package (Debian-based systems): `linux/soplang_<version>_amd64.deb`
-   - RPM package (Red Hat-based systems): `linux/soplang-<version>.x86_64.rpm`
-
-5. Install the appropriate package for your system (see [Using Package Manager](#using-package-manager)).
-
-### Troubleshooting Linux Installation
-
-- **Missing Rust**: Run `rustc --version` and `cargo --version`; install via rustup if needed
-- **Permission issues**: Make sure scripts are executable with `chmod +x *.sh`
-- **Package conflicts**: On Debian/Ubuntu, try `sudo apt --fix-broken install`
-- **Executable not found**: Ensure Soplang is in your PATH or try running `/usr/bin/soplang`
-
-## macOS Installation
-
-### Using the DMG Image
-
-1. Download the Soplang disk image (`Soplang-<version>.dmg`) from the [official Soplang releases page](https://github.com/sharafdin/soplang/releases).
-2. Open the `.dmg` file.
-3. Drag `Soplang.app` to your Applications folder.
-4. Eject the disk image.
-
-After installation, you can:
-- Launch Soplang from the Applications folder or Dock
-- Double-click `.sop` or `.so` files to open them with Soplang
-- Open Terminal and run `/Applications/Soplang.app/Contents/MacOS/soplang`
-
-### Building from Source on macOS
-
-#### Prerequisites
-
-1. Install the Rust toolchain:
-   ```bash
-   # Using Homebrew (recommended)
-   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-   ```
-
-2. Install create-dmg (optional, for creating disk image):
-   ```bash
-   brew install create-dmg
-   ```
-
-#### Build Steps
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/sharafdin/soplang.git
-   cd soplang/macos
-   ```
-
-2. Make the build script executable:
-   ```bash
-   chmod +x build_macos.sh
-   ```
-
-3. Run the build script:
-   ```bash
-   ./build_macos.sh
-   ```
-
-4. After the build completes, you'll find:
-   - App Bundle: `dist/Soplang.app`
-   - Disk Image (if create-dmg is installed): `macos/Soplang-<version>.dmg`
-
-5. Drag `Soplang.app` to your Applications folder or run the DMG installer.
-
-### Troubleshooting macOS Installation
-
-- **Build errors**: Make sure Rust is installed (`rustc --version`)
-- **Icon creation fails**: Ensure you're using a high-quality source image
-- **App won't open**: Check Console.app for logs about why the app was prevented from opening
-- **"App is damaged"**: This is a security feature of macOS. Open System Preferences → Security & Privacy and click "Open Anyway" for Soplang
-- **"Unknown developer" warning**: Control-click (or right-click) the app and select "Open" from the shortcut menu
-
-## Verifying Your Installation
-
-After installing Soplang, verify that it's working properly:
-
-1. Open a terminal or command prompt and run:
-   ```bash
-   soplang -v
-   ```
-   You should see the Soplang version information.
-
-2. Run a simple Soplang program:
-   ```bash
-   soplang -c 'qor("Hello from Soplang!")'
-   ```
-   You should see the output: `Hello from Soplang!`
-
-3. Try the interactive shell:
-   ```bash
-   soplang
-   ```
-   You should see the Soplang welcome message and prompt.
-
-## Next Steps
-
-Now that you have Soplang installed, you can:
-
-1. [Learn the basics of Soplang](language/keywords.md)
-2. [Explore example programs](examples/)
-3. [Create your first Soplang program](language/tutorial.md)
-4. [Contribute to Soplang development](CONTRIBUTING.md)
-
-For more information, visit the [Soplang website](https://www.soplang.org/).
+To build the compiler itself, follow the [source build guide](BUILD_GUIDE.md).
+For language examples and source diagnostics, start with the
+[example catalog](../examples/README.md) and [language reference](language/keywords.md).

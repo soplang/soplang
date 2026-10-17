@@ -772,7 +772,7 @@ fn bench_fib(c: &mut Criterion) {
 }
 ```
 
-Compare `cargo bench` results vs `python -m psrc` using `hyperfine`.
+The implemented [comparison suite](benchmarks/comparison/README.md) runs equivalent Python, tagged v2 interpreter, v3 JIT, and LLVM programs in fresh processes. It records validated raw timings and separate build costs; see [measured results](benchmarks/RESULTS.md). Criterion remains the separate in-process compiler suite.
 
 #### 7.4 — Update root `Makefile`
 
@@ -800,7 +800,7 @@ bench:
 ### Deliverable
 - All Rust unit + integration tests pass (`cargo test`)
 - Examples with `.expected` fixtures match the Rust binary output
-- Benchmark shows measurable speedup over Python
+- Benchmarks report measured Python/v2/v3 performance by workload, with validated outputs and reproducible data
 - `make build` + `make run FILE=examples/01_hello.sop` works from repo root
 
 ---

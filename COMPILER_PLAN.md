@@ -444,7 +444,7 @@ pub fn run_source(source: &str, path: Option<&Path>) -> Result<(), SoplangError>
 2. Ensure `lib.rs` and `main.rs` use only semantic → HIR → Cranelift (run) or LLVM (build).
 3. REPL/shell: compile each line with Cranelift and run in a persistent context.
 4. Tests: all use `run_source` (Cranelift); no references to `Interpreter`.
-5. Benchmarks: measure Cranelift run and LLVM-built binary; update RESULTS.md.
+5. Benchmarks: the [Python/v2/v3 comparison](benchmarks/RESULTS.md) measures Cranelift runs and LLVM-built executables with validated outputs and raw samples.
 6. Docs: README and COMPILER_PLAN state “compiled language; Cranelift for run, LLVM for build”.
 
 ### Deliverable

@@ -1,72 +1,63 @@
-# Historical Soplang Compiler Benchmarks
+# Soplang benchmark results
 
-These are older, compiler-only, in-process results. They are not the v3.0.0
-comparison with Python and v2. See the [current comparison](comparison/RESULTS.md).
-Some historical workload labels undercount inclusive loop bounds; the current
-comparison uses separate, explicitly checked workloads.
+## Python vs Soplang 2 vs Soplang 3
 
-> Auto-generated on **2026-02-20 11:07:46 UTC**
-> System: `Linux 6.18.7-arch1-1 x86_64` | `rustc 1.91.1 (ed61e7d7e 2025-11-07)` | `cargo 1.91.1 (ea2d97820 2025-10-10)`
+Measured **2026-10-17** on an **Intel Core i7-1185G7**, Linux x86_64, using
+**CPython 3.14.7** for both the Python baseline and the v2 interpreter.
+The v3 compiler was built in Cargo release mode; LLVM executables used optimization level 2.
 
-## Benchmark Programs
+Ten workloads, four execution modes, **25 measured runs and 5 warmups per cell**:
+**1,000 measured processes**, each checked for the expected output and a successful exit.
+Engine order was interleaved with a fixed seed and processes were pinned to logical CPU 2.
 
-| Benchmark | Description | Workload |
-|-----------|-------------|----------|
-| fib_recursive | Recursive Fibonacci | fib(25) = 75025 |
-| loop_sum | Tight for-loop | Sum 1..100,000 |
-| nested_loops | Nested loop dispatch | 200 x 200 iterations |
-| string_concat | String concatenation | 1,000 appends |
-| list_ops | List push + traversal | 5,000 elements |
-| object_create | Object allocation | 2,000 objects |
+### Median wall time
 
-## Criterion Results (compiler — Cranelift JIT)
+All values are **milliseconds; lower is better**. Times include process startup.
+JIT compilation is included. LLVM build time is recorded separately.
 
-In-process: Lex → Parse → HIR → Cranelift JIT → execute (same path as `soplang file.sop`).
+| Workload | Python 3.14.7 | Soplang 2 interpreter | Soplang 3 JIT | Soplang 3 LLVM |
+| --- | ---: | ---: | ---: | ---: |
+| startup | 11.194 | 52.342 | 2.846 | 1.972 |
+| integer_sum | 13.960 | 222.053 | 42.774 | 41.791 |
+| integer_sum_typed | 13.791 | 280.631 | 83.952 | 83.268 |
+| float_sum_typed | 15.390 | 321.467 | 100.254 | 102.938 |
+| nested_loops | 13.115 | 129.016 | 22.305 | 21.196 |
+| fibonacci | 20.877 | 1265.457 | 171.612 | 142.999 |
+| function_calls | 15.821 | 205.235 | 26.083 | 23.973 |
+| list_push_index | 12.164 | 80.566 | 9.740 | 8.161 |
+| object_create | 15.321 | 98.817 | 25.334 | 23.677 |
+| string_concat | 12.075 | 66.099 | 13.142 | 11.718 |
 
+### Findings
 
-| Benchmark | Mean | Low | High |
-|-----------|------|-----|------|
-| fibonacci/fib_25_full | 25.62 ms | 24.93 ms | 26.27 ms |
-| loops/loop_sum_100k | 9.90 ms | 9.62 ms | 10.08 ms |
-| loops/nested_loops_200x20 | 4.20 ms | 4.07 ms | 4.35 ms |
-| strings/string_concat_1 | 0.67 ms | 0.65 ms | 0.69 ms |
-| lists/list_ops_5k | 1.30 ms | 1.28 ms | 1.34 ms |
-| objects/object_create_2 | 251.69 µs | 240.42 µs | 259.04 µs |
+- Across the nine compute workloads, v2/v3 median-time ratios range from **3.2–8.3× for JIT** and **3.1–9.9× for LLVM**. Startup is a separate row.
+- Python has lower median times on most compute workloads. V3 has lower whole-program latency for startup and list append/index; the LLVM string result is close to Python, with overlapping interquartile ranges.
+- Typed accumulators are slower than the dynamic accumulator in these fixtures. Type annotations alone do not establish a performance gain; remaining type checks and conversions need profiling.
+- Short-program latency includes interpreter startup. These results do not establish that v3 has a faster list inner loop than Python, nor do they measure memory use or sustained service throughput.
 
-### Pipeline stage breakdown
+### Evidence and reproduction
 
-| Stage | Mean | Low | High |
-|-------|------|-----|------|
-| pipeline_stages/lex_onl | 1.60 µs | 1.58 µs | 1.61 µs |
-| pipeline_stages/parse_onl | 2.73 µs | 2.71 µs | 2.75 µs |
+- [Detailed results](comparison/RESULTS.md): ratios, interquartile ranges, workload definitions, and separate LLVM build costs.
+- [Raw CSV samples](comparison/samples.csv) and [JSON metadata](comparison/results.json): all observations, tool versions, commands, CPU affinity, and source/binary hashes.
+- [Reproduce the measurements](comparison/README.md): environment setup, runner options, and chart generation.
 
-## Quick timings (wall-clock)
+![Python, Soplang 2, and Soplang 3 median process times](comparison/results.svg)
 
-| Benchmark | Time |
-|-----------|------|
-| fib_recursive | 0m0.041s |
-| list_ops | 0m0.003s |
-| loop_sum | 0m0.016s |
-| nested_loops | 0m0.007s |
-| object_create | 0m0.002s |
-| string_concat | 0m0.002s |
+### Source revisions
 
-## How to run
+- Soplang 2: tag `v2.0.0`, commit `b9f6457715e90028237239065f22ad7daa674d0b`. The tagged source reports `2.0.0-beta` internally.
+- Soplang 3.0.0: commit `0a3d36e44dd65a0add6f6dac285d774e439d37ff`. The measured compiler source tree had no changes.
 
-```bash
-# Full criterion benchmarks (HTML reports in target/criterion/)
-cargo bench
+## Internal Criterion results
 
-# This script: benchmarks + formatted results
+The [historical Criterion report](CRITERION_RESULTS.md) contains older, in-process
+compiler measurements. Its February 2026 numbers use another revision and timing boundary.
+They are separate from the fresh-process comparison above.
+
+```sh
+# Regenerate only the internal Criterion report.
 bash benchmarks/run_benchmarks.sh
-
-# Single group
-cargo bench -- fibonacci
-cargo bench -- loops
 ```
 
-## Notes
-
-- **What we benchmark:** The compiler (Cranelift JIT). Same path as `./target/release/soplang file.sop`.
-- **Criterion** = in-process, statistical (mean, confidence intervals).
-- **HTML reports:** `target/criterion/report/index.html`.
+This command writes `benchmarks/CRITERION_RESULTS.md`. To regenerate the Python/v2/v3
+measurements, use [the comparison runner](comparison/README.md#reproduce).

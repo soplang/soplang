@@ -119,7 +119,7 @@ The suite also does not measure peak memory, sustained allocation, server
 throughput, or cold disk caches. Runtime memory reclamation remains a separate
 concern when comparing longer-running workloads.
 
-The older [Criterion results](../RESULTS.md) measure another revision in-process
+The older [Criterion results](../CRITERION_RESULTS.md) measure another revision in-process
 and cannot be compared directly to these fresh-process measurements.
 
 ## Validate the tooling

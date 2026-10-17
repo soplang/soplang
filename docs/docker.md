@@ -1,120 +1,81 @@
-# Using Soplang with Docker
+# Soplang 3 with Docker
 
-Soplang is available as a Docker image, making it easy to run on any platform with Docker installed without dealing with installation or dependencies.
+The public Linux amd64 image is available as
+[`soplang/soplang:3.0.0`](https://hub.docker.com/r/soplang/soplang).
+It includes Rust 1.94.0, clang 16, the system linker, and the matching Soplang
+runtime libraries for `--build`. Programs run as the unprivileged `soplang` user.
 
-## Docker Images
+## Run a program or the REPL
 
-Soplang Docker images are automatically published to:
-
-1. **GitHub Container Registry**: [ghcr.io/soplang/soplang](https://github.com/soplang/soplang/pkgs/container/soplang)
-2. **Docker Hub**, when repository credentials are configured: [soplang/soplang](https://hub.docker.com/r/soplang/soplang)
-
-## Available Tags
-
-- `latest` - Always points to the latest stable release
-- `x.y.z` - Specific version (e.g., `3.0.0`)
-- `x.y` - Latest patch version of a minor release (e.g., `3.0`)
-- `x` - Latest minor version of a major release (e.g., `3`)
-- `sha-<commit>` - Image for the release commit
-
-## Usage
-
-### Running the Interactive Shell
-
-To start the Soplang interactive shell:
-
-```bash
-docker run -it --rm soplang/soplang
+```sh
+docker run --rm soplang/soplang:3.0.0 --version
+docker run --rm -v "$PWD:/scripts:ro" soplang/soplang:3.0.0 program.sop
+docker run -it --rm soplang/soplang:3.0.0
 ```
 
-### Running a Script
+Paths are relative to the mounted `/scripts` directory. From the repository
+root, an example can be run as follows:
 
-To run a Soplang script from your current directory:
-
-```bash
-docker run -it --rm -v $(pwd):/scripts soplang/soplang my_script.sop
+```sh
+docker run --rm -v "$PWD:/scripts:ro" soplang/soplang:3.0.0 examples/01_hello.sop
 ```
 
-Note that the file path should be relative to your mounted directory. For example, if your script is in the examples folder:
+Use `-i` for piped input and `-it` for an interactive terminal:
 
-```bash
-# If running from the project root
-docker run -it --rm -v $(pwd):/scripts soplang/soplang examples/02_variables.sop
-
-# If examples/ is in your current directory
-cd examples
-docker run -it --rm -v $(pwd):/scripts soplang/soplang 02_variables.sop
+```sh
+printf 'TestUser\n' | docker run --rm -i -v "$PWD:/scripts:ro" \
+  soplang/soplang:3.0.0 examples/13_input.sop
 ```
 
-### Mounting a Volume for Persistent Scripts
+## Build a native executable
 
-To maintain a persistent workspace:
+Mount a writable directory for the output. On Linux, matching the host user ID
+helps preserve ownership of generated files:
 
-```bash
-docker run -it --rm -v /path/to/soplang/scripts:/scripts soplang/soplang
+```sh
+docker run --rm --user "$(id -u):$(id -g)" -v "$PWD:/scripts" \
+  soplang/soplang:3.0.0 --build program.sop -o program
 ```
 
-### Setting a Custom Working Directory
+A container-built executable targets Linux amd64 and the container's system
+libraries. It does not become a macOS or Windows executable. See
+[package requirements](INSTALLING_PACKAGES.md) for native toolchain details.
 
-```bash
-docker run -it --rm -v $(pwd):/scripts -w /scripts/my_project soplang/soplang
-```
+## Registry tags and availability
 
-## Examples
+Stable release publication sets these Docker Hub tags:
 
-### Hello World
+| Tag | Meaning |
+| --- | --- |
+| `3.0.0` | This release |
+| `3.0` | Latest stable patch in the 3.0 line |
+| `3` | Latest stable release in the 3.x line |
+| `latest` | Latest stable release |
+| `sha-<commit>` | Release source revision |
 
-```bash
-# Create a hello.sop file
-echo 'qor("Salaan, Adduunka!")' > hello.sop
+Pin a version for repeatable use. Prereleases do not replace stable aliases.
+The published `3.0.0` and `latest` manifests matched in the release checks;
+the pulled image passed version, JIT, and LLVM native-build smoke tests.
 
-# Run it with Docker
-docker run -it --rm -v $(pwd):/scripts soplang/soplang hello.sop
-```
+The workflow also uploads to `ghcr.io/soplang/soplang`. Anonymous pulls were
+still rejected in the 2026-10-17 documentation check; GitHub package visibility
+must be Public before it can serve as an unauthenticated mirror. Docker Hub
+is the verified public download. See the
+[release verification record](testing/RELEASE_VERIFICATION.md).
 
-### Interactive Development
+## Build and verify the image locally
 
-For an interactive development experience, you can use a more complex setup:
-
-```bash
-# Create a development container with your scripts mounted
-docker run -it --rm --name soplang-dev \
-  -v $(pwd):/scripts \
-  soplang/soplang
-```
-
-## Building the Docker Image Locally
-
-If you want to build the Docker image locally:
-
-```bash
-# Clone the repository
-git clone https://github.com/sharafdin/soplang.git
+```sh
+git clone https://github.com/soplang/soplang.git
 cd soplang
-
-# Build the image
 docker build -t soplang:local .
-
-# Run with your local build
-docker run -it --rm soplang:local
+docker run --rm soplang:local --version
 ```
 
-## Environment Variables
+The image entrypoint is `soplang`; arguments after the image name are CLI flags
+or source paths. Use `--entrypoint` to run other tools. The complete package
+checker is documented in the [release process](RELEASE_PROCESS.md).
 
-The image entrypoint is the `soplang` binary. It does not read `PYTHONPATH` or other Python settings. Pass Soplang flags after the image name, for example `soplang/soplang --ast my_script.sop`.
-
-## Security
-
-The Soplang Docker image:
-
-- Runs as a non-root user `soplang` for better security
-- Uses a multi-stage build to minimize image size
-- Keeps dependencies updated with each build
-
-## Troubleshooting
-
-If you encounter issues with the Docker image:
-
-1. **Permission Issues**: Make sure you have proper permissions for mounted volumes
-2. **Interactive Shell Not Working**: Ensure you're using the `-it` flags
-3. **Script Not Found**: Check that your volume is mounted correctly and the path is relative to your mounted directory
+For compiler development and tests, use the source workflow in
+[Contributing](CONTRIBUTING.md). Release images contain the installed compiler
+and toolchain; compiling a changed checkout requires building that source.

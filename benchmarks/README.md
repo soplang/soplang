@@ -5,7 +5,8 @@
 The current comparison measures ten equivalent programs in four modes: Python,
 the original v2 interpreter, v3 Cranelift JIT, and v3 LLVM executables.
 
-- [Results and interpretation](comparison/RESULTS.md)
+- [Current results and findings](RESULTS.md)
+- [Detailed statistical report](comparison/RESULTS.md)
 - [Comparison chart](comparison/results.svg)
 - [Reproduction and methodology](comparison/README.md)
 - [Raw observations](comparison/samples.csv) and [metadata](comparison/results.json)
@@ -29,7 +30,7 @@ cargo bench -- loops
 ```
 
 Criterion writes reports under `target/criterion/`. The historical wrapper
-`bash benchmarks/run_benchmarks.sh` regenerates [RESULTS.md](RESULTS.md), which
+`bash benchmarks/run_benchmarks.sh` regenerates [CRITERION_RESULTS.md](CRITERION_RESULTS.md), which
 contains older compiler-only measurements. That wrapper does not run Python
 or the v2 interpreter and does not regenerate the current comparison.
 

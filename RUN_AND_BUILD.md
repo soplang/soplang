@@ -1,119 +1,81 @@
-# Running examples and building binaries
+# Running Soplang 3 and building executables
 
-This guide describes two ways to run Soplang example programs: **run with Soplang** (JIT) and **build a standalone binary** (AOT). Built binaries go in the **`barnaamij/`** folder at the project root (barnaamij = program(s) in Somali).
+Soplang runs files through Cranelift JIT and builds standalone executables
+through LLVM. See [installation](docs/installation.md) for release packages and
+[build requirements](docs/INSTALLING_PACKAGES.md) for the native toolchain.
 
-## Prerequisites
+## Build the compiler from source
 
-```bash
-cargo build --release
+From the repository root, with Rust 1.94.0 and a system linker installed:
+
+```sh
+cargo build --release --locked
+./target/release/soplang --version
 ```
 
-You need the release binary: `./target/release/soplang`.
+On Windows the executable is `target/release/soplang.exe`. Native Soplang builds
+also need clang and the platform linker/SDK.
 
----
+## Run a program
 
-## 1. Run with Soplang (JIT)
-
-Run a `.sop` file directly with the Soplang binary. The program is compiled and executed on the fly (Cranelift JIT).
-
-### Single file
-
-```bash
+```sh
 ./target/release/soplang examples/01_hello.sop
+printf 'TestUser\n' | ./target/release/soplang examples/13_input.sop
+./target/release/soplang -c 'qor("Salaan!")'
+./target/release/soplang -c '1 + 2'
 ```
 
-### Examples that need stdin
+A single command expression prints its result. File execution prints explicit
+`qor` calls. Errors include the original source file, line, column, and caret.
+Use `--no-color` or `NO_COLOR=1` for plain diagnostics.
 
-`13_input.sop` uses `gelin()` (user input). Pipe input when running:
+## REPL
 
-```bash
-echo "YourName" | ./target/release/soplang examples/13_input.sop
-```
-
-### Run all examples (no stdin)
-
-```bash
-for f in examples/*.sop; do
-  [ "$(basename "$f")" = "14_random.sop" ] && continue
-  echo "=== $f ==="
-  ./target/release/soplang "$f" 2>&1
-  echo ""
-done
-```
-
-### REPL and one-liner
-
-With no arguments, Soplang starts the **interactive REPL** (history in `~/.soplang_history`). In the REPL you can:
-
-- Type statements or a **single expression** (e.g. `1+2`); expressions are printed automatically.
-- Use **multi-line** input: continue on the next line when you have unclosed `{`, `(`, `[`, or a trailing `\`.
-- Commands: `/caawii` or `/help`, `/bixi` or `/exit`, `/akhrifayl <fayl>` or `/load <file>`, `/ast <weedh>`, `/hir <weedh>`.
-
-```bash
+```sh
 ./target/release/soplang
-./target/release/soplang -i                    # run a file then open REPL
-./target/release/soplang -c '1+2'              # run snippet; expressions print result (3)
-./target/release/soplang -c 'qor("Salaan!")'   # run snippet
+./target/release/soplang -i examples/01_hello.sop
 ```
 
-**CLI options:** `-q` / `--quiet` (no build message), `--no-color` (plain errors), `--strict` (static types).
+The REPL keeps functions, classes, and globals between inputs and echoes single
+expressions. It supports multiline input and history. Type `/caawi` or `/help`
+for commands, and `/bixi` or `/exit` to leave. `-i` after a file opens the shell
+when that program finishes.
 
----
+## Build a standalone executable
 
-## 2. Build a standalone binary (AOT)
-
-Build a native executable from a `.sop` file. Just run `--build`; the binary is written to **`barnaamij/`** (created automatically). Use `-o <path>` to override.
-
-AOT uses a fixed workspace under `target/soplang_aot_runner/`, so the **first** `--build` compiles Soplang and its dependencies there; **later** builds only recompile the small runner and are much faster.
-
-### Build one example
-
-```bash
+```sh
 ./target/release/soplang --build examples/01_hello.sop
 ./barnaamij/01_hello
+
+./target/release/soplang --build examples/27_inheritance.sop -o inheritance
+./inheritance
 ```
 
-### Build with optimization level
+The default output is `barnaamij/<source-stem>`; `-o` selects another path.
+`--opt-level 0..3` selects native optimization, with 2 as the default. Add
+`--quiet` to suppress the build progress and success message.
 
-```bash
-./target/release/soplang --build examples/01_hello.sop --opt-level 3
+The build resolves imports, lowers HIR to textual LLVM IR, compiles it with
+clang, and links the matching runtime with rustc. The output contains compiled
+code and the runtime. It can run without Soplang or its source files, while
+retaining the target platform's ordinary system-library requirements.
+
+Installed `--build` uses the runtime libraries bundled with its package. Keep
+those libraries with the executable, and use the exact Rust compiler recorded
+in `lib/soplang/rustc-version.txt`.
+
+## Check every example and diagnostic
+
+```sh
+cargo test --locked --test examples_tests
+cargo test --locked --test diagnostic_tests
+cargo test --locked --test llvm_ir_tests
 ```
 
-`--opt-level` can be 0, 1, 2, or 3 (default is 2).
+The example tests supply stdin, check expected stdout, and exercise both JIT
+and native executables. The diagnostic suite checks 63 intentional failures
+and their source locations. See the [example catalog](examples/README.md).
 
-### Build all examples
-
-```bash
-for f in examples/*.sop; do
-  echo "Building $(basename "$f" .sop) ..."
-  ./target/release/soplang --build "$f" 2>&1 || true
-done
-```
-
-Then run any of them:
-
-```bash
-./barnaamij/01_hello
-./barnaamij/02_variables
-./barnaamij/13_input   # will read from stdin when you run it
-```
-
-**Note:** `13_input` and `14_random` use stdin / randomness; run them manually (e.g. `echo "Name" | ./barnaamij/13_input`).
-
----
-
-## Summary
-
-| Goal | Command |
-|------|--------|
-| Run one file (JIT) | `./target/release/soplang examples/01_hello.sop` |
-| Run with stdin | `echo "Input" \| ./target/release/soplang examples/13_input.sop` |
-| Build one binary (default: barnaamij/) | `./target/release/soplang --build examples/01_hello.sop` |
-| Run built binary | `./barnaamij/01_hello` |
-| Build all to barnaamij/ | Loop over `examples/*.sop` with `--build` (output goes to barnaamij/ by default) |
-| REPL | `./target/release/soplang` (no args); `/caawii` = help, `/bixi` = exit |
-| One-liner (with result) | `./target/release/soplang -c '1+2'` → prints `3` |
-| Quiet build | `--build ... -q` to skip "Waa la dhisay" message |
-| No color | `--no-color` or set `NO_COLOR=1` |
-
-Built executables go to **`barnaamij/`**; the folder is created automatically. Use `-o <path>` to write elsewhere.
+For performance measurements, use the
+[Python/v2/v3 benchmark suite](benchmarks/comparison/README.md). Its report
+separates execution latency from LLVM build costs.

@@ -43,8 +43,8 @@ libraries from a shared target directory.
 Each builder writes a platform-local `SHA256SUMS`. See [package requirements](INSTALLING_PACKAGES.md)
 for the matching Rust compiler needed by installed `--build`; JIT and REPL do
 not require that compiler. See [release verification](testing/RELEASE_VERIFICATION.md)
-for actual tested platforms and remaining gates. A script for a platform does
-not establish native ABI or installer support.
+for the completed v3.0.0 native/package gates and remaining distribution limits.
+Every new release must repeat those checks.
 
 ## Docker
 
@@ -58,3 +58,10 @@ The image includes Rust, clang, the system linker, and installed runtime
 libraries. Mount a writable output directory when using `--build`; programs run
 as the unprivileged `soplang` user. See [release checks](RELEASE_PROCESS.md) for
 the complete image verifier.
+
+## Performance measurements
+
+See the [current Python/v2/v3 results](../benchmarks/RESULTS.md) and
+[comparison setup](../benchmarks/comparison/README.md). Timings use release
+compiler builds and validate program output. `cargo bench` runs the separate
+internal Criterion suite.

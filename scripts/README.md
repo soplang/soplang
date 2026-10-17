@@ -17,3 +17,8 @@ These tools require Python 3.9+. Platform builders call the packaging and
 checksum tools. See [release verification](../docs/testing/RELEASE_VERIFICATION.md)
 and the [release process](../docs/RELEASE_PROCESS.md). None of these scripts
 commits, tags, pushes, or publishes.
+
+The [benchmark comparison tooling](../benchmarks/comparison/README.md) is separate
+from packaging. It requires Python 3.12+ and exports the original v2 interpreter
+for comparison with Python and the v3 compiler. Current results are in
+[benchmarks/RESULTS.md](../benchmarks/RESULTS.md).

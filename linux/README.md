@@ -1,4 +1,12 @@
-# Soplang for Linux
+# Soplang 3 for Linux
+
+The [v3.0.0 release](https://github.com/soplang/soplang/releases/tag/v3.0.0)
+provides x86_64 archives and Debian packages requiring glibc 2.39 or later.
+Native debug/release suites, package checks, and Debian install/removal passed
+the [release gates](../docs/testing/RELEASE_VERIFICATION.md). For download and
+installation commands, see [Installing Soplang](../docs/installation.md).
+
+## Build packages locally
 
 Install Rust via rustup, Python 3.9+, and a C development toolchain. Install
 clang for Soplang native builds and dpkg-dev for Debian packaging.

@@ -3,18 +3,18 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
-RESULTS_FILE="$SCRIPT_DIR/RESULTS.md"
+RESULTS_FILE="$SCRIPT_DIR/CRITERION_RESULTS.md"
 
 cd "$PROJECT_DIR"
 
 echo "Building release binary..."
-cargo build --release 2>&1
+cargo build --release --locked 2>&1
 
 echo ""
 echo "Running criterion benchmarks..."
 BENCH_LOG=$(mktemp)
 trap 'rm -f "$BENCH_LOG"' EXIT
-cargo bench 2>&1 | tee "$BENCH_LOG" || true
+cargo bench --locked 2>&1 | tee "$BENCH_LOG"
 
 echo ""
 echo "Generating formatted $RESULTS_FILE ..."
@@ -33,7 +33,7 @@ parse_criterion() {
     /Benchmarking [^:]+: Analyzing/ {
       if (match($0, /Benchmarking [^:]+: Analyzing/)) {
         # name is between "Benchmarking " and ": Analyzing"
-        s = substr($0, RSTART + 13, RLENGTH - 25)
+        s = substr($0, RSTART + 13, RLENGTH - 24)
         if (s != "") last_bench = s
       }
     }
@@ -104,7 +104,9 @@ done
 
 {
   cat <<HEADER
-# Soplang Compiler Benchmarks
+# Soplang Criterion Benchmarks
+
+For the Python/v2/v3 comparison, see [RESULTS.md](RESULTS.md).
 
 > Auto-generated on **$TIMESTAMP**
 > System: \`$UNAME_INFO\` | \`$RUSTC_VERSION\` | \`$CARGO_VERSION\`
@@ -114,11 +116,11 @@ done
 | Benchmark | Description | Workload |
 |-----------|-------------|----------|
 | fib_recursive | Recursive Fibonacci | fib(25) = 75025 |
-| loop_sum | Tight for-loop | Sum 1..100,000 |
-| nested_loops | Nested loop dispatch | 200 x 200 iterations |
-| string_concat | String concatenation | 1,000 appends |
-| list_ops | List push + traversal | 5,000 elements |
-| object_create | Object allocation | 2,000 objects |
+| loop_sum | Tight for-loop | Sum 1..100,001 inclusive |
+| nested_loops | Nested loop dispatch | 201 x 201 iterations |
+| string_concat | String concatenation | 1,001 appends |
+| list_ops | List push + traversal | 5,001 elements |
+| object_create | Object allocation | 2,002 objects |
 
 ## Criterion Results (compiler — Cranelift JIT)
 

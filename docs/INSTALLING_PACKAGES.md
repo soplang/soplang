@@ -6,6 +6,13 @@ Moving only the executable supports JIT execution but cannot support `--build`.
 `SOPLANG_RUNTIME_DIR` can override the runtime location; an invalid override is
 an error and never silently selects another installation.
 
+## Published v3.0.0 packages
+
+See the [installation guide](installation.md) for actual downloads. Linux x86_64
+packages require glibc 2.39 or later; the macOS Apple Silicon bundle declares
+macOS 14.8.9 or later. Windows packages target x64. Completed checks are in the
+[verification record](testing/RELEASE_VERIFICATION.md).
+
 ## Running programs
 
 Add the directory containing `soplang` (`soplang.exe` on Windows) to PATH, or use
@@ -35,8 +42,8 @@ package from source; installed `--build` never invokes Cargo.
   `clang-16 build-essential`; ensure `clang` selects that version on Debian/Ubuntu).
 - macOS: install Xcode Command Line Tools, including Apple clang and the linker.
 - Windows: install LLVM clang and Visual Studio C++ Build Tools / Windows SDK;
-  use a developer shell with the linker on PATH. Native Windows validation is a
-  release gate; packaging alone does not establish ABI support.
+  use a developer shell with the linker on PATH. Native Windows validation
+  passed for v3.0.0; future releases must repeat the gate.
 
 The Docker image includes the matching Rust compiler, clang, and runtime files.
 A built executable needs neither Soplang nor the original source files, but

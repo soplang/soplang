@@ -1,4 +1,12 @@
-# Soplang for Windows
+# Soplang 3 for Windows
+
+The [v3.0.0 release](https://github.com/soplang/soplang/releases/tag/v3.0.0)
+provides a Windows x64 ZIP and installer. Native debug/release suites,
+JIT/LLVM package checks, and installer PATH/file-association removal passed
+the [release gates](../docs/testing/RELEASE_VERIFICATION.md). The installer is
+unsigned. See [Installing Soplang](../docs/installation.md) for installation.
+
+## Build packages locally
 
 Install Rust via rustup, Python 3.9+, Visual Studio C++ Build Tools / Windows SDK,
 and LLVM clang. Open a developer shell with the linker available. Inno Setup 6
@@ -19,9 +27,9 @@ python scripts/verify_package.py dist/soplang/soplang.exe
 # Or: ./windows/test_windows_build.ps1
 ```
 
-Repeat the checker on the extracted ZIP. Test installer installation/removal,
-PATH changes, and file associations on a clean Windows machine. Native JIT and
-LLVM calling conventions must pass the Windows CI job before claiming support;
-this Linux-hosted session cannot establish that result. See
+Repeat the checker on the extracted ZIP and use
+`python scripts/verify_installation.py windows windows/Output/soplang-setup.exe`
+on a clean, disposable Windows runner. This installs, exercises, and removes
+the actual package, including PATH and file associations. See
 [package requirements](../docs/INSTALLING_PACKAGES.md) and the
 [verification record](../docs/testing/RELEASE_VERIFICATION.md).

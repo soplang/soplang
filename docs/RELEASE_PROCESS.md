@@ -63,3 +63,13 @@ a system linker, and the exact Rust toolchain recorded inside the package.
 The image includes these tools. Built programs retain ordinary system-library
 requirements; build Linux assets against the oldest supported distribution and
 test them there before advertising compatibility.
+
+## Performance documentation
+
+For compiler or runtime changes, use the [comparison procedure](../benchmarks/comparison/README.md)
+to measure equivalent Python/v2/v3 workloads, preserve every sample, and validate
+outputs. Review the complete report and LLVM build costs before summarizing it.
+Refresh `README.md`, [benchmarks/RESULTS.md](../benchmarks/RESULTS.md), and the
+chart from the recorded data. Keep internal Criterion results in their separate
+report. Documentation-only changes can use the existing dataset when the
+measured compiler source is unchanged.

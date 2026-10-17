@@ -6,6 +6,14 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+* **Python/v2/v3 benchmark comparison.** Ten equivalent workloads exercise the v2 interpreter, v3 Cranelift JIT, v3 LLVM executables, and Python. Validated runs record medians, sample spread, raw observations, source/toolchain metadata, and separate LLVM build costs.
+
+### Changed
+
+* **Current performance and release documentation.** README summaries use measured comparison results. Internal Criterion reports have a separate destination. Installation, native-build, architecture, and verification guides reflect the published v3.0.0 packages and completed platform checks.
+
 ## [3.0.0] - 2026-10-17
 
 ### Added

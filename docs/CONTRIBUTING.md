@@ -1,206 +1,99 @@
 # Contributing to Soplang
 
-Thank you for your interest in contributing to Soplang, the Somali programming language! This document provides guidelines and instructions for contributing to the project.
+Soplang 3 is a Rust compiler with Cranelift JIT and LLVM native builds.
+Language and library changes should include examples, diagnostics, and tests
+for both execution paths.
 
-## Development Setup
+## Development setup
 
-There are two recommended ways to set up your development environment:
+Install Git, the Rust toolchain pinned by `rust-toolchain.toml` (1.94.0), clang,
+and a native linker. Windows also needs Visual Studio C++ Build Tools and the
+Windows SDK; macOS needs Xcode Command Line Tools. See the
+[build guide](BUILD_GUIDE.md) for platform and packaging requirements.
 
-### Option 1: Docker (Recommended)
-
-Using Docker provides a consistent development environment for all contributors and eliminates "works on my machine" issues.
-
-1. **Install Docker and Docker Compose**:
-   - [Docker Installation Guide](https://docs.docker.com/get-docker/)
-   - [Docker Compose Installation Guide](https://docs.docker.com/compose/install/)
-
-2. **Clone the repository**:
-   ```bash
-   git clone https://github.com/sharafdin/soplang.git
-   cd soplang
-   ```
-
-3. **Build and start the Docker container**:
-   ```bash
-   docker-compose build
-   docker-compose up -d
-   ```
-
-4. **Run commands inside the container**:
-   ```bash
-   # Run the shell (REPL)
-   docker-compose exec soplang soplang -i
-
-   # Run a Soplang file
-   docker-compose exec soplang soplang examples/01_hello.sop
-
-   # Run tests
-   docker-compose exec soplang cargo test
-   ```
-
-5. **Stop the container when done**:
-   ```bash
-   docker-compose down
-   ```
-
-### Option 2: Local Setup
-
-If you prefer working on your local machine:
-
-#### Prerequisites
-
-- [Rust toolchain](https://rustup.rs/) (rustc, cargo)
-- Git
-- A text editor or IDE
-
-#### Setting up the Local Environment
-
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/sharafdin/soplang.git
-   cd soplang
-   ```
-
-2. **Build the project**:
-   ```bash
-   cargo build --release
-   ```
-
-3. **Run tests**:
-   ```bash
-   cargo test
-   ```
-
-### Using the Makefile
-
-We provide a Makefile to simplify common development tasks. To use it, you need:
-
-#### Prerequisites
-
-- GNU Make (comes pre-installed on most Linux distributions and macOS)
-  - On Windows, you can install it via [Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/install), [Chocolatey](https://chocolatey.org/packages/make), or [MSYS2](https://www.msys2.org/)
-
-#### Common Commands
-
-```bash
-# Build release binary
-make build
-
-# Run tests
-make test
-
-# Run benchmarks
-make bench
-
-# Run pre-commit hooks on all files
-make precommit
-
-# Build Docker container
-make docker-build
-
-# See all available commands
-make help
+```sh
+git clone https://github.com/soplang/soplang.git
+cd soplang
+cargo build --release --locked
+cargo test --locked
 ```
 
-Use `make help` to see all available commands and their descriptions.
+Python is used for packaging and benchmark tooling. The comparison suite needs
+Python 3.12+; the packaging scripts require Python 3.9+.
 
-## Development Workflow
+## Development checks
 
-1. **Choose an issue or feature** to work on, or create a new issue describing the problem or enhancement.
+```sh
+# Faster iteration, skipping the test_aot cases.
+cargo test --locked -- --skip test_aot
 
-2. **Create a branch** for your changes:
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
+# LLVM integration coverage.
+cargo test --locked --test llvm_ir_tests
 
-3. **Make your changes**, following the coding style and best practices.
-
-4. **Write or update tests** for your changes. Ensure all tests pass:
-   ```bash
-   make test
-   # or the traditional way
-   cargo test
-   ```
-
-5. **Update documentation** if necessary.
-
-6. **Commit your changes** with clear, descriptive commit messages:
-   ```bash
-   git commit -m "Feature: Add support for new loop syntax"
-   ```
-
-7. **Create a pull request** against the main branch with a clear description of your changes.
-
-## Coding Guidelines
-
-- Follow standard Rust style (`cargo fmt`)
-- Write docstrings for all functions, classes, and modules
-- Maintain consistent error messages in Somali language
-- Add appropriate tests for new features and bug fixes
-
-### Pre-commit Hooks
-
-We use pre-commit hooks to ensure code quality and consistency. To set up pre-commit in your development environment:
-
-1. **Install pre-commit**:
-   ```bash
-   pip install pre-commit   # pre-commit is a Python tool for running hooks
-   # or using Make
-   make install-dev
-   ```
-
-   Note: This is already included if you installed `requirements-dev.txt`.
-
-2. **Install the git hooks**:
-   ```bash
-   pre-commit install
-   # or using Make
-   make install
-   ```
-
-3. **Run the hooks manually** (optional):
-   ```bash
-   pre-commit run --all-files
-   # or using Make
-   make precommit
-   ```
-
-The pre-commit configuration includes:
-- Black for code formatting
-- Flake8 for linting
-- isort for import sorting
-- Various file checks (trailing whitespace, file endings, etc.)
-
-Pre-commit will run automatically on `git commit`, but you can also run it manually as shown above.
-
-## Testing
-
-- Write unit tests for all new functionality
-- Update existing tests when modifying functionality
-- Ensure all tests pass before submitting a pull request
-
-Run tests using:
-```bash
-make test
-# or
-cargo test
+# Complete debug and optimized suites before a release.
+cargo test --locked
+cargo test --release --locked
 ```
 
-## Documentation
+The [test methodology](testing/TEST_METHODOLOGY.md) describes the suites. Public
+examples have `.expected` stdout; [diagnostic examples](../examples/errors/README.md)
+check Somali messages, files, line/column positions, and caret spacing.
 
-- Update documentation for any changes to the language or tools
-- Document new features with examples
-- Keep the keyword reference up to date
-- Write clear, concise explanations
+For reversible edits, prefer focused checks that cover the behavior changed.
+Format only changed Rust files with the repository's edition, for example:
 
-## Pull Request Process
+```sh
+rustfmt --edition 2021 --config skip_children=true src/backend/llvm_ir.rs
+```
 
-1. Ensure all tests pass
-2. Update relevant documentation
-3. Explain what your change does and why it should be included
-4. Request a review from a maintainer
-5. Address any feedback or requested changes
+Repository-wide formatting can introduce unrelated changes. Review the diff
+before submitting it. Pre-commit is optional; `.pre-commit-config.yaml` contains
+basic file checks and a Rust formatting hook. Install it in an isolated Python
+environment if you use it, then run `pre-commit install` and `make precommit`.
 
-## Code of Conduct
+## Benchmarks
 
-Please be respectful and inclusive in your interactions with other contributors. We aim to foster an open and welcoming community. For detailed guidelines, please read our [Code of Conduct](CODE_OF_CONDUCT.md).
+The [Python/v2/v3 comparison](../benchmarks/comparison/README.md) measures whole
+programs in fresh processes, validates every output, and records raw samples.
+The internal `cargo bench` / `make bench` suite measures the compiler in-process.
+Their timings use different boundaries.
+
+When publishing new measurements:
+
+1. Record the source revisions, toolchain, host, and measurement options.
+2. Run the comparison with correct equivalent workloads and no concurrent
+   build/test jobs. Preserve every sample, including outliers.
+3. Review `benchmarks/comparison/RESULTS.md`, `results.json`, and `samples.csv`.
+4. Regenerate the chart with `benchmarks/comparison/plot.py`.
+5. Refresh the summary tables in `README.md` and `benchmarks/RESULTS.md` from
+   the recorded medians. Keep startup and LLVM build costs explicit.
+6. Keep internal Criterion results in `benchmarks/CRITERION_RESULTS.md`.
+
+Do not replace missing measurements with estimates or present a workload win
+as a universal language speed claim.
+
+## Useful commands
+
+| Command | Purpose |
+| --- | --- |
+| `make build` | Release compiler build |
+| `make run FILE=examples/01_hello.sop` | Run a file |
+| `make shell` | Persistent REPL |
+| `make test` | Rust test suites |
+| `make bench` | Internal Criterion suite |
+| `bash benchmarks/run_benchmarks.sh` | Regenerate the Criterion report |
+
+## Changes and pull requests
+
+- Explain the behavior and reason for the change.
+- Add or update examples and behavior tests when language semantics change.
+- Keep errors in Somali and check exact locations for new diagnostics.
+- Update the language reference, migration notes, and changelog when relevant.
+- Include the checks run and their results in the pull request description.
+- Use clear commit messages and address review feedback.
+
+Package and release changes follow the [release process](RELEASE_PROCESS.md)
+and [native verification record](testing/RELEASE_VERIFICATION.md). Releases
+continue on the [3.x roadmap](../ROADMAP.md).
+
+Follow the project's [Code of Conduct](../CODE_OF_CONDUCT.md).
