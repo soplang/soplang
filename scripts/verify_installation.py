@@ -91,6 +91,18 @@ def windows(installer):
         finally:
             success(command([directory / "unins000.exe", "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART",
                              f"/LOG={uninstall_log}"]))
+            # The bootstrap process can exit while the copied uninstaller still
+            # owns its log. Wait for the handle to close before reading/removing it.
+            completed_log = work / "uninstall-complete.log"
+            for attempt in range(150):
+                try:
+                    uninstall_log.rename(completed_log)
+                    uninstall_log = completed_log
+                    break
+                except PermissionError:
+                    if attempt == 149:
+                        raise
+                    time.sleep(0.2)
             for log in (install_log, uninstall_log):
                 if log.exists():
                     for line in log.read_text(encoding="utf-8-sig", errors="replace").splitlines():
