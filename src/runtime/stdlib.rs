@@ -92,6 +92,9 @@ pub fn builtin_gelin(args: Vec<Value>) -> Result<Value, SoplangError> {
         .map_err(|e| err_runtime(e.to_string()))?;
     if line.ends_with('\n') {
         line.pop();
+        if line.ends_with('\r') {
+            line.pop();
+        }
     }
     Ok(Value::Str(line))
 }

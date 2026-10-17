@@ -46,6 +46,8 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+* `gelin` removes LF and CRLF line endings while preserving surrounding whitespace and EOF input. Both backends check Windows-style input explicitly.
+
 * Native executables publish through a same-volume rename, avoiding writable-handle races in parallel execution. Windows installation preserves PATH expansion, and the command launcher forwards arguments and exit status.
 
 * Windows linker sidecars stay in the build scratch directory; only the finished executable is copied to the requested output path. Native release checks also install, execute, and remove Linux and Windows packages.

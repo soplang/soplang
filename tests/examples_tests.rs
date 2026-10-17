@@ -101,3 +101,74 @@ fn test_aot_each_example_against_expected() {
     }
     fs::remove_dir(dir).unwrap();
 }
+
+const INPUT_PROGRAM: &str = r#"door name = gelin()
+qor("[" + name + "]")
+qor(dherer(name))"#;
+
+fn check_input_lines(executable: &Path, args: &[&std::ffi::OsStr]) {
+    for (input, expected) in [
+        ("Sahal\n", "[Sahal]\n5\n"),
+        ("Sahal\r\n", "[Sahal]\n5\n"),
+        (" Sahal \r\n", "[ Sahal ]\n7\n"),
+        ("Sahal", "[Sahal]\n5\n"),
+        ("\r\n", "[]\n0\n"),
+        ("", "[]\n0\n"),
+    ] {
+        let mut command = Command::new(executable);
+        command.args(args).env("NO_COLOR", "1");
+        let output = command_output(command, Some(input));
+        assert!(
+            output.status.success(),
+            "{}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        assert!(
+            output.stderr.is_empty(),
+            "{}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        assert_eq!(
+            String::from_utf8(output.stdout)
+                .unwrap()
+                .replace("\r\n", "\n"),
+            expected
+        );
+    }
+}
+
+#[test]
+fn test_input_line_endings() {
+    check_input_lines(
+        Path::new(env!("CARGO_BIN_EXE_soplang")),
+        &[
+            std::ffi::OsStr::new("-c"),
+            std::ffi::OsStr::new(INPUT_PROGRAM),
+        ],
+    );
+}
+
+#[test]
+fn test_aot_input_line_endings() {
+    let dir = std::env::temp_dir().join(format!("soplang_input_lines_{}", std::process::id()));
+    fs::create_dir_all(&dir).unwrap();
+    let source = dir.join("input.sop");
+    fs::write(&source, INPUT_PROGRAM).unwrap();
+    let binary = dir
+        .join("input")
+        .with_extension(std::env::consts::EXE_EXTENSION);
+    let output = Command::new(env!("CARGO_BIN_EXE_soplang"))
+        .args(["--build", "--quiet"])
+        .arg(&source)
+        .arg("-o")
+        .arg(&binary)
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    check_input_lines(&binary, &[]);
+    fs::remove_dir_all(dir).unwrap();
+}
