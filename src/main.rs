@@ -1,3 +1,5 @@
+mod arguments;
+
 use std::fs;
 use std::io::Write;
 use std::path::PathBuf;
@@ -12,68 +14,97 @@ use soplang::{build_source, cli::Shell, format_error_with_source, run_source};
 #[derive(ClapParser)]
 #[command(
     name = "soplang",
-    about = "The Somali Programming Language",
+    about = "Luuqadda barnaamijyada ee Af-Soomaaliga.",
+    disable_help_flag = true,
+    disable_version_flag = true,
+    override_usage = arguments::USAGE,
+    help_template = "{about}\n\nAdeegsiga: {usage}\n\nFaylka:\n{positionals}\n\nXulashooyinka:\n{options}{after-help}\n",
     version,
-    after_help = "With no arguments, starts the interactive REPL.\n  Use -i after a file/example to run it then continue in the REPL."
+    after_help = "Haddii aan waxba la raacin, waxaa furmaya REPL.\nAdeegso -i si aad REPL ugu sii shaqayso marka faylka ama tusaalaha la fuliyo."
 )]
 struct Cli {
+    #[arg(short = 'h', long, action = clap::ArgAction::Help, help = "Muuji caawimada.")]
+    help: Option<bool>,
+    #[arg(short = 'V', long, action = clap::ArgAction::Version, help = "Muuji nooca Soplang.")]
+    version: Option<bool>,
     #[arg(
         long,
-        help = "Build .sop file into standalone executable (AOT); requires FILENAME"
+        help = "Ka dhis faylka .sop barnaamij si madax bannaan u shaqeeya; sheeg faylka la dhisayo."
     )]
     build: bool,
 
-    #[arg(short = 'o', long, help = "Output binary path (used with --build)")]
+    #[arg(
+        short = 'o',
+        long,
+        help = "Meesha lagu kaydinayo barnaamijka la dhisayo (--build)."
+    )]
+    #[arg(value_name = "BARNAAMIJKA")]
     output: Option<PathBuf>,
 
     #[arg(
         long,
         default_value_t = 2,
-        help = "AOT optimization level: 0..3 (used with --build)"
+        hide_default_value = true,
+        value_name = "HEERKA",
+        help = "Heerka hagaajinta koodhka: 0 ilaa 3 (--build; haddii aan la sheegin: 2)."
     )]
     opt_level: u8,
 
-    #[arg(
-        short,
-        long,
-        help = "Quiet: no build success message (used with --build)"
-    )]
+    #[arg(short, long, help = "Ha muujin farriinta guusha dhismaha (--build).")]
     quiet: bool,
 
-    #[arg(short, long, help = "Execute code snippet and exit")]
+    #[arg(short, long, help = "Fuli qoraalka la bixiyey, dabadeed bax.")]
+    #[arg(value_name = "QORAALKA")]
     command: Option<String>,
 
-    #[arg(short, long, help = "Execute file and exit")]
+    #[arg(short, long, help = "Fuli faylka la bixiyey, dabadeed bax.")]
+    #[arg(value_name = "FAYLKA")]
     file: Option<PathBuf>,
-
-    #[arg(short, long, help = "Run example N from examples/ (1-based)")]
-    example: Option<usize>,
 
     #[arg(
         short,
         long,
-        help = "After running file/example, open interactive REPL"
+        help = "Fuli tusaalaha lambarkiisu yahay N ee examples/; tirintu waxay ka bilaabataa 1."
     )]
+    #[arg(value_name = "LAMBARKA")]
+    example: Option<usize>,
+
+    #[arg(short, long, help = "Fur REPL marka faylka ama tusaalaha la fuliyo.")]
     interactive: bool,
 
-    #[arg(help = "Path to .sop file (to run, or to build when using --build; omit to start REPL)")]
+    #[arg(help = "Faylka .sop ee la fulinayo ama la dhisayo; haddii aan la sheegin, fur REPL.")]
+    #[arg(value_name = "FAYLKA")]
     filename: Option<PathBuf>,
 
-    #[arg(long, help = "Print AST instead of executing")]
+    #[arg(long, help = "Muuji qaabdhismeedka AST adigoon fulin barnaamijka.")]
     ast: bool,
 
-    #[arg(long, help = "Dump HIR (High-Level IR) instead of executing")]
+    #[arg(long, help = "Muuji qaabka HIR adigoon fulin barnaamijka.")]
     hir: bool,
 
-    #[arg(long, help = "Enable strict static type mode")]
+    #[arg(long, help = "Daar hubinta adag ee noocyada xogta.")]
     strict: bool,
 
-    #[arg(long, help = "Disable colored error output (same as NO_COLOR=1)")]
+    #[arg(
+        long,
+        help = "Ha isticmaalin midab marka khalad la soo bandhigayo; waxay la mid tahay NO_COLOR=1."
+    )]
     no_color: bool,
 }
 
 fn main() {
-    let cli = Cli::parse();
+    let cli = match Cli::try_parse() {
+        Ok(cli) => cli,
+        Err(error) => {
+            let code = error.exit_code();
+            if error.use_stderr() {
+                eprint!("{}", arguments::format_argument_error(&error));
+            } else {
+                let _ = error.print();
+            }
+            process::exit(code);
+        }
+    };
 
     if cli.no_color {
         std::env::set_var("NO_COLOR", "1");
@@ -83,7 +114,7 @@ fn main() {
         let path = match &cli.filename {
             Some(p) => p.clone(),
             None => {
-                eprintln!("Khalad: --build waxa ay u baahan tahay magaca faylka: soplang --build <fayl.sop> [-o <output>] [-q]");
+                eprintln!("Khalad: --build waxa ay u baahan tahay magaca faylka: soplang --build <fayl.sop> [-o <barnaamij>] [-q]");
                 process::exit(1);
             }
         };
@@ -91,9 +122,8 @@ fn main() {
             Ok(s) => s,
             Err(e) => {
                 eprintln!(
-                    "Khalad: Ma suurtagelin in la akhriyo faylka '{}': {}",
-                    path.display(),
-                    e
+                    "{}",
+                    format_error_with_source(&soplang::error::file_read_error(&path, &e), None)
                 );
                 process::exit(1);
             }
@@ -141,7 +171,13 @@ fn main() {
             thread::sleep(Duration::from_millis(80));
         }
 
-        let result = build_handle.join().expect("build thread panicked");
+        let result = build_handle.join().unwrap_or_else(|_| {
+            Err(soplang::error::runtime_error(
+                "Hawshii dhismaha ayaa si lama filaan ah u joogsatay.",
+                0,
+                0,
+            ))
+        });
         let elapsed = start.elapsed().as_secs_f64();
 
         match result {
@@ -197,9 +233,8 @@ fn main() {
             Ok(source) => run_then_maybe_shell(path.clone(), source),
             Err(e) => {
                 eprintln!(
-                    "Khalad: Ma suurtagelin in la akhriyo faylka '{}': {}",
-                    path.display(),
-                    e
+                    "{}",
+                    format_error_with_source(&soplang::error::file_read_error(&path, &e), None)
                 );
                 process::exit(1);
             }
@@ -218,7 +253,10 @@ fn main() {
         match fs::read_to_string(&path) {
             Ok(source) => run_then_maybe_shell(path, source),
             Err(e) => {
-                eprintln!("Khalad: Ma suurtagelin in la akhriyo faylka: {}", e);
+                eprintln!(
+                    "{}",
+                    format_error_with_source(&soplang::error::file_read_error(&path, &e), None)
+                );
                 process::exit(1);
             }
         }
@@ -230,9 +268,8 @@ fn main() {
             Ok(s) => s,
             Err(e) => {
                 eprintln!(
-                    "Khalad: Ma suurtagelin in la akhriyo faylka '{}': {}",
-                    path.display(),
-                    e
+                    "{}",
+                    format_error_with_source(&soplang::error::file_read_error(&path, &e), None)
                 );
                 process::exit(1);
             }
@@ -255,8 +292,13 @@ fn main() {
 }
 
 fn run_shell(strict: bool) {
-    let mut sh = Shell::new(strict);
-    sh.run();
+    match Shell::try_new(strict) {
+        Ok(mut shell) => shell.run(),
+        Err(error) => {
+            eprintln!("{}", format_error_with_source(&error, None));
+            process::exit(1);
+        }
+    }
 }
 
 /// Resolve example N (1-based) to PathBuf. Sorts .sop files in examples/ by name.

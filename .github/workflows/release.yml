@@ -31,6 +31,12 @@ jobs:
           VERSION="${GITHUB_REF_NAME#release/v}"
           CARGO_VERSION=$(sed -n 's/^version = "\([^"]*\)"/\1/p' Cargo.toml | head -n 1)
           [[ "$VERSION" == "$CARGO_VERSION" && "$VERSION" == 3.* ]]
+          NOTES="docs/releases/$VERSION.md"
+          if [[ "$VERSION" == "3.0.0" ]]; then
+            NOTES="docs/RELEASE_NOTES_V3.md"
+          fi
+          [[ -f "$NOTES" ]] || { echo "Missing release notes: $NOTES" >&2; exit 1; }
+          echo "RELEASE_NOTES=$NOTES" >> "$GITHUB_ENV"
           echo "RELEASE_TAG=v$VERSION" >> "$GITHUB_ENV"
           if [[ "$VERSION" == *-* ]]; then
             echo "PRERELEASE=true" >> "$GITHUB_ENV"
@@ -50,7 +56,7 @@ jobs:
           tag_name: ${{ env.RELEASE_TAG }}
           target_commitish: ${{ github.sha }}
           name: Soplang ${{ env.RELEASE_TAG }}
-          body_path: docs/RELEASE_NOTES_V3.md
+          body_path: ${{ env.RELEASE_NOTES }}
           files: |
             release-assets/**/*.tar.gz
             release-assets/**/*.deb

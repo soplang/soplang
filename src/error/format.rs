@@ -28,7 +28,7 @@ pub fn format_error_with_source(err: &SoplangError, source: Option<&str>) -> Str
     let (line, col) = err.location();
     let meta = err.meta();
     let mut out = format!("{}\n", err.to_string().red().bold());
-    if let Some(file) = &meta.file {
+    if let Some(file) = meta.file.as_ref().filter(|_| line > 0 && col > 0) {
         out.push_str(&format!("     --> {}:{}:{}\n", file.display(), line, col));
     }
     let content = meta.source_line.as_deref().or_else(|| {
@@ -60,6 +60,11 @@ pub fn format_error_with_source(err: &SoplangError, source: Option<&str>) -> Str
     }
     if let Some(hint) = meta.hint.as_deref() {
         out.push_str(&format!("{} {}\n", "     └─".dimmed(), hint.dimmed()));
+    }
+    if std::env::var_os("SOPLANG_ERROR_DETAILS").as_deref() == Some(std::ffi::OsStr::new("1")) {
+        if let Some(details) = &meta.technical_details {
+            out.push_str(&format!("Faahfaahin farsamo:\n{}\n", details.trim_end()));
+        }
     }
     out
 }

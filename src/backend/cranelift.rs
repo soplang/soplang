@@ -12,10 +12,17 @@ use cranelift::prelude::*;
 use cranelift_jit::JITBuilder;
 use cranelift_module::{FuncId, Linkage, Module};
 
-use crate::error::{runtime_error, SoplangError};
+use crate::error::{external_error, runtime_error, SoplangError};
 use crate::hir::{BinOpKind, HirConst, HirFunction, HirInstr, HirModule, SlotNum, UnOpKind};
 use crate::runtime;
 use crate::semantic::SymbolTable;
+
+fn compilation_error(error: impl std::fmt::Display) -> SoplangError {
+    external_error(
+        "Cranelift ma dhammaystiri karin ururinta barnaamijka.",
+        error.to_string(),
+    )
+}
 
 struct CompiledFnInfo {
     name: String,
@@ -219,12 +226,12 @@ impl CraneliftBackend {
         let mut flag_builder = settings::builder();
         flag_builder
             .set("use_colocated_libcalls", "false")
-            .map_err(|e| runtime_error(e.to_string(), 0, 0))?;
+            .map_err(compilation_error)?;
         let isa_builder =
-            cranelift_native::builder().map_err(|e| runtime_error(e.to_string(), 0, 0))?;
+            cranelift_native::builder().map_err(compilation_error)?;
         let isa = isa_builder
             .finish(settings::Flags::new(flag_builder))
-            .map_err(|e| runtime_error(e.to_string(), 0, 0))?;
+            .map_err(compilation_error)?;
 
         let mut jit_builder = JITBuilder::with_isa(isa, cranelift_module::default_libcall_names());
         register_runtime_symbols(&mut jit_builder);
@@ -272,7 +279,7 @@ impl CraneliftBackend {
         self.compile_top_level(&hir.top_level, &hir.top_nums)?;
         self.module
             .finalize_definitions()
-            .map_err(|e| runtime_error(e.to_string(), 0, 0))?;
+            .map_err(compilation_error)?;
         self.register_compiled_fns();
         Ok(())
     }
@@ -280,10 +287,10 @@ impl CraneliftBackend {
     pub fn run_main(&self) -> Result<(), SoplangError> {
         let func_id = self
             .main_func_id
-            .ok_or_else(|| runtime_error("main not compiled", 0, 0))?;
+            .ok_or_else(|| runtime_error("Hawsha 'main' weli lama ururin.", 0, 0))?;
         let code = self.module.get_finalized_function(func_id);
         if code.is_null() {
-            return Err(runtime_error("main not finalized", 0, 0));
+            return Err(runtime_error("Hawsha 'main' weli diyaar uma aha fulin.", 0, 0));
         }
         #[cfg(all(target_os = "windows", target_arch = "x86_64"))]
         let main_fn: extern "sysv64" fn() = unsafe { std::mem::transmute(code) };
@@ -359,11 +366,11 @@ impl CraneliftBackend {
                 Linkage::Export,
                 &self.ctx.func.signature,
             )
-            .map_err(|e| runtime_error(e.to_string(), 0, 0))?;
+            .map_err(compilation_error)?;
         self.main_func_id = Some(id);
         self.module
             .define_function(id, &mut self.ctx)
-            .map_err(|e| runtime_error(e.to_string(), 0, 0))?;
+            .map_err(compilation_error)?;
         self.module.clear_context(&mut self.ctx);
         Ok(())
     }
@@ -441,7 +448,7 @@ impl CraneliftBackend {
         let id = self
             .module
             .declare_function(&name, Linkage::Export, &self.ctx.func.signature)
-            .map_err(|e| runtime_error(e.to_string(), 0, 0))?;
+            .map_err(compilation_error)?;
         self.compiled_fns.push(CompiledFnInfo {
             name: f.name.clone(),
             n_params: f.params.len() + env_params,
@@ -449,7 +456,7 @@ impl CraneliftBackend {
         });
         self.module
             .define_function(id, &mut self.ctx)
-            .map_err(|e| runtime_error(e.to_string(), 0, 0))?;
+            .map_err(compilation_error)?;
         self.module.clear_context(&mut self.ctx);
         Ok(())
     }
@@ -526,7 +533,7 @@ fn compile_body(
                 .map(|value| builder.ins().iconst(types::I64, value));
                 let fid = module
                     .declare_function("soplang_set_location", Linkage::Import, &make_sig(7, 0))
-                    .map_err(|e| runtime_error(e.to_string(), 0, 0))?;
+                    .map_err(compilation_error)?;
                 let fref = declare_jit_function(module, fid, builder.func);
                 builder.ins().call(fref, &args);
             }
@@ -919,7 +926,7 @@ fn compile_body(
                 let sig = make_sig(5, 0);
                 let fid = module
                     .declare_function("soplang_check_type", Linkage::Import, &sig)
-                    .map_err(|e| runtime_error(e.to_string(), 0, 0))?;
+                    .map_err(compilation_error)?;
                 let fref = declare_jit_function(module, fid, builder.func);
                 builder.ins().call(fref, &[st, sp, et, nptr, nlen]);
             }
@@ -941,7 +948,7 @@ fn compile_body(
                 let sig = make_sig(6, 0);
                 let fid = module
                     .declare_function("soplang_check_class", Linkage::Import, &sig)
-                    .map_err(|e| runtime_error(e.to_string(), 0, 0))?;
+                    .map_err(compilation_error)?;
                 let fref = declare_jit_function(module, fid, builder.func);
                 builder.ins().call(fref, &[st, sp, cptr, clen, nptr, nlen]);
             }
@@ -955,7 +962,7 @@ fn compile_body(
                 let sig = make_sig(2, 0);
                 let fid = module
                     .declare_function("soplang_mark_const", Linkage::Import, &sig)
-                    .map_err(|e| runtime_error(e.to_string(), 0, 0))?;
+                    .map_err(compilation_error)?;
                 let fref = declare_jit_function(module, fid, builder.func);
                 builder.ins().call(fref, &[nptr, nlen]);
             }
@@ -1059,7 +1066,7 @@ fn call_rt(
     let sig = make_sig(args.len(), 2);
     let fid = module
         .declare_function(name, Linkage::Import, &sig)
-        .map_err(|e| runtime_error(e.to_string(), 0, 0))?;
+        .map_err(compilation_error)?;
     let fref = declare_jit_function(module, fid, builder.func);
     let call = builder.ins().call(fref, args);
     let r = builder.inst_results(call);
@@ -1075,7 +1082,7 @@ fn call_rt_i64(
     let sig = make_sig(args.len(), 1);
     let fid = module
         .declare_function(name, Linkage::Import, &sig)
-        .map_err(|e| runtime_error(e.to_string(), 0, 0))?;
+        .map_err(compilation_error)?;
     let fref = declare_jit_function(module, fid, builder.func);
     let call = builder.ins().call(fref, args);
     Ok(builder.inst_results(call)[0])
@@ -1090,7 +1097,7 @@ fn call_rt_void(
     let sig = make_sig(args.len(), 0);
     let fid = module
         .declare_function(name, Linkage::Import, &sig)
-        .map_err(|e| runtime_error(e.to_string(), 0, 0))?;
+        .map_err(compilation_error)?;
     let fref = declare_jit_function(module, fid, builder.func);
     builder.ins().call(fref, args);
     Ok(())
@@ -1107,7 +1114,7 @@ fn emit_store_global(
     let sig = make_sig(4, 0);
     let fid = module
         .declare_function("soplang_store_global", Linkage::Import, &sig)
-        .map_err(|e| runtime_error(e.to_string(), 0, 0))?;
+        .map_err(compilation_error)?;
     let fref = declare_jit_function(module, fid, builder.func);
     builder
         .ins()

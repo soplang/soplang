@@ -9,7 +9,7 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::sync::atomic::{AtomicU64, Ordering};
 
-use crate::error::{runtime_error, SoplangError};
+use crate::error::{external_error, io_error, runtime_error, tool_start_error, SoplangError};
 use crate::hir::{BinOpKind, HirConst, HirFunction, HirInstr, HirModule, SlotNum, UnOpKind};
 use crate::semantic::SymbolTable;
 
@@ -186,11 +186,22 @@ pub fn link_llvm_binary_with_opt(ir: &str, out: &Path, opt_level: u8) -> Result<
         .0
         .join("program")
         .with_extension(std::env::consts::EXE_EXTENSION);
-    fs::write(&ll, ir).map_err(|e| runtime_error(e.to_string(), 0, 0))?;
-    fs::write(&wrapper, LINK_WRAPPER).map_err(|e| runtime_error(e.to_string(), 0, 0))?;
+    fs::write(&ll, ir)
+        .map_err(|e| io_error(format!("Faylka '{}' lama qori karin.", ll.display()), &e))?;
+    fs::write(&wrapper, LINK_WRAPPER).map_err(|e| {
+        io_error(
+            format!("Faylka '{}' lama qori karin.", wrapper.display()),
+            &e,
+        )
+    })?;
     if let Some(parent) = out.parent() {
         if !parent.as_os_str().is_empty() {
-            fs::create_dir_all(parent).map_err(|e| runtime_error(e.to_string(), 0, 0))?;
+            fs::create_dir_all(parent).map_err(|e| {
+                io_error(
+                    format!("Galka '{}' lama abuuri karin.", parent.display()),
+                    &e,
+                )
+            })?;
         }
     }
     let clang = Command::new("clang")
@@ -200,14 +211,13 @@ pub fn link_llvm_binary_with_opt(ir: &str, out: &Path, opt_level: u8) -> Result<
         .arg("-o")
         .arg(&obj)
         .output()
-        .map_err(|e| runtime_error(format!("clang did not start: {e}"), 0, 0))?;
+        .map_err(|e| tool_start_error("clang", &e))?;
     if !clang.status.success() {
         let stderr = String::from_utf8_lossy(&clang.stderr);
         let _ = fs::remove_file(&ll);
-        return Err(runtime_error(
-            format!("clang failed to compile LLVM IR\n{}", stderr.trim_end()),
-            0,
-            0,
+        return Err(external_error(
+            "clang ma dhammaystiri karin ururinta LLVM IR.",
+            format!("clang: {}\n{}", clang.status, stderr.trim_end()),
         ));
     }
     let mut linker = Command::new("rustc");
@@ -233,16 +243,15 @@ pub fn link_llvm_binary_with_opt(ir: &str, out: &Path, opt_level: u8) -> Result<
         .arg("-C")
         .arg(format!("link-arg={}", obj.display()))
         .output()
-        .map_err(|e| runtime_error(format!("rustc did not start: {e}"), 0, 0))?;
+        .map_err(|e| tool_start_error("rustc", &e))?;
     let _ = fs::remove_file(&ll);
     let _ = fs::remove_file(&obj);
     let _ = fs::remove_file(&wrapper);
     if !rustc.status.success() {
         let stderr = String::from_utf8_lossy(&rustc.stderr);
-        return Err(runtime_error(
-            format!("rustc failed to link LLVM IR\n{}", stderr.trim_end()),
-            0,
-            0,
+        return Err(external_error(
+            "rustc ma dhammaystiri karin isku xidhka barnaamijka.",
+            format!("rustc: {}\n{}", rustc.status, stderr.trim_end()),
         ));
     }
     match fs::rename(&linked, out) {
@@ -250,9 +259,25 @@ pub fn link_llvm_binary_with_opt(ir: &str, out: &Path, opt_level: u8) -> Result<
         // The system temp directory and requested output may be on different
         // volumes (notably C: and D: on Windows runners).
         Err(error) if error.kind() == std::io::ErrorKind::CrossesDevices => {
-            fs::copy(&linked, out).map_err(|e| runtime_error(e.to_string(), 0, 0))?;
+            fs::copy(&linked, out).map_err(|e| {
+                io_error(
+                    format!(
+                        "Barnaamijka la dhisay laguma kaydin karin '{}'.",
+                        out.display()
+                    ),
+                    &e,
+                )
+            })?;
         }
-        Err(error) => return Err(runtime_error(error.to_string(), 0, 0)),
+        Err(error) => {
+            return Err(io_error(
+                format!(
+                    "Barnaamijka la dhisay laguma kaydin karin '{}'.",
+                    out.display()
+                ),
+                &error,
+            ))
+        }
     }
     Ok(())
 }
@@ -373,7 +398,7 @@ impl LinkTemp {
             match fs::create_dir(&path) {
                 Ok(()) => return Ok(Self(path)),
                 Err(e) if e.kind() == std::io::ErrorKind::AlreadyExists => continue,
-                Err(e) => return Err(runtime_error(e.to_string(), 0, 0)),
+                Err(e) => return Err(io_error("Galka ku meel gaarka ah lama abuuri karin.", &e)),
             }
         }
     }
@@ -385,37 +410,93 @@ impl Drop for LinkTemp {
     }
 }
 
+fn toolchain_summary(metadata: &str) -> String {
+    let version = metadata
+        .lines()
+        .next()
+        .and_then(|line| line.strip_prefix("rustc "))
+        .and_then(|line| line.split_whitespace().next())
+        .filter(|version| {
+            version.starts_with(|c: char| c.is_ascii_digit())
+                && version
+                    .chars()
+                    .all(|c| c.is_ascii_alphanumeric() || ".+-".contains(c))
+        });
+    let host = metadata
+        .lines()
+        .find_map(|line| line.strip_prefix("host: "));
+    match (version, host) {
+        (Some(version), Some(host)) => {
+            let commit = metadata
+                .lines()
+                .find_map(|line| line.strip_prefix("commit-hash: "))
+                .filter(|hash| !hash.is_empty() && hash.chars().all(|c| c.is_ascii_hexdigit()));
+            let llvm = metadata
+                .lines()
+                .find_map(|line| line.strip_prefix("LLVM version: "))
+                .filter(|number| {
+                    !number.is_empty() && number.chars().all(|c| c.is_ascii_digit() || c == '.')
+                });
+            let mut summary = format!("rustc {version}; {host}");
+            if let Some(commit) = commit {
+                summary.push_str(&format!("; {commit}"));
+            }
+            if let Some(llvm) = llvm {
+                summary.push_str(&format!("; LLVM {llvm}"));
+            }
+            summary
+        }
+        (Some(version), None) => format!("rustc {version}"),
+        _ => "lama xaqiijin".to_owned(),
+    }
+}
+
 fn packaged_runtime(dir: &Path) -> Result<(PathBuf, PathBuf), SoplangError> {
     let expected = fs::read_to_string(dir.join("rustc-version.txt")).map_err(|e| {
-        runtime_error(
-            format!("cannot read runtime toolchain in {}: {e}", dir.display()),
-            0,
-            0,
+        io_error(
+            format!(
+                "Xogta nooca Rust ee ku jirta '{}' lama akhrin karin.",
+                dir.join("rustc-version.txt").display()
+            ),
+            &e,
         )
     })?;
     let rustc = Command::new("rustc").arg("-vV").output().map_err(|e| {
-        runtime_error(
+        io_error(
             format!(
-                "rustc did not start: {e}. Install the toolchain listed in {}/rustc-version.txt",
-                dir.display()
+                "rustc lama bilaabi karin. Hubi nooca Rust ee ku qoran '{}'.",
+                dir.join("rustc-version.txt").display()
             ),
-            0,
-            0,
+            &e,
         )
     })?;
     let actual = String::from_utf8_lossy(&rustc.stdout);
     // rlib metadata is specific to the Rust compiler and host target. Compare
     // the full version, including the commit and host, before asking rustc to link.
     if !rustc.status.success() || !actual.trim().lines().eq(expected.trim().lines()) {
-        return Err(runtime_error(format!(
-            "runtime Rust toolchain mismatch\nRequired:\n{}\nFound:\n{}\nInstall the matching Rust toolchain or rebuild this Soplang package.",
-            expected.trim(), actual.trim()), 0, 0));
+        let required = toolchain_summary(&expected);
+        let found = toolchain_summary(&actual);
+        let message = format!(
+            "Nooca Rust ee rakiban kuma habboona maktabadaha Soplang.\nNooca loo baahan yahay: {}\nNooca la helay: {}\nRakib nooca Rust ee loo baahan yahay ama dib u dhis xirmadan Soplang.",
+            required, found,
+        );
+        let details = format!(
+            "rustc: {}\n{}\n{}\n{}",
+            rustc.status,
+            expected.trim(),
+            actual.trim(),
+            String::from_utf8_lossy(&rustc.stderr),
+        );
+        return Err(external_error(message, details));
     }
     let rlib = dir.join("libsoplang.rlib");
     let deps = dir.join("deps");
     if !rlib.is_file() || !deps.is_dir() {
         return Err(runtime_error(
-            format!("incomplete Soplang runtime in {}", dir.display()),
+            format!(
+                "Qaybaha fulinta Soplang ee ku jira '{}' ma dhammaystirna.",
+                dir.display()
+            ),
             0,
             0,
         ));
@@ -427,10 +508,19 @@ fn soplang_rlib() -> Result<(PathBuf, PathBuf), SoplangError> {
     if let Some(dir) = std::env::var_os("SOPLANG_RUNTIME_DIR") {
         return packaged_runtime(Path::new(&dir));
     }
-    let exe = std::env::current_exe().map_err(|e| runtime_error(e.to_string(), 0, 0))?;
-    let parent = exe
-        .parent()
-        .ok_or_else(|| runtime_error("cannot locate Soplang executable", 0, 0))?;
+    let exe = std::env::current_exe().map_err(|e| {
+        io_error(
+            "Meesha uu ku jiro barnaamijka Soplang lama ogaan karin.",
+            &e,
+        )
+    })?;
+    let parent = exe.parent().ok_or_else(|| {
+        runtime_error(
+            "Meesha uu ku jiro barnaamijka Soplang lama ogaan karin.",
+            0,
+            0,
+        )
+    })?;
     // Portable archives / Windows / macOS bundles; then Unix prefix/bin layout.
     for dir in [parent.join("lib/soplang"), parent.join("../lib/soplang")] {
         if dir.is_dir() {
@@ -461,7 +551,7 @@ fn soplang_rlib() -> Result<(PathBuf, PathBuf), SoplangError> {
         }
     }
     Err(runtime_error(
-        "Soplang runtime libraries are missing. Install the complete package or set SOPLANG_RUNTIME_DIR to its lib/soplang directory.", 0, 0))
+        "Maktabadaha fulinta Soplang lama helin. Rakib xirmada oo dhammaystiran ama SOPLANG_RUNTIME_DIR u deji galkeeda lib/soplang.", 0, 0))
 }
 
 fn emit_function(

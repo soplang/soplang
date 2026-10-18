@@ -6,6 +6,15 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [3.0.1] - Unreleased
+
+### Fixed
+
+* Translate CLI help, generated argument errors, REPL descriptions, and HIR section headings into Somali.
+* Explain file, input, JIT, LLVM, and toolchain failures in Somali. Retain original external errors behind `SOPLANG_ERROR_DETAILS=1` without changing caught-error messages.
+* Handle REPL startup and program output failures through diagnostics, preserve source carets, and omit nonexistent line and column numbers for infrastructure failures.
+* Verify localized help and package failures, and select release notes for the version being packaged.
+
 ### Added
 
 * **Python/v2/v3 benchmark comparison.** Ten equivalent workloads exercise the v2 interpreter, v3 Cranelift JIT, v3 LLVM executables, and Python. Validated runs record medians, sample spread, raw observations, source/toolchain metadata, and separate LLVM build costs.

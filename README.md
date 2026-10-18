@@ -74,6 +74,12 @@ executables.
 
 ### CLI notes
 
+The 3.0.1 patch in preparation localizes help and system-error explanations.
+See [CLI help and diagnostics](docs/language/cli.md) for the unchanged flags,
+exit statuses, source locations, and `SOPLANG_ERROR_DETAILS=1` troubleshooting
+setting. Published package links below continue to describe 3.0.0 until the
+new release is verified.
+
 - `soplang <file.sop>`: run via Cranelift JIT.
 - `soplang --build <file.sop> -o <out>`: build a standalone native binary.
 - `soplang --build ... --opt-level 0..3`: tune AOT optimization level.

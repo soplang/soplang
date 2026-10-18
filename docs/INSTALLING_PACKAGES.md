@@ -63,3 +63,10 @@ spaces, changes away from the checkout, runs all public examples through JIT
 and LLVM, checks every diagnostic snapshot, and exercises imports and the REPL.
 It also checks missing runtime files, mismatched Rust metadata, and standalone
 execution after removing the source and installed runtime.
+
+## Diagnostic language in 3.0.1
+
+The upcoming 3.0.1 patch explains runtime discovery, missing tools, toolchain
+mismatches, and file failures in Somali. Set `SOPLANG_ERROR_DETAILS=1` to
+include original tool/OS details for troubleshooting. Paths, tool names, and
+version identifiers remain literal. See [CLI diagnostics](language/cli.md).

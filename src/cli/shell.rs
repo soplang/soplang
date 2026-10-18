@@ -6,6 +6,7 @@ use std::path::Path;
 use rustyline::error::ReadlineError;
 use rustyline::DefaultEditor;
 
+use crate::error::{external_error, file_read_error, input_error, SoplangError};
 use crate::{format_error_with_source, run_source};
 
 use super::ReplSession;
@@ -23,7 +24,7 @@ fn history_path() -> Option<std::path::PathBuf> {
 
 fn welcome_banner() -> String {
     format!(
-        "Soplang {} — Luuqadda barnaamijka ee Soomaaliyeed.\n  /caawi  = caawimo   /bixi = bixi   /akhrifayl <fayl> = akhri oo orod\n  Ctrl+D ama /bixi = bixi",
+        "Soplang {}: Luuqadda barnaamijyada ee Af-Soomaaliga.\n  /caawi  = caawimo   /bixi = bixi   /akhrifayl <fayl> = akhri oo fuli\n  Ctrl+D ama /bixi = bixi",
         env!("CARGO_PKG_VERSION")
     )
 }
@@ -31,9 +32,9 @@ fn welcome_banner() -> String {
 const HELP_TEXT: &str = r#"Caawimo (amarada):
   /caawi, /help     Muuji boggan
   /bixi, /exit      Ka bixi REPL
-  /akhrifayl <fayl> Akhri faylka .sop oo orod
+  /akhrifayl <fayl> Akhri faylka .sop oo fuli
   /ast              Muuji AST (qaabka weedha)
-  /hir              Muuji HIR (ir)
+  /hir              Muuji qaabka HIR
 
 Haddii aad geliso weedh kaliya (tusaale: 1+2), natiijada waxaa laguu soo bandhigayaa."#;
 
@@ -45,16 +46,21 @@ pub struct Shell {
 
 impl Shell {
     pub fn new(strict: bool) -> Self {
-        let mut editor = DefaultEditor::new().expect("rustyline Editor");
+        Self::try_new(strict).expect("REPL lama bilaabi karin")
+    }
+
+    /// Fallible startup used by the CLI, so editor/JIT errors are diagnostics.
+    pub fn try_new(strict: bool) -> Result<Self, SoplangError> {
+        let mut editor = DefaultEditor::new().map_err(|e| editor_error(&e))?;
         if let Some(p) = history_path() {
             let _ = editor.load_history(&p);
         }
-        let session = ReplSession::new(strict).expect("Cranelift JIT");
-        Self {
+        let session = ReplSession::new(strict)?;
+        Ok(Self {
             editor,
             strict,
             session,
-        }
+        })
     }
 
     pub fn run(&mut self) {
@@ -87,7 +93,7 @@ impl Shell {
                     }
                     Err(ReadlineError::Eof) => break,
                     Err(e) => {
-                        eprintln!("Khalad: {}", e);
+                        eprintln!("{}", format_error_with_source(&editor_error(&e), None));
                         break;
                     }
                 }
@@ -122,7 +128,7 @@ impl Shell {
             Err(ReadlineError::Interrupted) => None,
             Err(ReadlineError::Eof) => None,
             Err(e) => {
-                eprintln!("Khalad: {}", e);
+                eprintln!("{}", format_error_with_source(&editor_error(&e), None));
                 None
             }
         }
@@ -146,8 +152,11 @@ impl Shell {
                 match fs::read_to_string(path) {
                     Ok(source) => self.execute_at(&source, Some(Path::new(path))),
                     Err(e) => eprintln!(
-                        "Khalad: Ma suurtagelin in la akhriyo faylka '{}': {}",
-                        path, e
+                        "{}",
+                        format_error_with_source(
+                            &file_read_error(std::path::Path::new(path), &e),
+                            None
+                        )
                     ),
                 }
             }
@@ -184,5 +193,12 @@ impl Shell {
         if let Err(e) = self.session.eval(source, path) {
             eprintln!("{}", format_error_with_source(&e, Some(source)));
         }
+    }
+}
+
+fn editor_error(error: &ReadlineError) -> SoplangError {
+    match error {
+        ReadlineError::Io(error) => input_error(error),
+        _ => external_error("Qoraalka amarka lama akhrin karin.", error.to_string()),
     }
 }

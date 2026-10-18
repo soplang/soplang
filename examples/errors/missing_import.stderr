@@ -1,4 +1,4 @@
-Khalad soo-dejin: Faylka 'support/maqan.sop' ma helin [E021] safka 2, tiirka 1
+Khalad soo-dejin: Faylka 'support/maqan.sop' lama helin. [E021] safka 2, tiirka 1
      --> examples/errors/missing_import.sop:2:1
    2 │   keen "support/maqan.sop"
      │   ^^^^

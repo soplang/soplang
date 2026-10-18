@@ -58,7 +58,7 @@ pub fn run_source(
                 println!("{}", instr);
             }
         }
-        println!("\n--- top_level ---");
+        println!("\n--- qaybta guud ---");
         for instr in &hir.top_level {
             println!("{}", instr);
         }

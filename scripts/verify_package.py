@@ -25,6 +25,7 @@ def main():
         parser.error("the supplied executable has no packaged runtime")
     env = dict(os.environ, NO_COLOR="1", CARGO_TARGET_DIR="/nonexistent-soplang-target")
     env.pop("SOPLANG_RUNTIME_DIR", None)
+    env.pop("SOPLANG_ERROR_DETAILS", None)
     suffix = ".exe" if os.name == "nt" else ""
 
     with tempfile.TemporaryDirectory(prefix="soplang installed check ") as temp:
@@ -59,9 +60,19 @@ def main():
         version = run(["--version"])
         success(version)
         assert re.match(r"soplang 3\.", version.stdout), version.stdout
+        help_output = run(["--help"])
+        success(help_output)
+        assert "Adeegsiga:" in help_output.stdout and "Xulashooyinka:" in help_output.stdout
+        assert "Usage:" not in help_output.stdout and "[default:" not in help_output.stdout
+        invalid = run(["--not-a-soplang-option"])
+        assert invalid.returncode == 2 and "lama aqoonsan" in invalid.stderr
+        assert not invalid.stdout and "unexpected argument" not in invalid.stderr
+        failure = run(["missing-script.sop"])
+        assert failure.returncode == 1 and "lama helin" in failure.stderr
+        assert "No such file" not in failure.stderr and "safka 0" not in failure.stderr
         success(run(["-c", "1 + 2"]), "3\n")
         repl = run([], input='door n = 4\nn + 1\n/bixi\n')
-        assert repl.returncode == 0 and re.search(r"(?m)^5\s*$", repl.stdout), repl
+        assert repl.returncode == 0 and re.search(r"(?m)^5\s*$", repl.stdout.replace("soplang> ", "")), repl
         examples = sorted(path.relative_to(work) for path in (work / "examples").glob("[0-9]*.sop"))
         assert examples, "no public examples found"
         for path in examples:
@@ -127,12 +138,12 @@ def main():
         missing = run(
             ["--build", sample], extra_env={"SOPLANG_RUNTIME_DIR": str(work / "missing runtime")}
         )
-        assert missing.returncode != 0 and "cannot read runtime toolchain" in missing.stderr
+        assert missing.returncode != 0 and "Xogta nooca Rust" in missing.stderr
         version_path = install / "lib/soplang/rustc-version.txt"
         recorded = version_path.read_text(encoding="utf-8")
         version_path.write_text("rustc incompatible-test-version\n", encoding="utf-8")
         _, mismatch = build(sample)
-        assert mismatch.returncode != 0 and "runtime Rust toolchain mismatch" in mismatch.stderr
+        assert mismatch.returncode != 0 and "Nooca Rust ee rakiban kuma habboona" in mismatch.stderr
         version_path.write_text(recorded, encoding="utf-8")
 
         # A native output must continue to work without source or runtime files.
@@ -146,7 +157,7 @@ def main():
         # Parse a valid source so this checks discovery, rather than file I/O.
         (work / "simple.sop").write_text('qor(1)\n', encoding="utf-8")
         missing = run(["--build", "simple.sop"])
-        assert missing.returncode != 0 and "runtime libraries are missing" in missing.stderr
+        assert missing.returncode != 0 and "Maktabadaha fulinta Soplang lama helin" in missing.stderr
         success(run(["-c", "1 + 2"], extra_env={"PATH": str(work / "no tools")}), "3\n")
 
     print(f"Installed package verified: version, REPL, {len(examples)} examples and {count} diagnostics in JIT/LLVM; runtime discovery, toolchain mismatch, and standalone execution.")

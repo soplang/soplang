@@ -21,7 +21,7 @@ compile	constructor_arguments.sop	2	12	dood
 compile	parent_outside_class.sop	2	16	waalid
 strict	strict_variable.sop	1	1	Habka adag
 strict	strict_function.sop	1	1	Habka adag
-compile	missing_import.sop	2	1	ma helin
+compile	missing_import.sop	2	1	lama helin
 runtime	division_zero.sop	2	14	eber
 runtime	modulo_zero.sop	2	14	eber
 runtime	float_division_zero.sop	2	14	eber

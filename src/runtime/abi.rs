@@ -353,7 +353,9 @@ pub fn soplang_to_value(sv: SoplangValue) -> Result<Value, SoplangError> {
             sv.payload as usize,
         ))),
         TAG_CLOSURE => Ok(Value::Closure(sv.payload)),
-        _ => Err(runtime_error(format!("Invalid tag {}", sv.tag), 0, 0)),
+        _ => Err(runtime_error(
+            format!("Summadda qiimaha ma saxna: {}.", sv.tag), 0, 0,
+        )),
     }
 }
 

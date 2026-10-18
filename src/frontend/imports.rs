@@ -4,7 +4,7 @@ use std::collections::HashSet;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use crate::error::{codes, import_error_ex, ErrorMeta, SoplangError};
+use crate::error::{codes, file_read_error, import_error_ex, ErrorMeta, SoplangError};
 use crate::frontend::ast::Stmt;
 use crate::frontend::token::TokenType;
 use crate::frontend::Lexer;
@@ -68,12 +68,15 @@ fn bundle_one(
         i += 2;
 
         let import_path = resolve_import_path(&base_dir, &path_tok.lexeme)?;
-        let canon = import_path.canonicalize().map_err(|_| {
+        let canon = import_path.canonicalize().map_err(|e| {
+            let error = file_read_error(Path::new(&path_tok.lexeme), &e);
             import_error_ex(
-                format!("Faylka '{}' ma helin", path_tok.lexeme),
+                error.message(),
                 path_tok.line,
                 path_tok.col,
-                ErrorMeta::default()
+                error
+                    .meta()
+                    .clone()
                     .with_code(codes::E021_UNDECLARED)
                     .with_hint("Hubi in magaca faylka iyo jidka ay sax yihiin."),
             )
@@ -81,14 +84,17 @@ fn bundle_one(
         if !seen.insert(canon) {
             continue;
         }
-        let imported = fs::read_to_string(&import_path).map_err(|_| {
+        let imported = fs::read_to_string(&import_path).map_err(|e| {
+            let error = file_read_error(Path::new(&path_tok.lexeme), &e);
             import_error_ex(
-                format!("Faylka '{}' ma helin", path_tok.lexeme),
+                error.message(),
                 path_tok.line,
                 path_tok.col,
-                ErrorMeta::default()
+                error
+                    .meta()
+                    .clone()
                     .with_code(codes::E021_UNDECLARED)
-                    .with_hint("Hubi in faylka uu jiro oo akhriska loo ogol yahay."),
+                    .with_hint("Hubi in faylka uu jiro oo akhriska loo oggol yahay."),
             )
         })?;
         let bundled = bundle_one(&imported, Some(&import_path), seen)?;
@@ -137,12 +143,15 @@ fn flatten_imports(
             }
             Stmt::Import(path) => {
                 let import_path = resolve_import_path(&base_dir, &path)?;
-                let canon = import_path.canonicalize().map_err(|_| {
+                let canon = import_path.canonicalize().map_err(|e| {
+                    let error = file_read_error(Path::new(&path), &e);
                     import_error_ex(
-                        format!("Faylka '{}' ma helin", path),
+                        error.message(),
                         0,
                         0,
-                        ErrorMeta::default()
+                        error
+                            .meta()
+                            .clone()
                             .with_code(codes::E021_UNDECLARED)
                             .with_hint("Hubi in magaca faylka iyo jidka ay sax yihiin."),
                     )
@@ -150,14 +159,17 @@ fn flatten_imports(
                 if !seen.insert(canon) {
                     continue;
                 }
-                let source = fs::read_to_string(&import_path).map_err(|_| {
+                let source = fs::read_to_string(&import_path).map_err(|e| {
+                    let error = file_read_error(Path::new(&path), &e);
                     import_error_ex(
-                        format!("Faylka '{}' ma helin", path),
+                        error.message(),
                         0,
                         0,
-                        ErrorMeta::default()
+                        error
+                            .meta()
+                            .clone()
                             .with_code(codes::E021_UNDECLARED)
-                            .with_hint("Hubi in faylka uu jiro oo akhriska loo ogol yahay."),
+                            .with_hint("Hubi in faylka uu jiro oo akhriska loo oggol yahay."),
                     )
                 })?;
                 let imported = super::parse_source(&source, Some(&import_path))?;

@@ -7,7 +7,7 @@ use std::io::{self, Write};
 use std::rc::Rc;
 
 use super::value::{value_to_string, Value};
-use crate::error::{runtime_error, type_error, SoplangError};
+use crate::error::{input_error, io_error, runtime_error, type_error, SoplangError};
 
 fn err_type(msg: impl Into<String>) -> SoplangError {
     type_error(msg, 0, 0)
@@ -74,7 +74,8 @@ fn to_integer(v: &Value, name: &str) -> Result<i64, SoplangError> {
 pub fn builtin_qor(args: Vec<Value>) -> Result<Value, SoplangError> {
     expect_arity(&args, "qor", 1)?;
     let s = value_to_string(&args[0]);
-    println!("{}", s);
+    writeln!(io::stdout().lock(), "{}", s)
+        .map_err(|e| io_error("Waxsoosaarka lama qori karin.", &e))?;
     Ok(Value::Str(s))
 }
 
@@ -82,14 +83,16 @@ pub fn builtin_qor(args: Vec<Value>) -> Result<Value, SoplangError> {
 pub fn builtin_gelin(args: Vec<Value>) -> Result<Value, SoplangError> {
     expect_arity_range(&args, "gelin", 0, 1)?;
     let prompt = args.first().map(|v| value_to_string(v)).unwrap_or_default();
-    print!("{}", prompt);
-    io::stdout()
-        .flush()
-        .map_err(|e| err_runtime(e.to_string()))?;
+    {
+        let mut output = io::stdout().lock();
+        write!(output, "{}", prompt)
+            .and_then(|_| output.flush())
+            .map_err(|e| io_error("Waxsoosaarka lama qori karin.", &e))?;
+    }
     let mut line = String::new();
     io::stdin()
         .read_line(&mut line)
-        .map_err(|e| err_runtime(e.to_string()))?;
+        .map_err(|e| input_error(&e))?;
     if line.ends_with('\n') {
         line.pop();
         if line.ends_with('\r') {

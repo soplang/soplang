@@ -1,7 +1,11 @@
 //! Soplang error types with Somali messages.
 //! Structured errors with codes, spans, and hints.
 
+mod external;
 mod format;
+pub use external::{
+    external_error, file_read_error, input_error, io_error, io_reason, tool_start_error,
+};
 
 use std::fmt;
 use std::path::PathBuf;
@@ -38,9 +42,15 @@ pub struct ErrorMeta {
     pub hint: Option<String>,
     pub file: Option<PathBuf>,
     pub source_line: Option<String>,
+    /// Original OS/tool text; never part of a caught runtime message.
+    pub technical_details: Option<String>,
 }
 
 impl ErrorMeta {
+    pub fn with_details(mut self, details: impl Into<String>) -> Self {
+        self.technical_details = Some(details.into());
+        self
+    }
     pub fn with_code(mut self, code: &'static str) -> Self {
         self.code = Some(code);
         self
@@ -176,17 +186,26 @@ impl fmt::Display for SoplangError {
             } => ("soo-dejin", msg, line, col, meta.code),
         };
         let code_str = code.map(|c| format!(" [{}]", c)).unwrap_or_default();
-        write!(
-            f,
-            "Khalad {}: {}{} safka {}, tiirka {}",
-            kind, msg, code_str, line, col
-        )
+        write!(f, "Khalad {}: {}{}", kind, msg, code_str)?;
+        if *line > 0 && *col > 0 {
+            write!(f, " safka {}, tiirka {}", line, col)?;
+        }
+        Ok(())
     }
 }
 
 impl std::error::Error for SoplangError {}
 
 impl SoplangError {
+    pub fn message(&self) -> &str {
+        match self {
+            Self::Lexer { msg, .. }
+            | Self::Parser { msg, .. }
+            | Self::Runtime { msg, .. }
+            | Self::Type { msg, .. }
+            | Self::Import { msg, .. } => msg,
+        }
+    }
     pub fn location(&self) -> (usize, usize) {
         match self {
             SoplangError::Lexer { line, col, .. }
