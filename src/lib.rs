@@ -1,5 +1,6 @@
 //! Soplang library for use by the binary and integration tests.
 
+pub mod analysis;
 pub mod backend;
 pub mod cli;
 pub mod error;

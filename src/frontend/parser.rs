@@ -8,6 +8,7 @@ use crate::error::{parser_error, SoplangError};
 pub struct Parser {
     tokens: Vec<Token>,
     current: usize,
+    contextual_keywords: std::collections::HashSet<usize>,
     source: Option<(Option<std::path::PathBuf>, Vec<String>)>,
 }
 
@@ -16,6 +17,7 @@ impl Parser {
         Self {
             tokens,
             current: 0,
+            contextual_keywords: std::collections::HashSet::new(),
             source: None,
         }
     }
@@ -69,6 +71,18 @@ impl Parser {
         Ok(stmts)
     }
 
+    /// Editor recovery: retain complete statements before the first syntax error.
+    /// Normal compilation continues to use `parse`, with unchanged acceptance.
+    pub fn parse_partial(&mut self) -> Vec<Stmt> {
+        let mut statements = Vec::new();
+        while !self.at_end() {
+            if self.check(TokenType::Semicolon) { self.advance(); continue; }
+            match self.parse_stmt() { Ok(stmt) => statements.push(stmt), Err(_) => break }
+            self.consume_semicolons();
+        }
+        statements
+    }
+
     /// Parse the entire input as a single expression (for REPL / -c). Fails if there is extra input.
     pub fn parse_single_expression(&mut self) -> Result<Expr, SoplangError> {
         let e = self.parse_logical()?;
@@ -85,6 +99,18 @@ impl Parser {
             ));
         }
         Ok(e)
+    }
+
+    /// Byte offsets where contextual identifiers were consumed as syntax.
+    pub fn contextual_keyword_offsets(&self) -> &std::collections::HashSet<usize> {
+        &self.contextual_keywords
+    }
+
+    fn advance_contextual(&mut self) {
+        if self.peek().kind == TokenType::Identifier {
+            self.contextual_keywords.insert(self.peek().start);
+        }
+        self.advance();
     }
 
     fn at_end(&self) -> bool {
@@ -491,7 +517,7 @@ impl Parser {
     }
 
     fn parse_if(&mut self, _line: usize, _col: usize) -> Result<Stmt, SoplangError> {
-        self.advance(); // haddii
+        self.advance_contextual(); // haddii
         self.expect(TokenType::LParen)?;
         let cond = self.parse_logical()?;
         self.expect(TokenType::RParen)?;
@@ -503,7 +529,7 @@ impl Parser {
         while self.check(TokenType::HaddiiKale)
             || (self.looks_like_kale_branch() && self.peek_nth(1).kind == TokenType::LParen)
         {
-            self.advance();
+            self.advance_contextual();
             self.expect(TokenType::LParen)?;
             let elif_cond = self.parse_logical()?;
             self.expect(TokenType::RParen)?;
@@ -516,7 +542,7 @@ impl Parser {
         let else_body = if self.check(TokenType::Ugudambeyn)
             || (self.looks_like_kale_branch() && self.peek_nth(1).kind == TokenType::LBrace)
         {
-            self.advance();
+            self.advance_contextual();
             self.expect(TokenType::LBrace)?;
             let b = self.parse_block_stmts()?;
             self.expect(TokenType::RBrace)?;
@@ -534,7 +560,7 @@ impl Parser {
     }
 
     fn parse_switch(&mut self, _line: usize, _col: usize) -> Result<Stmt, SoplangError> {
-        self.advance(); // dooro
+        self.advance_contextual(); // dooro
         self.expect(TokenType::LParen)?;
         let expr = self.parse_logical()?;
         self.expect(TokenType::RParen)?;
@@ -545,7 +571,7 @@ impl Parser {
 
         while !self.check(TokenType::RBrace) {
             if self.check(TokenType::Xaalad) {
-                self.advance();
+                self.advance_contextual();
                 let case_val = self.parse_logical()?;
                 self.expect(TokenType::LBrace)?;
                 let body = self.parse_block_stmts()?;
@@ -554,7 +580,7 @@ impl Parser {
             } else if self.check(TokenType::Ugudambeyn)
                 || (self.looks_like_kale_branch() && self.peek_nth(1).kind == TokenType::LBrace)
             {
-                self.advance();
+                self.advance_contextual();
                 self.expect(TokenType::LBrace)?;
                 default = Some(self.parse_block_stmts()?);
                 self.expect(TokenType::RBrace)?;
@@ -576,7 +602,7 @@ impl Parser {
     }
 
     fn parse_for(&mut self, _line: usize, _col: usize) -> Result<Stmt, SoplangError> {
-        self.advance(); // kuceli
+        self.advance_contextual(); // kuceli
         self.expect(TokenType::LParen)?;
         let var = self.expect_identifier()?;
         let start = self.parse_expression()?;
@@ -589,12 +615,12 @@ impl Parser {
                 t.col,
             ));
         }
-        self.advance();
+        self.advance_contextual();
         let end = self.parse_expression()?;
         let step = if self.check(TokenType::Colon) {
-            self.advance();
+            self.advance_contextual();
             if self.check(TokenType::Colon) {
-                self.advance();
+                self.advance_contextual();
                 Some(self.parse_expression()?)
             } else {
                 return Err(parser_error(
@@ -631,7 +657,7 @@ impl Parser {
     }
 
     fn parse_try_catch(&mut self, _line: usize, _col: usize) -> Result<Stmt, SoplangError> {
-        self.advance(); // tijaabi or fasax
+        self.advance_contextual(); // tijaabi or fasax
         self.expect(TokenType::LBrace)?;
         let try_body = self.parse_block_stmts()?;
         self.expect(TokenType::RBrace)?;
