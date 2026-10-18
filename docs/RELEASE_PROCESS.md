@@ -10,7 +10,7 @@ matching branch. Choose that version before creating the release branch.
 ## Verification before drafting
 
 1. Review the [verification record](testing/RELEASE_VERIFICATION.md) and
-   [release notes](RELEASE_NOTES_V3.md). Finish pending platform gates.
+   [version-specific release notes](releases/3.0.1.md). Finish pending platform gates.
 2. Run `cargo test --locked` and `cargo test --release --locked`, including AOT.
 3. Build packages on their native systems:
    - Linux: `bash linux/build_linux.sh` (install dpkg-dev for a Debian package).

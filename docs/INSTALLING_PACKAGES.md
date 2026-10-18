@@ -6,12 +6,12 @@ Moving only the executable supports JIT execution but cannot support `--build`.
 `SOPLANG_RUNTIME_DIR` can override the runtime location; an invalid override is
 an error and never silently selects another installation.
 
-## Published v3.0.0 packages
+## Published v3.0.1 packages
 
 See the [installation guide](installation.md) for actual downloads. Linux x86_64
 packages require glibc 2.39 or later; the macOS Apple Silicon bundle declares
 macOS 14.8.9 or later. Windows packages target x64. Completed checks are in the
-[verification record](testing/RELEASE_VERIFICATION.md).
+[verification record](testing/LOCALIZATION_3_0_1.md).
 
 ## Running programs
 
@@ -43,7 +43,7 @@ package from source; installed `--build` never invokes Cargo.
 - macOS: install Xcode Command Line Tools, including Apple clang and the linker.
 - Windows: install LLVM clang and Visual Studio C++ Build Tools / Windows SDK;
   use a developer shell with the linker on PATH. Native Windows validation
-  passed for v3.0.0; future releases must repeat the gate.
+  is required for every release; see the [verification record](testing/LOCALIZATION_3_0_1.md).
 
 The Docker image includes the matching Rust compiler, clang, and runtime files.
 A built executable needs neither Soplang nor the original source files, but
@@ -66,7 +66,7 @@ execution after removing the source and installed runtime.
 
 ## Diagnostic language in 3.0.1
 
-The upcoming 3.0.1 patch explains runtime discovery, missing tools, toolchain
+Soplang 3.0.1 explains runtime discovery, missing tools, toolchain
 mismatches, and file failures in Somali. Set `SOPLANG_ERROR_DETAILS=1` to
 include original tool/OS details for troubleshooting. Paths, tool names, and
 version identifiers remain literal. See [CLI diagnostics](language/cli.md).

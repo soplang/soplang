@@ -1,8 +1,8 @@
 # CLI help and diagnostics
 
 Soplang 3.0.1 localizes CLI help and argument errors as well as compiler and
-runtime explanations. This patch is being prepared; the latest published
-packages remain 3.0.0 until the release gates complete.
+runtime explanations. Help, invalid arguments, file access, and tool failures
+use Somali explanations while retaining the existing command interface.
 
 ## Commands
 

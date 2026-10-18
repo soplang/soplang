@@ -4,7 +4,7 @@
 
 Soplang is a programming language with Somali keywords. It supports static and dynamic typing, functions, closures, and classes.
 
-**Soplang 3.0.0 is available** for Linux x86_64, Windows x64, macOS Apple Silicon, and Docker. Get the [release packages](https://github.com/soplang/soplang/releases/tag/v3.0.0) or follow the [installation guide](docs/installation.md).
+**Soplang 3.0.1 is available** for Linux x86_64, Windows x64, macOS Apple Silicon, and Docker. Get the [release packages](https://github.com/soplang/soplang/releases/tag/v3.0.1) or follow the [installation guide](docs/installation.md).
 
 The implementation is in Rust. Files and the REPL use Cranelift JIT; `--build` produces standalone LLVM executables. See [COMPILER_PLAN.md](COMPILER_PLAN.md).
 
@@ -62,10 +62,10 @@ Or: `make build`, `make run FILE=examples/01_hello.sop`, `make shell`, `make tes
 The Linux amd64 image includes the compiler and native build toolchain:
 
 ```sh
-docker run --platform linux/amd64 --rm soplang/soplang:3.0.0 --version
-docker run --platform linux/amd64 --rm -it soplang/soplang:3.0.0
+docker run --platform linux/amd64 --rm soplang/soplang:3.0.1 --version
+docker run --platform linux/amd64 --rm -it soplang/soplang:3.0.1
 docker run --platform linux/amd64 --rm -v "$PWD:/scripts:ro" \
-  soplang/soplang:3.0.0 examples/01_hello.sop
+  soplang/soplang:3.0.1 examples/01_hello.sop
 ```
 
 The file example assumes you are in this repository. See the
@@ -74,11 +74,10 @@ executables.
 
 ### CLI notes
 
-The 3.0.1 patch in preparation localizes help and system-error explanations.
+Soplang 3.0.1 localizes help and system-error explanations.
 See [CLI help and diagnostics](docs/language/cli.md) for the unchanged flags,
 exit statuses, source locations, and `SOPLANG_ERROR_DETAILS=1` troubleshooting
-setting. Published package links below continue to describe 3.0.0 until the
-new release is verified.
+setting.
 
 - `soplang <file.sop>`: run via Cranelift JIT.
 - `soplang --build <file.sop> -o <out>`: build a standalone native binary.
@@ -93,6 +92,7 @@ new release is verified.
 
 ## Benchmark results
 
+The V3 results below measure Soplang 3.0.0 at the revision recorded in the report.
 Measured on 2026-10-17 with CPython 3.14.7 and an Intel Core i7-1185G7.
 Ten equivalent workloads run in four modes, with **25 samples per cell** and every output checked.
 

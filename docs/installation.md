@@ -1,6 +1,6 @@
 # Installing Soplang 3
 
-[Soplang 3.0.0](https://github.com/soplang/soplang/releases/tag/v3.0.0) is available
+[Soplang 3.0.1](https://github.com/soplang/soplang/releases/tag/v3.0.1) is available
 for Linux x86_64, Windows x64, and macOS Apple Silicon. A Linux amd64 Docker
 image includes the compiler and its native build toolchain.
 
@@ -10,15 +10,15 @@ Download the package for your platform and the release's combined `SHA256SUMS`.
 
 | Platform | Package | Requirements |
 | --- | --- | --- |
-| Linux x86_64 | `soplang_3.0.0_amd64.deb` or `soplang-3.0.0-linux-x86_64.tar.gz` | glibc 2.39 or later; libgcc |
-| Windows x64 | `soplang-setup.exe` or `soplang-3.0.0-windows-AMD64.zip` | Native Windows x64 environment |
-| macOS Apple Silicon | `soplang-3.0.0-macos-arm64.tar.gz` | The app bundle declares macOS 14.8.9 or later |
+| Linux x86_64 | `soplang_3.0.1_amd64.deb` or `soplang-3.0.1-linux-x86_64.tar.gz` | glibc 2.39 or later; libgcc |
+| Windows x64 | `soplang-setup.exe` or `soplang-3.0.1-windows-AMD64.zip` | Native Windows x64 environment |
+| macOS Apple Silicon | `soplang-3.0.1-macos-arm64.tar.gz` | The app bundle declares macOS 14.8.9 or later |
 
 The Windows installer is unsigned; the macOS archive is not notarized.
 This release provides archives and a Debian package; RPM and DMG assets are
-not attached to v3.0.0. The macOS builder can optionally generate a DMG locally.
+not attached to v3.0.1. The macOS builder can optionally generate a DMG locally.
 
-All native platforms passed the [release verification gates](testing/RELEASE_VERIFICATION.md).
+Native package verification is recorded in the [release verification gates](testing/LOCALIZATION_3_0_1.md).
 
 ### Verify downloads
 
@@ -41,14 +41,14 @@ line in `SHA256SUMS`. The manifest covers packages for all platforms.
 Install the Debian package:
 
 ```sh
-sudo dpkg -i soplang_3.0.0_amd64.deb
+sudo dpkg -i soplang_3.0.1_amd64.deb
 soplang --version
 ```
 
 Or extract the archive:
 
 ```sh
-tar -xzf soplang-3.0.0-linux-x86_64.tar.gz
+tar -xzf soplang-3.0.1-linux-x86_64.tar.gz
 ./soplang/soplang --version
 ```
 
@@ -74,7 +74,7 @@ Alternatively, extract the ZIP and run `soplang.exe` inside the extracted
 Extract the Apple Silicon archive:
 
 ```sh
-tar -xzf soplang-3.0.0-macos-arm64.tar.gz
+tar -xzf soplang-3.0.1-macos-arm64.tar.gz
 ./Soplang.app/Contents/MacOS/soplang --version
 ```
 
@@ -87,9 +87,9 @@ of this release; [build from source](BUILD_GUIDE.md) for other targets.
 The public image is available from Docker Hub:
 
 ```sh
-docker run --rm soplang/soplang:3.0.0 --version
-docker run --rm -v "$PWD:/scripts:ro" soplang/soplang:3.0.0 program.sop
-docker run -it --rm soplang/soplang:3.0.0
+docker run --rm soplang/soplang:3.0.1 --version
+docker run --rm -v "$PWD:/scripts:ro" soplang/soplang:3.0.1 program.sop
+docker run -it --rm soplang/soplang:3.0.1
 ```
 
 See [Docker usage](docker.md) for native builds, writable mounts, and registry
@@ -106,7 +106,7 @@ soplang --build program.sop -o program
 
 JIT execution and the REPL do not need Rust or clang. Native `--build` requires
 clang, a platform linker/SDK, and the exact Rust toolchain recorded in the
-package. Official v3.0.0 packages use Rust 1.94.0. See
+package. Official v3.0.1 packages use Rust 1.94.0. See
 [installed build requirements](INSTALLING_PACKAGES.md) before building programs.
 The Docker image includes these tools.
 

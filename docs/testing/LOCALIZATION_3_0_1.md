@@ -7,8 +7,9 @@ and the native CI matrix remain pending.
 
 ## Source
 
-The uncommitted localization patch was tested in an isolated source snapshot
-based on `e72c6668276fa801691ddb1c753ebbe2f73a417c`, with Cargo version 3.0.1.
+The localization commit is `1d24f875070399abdfc1db6c33d71ba20039256e`,
+with Cargo version 3.0.1. It was tested in an isolated source snapshot based
+on `e72c6668276fa801691ddb1c753ebbe2f73a417c`.
 Unfinished compiler analysis work in the main checkout was excluded. Record
 and verify the final committed release revision in CI before publication.
 

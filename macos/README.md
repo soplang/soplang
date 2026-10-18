@@ -1,9 +1,9 @@
 # Soplang 3 for macOS
 
-The [v3.0.0 release](https://github.com/soplang/soplang/releases/tag/v3.0.0)
+The [v3.0.1 release](https://github.com/soplang/soplang/releases/tag/v3.0.1)
 provides an Apple Silicon archive whose app bundle declares macOS 14.8.9 as its
 minimum. Native debug/release suites and extracted-package JIT/LLVM checks
-passed the [release gates](../docs/testing/RELEASE_VERIFICATION.md). The archive
+are covered by the [release gates](../docs/testing/LOCALIZATION_3_0_1.md). The archive
 is not notarized. See [Installing Soplang](../docs/installation.md).
 
 ## Build packages locally
@@ -29,4 +29,4 @@ python3 scripts/verify_package.py dist/macos/Soplang.app/Contents/MacOS/soplang
 Repeat verification after extracting the actual archive and mounting the DMG.
 For future releases, repeat native JIT/LLVM verification. A locally generated
 DMG needs its own checks; signing and notarization require a separate workflow. See [package requirements](../docs/INSTALLING_PACKAGES.md)
-and the [verification record](../docs/testing/RELEASE_VERIFICATION.md).
+and the [verification record](../docs/testing/LOCALIZATION_3_0_1.md).

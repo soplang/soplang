@@ -1,9 +1,9 @@
 # Soplang 3 for Windows
 
-The [v3.0.0 release](https://github.com/soplang/soplang/releases/tag/v3.0.0)
+The [v3.0.1 release](https://github.com/soplang/soplang/releases/tag/v3.0.1)
 provides a Windows x64 ZIP and installer. Native debug/release suites,
-JIT/LLVM package checks, and installer PATH/file-association removal passed
-the [release gates](../docs/testing/RELEASE_VERIFICATION.md). The installer is
+JIT/LLVM package checks, and installer PATH/file-association removal are
+covered by the [release gates](../docs/testing/LOCALIZATION_3_0_1.md). The installer is
 unsigned. See [Installing Soplang](../docs/installation.md) for installation.
 
 ## Build packages locally
@@ -32,4 +32,4 @@ Repeat the checker on the extracted ZIP and use
 on a clean, disposable Windows runner. This installs, exercises, and removes
 the actual package, including PATH and file associations. See
 [package requirements](../docs/INSTALLING_PACKAGES.md) and the
-[verification record](../docs/testing/RELEASE_VERIFICATION.md).
+[verification record](../docs/testing/LOCALIZATION_3_0_1.md).

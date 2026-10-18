@@ -1,9 +1,9 @@
 # Soplang 3 for Linux
 
-The [v3.0.0 release](https://github.com/soplang/soplang/releases/tag/v3.0.0)
+The [v3.0.1 release](https://github.com/soplang/soplang/releases/tag/v3.0.1)
 provides x86_64 archives and Debian packages requiring glibc 2.39 or later.
-Native debug/release suites, package checks, and Debian install/removal passed
-the [release gates](../docs/testing/RELEASE_VERIFICATION.md). For download and
+Native debug/release suites, package checks, and Debian install/removal are
+covered by the [release gates](../docs/testing/LOCALIZATION_3_0_1.md). For download and
 installation commands, see [Installing Soplang](../docs/installation.md).
 
 ## Build packages locally
