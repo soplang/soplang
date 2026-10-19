@@ -897,7 +897,9 @@ impl Index {
                     }
                 }
             }
-            Expr::UnaryOp { expr, .. } => self.expression(expr, file, scope, start, class),
+            Expr::NamedArgument { value: expr, .. } | Expr::UnaryOp { expr, .. } => {
+                self.expression(expr, file, scope, start, class)
+            }
             Expr::Call { args, .. } | Expr::New { args, .. } => {
                 for arg in args {
                     self.expression(arg, file, scope, start, class)
@@ -938,7 +940,13 @@ fn parameter_label(param: &Param) -> String {
     format!(
         "{} {}{}{}",
         type_name(&param.type_ann),
-        if param.variadic { "*" } else { "" },
+        if param.keyword_rest {
+            "**"
+        } else if param.variadic {
+            "*"
+        } else {
+            ""
+        },
         param.name,
         default
     )

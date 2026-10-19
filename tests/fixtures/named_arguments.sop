@@ -1,0 +1,69 @@
+hawl hubi(shuruud, magac) { haddii (!shuruud) { tuur magac } }
+hawl f(a,b=a+1,c=b+1){celi [a,b,c]}
+hubi(f(c:9,a:1)==[1,2,9],"named reordering and omitted middle default")
+hubi(f(4,c:8)==[4,5,8] && f(b:8,a:4)==[4,8,9],"mixed arguments")
+hawl optional(a=1,b=2){celi [a,b]}
+hubi(optional(b:maran)==[1,maran] && optional(b:been)==[1,been],"explicit null and false")
+door effects=[]
+hawl note(x){effects.geli(x) celi x}
+hubi(f(c:note(3),a:note(1),b:note(2))==[1,2,3] && effects==[3,1,2],"written evaluation order")
+door dynamic=f
+hubi(dynamic(c:8,a:2)==[2,3,8],"dynamic named call")
+hawl make(seed){celi hawl(a=seed,b=a+seed){celi [a,b]}}
+hubi(make(3)(b:9)==[3,9],"returned captured closure")
+hawl opts(**options){celi options}
+hubi(opts()=={} && opts(a:1,b:2)=={a:1,b:2},"keyword collection")
+hubi(opts(options:1)=={options:1},"collector name is an ordinary extra keyword")
+hawl both(a=1,*items,**options){celi [a,items,options]}
+hubi(both()==[1,[],{}] && both(8,9,10)==[8,[9,10],{}],"positional normalization with keyword collector")
+hubi(both(a:8,key:9)==[8,[],{key:9}],"named and rest collectors")
+hubi(both(8,9,10,key:11)==[8,[9,10],{key:11}],"all argument kinds")
+hubi(both(items:[7])==[1,[],{items:[7]}],"rest name is not a named parameter")
+hawl typed(abn a,jajab b=2,**options):walax {celi {a:a,b:b,options:options}}
+hubi(typed(b:3,a:1,extra:run)=={a:1,b:3.0,options:{extra:run}},"runtime types and conversion")
+qaab Parent {
+ hawl dhis(a=1,**options){nafta.a=a nafta.options=options}
+ hawl get(b=2,c=b+1){celi [nafta.a,b,c,nafta.options]}
+}
+qaab Child dhaxal Parent {}
+qaab More dhaxal Parent {hawl get(b=2,c=3){celi waalid.get(c:c,b:b)}}
+hubi(cusub Child(a:4,x:5).get(c:9)==[4,2,9,{x:5}],"inherited named constructor and method")
+hubi(cusub More(a:4).get(c:8,b:7)==[4,7,8,{}],"named parent call")
+door obj={fn:hawl(a=2,**options){celi [a,options]}}
+hubi(obj.fn(a:7,key:9)==[7,{key:9}],"object callable field")
+hubi([1,2].aaddin(hawl(a,**options){celi [a,options]})==[[1,{}],[2,{}]],"callback keyword collector")
+hawl collected(a=[{n:42}],b=0,c=0){kuceli(i 1 ilaa 1300){door cycle=[] cycle.geli(cycle)} celi a[0].n+b+c}
+hubi(collected(c:2)==44,"named defaults and arguments survive collection")
+door failures=0
+door badf=f
+door badtyped=typed
+door badoptional=optional
+tijaabi {badf(a:1,a2:3)} qabo(message){failures=failures+1}
+tijaabi {badf(c:1)} qabo(message){failures=failures+1}
+tijaabi {badf(1,a:2)} qabo(message){failures=failures+1}
+tijaabi {qor(value:1)} qabo(message){failures=failures+1}
+tijaabi {[].aaddin(opts)} qabo(message){failures=failures+1}
+tijaabi {badtyped(a:"wrong")} qabo(message){failures=failures+1}
+tijaabi {badoptional(1,2,3,b:4)} qabo(message){failures=failures+1}
+hubi(failures==7,"recoverable binding and type errors")
+hubi(f(a:2,c:8)==[2,3,8],"recovery after binding errors")
+hawl burn(){kuceli(i 1 ilaa 1300){door cycle=[] cycle.geli(cycle)} celi 0}
+hawl preserve(trigger=burn(),**options){celi options.value}
+hubi(preserve(value:{n:42})=={n:42},"keyword collector is rooted during default evaluation")
+qaab Alias {hawl dhaw(a=1,**options){nafta.value=[a,options]}}
+hubi(cusub Alias(a:3,key:4).value==[3,{key:4}],"constructor compatibility spelling")
+hawl shadow(a,b){}
+hawl callshadow(shadow=hawl(x=3){celi x}){celi shadow(x:5)}
+hubi(callshadow()==5,"named callable parameter shadows a global function signature")
+effects.nadiifi()
+door skipdefaults=hawl(a=note(99)){effects.geli(100)}
+tijaabi {skipdefaults(wrong:note(3))} qabo(message) {}
+hubi(effects==[3],"binding failure preserves supplied effects and skips defaults and body")
+effects.nadiifi()
+tijaabi {badf(note(1),a:note(2))} qabo(message) {}
+hubi(effects==[1,2],"all supplied expressions run before runtime binding failure")
+hawl fuli(cb){celi cb(value:3)}
+hubi(fuli(cb:hawl(value=1){celi value+1})==4,"anonymous function passed by name")
+hawl capped(seed){celi fuli(cb:hawl(value=seed){celi value+seed})}
+hubi(capped(7)==10,"named callback retains captures")
+qor("named arguments ok")

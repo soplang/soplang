@@ -1,0 +1,4 @@
+Khalad naxwe: Doodda '**' waa inay noqotaa doodda ugu dambaysa. safka 1, tiirka 25
+     --> examples/errors/keyword_rest_order.sop:1:25
+   1 │   hawl tijaabo(**options, a) {}
+     │                           ^

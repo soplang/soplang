@@ -166,3 +166,8 @@ bridge!(
 );
 bridge!(soplang_capture_get(env_ptr: i64, index: i64) -> SoplangValue);
 bridge!(soplang_call(callee: SoplangValue, args: *const SoplangValue, n: i32,) -> SoplangValue);
+
+bridge!(soplang_call_named(callee: SoplangValue, kind: i64, name: *const u8, name_len: usize, args: *const SoplangValue, n: i32, labels: *const u8, labels_len: usize) -> SoplangValue);
+bridge!(soplang_set_fn_required(index: i64, required: usize));
+bridge!(soplang_set_fn_variadic(index: i64));
+bridge!(soplang_set_fn_signature(index: i64, names: *const u8, len: usize, keyword_rest: i64));

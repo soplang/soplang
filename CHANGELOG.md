@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+* Named arguments (`name: value`) support reordered values and omitted defaults in user functions, closures, methods, constructors, and parent calls. `**options` collects extra named arguments into a fresh object. Known signatures receive static checks; dynamic binding errors remain catchable.
 * Collection callbacks are checked before iteration, including empty lists. User functions, closures, and builtins expose fixed, optional, variadic, or pairwise argument contracts without running the callback to inspect it.
 * Variadic positional parameters (`*items`) collect surplus arguments into a fresh list. Required and defaulted parameters can precede them; methods, closures, constructors, and callbacks share the same behavior.
 * User functions, closures, methods, constructors, and callbacks accept default parameters evaluated at call time. Defaults can refer to earlier parameters and lexical captures; mutable literals are fresh on each call, and both backends preserve type checks, errors, and collection roots.
@@ -16,6 +17,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+* Callable parameters and variables shadow global function signatures during static call validation and return-type inference. Windows LLVM wrappers retain the argument-signature registration bridges.
 * Native Rust callbacks receive reusable context-owned handles when converted to Soplang values.
 * LLVM registers empty classes and subclasses, preserving inherited constructors and iterator methods even when the subclass declares no methods.
 

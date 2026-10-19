@@ -1,0 +1,4 @@
+Khalad nooc: Doodda 'a' ayaa ka maqan wicitaankan. [E022] safka 2, tiirka 1
+     --> examples/errors/named_missing.sop:2:1
+   2 │   tijaabo(b: 1)
+     │   ^^^^^^^

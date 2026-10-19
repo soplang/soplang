@@ -72,3 +72,37 @@ Optimized checks pass 70 tests, including all 29 LLVM tests:
 ```sh
 cargo test --locked --release --test callback_signature_tests --test interpreter_tests --test llvm_ir_tests
 ```
+
+## Named arguments and keyword collectors stage
+
+The debug suite passes 197 tests, including all 30 LLVM tests. The dedicated
+diagnostic and public-example suites pass 14 tests covering all 108 error
+cases and all 34 public examples in both execution paths. Optimized checks
+pass 76 tests:
+
+```sh
+cargo test --locked --release --test named_argument_tests --test interpreter_tests --test llvm_ir_tests
+```
+
+The named-call fixture runs LLVM at levels 0 and 2. It covers reordered names,
+omitted middle defaults, explicit null and false, written evaluation order,
+dynamic and returned callables, keyword collection, combined rest collectors,
+strict types and conversions, inherited constructors and methods, parent calls,
+object-held callables, callback collectors, captured anonymous arguments,
+collection during defaults, binding failures, recovery, and skipped defaults
+and bodies after failed runtime binding.
+
+Static tests cover names, required parameters, collisions, types, collector
+syntax, strict mode, shadowed function signatures, persistent REPL metadata,
+and malformed native descriptors.
+
+Cross-target checks pass locally:
+
+```sh
+cargo check --locked --offline --target x86_64-pc-windows-msvc
+cargo check --locked --offline --target aarch64-apple-darwin
+```
+
+The extracted LLVM linker wrapper also passes Rust metadata compilation against
+both target libraries. This checks references to the runtime bridges and their
+signatures; platform executable execution remains a distribution gate.

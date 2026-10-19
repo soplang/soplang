@@ -60,6 +60,10 @@ pub enum Expr {
         parts: Vec<InterpolationPart>,
     },
     Identifier(String),
+    NamedArgument {
+        name: String,
+        value: Box<Expr>,
+    },
     BinaryOp {
         op: String,
         left: Box<Expr>,
@@ -125,6 +129,7 @@ impl fmt::Display for Expr {
             Expr::Located { expr, .. } => write!(f, "{}", expr),
             Expr::Literal(l) => write!(f, "{}", l),
             Expr::Identifier(s) => write!(f, "{}", s),
+            Expr::NamedArgument { name, value } => write!(f, "{}: {}", name, value),
             Expr::BinaryOp { op, left, right } => {
                 write!(f, "({} {} {})", left, op, right)
             }
@@ -182,8 +187,8 @@ impl fmt::Display for Expr {
                     if i > 0 {
                         write!(f, ", ")?;
                     }
-                    if p.variadic {
-                        write!(f, "*")?;
+                    if p.variadic || p.keyword_rest {
+                        write!(f, "{}", if p.keyword_rest { "**" } else { "*" })?;
                     }
                     write!(f, "{}", p.name)?;
                     if let Some(default) = &p.default {
@@ -262,6 +267,7 @@ pub struct Param {
     pub type_ann: TypeAnnotation,
     pub default: Option<Expr>,
     pub variadic: bool,
+    pub keyword_rest: bool,
 }
 
 /// Statements (side effects; optional line for errors).
@@ -405,7 +411,13 @@ impl Stmt {
                         f,
                         "{} {}{}",
                         param_ty,
-                        if p.variadic { "*" } else { "" },
+                        if p.keyword_rest {
+                            "**"
+                        } else if p.variadic {
+                            "*"
+                        } else {
+                            ""
+                        },
                         p.name
                     )?;
                     if let Some(default) = &p.default {

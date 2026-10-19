@@ -287,16 +287,17 @@ bindings, independent sessions, bounded heaps, and a small native stack.
 
 Compiled-function registration records required and total parameter counts.
 Runtime calls validate that range and pad omitted slots before entering code.
-The entry still receives the original supplied count, allowing its generated
-prologue to distinguish omission from an explicit null. Defaults are lowered
+The entry still receives the original supplied count. Internal missing markers
+let its generated prologue distinguish omission from an explicit null, including
+gaps in named calls. Defaults are lowered
 from the original AST, including nested anonymous functions, and execute under
 the function's existing roots, captures, type checks, and error boundary.
 See [function arguments](../language/function-arguments.md).
 
-Variadic registration marks the final slot as a list of remaining positional
-values. The runtime normalizes that slot before entry, excluding the implicit
+Variadic registration marks a slot after the fixed parameters as a list of
+remaining positional values, before any keyword collector. The runtime normalizes that slot before entry, excluding the implicit
 instance or environment from its contents. Direct calls bypass this binding
-only for functions without a rest parameter and with every parameter supplied.
+only for functions without either collector and with every parameter supplied.
 The supplied count can differ from the normalized slot count.
 
 ### Native callbacks and argument contracts
@@ -311,3 +312,15 @@ Custom Rust `NativeFn` pointers are registered lazily when converted to a value.
 Repeated conversions reuse the registration within the owning context. Their
 argument contracts remain the host function's responsibility; it is never
 called to discover arity. An opaque function handle remains tied to its context.
+
+### Named argument binding
+
+Each compiled signature owns a copied name vector in its runtime context.
+Implicit slots have empty names. Named calls carry a static label descriptor
+and values in source evaluation order. Binding rejects duplicate, unknown, or
+missing arguments before entering generated code, then fills ordinary slots,
+rest lists, and keyword objects. Marker tag 255 identifies omitted defaults
+and is ignored by tracing as an internal non-pointer slot. It never denotes a
+public Soplang value. The same normalized entry handles functions, closures,
+instances, parent methods, and constructors; Windows exports preserve the SysV
+bridge convention for these calls and signature registration.

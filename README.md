@@ -6,7 +6,7 @@ Soplang is a programming language with Somali keywords. It supports static and d
 
 **Soplang 3.0.1 is available** for Linux x86_64, Windows x64, macOS Apple Silicon, and Docker. Get the [release packages](https://github.com/soplang/soplang/releases/tag/v3.0.1) or follow the [installation guide](docs/installation.md).
 
-The source branch includes the [3.1 runtime foundation milestone](docs/releases/3.1.0.md). Its distribution and publication are pending. Work toward 3.2 includes [collection iteration](docs/language/iteration.md), [default and variadic parameters](docs/language/function-arguments.md), and callback signature validation. The complete 3.2 milestone remains in progress.
+The source branch includes the [3.1 runtime foundation milestone](docs/releases/3.1.0.md). Its distribution and publication are pending. Work toward 3.2 includes [collection iteration](docs/language/iteration.md), [default, named, and variadic parameters](docs/language/function-arguments.md), and callback signature validation. The complete 3.2 milestone remains in progress.
 
 The implementation is in Rust. Files and the REPL use Cranelift JIT; `--build` produces standalone LLVM executables. See [COMPILER_PLAN.md](COMPILER_PLAN.md).
 

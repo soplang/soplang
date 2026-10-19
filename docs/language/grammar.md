@@ -70,7 +70,8 @@ function_expr    = "hawl" function_tail .
 function_tail    = "(" [ parameters ] ")" [ ":" type ] "{" block "}" .
 parameters       = parameter { "," parameter } .
 parameter        = [ type ] identifier [ "=" expression ]
-                 | [ "teed" ] "*" identifier .
+                 | [ "teed" ] "*" identifier
+                 | [ "walax" ] "**" identifier .
 class_def        = "qaab" identifier [ "dhaxal" identifier ] "{"
                    { function_def }
                    "}" .
@@ -102,8 +103,9 @@ call_suffix      = "(" [ arguments ] ")" .
 method_call      = member "(" [ arguments ] ")" .
 member           = "." ( identifier | "kuceli" ) .
 subscript        = "[" expression "]" .
-arguments        = expression { "," expression } .
-list_literal     = "[" [ arguments ] "]" .
+arguments        = argument { "," argument } .
+argument         = [ identifier ":" ] expression .
+list_literal     = "[" [ expression { "," expression } ] "]" .
 object_literal   = "{" [ object_entry { "," object_entry } ] "}" .
 object_entry     = ( identifier | string ) ":" expression .
 literal          = number | string | interpolated_string | "run" | "been" | "maran" .
@@ -143,6 +145,7 @@ complete numeric loop header. Parenthesized collection expressions disambiguate
 that case.
 
 Required parameters precede parameters with defaults, and parameter names are
-unique. A variadic `*` parameter must be last and has no default.
+unique. A variadic `*` parameter may be followed only by a final `**` collector.
+Neither collector has a default. Positional call arguments precede named arguments.
 Defaults are evaluated at call time, from left to right; see
 [function arguments](function-arguments.md).

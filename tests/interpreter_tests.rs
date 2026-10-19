@@ -713,3 +713,11 @@ fn test_callback_signatures() {
         "callback signatures ok\n"
     );
 }
+
+#[test]
+fn test_named_arguments() {
+    assert_eq!(
+        run_program(include_str!("fixtures/named_arguments.sop")),
+        "named arguments ok\n"
+    );
+}

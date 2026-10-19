@@ -1,0 +1,7 @@
+hawl salaam(magac, hordhac = "Salaan") { celi f"{hordhac}, {magac}!" }
+qor(salaam(hordhac: "Soo dhowow", magac: "Ayaan"))
+hawl samee(a=1,b=a+1,c=b+1) { celi [a,b,c] }
+qor(samee(c:9))
+hawl ururi(bilow=0,*tirooyin,**xulashooyin) { celi [bilow,tirooyin,xulashooyin] }
+qor(ururi())
+qor(ururi(1,2,3,midab:"buluug"))

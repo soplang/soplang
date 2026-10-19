@@ -30,6 +30,8 @@ struct CompiledFnInfo {
     n_params: usize,
     required_params: usize,
     variadic: bool,
+    keyword_rest: bool,
+    signature_names: String,
     func_id: FuncId,
 }
 
@@ -125,6 +127,7 @@ fn register_runtime_symbols(builder: &mut JITBuilder) {
     sym!(builder, soplang_get_prop);
     sym!(builder, soplang_set_prop);
     sym!(builder, soplang_call);
+    sym!(builder, soplang_call_named);
     sym!(builder, soplang_get_builtin);
     sym!(builder, soplang_store_global);
     sym!(builder, soplang_call_method);
@@ -222,7 +225,10 @@ fn max_slot_in_body(body: &[HirInstr]) -> usize {
             HirInstr::SetProp { obj, val, .. } => {
                 mx = mx.max(*obj + 1).max(*val + 1);
             }
-            HirInstr::Call { dst, callee, args } => {
+            HirInstr::Call { dst, callee, args }
+            | HirInstr::CallNamed {
+                dst, callee, args, ..
+            } => {
                 mx = mx.max(*dst + 1).max(*callee + 1);
                 for s in args {
                     mx = mx.max(*s + 1);
@@ -399,6 +405,12 @@ impl CraneliftBackend {
                 if fi.variadic {
                     runtime::soplang_set_fn_variadic(idx);
                 }
+                runtime::soplang_set_fn_signature(
+                    idx,
+                    fi.signature_names.as_ptr(),
+                    fi.signature_names.len(),
+                    i64::from(fi.keyword_rest),
+                );
                 let sv = runtime::SoplangValue {
                     tag: runtime::TAG_FUNC,
                     _pad: [0; 7],
@@ -527,7 +539,6 @@ impl CraneliftBackend {
             builder.def_var(var_pays[slot], payload);
         }
 
-        let builder_argument_count = builder.block_params(entry)[1];
         compile_body(
             &mut builder,
             &mut self.module,
@@ -538,7 +549,7 @@ impl CraneliftBackend {
             &fn_name_map,
             true,
             &f.local_nums,
-            Some(builder_argument_count),
+            Some(arguments),
         )?;
 
         builder.seal_all_blocks();
@@ -554,6 +565,12 @@ impl CraneliftBackend {
             n_params: f.params.len() + env_params,
             required_params: f.required_params + env_params,
             variadic: f.variadic,
+            keyword_rest: f.keyword_rest,
+            signature_names: std::iter::repeat(String::new())
+                .take(env_params)
+                .chain(f.param_names.iter().cloned())
+                .collect::<Vec<_>>()
+                .join("\0"),
             func_id: id,
         });
         self.module
@@ -592,7 +609,7 @@ fn compile_body(
     fn_name_map: &HashMap<String, usize>,
     is_function: bool,
     seed: &[SlotNum],
-    argument_count: Option<Value>,
+    argument_values: Option<Value>,
 ) -> Result<(), SoplangError> {
     // Keep a tagged shadow of SSA slots visible to collection safepoints.
     let root_slot = builder.func.create_sized_stack_slot(StackSlotData::new(
@@ -669,8 +686,17 @@ fn compile_body(
 
             HirInstr::ParamProvided { dst, index } => {
                 if terminated { continue; }
-                let count = argument_count.expect("parameter presence outside a function");
-                let present = builder.ins().icmp_imm(IntCC::UnsignedGreaterThan, count, *index as i64);
+                let arguments = argument_values.expect("parameter presence outside a function");
+                let tag = builder.ins().load(
+                    types::I8,
+                    MemFlags::trusted(),
+                    arguments,
+                    (*index * 16) as i32,
+                );
+                let present =
+                    builder
+                        .ins()
+                        .icmp_imm(IntCC::NotEqual, tag, runtime::TAG_MISSING as i64);
                 let payload = builder.ins().uextend(types::I64, present);
                 let tag = builder.ins().iconst(types::I64, runtime::TAG_BOOL as i64);
                 builder.def_var(var_tags[*dst], tag);
@@ -978,12 +1004,54 @@ fn compile_body(
                 )?;
             }
 
+            HirInstr::CallNamed {
+                dst,
+                callee,
+                kind,
+                name,
+                args,
+                labels,
+            } => {
+                if terminated {
+                    continue;
+                }
+                let ct = builder.use_var(var_tags[*callee]);
+                let cp = builder.use_var(var_pays[*callee]);
+                let values: Vec<_> = args
+                    .iter()
+                    .map(|slot| {
+                        (
+                            builder.use_var(var_tags[*slot]),
+                            builder.use_var(var_pays[*slot]),
+                        )
+                    })
+                    .collect();
+                let buffer = emit_arg_vector(builder, &values);
+                let kind = builder.ins().iconst(types::I64, i64::from(*kind));
+                let name_ptr = builder.ins().iconst(types::I64, name.as_ptr() as i64);
+                let name_len = builder.ins().iconst(types::I64, name.len() as i64);
+                let count = builder.ins().iconst(types::I64, args.len() as i64);
+                let labels_ptr = builder.ins().iconst(types::I64, labels.as_ptr() as i64);
+                let labels_len = builder.ins().iconst(types::I64, labels.len() as i64);
+                let (tag, payload) = call_rt(
+                    builder,
+                    module,
+                    "soplang_call_named",
+                    &[
+                        ct, cp, kind, name_ptr, name_len, buffer, count, labels_ptr, labels_len,
+                    ],
+                )?;
+                builder.def_var(var_tags[*dst], tag);
+                builder.def_var(var_pays[*dst], payload);
+            }
             HirInstr::Call { dst, callee, args } => {
                 if terminated {
                     continue;
                 }
                 let direct_fn = slot_compiled_fn.get(callee).copied().filter(|&idx| {
-                    !compiled_fns[idx].variadic && args.len() == compiled_fns[idx].n_params
+                    !compiled_fns[idx].variadic
+                        && !compiled_fns[idx].keyword_rest
+                        && args.len() == compiled_fns[idx].n_params
                 });
                 if let Some(fn_idx) = direct_fn {
                     let fi = &compiled_fns[fn_idx];

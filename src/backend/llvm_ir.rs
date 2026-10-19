@@ -63,6 +63,8 @@ declare void @soplang_register_class(ptr, i64, ptr, i64, ptr, i64, i64)
 declare i64 @soplang_register_user_fn(ptr, i64, ptr, i64)
 declare void @soplang_set_fn_required(i64, i64)
 declare void @soplang_set_fn_variadic(i64)
+declare void @soplang_set_fn_signature(i64, ptr, i64, i64)
+declare %SoplangValue @soplang_call_named(%SoplangValue, i64, ptr, i64, ptr, i32, ptr, i64)
 declare %SoplangValue @soplang_raise(%SoplangValue)
 declare void @soplang_suspend_error()
 declare void @soplang_restore_error()
@@ -87,6 +89,7 @@ struct FnInfo {
     n_params: usize,
     has_env: bool,
     variadic: bool,
+    keyword_rest: bool,
 }
 
 struct ModuleOut {
@@ -139,6 +142,7 @@ pub fn emit_llvm_ir(hir: &HirModule, sym: &SymbolTable) -> Result<String, Soplan
             n_params: f.params.len() + usize::from(has_env),
             has_env,
             variadic: f.variadic,
+            keyword_rest: f.keyword_rest,
         });
     }
 
@@ -318,7 +322,7 @@ struct Keep(*const ());
 unsafe impl Sync for Keep {}
 
 #[used]
-static KEEP: [Keep; 64] = [
+static KEEP: [Keep; 66] = [
     Keep(runtime::soplang_set_location as *const ()),
     Keep(runtime::soplang_enter_roots as *const ()),
     Keep(runtime::soplang_gc_safepoint as *const ()),
@@ -367,6 +371,8 @@ static KEEP: [Keep; 64] = [
     Keep(runtime::soplang_register_user_fn as *const ()),
     Keep(runtime::soplang_set_fn_required as *const ()),
     Keep(runtime::soplang_set_fn_variadic as *const ()),
+    Keep(runtime::soplang_set_fn_signature as *const ()),
+    Keep(runtime::soplang_call_named as *const ()),
     Keep(runtime::soplang_raise as *const ()),
     Keep(runtime::soplang_suspend_error as *const ()),
     Keep(runtime::soplang_restore_error as *const ()),
@@ -852,6 +858,13 @@ impl<'a> FnEmit<'a> {
                     "  call void @soplang_set_fn_variadic(i64 {handle})"
                 ));
             }
+            let names = std::iter::repeat(String::new())
+                .take(usize::from(info.has_env))
+                .chain(f.param_names.iter().cloned())
+                .collect::<Vec<_>>()
+                .join("\0");
+            let (pointer, length) = self.str_ptr(&names);
+            self.line(format!("  call void @soplang_set_fn_signature(i64 {handle}, ptr {pointer}, i64 {length}, i64 {})", u8::from(f.keyword_rest)));
         }
         for (name, meta) in &sym.classes {
             let (cp, cl) = self.str_ptr(name);
@@ -944,7 +957,9 @@ impl<'a> FnEmit<'a> {
             HirInstr::ParamProvided { dst, index } => {
                 let present = self.fresh();
                 let payload = self.fresh();
-                self.line(format!("  {present} = icmp ugt i64 %nargs, {index}"));
+                let argument = self.load_argument(*index);
+                let (tag, _) = self.unpack(&argument);
+                self.line(format!("  {present} = icmp ne i64 {tag}, 255"));
                 self.line(format!("  {payload} = zext i1 {present} to i64"));
                 self.store_slot(*dst, "3", &payload);
                 Ok(false)
@@ -1145,11 +1160,29 @@ impl<'a> FnEmit<'a> {
                 self.unpack_store(&sv, *dst);
                 Ok(false)
             }
+            HirInstr::CallNamed {
+                dst,
+                callee,
+                kind,
+                name,
+                args,
+                labels,
+            } => {
+                let (tag, payload) = self.load_slot(*callee);
+                let callee = self.pack(&tag, &payload);
+                let buffer = self.value_buf(args);
+                let (np, nl) = self.str_ptr(name);
+                let (lp, ll) = self.str_ptr(labels);
+                let value = self.call_sv("soplang_call_named", &format!("%SoplangValue {callee}, i64 {kind}, ptr {np}, i64 {nl}, ptr {buffer}, i32 {}, ptr {lp}, i64 {ll}", args.len()));
+                self.unpack_store(&value, *dst);
+                Ok(false)
+            }
             HirInstr::Call { dst, callee, args } => {
-                let direct_fn =
-                    self.slot_fn.get(callee).copied().filter(|&idx| {
-                        !self.fns[idx].variadic && args.len() == self.fns[idx].n_params
-                    });
+                let direct_fn = self.slot_fn.get(callee).copied().filter(|&idx| {
+                    !self.fns[idx].variadic
+                        && !self.fns[idx].keyword_rest
+                        && args.len() == self.fns[idx].n_params
+                });
                 if let Some(idx) = direct_fn {
                     let llvm_name = self.fns[idx].llvm_name.clone();
                     let buffer = self.value_buf(args);
@@ -1688,7 +1721,10 @@ fn slot_hi(body: &[HirInstr]) -> usize {
             }
             HirInstr::GetProp { dst, obj, .. } => mx = mx.max(*dst + 1).max(*obj + 1),
             HirInstr::SetProp { obj, val, .. } => mx = mx.max(*obj + 1).max(*val + 1),
-            HirInstr::Call { dst, callee, args } => {
+            HirInstr::Call { dst, callee, args }
+            | HirInstr::CallNamed {
+                dst, callee, args, ..
+            } => {
                 mx = mx.max(*dst + 1).max(*callee + 1);
                 for s in args {
                     mx = mx.max(*s + 1);

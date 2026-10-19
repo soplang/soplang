@@ -17,7 +17,7 @@ Omitting an argument evaluates its default **at call time**, in parameter order.
 An explicitly supplied argument, including `maran`, `been`, `0`, or an empty
 collection, skips that default. All supplied argument expressions are evaluated
 before any defaults. Calls may omit only a trailing sequence of positional parameters.
-Named arguments are still planned.
+Named arguments can also skip earlier defaulted parameters; see below.
 
 Defaults can use earlier parameters, globals, and captured variables. A default
 cannot use its own parameter or a later parameter, even if that later argument
@@ -48,8 +48,7 @@ qor(geli(2))
 ## Variadic positional arguments
 
 A final parameter prefixed with `*` collects remaining positional arguments in
-a fresh list. Required and defaulted parameters may precede it. No parameters
-may follow it, and it cannot have a default of its own.
+a fresh list. Required and defaulted parameters may precede it. Only a final `**` collector may follow it, and it cannot have a default of its own.
 
 ```sop
 hawl wadarta(bilow = 0, *tirooyin) {
@@ -73,6 +72,55 @@ collection callbacks all follow the same rule. Calls with fewer than the
 required fixed parameters fail before evaluating defaults or entering the body.
 There is no fixed language arity limit; available memory and the ABI's signed
 32-bit argument count bound individual call vectors.
+
+## Named arguments and keyword collection
+
+Use `name: value` to supply a declared parameter by name. Positional arguments
+come first. Named arguments can appear in any order and can skip parameters
+with defaults.
+
+```sop
+hawl samee(a=1,b=a+1,c=b+1) { celi [a,b,c] }
+qor(samee(c:9))
+qor(samee(c:8,a:4))
+```
+
+All supplied expressions run in their written order, before defaults. Binding
+then places values in parameter order. Supplying a parameter both positionally
+and by name is an error, as are duplicate names, unknown names without a
+collector, and missing required arguments. Runtime binding failures do not run defaults
+or the body; effects of supplied expressions have already happened.
+
+A final `**options` parameter collects otherwise unmatched named arguments in
+a fresh object. Its type is `walax`, also in strict mode; `walax **options` is
+an equivalent explicit annotation. It cannot have a default. A `*` collector
+may precede it. Ordinary parameters cannot follow either collector.
+
+```sop
+hawl ururi(bilow=0,*tirooyin,**xulashooyin) {
+    celi [bilow,tirooyin,xulashooyin]
+}
+qor(ururi())
+qor(ururi(1,2,3,midab:"buluug"))
+```
+
+Collector names are not ordinary named parameters. For example, with the
+signature above, `ururi(tirooyin: [1])` leaves `tirooyin` empty and stores the
+extra key in `xulashooyin`. Arguments retain their usual shared value identity;
+the collector containers themselves are fresh for each call. Call-site `*` and
+`**` expansion and keyword-only ordinary parameters are not yet implemented.
+
+Named arguments work with user functions, anonymous functions, captured and
+returned closures, class methods, inherited methods and constructors, parent
+calls, and object-held callables. Builtins and built-in collection/string
+methods currently accept positional arguments only. Their public parameter
+names are not inferred from implementation details.
+
+Known function and constructor signatures receive static checks for names,
+required arguments, collisions, and inferable types. Dynamic calls bind at
+runtime and raise catchable `E022` errors for binding failures. A dynamically
+provided value still undergoes the function's ordinary type checks. Callable
+variables and parameters shadow same-named global function signatures.
 
 ## Types and errors
 
@@ -132,16 +180,21 @@ remain invalid.
 
 ## Embedding ABI
 
-Compiled functions retain the vector entry `(values, supplied_count)`. Runtime
-registration records total slots and the required prefix, including implicit
-instance or closure-environment parameters. Before invoking an entry, the
-runtime checks that the count is in range and pads omitted slots with null.
-For a variadic function, the runtime instead builds the final slot as a list
-of surplus arguments and initializes any omitted fixed slots. The count remains
-the original supplied count, which can differ from the normalized vector size. The generated prologue tests
-parameter presence, evaluates defaults, and checks types before running the
-body. A null in a supplied slot is therefore distinct from an omitted slot.
+Compiled entries retain `(values, supplied_count)`. Registration records names,
+required slots, total slots, implicit parameters, and positional/keyword
+collectors. Fixed calls with every parameter supplied can enter directly;
+other calls pass through runtime binding. Names are copied into the owning
+runtime context when compiled code is registered.
 
-Generated roots cover parameter slots and default-expression temporaries before
-any collection safepoint. Defaults that allocate, call back into compiled code,
-or trigger collection use the same ownership rules as the function body.
+Binding creates a normalized vector with one slot per formal parameter,
+including instance or closure environment slots. Omitted defaults use internal
+marker tag `255`; it is never a language value. Prologues check presence by
+that marker, so an explicit null and an omitted value remain distinct even
+when named arguments leave gaps. The supplied count remains available in the
+entry ABI and can differ from normalized vector size.
+
+Rest lists and keyword objects are prepared before entry. Generated roots
+cover parameter slots and default-expression temporaries before any collection
+safepoint. Defaults that allocate, call compiled code, or trigger collection
+use the same ownership rules as the function body. Binding errors occur before
+function entry; default/body failures retain their usual trace frames.

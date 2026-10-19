@@ -177,3 +177,31 @@ that collection method. This is `E022` and is checked even on empty lists.
 `{contract}` is a fixed count such as `2 dood`, an inclusive range such as
 `1 ilaa 3 dood`, an unbounded range such as `1 ama ka badan dood`, or
 `tiro dhaban ah oo doodo ah` for an even number of arguments.
+
+## Named arguments and keyword collectors
+
+| Somali diagnostic | Meaning |
+| --- | --- |
+| `Dood boos leh ma raaci karto dood magac leh.` | A positional argument follows a named argument. |
+| `Doodda '{name}' laba jeer ayaa la bixiyay.` | A parameter was supplied twice. |
+| `Doodda magaca '{name}' leh hawshani ma aqbasho.` | The function does not accept that name. |
+| `Doodda '{name}' ayaa ka maqan wicitaankan.` | A required argument is missing. |
+| `Doodaha boosaska leh ayaa ka badan intii hawshu aqbali lahayd.` | Too many positional arguments were supplied. |
+| `Doodda '**' waxay ururisaa walax; nooc kale lama siin karo.` | A keyword collector is an object. |
+| `Doodda '**' ma yeelan karto qiime hordhac ah.` | A keyword collector cannot have a default. |
+| `Doodda '**' waa inay noqotaa doodda ugu dambaysa.` | A keyword collector must be last. |
+| `Doodda '*' waxaa ka dambayn karta '**' oo keliya.` | Only a keyword collector may follow a positional collector. |
+| `Hawshani ma taageerto doodaha magacyada leh.` | No named-parameter metadata is available. |
+| `Hawshani waxay aqbashaa doodaha boosaska leh oo keliya.` | The native callable accepts positional arguments only. |
+| `Qiimahan hawl ahaan looma wici karo.` | The value cannot be called. |
+| `Hawl '{name}' lama helin walaxda.` | The object has no such callable field or method. |
+| `Qaabka '{name}' ma laha dhise aqbala doodahan.` | The class has no constructor accepting the arguments. |
+| `Hawsha lama diyaarin.` | The compiled entry is unavailable. |
+| `Magacyada dooduhu ma aha qoraal UTF-8 ah oo sax ah.` | A native descriptor has invalid text. |
+| `Magacyada iyo qiimayaasha dooduhu isma laha.` | Descriptor labels and values do not match. |
+| `Nooca wicitaanku ma saxna.` | A native descriptor has an invalid call kind. |
+| `Walaxda hadda lama akhriyi karo.` | A host borrow prevents reading method metadata. |
+
+Known signatures report bad names and collisions at the named argument and
+inferable type errors at the supplied value. Missing arguments and dynamic
+binding errors point to the call. Runtime binding failures use `E022`.

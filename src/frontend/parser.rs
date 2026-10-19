@@ -488,6 +488,7 @@ impl Parser {
         let mut params = Vec::new();
         let mut names = std::collections::HashSet::new();
         let mut optional = false;
+        let mut saw_rest = false;
         while !self.check(TokenType::RParen) {
             let mut type_ann = if matches!(
                 self.peek().kind,
@@ -511,17 +512,41 @@ impl Parser {
                 TypeAnnotation::Dynamic
             };
             let rest_marker = self.peek().clone();
-            let variadic = self.check(TokenType::Star);
-            if variadic {
+            let starred = self.check(TokenType::Star);
+            if starred {
                 self.advance();
-                if !matches!(type_ann, TypeAnnotation::Dynamic | TypeAnnotation::Teed) {
+            }
+            let keyword_rest = starred && self.check(TokenType::Star);
+            if keyword_rest {
+                self.advance();
+            }
+            let variadic = starred && !keyword_rest;
+            if saw_rest && !keyword_rest {
+                return Err(parser_error(
+                    "Doodda '*' waxaa ka dambayn karta '**' oo keliya.",
+                    rest_marker.line,
+                    rest_marker.col,
+                ));
+            }
+            if starred {
+                let expected = if keyword_rest {
+                    TypeAnnotation::Walax
+                } else {
+                    TypeAnnotation::Teed
+                };
+                if type_ann != TypeAnnotation::Dynamic && type_ann != expected {
                     return Err(parser_error(
-                        "Doodda '*' waxay ururisaa teed; nooc kale lama siin karo.",
+                        if keyword_rest {
+                            "Doodda '**' waxay ururisaa walax; nooc kale lama siin karo."
+                        } else {
+                            "Doodda '*' waxay ururisaa teed; nooc kale lama siin karo."
+                        },
                         rest_marker.line,
                         rest_marker.col,
                     ));
                 }
-                type_ann = TypeAnnotation::Teed;
+                type_ann = expected;
+                saw_rest = true;
             }
             let marker = self.peek().clone();
             let name = self.expect_identifier()?;
@@ -533,9 +558,13 @@ impl Parser {
                 ));
             }
             let default = if self.check(TokenType::Assign) {
-                if variadic {
+                if starred {
                     return Err(parser_error(
-                        "Doodda '*' ma yeelan karto qiime hordhac ah.",
+                        if keyword_rest {
+                            "Doodda '**' ma yeelan karto qiime hordhac ah."
+                        } else {
+                            "Doodda '*' ma yeelan karto qiime hordhac ah."
+                        },
                         marker.line,
                         marker.col,
                     ));
@@ -544,7 +573,7 @@ impl Parser {
                 optional = true;
                 Some(self.parse_logical()?)
             } else {
-                if optional && !variadic {
+                if optional && !starred {
                     return Err(parser_error(
                         "Dood aan lahayn qiime hordhac ah ma raaci karto dood leh qiime hordhac ah.",
                         marker.line,
@@ -558,13 +587,25 @@ impl Parser {
                 type_ann,
                 default,
                 variadic,
+                keyword_rest,
             });
             if !self.check(TokenType::RParen) {
                 self.expect(TokenType::Comma)?;
             }
-            if variadic && !self.check(TokenType::RParen) {
+            let next_keyword_collector =
+                (self.check(TokenType::Star) && self.peek_nth(1).kind == TokenType::Star)
+                || (self.check(TokenType::Walax)
+                    && self.peek_nth(1).kind == TokenType::Star
+                    && self.peek_nth(2).kind == TokenType::Star);
+            if (keyword_rest || (variadic && !next_keyword_collector))
+                && !self.check(TokenType::RParen)
+            {
                 return Err(parser_error(
-                    "Doodda '*' waa inay noqotaa doodda ugu dambaysa.",
+                    if keyword_rest {
+                        "Doodda '**' waa inay noqotaa doodda ugu dambaysa."
+                    } else {
+                        "Doodda '*' waa inay noqotaa doodda ugu dambaysa."
+                    },
                     self.peek().line,
                     self.peek().col,
                 ));
@@ -1039,8 +1080,24 @@ impl Parser {
 
     fn parse_call_args(&mut self) -> Result<Vec<Expr>, SoplangError> {
         let mut args = Vec::new();
+        let mut names = std::collections::HashSet::new();
+        let mut named = false;
         while !self.check(TokenType::RParen) {
-            args.push(self.parse_logical()?);
+            let marker = self.peek().clone();
+            let argument = if self.check(TokenType::Identifier) && self.peek_nth(1).kind == TokenType::Colon {
+                let name = self.expect_identifier()?;
+                self.expect(TokenType::Colon)?;
+                if !names.insert(name.clone()) {
+                    return Err(parser_error(format!("Doodda '{}' laba jeer ayaa la bixiyay.", name), marker.line, marker.col));
+                }
+                named = true;
+                let value = self.parse_logical()?;
+                self.locate(Expr::NamedArgument { name, value: Box::new(value) }, &marker)
+            } else {
+                if named { return Err(parser_error("Dood boos leh ma raaci karto dood magac leh.", marker.line, marker.col)); }
+                self.parse_logical()?
+            };
+            args.push(argument);
             if self.at_end() {
                 break;
             }

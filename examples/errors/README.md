@@ -75,3 +75,6 @@ and static and dynamic minimum argument counts.
 
 Empty-list callback cases check user functions, fixed native functions, and
 pairwise native argument contracts without invoking any callback.
+
+Named-argument cases cover parser ordering, collector declarations, static and
+dynamic binding errors, wrong types, and positional-only native functions.

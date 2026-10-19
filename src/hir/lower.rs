@@ -52,6 +52,14 @@ pub enum SlotNum {
 
 #[derive(Debug, Clone)]
 pub enum HirInstr {
+    CallNamed {
+        dst: Slot,
+        callee: Slot,
+        kind: u8,
+        name: String,
+        args: Vec<Slot>,
+        labels: String,
+    },
     /// Whether a positional parameter was supplied before default evaluation.
     ParamProvided {
         dst: Slot,
@@ -221,7 +229,8 @@ impl HirInstr {
     pub(crate) fn may_allocate(&self) -> bool {
         matches!(
             self,
-            Self::IterBegin { .. }
+            Self::CallNamed { .. }
+                | Self::IterBegin { .. }
                 | Self::IterNext { .. }
                 | Self::FormatValue { .. }
                 | Self::BuildString { .. }
@@ -245,7 +254,8 @@ impl HirInstr {
 
     pub(crate) fn destination(&self) -> Option<Slot> {
         match self {
-            Self::ParamProvided { dst, .. }
+            Self::CallNamed { dst, .. }
+            | Self::ParamProvided { dst, .. }
             | Self::IterBegin { dst, .. }
             | Self::IterNext { dst, .. }
             | Self::FormatValue { dst, .. }
@@ -278,6 +288,8 @@ pub struct HirFunction {
     pub params: Vec<Slot>,
     pub required_params: usize,
     pub variadic: bool,
+    pub keyword_rest: bool,
+    pub param_names: Vec<String>,
     pub local_count: usize,
     pub body: Vec<HirInstr>,
     pub is_static: bool,
@@ -298,6 +310,18 @@ pub struct HirModule {
 impl fmt::Display for HirInstr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            HirInstr::CallNamed {
+                dst,
+                callee,
+                kind,
+                name,
+                args,
+                labels,
+            } => write!(
+                f,
+                "  %{} = named {} %{} {} {:?} {:?}",
+                dst, kind, callee, name, args, labels
+            ),
             HirInstr::ParamProvided { dst, index } => write!(f, "  %{} = provided {}", dst, index),
             HirInstr::SetLocation(span) => write!(f, "  location {}:{}", span.line, span.col),
             HirInstr::Const { dst, val } => write!(f, "  %{} = const {:?}", dst, val),
@@ -623,6 +647,11 @@ impl<'a> HirLowering<'a> {
                     params: fm.param_slots.clone(),
                     required_params: fm.required_params + implicit,
                     variadic: fm.variadic,
+                    keyword_rest: fm.keyword_rest,
+                    param_names: std::iter::repeat(String::new())
+                        .take(implicit)
+                        .chain(params.iter().map(|param| param.name.clone()))
+                        .collect(),
                     local_count: fm.local_count,
                     body: inner.body,
                     is_static: false,
@@ -759,7 +788,8 @@ impl<'a> HirLowering<'a> {
     fn emit(&mut self, instr: HirInstr) {
         let fallible = matches!(
             instr,
-            HirInstr::IterBegin { .. }
+            HirInstr::CallNamed { .. }
+                | HirInstr::IterBegin { .. }
                 | HirInstr::IterNext { .. }
                 | HirInstr::FormatValue { .. }
                 | HirInstr::BuildString { .. }
@@ -814,11 +844,22 @@ impl<'a> HirLowering<'a> {
             name: mangled,
         });
         let dst = self.alloc_slot();
-        self.emit(HirInstr::Call {
-            dst,
-            callee,
-            args: arg_slots,
-        });
+        if let Some(labels) = argument_labels(args) {
+            self.emit(HirInstr::CallNamed {
+                dst,
+                callee,
+                kind: 0,
+                name: String::new(),
+                args: arg_slots,
+                labels: format!("\0{}", labels),
+            });
+        } else {
+            self.emit(HirInstr::Call {
+                dst,
+                callee,
+                args: arg_slots,
+            });
+        }
         Some(dst)
     }
 
@@ -1471,6 +1512,7 @@ impl<'a> HirLowering<'a> {
                 self.emit_const(slot, val);
                 slot
             }
+            Expr::NamedArgument { value, .. } => self.lower_expr(value),
             Expr::Identifier(name) => {
                 let slot = self.alloc_slot();
                 self.load_name(slot, name);
@@ -1522,11 +1564,22 @@ impl<'a> HirLowering<'a> {
                 self.load_name(callee, name);
                 let arg_slots: Vec<Slot> = args.iter().map(|a| self.lower_expr(a)).collect();
                 let dst = self.alloc_slot();
-                self.emit(HirInstr::Call {
-                    dst,
-                    callee,
-                    args: arg_slots,
-                });
+                if let Some(labels) = argument_labels(args) {
+                    self.emit(HirInstr::CallNamed {
+                        dst,
+                        callee,
+                        kind: 0,
+                        name: String::new(),
+                        args: arg_slots,
+                        labels,
+                    });
+                } else {
+                    self.emit(HirInstr::Call {
+                        dst,
+                        callee,
+                        args: arg_slots,
+                    });
+                }
                 dst
             }
             Expr::Interpolated { parts } => {
@@ -1566,9 +1619,21 @@ impl<'a> HirLowering<'a> {
             }
             Expr::Invoke { callee, args } => {
                 let callee = self.lower_expr(callee);
+                let labels = argument_labels(args);
                 let args = args.iter().map(|arg| self.lower_expr(arg)).collect();
                 let dst = self.alloc_slot();
-                self.emit(HirInstr::Call { dst, callee, args });
+                if let Some(labels) = labels {
+                    self.emit(HirInstr::CallNamed {
+                        dst,
+                        callee,
+                        kind: 0,
+                        name: String::new(),
+                        args,
+                        labels,
+                    });
+                } else {
+                    self.emit(HirInstr::Call { dst, callee, args });
+                }
                 dst
             }
             Expr::AnonymousFunc { .. } => {
@@ -1616,12 +1681,23 @@ impl<'a> HirLowering<'a> {
                 let obj_slot = self.lower_expr(obj);
                 let arg_slots: Vec<Slot> = args.iter().map(|a| self.lower_expr(a)).collect();
                 let dst = self.alloc_slot();
-                self.emit(HirInstr::CallMethod {
-                    dst,
-                    obj: obj_slot,
-                    method: method.clone(),
-                    args: arg_slots,
-                });
+                if let Some(labels) = argument_labels(args) {
+                    self.emit(HirInstr::CallNamed {
+                        dst,
+                        callee: obj_slot,
+                        kind: 1,
+                        name: method.clone(),
+                        args: arg_slots,
+                        labels,
+                    });
+                } else {
+                    self.emit(HirInstr::CallMethod {
+                        dst,
+                        obj: obj_slot,
+                        method: method.clone(),
+                        args: arg_slots,
+                    });
+                }
                 dst
             }
             Expr::Index { obj, idx } => {
@@ -1666,11 +1742,24 @@ impl<'a> HirLowering<'a> {
             Expr::New { class_name, args } => {
                 let arg_slots: Vec<Slot> = args.iter().map(|a| self.lower_expr(a)).collect();
                 let dst = self.alloc_slot();
-                self.emit(HirInstr::NewInstance {
-                    dst,
-                    class_name: class_name.clone(),
-                    args: arg_slots,
-                });
+                if let Some(labels) = argument_labels(args) {
+                    let callee = self.alloc_slot();
+                    self.emit_const(callee, HirConst::Null);
+                    self.emit(HirInstr::CallNamed {
+                        dst,
+                        callee,
+                        kind: 2,
+                        name: class_name.clone(),
+                        args: arg_slots,
+                        labels,
+                    });
+                } else {
+                    self.emit(HirInstr::NewInstance {
+                        dst,
+                        class_name: class_name.clone(),
+                        args: arg_slots,
+                    });
+                }
                 dst
             }
         }
@@ -1803,7 +1892,9 @@ fn collect_funcs_expr<'a>(expr: &'a Expr, out: &mut Vec<(&'a [Param], &'a [Stmt]
             collect_funcs_expr(left, out);
             collect_funcs_expr(right, out);
         }
-        Expr::UnaryOp { expr, .. } => collect_funcs_expr(expr, out),
+        Expr::NamedArgument { value: expr, .. } | Expr::UnaryOp { expr, .. } => {
+            collect_funcs_expr(expr, out)
+        }
         Expr::Interpolated { parts } => {
             for part in parts {
                 if let InterpolationPart::Value { expression, .. } = part {
@@ -1856,4 +1947,22 @@ fn collect_parameter_funcs<'a>(params: &'a [Param], out: &mut Vec<(&'a [Param], 
             collect_funcs_expr(default, out);
         }
     }
+}
+
+fn argument_labels(args: &[Expr]) -> Option<String> {
+    if !args
+        .iter()
+        .any(|arg| matches!(arg.unlocated(), Expr::NamedArgument { .. }))
+    {
+        return None;
+    }
+    Some(
+        args.iter()
+            .map(|arg| match arg.unlocated() {
+                Expr::NamedArgument { name, .. } => name.as_str(),
+                _ => "",
+            })
+            .collect::<Vec<_>>()
+            .join("\0"),
+    )
 }

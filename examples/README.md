@@ -54,6 +54,7 @@ You can also run an example by its position in the sorted file list:
 | `31_iterator_protocol.sop` | Class iterators, inherited methods, explicit cursor steps, and exhaustion |
 | `32_default_arguments.sop` | Call-time defaults, earlier parameters, fresh collections, and typed defaults |
 | `33_variadic_arguments.sop` | Variadic positional parameters, empty rest lists, and default prefixes |
+| `34_named_arguments.sop` | Named arguments, omitted defaults, and keyword collectors |
 
 `_math_lib.sop` is imported by `16_import.sop`; it is not a standalone demo.
 

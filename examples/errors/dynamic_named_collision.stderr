@@ -1,0 +1,4 @@
+Khalad nooc: Doodda 'a' laba jeer ayaa la bixiyay. [E022] safka 2, tiirka 1
+     --> examples/errors/dynamic_named_collision.sop:2:1
+   2 │   tijaabo(1, a: 2)
+     │   ^^^^^^^

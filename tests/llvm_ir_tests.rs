@@ -81,7 +81,7 @@ fn run_llvm_with_opt(name: &str, source: &str, opt: u8) -> String {
     let ir = emit_llvm_ir(&hir, &sym).unwrap_or_else(|e| panic!("{e}"));
     assert!(!ir.contains("run_source"));
     let bin = temp_bin(name);
-    link_llvm_binary_with_opt(&ir, &bin, opt).unwrap_or_else(|e| panic!("{e}"));
+    link_llvm_binary_with_opt(&ir, &bin, opt).unwrap_or_else(|e| panic!("{e:?}"));
     let out = Command::new(&bin).output().expect("run llvm binary");
     let stdout = String::from_utf8(out.stdout).expect("utf8");
     let stderr = String::from_utf8_lossy(&out.stderr);
@@ -690,4 +690,18 @@ fn test_llvm_callback_signatures() {
         ),
         "callback signatures ok\n"
     );
+}
+
+#[test]
+fn test_llvm_named_arguments() {
+    for opt in [0, 2] {
+        assert_eq!(
+            run_llvm_with_opt(
+                &format!("llvm_named_{opt}"),
+                include_str!("fixtures/named_arguments.sop"),
+                opt
+            ),
+            "named arguments ok\n"
+        );
+    }
 }

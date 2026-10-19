@@ -290,6 +290,8 @@ pub const TAG_FUNC: u8 = 7;
 pub const TAG_CLOSURE: u8 = 9;
 pub const TAG_ERROR: u8 = 10;
 pub const TAG_ITERATOR: u8 = 11;
+/// Internal argument slot marker; never a language value.
+pub(crate) const TAG_MISSING: u8 = 255;
 
 /// Tagged value for C ABI. 16 bytes: tag (u8) + padding + payload (i64).
 #[repr(C)]
@@ -348,12 +350,14 @@ pub(super) struct ClassRegistryEntry {
     methods: HashMap<String, i64>,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub(super) struct CompiledFnEntry {
     ptr: *const u8,
     n_params: usize,
     required_params: usize,
     variadic: bool,
+    keyword_rest: bool,
+    names: Option<Rc<Vec<String>>>,
 }
 
 fn ensure_builtins() {
@@ -1406,7 +1410,7 @@ fn global_fn_payload(name: &str) -> Option<i64> {
 }
 
 fn compiled_fn_entry(id: i64) -> Option<CompiledFnEntry> {
-    COMPILED_FN_TABLE.with(|table| table.borrow().get(id).copied())
+    COMPILED_FN_TABLE.with(|table| table.borrow().get(id).cloned())
 }
 
 pub(super) fn iteration_is_instance(value: &Value) -> bool {
@@ -1565,7 +1569,9 @@ fn dispatch_instance_method(
     };
     let entry = compiled_fn_entry(fn_idx)
         .ok_or_else(|| runtime_error(format!("Hawl '{}' lama diyaarin", method), 0, 0))?;
-    let expected = entry.n_params.saturating_sub(1);
+    let expected = entry
+        .n_params
+        .saturating_sub(1 + usize::from(entry.keyword_rest));
     if args.len() < entry.required_params.saturating_sub(1)
         || (!entry.variadic && args.len() > expected)
     {
@@ -1628,7 +1634,9 @@ pub extern "C" fn soplang_new_instance(
 
     if let Some(fn_idx) = resolve_constructor_fn_index(&class_name) {
         if let Some(entry) = compiled_fn_entry(fn_idx) {
-            let expected = entry.n_params.saturating_sub(1);
+            let expected = entry
+                .n_params
+                .saturating_sub(1 + usize::from(entry.keyword_rest));
             if user_args.len() < entry.required_params.saturating_sub(1)
                 || (!entry.variadic && user_args.len() > expected)
             {
@@ -1795,14 +1803,17 @@ fn call_compiled_fn(function: CompiledFnEntry, args: *const SoplangValue, n: i32
         n_params,
         required_params,
         variadic,
+        keyword_rest,
+        ..
     } = function;
-    if n < 0 || (n as usize) < required_params || (!variadic && n as usize > n_params) {
+    let maximum = n_params - usize::from(keyword_rest);
+    if n < 0 || (n as usize) < required_params || (!variadic && n as usize > maximum) {
         return handle_runtime_error(type_error(
             format!(
                 "Hawshu waxay u baahan tahay {} dood, laakiin {} ayaa la bixiyay",
                 crate::error::argument_count(
                     required_params,
-                    if variadic { usize::MAX } else { n_params }
+                    if variadic { usize::MAX } else { maximum }
                 ),
                 n.max(0)
             ),
@@ -1818,29 +1829,30 @@ fn call_compiled_fn(function: CompiledFnEntry, args: *const SoplangValue, n: i32
     // Entry code loads every parameter slot; omitted slots are initialized but
     // the original count tells the prologue which defaults to evaluate.
     let mut padded = Vec::new();
-    let arguments = if variadic {
-        let fixed = n_params - 1;
+    let arguments = if variadic || keyword_rest || (n as usize) < n_params {
+        let fixed = n_params - usize::from(variadic) - usize::from(keyword_rest);
         let supplied = if n > 0 {
             unsafe { std::slice::from_raw_parts(args, n as usize) }
         } else {
             &[]
         };
         padded.extend_from_slice(&supplied[..supplied.len().min(fixed)]);
-        padded.resize(fixed, SoplangValue::null());
-        let mut rest = Vec::new();
-        for value in supplied.iter().skip(fixed) {
-            match soplang_to_value(*value) {
-                Ok(value) => rest.push(value),
-                Err(error) => return handle_runtime_error(error),
+        padded.resize(fixed, missing_argument());
+        if variadic {
+            let mut rest = Vec::new();
+            for value in supplied.iter().skip(fixed) {
+                match soplang_to_value(*value) {
+                    Ok(value) => rest.push(value),
+                    Err(error) => return handle_runtime_error(error),
+                }
             }
+            padded.push(value_to_soplang(&Value::List(Rc::new(RefCell::new(rest)))));
         }
-        padded.push(value_to_soplang(&Value::List(Rc::new(RefCell::new(rest)))));
-        padded.as_ptr()
-    } else if (n as usize) < n_params {
-        if n > 0 {
-            padded.extend_from_slice(unsafe { std::slice::from_raw_parts(args, n as usize) });
+        if keyword_rest {
+            padded.push(value_to_soplang(&Value::Object(Rc::new(RefCell::new(
+                HashMap::new(),
+            )))));
         }
-        padded.resize(n_params, SoplangValue::null());
         padded.as_ptr()
     } else {
         args
@@ -1893,7 +1905,9 @@ fn collection_callback(
             maximum: if entry.variadic {
                 usize::MAX
             } else {
-                entry.n_params.saturating_sub(hidden)
+                entry
+                    .n_params
+                    .saturating_sub(hidden + usize::from(entry.keyword_rest))
             },
             stride: 1,
         })
@@ -2344,6 +2358,8 @@ pub fn register_compiled_fn_with_defaults(
             n_params,
             required_params: required_params.min(n_params),
             variadic: false,
+            keyword_rest: false,
+            names: None,
         })
     })
 }
@@ -2370,6 +2386,330 @@ pub extern "C" fn soplang_set_fn_variadic(index: i64) {
             }
         }
     });
+}
+
+/// Record parameter names (empty for implicit slots) and an optional keyword collector.
+#[no_mangle]
+pub extern "C" fn soplang_set_fn_signature(
+    index: i64,
+    names: *const u8,
+    len: usize,
+    keyword_rest: i64,
+) {
+    if names.is_null() && len > 0 {
+        return;
+    }
+    let bytes = if len > 0 {
+        unsafe { std::slice::from_raw_parts(names, len) }
+    } else {
+        &[]
+    };
+    let Ok(text) = std::str::from_utf8(bytes) else {
+        return;
+    };
+    COMPILED_FN_TABLE.with(|table| {
+        if let Some(entry) = table.borrow_mut().get_mut(index) {
+            let names: Vec<_> = if entry.n_params == 0 {
+                Vec::new()
+            } else {
+                text.split('\0').map(str::to_owned).collect()
+            };
+            if names.len() == entry.n_params {
+                entry.names = Some(Rc::new(names));
+                entry.keyword_rest =
+                    keyword_rest != 0 && entry.n_params > usize::from(entry.variadic);
+            }
+        }
+    });
+}
+
+fn missing_argument() -> SoplangValue {
+    SoplangValue {
+        tag: TAG_MISSING,
+        _pad: [0; 7],
+        payload: 0,
+    }
+}
+
+fn named_argument_error(message: impl Into<String>) -> SoplangError {
+    crate::error::type_error_ex(
+        message,
+        0,
+        0,
+        crate::error::ErrorMeta::default().with_code(crate::error::codes::E022_TYPE_MISMATCH),
+    )
+}
+
+fn invoke_named_entry(
+    entry: CompiledFnEntry,
+    args: &[SoplangValue],
+    labels: &[String],
+) -> Result<SoplangValue, SoplangError> {
+    let names = entry
+        .names
+        .as_ref()
+        .ok_or_else(|| named_argument_error("Hawshani ma taageerto doodaha magacyada leh."))?;
+    let fixed = entry.n_params - usize::from(entry.variadic) - usize::from(entry.keyword_rest);
+    let mut bound = vec![missing_argument(); fixed];
+    let mut rest = Vec::new();
+    let mut keywords = HashMap::new();
+    let mut position = 0;
+    let mut named = false;
+    for (&value, label) in args.iter().zip(labels) {
+        if label.is_empty() {
+            if named {
+                return Err(named_argument_error(
+                    "Dood boos leh ma raaci karto dood magac leh.",
+                ));
+            }
+            if position < fixed {
+                bound[position] = value;
+            } else if entry.variadic {
+                rest.push(soplang_to_value(value)?);
+            } else {
+                return Err(named_argument_error(
+                    "Doodaha boosaska leh ayaa ka badan intii hawshu aqbali lahayd.",
+                ));
+            }
+            position += 1;
+        } else {
+            named = true;
+            if let Some(index) = names[..fixed]
+                .iter()
+                .position(|name| name == label && !name.is_empty())
+            {
+                if bound[index].tag != TAG_MISSING {
+                    return Err(named_argument_error(format!(
+                        "Doodda '{}' laba jeer ayaa la bixiyay.",
+                        label
+                    )));
+                }
+                bound[index] = value;
+            } else if entry.keyword_rest {
+                if keywords
+                    .insert(label.clone(), soplang_to_value(value)?)
+                    .is_some()
+                {
+                    return Err(named_argument_error(format!(
+                        "Doodda '{}' laba jeer ayaa la bixiyay.",
+                        label
+                    )));
+                }
+            } else {
+                return Err(named_argument_error(format!(
+                    "Doodda magaca '{}' leh hawshani ma aqbasho.",
+                    label
+                )));
+            }
+        }
+    }
+    for index in 0..entry.required_params {
+        if bound
+            .get(index)
+            .is_none_or(|value| value.tag == TAG_MISSING)
+        {
+            return Err(named_argument_error(format!(
+                "Doodda '{}' ayaa ka maqan wicitaankan.",
+                names[index]
+            )));
+        }
+    }
+    if entry.variadic {
+        bound.push(value_to_soplang(&Value::List(Rc::new(RefCell::new(rest)))));
+    }
+    if entry.keyword_rest {
+        bound.push(value_to_soplang(&Value::Object(Rc::new(RefCell::new(
+            keywords,
+        )))));
+    }
+    if entry.ptr.is_null() {
+        return Err(named_argument_error("Hawsha lama diyaarin."));
+    }
+    let function: CompiledEntry = unsafe { std::mem::transmute(entry.ptr) };
+    let result = function(bound.as_ptr(), args.len());
+    Ok(SoplangValue {
+        tag: result.tag as u8,
+        _pad: [0; 7],
+        payload: result.payload,
+    })
+}
+
+fn named_callable(
+    callee: SoplangValue,
+    args: &[SoplangValue],
+    labels: &[String],
+) -> Result<SoplangValue, SoplangError> {
+    validate_handle(callee)?;
+    if callee.tag == TAG_CLOSURE {
+        let data = CLOSURE_HEAP
+            .with(|heap| heap.borrow().get(callee.payload).cloned())
+            .ok_or_else(invalid_handle)?;
+        let entry = compiled_fn_entry(data.fn_index).ok_or_else(invalid_handle)?;
+        let mut full = vec![SoplangValue {
+            tag: TAG_NULL,
+            _pad: [0; 7],
+            payload: callee.payload,
+        }];
+        full.extend_from_slice(args);
+        let mut names = vec![String::new()];
+        names.extend_from_slice(labels);
+        invoke_named_entry(entry, &full, &names)
+    } else if callee.tag == TAG_FUNC {
+        let entry = compiled_fn_entry(callee.payload).ok_or_else(|| {
+            named_argument_error("Hawshani waxay aqbashaa doodaha boosaska leh oo keliya.")
+        })?;
+        invoke_named_entry(entry, args, labels)
+    } else {
+        Err(named_argument_error("Qiimahan hawl ahaan looma wici karo."))
+    }
+}
+
+fn named_instance_call(
+    index: i64,
+    instance: Value,
+    args: &[SoplangValue],
+    labels: &[String],
+) -> Result<SoplangValue, SoplangError> {
+    let entry = compiled_fn_entry(index).ok_or_else(invalid_handle)?;
+    let mut full = vec![value_to_soplang(&instance)];
+    full.extend_from_slice(args);
+    let mut names = vec![String::new()];
+    names.extend_from_slice(labels);
+    invoke_named_entry(entry, &full, &names)
+}
+
+/// Named call descriptor: empty labels denote positional arguments. Kinds are
+/// ordinary callable (0), object method (1), and constructor (2).
+#[no_mangle]
+pub extern "C" fn soplang_call_named(
+    callee: SoplangValue,
+    kind: i64,
+    name: *const u8,
+    name_len: usize,
+    args: *const SoplangValue,
+    n: i32,
+    labels: *const u8,
+    labels_len: usize,
+) -> SoplangValue {
+    if has_pending_error() {
+        return SoplangValue::null();
+    }
+    let execute = || -> Result<SoplangValue, SoplangError> {
+        if n < 0
+            || (n > 0 && args.is_null())
+            || (name_len > 0 && name.is_null())
+            || (labels_len > 0 && labels.is_null())
+        {
+            return Err(named_argument_error("Liiska doodaha hawsha ma saxna."));
+        }
+        let args = if n > 0 {
+            unsafe { std::slice::from_raw_parts(args, n as usize) }
+        } else {
+            &[]
+        };
+        for value in args {
+            validate_handle(*value)?;
+            soplang_to_value(*value)?;
+        }
+        let read = |pointer, len| {
+            if len == 0 {
+                Ok("")
+            } else {
+                std::str::from_utf8(unsafe { std::slice::from_raw_parts(pointer, len) }).map_err(
+                    |_| named_argument_error("Magacyada dooduhu ma aha qoraal UTF-8 ah oo sax ah."),
+                )
+            }
+        };
+        let name = read(name, name_len)?;
+        let text = read(labels, labels_len)?;
+        let labels: Vec<String> = if n == 0 {
+            Vec::new()
+        } else {
+            text.split('\0').map(str::to_owned).collect()
+        };
+        if labels.len() != args.len() {
+            return Err(named_argument_error(
+                "Magacyada iyo qiimayaasha dooduhu isma laha.",
+            ));
+        }
+        match kind {
+            0 => named_callable(callee, args, &labels),
+            1 => {
+                let Value::Object(object) = soplang_to_value(callee)? else {
+                    return Err(named_argument_error(
+                        "Hawshani waxay aqbashaa doodaha boosaska leh oo keliya.",
+                    ));
+                };
+                let (class, field) = {
+                    let fields = object
+                        .try_borrow()
+                        .map_err(|_| named_argument_error("Walaxda hadda lama akhriyi karo."))?;
+                    let class = match fields.get(INSTANCE_CLASS_FIELD) {
+                        Some(Value::Str(name)) => Some(name.clone()),
+                        _ => None,
+                    };
+                    (class, fields.get(name).cloned())
+                };
+                if let Some(class) = &class {
+                    if let Some(index) = resolve_method_fn_index(class, name) {
+                        return named_instance_call(index, Value::Object(object), args, &labels);
+                    }
+                } else if matches!(
+                    name,
+                    "furayaal"
+                        | "fure"
+                        | "dherer"
+                        | "saar"
+                        | "leeyahay"
+                        | "tir"
+                        | "kudar"
+                        | "midee"
+                        | "nuqul"
+                        | "nadiifi"
+                        | "qiimayaal"
+                        | "qiime"
+                        | "lammaanayaal"
+                        | "lamaane"
+                        | "hel"
+                        | "dhig"
+                        | "ka_qaad"
+                ) {
+                    return Err(named_argument_error(
+                        "Hawshani waxay aqbashaa doodaha boosaska leh oo keliya.",
+                    ));
+                }
+                let field = field.ok_or_else(|| {
+                    named_argument_error(format!("Hawl '{}' lama helin walaxda.", name))
+                })?;
+                named_callable(value_to_soplang(&field), args, &labels)
+            }
+            2 => {
+                let mut fields = HashMap::new();
+                fields.insert(
+                    INSTANCE_CLASS_FIELD.to_string(),
+                    Value::Str(name.to_string()),
+                );
+                let instance = Value::Object(Rc::new(RefCell::new(fields)));
+                if let Some(index) = resolve_constructor_fn_index(name) {
+                    let result = named_instance_call(index, instance.clone(), args, &labels)?;
+                    if has_pending_error() {
+                        return Ok(result);
+                    }
+                    Ok(value_to_soplang(&instance))
+                } else {
+                    Err(named_argument_error(format!(
+                        "Qaabka '{}' ma laha dhise aqbala doodahan.",
+                        name
+                    )))
+                }
+            }
+            _ => Err(named_argument_error("Nooca wicitaanku ma saxna.")),
+        }
+    };
+    match execute() {
+        Ok(value) => value,
+        Err(error) => handle_runtime_error(error),
+    }
 }
 
 /// Record an AOT function pointer under `name` so calls, methods, and closures can find it.
@@ -2488,7 +2828,9 @@ fn call_closure(callee: SoplangValue, args: *const SoplangValue, n: i32) -> Sopl
     }
     let entry = compiled_fn_entry(data.fn_index);
     if let Some(entry) = entry {
-        let expected = entry.n_params.saturating_sub(1);
+        let expected = entry
+            .n_params
+            .saturating_sub(1 + usize::from(entry.keyword_rest));
         if n < 0
             || (n as usize) < entry.required_params.saturating_sub(1)
             || (!entry.variadic && n as usize > expected)

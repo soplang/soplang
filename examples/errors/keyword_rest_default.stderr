@@ -1,0 +1,4 @@
+Khalad naxwe: Doodda '**' ma yeelan karto qiime hordhac ah. safka 1, tiirka 16
+     --> examples/errors/keyword_rest_default.sop:1:16
+   1 │   hawl tijaabo(**options = {}) {}
+     │                  ^

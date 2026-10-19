@@ -94,3 +94,16 @@ runtime	variadic_dynamic_count.sop	2	1	1 ama ka badan
 runtime	empty_callback.sop	1	4	ma aqbasho
 runtime	empty_native_callback.sop	1	4	ma aqbasho
 runtime	empty_pair_callback.sop	1	4	ma aqbasho
+compile	named_duplicate.sop	2	15	laba jeer
+compile	named_positional_order.sop	2	15	boos leh
+compile	keyword_rest_type.sop	1	19	walax
+compile	keyword_rest_default.sop	1	16	hordhac
+compile	keyword_rest_order.sop	1	25	ugu dambaysa
+compile	named_unknown.sop	2	9	ma aqbasho
+compile	named_missing.sop	2	1	ka maqan
+compile	named_collision.sop	2	12	laba jeer
+compile	named_type.sop	2	12	abn
+runtime	dynamic_named_unknown.sop	2	1	ma aqbasho
+runtime	dynamic_named_missing.sop	2	1	ka maqan
+runtime	dynamic_named_collision.sop	2	1	laba jeer
+runtime	named_builtin.sop	1	1	boosaska

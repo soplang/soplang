@@ -42,8 +42,10 @@ pub struct FunctionMeta {
     pub name: String,
     pub param_slots: Vec<usize>,
     pub param_types: Vec<TypeAnnotation>,
+    pub param_names: Vec<String>,
     pub required_params: usize,
     pub variadic: bool,
+    pub keyword_rest: bool,
     pub return_ann: TypeAnnotation,
     pub local_count: usize,
     pub captures: Vec<String>,
@@ -150,8 +152,10 @@ pub struct AnalyzeOptions {
 #[derive(Debug, Clone)]
 struct FunctionSig {
     params: Vec<TypeAnnotation>,
+    names: Vec<String>,
     required_params: usize,
     variadic: bool,
+    keyword_rest: bool,
     ret: TypeAnnotation,
 }
 
@@ -314,9 +318,9 @@ fn validate_control_expr(expr: &Expr) -> Result<(), SoplangError> {
             validate_control_expr(left)?;
             validate_control_expr(right)
         }
-        Expr::UnaryOp { expr, .. } | Expr::Property { obj: expr, .. } => {
-            validate_control_expr(expr)
-        }
+        Expr::NamedArgument { value: expr, .. }
+        | Expr::UnaryOp { expr, .. }
+        | Expr::Property { obj: expr, .. } => validate_control_expr(expr),
         Expr::Interpolated { parts } => {
             for part in parts {
                 if let InterpolationPart::Value { expression, .. } = part {
@@ -732,8 +736,10 @@ fn analyze_stmt(
                 name: fn_name,
                 param_slots,
                 param_types: params.iter().map(|p| p.type_ann.clone()).collect(),
+                param_names: params.iter().map(|p| p.name.clone()).collect(),
                 required_params: required_parameters(params),
-                variadic: params.last().is_some_and(|param| param.variadic),
+                variadic: params.iter().any(|param| param.variadic),
+                keyword_rest: params.last().is_some_and(|param| param.keyword_rest),
                 return_ann: return_ann.clone(),
                 local_count,
                 captures,
@@ -1057,7 +1063,7 @@ fn analyze_stmt(
 fn required_parameters(params: &[Param]) -> usize {
     params
         .iter()
-        .take_while(|param| param.default.is_none() && !param.variadic)
+        .take_while(|param| param.default.is_none() && !param.variadic && !param.keyword_rest)
         .count()
 }
 
@@ -1171,7 +1177,7 @@ fn analyze_expr(
             analyze_expr(left, sym, opts, fn_sigs, current_class, enclosing_fn)?;
             analyze_expr(right, sym, opts, fn_sigs, current_class, enclosing_fn)?;
         }
-        Expr::UnaryOp { expr: e, .. } => {
+        Expr::NamedArgument { value: e, .. } | Expr::UnaryOp { expr: e, .. } => {
             analyze_expr(e, sym, opts, fn_sigs, current_class, enclosing_fn)?
         }
         Expr::Interpolated { parts } => {
@@ -1190,9 +1196,17 @@ fn analyze_expr(
             for a in args {
                 analyze_expr(a, sym, opts, fn_sigs, current_class, enclosing_fn)?;
             }
-            if let Some(sig) = fn_sigs.get(name) {
+            if let Some(sig) = fn_sigs
+                .get(name)
+                .filter(|_| resolve_name(sym, name, None).is_none())
+            {
+                if has_named_arguments(args) {
+                    validate_named_arguments(args, sig, sym, fn_sigs)?;
+                    return Ok(());
+                }
                 if args.len() < sig.required_params
-                    || (!sig.variadic && args.len() > sig.params.len())
+                    || (!sig.variadic
+                        && args.len() > sig.params.len() - usize::from(sig.keyword_rest))
                 {
                     return Err(type_error_ex(
                         format!(
@@ -1203,7 +1217,7 @@ fn analyze_expr(
                                 if sig.variadic {
                                     usize::MAX
                                 } else {
-                                    sig.params.len()
+                                    sig.params.len() - usize::from(sig.keyword_rest)
                                 }
                             ),
                             args.len()
@@ -1217,11 +1231,11 @@ fn analyze_expr(
                 }
                 for (idx, (arg, expected)) in args
                     .iter()
-                    .zip(
-                        sig.params
-                            .iter()
-                            .take(sig.params.len() - usize::from(sig.variadic)),
-                    )
+                    .zip(sig.params.iter().take(
+                        sig.params.len()
+                            - usize::from(sig.variadic)
+                            - usize::from(sig.keyword_rest),
+                    ))
                     .enumerate()
                 {
                     if expected == &TypeAnnotation::Dynamic {
@@ -1263,14 +1277,29 @@ fn analyze_expr(
                     })?;
                     let mangled = resolve_parent_method(sym, class, method)?;
                     if let Some(fm) = sym.functions.iter().find(|f| f.name == mangled) {
-                        if args.len() < fm.required_params
-                            || (!fm.variadic && args.len() > fm.param_types.len())
+                        if has_named_arguments(args) {
+                            validate_named_arguments(
+                                args,
+                                &FunctionSig {
+                                    params: fm.param_types.clone(),
+                                    names: fm.param_names.clone(),
+                                    required_params: fm.required_params,
+                                    variadic: fm.variadic,
+                                    keyword_rest: fm.keyword_rest,
+                                    ret: fm.return_ann.clone(),
+                                },
+                                sym,
+                                fn_sigs,
+                            )?;
+                        } else if args.len() < fm.required_params
+                            || (!fm.variadic
+                                && args.len() > fm.param_types.len() - usize::from(fm.keyword_rest))
                         {
                             return Err(type_error_ex(
                                 format!(
                                     "hawl '{}' waxay u baahan tahay {} dood, laakiin {} ayaa la bixiyay",
                                     method,
-                                    crate::error::argument_count(fm.required_params, if fm.variadic { usize::MAX } else { fm.param_types.len() }),
+                                    crate::error::argument_count(fm.required_params, if fm.variadic { usize::MAX } else { fm.param_types.len() - usize::from(fm.keyword_rest) }),
                                     args.len()
                                 ),
                                 0,
@@ -1343,15 +1372,20 @@ fn analyze_expr(
                 }
                 owner = class.parent.as_deref();
             }
+            if let Some(sig) = constructor.filter(|_| has_named_arguments(args)) {
+                validate_named_arguments(args, sig, sym, fn_sigs)?;
+                return Ok(());
+            }
             if let Some(sig) = constructor {
                 if args.len() < sig.required_params
-                    || (!sig.variadic && args.len() > sig.params.len())
+                    || (!sig.variadic
+                        && args.len() > sig.params.len() - usize::from(sig.keyword_rest))
                 {
                     return Err(type_error_ex(
                         format!(
                             "dhaw() ee qaabka '{}' wuxuu u baahan yahay {} dood, laakiin {} ayaa la bixiyay",
                             class_name,
-                            crate::error::argument_count(sig.required_params, if sig.variadic { usize::MAX } else { sig.params.len() }),
+                            crate::error::argument_count(sig.required_params, if sig.variadic { usize::MAX } else { sig.params.len() - usize::from(sig.keyword_rest) }),
                             args.len()
                         ),
                         0,
@@ -1363,11 +1397,11 @@ fn analyze_expr(
                 }
                 for (index, (argument, expected)) in args
                     .iter()
-                    .zip(
-                        sig.params
-                            .iter()
-                            .take(sig.params.len() - usize::from(sig.variadic)),
-                    )
+                    .zip(sig.params.iter().take(
+                        sig.params.len()
+                            - usize::from(sig.variadic)
+                            - usize::from(sig.keyword_rest),
+                    ))
                     .enumerate()
                 {
                     if expected == &TypeAnnotation::Dynamic {
@@ -1550,8 +1584,10 @@ fn analyze_anonymous_function(
         name: fn_name,
         param_slots,
         param_types: params.iter().map(|param| param.type_ann.clone()).collect(),
+        param_names: params.iter().map(|param| param.name.clone()).collect(),
         required_params: required_parameters(params),
-        variadic: params.last().is_some_and(|param| param.variadic),
+        variadic: params.iter().any(|param| param.variadic),
+        keyword_rest: params.last().is_some_and(|param| param.keyword_rest),
         return_ann: return_ann.clone(),
         local_count: scope.vars.len(),
         captures,
@@ -1572,6 +1608,7 @@ fn infer_expr_type(
     fn_sigs: &HashMap<String, FunctionSig>,
 ) -> Option<TypeAnnotation> {
     match expr {
+        Expr::NamedArgument { value, .. } => infer_expr_type(value, sym, fn_sigs),
         Expr::Located { expr, .. } => infer_expr_type(expr, sym, fn_sigs),
         Expr::Literal(l) => Some(match l {
             Literal::Int(_) => TypeAnnotation::Abn,
@@ -1614,13 +1651,16 @@ fn infer_expr_type(
             }
         }
         Expr::Interpolated { .. } => Some(TypeAnnotation::Qoraal),
-        Expr::Call { name, .. } => fn_sigs.get(name).and_then(|s| {
-            if s.ret == TypeAnnotation::Dynamic {
-                None
-            } else {
-                Some(s.ret.clone())
-            }
-        }),
+        Expr::Call { name, .. } => fn_sigs
+            .get(name)
+            .filter(|_| resolve_name(sym, name, None).is_none())
+            .and_then(|s| {
+                if s.ret == TypeAnnotation::Dynamic {
+                    None
+                } else {
+                    Some(s.ret.clone())
+                }
+            }),
         Expr::New { class_name, .. } => Some(TypeAnnotation::Class(class_name.clone())),
         Expr::AnonymousFunc { .. }
         | Expr::Invoke { .. }
@@ -1775,8 +1815,10 @@ fn collect_function_sigs_rec(
                     key,
                     FunctionSig {
                         params: params.iter().map(|p| p.type_ann.clone()).collect(),
+                        names: params.iter().map(|p| p.name.clone()).collect(),
                         required_params: required_parameters(params),
-                        variadic: params.last().is_some_and(|param| param.variadic),
+                        variadic: params.iter().any(|param| param.variadic),
+                        keyword_rest: params.last().is_some_and(|param| param.keyword_rest),
                         ret: return_ann.clone(),
                     },
                 );
@@ -1869,7 +1911,9 @@ fn note_free_expr(expr: &Expr, sym: &SymbolTable, caps: &mut Vec<String>) {
             note_free_expr(left, sym, caps);
             note_free_expr(right, sym, caps);
         }
-        Expr::UnaryOp { expr, .. } => note_free_expr(expr, sym, caps),
+        Expr::NamedArgument { value: expr, .. } | Expr::UnaryOp { expr, .. } => {
+            note_free_expr(expr, sym, caps)
+        }
         Expr::Interpolated { parts } => {
             for part in parts {
                 if let InterpolationPart::Value { expression, .. } = part {
@@ -2012,4 +2056,91 @@ pub fn resolve_name(
         }
     }
     None
+}
+
+fn has_named_arguments(args: &[Expr]) -> bool {
+    args.iter()
+        .any(|argument| matches!(argument.unlocated(), Expr::NamedArgument { .. }))
+}
+
+fn validate_named_arguments(
+    args: &[Expr],
+    sig: &FunctionSig,
+    sym: &SymbolTable,
+    fn_sigs: &HashMap<String, FunctionSig>,
+) -> Result<(), SoplangError> {
+    let fixed = sig.params.len() - usize::from(sig.variadic) - usize::from(sig.keyword_rest);
+    let mut filled = vec![false; fixed];
+    let mut positional = 0;
+    for arg in args {
+        let (index, value) = match arg.unlocated() {
+            Expr::NamedArgument { name, value } => {
+                let index = sig.names[..fixed]
+                    .iter()
+                    .position(|parameter| parameter == name);
+                if index.is_none() && !sig.keyword_rest {
+                    return Err(attach_argument(
+                        arg,
+                        format!("Doodda magaca '{}' leh hawshani ma aqbasho.", name),
+                    ));
+                }
+                (index, value.as_ref())
+            }
+            _ => {
+                let index = positional;
+                positional += 1;
+                if index >= fixed && !sig.variadic {
+                    return Err(attach_argument(
+                        arg,
+                        "Doodaha boosaska leh ayaa ka badan intii hawshu aqbali lahayd.",
+                    ));
+                }
+                ((index < fixed).then_some(index), arg)
+            }
+        };
+        let Some(index) = index else { continue };
+        if filled[index] {
+            return Err(attach_argument(
+                arg,
+                format!("Doodda '{}' laba jeer ayaa la bixiyay.", sig.names[index]),
+            ));
+        }
+        filled[index] = true;
+        if sig.params[index] != TypeAnnotation::Dynamic {
+            if let Some(found) = infer_expr_type(value, sym, fn_sigs) {
+                if !is_type_compatible(sym, &sig.params[index], &found) {
+                    let error =
+                        type_mismatch_error(&sig.names[index], &sig.params[index], &found, 0, 0);
+                    return Err(match value {
+                        Expr::Located { span, .. } => span.attach(error),
+                        _ => error,
+                    });
+                }
+            }
+        }
+    }
+    for (index, supplied) in filled.iter().enumerate().take(sig.required_params) {
+        if !supplied {
+            return Err(type_error_ex(
+                format!("Doodda '{}' ayaa ka maqan wicitaankan.", sig.names[index]),
+                0,
+                0,
+                ErrorMeta::default().with_code(codes::E022_TYPE_MISMATCH),
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn attach_argument(arg: &Expr, message: impl Into<String>) -> SoplangError {
+    let error = type_error_ex(
+        message,
+        0,
+        0,
+        ErrorMeta::default().with_code(codes::E022_TYPE_MISMATCH),
+    );
+    match arg {
+        Expr::Located { span, .. } => span.attach(error),
+        _ => error,
+    }
 }

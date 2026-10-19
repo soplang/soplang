@@ -1,0 +1,4 @@
+Khalad nooc: Doodda magaca 'b' leh hawshani ma aqbasho. [E022] safka 2, tiirka 1
+     --> examples/errors/dynamic_named_unknown.sop:2:1
+   2 │   tijaabo(b: 1)
+     │   ^^^^^^^
