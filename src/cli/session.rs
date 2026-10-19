@@ -61,6 +61,14 @@ impl ReplSession {
         self.backend.get_global(name)
     }
 
+    pub fn collect(&self) -> crate::runtime::CollectionReport {
+        self.backend.collect()
+    }
+
+    pub fn memory_stats(&self) -> crate::runtime::MemoryStats {
+        self.backend.memory_stats()
+    }
+
     fn prelude(&self) -> SymbolTable {
         let mut sym = SymbolTable::default();
         let mut scope = Scope::default();

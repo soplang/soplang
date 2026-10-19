@@ -49,13 +49,31 @@ impl<T> HandleArena<T> {
         (*generation == id).then_some(value)
     }
 
-    // Reclamation is connected after generated code exposes its live roots.
-    #[allow(dead_code)]
     pub fn remove(&mut self, id: i64) -> Option<T> {
         let slot = self.indices.remove(&id)?;
         let (_, value) = self.slots[slot].take()?;
         self.free.push(slot);
         Some(value)
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = (i64, &T)> {
+        self.slots
+            .iter()
+            .filter_map(|slot| slot.as_ref().map(|(id, value)| (*id, value)))
+    }
+
+    pub fn retain(&mut self, mut keep: impl FnMut(i64, &T) -> bool) {
+        let removed: Vec<_> = self
+            .iter()
+            .filter_map(|(id, value)| (!keep(id, value)).then_some(id))
+            .collect();
+        for id in removed {
+            self.remove(id);
+        }
+    }
+
+    pub fn len(&self) -> usize {
+        self.indices.len()
     }
 
     pub fn contains(&self, id: i64) -> bool {

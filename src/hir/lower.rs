@@ -187,6 +187,50 @@ pub enum HirInstr {
     },
 }
 
+impl HirInstr {
+    pub(crate) fn may_allocate(&self) -> bool {
+        matches!(
+            self,
+            Self::Const {
+                val: HirConst::Str(_),
+                ..
+            } | Self::BinOp { typed: false, .. }
+                | Self::BuildList { .. }
+                | Self::BuildObject { .. }
+                | Self::GetIndex { .. }
+                | Self::GetProp { .. }
+                | Self::Call { .. }
+                | Self::CallMethod { .. }
+                | Self::NewInstance { .. }
+                | Self::MakeClosure { .. }
+                | Self::BindError { .. }
+                | Self::BindErrorValue { .. }
+        )
+    }
+
+    pub(crate) fn destination(&self) -> Option<Slot> {
+        match self {
+            Self::Const { dst, .. }
+            | Self::Copy { dst, .. }
+            | Self::Load { dst, .. }
+            | Self::BinOp { dst, .. }
+            | Self::UnOp { dst, .. }
+            | Self::BuildList { dst, .. }
+            | Self::BuildObject { dst, .. }
+            | Self::GetIndex { dst, .. }
+            | Self::GetProp { dst, .. }
+            | Self::RangeContinue { dst, .. }
+            | Self::Call { dst, .. }
+            | Self::CallMethod { dst, .. }
+            | Self::BindError { dst }
+            | Self::BindErrorValue { dst }
+            | Self::NewInstance { dst, .. }
+            | Self::MakeClosure { dst, .. } => Some(*dst),
+            _ => None,
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct HirFunction {
     pub name: String,

@@ -584,3 +584,14 @@ fn test_llvm_argument_buffers_stay_bounded_in_loops() {
         "100000\n"
     );
 }
+
+#[test]
+fn test_llvm_garbage_collection_preserves_active_values() {
+    assert_eq!(
+        run_llvm(
+            "garbage_collection",
+            include_str!("fixtures/garbage_collection.sop")
+        ),
+        "garbage collection ok\n"
+    );
+}

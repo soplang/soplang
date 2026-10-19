@@ -633,3 +633,11 @@ fn test_wide_calls_and_callable_expressions() {
         "callable expressions ok\n"
     );
 }
+
+#[test]
+fn test_garbage_collection_preserves_active_values() {
+    assert_eq!(
+        run_program(include_str!("fixtures/garbage_collection.sop")),
+        "garbage collection ok\n"
+    );
+}

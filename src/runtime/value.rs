@@ -24,8 +24,8 @@ pub enum Value {
     Object(Rc<RefCell<HashMap<String, Value>>>),
     Function(FunctionId),
     NativeFunction(NativeFn),
-    /// Context-owned closure identity. Survives a trip through `Value`.
-    Closure(i64),
+    /// Context-owned closure data; host references preserve captures while its owner lives.
+    Closure(Rc<super::abi::ClosureData>),
     Error(Rc<SoplangError>),
     Null,
 }
@@ -50,7 +50,7 @@ impl Value {
             Value::Object(o) => ValueDebug::Object(o.borrow().len()),
             Value::Function(id) => ValueDebug::Function(*id),
             Value::NativeFunction(_) => ValueDebug::NativeFn,
-            Value::Closure(p) => ValueDebug::Closure(*p),
+            Value::Closure(data) => ValueDebug::Closure(data.handle()),
             Value::Error(error) => ValueDebug::Error(error.message()),
             Value::Null => ValueDebug::Null,
         }
@@ -115,7 +115,7 @@ fn value_eq(a: &Value, b: &Value, seen: &mut HashSet<(u8, usize, usize)>) -> boo
         }
         (Value::Error(a), Value::Error(b)) => Rc::ptr_eq(a, b),
         (Value::Function(a), Value::Function(b)) => a == b,
-        (Value::Closure(a), Value::Closure(b)) => a == b,
+        (Value::Closure(a), Value::Closure(b)) => Rc::ptr_eq(a, b),
         (Value::NativeFunction(a), Value::NativeFunction(b)) => {
             std::ptr::eq(*a as *const (), *b as *const ())
         }

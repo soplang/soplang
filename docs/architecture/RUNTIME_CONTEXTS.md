@@ -132,19 +132,68 @@ validate heap operands, callable arguments, and captured values. With an active
 `tijaabi` block the error is catchable; Rust conversions return `Err`.
 The tagged value layout remains 16 bytes. Primitive payloads are unchanged.
 
-Dropping a backend first releases its runtime, including closure environments
-and acyclic collections whose references have not escaped. It then explicitly
-frees the JIT module's code and data allocations. Cranelift normally retains
-those allocations to preserve external function pointers. This backend keeps
-its code pointers private and all execution is synchronous, so its module can
-release them once the backend is dropped.
+## Collection model
 
-This is ownership at the execution-environment boundary, not a garbage
-collector. Unreachable allocations inside a live context are not reclaimed
-yet, and cyclic `Rc` collection graphs still need cycle reclamation. Arena slot
-reuse is implemented and tested; automatic reclamation still requires explicit
-generated-code roots before it can safely remove allocations. Guaranteed
-resource cleanup remains a separate stage.
+The runtime combines reusable arenas, reference-counted collection data, and
+tracing at explicit generated-code safepoints.
+
+| Mechanism | Contribution | Remaining requirement |
+| --- | --- | --- |
+| Reference counting | Keeps Rust-owned values and native callback temporaries alive. | Collection cycles need tracing. |
+| Reusable handle arenas | Preserve tagged identities and reject expired handles. | Reachability determines which allocations can be removed. |
+| Tracing | Follows globals, stack roots, pins, collection edges, and captures. | Generated code must publish its live slots before collection. |
+
+Cranelift maintains tagged shadow slots alongside its SSA variables. LLVM
+publishes its tag and payload arrays directly. Both register initialized slots
+at function entry, update them after assignments, and unregister the frame on
+normal and error returns. Collection occurs after operations that can allocate,
+when temporary native operations have returned and generated results are rooted.
+Nested callbacks register their own frames.
+
+The collector builds an iterative graph of lists, objects, and closure data.
+It counts arena references and collection edges, then treats remaining strong
+references as roots held by native or Rust code. This preserves callback
+snapshots even when a callback clears the original collection. Borrowed
+collections are retained conservatively, with their deferred count included in
+the collection report. Unreachable list and object edges are cleared before
+arena entries are removed, breaking cycles without recursive traversal.
+
+Lists and objects retain one handle per collection identity. Converting the
+same collection repeatedly reuses that handle. Reachable nested collections
+first discovered through Rust-owned value graphs are registered for future
+passes. Strings and structured-error handles are swept by tagged reachability;
+their Rust values own their contents separately. Host-held closure values own
+references to closure data, so their captures remain reachable while the owner
+is alive.
+
+The first automatic pass is due after 1,024 managed allocations or about 4 MiB
+of recorded allocation volume. Subsequent intervals grow with the live set.
+The byte count is an estimate, not a process-memory quota. `collect()` and
+`memory_stats()` are available on runtime contexts, JIT backends, and REPL
+sessions. Counts cover managed values; compiler metadata and retained JIT code
+are separate allocations. A REPL retains compiled snippets for the lifetime
+of its session.
+
+## Rust roots and owner lifetimes
+
+Use `RuntimeContext::root(tagged_value)` when Rust code retains a tagged value
+across collections. The returned `RootedValue` pins that value until dropped.
+`get()` returns the tagged value while its owner is alive and reports `E035`
+after the owner is gone. Pins use weak ownership so they cannot extend the
+lifetime of runtime function pointers beyond their JIT backend.
+
+Rust `Value` collections and closures can also keep data reachable through
+owned references. Keep their context alive and drop these values before their
+owner, especially for cyclic graphs. Raw graphs constructed and retained by
+Rust code remain subject to Rust ownership rules. Generated tagged values
+cannot be retained safely through an unregistered raw pointer or an unpinned
+copy alone.
+
+Dropping a backend runs teardown collection, releasing unreachable cycles and
+closure environments, then frees the JIT module's code and data. Cranelift
+normally retains code allocations to preserve external function pointers. This
+backend keeps those pointers private and executes synchronously, so it can
+free its module when its runtime owner is dropped.
 
 ## Verification
 
@@ -169,3 +218,10 @@ scope, are inaccessible through a different context, and are released when
 their owner is dropped. Existing LLVM integration tests and diagnostic
 fixtures verify that standalone execution and Somali output retain their
 behavior.
+
+`tests/gc_tests.rs` verifies pinned handles, slot reuse after collection,
+collection identity, Rust-held values, deferred borrows, closure captures,
+cyclic teardown, and bounded REPL heaps across successful and failed snippets.
+A shared JIT/LLVM stress program exercises cyclic lists, objects, closures,
+repeated errors, and native callbacks that mutate their source collection.
+The same program runs against optimized Rust runtimes in both backends.

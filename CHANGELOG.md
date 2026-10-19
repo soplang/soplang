@@ -18,6 +18,8 @@ All notable changes to this project will be documented in this file.
 * Immutable `khalad` values retain error codes, causes, source locations, and compiled function traces. Optional `qabo (fariin, xog)` exposes these details while existing catches keep receiving text. Cleanup failures preserve the original error as their cause.
 * Compiled functions, closures, constructors, and methods accept more than eight arguments through a shared argument-vector ABI. Returned and indexed functions can be invoked directly, including callable object fields. LLVM reuses argument buffers inside loops.
 
+* Tracing collection reclaims unreachable strings, errors, collections, instances, and closure environments, including cycles. Both backends publish explicit stack roots. Rust integrations can pin tagged values and inspect collection reports; repeated collection conversion preserves identity.
+
 ## [3.0.1] - 2026-10-18
 
 ### Fixed

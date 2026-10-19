@@ -16,6 +16,11 @@ pub(super) struct RuntimeState {
     pub call_stack: RefCell<Vec<crate::error::StackFrame>>,
     pub errors: RefCell<HandleArena<Rc<crate::error::SoplangError>>>,
     pub suspended_errors: RefCell<Vec<Option<crate::error::SoplangError>>>,
+    pub collector: super::gc::CollectorState,
+    pub roots: RefCell<Vec<super::roots::RootFrame>>,
+    pub pins: RefCell<HandleArena<SoplangValue>>,
+    pub list_ids: RefCell<HashMap<usize, i64>>,
+    pub object_ids: RefCell<HashMap<usize, i64>>,
     pub strings: RefCell<HandleArena<String>>,
     pub lists: RefCell<HandleArena<Rc<RefCell<Vec<Value>>>>>,
     pub objects: RefCell<HandleArena<Rc<RefCell<HashMap<String, Value>>>>>,
@@ -28,6 +33,12 @@ pub(super) struct RuntimeState {
     pub closures: RefCell<HandleArena<Rc<ClosureData>>>,
 }
 
+impl Drop for RuntimeState {
+    fn drop(&mut self) {
+        super::gc::collect(self, true);
+    }
+}
+
 thread_local! {
     // Direct ABI callers and standalone LLVM programs use this default context.
     // JIT backends activate their own state while compiling and executing.
@@ -38,7 +49,7 @@ thread_local! {
 /// the context that created them. Contexts remain on their owning thread.
 #[derive(Default)]
 pub struct RuntimeContext {
-    state: Rc<RuntimeState>,
+    pub(super) state: Rc<RuntimeState>,
 }
 
 impl RuntimeContext {
@@ -68,6 +79,7 @@ impl RuntimeContext {
                 suspended: self.state.suspended_errors.replace(Vec::new()),
                 call_stack: self.state.call_stack.replace(Vec::new()),
                 source: self.state.current_source.replace(None),
+                root_depth: self.state.roots.borrow().len(),
             };
             let result = operation();
             let error = self.state.pending_error.borrow_mut().take();
@@ -75,6 +87,26 @@ impl RuntimeContext {
                 Some(error) => Err(error),
                 None => Ok(result),
             }
+        })
+    }
+
+    /// Reclaim unreachable tagged allocations and collection cycles.
+    pub fn collect(&self) -> super::gc::CollectionReport {
+        super::gc::collect(&self.state, false)
+    }
+
+    pub fn memory_stats(&self) -> super::gc::MemoryStats {
+        super::gc::stats(&self.state)
+    }
+
+    /// Pin a tagged value while Rust code retains it across collections.
+    pub fn root(
+        &self,
+        value: SoplangValue,
+    ) -> Result<super::roots::RootedValue, crate::error::SoplangError> {
+        self.with(|| {
+            super::abi::soplang_to_value(value)?;
+            Ok(super::roots::RootedValue::new(&self.state, value))
         })
     }
 
@@ -100,6 +132,7 @@ struct ExecutionBoundary {
     suspended: Vec<Option<crate::error::SoplangError>>,
     call_stack: Vec<crate::error::StackFrame>,
     source: Option<crate::error::SourceSpan>,
+    root_depth: usize,
 }
 
 impl Drop for ExecutionBoundary {
@@ -109,6 +142,7 @@ impl Drop for ExecutionBoundary {
         *self.state.suspended_errors.borrow_mut() = std::mem::take(&mut self.suspended);
         *self.state.call_stack.borrow_mut() = std::mem::take(&mut self.call_stack);
         *self.state.current_source.borrow_mut() = self.source.take();
+        self.state.roots.borrow_mut().truncate(self.root_depth);
     }
 }
 

@@ -79,6 +79,9 @@ fn register_runtime_symbols(builder: &mut JITBuilder) {
         };
     }
     sym!(builder, soplang_set_location);
+    sym!(builder, soplang_enter_roots);
+    sym!(builder, soplang_gc_safepoint);
+    sym!(builder, soplang_leave_roots);
     sym!(builder, soplang_int);
     sym!(builder, soplang_float);
     sym!(builder, soplang_str);
@@ -343,6 +346,14 @@ impl CraneliftBackend {
         self.runtime.get_global(name)
     }
 
+    pub fn collect(&self) -> runtime::CollectionReport {
+        self.runtime.collect()
+    }
+
+    pub fn memory_stats(&self) -> runtime::MemoryStats {
+        self.runtime.memory_stats()
+    }
+
     fn register_compiled_fns(&mut self) {
         let start = self.registered_fns;
         for fi in &self.compiled_fns[start..] {
@@ -538,6 +549,22 @@ fn compile_body(
     is_function: bool,
     seed: &[SlotNum],
 ) -> Result<(), SoplangError> {
+    // Keep a tagged shadow of SSA slots visible to collection safepoints.
+    let root_slot = builder.func.create_sized_stack_slot(StackSlotData::new(
+        StackSlotKind::ExplicitSlot, (var_tags.len().max(1) * 16) as u32, 3,
+    ));
+    let root_base = builder.ins().stack_addr(types::I64, root_slot, 0);
+    for slot in 0..var_tags.len() {
+        let tag = builder.use_var(var_tags[slot]);
+        let payload = builder.use_var(var_pays[slot]);
+        let offset = (slot * 16) as i32;
+        builder.ins().store(MemFlags::trusted(), tag, root_base, offset);
+        builder.ins().store(MemFlags::trusted(), payload, root_base, offset + 8);
+    }
+    let payload_base = builder.ins().iadd_imm(root_base, 8);
+    let root_count = builder.ins().iconst(types::I64, var_tags.len() as i64);
+    let stride = builder.ins().iconst(types::I64, 2);
+    call_rt_void(builder, module, "soplang_enter_roots", &[root_base, payload_base, root_count, stride])?;
     let mut block_map: HashMap<usize, Block> = HashMap::new();
     for instr in body {
         if let HirInstr::Label(id) = instr {
@@ -944,6 +971,7 @@ fn compile_body(
                 let t = builder.use_var(var_tags[*val]);
                 let p = builder.use_var(var_pays[*val]);
                 call_rt_void(builder, module, "soplang_leave_function", &[])?;
+                call_rt_void(builder, module, "soplang_leave_roots", &[])?;
                 builder.ins().return_(&[t, p]);
                 terminated = true;
             }
@@ -1076,6 +1104,7 @@ fn compile_body(
                     .brif(test, catch_block, &[], continue_block, &[]);
                 if catch.is_none() {
                     builder.switch_to_block(catch_block);
+                    call_rt_void(builder, module, "soplang_leave_roots", &[])?;
                     if is_function {
                         let tag = builder.ins().iconst(types::I64, 8);
                         let payload = builder.ins().iconst(types::I64, 0);
@@ -1117,9 +1146,20 @@ fn compile_body(
                 builder.def_var(var_pays[*dst], p);
             }
         }
+        if !terminated {
+            if let Some(slot) = instr.destination() {
+                let tag = builder.use_var(var_tags[slot]);
+                let payload = builder.use_var(var_pays[slot]);
+                let offset = (slot * 16) as i32;
+                builder.ins().store(MemFlags::trusted(), tag, root_base, offset);
+                builder.ins().store(MemFlags::trusted(), payload, root_base, offset + 8);
+            }
+            if instr.may_allocate() { call_rt_void(builder, module, "soplang_gc_safepoint", &[])?; }
+        }
     }
 
     if !terminated {
+        call_rt_void(builder, module, "soplang_leave_roots", &[])?;
         if is_function {
             let nt = builder.ins().iconst(types::I64, 0);
             let np = builder.ins().iconst(types::I64, 0);

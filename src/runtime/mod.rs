@@ -3,6 +3,8 @@
 pub mod abi;
 mod context;
 mod handles;
+mod gc;
+mod roots;
 pub mod stdlib;
 pub mod value;
 
@@ -11,4 +13,6 @@ pub mod windows_abi;
 
 pub use abi::*;
 pub use context::RuntimeContext;
+pub use roots::RootedValue;
+pub use gc::{CollectionReport, MemoryStats};
 pub use value::{value_to_string, NativeFn, Value};

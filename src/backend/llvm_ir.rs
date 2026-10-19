@@ -15,6 +15,9 @@ use crate::semantic::SymbolTable;
 
 const DECLS: &str = r#"%SoplangValue = type { i8, i64 }
 
+declare void @soplang_gc_safepoint()
+declare void @soplang_enter_roots(ptr, ptr, i64, i64)
+declare void @soplang_leave_roots()
 declare void @soplang_set_location(ptr, i64, i64, i64, i64, ptr, i64)
 declare %SoplangValue @soplang_int(i64)
 declare %SoplangValue @soplang_float(double)
@@ -306,8 +309,11 @@ struct Keep(*const ());
 unsafe impl Sync for Keep {}
 
 #[used]
-static KEEP: [Keep; 54] = [
+static KEEP: [Keep; 57] = [
     Keep(runtime::soplang_set_location as *const ()),
+    Keep(runtime::soplang_enter_roots as *const ()),
+    Keep(runtime::soplang_gc_safepoint as *const ()),
+    Keep(runtime::soplang_leave_roots as *const ()),
     Keep(runtime::soplang_int as *const ()),
     Keep(runtime::soplang_float as *const ()),
     Keep(runtime::soplang_str as *const ()),
@@ -633,6 +639,7 @@ fn emit_function(
         let value = emit.load_argument(user_base + i);
         emit.unpack_store(&value, slot);
     }
+    emit.enter_roots();
     emit.body(&f.body)?;
     emit.flush_allocas();
     emit.m.body.push_str("}\n\n");
@@ -665,6 +672,7 @@ fn emit_main(
     };
     emit.alloc_slots();
     emit.register_runtime(&hir.functions, sym);
+    emit.enter_roots();
     emit.body(&hir.top_level)?;
     emit.flush_allocas();
     emit.m.body.push_str("}\n");
@@ -693,6 +701,13 @@ impl<'a> FnEmit<'a> {
         let n = self.tmp;
         self.tmp += 1;
         format!("%v{n}")
+    }
+
+    fn enter_roots(&mut self) {
+        let slots = self.nslots;
+        self.line(format!(
+            "  call void @soplang_enter_roots(ptr %tags, ptr %pays, i64 {slots}, i64 1)"
+        ));
     }
 
     fn flush_allocas(&mut self) {
@@ -865,14 +880,19 @@ impl<'a> FnEmit<'a> {
                 continue;
             }
             terminated = self.instr(instr)?;
+            if !terminated && instr.may_allocate() {
+                self.line("  call void @soplang_gc_safepoint()");
+            }
         }
         if !terminated {
             if self.is_main {
                 let status = self.fresh();
                 self.line(format!("  {status} = call i32 @soplang_finish_execution()"));
+                self.line("  call void @soplang_leave_roots()");
                 self.line(format!("  ret i32 {status}"));
             } else {
                 self.line("  call void @soplang_leave_function()");
+                self.line("  call void @soplang_leave_roots()");
                 self.line("  ret %SoplangValue zeroinitializer");
             }
         }
@@ -1059,11 +1079,13 @@ impl<'a> FnEmit<'a> {
                 if self.is_main {
                     let status = self.fresh();
                     self.line(format!("  {status} = call i32 @soplang_finish_execution()"));
+                    self.line("  call void @soplang_leave_roots()");
                     self.line(format!("  ret i32 {status}"));
                 } else {
                     let (t, p) = self.load_slot(*val);
                     let sv = self.pack(&t, &p);
                     self.line("  call void @soplang_leave_function()");
+                    self.line("  call void @soplang_leave_roots()");
                     self.line(format!("  ret %SoplangValue {sv}"));
                 }
                 Ok(true)
@@ -1234,9 +1256,11 @@ impl<'a> FnEmit<'a> {
                     if self.is_main {
                         let status = self.fresh();
                         self.line(format!("  {status} = call i32 @soplang_finish_execution()"));
+                        self.line("  call void @soplang_leave_roots()");
                         self.line(format!("  ret i32 {status}"));
                     } else {
                         self.line("  call void @soplang_leave_function()");
+                        self.line("  call void @soplang_leave_roots()");
                         self.line("  ret %SoplangValue { i8 8, i64 0 }");
                     }
                 }

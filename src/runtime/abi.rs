@@ -67,6 +67,9 @@ fn handle_runtime_error(e: SoplangError) -> SoplangValue {
     throw_value()
 }
 
+const COLLECTOR: RuntimeLocal<super::gc::CollectorState> = RuntimeLocal::new(|state| &state.collector);
+const STATE: RuntimeLocal<super::context::RuntimeState> = RuntimeLocal::new(|state| state);
+
 const CALL_STACK: RuntimeLocal<RefCell<Vec<crate::error::StackFrame>>> =
     RuntimeLocal::new(|state| &state.call_stack);
 const ERROR_HEAP: RuntimeLocal<RefCell<HandleArena<Rc<SoplangError>>>> =
@@ -79,6 +82,24 @@ const PENDING_ERROR: RuntimeLocal<RefCell<Option<SoplangError>>> =
     RuntimeLocal::new(|state| &state.pending_error);
 const SUSPENDED_ERRORS: RuntimeLocal<RefCell<Vec<Option<SoplangError>>>> =
     RuntimeLocal::new(|state| &state.suspended_errors);
+
+#[no_mangle]
+pub extern "C" fn soplang_gc_safepoint() {
+    if COLLECTOR.with(|collector| collector.due()) {
+        STATE.with(|state| { super::gc::collect(state, false); });
+    }
+}
+
+/// Register generated slot storage until the matching leave operation.
+#[no_mangle]
+pub extern "C" fn soplang_enter_roots(tags: *const i64, payloads: *const i64, len: usize, stride: usize) {
+    super::roots::enter(tags, payloads, len, stride);
+}
+
+#[no_mangle]
+pub extern "C" fn soplang_leave_roots() {
+    super::roots::leave();
+}
 
 /// Set the source token for the next runtime operation in either backend.
 #[no_mangle]
@@ -315,6 +336,9 @@ const CLASS_REGISTRY: RuntimeLocal<RefCell<HashMap<String, ClassRegistryEntry>>>
 const CLOSURE_HEAP: RuntimeLocal<RefCell<HandleArena<Rc<ClosureData>>>> =
     RuntimeLocal::new(|state| &state.closures);
 
+const LIST_IDS: RuntimeLocal<RefCell<HashMap<usize, i64>>> = RuntimeLocal::new(|state| &state.list_ids);
+const OBJECT_IDS: RuntimeLocal<RefCell<HashMap<usize, i64>>> = RuntimeLocal::new(|state| &state.object_ids);
+
 const INSTANCE_CLASS_FIELD: &str = "__class__";
 
 #[derive(Clone)]
@@ -348,7 +372,7 @@ fn ensure_builtins() {
     });
 }
 
-fn invalid_handle() -> SoplangError {
+pub(super) fn invalid_handle() -> SoplangError {
     crate::error::runtime_error_ex(
         "Qiimahan ma jiro ama wuxuu ka tirsan yahay fulin kale.",
         0,
@@ -380,6 +404,7 @@ fn native_fn_get(id: i64) -> Option<NativeFn> {
 }
 
 fn str_alloc(value: String) -> i64 {
+    COLLECTOR.with(|collector| collector.allocated(value.len()));
     STR_HEAP.with(|heap| heap.borrow_mut().insert(value))
 }
 
@@ -388,7 +413,14 @@ fn str_get(id: i64) -> Result<String, SoplangError> {
 }
 
 fn list_alloc(value: Rc<RefCell<Vec<Value>>>) -> i64 {
-    LIST_HEAP.with(|heap| heap.borrow_mut().insert(value))
+    let key = Rc::as_ptr(&value) as usize;
+    if let Some(id) = LIST_IDS.with(|ids| ids.borrow().get(&key).copied()) {
+        if LIST_HEAP.with(|heap| heap.borrow().contains(id)) { return id; }
+    }
+    COLLECTOR.with(|collector| collector.allocated(value.try_borrow().map(|values| values.len()).unwrap_or(0) * std::mem::size_of::<Value>()));
+    let id = LIST_HEAP.with(|heap| heap.borrow_mut().insert(value));
+    LIST_IDS.with(|ids| ids.borrow_mut().insert(key, id));
+    id
 }
 
 fn list_get(id: i64) -> Result<Rc<RefCell<Vec<Value>>>, SoplangError> {
@@ -396,7 +428,14 @@ fn list_get(id: i64) -> Result<Rc<RefCell<Vec<Value>>>, SoplangError> {
 }
 
 fn obj_alloc(value: Rc<RefCell<HashMap<String, Value>>>) -> i64 {
-    OBJ_HEAP.with(|heap| heap.borrow_mut().insert(value))
+    let key = Rc::as_ptr(&value) as usize;
+    if let Some(id) = OBJECT_IDS.with(|ids| ids.borrow().get(&key).copied()) {
+        if OBJ_HEAP.with(|heap| heap.borrow().contains(id)) { return id; }
+    }
+    COLLECTOR.with(|collector| collector.allocated(value.try_borrow().map(|values| values.len()).unwrap_or(0) * std::mem::size_of::<(String, Value)>()));
+    let id = OBJ_HEAP.with(|heap| heap.borrow_mut().insert(value));
+    OBJECT_IDS.with(|ids| ids.borrow_mut().insert(key, id));
+    id
 }
 
 fn obj_get(id: i64) -> Result<Rc<RefCell<HashMap<String, Value>>>, SoplangError> {
@@ -440,17 +479,20 @@ pub fn value_to_soplang(v: &Value) -> SoplangValue {
         Value::Error(error) => SoplangValue {
             tag: TAG_ERROR,
             _pad: [0; 7],
-            payload: ERROR_HEAP.with(|heap| heap.borrow_mut().insert(Rc::clone(error))),
+            payload: {
+                COLLECTOR.with(|collector| collector.allocated(error.message().len()));
+                ERROR_HEAP.with(|heap| heap.borrow_mut().insert(Rc::clone(error)))
+            },
         },
         Value::Function(id) => SoplangValue {
             tag: TAG_FUNC,
             _pad: [0; 7],
             payload: id.0 as i64,
         },
-        Value::Closure(p) => SoplangValue {
+        Value::Closure(data) => SoplangValue {
             tag: TAG_CLOSURE,
             _pad: [0; 7],
-            payload: *p,
+            payload: data.handle(),
         },
         Value::NativeFunction(f) => {
             ensure_builtins();
@@ -492,10 +534,9 @@ pub fn soplang_to_value(sv: SoplangValue) -> Result<Value, SoplangError> {
         TAG_FUNC if native_fn_get(sv.payload).is_some() || compiled_fn_entry(sv.payload).is_some() => {
             Ok(Value::Function(super::value::FunctionId(sv.payload as usize)))
         }
-        TAG_CLOSURE if CLOSURE_HEAP.with(|heap| heap.borrow().contains(sv.payload)) => {
-            Ok(Value::Closure(sv.payload))
-        }
-        TAG_FUNC | TAG_CLOSURE => Err(invalid_handle()),
+        TAG_CLOSURE => CLOSURE_HEAP.with(|heap| heap.borrow().get(sv.payload).cloned())
+            .map(Value::Closure).ok_or_else(invalid_handle),
+        TAG_FUNC => Err(invalid_handle()),
         _ => Err(runtime_error(
             format!("Summadda qiimaha ma saxna: {}.", sv.tag), 0, 0,
         )),
@@ -2011,9 +2052,14 @@ pub extern "C" fn soplang_register_user_fn(
     idx
 }
 
-pub(super) struct ClosureData {
-    fn_index: i64,
-    env: Vec<SoplangValue>,
+pub struct ClosureData {
+    id: Cell<i64>,
+    pub(super) fn_index: i64,
+    pub(super) env: Vec<SoplangValue>,
+}
+
+impl ClosureData {
+    pub fn handle(&self) -> i64 { self.id.get() }
 }
 
 /// Build a closure from a compiled function name and the captured values.
@@ -2045,10 +2091,13 @@ pub extern "C" fn soplang_make_closure(
         }
     }
     let data = Rc::new(ClosureData {
+        id: Cell::new(0),
         fn_index: callee.payload,
         env,
     });
-    let payload = CLOSURE_HEAP.with(|heap| heap.borrow_mut().insert(data));
+    COLLECTOR.with(|collector| collector.allocated(data.env.len() * 16));
+    let payload = CLOSURE_HEAP.with(|heap| heap.borrow_mut().insert(Rc::clone(&data)));
+    data.id.set(payload);
     SoplangValue {
         tag: TAG_CLOSURE,
         _pad: [0; 7],
