@@ -69,6 +69,14 @@ global value formatter and the string template method.
 | `Qaabka qoraalku ma isku dari karo meelgelin toos ah iyo mid lambar leh.` | Automatic and numbered placeholders cannot be mixed. |
 | `Calaamadda '}' ee qoraalka ma laha '{' u dhiganta.` | A closing brace has no matching opening brace. |
 
+Interpolation reuses the brace and descriptor messages above. Its lexer also
+adds these forms under `E005`:
+
+| Somali wording | English meaning |
+| --- | --- |
+| `Waxaa loo baahan yahay weedh gudaha '{...}' ee qoraalka.` | An interpolation field requires an expression. |
+| `Qaybaha qoraalka aad bay isugu dhex jiraan.` | Interpolated literals exceed the nesting limit. |
+
 These definitions are in [formatting.rs](../../src/runtime/formatting.rs).
 
 `khalad()` also uses the existing argument-count template:

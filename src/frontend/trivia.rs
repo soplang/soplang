@@ -21,14 +21,22 @@ pub fn protected_ranges(text: &str) -> Vec<Range<usize>> {
     let mut i = 0;
     while i < bytes.len() {
         let start = i;
-        let prefixed = matches!(bytes[i], b'e' | b'r')
+        let prefixed = matches!(bytes[i], b'e' | b'r' | b'f')
             && matches!(bytes.get(i + 1), Some(b'\'' | b'"'))
             && !text[..i]
                 .chars()
                 .next_back()
                 .is_some_and(|ch| ch.is_alphanumeric() || ch == '_');
         let quote_at = if prefixed { i + 1 } else { i };
-        if prefixed || matches!(bytes[i], b'\'' | b'"') {
+        if prefixed && bytes[i] == b'f' {
+            // Reuse interpolation's nested-expression scanner, including strings
+            // with the same quote character. Incomplete editor input stays protected.
+            i = Lexer::new(&text[start..])
+                .next_token()
+                .map(|token| start + token.end)
+                .unwrap_or(bytes.len());
+            ranges.push(start..i);
+        } else if prefixed || matches!(bytes[i], b'\'' | b'"') {
             let escaped = prefixed && bytes[i] == b'e';
             let quote = bytes[quote_at];
             let triple = bytes.get(quote_at..quote_at + 3) == Some(&[quote, quote, quote]);

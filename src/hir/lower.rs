@@ -3,7 +3,7 @@
 
 use std::fmt;
 
-use crate::frontend::ast::{Expr, Literal, Stmt, TypeAnnotation};
+use crate::frontend::ast::{Expr, InterpolationPart, Literal, Stmt, TypeAnnotation};
 use crate::semantic::{resolve_name, resolve_parent_method, SymbolTable, VarInfo};
 
 pub type Slot = usize;
@@ -60,6 +60,15 @@ pub enum HirInstr {
     Copy {
         dst: Slot,
         src: Slot,
+    },
+    FormatValue {
+        dst: Slot,
+        src: Slot,
+        format: String,
+    },
+    BuildString {
+        dst: Slot,
+        parts: Vec<Slot>,
     },
     Load {
         dst: Slot,
@@ -191,10 +200,13 @@ impl HirInstr {
     pub(crate) fn may_allocate(&self) -> bool {
         matches!(
             self,
-            Self::Const {
-                val: HirConst::Str(_),
-                ..
-            } | Self::BinOp { typed: false, .. }
+            Self::FormatValue { .. }
+                | Self::BuildString { .. }
+                | Self::Const {
+                    val: HirConst::Str(_),
+                    ..
+                }
+                | Self::BinOp { typed: false, .. }
                 | Self::BuildList { .. }
                 | Self::BuildObject { .. }
                 | Self::GetIndex { .. }
@@ -210,7 +222,9 @@ impl HirInstr {
 
     pub(crate) fn destination(&self) -> Option<Slot> {
         match self {
-            Self::Const { dst, .. }
+            Self::FormatValue { dst, .. }
+            | Self::BuildString { dst, .. }
+            | Self::Const { dst, .. }
             | Self::Copy { dst, .. }
             | Self::Load { dst, .. }
             | Self::BinOp { dst, .. }
@@ -258,6 +272,10 @@ impl fmt::Display for HirInstr {
             HirInstr::SetLocation(span) => write!(f, "  location {}:{}", span.line, span.col),
             HirInstr::Const { dst, val } => write!(f, "  %{} = const {:?}", dst, val),
             HirInstr::Copy { dst, src } => write!(f, "  %{} = copy %{}", dst, src),
+            HirInstr::FormatValue { dst, src, format } => {
+                write!(f, "  %{} = format %{} {:?}", dst, src, format)
+            }
+            HirInstr::BuildString { dst, parts } => write!(f, "  %{} = text {:?}", dst, parts),
             HirInstr::Load { dst, name } => write!(f, "  %{} = load {}", dst, name),
             HirInstr::Store { name, src } => write!(f, "  store {} %{}", name, src),
             HirInstr::BinOp {
@@ -669,7 +687,9 @@ impl<'a> HirLowering<'a> {
     fn emit(&mut self, instr: HirInstr) {
         let fallible = matches!(
             instr,
-            HirInstr::Load { .. }
+            HirInstr::FormatValue { .. }
+                | HirInstr::BuildString { .. }
+                | HirInstr::Load { .. }
                 | HirInstr::Store { .. }
                 | HirInstr::BinOp { .. }
                 | HirInstr::UnOp { .. }
@@ -1340,6 +1360,41 @@ impl<'a> HirLowering<'a> {
                 });
                 dst
             }
+            Expr::Interpolated { parts } => {
+                let mut slots = Vec::new();
+                for part in parts {
+                    let slot = self.alloc_slot();
+                    match part {
+                        InterpolationPart::Text(text) => {
+                            self.emit_const(slot, HirConst::Str(text.clone()))
+                        }
+                        InterpolationPart::Value {
+                            expression,
+                            format,
+                            span,
+                        } => {
+                            let src = self.lower_expr(expression);
+                            let previous = self.current_span.clone();
+                            if let Some(span) = span {
+                                self.current_span = Some(span.clone());
+                            }
+                            self.emit(HirInstr::FormatValue {
+                                dst: slot,
+                                src,
+                                format: format.clone(),
+                            });
+                            self.current_span = previous;
+                        }
+                    }
+                    slots.push(slot);
+                }
+                if slots.len() == 1 {
+                    return slots[0];
+                }
+                let dst = self.alloc_slot();
+                self.emit(HirInstr::BuildString { dst, parts: slots });
+                dst
+            }
             Expr::Invoke { callee, args } => {
                 let callee = self.lower_expr(callee);
                 let args = args.iter().map(|arg| self.lower_expr(arg)).collect();
@@ -1575,6 +1630,13 @@ fn collect_funcs_expr<'a>(expr: &'a Expr, out: &mut Vec<&'a [Stmt]>) {
             collect_funcs_expr(right, out);
         }
         Expr::UnaryOp { expr, .. } => collect_funcs_expr(expr, out),
+        Expr::Interpolated { parts } => {
+            for part in parts {
+                if let InterpolationPart::Value { expression, .. } = part {
+                    collect_funcs_expr(expression, out);
+                }
+            }
+        }
         Expr::Call { args, .. } => {
             for arg in args {
                 collect_funcs_expr(arg, out);

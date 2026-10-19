@@ -14,6 +14,7 @@ pub struct Lexer<'a> {
     /// Byte offset of `current` in `source`.
     index: usize,
     current: Option<char>,
+    format_depth: usize,
 }
 
 impl<'a> Lexer<'a> {
@@ -27,6 +28,7 @@ impl<'a> Lexer<'a> {
             col: 1,
             index: 0,
             current,
+            format_depth: 0,
         }
     }
 
@@ -43,7 +45,7 @@ impl<'a> Lexer<'a> {
         Ok(tokens)
     }
 
-    fn next_token(&mut self) -> Result<Token, SoplangError> {
+    pub(super) fn next_token(&mut self) -> Result<Token, SoplangError> {
         while let Some(c) = self.current {
             if c.is_whitespace() {
                 self.skip_whitespace();
@@ -57,9 +59,12 @@ impl<'a> Lexer<'a> {
             let line = self.line;
             let col = self.col;
             let start = self.index;
-            if matches!(c, 'e' | 'r') && matches!(self.peek(), Some('"' | '\'')) {
+            if matches!(c, 'e' | 'r' | 'f') && matches!(self.peek(), Some('"' | '\'')) {
                 let escaped = c == 'e';
                 self.advance();
+                if c == 'f' {
+                    return self.read_formatted_string(self.current.unwrap(), line, col, start);
+                }
                 return self.read_string(self.current.unwrap(), escaped, line, col, start);
             }
             if c.is_alphabetic() || c == '_' {
@@ -288,6 +293,231 @@ impl<'a> Lexer<'a> {
             start_col,
             ErrorMeta::default().with_code(codes::E002_UNTERMINATED_STRING),
         ))
+    }
+
+    fn read_formatted_string(
+        &mut self,
+        quote: char,
+        line: usize,
+        col: usize,
+        start: usize,
+    ) -> Result<Token, SoplangError> {
+        if self.format_depth >= 64 {
+            return Err(lexer_error_ex(
+                "Qaybaha qoraalka aad bay isugu dhex jiraan.",
+                line,
+                col,
+                ErrorMeta::default().with_code(codes::E005_INVALID_INTERPOLATION),
+            ));
+        }
+        self.format_depth += 1;
+        let result = self.read_formatted_inner(quote, line, col, start);
+        self.format_depth -= 1;
+        result
+    }
+
+    fn read_formatted_inner(
+        &mut self,
+        quote: char,
+        line: usize,
+        col: usize,
+        start: usize,
+    ) -> Result<Token, SoplangError> {
+        use super::token::FormatPart;
+        let delimiter: String = std::iter::repeat_n(quote, 3).collect();
+        let triple = self.source[self.index..].starts_with(&delimiter);
+        let width = if triple { 3 } else { 1 };
+        for _ in 0..width {
+            self.advance();
+        }
+        let content_start = self.index;
+        let mut parts = Vec::new();
+        let mut text = String::new();
+        while let Some(character) = self.current {
+            if character == quote && (!triple || self.source[self.index..].starts_with(&delimiter))
+            {
+                let content_end = self.index;
+                for _ in 0..width {
+                    self.advance();
+                }
+                if !text.is_empty() {
+                    parts.push(FormatPart::Text(text));
+                }
+                let mut token = Token::new(
+                    TokenType::FormattedString,
+                    &self.source[content_start..content_end],
+                    line,
+                    col,
+                    start,
+                );
+                token.end = self.index;
+                token.format_parts = parts;
+                return Ok(token);
+            }
+            if character == '\\' {
+                if let Some(character) = self.read_escape()? {
+                    text.push(character);
+                }
+            } else if character == '{' {
+                if self.peek() == Some('{') {
+                    self.advance();
+                    self.advance();
+                    text.push('{');
+                } else {
+                    if !text.is_empty() {
+                        parts.push(FormatPart::Text(std::mem::take(&mut text)));
+                    }
+                    parts.push(self.read_format_field(quote, triple)?);
+                }
+            } else if character == '}' {
+                if self.peek() != Some('}') {
+                    return Err(lexer_error_ex(
+                        "Calaamadda '}' ee qoraalka ma laha '{' u dhiganta.",
+                        self.line,
+                        self.col,
+                        ErrorMeta::default().with_code(codes::E005_INVALID_INTERPOLATION),
+                    ));
+                }
+                self.advance();
+                self.advance();
+                text.push('}');
+            } else {
+                text.push(character);
+                self.advance();
+            }
+        }
+        Err(lexer_error_ex(
+            "Qoraal aan la xidhin",
+            line,
+            col,
+            ErrorMeta::default().with_code(codes::E002_UNTERMINATED_STRING),
+        ))
+    }
+
+    fn read_format_field(
+        &mut self,
+        outer_quote: char,
+        triple: bool,
+    ) -> Result<super::token::FormatPart, SoplangError> {
+        use super::token::FormatPart;
+        let (line, col) = (self.line, self.col);
+        let unclosed = || {
+            lexer_error_ex(
+                "Qaybta qiimaha lagu gelinayo qoraalka lama xidhin.",
+                line,
+                col,
+                ErrorMeta::default().with_code(codes::E005_INVALID_INTERPOLATION),
+            )
+        };
+        self.advance(); // {
+        let mut tokens: Vec<Token> = Vec::new();
+        let mut braces = 0usize;
+        let mut parens = 0usize;
+        let mut brackets = 0usize;
+        loop {
+            loop {
+                self.skip_whitespace();
+                if self.current == Some('/') && self.skip_comment()? {
+                    continue;
+                }
+                break;
+            }
+            if self.current.is_none() {
+                return Err(unclosed());
+            }
+            // A closing outer quote after a complete atom indicates a missing }.
+            let atom = tokens.last().is_some_and(|token| {
+                matches!(
+                    token.kind,
+                    TokenType::Identifier
+                        | TokenType::Number
+                        | TokenType::String
+                        | TokenType::FormattedString
+                        | TokenType::True
+                        | TokenType::False
+                        | TokenType::Null
+                        | TokenType::RParen
+                        | TokenType::RBracket
+                        | TokenType::RBrace
+                )
+            });
+            let delimiter: String =
+                std::iter::repeat_n(outer_quote, if triple { 3 } else { 1 }).collect();
+            if braces == 0
+                && parens == 0
+                && brackets == 0
+                && atom
+                && self.source[self.index..].starts_with(&delimiter)
+            {
+                return Err(unclosed());
+            }
+            let token = self.next_token()?;
+            let close = token.kind == TokenType::RBrace && braces == 0;
+            let spec =
+                token.kind == TokenType::Colon && braces == 0 && parens == 0 && brackets == 0;
+            if close || spec {
+                if tokens.is_empty() {
+                    return Err(lexer_error_ex(
+                        "Waxaa loo baahan yahay weedh gudaha '{...}' ee qoraalka.",
+                        line,
+                        col,
+                        ErrorMeta::default().with_code(codes::E005_INVALID_INTERPOLATION),
+                    ));
+                }
+                let mut eof = Token::new(TokenType::Eof, "", token.line, token.col, token.start);
+                eof.end = token.start;
+                tokens.push(eof);
+                let mut format = String::new();
+                let mut format_token = None;
+                if spec {
+                    let (format_start, format_line, format_col) = (self.index, self.line, self.col);
+                    while let Some(character) = self.current {
+                        if character == '}' {
+                            break;
+                        }
+                        if character == '{' {
+                            return Err(lexer_error_ex(
+                                "Qaabka qoraalku ma aqbalo '{' gudaha meel qiime lagu gelinayo.",
+                                self.line,
+                                self.col,
+                                ErrorMeta::default().with_code(codes::E005_INVALID_INTERPOLATION),
+                            ));
+                        }
+                        format.push(character);
+                        self.advance();
+                    }
+                    if self.current != Some('}') {
+                        return Err(unclosed());
+                    }
+                    let mut position = Token::new(
+                        TokenType::Identifier,
+                        &format,
+                        format_line,
+                        format_col,
+                        format_start,
+                    );
+                    position.end = self.index;
+                    format_token = Some(position);
+                    self.advance();
+                }
+                return Ok(FormatPart::Field {
+                    tokens,
+                    format,
+                    format_token,
+                });
+            }
+            match token.kind {
+                TokenType::LBrace => braces += 1,
+                TokenType::RBrace => braces = braces.saturating_sub(1),
+                TokenType::LParen => parens += 1,
+                TokenType::RParen => parens = parens.saturating_sub(1),
+                TokenType::LBracket => brackets += 1,
+                TokenType::RBracket => brackets = brackets.saturating_sub(1),
+                TokenType::Eof => return Err(unclosed()),
+                _ => (),
+            }
+            tokens.push(token);
+        }
     }
 
     fn read_escape(&mut self) -> Result<Option<char>, SoplangError> {

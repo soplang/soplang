@@ -22,6 +22,8 @@ declare void @soplang_set_location(ptr, i64, i64, i64, i64, ptr, i64)
 declare %SoplangValue @soplang_int(i64)
 declare %SoplangValue @soplang_float(double)
 declare %SoplangValue @soplang_str(ptr, i64)
+declare %SoplangValue @soplang_format_value(%SoplangValue, ptr, i64)
+declare %SoplangValue @soplang_join_text(ptr, i64)
 declare %SoplangValue @soplang_bool(i8)
 declare %SoplangValue @soplang_null()
 declare %SoplangValue @soplang_add(%SoplangValue, %SoplangValue)
@@ -309,7 +311,7 @@ struct Keep(*const ());
 unsafe impl Sync for Keep {}
 
 #[used]
-static KEEP: [Keep; 57] = [
+static KEEP: [Keep; 59] = [
     Keep(runtime::soplang_set_location as *const ()),
     Keep(runtime::soplang_enter_roots as *const ()),
     Keep(runtime::soplang_gc_safepoint as *const ()),
@@ -317,6 +319,8 @@ static KEEP: [Keep; 57] = [
     Keep(runtime::soplang_int as *const ()),
     Keep(runtime::soplang_float as *const ()),
     Keep(runtime::soplang_str as *const ()),
+    Keep(runtime::soplang_format_value as *const ()),
+    Keep(runtime::soplang_join_text as *const ()),
     Keep(runtime::soplang_bool as *const ()),
     Keep(runtime::soplang_null as *const ()),
     Keep(runtime::soplang_add as *const ()),
@@ -955,6 +959,27 @@ impl<'a> FnEmit<'a> {
                 }
                 Ok(false)
             }
+            HirInstr::FormatValue { dst, src, format } => {
+                let value = self.pack_slot(*src);
+                let (ptr, len) = self.str_ptr(format);
+                let value = self.call_sv(
+                    "soplang_format_value",
+                    &format!("%SoplangValue {value}, ptr {ptr}, i64 {len}"),
+                );
+                self.unpack_store(&value, *dst);
+                self.set_kind(*dst, SlotNum::Dyn);
+                Ok(false)
+            }
+            HirInstr::BuildString { dst, parts } => {
+                let ptr = self.value_buf(parts);
+                let value = self.call_sv(
+                    "soplang_join_text",
+                    &format!("ptr {ptr}, i64 {}", parts.len()),
+                );
+                self.unpack_store(&value, *dst);
+                self.set_kind(*dst, SlotNum::Dyn);
+                Ok(false)
+            }
             HirInstr::Load { dst, name } => {
                 self.slot_fn.remove(dst);
                 if let Some(idx) = self.fn_index(name) {
@@ -1554,13 +1579,15 @@ fn slot_hi(body: &[HirInstr]) -> usize {
             | HirInstr::Pop { dst }
             | HirInstr::BindError { dst }
             | HirInstr::BindErrorValue { dst } => mx = mx.max(*dst + 1),
-            HirInstr::Copy { dst, src } => mx = mx.max(*dst + 1).max(*src + 1),
+            HirInstr::Copy { dst, src } | HirInstr::FormatValue { dst, src, .. } => {
+                mx = mx.max(*dst + 1).max(*src + 1)
+            }
             HirInstr::Store { src, .. } => mx = mx.max(*src + 1),
             HirInstr::BinOp { dst, lhs, rhs, .. } => {
                 mx = mx.max(*dst + 1).max(*lhs + 1).max(*rhs + 1)
             }
             HirInstr::UnOp { dst, src, .. } => mx = mx.max(*dst + 1).max(*src + 1),
-            HirInstr::BuildList { dst, items } => {
+            HirInstr::BuildList { dst, items } | HirInstr::BuildString { dst, parts: items } => {
                 mx = mx.max(*dst + 1);
                 for s in items {
                     mx = mx.max(*s + 1);

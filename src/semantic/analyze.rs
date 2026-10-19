@@ -4,7 +4,7 @@
 use std::collections::{HashMap, HashSet};
 
 use crate::error::{codes, type_error_ex, ErrorMeta, SoplangError};
-use crate::frontend::ast::{Expr, Literal, Param, Stmt, TypeAnnotation};
+use crate::frontend::ast::{Expr, InterpolationPart, Literal, Param, Stmt, TypeAnnotation};
 
 /// Symbol table built by semantic analysis. Used by HIR lowering.
 #[derive(Debug, Default)]
@@ -301,6 +301,14 @@ fn validate_control_expr(expr: &Expr) -> Result<(), SoplangError> {
         }
         Expr::UnaryOp { expr, .. } | Expr::Property { obj: expr, .. } => {
             validate_control_expr(expr)
+        }
+        Expr::Interpolated { parts } => {
+            for part in parts {
+                if let InterpolationPart::Value { expression, .. } = part {
+                    validate_control_expr(expression)?;
+                }
+            }
+            Ok(())
         }
         Expr::Call { args, .. } | Expr::New { args, .. } | Expr::List(args) => {
             for arg in args {
@@ -1026,6 +1034,13 @@ fn analyze_expr(
         Expr::UnaryOp { expr: e, .. } => {
             analyze_expr(e, sym, opts, fn_sigs, current_class, enclosing_fn)?
         }
+        Expr::Interpolated { parts } => {
+            for part in parts {
+                if let InterpolationPart::Value { expression, .. } = part {
+                    analyze_expr(expression, sym, opts, fn_sigs, current_class, enclosing_fn)?;
+                }
+            }
+        }
         Expr::Invoke { callee, args } => {
             analyze_expr(callee, sym, opts, fn_sigs, current_class, enclosing_fn)?;
             for arg in args { analyze_expr(arg, sym, opts, fn_sigs, current_class, enclosing_fn)?; }
@@ -1420,6 +1435,7 @@ fn infer_expr_type(
                 _ => None,
             }
         }
+        Expr::Interpolated { .. } => Some(TypeAnnotation::Qoraal),
         Expr::Call { name, .. } => fn_sigs.get(name).and_then(|s| {
             if s.ret == TypeAnnotation::Dynamic {
                 None
@@ -1674,6 +1690,13 @@ fn note_free_expr(expr: &Expr, sym: &SymbolTable, caps: &mut Vec<String>) {
             note_free_expr(right, sym, caps);
         }
         Expr::UnaryOp { expr, .. } => note_free_expr(expr, sym, caps),
+        Expr::Interpolated { parts } => {
+            for part in parts {
+                if let InterpolationPart::Value { expression, .. } = part {
+                    note_free_expr(expression, sym, caps);
+                }
+            }
+        }
         Expr::Call { name, args } => {
             note_name(name, sym, caps);
             for a in args {

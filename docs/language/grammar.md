@@ -103,7 +103,7 @@ arguments        = expression { "," expression } .
 list_literal     = "[" [ arguments ] "]" .
 object_literal   = "{" [ object_entry { "," object_entry } ] "}" .
 object_entry     = ( identifier | string ) ":" expression .
-literal          = number | string | "run" | "been" | "maran" .
+literal          = number | string | interpolated_string | "run" | "been" | "maran" .
 ```
 
 `tijaabi` is contextual: only `tijaabi {` starts a try block. It remains an
@@ -120,5 +120,9 @@ other method names or change user-defined identifiers.
 
 String literals use single, double, triple-single, or triple-double quotes.
 An adjacent `e` prefix enables escapes; `r` explicitly preserves raw text.
+An `f` prefix enables escapes and expression interpolation: `{expression}` or
+`{expression:format}`. Double literal braces as `{{` and `}}`. Expressions use
+the normal grammar, including nested strings and anonymous functions. Format
+descriptors are static text; dynamic nested descriptors are not supported.
 Unprefixed strings preserve literal backslashes for compatibility. Triple
 quotes preserve line breaks and indentation. Unicode escapes use `\u{HEX}`.

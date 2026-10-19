@@ -41,6 +41,7 @@ pub enum TokenType {
     Identifier,
     Number,
     String,
+    FormattedString,
     // Operators
     Plus,      // +
     Minus,     // -
@@ -71,6 +72,16 @@ pub enum TokenType {
     Eof,
 }
 
+#[derive(Debug, Clone)]
+pub enum FormatPart {
+    Text(String),
+    Field {
+        tokens: Vec<Token>,
+        format: String,
+        format_token: Option<Token>,
+    },
+}
+
 /// A single token with source location.
 #[derive(Debug, Clone)]
 pub struct Token {
@@ -82,13 +93,14 @@ pub struct Token {
     pub start:  usize,
     /// Exclusive byte offset, including prefixes and string delimiters.
     pub end: usize,
+    pub format_parts: Vec<FormatPart>,
 }
 
 impl Token {
     pub fn new(kind: TokenType, lexeme: impl Into<String>, line: usize, col: usize, start: usize) -> Self {
         let lexeme = lexeme.into();
         let end = start + lexeme.len() + usize::from(kind == TokenType::String) * 2;
-        Self { kind, lexeme, line, col, start, end }
+        Self { kind, lexeme, line, col, start, end, format_parts: Vec::new() }
     }
 }
 

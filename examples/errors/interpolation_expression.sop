@@ -1,0 +1,2 @@
+door magac = "é"
+qor(f"{magac}: {10 / 0}")

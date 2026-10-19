@@ -45,6 +45,8 @@ bridge!(soplang_leave_function());
 bridge!(soplang_int(n: i64) -> SoplangValue);
 bridge!(soplang_float(x: f64) -> SoplangValue);
 bridge!(soplang_str(ptr: *const u8, len: usize) -> SoplangValue);
+bridge!(soplang_format_value(value: SoplangValue, spec: *const u8, len: usize) -> SoplangValue);
+bridge!(soplang_join_text(parts: *const SoplangValue, len: usize) -> SoplangValue);
 bridge!(soplang_bool(b: bool) -> SoplangValue);
 bridge!(soplang_null() -> SoplangValue);
 bridge!(soplang_add(a: SoplangValue, b: SoplangValue) -> SoplangValue);

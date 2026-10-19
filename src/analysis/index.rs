@@ -1,7 +1,7 @@
 //! Source identities for editor symbols. Runtime slots are deliberately unused.
 use super::SourceFile;
 use crate::frontend::{
-    ast::{Expr, Literal, Param, Stmt, TypeAnnotation},
+    ast::{Expr, InterpolationPart, Literal, Param, Stmt, TypeAnnotation},
     Lexer, Token, TokenType as K,
 };
 use std::collections::{HashMap, HashSet};
@@ -77,6 +77,7 @@ fn inferred(expr: &Expr) -> String {
             Literal::Null => "door",
         }
         .into(),
+        Expr::Interpolated { .. } => "qoraal".into(),
         Expr::List(_) => "teed".into(),
         Expr::Object(_) => "walax".into(),
         Expr::New { class_name, .. } => class_name.clone(),
@@ -99,6 +100,30 @@ fn offset(source: &str, line: usize, col: usize) -> usize {
             .map(char::len_utf8)
             .sum::<usize>()
 }
+fn index_tokens(tokens: Vec<Token>) -> Vec<Token> {
+    fn visit(tokens: Vec<Token>, out: &mut Vec<Token>) {
+        for token in tokens {
+            let parts = token.format_parts.clone();
+            out.push(token);
+            for part in parts {
+                if let crate::frontend::token::FormatPart::Field { tokens, .. } = part {
+                    visit(
+                        tokens
+                            .into_iter()
+                            .filter(|token| token.kind != K::Eof)
+                            .collect(),
+                        out,
+                    );
+                }
+            }
+        }
+    }
+    let mut out = Vec::new();
+    visit(tokens, &mut out);
+    out.sort_by_key(|token| token.start);
+    out
+}
+
 impl Index {
     pub fn build(files: &[SourceFile]) -> Self {
         let mut index = Self::default();
@@ -111,7 +136,7 @@ impl Index {
         });
         for file in files {
             if let Ok(tokens) = Lexer::new(&file.text).tokenize() {
-                index.tokens.insert(file.path.clone(), tokens);
+                index.tokens.insert(file.path.clone(), index_tokens(tokens));
             }
         }
         for file in files {
@@ -146,8 +171,9 @@ impl Index {
             if tokens.is_empty() {
                 continue;
             }
-            let mut parser = crate::frontend::Parser::new(tokens.clone())
-                .with_source(&file.text, Some(&file.path));
+            let mut parser =
+                crate::frontend::Parser::new(Lexer::new(&file.text).tokenize().unwrap_or_default())
+                    .with_source(&file.text, Some(&file.path));
             parser.parse_partial();
             let contextual = parser.contextual_keyword_offsets();
             for (i, token) in tokens.iter().enumerate() {
@@ -398,7 +424,7 @@ impl Index {
             return "door".into();
         }
         match t.kind {
-            K::String => "qoraal".into(),
+            K::String | K::FormattedString => "qoraal".into(),
             K::Number => "abn".into(),
             _ => self
                 .resolve(&t.lexeme, scope, start, path)
@@ -810,6 +836,13 @@ impl Index {
             Expr::BinaryOp { left, right, .. } => {
                 self.expression(left, file, scope, start, class);
                 self.expression(right, file, scope, start, class);
+            }
+            Expr::Interpolated { parts } => {
+                for part in parts {
+                    if let InterpolationPart::Value { expression, .. } = part {
+                        self.expression(expression, file, scope, start, class);
+                    }
+                }
             }
             Expr::UnaryOp { expr, .. } => self.expression(expr, file, scope, start, class),
             Expr::Call { args, .. } | Expr::New { args, .. } => {

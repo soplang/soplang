@@ -66,3 +66,8 @@ compile	invalid_escape.sop	1	19	lama aqoonsan
 compile	invalid_unicode_escape.sop	1	16	Unicode
 compile	unterminated_triple_string.sop	1	14	Qoraal aan la xidhin
 runtime	invalid_format.sop	1	14	Qaabka qoraalka
+compile	interpolation_empty.sop	1	14	Waxaa loo baahan yahay weedh
+compile	interpolation_unclosed.sop	1	14	lama xidhin
+compile	interpolation_brace.sop	1	14	ma laha '{'
+runtime	interpolation_expression.sop	2	20	eber
+runtime	interpolation_format.sop	1	13	lama aqoonsan

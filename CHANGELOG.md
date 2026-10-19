@@ -23,6 +23,8 @@ All notable changes to this project will be documented in this file.
 * `qaabee(value, format?)` formats values with alignment, padding, integer bases, and floating-point precision. String `qaabee(...)` fills automatic, indexed, or named template slots and reports invalid formats as catchable Somali errors.
 * Default float display preserves large values and negative zero instead of narrowing whole-valued floats to 64-bit integers.
 
+* `f` string literals interpolate expressions with optional format descriptors. Nested literals, escaped braces, multiline content, closures, and original source locations work in both compiler backends. Fields evaluate once in order, and failures stop later fields. Editor indexing resolves references inside interpolation.
+
 ## [3.0.1] - 2026-10-18
 
 ### Fixed

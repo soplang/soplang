@@ -85,6 +85,8 @@ fn register_runtime_symbols(builder: &mut JITBuilder) {
     sym!(builder, soplang_int);
     sym!(builder, soplang_float);
     sym!(builder, soplang_str);
+    sym!(builder, soplang_format_value);
+    sym!(builder, soplang_join_text);
     sym!(builder, soplang_bool);
     sym!(builder, soplang_null);
     sym!(builder, soplang_add);
@@ -172,7 +174,7 @@ fn max_slot_in_body(body: &[HirInstr]) -> usize {
             | HirInstr::BindErrorValue { dst } => {
                 mx = mx.max(*dst + 1);
             }
-            HirInstr::Copy { dst, src } => {
+            HirInstr::Copy { dst, src } | HirInstr::FormatValue { dst, src, .. } => {
                 mx = mx.max(*dst + 1).max(*src + 1);
             }
             HirInstr::Store { src, .. } => {
@@ -184,7 +186,7 @@ fn max_slot_in_body(body: &[HirInstr]) -> usize {
             HirInstr::UnOp { dst, src, .. } => {
                 mx = mx.max(*dst + 1).max(*src + 1);
             }
-            HirInstr::BuildList { dst, items } => {
+            HirInstr::BuildList { dst, items } | HirInstr::BuildString { dst, parts: items } => {
                 mx = mx.max(*dst + 1);
                 for s in items {
                     mx = mx.max(*s + 1);
@@ -654,6 +656,38 @@ fn compile_body(
                 } else {
                     slot_compiled_fn.remove(dst);
                 }
+            }
+
+            HirInstr::FormatValue { dst, src, format } => {
+                if terminated {
+                    continue;
+                }
+                let t = builder.use_var(var_tags[*src]);
+                let p = builder.use_var(var_pays[*src]);
+                let spec = builder.ins().iconst(types::I64, format.as_ptr() as i64);
+                let len = builder.ins().iconst(types::I64, format.len() as i64);
+                let (t, p) = call_rt(builder, module, "soplang_format_value", &[t, p, spec, len])?;
+                builder.def_var(var_tags[*dst], t);
+                builder.def_var(var_pays[*dst], p);
+            }
+            HirInstr::BuildString { dst, parts } => {
+                if terminated {
+                    continue;
+                }
+                let values: Vec<_> = parts
+                    .iter()
+                    .map(|slot| {
+                        (
+                            builder.use_var(var_tags[*slot]),
+                            builder.use_var(var_pays[*slot]),
+                        )
+                    })
+                    .collect();
+                let pointer = emit_arg_vector(builder, &values);
+                let count = builder.ins().iconst(types::I64, values.len() as i64);
+                let (t, p) = call_rt(builder, module, "soplang_join_text", &[pointer, count])?;
+                builder.def_var(var_tags[*dst], t);
+                builder.def_var(var_pays[*dst], p);
             }
 
             HirInstr::Load { dst, name } => {

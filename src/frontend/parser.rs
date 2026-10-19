@@ -1,7 +1,7 @@
 //! Recursive descent parser: tokens → AST (Vec<Stmt>).
 //! Parser for Soplang. IMPLEMENTATION_PLAN Phase 2.
 
-use super::ast::{Expr, Literal, Param, Stmt, TypeAnnotation};
+use super::ast::{Expr, InterpolationPart, Literal, Param, Stmt, TypeAnnotation};
 use super::token::{Token, TokenType};
 use crate::error::{parser_error, SoplangError};
 
@@ -258,6 +258,7 @@ impl Parser {
                     && matches!(
                         next.kind,
                         TokenType::String
+                            | TokenType::FormattedString
                             | TokenType::Number
                             | TokenType::Identifier
                             | TokenType::True
@@ -302,6 +303,7 @@ impl Parser {
             | TokenType::LBracket
             | TokenType::Number
             | TokenType::String
+            | TokenType::FormattedString
             | TokenType::True
             | TokenType::False
             | TokenType::Null => {
@@ -1153,6 +1155,38 @@ impl Parser {
                     Ok(Expr::Literal(Literal::Int(n)))
                 }
             }
+            TokenType::FormattedString => {
+                let token = self.peek().clone();
+                self.advance();
+                let mut parts = Vec::new();
+                for part in token.format_parts {
+                    match part {
+                        super::token::FormatPart::Text(text) => {
+                            parts.push(InterpolationPart::Text(text))
+                        }
+                        super::token::FormatPart::Field {
+                            tokens,
+                            format,
+                            format_token,
+                        } => {
+                            let span = format_token
+                                .as_ref()
+                                .and_then(|token| self.span(token))
+                                .or_else(|| tokens.first().and_then(|token| self.span(token)));
+                            let mut parser = Parser::new(tokens);
+                            parser.source = self.source.clone();
+                            let expression = parser.parse_single_expression()?;
+                            self.contextual_keywords.extend(parser.contextual_keywords);
+                            parts.push(InterpolationPart::Value {
+                                expression,
+                                format,
+                                span,
+                            });
+                        }
+                    }
+                }
+                Ok(Expr::Interpolated { parts })
+            }
             TokenType::String => {
                 let lex = self.peek().lexeme.clone();
                 self.advance();
@@ -1303,7 +1337,7 @@ fn token_name_expected(k: &TokenType) -> &'static str {
         TokenType::Semicolon => "';'",
         TokenType::Assign => "'='",
         TokenType::Identifier => "magac",
-        TokenType::String => "qoraal",
+        TokenType::String | TokenType::FormattedString => "qoraal",
         _ => "?",
     }
 }

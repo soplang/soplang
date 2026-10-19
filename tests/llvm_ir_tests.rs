@@ -614,3 +614,11 @@ fn test_llvm_value_and_template_formatting() {
         "formatting ok\n"
     );
 }
+
+#[test]
+fn test_llvm_interpolated_strings() {
+    assert_eq!(
+        run_llvm("interpolation", include_str!("fixtures/interpolation.sop")),
+        "interpolation ok\n"
+    );
+}

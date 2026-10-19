@@ -575,6 +575,57 @@ pub extern "C" fn soplang_str(ptr: *const u8, len: usize) -> SoplangValue {
 }
 
 #[no_mangle]
+pub extern "C" fn soplang_format_value(
+    value: SoplangValue,
+    spec: *const u8,
+    len: usize,
+) -> SoplangValue {
+    if let Some(value) = short_circuit_if_pending() {
+        return value;
+    }
+    let text = if spec.is_null() || len == 0 {
+        std::borrow::Cow::Borrowed("")
+    } else {
+        String::from_utf8_lossy(unsafe { std::slice::from_raw_parts(spec, len) })
+    };
+    match soplang_to_value(value).and_then(|value| super::formatting::value(&value, &text)) {
+        Ok(text) => value_to_soplang(&Value::Str(text)),
+        Err(error) => handle_runtime_error(error),
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn soplang_join_text(parts: *const SoplangValue, len: usize) -> SoplangValue {
+    if let Some(value) = short_circuit_if_pending() {
+        return value;
+    }
+    if parts.is_null() && len != 0 {
+        return handle_runtime_error(invalid_handle());
+    }
+    let parts = if len == 0 {
+        &[][..]
+    } else {
+        unsafe { std::slice::from_raw_parts(parts, len) }
+    };
+    let text = STR_HEAP.with(|heap| {
+        let heap = heap.borrow();
+        let mut result = String::new();
+        for part in parts {
+            if part.tag != TAG_STR {
+                return Err(invalid_handle());
+            }
+            let text = heap.get(part.payload).ok_or_else(invalid_handle)?;
+            result.push_str(text);
+        }
+        Ok(result)
+    });
+    match text {
+        Ok(text) => value_to_soplang(&Value::Str(text)),
+        Err(error) => handle_runtime_error(error),
+    }
+}
+
+#[no_mangle]
 pub extern "C" fn soplang_bool(b: bool) -> SoplangValue {
     value_to_soplang(&Value::Bool(b))
 }

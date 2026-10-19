@@ -1,0 +1,4 @@
+Khalad ereyayn: Calaamadda '}' ee qoraalka ma laha '{' u dhiganta. [E005] safka 1, tiirka 14
+     --> examples/errors/interpolation_brace.sop:1:14
+   1 │   qor(f"Salaan }")
+     │                ^

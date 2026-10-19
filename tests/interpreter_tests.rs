@@ -657,3 +657,11 @@ fn test_value_and_template_formatting() {
         "formatting ok\n"
     );
 }
+
+#[test]
+fn test_interpolated_strings() {
+    assert_eq!(
+        run_program(include_str!("fixtures/interpolation.sop")),
+        "interpolation ok\n"
+    );
+}

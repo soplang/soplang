@@ -70,6 +70,7 @@ pub fn parse_snippet(source: &str) -> Result<Vec<Stmt>, crate::error::SoplangErr
             token.kind,
             TokenType::Number
                 | TokenType::String
+                | TokenType::FormattedString
                 | TokenType::True
                 | TokenType::False
                 | TokenType::Null

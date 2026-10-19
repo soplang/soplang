@@ -135,6 +135,33 @@ and line breaks, and close at the matching three-character delimiter. String
 prefixes attach directly to the opening quote. `e` and `r` remain ordinary
 identifiers elsewhere. Existing path strings require no migration.
 
+### Interpolated strings
+
+Attach `f` directly to single, double, or triple quotes to insert expressions.
+These literals decode the same escapes as `e` strings. Use `{{` and `}}` for
+literal braces; plain and raw strings do not interpolate.
+
+```soplang
+door magac = "Ayaan"
+qor(f"Salaan, {magac}!")
+qor(f"Wadarta: {2 + 3}; qiimaha: {3.14159:.2f}")
+qor(f"{{{magac}}}")
+qor(f"{ {magac: magac}.magac }: {[10,20][1]}")
+```
+
+Every field contains an ordinary expression and an optional static format
+descriptor after `:`. The descriptors are the same ones accepted by `qaabee`.
+Put expressions with a top-level colon, such as typed anonymous functions,
+inside parentheses. Nested literals may use the same quote character as the
+outer string. Nesting is limited to 64 interpolated literals.
+
+Fields evaluate once, from left to right. A failed expression or format stops
+the remaining fields. The result is always `qoraal`, including a literal with
+only one field. Rebinding `qaabee` does not change interpolation. Runtime errors
+retain the original expression location; invalid descriptors point at their
+own source span. `f` remains an ordinary identifier when it is not followed
+immediately by a quote.
+
 ### Value and template formatting
 
 `qaabee(value, format?)` returns a string. Omitting the descriptor uses the

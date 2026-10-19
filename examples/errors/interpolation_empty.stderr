@@ -1,0 +1,4 @@
+Khalad ereyayn: Waxaa loo baahan yahay weedh gudaha '{...}' ee qoraalka. [E005] safka 1, tiirka 14
+     --> examples/errors/interpolation_empty.sop:1:14
+   1 │   qor(f"Salaan {}")
+     │                ^

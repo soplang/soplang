@@ -38,6 +38,16 @@ impl fmt::Display for Literal {
     }
 }
 
+#[derive(Debug, Clone)]
+pub enum InterpolationPart {
+    Text(String),
+    Value {
+        expression: Expr,
+        format: String,
+        span: Option<crate::error::SourceSpan>,
+    },
+}
+
 /// Expressions (produce values).
 #[derive(Debug, Clone)]
 pub enum Expr {
@@ -46,6 +56,9 @@ pub enum Expr {
         expr: Box<Expr>,
     },
     Literal(Literal),
+    Interpolated {
+        parts: Vec<InterpolationPart>,
+    },
     Identifier(String),
     BinaryOp {
         op: String,
@@ -125,6 +138,31 @@ impl fmt::Display for Expr {
                     write!(f, "{}", a)?;
                 }
                 write!(f, ")")
+            }
+            Expr::Interpolated { parts } => {
+                write!(f, "f\"")?;
+                for part in parts {
+                    match part {
+                        InterpolationPart::Text(text) => write!(
+                            f,
+                            "{}",
+                            text.escape_debug()
+                                .to_string()
+                                .replace('{', "{{")
+                                .replace('}', "}}")
+                        )?,
+                        InterpolationPart::Value {
+                            expression, format, ..
+                        } => {
+                            write!(f, "{{{}", expression)?;
+                            if !format.is_empty() {
+                                write!(f, ":{}", format)?;
+                            }
+                            write!(f, "}}")?;
+                        }
+                    }
+                }
+                write!(f, "\"")
             }
             Expr::Invoke { callee, args } => {
                 write!(f, "({})(", callee)?;
