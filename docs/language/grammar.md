@@ -69,7 +69,8 @@ function_def     = "hawl" identifier function_tail .
 function_expr    = "hawl" function_tail .
 function_tail    = "(" [ parameters ] ")" [ ":" type ] "{" block "}" .
 parameters       = parameter { "," parameter } .
-parameter        = [ type ] identifier [ "=" expression ] .
+parameter        = [ type ] identifier [ "=" expression ]
+                 | [ "teed" ] "*" identifier .
 class_def        = "qaab" identifier [ "dhaxal" identifier ] "{"
                    { function_def }
                    "}" .
@@ -142,5 +143,6 @@ complete numeric loop header. Parenthesized collection expressions disambiguate
 that case.
 
 Required parameters precede parameters with defaults, and parameter names are
-unique. Defaults are evaluated at call time, from left to right; see
+unique. A variadic `*` parameter must be last and has no default.
+Defaults are evaluated at call time, from left to right; see
 [function arguments](function-arguments.md).

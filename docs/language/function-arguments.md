@@ -16,8 +16,8 @@ qor(salaam("Cali", "Soo dhowow"))
 Omitting an argument evaluates its default **at call time**, in parameter order.
 An explicitly supplied argument, including `maran`, `been`, `0`, or an empty
 collection, skips that default. All supplied argument expressions are evaluated
-before any defaults. Calls may omit only a trailing sequence of parameters.
-Named and variadic arguments are still planned.
+before any defaults. Calls may omit only a trailing sequence of positional parameters.
+Named arguments are still planned.
 
 Defaults can use earlier parameters, globals, and captured variables. A default
 cannot use its own parameter or a later parameter, even if that later argument
@@ -44,6 +44,35 @@ hawl geli(qiime, waxyaabo = []) {
 qor(geli(1))
 qor(geli(2))
 ```
+
+## Variadic positional arguments
+
+A final parameter prefixed with `*` collects remaining positional arguments in
+a fresh list. Required and defaulted parameters may precede it. No parameters
+may follow it, and it cannot have a default of its own.
+
+```sop
+hawl wadarta(bilow = 0, *tirooyin) {
+    kuceli (tiro ku tirooyin) { bilow = bilow + tiro }
+    celi bilow
+}
+qor(wadarta())
+qor(wadarta(10, 1, 2, 3))
+```
+
+`*tirooyin` is always a `teed`, including in strict mode. The equivalent explicit
+annotation is `teed *tirooyin`; scalar annotations such as `abn *tirooyin` are
+rejected. List elements retain their original types and identities. An empty
+rest list is still freshly allocated. Passing an existing list supplies one
+argument; it does not expand that list. Call-site spread syntax is not yet
+implemented.
+
+The `*` parameter does not consume the implicit instance or closure environment.
+Functions, closures, class methods, parent methods, inherited constructors, and
+collection callbacks all follow the same rule. Calls with fewer than the
+required fixed parameters fail before evaluating defaults or entering the body.
+There is no fixed language arity limit; available memory and the ABI's signed
+32-bit argument count bound individual call vectors.
 
 ## Types and errors
 
@@ -78,7 +107,9 @@ Compiled functions retain the vector entry `(values, supplied_count)`. Runtime
 registration records total slots and the required prefix, including implicit
 instance or closure-environment parameters. Before invoking an entry, the
 runtime checks that the count is in range and pads omitted slots with null.
-The count remains the original supplied count. The generated prologue tests
+For a variadic function, the runtime instead builds the final slot as a list
+of surplus arguments and initializes any omitted fixed slots. The count remains
+the original supplied count, which can differ from the normalized vector size. The generated prologue tests
 parameter presence, evaluates defaults, and checks types before running the
 body. A null in a supplied slot is therefore distinct from an omitted slot.
 

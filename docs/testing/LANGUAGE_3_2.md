@@ -36,3 +36,20 @@ Dedicated tests cover syntax and dependency rejection, strict types, persistent
 REPL calls, and editor declarations and references inside parameter defaults.
 
 Cross-platform distribution checks remain required before publication.
+
+## Variadic positional arguments stage
+
+The same debug command passes 187 tests after adding rest parameters. The
+full diagnostic and example suites pass 14 tests covering all 92 error cases
+and 33 public examples. Optimized checks pass 70 tests:
+
+```sh
+cargo test --locked --release --test variadic_argument_tests --test interpreter_tests --test llvm_ir_tests
+```
+
+The variadic LLVM fixture runs at optimization levels 0 and 2. It checks empty,
+single, and wide rest lists; required and defaulted prefixes; dynamic calls;
+closures; inherited constructors and methods; parent calls; callbacks;
+argument evaluation order; shared element identity; fresh list ownership;
+minimum-count failures; and collection while the rest list is live. Dedicated
+tests check declaration constraints, strict typing, and persistent REPL calls.

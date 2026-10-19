@@ -182,6 +182,9 @@ impl fmt::Display for Expr {
                     if i > 0 {
                         write!(f, ", ")?;
                     }
+                    if p.variadic {
+                        write!(f, "*")?;
+                    }
                     write!(f, "{}", p.name)?;
                     if let Some(default) = &p.default {
                         write!(f, " = {}", default)?;
@@ -258,6 +261,7 @@ pub struct Param {
     pub name: String,
     pub type_ann: TypeAnnotation,
     pub default: Option<Expr>,
+    pub variadic: bool,
 }
 
 /// Statements (side effects; optional line for errors).
@@ -397,7 +401,13 @@ impl Stmt {
                         TypeAnnotation::Walax => "walax".to_string(),
                         TypeAnnotation::Class(class) => class.clone(),
                     };
-                    write!(f, "{} {}", param_ty, p.name)?;
+                    write!(
+                        f,
+                        "{} {}{}",
+                        param_ty,
+                        if p.variadic { "*" } else { "" },
+                        p.name
+                    )?;
                     if let Some(default) = &p.default {
                         write!(f, " = {}", default)?;
                     }

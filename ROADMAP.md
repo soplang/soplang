@@ -134,9 +134,9 @@ ownership design planned for 3.6.
 
 The iteration stage is implemented in both backends; see the
 [iteration contract](docs/language/iteration.md). [Default arguments](docs/language/function-arguments.md)
-are also implemented. Named and variadic arguments, new data types, and the
-remaining library operations below are still planned. The 3.2
-milestone is not yet complete or tagged.
+and variadic positional parameters are also implemented. Named arguments, new
+data types, and the remaining library operations below are still planned.
+The 3.2 milestone is not yet complete or tagged.
 
 ### Iteration
 

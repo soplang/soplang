@@ -353,6 +353,7 @@ pub(super) struct CompiledFnEntry {
     ptr: *const u8,
     n_params: usize,
     required_params: usize,
+    variadic: bool,
 }
 
 fn ensure_builtins() {
@@ -1558,12 +1559,17 @@ fn dispatch_instance_method(
     let entry = compiled_fn_entry(fn_idx)
         .ok_or_else(|| runtime_error(format!("Hawl '{}' lama diyaarin", method), 0, 0))?;
     let expected = entry.n_params.saturating_sub(1);
-    if args.len() < entry.required_params.saturating_sub(1) || args.len() > expected {
+    if args.len() < entry.required_params.saturating_sub(1)
+        || (!entry.variadic && args.len() > expected)
+    {
         return Err(type_error(
             format!(
                 "hawl '{}' waxay u baahan tahay {} dood, laakiin {} ayaa la bixiyay",
                 method,
-                crate::error::argument_count(entry.required_params.saturating_sub(1), expected),
+                crate::error::argument_count(
+                    entry.required_params.saturating_sub(1),
+                    if entry.variadic { usize::MAX } else { expected }
+                ),
                 args.len()
             ),
             0,
@@ -1616,12 +1622,14 @@ pub extern "C" fn soplang_new_instance(
     if let Some(fn_idx) = resolve_constructor_fn_index(&class_name) {
         if let Some(entry) = compiled_fn_entry(fn_idx) {
             let expected = entry.n_params.saturating_sub(1);
-            if user_args.len() < entry.required_params.saturating_sub(1) || user_args.len() > expected {
+            if user_args.len() < entry.required_params.saturating_sub(1)
+                || (!entry.variadic && user_args.len() > expected)
+            {
                 return handle_runtime_error(type_error(
                     format!(
                         "dhaw() ee qaabka '{}' wuxuu u baahan yahay {} dood, laakiin {} ayaa la bixiyay",
                         class_name,
-                        crate::error::argument_count(entry.required_params.saturating_sub(1), expected),
+                        crate::error::argument_count(entry.required_params.saturating_sub(1), if entry.variadic { usize::MAX } else { expected }),
                         user_args.len()
                     ),
                     0,
@@ -1779,12 +1787,16 @@ fn call_compiled_fn(function: CompiledFnEntry, args: *const SoplangValue, n: i32
         ptr,
         n_params,
         required_params,
+        variadic,
     } = function;
-    if n < 0 || (n as usize) < required_params || n as usize > n_params {
+    if n < 0 || (n as usize) < required_params || (!variadic && n as usize > n_params) {
         return handle_runtime_error(type_error(
             format!(
                 "Hawshu waxay u baahan tahay {} dood, laakiin {} ayaa la bixiyay",
-                crate::error::argument_count(required_params, n_params),
+                crate::error::argument_count(
+                    required_params,
+                    if variadic { usize::MAX } else { n_params }
+                ),
                 n.max(0)
             ),
             0,
@@ -1799,7 +1811,25 @@ fn call_compiled_fn(function: CompiledFnEntry, args: *const SoplangValue, n: i32
     // Entry code loads every parameter slot; omitted slots are initialized but
     // the original count tells the prologue which defaults to evaluate.
     let mut padded = Vec::new();
-    let arguments = if (n as usize) < n_params {
+    let arguments = if variadic {
+        let fixed = n_params - 1;
+        let supplied = if n > 0 {
+            unsafe { std::slice::from_raw_parts(args, n as usize) }
+        } else {
+            &[]
+        };
+        padded.extend_from_slice(&supplied[..supplied.len().min(fixed)]);
+        padded.resize(fixed, SoplangValue::null());
+        let mut rest = Vec::new();
+        for value in supplied.iter().skip(fixed) {
+            match soplang_to_value(*value) {
+                Ok(value) => rest.push(value),
+                Err(error) => return handle_runtime_error(error),
+            }
+        }
+        padded.push(value_to_soplang(&Value::List(Rc::new(RefCell::new(rest)))));
+        padded.as_ptr()
+    } else if (n as usize) < n_params {
         if n > 0 {
             padded.extend_from_slice(unsafe { std::slice::from_raw_parts(args, n as usize) });
         }
@@ -2259,6 +2289,7 @@ pub fn register_compiled_fn_with_defaults(
             ptr,
             n_params,
             required_params: required_params.min(n_params),
+            variadic: false,
         })
     })
 }
@@ -2270,6 +2301,19 @@ pub extern "C" fn soplang_set_fn_required(index: i64, required: usize) {
         let mut table = table.borrow_mut();
         if let Some(entry) = table.get_mut(index) {
             entry.required_params = required.min(entry.n_params);
+        }
+    });
+}
+
+/// Mark the final parameter slot as a list of remaining positional values.
+#[no_mangle]
+pub extern "C" fn soplang_set_fn_variadic(index: i64) {
+    COMPILED_FN_TABLE.with(|table| {
+        if let Some(entry) = table.borrow_mut().get_mut(index) {
+            if entry.n_params > 0 {
+                entry.variadic = true;
+                entry.required_params = entry.required_params.min(entry.n_params - 1);
+            }
         }
     });
 }
@@ -2391,11 +2435,17 @@ fn call_closure(callee: SoplangValue, args: *const SoplangValue, n: i32) -> Sopl
     let entry = compiled_fn_entry(data.fn_index);
     if let Some(entry) = entry {
         let expected = entry.n_params.saturating_sub(1);
-        if n < 0 || (n as usize) < entry.required_params.saturating_sub(1) || n as usize > expected {
+        if n < 0
+            || (n as usize) < entry.required_params.saturating_sub(1)
+            || (!entry.variadic && n as usize > expected)
+        {
             return handle_runtime_error(type_error(
                 format!(
                     "Hawshu waxay u baahan tahay {} dood, laakiin {} ayaa la bixiyay",
-                    crate::error::argument_count(entry.required_params.saturating_sub(1), expected),
+                    crate::error::argument_count(
+                        entry.required_params.saturating_sub(1),
+                        if entry.variadic { usize::MAX } else { expected }
+                    ),
                     n.max(0)
                 ),
                 0,

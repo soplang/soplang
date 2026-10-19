@@ -98,7 +98,7 @@ outer boundary, so embedding applications can choose how to report failures.
 ### Compiled call representation
 
 User functions in both backends receive a pointer to a contiguous array of
-16-byte tagged values and its length. The runtime checks argument counts before
+16-byte tagged values and the supplied argument count. The runtime checks counts before
 indirect calls. Known direct calls use the same representation. This removes
 the earlier eight-value ABI limit for functions, methods, and closures.
 Method calls prepend the instance; captured closures prepend their environment
@@ -292,3 +292,9 @@ prologue to distinguish omission from an explicit null. Defaults are lowered
 from the original AST, including nested anonymous functions, and execute under
 the function's existing roots, captures, type checks, and error boundary.
 See [function arguments](../language/function-arguments.md).
+
+Variadic registration marks the final slot as a list of remaining positional
+values. The runtime normalizes that slot before entry, excluding the implicit
+instance or environment from its contents. Direct calls bypass this binding
+only for functions without a rest parameter and with every parameter supplied.
+The supplied count can differ from the normalized slot count.

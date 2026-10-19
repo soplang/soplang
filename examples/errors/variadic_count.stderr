@@ -1,0 +1,5 @@
+Khalad nooc: hawl 'tijaabo' waxay u baahan tahay 1 ama ka badan dood, laakiin 0 ayaa la bixiyay [E022] safka 2, tiirka 1
+     --> examples/errors/variadic_count.sop:2:1
+   2 │   tijaabo()
+     │   ^^^^^^^
+     └─ Hubi tirada doodaha markaad waceyso hawsha.

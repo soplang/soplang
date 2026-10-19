@@ -62,6 +62,7 @@ declare %SoplangValue @soplang_new_instance(ptr, i64, ptr, i32)
 declare void @soplang_register_class(ptr, i64, ptr, i64, ptr, i64, i64)
 declare i64 @soplang_register_user_fn(ptr, i64, ptr, i64)
 declare void @soplang_set_fn_required(i64, i64)
+declare void @soplang_set_fn_variadic(i64)
 declare %SoplangValue @soplang_raise(%SoplangValue)
 declare void @soplang_suspend_error()
 declare void @soplang_restore_error()
@@ -85,6 +86,7 @@ struct FnInfo {
     /// ABI values, including the leading closure environment when present.
     n_params: usize,
     has_env: bool,
+    variadic: bool,
 }
 
 struct ModuleOut {
@@ -136,6 +138,7 @@ pub fn emit_llvm_ir(hir: &HirModule, sym: &SymbolTable) -> Result<String, Soplan
             llvm_name: format!("sfn{i}"),
             n_params: f.params.len() + usize::from(has_env),
             has_env,
+            variadic: f.variadic,
         });
     }
 
@@ -315,7 +318,7 @@ struct Keep(*const ());
 unsafe impl Sync for Keep {}
 
 #[used]
-static KEEP: [Keep; 63] = [
+static KEEP: [Keep; 64] = [
     Keep(runtime::soplang_set_location as *const ()),
     Keep(runtime::soplang_enter_roots as *const ()),
     Keep(runtime::soplang_gc_safepoint as *const ()),
@@ -363,6 +366,7 @@ static KEEP: [Keep; 63] = [
     Keep(runtime::soplang_register_class as *const ()),
     Keep(runtime::soplang_register_user_fn as *const ()),
     Keep(runtime::soplang_set_fn_required as *const ()),
+    Keep(runtime::soplang_set_fn_variadic as *const ()),
     Keep(runtime::soplang_raise as *const ()),
     Keep(runtime::soplang_suspend_error as *const ()),
     Keep(runtime::soplang_restore_error as *const ()),
@@ -840,7 +844,14 @@ impl<'a> FnEmit<'a> {
             self.line(format!(
                 "  {handle} = call i64 @soplang_register_user_fn(ptr {p}, i64 {n}, ptr @{llvm_name}, i64 {n_params})"
             ));
-            self.line(format!("  call void @soplang_set_fn_required(i64 {handle}, i64 {required})"));
+            self.line(format!(
+                "  call void @soplang_set_fn_required(i64 {handle}, i64 {required})"
+            ));
+            if f.variadic {
+                self.line(format!(
+                    "  call void @soplang_set_fn_variadic(i64 {handle})"
+                ));
+            }
         }
         for (name, meta) in &sym.classes {
             let (cp, cl) = self.str_ptr(name);
@@ -1135,11 +1146,10 @@ impl<'a> FnEmit<'a> {
                 Ok(false)
             }
             HirInstr::Call { dst, callee, args } => {
-                let direct_fn = self
-                    .slot_fn
-                    .get(callee)
-                    .copied()
-                    .filter(|&idx| args.len() == self.fns[idx].n_params);
+                let direct_fn =
+                    self.slot_fn.get(callee).copied().filter(|&idx| {
+                        !self.fns[idx].variadic && args.len() == self.fns[idx].n_params
+                    });
                 if let Some(idx) = direct_fn {
                     let llvm_name = self.fns[idx].llvm_name.clone();
                     let buffer = self.value_buf(args);

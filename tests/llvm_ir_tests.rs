@@ -666,3 +666,17 @@ fn test_llvm_default_arguments() {
         );
     }
 }
+
+#[test]
+fn test_llvm_variadic_arguments() {
+    for opt in [0, 2] {
+        assert_eq!(
+            run_llvm_with_opt(
+                &format!("llvm_variadic_{opt}"),
+                include_str!("fixtures/variadic_arguments.sop"),
+                opt
+            ),
+            "variadic arguments ok\n"
+        );
+    }
+}

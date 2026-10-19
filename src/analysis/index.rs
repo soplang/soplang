@@ -935,5 +935,11 @@ fn parameter_label(param: &Param) -> String {
         .as_ref()
         .map(|value| format!(" = {}", value))
         .unwrap_or_default();
-    format!("{} {}{}", type_name(&param.type_ann), param.name, default)
+    format!(
+        "{} {}{}{}",
+        type_name(&param.type_ann),
+        if param.variadic { "*" } else { "" },
+        param.name,
+        default
+    )
 }

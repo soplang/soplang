@@ -29,6 +29,7 @@ struct CompiledFnInfo {
     name: String,
     n_params: usize,
     required_params: usize,
+    variadic: bool,
     func_id: FuncId,
 }
 
@@ -390,7 +391,14 @@ impl CraneliftBackend {
         for fi in &self.compiled_fns[start..] {
             let ptr = self.module.get_finalized_function(fi.func_id);
             if !ptr.is_null() {
-                let idx = runtime::register_compiled_fn_with_defaults(ptr, fi.n_params, fi.required_params);
+                let idx = runtime::register_compiled_fn_with_defaults(
+                    ptr,
+                    fi.n_params,
+                    fi.required_params,
+                );
+                if fi.variadic {
+                    runtime::soplang_set_fn_variadic(idx);
+                }
                 let sv = runtime::SoplangValue {
                     tag: runtime::TAG_FUNC,
                     _pad: [0; 7],
@@ -545,6 +553,7 @@ impl CraneliftBackend {
             name: f.name.clone(),
             n_params: f.params.len() + env_params,
             required_params: f.required_params + env_params,
+            variadic: f.variadic,
             func_id: id,
         });
         self.module
@@ -973,10 +982,9 @@ fn compile_body(
                 if terminated {
                     continue;
                 }
-                let direct_fn = slot_compiled_fn
-                    .get(callee)
-                    .copied()
-                    .filter(|&idx| args.len() == compiled_fns[idx].n_params);
+                let direct_fn = slot_compiled_fn.get(callee).copied().filter(|&idx| {
+                    !compiled_fns[idx].variadic && args.len() == compiled_fns[idx].n_params
+                });
                 if let Some(fn_idx) = direct_fn {
                     let fi = &compiled_fns[fn_idx];
                     let args: Vec<(Value, Value)> = args.iter()

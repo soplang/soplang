@@ -489,7 +489,7 @@ impl Parser {
         let mut names = std::collections::HashSet::new();
         let mut optional = false;
         while !self.check(TokenType::RParen) {
-            let type_ann = if matches!(
+            let mut type_ann = if matches!(
                 self.peek().kind,
                 TokenType::Abn
                     | TokenType::Jajab
@@ -510,6 +510,19 @@ impl Parser {
             } else {
                 TypeAnnotation::Dynamic
             };
+            let rest_marker = self.peek().clone();
+            let variadic = self.check(TokenType::Star);
+            if variadic {
+                self.advance();
+                if !matches!(type_ann, TypeAnnotation::Dynamic | TypeAnnotation::Teed) {
+                    return Err(parser_error(
+                        "Doodda '*' waxay ururisaa teed; nooc kale lama siin karo.",
+                        rest_marker.line,
+                        rest_marker.col,
+                    ));
+                }
+                type_ann = TypeAnnotation::Teed;
+            }
             let marker = self.peek().clone();
             let name = self.expect_identifier()?;
             if !names.insert(name.clone()) {
@@ -520,11 +533,18 @@ impl Parser {
                 ));
             }
             let default = if self.check(TokenType::Assign) {
+                if variadic {
+                    return Err(parser_error(
+                        "Doodda '*' ma yeelan karto qiime hordhac ah.",
+                        marker.line,
+                        marker.col,
+                    ));
+                }
                 self.advance();
                 optional = true;
                 Some(self.parse_logical()?)
             } else {
-                if optional {
+                if optional && !variadic {
                     return Err(parser_error(
                         "Dood aan lahayn qiime hordhac ah ma raaci karto dood leh qiime hordhac ah.",
                         marker.line,
@@ -537,9 +557,17 @@ impl Parser {
                 name,
                 type_ann,
                 default,
+                variadic,
             });
             if !self.check(TokenType::RParen) {
                 self.expect(TokenType::Comma)?;
+            }
+            if variadic && !self.check(TokenType::RParen) {
+                return Err(parser_error(
+                    "Doodda '*' waa inay noqotaa doodda ugu dambaysa.",
+                    self.peek().line,
+                    self.peek().col,
+                ));
             }
         }
         self.expect(TokenType::RParen)?;

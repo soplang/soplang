@@ -1,0 +1,9 @@
+hawl wadarta(bilow = 0, *tirooyin) {
+    kuceli (tiro ku tirooyin) { bilow = bilow + tiro }
+    celi bilow
+}
+qor(wadarta())
+qor(wadarta(10, 1, 2, 3))
+hawl ururi(*qiimayaal) { celi qiimayaal }
+qor(ururi())
+qor(ururi("Ayaan", 3, run))

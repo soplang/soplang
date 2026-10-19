@@ -69,3 +69,6 @@ the source, message, and location represent the intended failure.
 Default-argument cases cover duplicate names, required/optional order, unavailable
 parameters, types, static and dynamic arity ranges, and errors raised while
 evaluating a default.
+
+Variadic-argument cases cover rest-parameter order, invalid defaults and types,
+and static and dynamic minimum argument counts.

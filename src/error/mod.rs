@@ -409,7 +409,9 @@ pub fn import_error_ex(
 
 /// Display a fixed arity or an inclusive positional-argument range.
 pub(crate) fn argument_count(required: usize, total: usize) -> String {
-    if required == total {
+    if total == usize::MAX {
+        format!("{} ama ka badan", required)
+    } else if required == total {
         total.to_string()
     } else {
         format!("{} ilaa {}", required, total)

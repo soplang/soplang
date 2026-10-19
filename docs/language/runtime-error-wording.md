@@ -155,3 +155,15 @@ the count to an inclusive range, for example `1 ilaa 3 dood` (one to three
 arguments). Fixed-arity functions continue to report a single count. Existing
 type-mismatch, source-location, and structured-error wording also applies to
 default expressions.
+
+## Variadic positional parameters
+
+| Somali diagnostic | Meaning |
+| --- | --- |
+| `Doodda '*' waxay ururisaa teed; nooc kale lama siin karo.` | A rest parameter is a list and cannot have a scalar annotation. |
+| `Doodda '*' ma yeelan karto qiime hordhac ah.` | A rest parameter cannot have its own default. |
+| `Doodda '*' waa inay noqotaa doodda ugu dambaysa.` | A rest parameter must be last. |
+
+For an unbounded argument range, count messages use `N ama ka badan dood`
+(N or more arguments). Duplicate names and unavailable default dependencies
+keep the wording above.

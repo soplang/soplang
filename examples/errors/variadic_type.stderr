@@ -1,0 +1,4 @@
+Khalad naxwe: Doodda '*' waxay ururisaa teed; nooc kale lama siin karo. safka 1, tiirka 18
+     --> examples/errors/variadic_type.sop:1:18
+   1 │   hawl tijaabo(abn *items) {}
+     │                    ^

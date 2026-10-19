@@ -43,6 +43,7 @@ pub struct FunctionMeta {
     pub param_slots: Vec<usize>,
     pub param_types: Vec<TypeAnnotation>,
     pub required_params: usize,
+    pub variadic: bool,
     pub return_ann: TypeAnnotation,
     pub local_count: usize,
     pub captures: Vec<String>,
@@ -150,6 +151,7 @@ pub struct AnalyzeOptions {
 struct FunctionSig {
     params: Vec<TypeAnnotation>,
     required_params: usize,
+    variadic: bool,
     ret: TypeAnnotation,
 }
 
@@ -731,6 +733,7 @@ fn analyze_stmt(
                 param_slots,
                 param_types: params.iter().map(|p| p.type_ann.clone()).collect(),
                 required_params: required_parameters(params),
+                variadic: params.last().is_some_and(|param| param.variadic),
                 return_ann: return_ann.clone(),
                 local_count,
                 captures,
@@ -1054,7 +1057,7 @@ fn analyze_stmt(
 fn required_parameters(params: &[Param]) -> usize {
     params
         .iter()
-        .take_while(|param| param.default.is_none())
+        .take_while(|param| param.default.is_none() && !param.variadic)
         .count()
 }
 
@@ -1188,12 +1191,21 @@ fn analyze_expr(
                 analyze_expr(a, sym, opts, fn_sigs, current_class, enclosing_fn)?;
             }
             if let Some(sig) = fn_sigs.get(name) {
-                if args.len() < sig.required_params || args.len() > sig.params.len() {
+                if args.len() < sig.required_params
+                    || (!sig.variadic && args.len() > sig.params.len())
+                {
                     return Err(type_error_ex(
                         format!(
                             "hawl '{}' waxay u baahan tahay {} dood, laakiin {} ayaa la bixiyay",
                             name,
-                            crate::error::argument_count(sig.required_params, sig.params.len()),
+                            crate::error::argument_count(
+                                sig.required_params,
+                                if sig.variadic {
+                                    usize::MAX
+                                } else {
+                                    sig.params.len()
+                                }
+                            ),
                             args.len()
                         ),
                         0,
@@ -1203,7 +1215,15 @@ fn analyze_expr(
                             .with_hint("Hubi tirada doodaha markaad waceyso hawsha."),
                     ));
                 }
-                for (idx, (arg, expected)) in args.iter().zip(sig.params.iter()).enumerate() {
+                for (idx, (arg, expected)) in args
+                    .iter()
+                    .zip(
+                        sig.params
+                            .iter()
+                            .take(sig.params.len() - usize::from(sig.variadic)),
+                    )
+                    .enumerate()
+                {
                     if expected == &TypeAnnotation::Dynamic {
                         continue;
                     }
@@ -1243,12 +1263,14 @@ fn analyze_expr(
                     })?;
                     let mangled = resolve_parent_method(sym, class, method)?;
                     if let Some(fm) = sym.functions.iter().find(|f| f.name == mangled) {
-                        if args.len() < fm.required_params || args.len() > fm.param_types.len() {
+                        if args.len() < fm.required_params
+                            || (!fm.variadic && args.len() > fm.param_types.len())
+                        {
                             return Err(type_error_ex(
                                 format!(
                                     "hawl '{}' waxay u baahan tahay {} dood, laakiin {} ayaa la bixiyay",
                                     method,
-                                    crate::error::argument_count(fm.required_params, fm.param_types.len()),
+                                    crate::error::argument_count(fm.required_params, if fm.variadic { usize::MAX } else { fm.param_types.len() }),
                                     args.len()
                                 ),
                                 0,
@@ -1322,12 +1344,14 @@ fn analyze_expr(
                 owner = class.parent.as_deref();
             }
             if let Some(sig) = constructor {
-                if args.len() < sig.required_params || args.len() > sig.params.len() {
+                if args.len() < sig.required_params
+                    || (!sig.variadic && args.len() > sig.params.len())
+                {
                     return Err(type_error_ex(
                         format!(
                             "dhaw() ee qaabka '{}' wuxuu u baahan yahay {} dood, laakiin {} ayaa la bixiyay",
                             class_name,
-                            crate::error::argument_count(sig.required_params, sig.params.len()),
+                            crate::error::argument_count(sig.required_params, if sig.variadic { usize::MAX } else { sig.params.len() }),
                             args.len()
                         ),
                         0,
@@ -1337,7 +1361,15 @@ fn analyze_expr(
                             .with_hint("Hubi tirada doodaha aad siisay cusub."),
                     ));
                 }
-                for (index, (argument, expected)) in args.iter().zip(&sig.params).enumerate() {
+                for (index, (argument, expected)) in args
+                    .iter()
+                    .zip(
+                        sig.params
+                            .iter()
+                            .take(sig.params.len() - usize::from(sig.variadic)),
+                    )
+                    .enumerate()
+                {
                     if expected == &TypeAnnotation::Dynamic {
                         continue;
                     }
@@ -1519,6 +1551,7 @@ fn analyze_anonymous_function(
         param_slots,
         param_types: params.iter().map(|param| param.type_ann.clone()).collect(),
         required_params: required_parameters(params),
+        variadic: params.last().is_some_and(|param| param.variadic),
         return_ann: return_ann.clone(),
         local_count: scope.vars.len(),
         captures,
@@ -1743,6 +1776,7 @@ fn collect_function_sigs_rec(
                     FunctionSig {
                         params: params.iter().map(|p| p.type_ann.clone()).collect(),
                         required_params: required_parameters(params),
+                        variadic: params.last().is_some_and(|param| param.variadic),
                         ret: return_ann.clone(),
                     },
                 );

@@ -697,3 +697,11 @@ fn test_default_arguments() {
         "default arguments ok\n"
     );
 }
+
+#[test]
+fn test_variadic_arguments() {
+    assert_eq!(
+        run_program(include_str!("fixtures/variadic_arguments.sop")),
+        "variadic arguments ok\n"
+    );
+}
