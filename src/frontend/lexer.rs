@@ -7,7 +7,6 @@ use super::token::{Token, TokenType};
 use crate::error::{codes, lexer_error_ex, ErrorMeta, SoplangError};
 
 pub struct Lexer<'a> {
-    #[allow(dead_code)]
     source: &'a str,
     chars: Peekable<Chars<'a>>,
     line: usize,
@@ -58,6 +57,11 @@ impl<'a> Lexer<'a> {
             let line = self.line;
             let col = self.col;
             let start = self.index;
+            if matches!(c, 'e' | 'r') && matches!(self.peek(), Some('"' | '\'')) {
+                let escaped = c == 'e';
+                self.advance();
+                return self.read_string(self.current.unwrap(), escaped, line, col, start);
+            }
             if c.is_alphabetic() || c == '_' {
                 return Ok(self.read_identifier(line, col, start));
             }
@@ -65,7 +69,7 @@ impl<'a> Lexer<'a> {
                 return Ok(self.read_number(line, col, start));
             }
             if c == '"' || c == '\'' {
-                return self.read_string(c, line, col, start);
+                return self.read_string(c, false, line, col, start);
             }
             if c == '=' {
                 self.advance();
@@ -247,35 +251,123 @@ impl<'a> Lexer<'a> {
     fn read_string(
         &mut self,
         quote: char,
+        escaped: bool,
         start_line: usize,
         start_col: usize,
         start: usize,
     ) -> Result<Token, SoplangError> {
-        self.advance();
-        let mut s = String::new();
-        while self.current.is_some() && self.current != Some(quote) {
-            if let Some(c) = self.current {
-                s.push(c);
+        let delimiter: String = std::iter::repeat_n(quote, 3).collect();
+        let triple = self.source[self.index..].starts_with(&delimiter);
+        let width = if triple { 3 } else { 1 };
+        for _ in 0..width {
+            self.advance();
+        }
+        let mut value = String::new();
+        while let Some(character) = self.current {
+            if character == quote && (!triple || self.source[self.index..].starts_with(&delimiter))
+            {
+                for _ in 0..width {
+                    self.advance();
+                }
+                let mut token = Token::new(TokenType::String, value, start_line, start_col, start);
+                token.end = self.index;
+                return Ok(token);
+            }
+            if escaped && character == '\\' {
+                if let Some(character) = self.read_escape()? {
+                    value.push(character);
+                }
+            } else {
+                value.push(character);
                 self.advance();
             }
         }
-        if self.current == Some(quote) {
-            self.advance();
-            Ok(Token::new(
-                TokenType::String,
-                s,
-                start_line,
-                start_col,
-                start,
-            ))
-        } else {
-            Err(lexer_error_ex(
-                "Qoraal aan la xidhin",
-                start_line,
-                start_col,
-                ErrorMeta::default().with_code(codes::E002_UNTERMINATED_STRING),
-            ))
+        Err(lexer_error_ex(
+            "Qoraal aan la xidhin",
+            start_line,
+            start_col,
+            ErrorMeta::default().with_code(codes::E002_UNTERMINATED_STRING),
+        ))
+    }
+
+    fn read_escape(&mut self) -> Result<Option<char>, SoplangError> {
+        let (line, col) = (self.line, self.col);
+        self.advance();
+        let escaped = match self.current {
+            Some('n') => '\n',
+            Some('r') => '\r',
+            Some('t') => '\t',
+            Some('0') => '\0',
+            Some('\\') => '\\',
+            Some('\'') => '\'',
+            Some('"') => '"',
+            Some('\n') => {
+                self.advance();
+                return Ok(None);
+            }
+            Some('\r') => {
+                self.advance();
+                if self.current == Some('\n') {
+                    self.advance();
+                }
+                return Ok(None);
+            }
+            Some('u') => return self.read_unicode_escape(line, col).map(Some),
+            Some(character) => {
+                return Err(lexer_error_ex(
+                    format!("Xarafka ka dambeeya '\\' lama aqoonsan: {}.", character),
+                    line,
+                    col,
+                    ErrorMeta::default().with_code(codes::E004_INVALID_ESCAPE),
+                ))
+            }
+            None => {
+                return Err(lexer_error_ex(
+                    "Xaraf waa inuu ka dambeeyaa calaamadda '\\'.",
+                    line,
+                    col,
+                    ErrorMeta::default().with_code(codes::E004_INVALID_ESCAPE),
+                ))
+            }
+        };
+        self.advance();
+        Ok(Some(escaped))
+    }
+
+    fn read_unicode_escape(&mut self, line: usize, col: usize) -> Result<char, SoplangError> {
+        let invalid = || {
+            lexer_error_ex(
+                "Koodhka Unicode ee qoraalku ma saxna.",
+                line,
+                col,
+                ErrorMeta::default().with_code(codes::E004_INVALID_ESCAPE),
+            )
+        };
+        self.advance(); // u
+        if self.current != Some('{') {
+            return Err(invalid());
         }
+        self.advance();
+        let mut digits = String::new();
+        while self
+            .current
+            .is_some_and(|character| character.is_ascii_hexdigit())
+        {
+            digits.push(self.current.unwrap());
+            if digits.len() > 6 {
+                return Err(invalid());
+            }
+            self.advance();
+        }
+        if self.current != Some('}') || digits.is_empty() {
+            return Err(invalid());
+        }
+        let character = u32::from_str_radix(&digits, 16)
+            .ok()
+            .and_then(char::from_u32)
+            .ok_or_else(invalid)?;
+        self.advance();
+        Ok(character)
     }
 }
 

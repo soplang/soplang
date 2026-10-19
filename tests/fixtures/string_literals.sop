@@ -1,0 +1,18 @@
+hawl hubi(shuruud, magac) { haddii (!shuruud) { tuur magac } }
+door legacy = "C:\temp\new"
+door raw = r"C:\temp\new"
+door escaped = e"C:\\temp\\new"
+hubi(legacy == raw && raw == escaped, "legacy paths")
+hubi(e"a\n\tb\r\0".dherer() == 6, "control escapes")
+hubi(e"\u{e9}\u{1F600}" == "é😀", "Unicode escapes")
+hubi(e"\"double\"" == '"double"', "double quotes")
+hubi(e"\'single\'" == "'single'", "single quotes")
+door triple = """first "quote" and 'quote'
+second"""
+hubi(triple == e"first \"quote\" and 'quote'\nsecond", "raw triple content")
+door decoded = e'''one\n\u{e9}'''
+hubi(decoded == e"one\né", "escaped triple content")
+door e = 3
+door r = 4
+hubi(e + r == 7, "prefixes remain identifiers elsewhere")
+qor("string literals ok")

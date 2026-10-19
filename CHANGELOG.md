@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file.
 * Compiled functions, closures, constructors, and methods accept more than eight arguments through a shared argument-vector ABI. Returned and indexed functions can be invoked directly, including callable object fields. LLVM reuses argument buffers inside loops.
 
 * Tracing collection reclaims unreachable strings, errors, collections, instances, and closure environments, including cycles. Both backends publish explicit stack roots. Rust integrations can pin tagged values and inspect collection reports; repeated collection conversion preserves identity.
+* Explicit `e` string prefixes decode control, quote, and Unicode escapes; `r` selects raw text. Triple quotes support multiline content. Existing unprefixed strings preserve literal backslashes. Editor ranges and diagnostics retain original source bytes.
 
 ## [3.0.1] - 2026-10-18
 

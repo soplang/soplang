@@ -110,6 +110,31 @@ declared class methods receive an implicit instance.
 values; it does not provide exact decimal arithmetic. `qoraal` is a string,
 `teed` is a mutable list, and `walax` stores string keys and values.
 
+### String literals
+
+Unprefixed single and double quotes keep their existing literal-backslash
+behavior. `r` explicitly selects the same raw behavior. Use `e` to decode escapes:
+
+```soplang
+door jid = r"C:\temp\new"
+door fariin = e"Salaan\nSadar cusub\t!"
+door xarfo = e"\u{e9}\u{1F600}"
+door tuduc = """First line with "quotes"
+Second line"""
+```
+
+Escaped strings accept `\n`, `\r`, `\t`, `\0`, `\\`, `\'`, `\"`, and
+`\u{HEX}` with one to six hexadecimal digits naming a valid Unicode scalar.
+Surrogates, values above U+10FFFF, incomplete escapes, and unknown escapes
+report Somali lexer errors at the backslash. A backslash followed by an actual
+LF or CRLF continues an escaped literal without adding a line break.
+
+Triple single or double quotes allow multiline content and ordinary quote
+characters inside the string. They work with `e` and `r`, preserve indentation
+and line breaks, and close at the matching three-character delimiter. String
+prefixes attach directly to the opening quote. `e` and `r` remain ordinary
+identifiers elsewhere. Existing path strings require no migration.
+
 `door`, `madoor`, and `abn` are Soplang short identifiers. The terminology
 review relates them to *doorsoome*, *madoorsoome*, and *abyoone*, respectively;
 these explanations do not establish a historical abbreviation or SLS approval.

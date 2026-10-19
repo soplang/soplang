@@ -641,3 +641,11 @@ fn test_garbage_collection_preserves_active_values() {
         "garbage collection ok\n"
     );
 }
+
+#[test]
+fn test_escaped_raw_and_multiline_literals() {
+    assert_eq!(
+        run_program(include_str!("fixtures/string_literals.sop")),
+        "string literals ok\n"
+    );
+}

@@ -62,3 +62,6 @@ runtime	object_key_type.sop	2	11
 runtime	range_zero_step.sop	1	9	
 runtime	invalid_empty_callback.sop	2	18	
 runtime	native_argument_count.sop	1	9	
+compile	invalid_escape.sop	1	19	lama aqoonsan
+compile	invalid_unicode_escape.sop	1	16	Unicode
+compile	unterminated_triple_string.sop	1	14	Qoraal aan la xidhin

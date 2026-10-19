@@ -20,6 +20,7 @@ pub mod codes {
     pub const E001_UNEXPECTED_CHAR: &str = "E001";
     pub const E002_UNTERMINATED_STRING: &str = "E002";
     pub const E003_UNTERMINATED_COMMENT: &str = "E003";
+    pub const E004_INVALID_ESCAPE: &str = "E004";
     pub const E010_UNEXPECTED_TOKEN: &str = "E010";
     pub const E011_INVALID_NUMBER: &str = "E011";
     pub const E012_EXPECTED_NAME: &str = "E012";

@@ -1,0 +1,4 @@
+Khalad ereyayn: Xarafka ka dambeeya '\' lama aqoonsan: q. [E004] safka 1, tiirka 19
+     --> examples/errors/invalid_escape.sop:1:19
+   1 │   door qiime = e"abc\q"
+     │                     ^

@@ -80,11 +80,15 @@ pub struct Token {
     pub col:    usize,
     /// Byte offset of this token in the source.
     pub start:  usize,
+    /// Exclusive byte offset, including prefixes and string delimiters.
+    pub end: usize,
 }
 
 impl Token {
     pub fn new(kind: TokenType, lexeme: impl Into<String>, line: usize, col: usize, start: usize) -> Self {
-        Self { kind, lexeme: lexeme.into(), line, col, start }
+        let lexeme = lexeme.into();
+        let end = start + lexeme.len() + usize::from(kind == TokenType::String) * 2;
+        Self { kind, lexeme, line, col, start, end }
     }
 }
 

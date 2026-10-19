@@ -40,7 +40,23 @@ impl Parser {
             ),
             line: token.line,
             col: token.col,
-            end_col: token.col + token.lexeme.chars().count().max(1) - 1,
+            end_col: {
+                let mut bytes = 0;
+                let count = lines
+                    .get(token.line.saturating_sub(1))
+                    .map(|line| {
+                        line.trim_end_matches('\r')
+                            .chars()
+                            .skip(token.col.saturating_sub(1))
+                            .take_while(|character| {
+                                bytes += character.len_utf8();
+                                bytes <= token.end.saturating_sub(token.start)
+                            })
+                            .count()
+                    })
+                    .unwrap_or(0);
+                token.col + count.max(1) - 1
+            },
             source_line: lines
                 .get(token.line.saturating_sub(1))
                 .cloned()

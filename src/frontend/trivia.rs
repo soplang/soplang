@@ -21,14 +21,30 @@ pub fn protected_ranges(text: &str) -> Vec<Range<usize>> {
     let mut i = 0;
     while i < bytes.len() {
         let start = i;
-        if bytes[i] == b'\'' || bytes[i] == b'"' {
-            let quote = bytes[i];
-            i += 1;
-            while i < bytes.len() && bytes[i] != quote {
-                i += 1;
-            }
-            if i < bytes.len() {
-                i += 1;
+        let prefixed = matches!(bytes[i], b'e' | b'r')
+            && matches!(bytes.get(i + 1), Some(b'\'' | b'"'))
+            && !text[..i]
+                .chars()
+                .next_back()
+                .is_some_and(|ch| ch.is_alphanumeric() || ch == '_');
+        let quote_at = if prefixed { i + 1 } else { i };
+        if prefixed || matches!(bytes[i], b'\'' | b'"') {
+            let escaped = prefixed && bytes[i] == b'e';
+            let quote = bytes[quote_at];
+            let triple = bytes.get(quote_at..quote_at + 3) == Some(&[quote, quote, quote]);
+            let width = if triple { 3 } else { 1 };
+            i = quote_at + width;
+            while i < bytes.len() {
+                if escaped && bytes[i] == b'\\' {
+                    i = (i + 2).min(bytes.len());
+                } else if bytes[i] == quote
+                    && (!triple || bytes.get(i..i + 3) == Some(&[quote, quote, quote]))
+                {
+                    i += width;
+                    break;
+                } else {
+                    i += 1;
+                }
             }
             ranges.push(start..i);
         } else if bytes.get(i..i + 2) == Some(b"//") {
@@ -82,8 +98,7 @@ pub fn lossless_tokens(text: &str) -> Result<Vec<SourcePiece>, SoplangError> {
                 });
             }
         }
-        let end =
-            token.start + token.lexeme.len() + usize::from(token.kind == TokenType::String) * 2;
+        let end = token.end;
         if token.kind != TokenType::Eof {
             pieces.push(SourcePiece {
                 kind: PieceKind::Token(token.kind),

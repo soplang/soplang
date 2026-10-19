@@ -117,3 +117,8 @@ identifier. `haddii_kale` and `ugudambeyn` remain compatibility spellings.
 `kuceli` remains the numeric loop keyword. After a dot it is also a member
 name, so `text.kuceli(3)` repeats a string. This exception does not reserve
 other method names or change user-defined identifiers.
+
+String literals use single, double, triple-single, or triple-double quotes.
+An adjacent `e` prefix enables escapes; `r` explicitly preserves raw text.
+Unprefixed strings preserve literal backslashes for compatibility. Triple
+quotes preserve line breaks and indentation. Unicode escapes use `\u{HEX}`.

@@ -3,7 +3,7 @@
 These programs are expected to fail. They are separate from the numbered,
 successful examples and are never selected by `--example N`.
 
-The [manifest](cases.tsv) lists 63 cases: phase, entry file, expected one-based
+The [manifest](cases.tsv) lists each case's phase, entry file, expected one-based
 line and column, and an optional Somali message fragment. A `.stderr` file beside
 each program records its complete diagnostic, including the original source
 line, exact caret spacing, optional error code, and hint. Files in `support/`
@@ -13,7 +13,7 @@ are imported helpers, not separate entry points.
 
 | Area | Examples |
 | --- | --- |
-| Lexer | Unexpected characters, unclosed strings/comments, Unicode columns |
+| Lexer | Unexpected characters, unclosed strings/comments, invalid escapes and Unicode scalars, triple quotes, Unicode columns |
 | Parser | Missing names, values, delimiters, invalid numbers, invalid class contents |
 | Semantics | Constants, duplicate names, invalid assignments and types, control flow, function/constructor arguments |
 | Classes | Missing parents/classes, cycles, invalid parent calls, incompatible instances |
@@ -49,7 +49,8 @@ of an empty final line.
 Runtime diagnostics in native binaries retain the relevant source line, so they
 also work when the original source file is unavailable. This includes code
 from `keen` imports. Caught errors remain message strings for compatibility;
-compiled stack traces and structured user-raised errors are future work.
+an optional second catch binding exposes structured details. Compiled function
+traces retain call sites alongside the failing operation's original location.
 
 ## Add a case
 

@@ -1,0 +1,4 @@
+Khalad ereyayn: Qoraal aan la xidhin [E002] safka 1, tiirka 14
+     --> examples/errors/unterminated_triple_string.sop:1:14
+   1 │   door qiime = r"""aan dhammayn
+     │                ^

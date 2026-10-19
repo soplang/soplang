@@ -1,0 +1,4 @@
+Khalad ereyayn: Koodhka Unicode ee qoraalku ma saxna. [E004] safka 1, tiirka 16
+     --> examples/errors/invalid_unicode_escape.sop:1:16
+   1 │   door qiime = e"\u{D800}"
+     │                  ^
