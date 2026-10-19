@@ -49,10 +49,11 @@ You can also run an example by its position in the sorted file list:
 | `26_loop_control.sop` | Descending loops, break, continue, and short circuiting |
 | `27_inheritance.sop` | Typed base instances, constructors, and `waalid` |
 | `28_null_defaults.sop` | Stored nulls, defaults, empty endpoints, and search misses |
+| `29_output.sop` | Empty and multiple-argument output, mixed values, return text, and evaluation order |
 
 `_math_lib.sop` is imported by `16_import.sop`; it is not a standalone demo.
 
-All 28 numbered examples are checked. The random example prints type and range
+All 29 numbered examples are checked. The random example prints type and range
 invariants rather than a random value, so its expected output is deterministic.
 The input example receives `TestUser` through stdin. Helpers beginning with `_`
 and programs inside `errors/` are excluded from `--example N`.

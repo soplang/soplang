@@ -497,6 +497,9 @@ impl Parser {
     }
 
     fn parse_qor_statement(&mut self, _line: usize, _col: usize) -> Result<Stmt, SoplangError> {
+        if self.peek_nth(1).kind == TokenType::LParen {
+            return self.parse_function_call_stmt(_line, _col);
+        }
         self.advance(); // qor
         let arg = self.parse_logical()?;
         Ok(Stmt::Expr(Expr::Call {
@@ -834,6 +837,9 @@ impl Parser {
         let mut args = Vec::new();
         while !self.check(TokenType::RParen) {
             args.push(self.parse_logical()?);
+            if self.at_end() {
+                break;
+            }
             if !self.check(TokenType::RParen) {
                 self.expect(TokenType::Comma)?;
             }

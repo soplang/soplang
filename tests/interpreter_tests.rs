@@ -71,6 +71,20 @@ fn test_qor_number() {
 }
 
 #[test]
+fn test_repl_qor_multiple_arguments() {
+    let mut session = soplang::ReplSession::new(false).expect("session");
+    session
+        .eval(r#"door magac1 = "Ayaan"; door magac2 = "Cali""#, None)
+        .unwrap();
+    session.eval("qor(magac1, magac2)", None).unwrap();
+    session.eval("qor()", None).unwrap();
+    session
+        .eval("door output = qor(magac1, magac2, 3)", None)
+        .unwrap();
+    assert_eq!(global_string("output"), "Ayaan Cali 3");
+}
+
+#[test]
 fn test_maran_literal() {
     let output = run_program("door value = maran qor(value) qor(nooc(value))");
     assert_eq!(output, "maran\nmaran\n");

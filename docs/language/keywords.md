@@ -113,7 +113,7 @@ these explanations do not establish a historical abbreviation or SLS approval.
 
 | Function | Meaning                                    | English Equivalent | Example                                  |
 | -------- | -------------------------------------------- | -------------------- | ------------------------------------------ |
-| `qor`    | Print to console                             | `print`              | `qor("Salaan, Adduunka!")`                |
+| `qor`    | Print zero or more values separated by spaces | `print`              | `qor("Salaan", "Adduunka!", 3)`          |
 | `gelin`  | Read input from user                         | `input`              | `door magac = gelin("Magacaaga geli: ")`  |
 | `nooc`   | Get type of variable                         | `typeof`             | `qor(nooc(magac))`                        |
 | `abn`    | Convert value to an integer (also the `int` type keyword above) | `int` | `door n = abn("5")`                 |
@@ -133,6 +133,20 @@ these explanations do not establish a historical abbreviation or SLS approval.
 | `weyn` | Get the largest numeric argument           | `max()`              | `door n = weyn(4, 2, 8)`              |
 | `jibbaar`  | Raise a number to a power                    | `pow()`              | `door n = jibbaar(2, 3)`                    |
 | `xidid`  | Calculate a square root                      | `sqrt()`             | `door n = xidid(9)`                       |
+
+`qor()` accepts zero or more positional arguments, converts each value using
+the normal Soplang string representation, separates them with one space, and
+adds a newline. With no arguments it prints an empty line. It returns the
+printed text without the final newline, including an empty string for `qor()`.
+Arguments are evaluated from left to right before output; an argument error
+prevents that call from printing. Functions called while evaluating arguments
+may produce their own output. Existing one-argument calls keep their behavior.
+
+```soplang
+qor("Ayaan", "Cali")
+qor("Da:", 25, "Firfircoon:", run)
+qor()
+```
 
 `daji()` rounds toward negative infinity and `kor()` toward positive infinity.
 `duub()` rounds to the nearest integer, with halfway values rounded away

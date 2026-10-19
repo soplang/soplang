@@ -91,6 +91,14 @@ fn run_llvm(name: &str, source: &str) -> String {
 }
 
 #[test]
+fn test_llvm_qor_multiple_arguments() {
+    assert_eq!(
+        run_llvm("qor_arguments", include_str!("../examples/29_output.sop")),
+        include_str!("../examples/29_output.expected")
+    );
+}
+
+#[test]
 fn test_llvm_shared_collection_contracts() {
     assert_eq!(
         run_llvm(

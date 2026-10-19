@@ -70,10 +70,13 @@ fn to_integer(v: &Value, name: &str) -> Result<i64, SoplangError> {
     }
 }
 
-/// Built-in qor: print value as qoraal string, return that string.
+/// Built-in qor: print space-separated values and return the text without its newline.
 pub fn builtin_qor(args: Vec<Value>) -> Result<Value, SoplangError> {
-    expect_arity(&args, "qor", 1)?;
-    let s = value_to_string(&args[0]);
+    let s = args
+        .iter()
+        .map(value_to_string)
+        .collect::<Vec<_>>()
+        .join(" ");
     writeln!(io::stdout().lock(), "{}", s)
         .map_err(|e| io_error("Waxsoosaarka lama qori karin.", &e))?;
     Ok(Value::Str(s))

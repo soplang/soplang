@@ -1,0 +1,26 @@
+qor()
+qor("Ayaan", "Cali")
+qor("Da:", 25, run, been, maran, 1.5, [1, 2], { magac: "Sahal" })
+qor(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+
+door qoraalka = qor("Salaan", "éSoomaali")
+qor(qoraalka)
+door sooBandhig = qor
+sooBandhig("Hawl", 3)
+qor("")
+qor 1 + 2
+
+door tirada = 0
+hawl xiga() {
+    tirada = tirada + 1
+    celi tirada
+}
+qor(xiga(), xiga(), xiga())
+qor(tirada)
+qor(qor("gudaha", 1), "dibadda")
+
+tijaabi {
+    qor("Lama qoro", 1 / 0, "Lama qoro")
+} qabo (khalad) {
+    qor("La qabtay")
+}
