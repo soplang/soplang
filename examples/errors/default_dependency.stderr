@@ -1,0 +1,4 @@
+Khalad nooc: Qiimaha hordhaca ahi ma adeegsan karo doodda 'b' ka hor inta aan la diyaarin. [E022] safka 1, tiirka 18
+     --> examples/errors/default_dependency.sop:1:18
+   1 │   hawl tijaabo(a = b, b = 2) {}
+     │                    ^

@@ -65,3 +65,7 @@ traces retain call sites alongside the failing operation's original location.
 
 Do not refresh snapshots merely to make a failing test green: inspect whether
 the source, message, and location represent the intended failure.
+
+Default-argument cases cover duplicate names, required/optional order, unavailable
+parameters, types, static and dynamic arity ranges, and errors raised while
+evaluating a default.

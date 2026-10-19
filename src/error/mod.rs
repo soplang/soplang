@@ -406,3 +406,12 @@ pub fn import_error_ex(
         meta,
     }
 }
+
+/// Display a fixed arity or an inclusive positional-argument range.
+pub(crate) fn argument_count(required: usize, total: usize) -> String {
+    if required == total {
+        total.to_string()
+    } else {
+        format!("{} ilaa {}", required, total)
+    }
+}

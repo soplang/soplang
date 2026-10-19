@@ -689,3 +689,11 @@ fn test_iteration_gc_and_reentrant_callbacks() {
         "iteration gc ok\n"
     );
 }
+
+#[test]
+fn test_default_arguments() {
+    assert_eq!(
+        run_program(include_str!("fixtures/default_arguments.sop")),
+        "default arguments ok\n"
+    );
+}

@@ -652,3 +652,17 @@ fn test_llvm_iteration_gc_and_reentrant_callbacks() {
         "iteration gc ok\n"
     );
 }
+
+#[test]
+fn test_llvm_default_arguments() {
+    for opt in [0, 2] {
+        assert_eq!(
+            run_llvm_with_opt(
+                &format!("llvm_defaults_{opt}"),
+                include_str!("fixtures/default_arguments.sop"),
+                opt
+            ),
+            "default arguments ok\n"
+        );
+    }
+}

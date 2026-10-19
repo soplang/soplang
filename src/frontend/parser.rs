@@ -486,6 +486,8 @@ impl Parser {
     ) -> Result<(Vec<Param>, TypeAnnotation, Vec<Stmt>), SoplangError> {
         self.expect(TokenType::LParen)?;
         let mut params = Vec::new();
+        let mut names = std::collections::HashSet::new();
+        let mut optional = false;
         while !self.check(TokenType::RParen) {
             let type_ann = if matches!(
                 self.peek().kind,
@@ -508,9 +510,33 @@ impl Parser {
             } else {
                 TypeAnnotation::Dynamic
             };
+            let marker = self.peek().clone();
+            let name = self.expect_identifier()?;
+            if !names.insert(name.clone()) {
+                return Err(parser_error(
+                    format!("Doodda '{}' mar hore ayaa lagu qeexay hawshan.", name),
+                    marker.line,
+                    marker.col,
+                ));
+            }
+            let default = if self.check(TokenType::Assign) {
+                self.advance();
+                optional = true;
+                Some(self.parse_logical()?)
+            } else {
+                if optional {
+                    return Err(parser_error(
+                        "Dood aan lahayn qiime hordhac ah ma raaci karto dood leh qiime hordhac ah.",
+                        marker.line,
+                        marker.col,
+                    ));
+                }
+                None
+            };
             params.push(Param {
-                name: self.expect_identifier()?,
+                name,
                 type_ann,
+                default,
             });
             if !self.check(TokenType::RParen) {
                 self.expect(TokenType::Comma)?;

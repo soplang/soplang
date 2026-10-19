@@ -538,22 +538,55 @@ impl Index {
         body: &[Stmt],
         class: Option<&str>,
     ) {
-        let inner = self.body_scope(file, start, scope, class.map(str::to_owned));
-        let mut cursor = self
-            .tokens
-            .get(&file.path)
-            .and_then(|t| t.iter().find(|t| t.start >= start && t.kind == K::LParen))
-            .map(|t| t.start + 1)
-            .unwrap_or(start);
-        for param in params {
-            let token = self.tokens.get(&file.path).and_then(|tokens| {
-                tokens[tokens.partition_point(|t| t.start < cursor)..]
-                    .windows(2)
-                    .find(|pair| {
-                        pair[0].lexeme == param.name && matches!(pair[1].kind, K::Comma | K::RParen)
-                    })
-                    .map(|pair| pair[0].clone())
+        // Defaults may contain object literals and nested functions. Locate the
+        // body after the complete parameter list instead of its first brace.
+        let tokens = self.tokens.get(&file.path).cloned().unwrap_or_default();
+        let open = tokens
+            .iter()
+            .position(|token| token.start >= start && token.kind == K::Hawl)
+            .and_then(|keyword| {
+                tokens
+                    .iter()
+                    .enumerate()
+                    .skip(keyword + 1)
+                    .find(|(_, token)| token.kind == K::LParen)
+                    .map(|(index, _)| index)
             });
+        let mut segments = Vec::new();
+        let mut body_start = start;
+        if let Some(open) = open {
+            let mut depth = 0usize;
+            let mut begin = open + 1;
+            for (index, token) in tokens.iter().enumerate().skip(begin) {
+                match token.kind {
+                    K::RParen if depth == 0 => {
+                        segments.push(begin..index);
+                        body_start = tokens[index + 1..]
+                            .iter()
+                            .find(|token| token.kind == K::LBrace)
+                            .map(|token| token.start)
+                            .unwrap_or(start);
+                        break;
+                    }
+                    K::Comma if depth == 0 => {
+                        segments.push(begin..index);
+                        begin = index + 1;
+                    }
+                    K::LParen | K::LBracket | K::LBrace => depth += 1,
+                    K::RParen | K::RBracket | K::RBrace => depth = depth.saturating_sub(1),
+                    _ => (),
+                }
+            }
+        }
+        let inner = self.body_scope(file, body_start, scope, class.map(str::to_owned));
+        self.scopes[inner].start = start;
+        for (param, segment) in params.iter().zip(segments) {
+            let token = tokens[segment]
+                .iter()
+                .take_while(|token| token.kind != K::Assign)
+                .filter(|token| token.lexeme == param.name)
+                .last()
+                .cloned();
             if let Some(token) = token {
                 self.add(
                     file,
@@ -570,7 +603,11 @@ impl Index {
                 if let Some(symbol) = self.symbols.last_mut() {
                     symbol.parameter = true;
                 }
-                cursor = token.start + token.lexeme.len();
+            }
+        }
+        for param in params {
+            if let Some(default) = &param.default {
+                self.expression(default, file, inner, start, class);
             }
         }
         let _ = ret;
@@ -614,12 +651,7 @@ impl Index {
                         } = value.unlocated()
                         {
                             (
-                                Some(
-                                    params
-                                        .iter()
-                                        .map(|p| format!("{} {}", type_name(&p.type_ann), p.name))
-                                        .collect(),
-                                ),
+                                Some(params.iter().map(parameter_label).collect()),
                                 type_name(return_ann),
                             )
                         } else {
@@ -661,12 +693,7 @@ impl Index {
                             scope,
                             if class.is_some() && scope == 0 { 6 } else { 12 },
                             "hawl".into(),
-                            Some(
-                                params
-                                    .iter()
-                                    .map(|p| format!("{} {}", type_name(&p.type_ann), p.name))
-                                    .collect(),
-                            ),
+                            Some(params.iter().map(parameter_label).collect()),
                             type_name(return_ann),
                             if scope == 0 {
                                 class.map(str::to_owned)
@@ -900,4 +927,13 @@ impl Index {
             _ => (),
         }
     }
+}
+
+fn parameter_label(param: &Param) -> String {
+    let default = param
+        .default
+        .as_ref()
+        .map(|value| format!(" = {}", value))
+        .unwrap_or_default();
+    format!("{} {}{}", type_name(&param.type_ann), param.name, default)
 }

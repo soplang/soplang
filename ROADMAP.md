@@ -133,8 +133,9 @@ ownership design planned for 3.6.
 ## Soplang 3.2 — iteration, functions, and data types
 
 The iteration stage is implemented in both backends; see the
-[iteration contract](docs/language/iteration.md). Function arguments, new data
-types, and the remaining library operations below are still planned. The 3.2
+[iteration contract](docs/language/iteration.md). [Default arguments](docs/language/function-arguments.md)
+are also implemented. Named and variadic arguments, new data types, and the
+remaining library operations below are still planned. The 3.2
 milestone is not yet complete or tagged.
 
 ### Iteration

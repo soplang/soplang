@@ -79,3 +79,10 @@ runtime	iteration_range_zero.sop	1	14	eber ma noqon karto
 compile	iteration_constant.sop	2	1	madoor
 compile	iteration_duplicate.sop	1	12	kala duwanaadaan
 runtime	iteration_callback.sop	1	38	eber
+compile	default_duplicate.sop	1	17	mar hore
+compile	default_order.sop	1	21	qiime hordhac
+compile	default_dependency.sop	1	18	ka hor
+compile	default_type.sop	1	22	abn
+compile	default_count.sop	2	1	1 ilaa 2
+runtime	default_dynamic_count.sop	2	1	1 ilaa 2
+runtime	default_failure.sop	1	20	eber

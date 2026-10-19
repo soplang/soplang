@@ -61,6 +61,7 @@ declare %SoplangValue @soplang_call_method(%SoplangValue, ptr, i64, ptr, i32)
 declare %SoplangValue @soplang_new_instance(ptr, i64, ptr, i32)
 declare void @soplang_register_class(ptr, i64, ptr, i64, ptr, i64, i64)
 declare i64 @soplang_register_user_fn(ptr, i64, ptr, i64)
+declare void @soplang_set_fn_required(i64, i64)
 declare %SoplangValue @soplang_raise(%SoplangValue)
 declare void @soplang_suspend_error()
 declare void @soplang_restore_error()
@@ -314,7 +315,7 @@ struct Keep(*const ());
 unsafe impl Sync for Keep {}
 
 #[used]
-static KEEP: [Keep; 62] = [
+static KEEP: [Keep; 63] = [
     Keep(runtime::soplang_set_location as *const ()),
     Keep(runtime::soplang_enter_roots as *const ()),
     Keep(runtime::soplang_gc_safepoint as *const ()),
@@ -361,6 +362,7 @@ static KEEP: [Keep; 62] = [
     Keep(runtime::soplang_new_instance as *const ()),
     Keep(runtime::soplang_register_class as *const ()),
     Keep(runtime::soplang_register_user_fn as *const ()),
+    Keep(runtime::soplang_set_fn_required as *const ()),
     Keep(runtime::soplang_raise as *const ()),
     Keep(runtime::soplang_suspend_error as *const ()),
     Keep(runtime::soplang_restore_error as *const ()),
@@ -833,9 +835,12 @@ impl<'a> FnEmit<'a> {
             let llvm_name = info.llvm_name.clone();
             let n_params = info.n_params;
             let (p, n) = self.str_ptr(&f.name);
+            let required = f.required_params + usize::from(info.has_env);
+            let handle = self.fresh();
             self.line(format!(
-                "  call i64 @soplang_register_user_fn(ptr {p}, i64 {n}, ptr @{llvm_name}, i64 {n_params})"
+                "  {handle} = call i64 @soplang_register_user_fn(ptr {p}, i64 {n}, ptr @{llvm_name}, i64 {n_params})"
             ));
+            self.line(format!("  call void @soplang_set_fn_required(i64 {handle}, i64 {required})"));
         }
         for (name, meta) in &sym.classes {
             let (cp, cl) = self.str_ptr(name);
@@ -922,6 +927,15 @@ impl<'a> FnEmit<'a> {
                 let (fp, fl) = self.str_ptr(file);
                 let (tp, tl) = self.str_ptr(&span.source_line);
                 self.line(format!("  call void @soplang_set_location(ptr {fp}, i64 {fl}, i64 {}, i64 {}, i64 {}, ptr {tp}, i64 {tl})", span.line, span.col, span.end_col));
+                Ok(false)
+            }
+
+            HirInstr::ParamProvided { dst, index } => {
+                let present = self.fresh();
+                let payload = self.fresh();
+                self.line(format!("  {present} = icmp ugt i64 %nargs, {index}"));
+                self.line(format!("  {payload} = zext i1 {present} to i64"));
+                self.store_slot(*dst, "3", &payload);
                 Ok(false)
             }
 
@@ -1627,7 +1641,8 @@ fn slot_hi(body: &[HirInstr]) -> usize {
     let mut mx = 0usize;
     for instr in body {
         match instr {
-            HirInstr::Const { dst, .. }
+            HirInstr::ParamProvided { dst, .. }
+            | HirInstr::Const { dst, .. }
             | HirInstr::Load { dst, .. }
             | HirInstr::Pop { dst }
             | HirInstr::BindError { dst }

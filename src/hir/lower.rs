@@ -3,7 +3,7 @@
 
 use std::fmt;
 
-use crate::frontend::ast::{Expr, InterpolationPart, Literal, Stmt, TypeAnnotation};
+use crate::frontend::ast::{Expr, InterpolationPart, Literal, Param, Stmt, TypeAnnotation};
 use crate::semantic::{resolve_name, resolve_parent_method, SymbolTable, VarInfo};
 
 pub type Slot = usize;
@@ -52,6 +52,11 @@ pub enum SlotNum {
 
 #[derive(Debug, Clone)]
 pub enum HirInstr {
+    /// Whether a positional parameter was supplied before default evaluation.
+    ParamProvided {
+        dst: Slot,
+        index: usize,
+    },
     SetLocation(Box<crate::error::SourceSpan>),
     Const {
         dst: Slot,
@@ -240,7 +245,8 @@ impl HirInstr {
 
     pub(crate) fn destination(&self) -> Option<Slot> {
         match self {
-            Self::IterBegin { dst, .. }
+            Self::ParamProvided { dst, .. }
+            | Self::IterBegin { dst, .. }
             | Self::IterNext { dst, .. }
             | Self::FormatValue { dst, .. }
             | Self::BuildString { dst, .. }
@@ -270,6 +276,7 @@ impl HirInstr {
 pub struct HirFunction {
     pub name: String,
     pub params: Vec<Slot>,
+    pub required_params: usize,
     pub local_count: usize,
     pub body: Vec<HirInstr>,
     pub is_static: bool,
@@ -290,6 +297,7 @@ pub struct HirModule {
 impl fmt::Display for HirInstr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            HirInstr::ParamProvided { dst, index } => write!(f, "  %{} = provided {}", dst, index),
             HirInstr::SetLocation(span) => write!(f, "  location {}:{}", span.line, span.col),
             HirInstr::Const { dst, val } => write!(f, "  %{} = const {:?}", dst, val),
             HirInstr::Copy { dst, src } => write!(f, "  %{} = copy %{}", dst, src),
@@ -553,7 +561,7 @@ impl<'a> HirLowering<'a> {
             .functions
             .iter()
             .zip(func_bodies.into_iter())
-            .map(|(fm, body_stmts)| {
+            .map(|(fm, (params, body_stmts))| {
                 let mut inner = HirLowering {
                     sym,
                     body: Vec::new(),
@@ -579,8 +587,32 @@ impl<'a> HirLowering<'a> {
                     .filter_map(|name| fm.scope_vars.get(name).map(|info| info.slot))
                     .collect();
                 let implicit = usize::from(fm.is_method);
-                for (slot, ann) in fm.param_slots[implicit..].iter().zip(&fm.param_types) {
-                    inner.emit_type_check(*slot, ann, "dood");
+                for (index, (slot, param)) in
+                    fm.param_slots[implicit..].iter().zip(params).enumerate()
+                {
+                    if let Some(default) = &param.default {
+                        let provided = inner.alloc_slot();
+                        let fill = inner.new_label();
+                        let ready = inner.new_label();
+                        inner.emit(HirInstr::ParamProvided {
+                            dst: provided,
+                            index: index + implicit + usize::from(!capture_slots.is_empty()),
+                        });
+                        inner.emit(HirInstr::JumpIf {
+                            cond: provided,
+                            on_true: ready,
+                            on_false: fill,
+                        });
+                        inner.emit(HirInstr::Label(fill));
+                        let value = inner.lower_expr(default);
+                        inner.emit_copy(*slot, value);
+                        inner.emit(HirInstr::Jump(ready));
+                        inner.emit(HirInstr::Label(ready));
+                        // An explicit argument can have a different numeric kind
+                        // from the default of a dynamically typed parameter.
+                        inner.nums[*slot] = num_of_ann(&param.type_ann);
+                    }
+                    inner.emit_type_check(*slot, &param.type_ann, "dood");
                 }
                 for s in body_stmts {
                     inner.lower_stmt(s);
@@ -588,6 +620,7 @@ impl<'a> HirLowering<'a> {
                 HirFunction {
                     name: fm.name.clone(),
                     params: fm.param_slots.clone(),
+                    required_params: fm.required_params + implicit,
                     local_count: fm.local_count,
                     body: inner.body,
                     is_static: false,
@@ -1664,24 +1697,25 @@ fn type_ann_to_tag(ann: &TypeAnnotation) -> u8 {
 
 /// Collect function bodies in the same order as `sym.functions`.
 /// Nested functions are pushed before the function that contains them.
-fn collect_func_bodies(stmts: &[Stmt]) -> Vec<&[Stmt]> {
+fn collect_func_bodies(stmts: &[Stmt]) -> Vec<(&[Param], &[Stmt])> {
     let mut out = Vec::new();
     collect_funcs(stmts, &mut out);
     out
 }
 
-fn collect_funcs<'a>(stmts: &'a [Stmt], out: &mut Vec<&'a [Stmt]>) {
+fn collect_funcs<'a>(stmts: &'a [Stmt], out: &mut Vec<(&'a [Param], &'a [Stmt])>) {
     for s in stmts {
         collect_funcs_stmt(s, out);
     }
 }
 
-fn collect_funcs_stmt<'a>(stmt: &'a Stmt, out: &mut Vec<&'a [Stmt]>) {
+fn collect_funcs_stmt<'a>(stmt: &'a Stmt, out: &mut Vec<(&'a [Param], &'a [Stmt])>) {
     match stmt {
         Stmt::Located { stmt, .. } => collect_funcs_stmt(stmt, out),
-        Stmt::FuncDef { body, .. } => {
+        Stmt::FuncDef { params, body, .. } => {
+            collect_parameter_funcs(params, out);
             collect_funcs(body, out);
-            out.push(body);
+            out.push((params, body));
         }
         Stmt::ClassDef { body, .. } => collect_funcs(body, out),
         Stmt::VarDecl { value, .. } => collect_funcs_expr(value, out),
@@ -1759,7 +1793,7 @@ fn collect_funcs_stmt<'a>(stmt: &'a Stmt, out: &mut Vec<&'a [Stmt]>) {
     }
 }
 
-fn collect_funcs_expr<'a>(expr: &'a Expr, out: &mut Vec<&'a [Stmt]>) {
+fn collect_funcs_expr<'a>(expr: &'a Expr, out: &mut Vec<(&'a [Param], &'a [Stmt])>) {
     match expr {
         Expr::Located { expr, .. } => collect_funcs_expr(expr, out),
         Expr::Literal(_) | Expr::Identifier(_) => {}
@@ -1780,9 +1814,10 @@ fn collect_funcs_expr<'a>(expr: &'a Expr, out: &mut Vec<&'a [Stmt]>) {
                 collect_funcs_expr(arg, out);
             }
         }
-        Expr::AnonymousFunc { body, .. } => {
+        Expr::AnonymousFunc { params, body, .. } => {
+            collect_parameter_funcs(params, out);
             collect_funcs(body, out);
-            out.push(body);
+            out.push((params, body));
         }
         Expr::MethodCall { obj, args, .. } | Expr::Invoke { callee: obj, args } => {
             collect_funcs_expr(obj, out);
@@ -1809,6 +1844,14 @@ fn collect_funcs_expr<'a>(expr: &'a Expr, out: &mut Vec<&'a [Stmt]>) {
             for arg in args {
                 collect_funcs_expr(arg, out);
             }
+        }
+    }
+}
+
+fn collect_parameter_funcs<'a>(params: &'a [Param], out: &mut Vec<(&'a [Param], &'a [Stmt])>) {
+    for param in params {
+        if let Some(default) = &param.default {
+            collect_funcs_expr(default, out);
         }
     }
 }

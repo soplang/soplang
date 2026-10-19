@@ -137,3 +137,21 @@ The implementation is in [iterators.rs](../../src/runtime/iterators.rs), with
 ABI dispatch in [abi.rs](../../src/runtime/abi.rs). The [iteration reference](iteration.md)
 defines the public contracts and examples. Argument counts for `wareeg`, `xiga`,
 `tirso`, and `taxane` use the existing `Hawsha ... dood ...` templates.
+
+## Function defaults
+
+`Qiime hordhac ah` means a default value. A default is evaluated when its
+argument is omitted; it is not a declaration-time shared literal. The full
+[argument contract](function-arguments.md) describes ordering and scope.
+
+| Somali diagnostic | Meaning |
+| --- | --- |
+| `Doodda '{name}' mar hore ayaa lagu qeexay hawshan.` | The parameter name is duplicated. |
+| `Dood aan lahayn qiime hordhac ah ma raaci karto dood leh qiime hordhac ah.` | A required parameter follows an optional parameter. |
+| `Qiimaha hordhaca ahi ma adeegsan karo doodda '{name}' ka hor inta aan la diyaarin.` | A default refers to its own or a later parameter. |
+
+Argument-count messages keep their existing wording. Optional parameters change
+the count to an inclusive range, for example `1 ilaa 3 dood` (one to three
+arguments). Fixed-arity functions continue to report a single count. Existing
+type-mismatch, source-location, and structured-error wording also applies to
+default expressions.

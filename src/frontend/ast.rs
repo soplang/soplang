@@ -183,6 +183,9 @@ impl fmt::Display for Expr {
                         write!(f, ", ")?;
                     }
                     write!(f, "{}", p.name)?;
+                    if let Some(default) = &p.default {
+                        write!(f, " = {}", default)?;
+                    }
                 }
                 if return_ann != &TypeAnnotation::Dynamic {
                     write!(f, ") : {} {{ ... }}", type_annotation_name(return_ann))
@@ -249,11 +252,12 @@ fn type_annotation_name(ann: &TypeAnnotation) -> &str {
     }
 }
 
-/// Function parameter (name only for now).
+/// A required parameter or a value evaluated when the argument is omitted.
 #[derive(Debug, Clone)]
 pub struct Param {
     pub name: String,
     pub type_ann: TypeAnnotation,
+    pub default: Option<Expr>,
 }
 
 /// Statements (side effects; optional line for errors).
@@ -394,6 +398,9 @@ impl Stmt {
                         TypeAnnotation::Class(class) => class.clone(),
                     };
                     write!(f, "{} {}", param_ty, p.name)?;
+                    if let Some(default) = &p.default {
+                        write!(f, " = {}", default)?;
+                    }
                 }
                 let ret_ty = match return_ann {
                     TypeAnnotation::Dynamic => "door".to_string(),

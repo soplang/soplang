@@ -352,6 +352,7 @@ pub(super) struct ClassRegistryEntry {
 pub(super) struct CompiledFnEntry {
     ptr: *const u8,
     n_params: usize,
+    required_params: usize,
 }
 
 fn ensure_builtins() {
@@ -1533,7 +1534,7 @@ fn call_compiled_fn_value(
     entry: CompiledFnEntry,
     args: &[SoplangValue],
 ) -> Result<Value, SoplangError> {
-    let sv = call_compiled_fn(entry.ptr, entry.n_params, args.as_ptr(), args.len() as i32);
+    let sv = call_compiled_fn(entry, args.as_ptr(), args.len() as i32);
     soplang_to_value(sv)
 }
 
@@ -1557,12 +1558,12 @@ fn dispatch_instance_method(
     let entry = compiled_fn_entry(fn_idx)
         .ok_or_else(|| runtime_error(format!("Hawl '{}' lama diyaarin", method), 0, 0))?;
     let expected = entry.n_params.saturating_sub(1);
-    if args.len() != expected {
+    if args.len() < entry.required_params.saturating_sub(1) || args.len() > expected {
         return Err(type_error(
             format!(
                 "hawl '{}' waxay u baahan tahay {} dood, laakiin {} ayaa la bixiyay",
                 method,
-                expected,
+                crate::error::argument_count(entry.required_params.saturating_sub(1), expected),
                 args.len()
             ),
             0,
@@ -1615,12 +1616,12 @@ pub extern "C" fn soplang_new_instance(
     if let Some(fn_idx) = resolve_constructor_fn_index(&class_name) {
         if let Some(entry) = compiled_fn_entry(fn_idx) {
             let expected = entry.n_params.saturating_sub(1);
-            if user_args.len() != expected {
+            if user_args.len() < entry.required_params.saturating_sub(1) || user_args.len() > expected {
                 return handle_runtime_error(type_error(
                     format!(
                         "dhaw() ee qaabka '{}' wuxuu u baahan yahay {} dood, laakiin {} ayaa la bixiyay",
                         class_name,
-                        expected,
+                        crate::error::argument_count(entry.required_params.saturating_sub(1), expected),
                         user_args.len()
                     ),
                     0,
@@ -1773,29 +1774,41 @@ type CompiledEntry = extern "sysv64" fn(*const SoplangValue, usize) -> CompiledR
 #[cfg(not(all(target_os = "windows", target_arch = "x86_64")))]
 type CompiledEntry = extern "C" fn(*const SoplangValue, usize) -> CompiledReturn;
 
-fn call_compiled_fn(
-    ptr: *const u8,
-    n_params: usize,
-    args: *const SoplangValue,
-    n: i32,
-) -> SoplangValue {
-    if n < 0 || n as usize != n_params {
+fn call_compiled_fn(function: CompiledFnEntry, args: *const SoplangValue, n: i32) -> SoplangValue {
+    let CompiledFnEntry {
+        ptr,
+        n_params,
+        required_params,
+    } = function;
+    if n < 0 || (n as usize) < required_params || n as usize > n_params {
         return handle_runtime_error(type_error(
             format!(
                 "Hawshu waxay u baahan tahay {} dood, laakiin {} ayaa la bixiyay",
-                n_params,
+                crate::error::argument_count(required_params, n_params),
                 n.max(0)
             ),
             0,
             0,
         ));
     }
-    if ptr.is_null() || (n_params > 0 && args.is_null()) {
+    if ptr.is_null() || (n > 0 && args.is_null()) {
         return handle_runtime_error(runtime_error("Liiska doodaha hawsha ma saxna.", 0, 0));
     }
     // Both code generators expose one vector entry, independent of arity.
     let entry: CompiledEntry = unsafe { std::mem::transmute(ptr) };
-    let result = entry(args, n_params);
+    // Entry code loads every parameter slot; omitted slots are initialized but
+    // the original count tells the prologue which defaults to evaluate.
+    let mut padded = Vec::new();
+    let arguments = if (n as usize) < n_params {
+        if n > 0 {
+            padded.extend_from_slice(unsafe { std::slice::from_raw_parts(args, n as usize) });
+        }
+        padded.resize(n_params, SoplangValue::null());
+        padded.as_ptr()
+    } else {
+        args
+    };
+    let result = entry(arguments, n as usize);
     SoplangValue {
         tag: result.tag as u8,
         _pad: [0; 7],
@@ -2231,8 +2244,34 @@ pub extern "C" fn soplang_get_builtin(name: *const u8, len: usize) -> SoplangVal
 /// Register a compiled function pointer in the active runtime context.
 /// Returns an opaque handle for the payload of a TAG_FUNC value.
 pub fn register_compiled_fn(ptr: *const u8, n_params: usize) -> i64 {
+    register_compiled_fn_with_defaults(ptr, n_params, n_params)
+}
+
+/// Register a vector entry with a required positional prefix.
+pub fn register_compiled_fn_with_defaults(
+    ptr: *const u8,
+    n_params: usize,
+    required_params: usize,
+) -> i64 {
     ensure_builtins();
-    COMPILED_FN_TABLE.with(|table| table.borrow_mut().insert(CompiledFnEntry { ptr, n_params }))
+    COMPILED_FN_TABLE.with(|table| {
+        table.borrow_mut().insert(CompiledFnEntry {
+            ptr,
+            n_params,
+            required_params: required_params.min(n_params),
+        })
+    })
+}
+
+/// Configure an AOT function after registration, before it can be called.
+#[no_mangle]
+pub extern "C" fn soplang_set_fn_required(index: i64, required: usize) {
+    COMPILED_FN_TABLE.with(|table| {
+        let mut table = table.borrow_mut();
+        if let Some(entry) = table.get_mut(index) {
+            entry.required_params = required.min(entry.n_params);
+        }
+    });
 }
 
 /// Record an AOT function pointer under `name` so calls, methods, and closures can find it.
@@ -2352,18 +2391,18 @@ fn call_closure(callee: SoplangValue, args: *const SoplangValue, n: i32) -> Sopl
     let entry = compiled_fn_entry(data.fn_index);
     if let Some(entry) = entry {
         let expected = entry.n_params.saturating_sub(1);
-        if n < 0 || n as usize != expected {
+        if n < 0 || (n as usize) < entry.required_params.saturating_sub(1) || n as usize > expected {
             return handle_runtime_error(type_error(
                 format!(
                     "Hawshu waxay u baahan tahay {} dood, laakiin {} ayaa la bixiyay",
-                    expected,
+                    crate::error::argument_count(entry.required_params.saturating_sub(1), expected),
                     n.max(0)
                 ),
                 0,
                 0,
             ));
         }
-        call_compiled_fn(entry.ptr, entry.n_params, full.as_ptr(), full.len() as i32)
+        call_compiled_fn(entry, full.as_ptr(), full.len() as i32)
     } else {
         SoplangValue::null()
     }
@@ -2414,7 +2453,7 @@ pub extern "C" fn soplang_call(
     } else {
         let entry = compiled_fn_entry(callee.payload);
         if let Some(entry) = entry {
-            call_compiled_fn(entry.ptr, entry.n_params, args, n)
+            call_compiled_fn(entry, args, n)
         } else {
             SoplangValue::null()
         }

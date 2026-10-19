@@ -28,6 +28,7 @@ fn compilation_error(error: impl std::fmt::Display) -> SoplangError {
 struct CompiledFnInfo {
     name: String,
     n_params: usize,
+    required_params: usize,
     func_id: FuncId,
 }
 
@@ -173,7 +174,8 @@ fn max_slot_in_body(body: &[HirInstr]) -> usize {
     let mut mx = 0usize;
     for instr in body {
         match instr {
-            HirInstr::Const { dst, .. }
+            HirInstr::ParamProvided { dst, .. }
+            | HirInstr::Const { dst, .. }
             | HirInstr::Load { dst, .. }
             | HirInstr::Pop { dst }
             | HirInstr::BindError { dst }
@@ -388,7 +390,7 @@ impl CraneliftBackend {
         for fi in &self.compiled_fns[start..] {
             let ptr = self.module.get_finalized_function(fi.func_id);
             if !ptr.is_null() {
-                let idx = runtime::register_compiled_fn(ptr, fi.n_params);
+                let idx = runtime::register_compiled_fn_with_defaults(ptr, fi.n_params, fi.required_params);
                 let sv = runtime::SoplangValue {
                     tag: runtime::TAG_FUNC,
                     _pad: [0; 7],
@@ -437,6 +439,7 @@ impl CraneliftBackend {
             &fn_name_map,
             false,
             slot_nums,
+            None,
         )?;
 
         builder.seal_all_blocks();
@@ -516,6 +519,7 @@ impl CraneliftBackend {
             builder.def_var(var_pays[slot], payload);
         }
 
+        let builder_argument_count = builder.block_params(entry)[1];
         compile_body(
             &mut builder,
             &mut self.module,
@@ -526,6 +530,7 @@ impl CraneliftBackend {
             &fn_name_map,
             true,
             &f.local_nums,
+            Some(builder_argument_count),
         )?;
 
         builder.seal_all_blocks();
@@ -539,6 +544,7 @@ impl CraneliftBackend {
         self.compiled_fns.push(CompiledFnInfo {
             name: f.name.clone(),
             n_params: f.params.len() + env_params,
+            required_params: f.required_params + env_params,
             func_id: id,
         });
         self.module
@@ -577,6 +583,7 @@ fn compile_body(
     fn_name_map: &HashMap<String, usize>,
     is_function: bool,
     seed: &[SlotNum],
+    argument_count: Option<Value>,
 ) -> Result<(), SoplangError> {
     // Keep a tagged shadow of SSA slots visible to collection safepoints.
     let root_slot = builder.func.create_sized_stack_slot(StackSlotData::new(
@@ -651,6 +658,15 @@ fn compile_body(
                 terminated = false;
             }
 
+            HirInstr::ParamProvided { dst, index } => {
+                if terminated { continue; }
+                let count = argument_count.expect("parameter presence outside a function");
+                let present = builder.ins().icmp_imm(IntCC::UnsignedGreaterThan, count, *index as i64);
+                let payload = builder.ins().uextend(types::I64, present);
+                let tag = builder.ins().iconst(types::I64, runtime::TAG_BOOL as i64);
+                builder.def_var(var_tags[*dst], tag);
+                builder.def_var(var_pays[*dst], payload);
+            }
             HirInstr::Const { dst, val } => {
                 if terminated {
                     continue;

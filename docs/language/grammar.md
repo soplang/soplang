@@ -69,7 +69,7 @@ function_def     = "hawl" identifier function_tail .
 function_expr    = "hawl" function_tail .
 function_tail    = "(" [ parameters ] ")" [ ":" type ] "{" block "}" .
 parameters       = parameter { "," parameter } .
-parameter        = [ type ] identifier .
+parameter        = [ type ] identifier [ "=" expression ] .
 class_def        = "qaab" identifier [ "dhaxal" identifier ] "{"
                    { function_def }
                    "}" .
@@ -140,3 +140,7 @@ and the [iterator protocol](iteration.md). Numeric headers retain precedence
 when an existing expression beginning with a variable/call named `ku` forms a
 complete numeric loop header. Parenthesized collection expressions disambiguate
 that case.
+
+Required parameters precede parameters with defaults, and parameter names are
+unique. Defaults are evaluated at call time, from left to right; see
+[function arguments](function-arguments.md).

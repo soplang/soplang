@@ -20,6 +20,7 @@ pub struct SymbolTable {
     /// Globals carried in from a REPL session. Top-level uses load/store them
     /// instead of treating their old slots as locals of the new snippet.
     pub session_globals: HashSet<String>,
+    unavailable_parameters: Vec<(usize, HashSet<String>)>,
     pub class_spans: HashMap<String, crate::error::SourceSpan>,
 }
 
@@ -41,6 +42,7 @@ pub struct FunctionMeta {
     pub name: String,
     pub param_slots: Vec<usize>,
     pub param_types: Vec<TypeAnnotation>,
+    pub required_params: usize,
     pub return_ann: TypeAnnotation,
     pub local_count: usize,
     pub captures: Vec<String>,
@@ -147,6 +149,7 @@ pub struct AnalyzeOptions {
 #[derive(Debug, Clone)]
 struct FunctionSig {
     params: Vec<TypeAnnotation>,
+    required_params: usize,
     ret: TypeAnnotation,
 }
 
@@ -215,7 +218,10 @@ fn validate_control_flow(
                     ));
                 }
             }
-            Stmt::FuncDef { body, .. } => validate_control_flow(body, true, 0)?,
+            Stmt::FuncDef { params, body, .. } => {
+                validate_parameter_defaults(params)?;
+                validate_control_flow(body, true, 0)?;
+            }
             Stmt::ClassDef { body, .. } => validate_control_flow(body, false, 0)?,
             Stmt::If {
                 cond,
@@ -294,7 +300,10 @@ fn validate_control_flow(
 fn validate_control_expr(expr: &Expr) -> Result<(), SoplangError> {
     match expr {
         Expr::Located { span, expr } => validate_control_expr(expr).map_err(|e| span.attach(e)),
-        Expr::AnonymousFunc { body, .. } => validate_control_flow(body, true, 0),
+        Expr::AnonymousFunc { params, body, .. } => {
+            validate_parameter_defaults(params)?;
+            validate_control_flow(body, true, 0)
+        }
         Expr::BinaryOp { left, right, .. }
         | Expr::Index {
             obj: left,
@@ -665,6 +674,7 @@ fn analyze_stmt(
             for p in params {
                 ensure_known_class(sym, &p.type_ann)?;
             }
+            analyze_parameter_defaults(params, sym, opts, fn_sigs, current_class, Some(&fn_name))?;
             analyze_block(
                 body,
                 sym,
@@ -677,6 +687,11 @@ fn analyze_stmt(
             let mut captures = Vec::new();
             if enclosing_fn.is_some() {
                 captures = collect_captures(body, sym);
+                for param in params {
+                    if let Some(default) = &param.default {
+                        note_free_expr(default, sym, &mut captures);
+                    }
+                }
                 let nested: Vec<Vec<String>> = sym.functions[fns_before..]
                     .iter()
                     .map(|nf| nf.captures.clone())
@@ -715,6 +730,7 @@ fn analyze_stmt(
                 name: fn_name,
                 param_slots,
                 param_types: params.iter().map(|p| p.type_ann.clone()).collect(),
+                required_params: required_parameters(params),
                 return_ann: return_ann.clone(),
                 local_count,
                 captures,
@@ -1035,6 +1051,82 @@ fn analyze_stmt(
     Ok(())
 }
 
+fn required_parameters(params: &[Param]) -> usize {
+    params
+        .iter()
+        .take_while(|param| param.default.is_none())
+        .count()
+}
+
+fn validate_parameter_defaults(params: &[Param]) -> Result<(), SoplangError> {
+    for param in params {
+        if let Some(default) = &param.default {
+            validate_control_expr(default)?;
+        }
+    }
+    Ok(())
+}
+
+fn check_default_dependency(name: &str, sym: &SymbolTable) -> Result<(), SoplangError> {
+    let resolved = sym
+        .scopes
+        .iter()
+        .rposition(|scope| scope.vars.contains_key(name));
+    if sym
+        .unavailable_parameters
+        .iter()
+        .any(|(scope, names)| resolved == Some(*scope) && names.contains(name))
+    {
+        return Err(type_error_ex(
+            format!(
+                "Qiimaha hordhaca ahi ma adeegsan karo doodda '{}' ka hor inta aan la diyaarin.",
+                name
+            ),
+            0,
+            0,
+            ErrorMeta::default().with_code(codes::E022_TYPE_MISMATCH),
+        ));
+    }
+    Ok(())
+}
+
+fn analyze_parameter_defaults(
+    params: &[Param],
+    sym: &mut SymbolTable,
+    opts: &AnalyzeOptions,
+    fn_sigs: &HashMap<String, FunctionSig>,
+    current_class: Option<&str>,
+    enclosing_fn: Option<&str>,
+) -> Result<(), SoplangError> {
+    for (index, param) in params.iter().enumerate() {
+        let Some(default) = &param.default else {
+            continue;
+        };
+        sym.unavailable_parameters.push((
+            sym.scopes.len() - 1,
+            params[index..]
+                .iter()
+                .map(|param| param.name.clone())
+                .collect(),
+        ));
+        let result = analyze_expr(default, sym, opts, fn_sigs, current_class, enclosing_fn);
+        sym.unavailable_parameters.pop();
+        result?;
+        if param.type_ann != TypeAnnotation::Dynamic {
+            if let Some(found) = infer_expr_type(default, sym, fn_sigs) {
+                if !is_type_compatible(sym, &param.type_ann, &found) {
+                    let error = type_mismatch_error(&param.name, &param.type_ann, &found, 0, 0);
+                    return Err(match default {
+                        Expr::Located { span, .. } => span.attach(error),
+                        _ => error,
+                    });
+                }
+            }
+        }
+    }
+    Ok(())
+}
+
 fn analyze_expr(
     expr: &Expr,
     sym: &mut SymbolTable,
@@ -1050,6 +1142,7 @@ fn analyze_expr(
         }
         Expr::Literal(_) => {}
         Expr::Identifier(name) => {
+            check_default_dependency(name, sym)?;
             if name == "nafta" && current_class.is_none() {
                 return Err(type_error_ex(
                     "'nafta' waxaa loo isticmaali karaa gudaha hawlgallada qaabka kaliya",
@@ -1090,16 +1183,17 @@ fn analyze_expr(
             for arg in args { analyze_expr(arg, sym, opts, fn_sigs, current_class, enclosing_fn)?; }
         }
         Expr::Call { name, args } => {
+            check_default_dependency(name, sym)?;
             for a in args {
                 analyze_expr(a, sym, opts, fn_sigs, current_class, enclosing_fn)?;
             }
             if let Some(sig) = fn_sigs.get(name) {
-                if sig.params.len() != args.len() {
+                if args.len() < sig.required_params || args.len() > sig.params.len() {
                     return Err(type_error_ex(
                         format!(
                             "hawl '{}' waxay u baahan tahay {} dood, laakiin {} ayaa la bixiyay",
                             name,
-                            sig.params.len(),
+                            crate::error::argument_count(sig.required_params, sig.params.len()),
                             args.len()
                         ),
                         0,
@@ -1149,12 +1243,12 @@ fn analyze_expr(
                     })?;
                     let mangled = resolve_parent_method(sym, class, method)?;
                     if let Some(fm) = sym.functions.iter().find(|f| f.name == mangled) {
-                        if fm.param_types.len() != args.len() {
+                        if args.len() < fm.required_params || args.len() > fm.param_types.len() {
                             return Err(type_error_ex(
                                 format!(
                                     "hawl '{}' waxay u baahan tahay {} dood, laakiin {} ayaa la bixiyay",
                                     method,
-                                    fm.param_types.len(),
+                                    crate::error::argument_count(fm.required_params, fm.param_types.len()),
                                     args.len()
                                 ),
                                 0,
@@ -1228,12 +1322,12 @@ fn analyze_expr(
                 owner = class.parent.as_deref();
             }
             if let Some(sig) = constructor {
-                if sig.params.len() != args.len() {
+                if args.len() < sig.required_params || args.len() > sig.params.len() {
                     return Err(type_error_ex(
                         format!(
                             "dhaw() ee qaabka '{}' wuxuu u baahan yahay {} dood, laakiin {} ayaa la bixiyay",
                             class_name,
-                            sig.params.len(),
+                            crate::error::argument_count(sig.required_params, sig.params.len()),
                             args.len()
                         ),
                         0,
@@ -1360,6 +1454,7 @@ fn analyze_anonymous_function(
     for param in params {
         ensure_known_class(sym, &param.type_ann)?;
     }
+    analyze_parameter_defaults(params, sym, opts, fn_sigs, current_class, Some(&fn_name))?;
     analyze_block(
         body,
         sym,
@@ -1373,6 +1468,11 @@ fn analyze_anonymous_function(
     let mut captures = Vec::new();
     if sym.scopes.len() > 2 {
         captures = collect_captures(body, sym);
+        for param in params {
+            if let Some(default) = &param.default {
+                note_free_expr(default, sym, &mut captures);
+            }
+        }
         let nested: Vec<Vec<String>> = sym.functions[fns_before..]
             .iter()
             .map(|function| function.captures.clone())
@@ -1418,6 +1518,7 @@ fn analyze_anonymous_function(
         name: fn_name,
         param_slots,
         param_types: params.iter().map(|param| param.type_ann.clone()).collect(),
+        required_params: required_parameters(params),
         return_ann: return_ann.clone(),
         local_count: scope.vars.len(),
         captures,
@@ -1641,6 +1742,7 @@ fn collect_function_sigs_rec(
                     key,
                     FunctionSig {
                         params: params.iter().map(|p| p.type_ann.clone()).collect(),
+                        required_params: required_parameters(params),
                         ret: return_ann.clone(),
                     },
                 );

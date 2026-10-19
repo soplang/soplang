@@ -49,6 +49,12 @@ impl<T> HandleArena<T> {
         (*generation == id).then_some(value)
     }
 
+    pub fn get_mut(&mut self, id: i64) -> Option<&mut T> {
+        let slot = *self.indices.get(&id)?;
+        let (generation, value) = self.slots.get_mut(slot)?.as_mut()?;
+        (*generation == id).then_some(value)
+    }
+
     pub fn remove(&mut self, id: i64) -> Option<T> {
         let slot = self.indices.remove(&id)?;
         let (_, value) = self.slots[slot].take()?;

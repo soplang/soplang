@@ -282,3 +282,13 @@ shared cursors, exhaustion, failure, and native nesting limits. Shared JIT/LLVM
 fixtures exercise collection during protocol callbacks and partial zip rows;
 `tests/iteration_tests.rs` checks ownership, cycles, scoped borrows, parser/editor
 bindings, independent sessions, bounded heaps, and a small native stack.
+
+### Default-argument entries
+
+Compiled-function registration records required and total parameter counts.
+Runtime calls validate that range and pad omitted slots before entering code.
+The entry still receives the original supplied count, allowing its generated
+prologue to distinguish omission from an explicit null. Defaults are lowered
+from the original AST, including nested anonymous functions, and execute under
+the function's existing roots, captures, type checks, and error boundary.
+See [function arguments](../language/function-arguments.md).

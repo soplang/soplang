@@ -1,0 +1,10 @@
+hawl salaam(magac, hordhac = "Salaan") { celi f"{hordhac}, {magac}!" }
+qor(salaam("Ayaan"))
+qor(salaam("Cali", "Soo dhowow"))
+hawl samee(a, b = a + 1, c = b + 1) { celi [a, b, c] }
+qor(samee(4))
+hawl geli(qiime, waxyaabo = []) { waxyaabo.geli(qiime) celi waxyaabo }
+qor(geli(1))
+qor(geli(2))
+hawl qiyaas(jajab qiime = 2, qoraal nooca = nooc(qiime)): qoraal { celi nooca }
+qor(qiyaas())

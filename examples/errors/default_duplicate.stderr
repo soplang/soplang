@@ -1,0 +1,4 @@
+Khalad naxwe: Doodda 'a' mar hore ayaa lagu qeexay hawshan. safka 1, tiirka 17
+     --> examples/errors/default_duplicate.sop:1:17
+   1 │   hawl tijaabo(a, a = 2) {}
+     │                   ^
