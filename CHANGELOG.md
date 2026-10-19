@@ -27,6 +27,8 @@ All notable changes to this project will be documented in this file.
 
 * Integer arithmetic wraps consistently in native and dynamic execution, including minimum-value negation and remainder. Floating remainder preserves extreme magnitudes and signed zero. Numeric ranges retain exact integer bounds, stop before overflow, and report non-advancing floating-point steps.
 
+* JIT backends own immutable copies of HIR strings and source spans referenced by generated code. Embedding callers can discard compiler input safely; REPL snippets transfer to the same owner without duplicate retention.
+
 ## [3.0.1] - 2026-10-18
 
 ### Fixed

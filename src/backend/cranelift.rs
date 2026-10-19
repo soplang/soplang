@@ -1,6 +1,7 @@
 //! Cranelift JIT backend – compiles HIR to native code via Cranelift.
 
 use std::collections::HashMap;
+use std::rc::Rc;
 
 use cranelift::codegen::ir::{
     AbiParam, Block, InstBuilder, MemFlags, Signature, StackSlotData, StackSlotKind,
@@ -41,6 +42,8 @@ pub struct CraneliftBackend {
     registered_fns: usize,
     /// Unique suffix for Cranelift function declarations in this module.
     fn_seq: u32,
+    /// Generated code embeds pointers into these immutable, owned buffers.
+    retained_hirs: Vec<Rc<HirModule>>,
 }
 
 struct OwnedJitModule(Option<cranelift_jit::JITModule>);
@@ -290,6 +293,7 @@ impl CraneliftBackend {
             compiled_fns: Vec::new(),
             registered_fns: 0,
             fn_seq: 0,
+            retained_hirs: Vec::new(),
         })
     }
 
@@ -300,7 +304,7 @@ impl CraneliftBackend {
     ) -> Result<(), SoplangError> {
         let _scope = self.runtime.activate();
         runtime::clear_class_registry();
-        self.compile_new(hir)?;
+        self.compile_new(hir.clone())?;
         runtime::register_classes_from_sym(&sym.classes);
         Ok(())
     }
@@ -311,13 +315,29 @@ impl CraneliftBackend {
         hir: &HirModule,
         sym: &SymbolTable,
     ) -> Result<(), SoplangError> {
+        self.compile_incremental_owned(hir.clone(), sym)
+    }
+
+    pub(crate) fn compile_incremental_owned(
+        &mut self,
+        hir: HirModule,
+        sym: &SymbolTable,
+    ) -> Result<(), SoplangError> {
         let _scope = self.runtime.activate();
         self.compile_new(hir)?;
         runtime::merge_classes_from_sym(&sym.classes);
         Ok(())
     }
 
-    fn compile_new(&mut self, hir: &HirModule) -> Result<(), SoplangError> {
+    fn compile_new(&mut self, hir: HirModule) -> Result<(), SoplangError> {
+        let hir = Rc::new(hir);
+        // Retain before compiling: even a partial failure or Rust unwind may
+        // leave an earlier function with pointers into this input.
+        self.retained_hirs.push(Rc::clone(&hir));
+        self.compile_retained(&hir)
+    }
+
+    fn compile_retained(&mut self, hir: &HirModule) -> Result<(), SoplangError> {
         for f in hir.functions.iter() {
             self.compile_function(f)?;
         }

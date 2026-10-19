@@ -13,8 +13,6 @@ pub struct ReplSession {
     backend: CraneliftBackend,
     globals: HashMap<String, VarInfo>,
     classes: HashMap<String, ClassMeta>,
-    /// Compiled snippets. Name pointers baked into JIT code point into these modules.
-    hirs: Vec<Box<crate::hir::HirModule>>,
     strict: bool,
 }
 
@@ -24,7 +22,6 @@ impl ReplSession {
             backend: CraneliftBackend::new()?,
             globals: HashMap::new(),
             classes: HashMap::new(),
-            hirs: Vec::new(),
             strict,
         })
     }
@@ -47,10 +44,7 @@ impl ReplSession {
             },
         )?;
         let hir = HirLowering::lower(&sym, &stmts);
-        let boxed = Box::new(hir);
-        let compiled = self.backend.compile_incremental(&boxed, &sym);
-        self.hirs.push(boxed);
-        compiled?;
+        self.backend.compile_incremental_owned(hir, &sym)?;
         let result = self.backend.run_main();
         self.remember(&sym);
         result

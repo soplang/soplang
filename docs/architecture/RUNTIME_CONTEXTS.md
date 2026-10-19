@@ -171,8 +171,13 @@ of recorded allocation volume. Subsequent intervals grow with the live set.
 The byte count is an estimate, not a process-memory quota. `collect()` and
 `memory_stats()` are available on runtime contexts, JIT backends, and REPL
 sessions. Counts cover managed values; compiler metadata and retained JIT code
-are separate allocations. A REPL retains compiled snippets for the lifetime
-of its session.
+are separate allocations. The JIT backend retains immutable HIR buffers for
+its lifetime because generated code embeds pointers to their strings and source
+spans. Public borrowed compilation APIs copy input into the backend; callers may
+modify or drop their original HIR after compilation. The REPL transfers each
+snippet into the same owner without retaining a second copy. Buffers remain
+owned even when compilation fails partway through. Dropping the backend frees
+code before these buffers.
 
 ## Rust roots and owner lifetimes
 
@@ -225,3 +230,8 @@ cyclic teardown, and bounded REPL heaps across successful and failed snippets.
 A shared JIT/LLVM stress program exercises cyclic lists, objects, closures,
 repeated errors, and native callbacks that mutate their source collection.
 The same program runs against optimized Rust runtimes in both backends.
+
+`tests/jit_input_ownership.rs` mutates compiler input after compilation, drops
+original modules, grows incremental storage, and invokes older functions.
+Literal values, format descriptors, function names, and diagnostic source text
+must remain unchanged.
