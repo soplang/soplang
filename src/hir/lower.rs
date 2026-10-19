@@ -1296,6 +1296,13 @@ impl<'a> HirLowering<'a> {
                 });
                 dst
             }
+            Expr::Invoke { callee, args } => {
+                let callee = self.lower_expr(callee);
+                let args = args.iter().map(|arg| self.lower_expr(arg)).collect();
+                let dst = self.alloc_slot();
+                self.emit(HirInstr::Call { dst, callee, args });
+                dst
+            }
             Expr::AnonymousFunc { .. } => {
                 let dst = self.alloc_slot();
                 let key = expr as *const Expr as usize;
@@ -1533,7 +1540,7 @@ fn collect_funcs_expr<'a>(expr: &'a Expr, out: &mut Vec<&'a [Stmt]>) {
             collect_funcs(body, out);
             out.push(body);
         }
-        Expr::MethodCall { obj, args, .. } => {
+        Expr::MethodCall { obj, args, .. } | Expr::Invoke { callee: obj, args } => {
             collect_funcs_expr(obj, out);
             for arg in args {
                 collect_funcs_expr(arg, out);

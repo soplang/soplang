@@ -59,6 +59,32 @@ haddii (da < 18) {
 | `hawl`  | Function declaration | `function`          | `hawl isuGee(a, b) { celi a + b }` |
 | `celi`  | Return statement     | `return`            | `celi x * 2`                       |
 
+Functions have fixed argument counts, checked before invocation. Compiled
+functions, methods, constructors, and captured closures support signatures
+with more than eight arguments. Implicit instance and capture values do not
+reduce the number of user arguments available.
+
+Any expression that produces a function or closure can be called:
+
+```soplang
+hawl samee(bilow) { celi hawl(x) { celi bilow + x } }
+door hawlo = [samee(2)]
+qor(samee(1)(2))
+qor(hawlo[0](3))
+qor((hawl(x) { celi x * 2 })(4))
+```
+
+The callee is evaluated before its arguments, which are evaluated from left
+to right. A failed callee or argument stops the call. A chained call suffix
+starts on the same line as the expression it invokes; its argument list may
+span lines. This keeps a parenthesized statement on the next line independent.
+
+Objects and instances can hold callable fields. `object.callback(args)` calls
+such a field when no built-in object method or declared class method has that
+name. Indexed calls such as `object["callback"](args)` invoke the stored value
+directly. Stored functions receive the explicitly supplied arguments; only
+declared class methods receive an implicit instance.
+
 ## Special Values
 
 | Somali Value | English Equivalent | Description         | Example                  |

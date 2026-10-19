@@ -625,3 +625,11 @@ fn test_structured_errors_and_causes() {
         "structured errors ok\n"
     );
 }
+
+#[test]
+fn test_wide_calls_and_callable_expressions() {
+    assert_eq!(
+        run_program(include_str!("fixtures/callable_expressions.sop")),
+        "callable expressions ok\n"
+    );
+}

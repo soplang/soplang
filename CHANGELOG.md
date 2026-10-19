@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file.
 * Recoverable execution boundaries return uncaught runtime errors to Rust callers and the REPL. Failed expressions stop before later arguments or side effects run, while standalone programs retain Somali diagnostics and unsuccessful exit status.
 * Contextual `tuur` raises error messages. `dhammee` guarantees cleanup after protected blocks, handlers, returns, and loop exits in both compiler backends.
 * Immutable `khalad` values retain error codes, causes, source locations, and compiled function traces. Optional `qabo (fariin, xog)` exposes these details while existing catches keep receiving text. Cleanup failures preserve the original error as their cause.
+* Compiled functions, closures, constructors, and methods accept more than eight arguments through a shared argument-vector ABI. Returned and indexed functions can be invoked directly, including callable object fields. LLVM reuses argument buffers inside loops.
 
 ## [3.0.1] - 2026-10-18
 

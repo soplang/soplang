@@ -262,6 +262,9 @@ impl Parser {
             TokenType::Dooro => return self.parse_switch(line, col),
             TokenType::Door => return self.parse_var_decl(false, false, line, col),
             TokenType::Madoor => return self.parse_madoor(line, col),
+            TokenType::Hawl if self.peek_nth(1).kind == TokenType::LParen => {
+                return Ok(Stmt::Expr(self.parse_logical()?));
+            }
             TokenType::Hawl => return self.parse_func_def(),
             TokenType::Celi => return self.parse_return(),
             TokenType::Qor => return self.parse_qor_statement(line, col),
@@ -279,6 +282,15 @@ impl Parser {
             TokenType::Fasax => return self.parse_try_catch(line, col),
             TokenType::Keen => return self.parse_import(),
             TokenType::Qaab => return self.parse_class_def(),
+            TokenType::LParen
+            | TokenType::LBracket
+            | TokenType::Number
+            | TokenType::String
+            | TokenType::True
+            | TokenType::False
+            | TokenType::Null => {
+                return Ok(Stmt::Expr(self.parse_logical()?));
+            }
             TokenType::LBrace => return self.parse_block(),
             TokenType::Identifier if self.looks_like_class_decl() => {
                 let class_name = self.peek().lexeme.clone();
@@ -294,6 +306,20 @@ impl Parser {
                 return self.parse_identifier_stmt(line, col)
             }
             _ => {}
+        }
+
+        if self.peek_nth(1).kind == TokenType::LParen
+            && matches!(
+                t.kind,
+                TokenType::Abn
+                    | TokenType::Jajab
+                    | TokenType::Qoraal
+                    | TokenType::Bool
+                    | TokenType::Teed
+                    | TokenType::Walax
+            )
+        {
+            return Ok(Stmt::Expr(self.parse_logical()?));
         }
 
         // Static type keywords
@@ -543,10 +569,7 @@ impl Parser {
         _line: usize,
         _col: usize,
     ) -> Result<Stmt, SoplangError> {
-        let name = self.peek().lexeme.clone();
-        self.advance(); // gelin or similar
-        let call = self.parse_call_rest(name)?;
-        Ok(Stmt::Expr(call))
+        Ok(Stmt::Expr(self.parse_logical()?))
     }
 
     fn parse_if(&mut self, _line: usize, _col: usize) -> Result<Stmt, SoplangError> {
@@ -820,58 +843,18 @@ impl Parser {
     }
 
     fn parse_identifier_stmt(&mut self, line: usize, col: usize) -> Result<Stmt, SoplangError> {
-        let name = match &self.peek().kind {
-            TokenType::Nafta => "nafta".to_string(),
-            TokenType::Waalid => "waalid".to_string(),
-            _ => self.peek().lexeme.clone(),
-        };
-        self.advance();
-
-        // Chain of .prop and [index] - then maybe = expr
-        let marker = self.tokens[self.current - 1].clone();
-        let mut left = self.locate(Expr::Identifier(name), &marker);
-
-        while self.check(TokenType::Dot) || self.check(TokenType::LBracket) {
-            if self.check(TokenType::Dot) {
-                self.advance();
-                let marker = self.peek().clone();
-                let prop = self.expect_member_name()?;
-                if self.check(TokenType::LParen) {
-                    self.expect(TokenType::LParen)?; // consume '('
-                    let args = self.parse_call_args()?;
-                    left = self.locate(
-                        Expr::MethodCall {
-                            obj: Box::new(left),
-                            method: prop,
-                            args,
-                        },
-                        &marker,
-                    );
-                } else {
-                    left = self.locate(
-                        Expr::Property {
-                            obj: Box::new(left),
-                            prop,
-                        },
-                        &marker,
-                    );
-                }
-            } else {
-                let marker = self.peek().clone();
-                self.advance(); // [
-                let idx = self.parse_logical()?;
-                self.expect(TokenType::RBracket)?;
-                left = self.locate(
-                    Expr::Index {
-                        obj: Box::new(left),
-                        idx: Box::new(idx),
-                    },
-                    &marker,
-                );
-            }
-        }
-
+        let left = self.parse_logical()?;
         if self.check(TokenType::Assign) {
+            if !matches!(
+                left.unlocated(),
+                Expr::Identifier(_) | Expr::Index { .. } | Expr::Property { .. }
+            ) {
+                return Err(parser_error(
+                    "Meesha qiime lagu qorayo waa inay noqotaa doorsame, tusmo ama sifo.",
+                    line,
+                    col,
+                ));
+            }
             self.advance();
             let value = self.parse_logical()?;
             return Ok(Stmt::Assign {
@@ -881,20 +864,6 @@ impl Parser {
                 col,
             });
         }
-
-        if self.check(TokenType::LParen) {
-            self.expect(TokenType::LParen)?; // consume '('
-            let args = self.parse_call_args()?;
-            let call = Expr::Call {
-                name: match left.unlocated() {
-                    Expr::Identifier(n) => n.clone(),
-                    _ => return Err(parser_error("Waxaa la filayay magac hawl", line, col)),
-                },
-                args,
-            };
-            return Ok(Stmt::Expr(self.locate(call, &marker)));
-        }
-
         Ok(Stmt::Expr(left))
     }
 
@@ -1119,6 +1088,19 @@ impl Parser {
                     Expr::Index {
                         obj: Box::new(expr),
                         idx: Box::new(idx),
+                    },
+                    &marker,
+                );
+            } else if self.check(TokenType::LParen)
+                && self.tokens[self.current - 1].line == self.peek().line
+            {
+                let marker = self.peek().clone();
+                self.advance();
+                let args = self.parse_call_args()?;
+                expr = self.locate(
+                    Expr::Invoke {
+                        callee: Box::new(expr),
+                        args,
                     },
                     &marker,
                 );

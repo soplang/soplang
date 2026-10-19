@@ -424,10 +424,8 @@ impl CraneliftBackend {
         let has_env = !f.capture_slots.is_empty();
         let env_params = if has_env { 1 } else { 0 };
         let mut sig = Signature::new(CallConv::SystemV);
-        for _ in 0..(f.params.len() + env_params) {
-            sig.params.push(AbiParam::new(types::I64));
-            sig.params.push(AbiParam::new(types::I64));
-        }
+        sig.params.push(AbiParam::new(types::I64)); // tagged argument vector
+        sig.params.push(AbiParam::new(types::I64)); // number of values
         sig.returns.push(AbiParam::new(types::I64));
         sig.returns.push(AbiParam::new(types::I64));
 
@@ -454,9 +452,9 @@ impl CraneliftBackend {
         let name_ptr = builder.ins().iconst(types::I64, f.name.as_ptr() as i64);
         let name_len = builder.ins().iconst(types::I64, f.name.len() as i64);
         call_rt_void(&mut builder, &mut self.module, "soplang_enter_function", &[name_ptr, name_len])?;
-        let params = builder.block_params(entry).to_vec();
+        let arguments = builder.block_params(entry)[0];
         if has_env {
-            let env_ptr = params[1];
+            let env_ptr = builder.ins().load(types::I64, MemFlags::trusted(), arguments, 8);
             for (i, &slot) in f.capture_slots.iter().enumerate() {
                 let idx = builder.ins().iconst(types::I64, i as i64);
                 let (t, p) = call_rt(
@@ -470,9 +468,12 @@ impl CraneliftBackend {
             }
         }
         for (i, &slot) in f.params.iter().enumerate() {
-            let base = (env_params + i) * 2;
-            builder.def_var(var_tags[slot], params[base]);
-            builder.def_var(var_pays[slot], params[base + 1]);
+            let offset = ((env_params + i) * 16) as i32;
+            let tag = builder.ins().load(types::I8, MemFlags::trusted(), arguments, offset);
+            let tag = builder.ins().uextend(types::I64, tag);
+            let payload = builder.ins().load(types::I64, MemFlags::trusted(), arguments, offset + 8);
+            builder.def_var(var_tags[slot], tag);
+            builder.def_var(var_pays[slot], payload);
         }
 
         compile_body(
@@ -585,6 +586,7 @@ fn compile_body(
             }
 
             HirInstr::Label(id) => {
+                slot_compiled_fn.clear();
                 let blk = block_map[id];
                 if !terminated {
                     builder.ins().jump(blk, &[]);
@@ -847,13 +849,10 @@ fn compile_body(
                     .filter(|&idx| args.len() == compiled_fns[idx].n_params);
                 if let Some(fn_idx) = direct_fn {
                     let fi = &compiled_fns[fn_idx];
-                    let mut call_args = Vec::new();
-                    for a in args {
-                        call_args.push(builder.use_var(var_tags[*a]));
-                        call_args.push(builder.use_var(var_pays[*a]));
-                    }
-                    let (dt, dp) =
-                        emit_direct_call(builder, module, &fi.func_id, fi.n_params, &call_args)?;
+                    let args: Vec<(Value, Value)> = args.iter()
+                        .map(|slot| (builder.use_var(var_tags[*slot]), builder.use_var(var_pays[*slot])))
+                        .collect();
+                    let (dt, dp) = emit_direct_call(builder, module, &fi.func_id, &args)?;
                     builder.def_var(var_tags[*dst], dt);
                     builder.def_var(var_pays[*dst], dp);
                 } else {
@@ -1416,20 +1415,34 @@ fn emit_direct_call(
     builder: &mut FunctionBuilder,
     module: &mut cranelift_jit::JITModule,
     func_id: &FuncId,
-    n_params: usize,
-    args: &[Value],
+    args: &[(Value, Value)],
 ) -> Result<(Value, Value), SoplangError> {
-    let mut sig = Signature::new(CallConv::SystemV);
-    for _ in 0..n_params {
-        sig.params.push(AbiParam::new(types::I64));
-        sig.params.push(AbiParam::new(types::I64));
-    }
-    sig.returns.push(AbiParam::new(types::I64));
-    sig.returns.push(AbiParam::new(types::I64));
+    let pointer = emit_arg_vector(builder, args);
+    let count = builder.ins().iconst(types::I64, args.len() as i64);
     let fref = declare_jit_function(module, *func_id, builder.func);
-    let call = builder.ins().call(fref, args);
-    let r = builder.inst_results(call);
-    Ok((r[0], r[1]))
+    let call = builder.ins().call(fref, &[pointer, count]);
+    let result = builder.inst_results(call);
+    Ok((result[0], result[1]))
+}
+
+fn emit_arg_vector(builder: &mut FunctionBuilder, args: &[(Value, Value)]) -> Value {
+    if args.is_empty() {
+        return builder.ins().iconst(types::I64, 0);
+    }
+    let slot = builder.func.create_sized_stack_slot(StackSlotData::new(
+        StackSlotKind::ExplicitSlot,
+        (args.len() * 16) as u32,
+        3,
+    ));
+    let base = builder.ins().stack_addr(types::I64, slot, 0);
+    for (index, (tag, payload)) in args.iter().enumerate() {
+        let offset = (index * 16) as i32;
+        builder.ins().store(MemFlags::trusted(), *tag, base, offset);
+        builder
+            .ins()
+            .store(MemFlags::trusted(), *payload, base, offset + 8);
+    }
+    base
 }
 
 fn emit_make_closure(

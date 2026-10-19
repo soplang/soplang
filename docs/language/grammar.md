@@ -16,6 +16,7 @@ statement        = declaration
                  | for_stmt
                  | while_stmt
                  | try_catch
+                 | throw_stmt
                  | return_stmt
                  | import_stmt
                  | "jooji"
@@ -84,7 +85,7 @@ comparison       = additive { ( "==" | "!=" | ">" | "<" | ">=" | "<=" ) additive
 additive         = multiplicative { ( "+" | "-" ) multiplicative } .
 multiplicative   = unary { ( "*" | "/" | "%" ) unary } .
 unary            = [ "!" | "+" | "-" ] postfix .
-postfix          = primary { member | method_call | subscript } .
+postfix          = primary { member | method_call | subscript | call_suffix } .
 primary          = literal
                  | identifier
                  | call
@@ -94,6 +95,7 @@ primary          = literal
                  | function_expr
                  | "(" expression ")" .
 call             = identifier "(" [ arguments ] ")" .
+call_suffix      = "(" [ arguments ] ")" .
 method_call      = member "(" [ arguments ] ")" .
 member           = "." ( identifier | "kuceli" ) .
 subscript        = "[" expression "]" .

@@ -5,7 +5,7 @@ use std::path::PathBuf;
 use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use soplang::backend::llvm_ir::{emit_llvm_ir, link_llvm_binary};
+use soplang::backend::llvm_ir::{emit_llvm_ir, link_llvm_binary, link_llvm_binary_with_opt};
 use soplang::{analyze, HirLowering, Lexer, Parser};
 
 fn temp_bin(name: &str) -> PathBuf {
@@ -71,13 +71,17 @@ fn test_llvm_ir_prints_without_run_source() {
 }
 
 fn run_llvm(name: &str, source: &str) -> String {
+    run_llvm_with_opt(name, source, 2)
+}
+
+fn run_llvm_with_opt(name: &str, source: &str, opt: u8) -> String {
     let stmts = soplang::frontend::parse_source(source, None).expect("parse");
     let sym = analyze(&stmts).expect("analyze");
     let hir = HirLowering::lower(&sym, &stmts);
     let ir = emit_llvm_ir(&hir, &sym).unwrap_or_else(|e| panic!("{e}"));
     assert!(!ir.contains("run_source"));
     let bin = temp_bin(name);
-    link_llvm_binary(&ir, &bin).unwrap_or_else(|e| panic!("{e}"));
+    link_llvm_binary_with_opt(&ir, &bin, opt).unwrap_or_else(|e| panic!("{e}"));
     let out = Command::new(&bin).output().expect("run llvm binary");
     let stdout = String::from_utf8(out.stdout).expect("utf8");
     let stderr = String::from_utf8_lossy(&out.stderr);
@@ -548,5 +552,35 @@ fn test_llvm_structured_errors_and_causes() {
             include_str!("fixtures/structured_errors.sop")
         ),
         "structured errors ok\n"
+    );
+}
+
+#[test]
+fn test_llvm_wide_calls_and_callable_expressions() {
+    assert_eq!(
+        run_llvm(
+            "callable_expressions",
+            include_str!("fixtures/callable_expressions.sop")
+        ),
+        "callable expressions ok\n"
+    );
+}
+
+#[test]
+fn test_llvm_argument_buffers_stay_bounded_in_loops() {
+    let source = r#"
+        hawl last(a,b,c,d,e,f,g,h,i,j,k,l) { celi l }
+        abn index = 0
+        intay (index < 100000) {
+            last(1,2,3,4,5,6,7,8,9,10,11,12)
+            index = index + 1
+        }
+        qor(index)
+    "#;
+    // Disable LLVM optimizations: fixed argument buffers must remain bounded
+    // through code generation itself, including in debug native executables.
+    assert_eq!(
+        run_llvm_with_opt("bounded_call_buffers", source, 0),
+        "100000\n"
     );
 }

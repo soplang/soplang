@@ -39,6 +39,11 @@ language's error behavior. Documentation explanations remain in English.
 | `Raadka wicitaannada:` | Call trace heading. |
 | `Sababta:` | Cause heading. |
 | `Sababaha kale waa la soo gaabiyey.` | Additional causes have been truncated for bounded rendering. |
+| `Liiska doodaha hawsha ma saxna.` | The compiled call's argument vector is invalid. |
+| `Meesha qiime lagu qorayo waa inay noqotaa doorsame, tusmo ama sifo.` | An assignment target must be a variable, indexed item, or property. |
+
+The former diagnostics limiting compiled functions to eight ABI values have
+been removed. Argument counts are still validated against each signature.
 
 `khalad()` also uses the existing argument-count template:
 

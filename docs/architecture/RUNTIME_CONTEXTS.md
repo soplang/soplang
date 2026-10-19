@@ -95,6 +95,24 @@ outer boundary, so embedding applications can choose how to report failures.
 
 ## Allocation lifetime
 
+### Compiled call representation
+
+User functions in both backends receive a pointer to a contiguous array of
+16-byte tagged values and its length. The runtime checks argument counts before
+indirect calls. Known direct calls use the same representation. This removes
+the earlier eight-value ABI limit for functions, methods, and closures.
+Method calls prepend the instance; captured closures prepend their environment
+handle. These implicit values no longer reduce the available user arguments.
+
+Argument vectors belong to the caller and remain valid for the duration of the
+call. Callees copy parameters and captured values into their own slots rather
+than retaining vector pointers. LLVM allocates fixed scratch buffers once at
+function entry; loops overwrite those buffers instead of growing the stack.
+Cranelift uses fixed stack slots for the same purpose. The tagged value layout
+and platform return bridges remain unchanged.
+
+### Runtime allocations
+
 Closure environments are held in the context instead of leaked with
 `Box::leak`. Their identities are looked up in the active context before a
 capture is read or a closure is called. Capture lookup does not dereference

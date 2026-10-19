@@ -61,6 +61,11 @@ pub enum Expr {
         name: String,
         args: Vec<Expr>,
     },
+    /// Invoke any callable expression, including a returned closure.
+    Invoke {
+        callee: Box<Expr>,
+        args: Vec<Expr>,
+    },
     /// Anonymous function expression: hawl(params) { body }
     AnonymousFunc {
         params: Vec<Param>,
@@ -118,6 +123,16 @@ impl fmt::Display for Expr {
                         write!(f, ", ")?;
                     }
                     write!(f, "{}", a)?;
+                }
+                write!(f, ")")
+            }
+            Expr::Invoke { callee, args } => {
+                write!(f, "({})(", callee)?;
+                for (index, arg) in args.iter().enumerate() {
+                    if index > 0 {
+                        write!(f, ", ")?;
+                    }
+                    write!(f, "{}", arg)?;
                 }
                 write!(f, ")")
             }

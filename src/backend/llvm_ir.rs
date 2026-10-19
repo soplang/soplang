@@ -113,6 +113,8 @@ struct FnEmit<'a> {
     slot_fn: HashMap<usize, usize>,
     is_main: bool,
     cont: usize,
+    allocation_point: usize,
+    entry_allocas: String,
 }
 
 pub fn emit_llvm_ir(hir: &HirModule, sym: &SymbolTable) -> Result<String, SoplangError> {
@@ -579,7 +581,6 @@ fn emit_function(
     let info = &fns[by_name[&f.name]];
     let has_env = info.has_env;
     let llvm_name = info.llvm_name.clone();
-    let n_params = info.n_params;
     let cap = f
         .capture_slots
         .iter()
@@ -593,17 +594,11 @@ fn emit_function(
             .max(f.params.iter().copied().max().map(|s| s + 1).unwrap_or(0))
             .max(cap),
     );
-    let mut args = String::new();
-    for i in 0..n_params {
-        if i > 0 {
-            args.push_str(", ");
-        }
-        args.push_str(&format!("%SoplangValue %a{i}"));
-    }
     m.body.push_str(&format!(
-        "define %SoplangValue @{}({args}) {{\nentry:\n",
+        "define %SoplangValue @{}(ptr %args, i64 %nargs) {{\nentry:\n",
         llvm_name
     ));
+    let allocation_point = m.body.len();
     let mut emit = FnEmit {
         m,
         fns,
@@ -615,13 +610,17 @@ fn emit_function(
         slot_fn: HashMap::new(),
         is_main: false,
         cont: 0,
+        allocation_point,
+        entry_allocas: String::new(),
     };
     emit.alloc_slots();
     let (name_ptr, name_len) = emit.str_ptr(&f.name);
-    emit.line(format!("  call void @soplang_enter_function(ptr {name_ptr}, i64 {name_len})"));
+    emit.line(format!(
+        "  call void @soplang_enter_function(ptr {name_ptr}, i64 {name_len})"
+    ));
     let user_base = if has_env {
-        let env_pay = emit.fresh();
-        emit.line(format!("  {env_pay} = extractvalue %SoplangValue %a0, 1"));
+        let environment = emit.load_argument(0);
+        let (_, env_pay) = emit.unpack(&environment);
         for (i, &slot) in f.capture_slots.iter().enumerate() {
             let sv = emit.call_sv("soplang_capture_get", &format!("i64 {env_pay}, i64 {i}"));
             emit.unpack_store(&sv, slot);
@@ -631,9 +630,11 @@ fn emit_function(
         0
     };
     for (i, &slot) in f.params.iter().enumerate() {
-        emit.unpack_store(&format!("%a{}", user_base + i), slot);
+        let value = emit.load_argument(user_base + i);
+        emit.unpack_store(&value, slot);
     }
     emit.body(&f.body)?;
+    emit.flush_allocas();
     emit.m.body.push_str("}\n\n");
     Ok(())
 }
@@ -647,6 +648,7 @@ fn emit_main(
 ) -> Result<(), SoplangError> {
     let nslots = slots_needed(&hir.top_level, 0);
     m.body.push_str("define i32 @main() {\nentry:\n");
+    let allocation_point = m.body.len();
     let mut emit = FnEmit {
         m,
         fns,
@@ -658,10 +660,13 @@ fn emit_main(
         slot_fn: HashMap::new(),
         is_main: true,
         cont: 0,
+        allocation_point,
+        entry_allocas: String::new(),
     };
     emit.alloc_slots();
     emit.register_runtime(&hir.functions, sym);
     emit.body(&hir.top_level)?;
+    emit.flush_allocas();
     emit.m.body.push_str("}\n");
     Ok(())
 }
@@ -688,6 +693,24 @@ impl<'a> FnEmit<'a> {
         let n = self.tmp;
         self.tmp += 1;
         format!("%v{n}")
+    }
+
+    fn flush_allocas(&mut self) {
+        self.m
+            .body
+            .insert_str(self.allocation_point, &self.entry_allocas);
+    }
+
+    fn load_argument(&mut self, index: usize) -> String {
+        let pointer = self.fresh();
+        let value = self.fresh();
+        self.line(format!(
+            "  {pointer} = getelementptr inbounds %SoplangValue, ptr %args, i64 {index}"
+        ));
+        self.line(format!(
+            "  {value} = load %SoplangValue, ptr {pointer}, align 8"
+        ));
+        value
     }
 
     fn alloc_slots(&mut self) {
@@ -763,7 +786,9 @@ impl<'a> FnEmit<'a> {
         }
         let n = slots.len();
         let buf = self.fresh();
-        self.line(format!("  {buf} = alloca [{n} x %SoplangValue], align 8"));
+        self.entry_allocas.push_str(&format!(
+            "  {buf} = alloca [{n} x %SoplangValue], align 8\n"
+        ));
         for (i, &slot) in slots.iter().enumerate() {
             let (t, p) = self.load_slot(slot);
             let sv = self.pack(&t, &p);
@@ -828,6 +853,7 @@ impl<'a> FnEmit<'a> {
         let mut terminated = false;
         for instr in body {
             if let HirInstr::Label(id) = instr {
+                self.slot_fn.clear();
                 if !terminated {
                     self.line(format!("  br label %L{id}"));
                 }
@@ -1017,28 +1043,9 @@ impl<'a> FnEmit<'a> {
                     .filter(|&idx| args.len() == self.fns[idx].n_params);
                 if let Some(idx) = direct_fn {
                     let llvm_name = self.fns[idx].llvm_name.clone();
-                    let n_params = self.fns[idx].n_params;
-                    let mut parts = Vec::new();
-                    for i in 0..n_params {
-                        if i < args.len() {
-                            let (t, p) = self.load_slot(args[i]);
-                            parts.push(self.pack(&t, &p));
-                        } else {
-                            parts.push("zeroinitializer".to_string());
-                        }
-                    }
-                    let arg_s = parts
-                        .iter()
-                        .map(|p| {
-                            if p == "zeroinitializer" {
-                                "%SoplangValue zeroinitializer".to_string()
-                            } else {
-                                format!("%SoplangValue {p}")
-                            }
-                        })
-                        .collect::<Vec<_>>()
-                        .join(", ");
-                    let sv = self.call_sv(&llvm_name, &arg_s);
+                    let buffer = self.value_buf(args);
+                    let count = args.len();
+                    let sv = self.call_sv(&llvm_name, &format!("ptr {buffer}, i64 {count}"));
                     self.unpack_store(&sv, *dst);
                 } else {
                     let (ct, cp) = self.load_slot(*callee);
@@ -1051,8 +1058,8 @@ impl<'a> FnEmit<'a> {
             HirInstr::Return { val } => {
                 if self.is_main {
                     let status = self.fresh();
-                self.line(format!("  {status} = call i32 @soplang_finish_execution()"));
-                self.line(format!("  ret i32 {status}"));
+                    self.line(format!("  {status} = call i32 @soplang_finish_execution()"));
+                    self.line(format!("  ret i32 {status}"));
                 } else {
                     let (t, p) = self.load_slot(*val);
                     let sv = self.pack(&t, &p);
@@ -1218,7 +1225,9 @@ impl<'a> FnEmit<'a> {
                     "  {pending} = call i32 @soplang_has_pending_error()"
                 ));
                 self.line(format!("  {cmp} = icmp ne i32 {pending}, 0"));
-                let target = catch.map(|label| format!("L{label}")).unwrap_or_else(|| format!("E{cont}"));
+                let target = catch
+                    .map(|label| format!("L{label}"))
+                    .unwrap_or_else(|| format!("E{cont}"));
                 self.line(format!("  br i1 {cmp}, label %{target}, label %K{cont}"));
                 if catch.is_none() {
                     self.line(format!("E{cont}:"));
@@ -1237,7 +1246,9 @@ impl<'a> FnEmit<'a> {
             HirInstr::BindError { dst } | HirInstr::BindErrorValue { dst } => {
                 let name = if matches!(instr, HirInstr::BindErrorValue { .. }) {
                     "soplang_get_caught_error_value"
-                } else { "soplang_get_caught_error" };
+                } else {
+                    "soplang_get_caught_error"
+                };
                 let sv = self.call_sv(name, "");
                 self.unpack_store(&sv, *dst);
                 Ok(false)
@@ -1483,7 +1494,9 @@ impl<'a> FnEmit<'a> {
             );
         }
         let buf = self.fresh();
-        self.line(format!("  {buf} = alloca [{n} x %SoplangValue], align 8"));
+        self.entry_allocas.push_str(&format!(
+            "  {buf} = alloca [{n} x %SoplangValue], align 8\n"
+        ));
         for (i, &slot) in args.iter().enumerate() {
             let (t, p) = self.load_slot(slot);
             let sv = self.pack(&t, &p);

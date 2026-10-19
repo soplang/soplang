@@ -817,7 +817,7 @@ impl Index {
                     self.expression(arg, file, scope, start, class)
                 }
             }
-            Expr::MethodCall { obj, args, .. } => {
+            Expr::MethodCall { obj, args, .. } | Expr::Invoke { callee: obj, args } => {
                 self.expression(obj, file, scope, start, class);
                 for arg in args {
                     self.expression(arg, file, scope, start, class)

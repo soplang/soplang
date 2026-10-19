@@ -191,3 +191,19 @@ fn test_contextual_raise_and_cleanup_syntax() {
         .message()
         .contains("'qabo' ama 'dhammee'"));
 }
+
+#[test]
+fn test_callable_expression_suffixes_and_statement_boundaries() {
+    let source = "make()(1)\nitems[0](2)\n(hawl(x) { celi x })(3)\n(hawl() { celi 4 })()";
+    let stmts = Parser::new(Lexer::new(source).tokenize().unwrap())
+        .parse()
+        .unwrap();
+    assert_eq!(stmts.len(), 4);
+    for stmt in stmts {
+        assert!(matches!(stmt, Stmt::Expr(Expr::Invoke { .. })));
+    }
+    let source = "door x = 1 x + 2 = 3";
+    assert!(Parser::new(Lexer::new(source).tokenize().unwrap())
+        .parse()
+        .is_err());
+}

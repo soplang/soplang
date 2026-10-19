@@ -308,7 +308,7 @@ fn validate_control_expr(expr: &Expr) -> Result<(), SoplangError> {
             }
             Ok(())
         }
-        Expr::MethodCall { obj, args, .. } => {
+        Expr::MethodCall { obj, args, .. } | Expr::Invoke { callee: obj, args } => {
             validate_control_expr(obj)?;
             for arg in args {
                 validate_control_expr(arg)?;
@@ -570,10 +570,6 @@ fn analyze_stmt(
             body,
         } => {
             let is_method = current_class.is_some() && enclosing_fn.is_none();
-            let initial_abi_params = params.len() + usize::from(is_method);
-            if initial_abi_params > 8 {
-                return Err(too_many_abi_params(name, initial_abi_params));
-            }
             if is_method {
                 if params.iter().any(|p| p.name == "nafta") {
                     return Err(type_error_ex(
@@ -700,9 +696,6 @@ fn analyze_stmt(
                         },
                     );
                 }
-            }
-            if !captures.is_empty() && params.len() + 1 > 8 {
-                return Err(too_many_abi_params(name, params.len() + 1));
             }
             let scope = sym.scopes.pop().unwrap();
             let local_count = scope.vars.len();
@@ -1033,6 +1026,10 @@ fn analyze_expr(
         Expr::UnaryOp { expr: e, .. } => {
             analyze_expr(e, sym, opts, fn_sigs, current_class, enclosing_fn)?
         }
+        Expr::Invoke { callee, args } => {
+            analyze_expr(callee, sym, opts, fn_sigs, current_class, enclosing_fn)?;
+            for arg in args { analyze_expr(arg, sym, opts, fn_sigs, current_class, enclosing_fn)?; }
+        }
         Expr::Call { name, args } => {
             for a in args {
                 analyze_expr(a, sym, opts, fn_sigs, current_class, enclosing_fn)?;
@@ -1255,9 +1252,6 @@ fn analyze_anonymous_function(
     current_class: Option<&str>,
     enclosing_fn: Option<&str>,
 ) -> Result<(), SoplangError> {
-    if params.len() > 8 {
-        return Err(too_many_abi_params(name, params.len()));
-    }
     if opts.strict {
         if return_ann == &TypeAnnotation::Dynamic {
             return Err(type_error_ex(
@@ -1359,9 +1353,6 @@ fn analyze_anonymous_function(
         }
     }
 
-    if !captures.is_empty() && params.len() + 1 > 8 {
-        return Err(too_many_abi_params(name, params.len() + 1));
-    }
 
     let scope = sym.scopes.pop().unwrap();
     sym.functions.push(FunctionMeta {
@@ -1376,20 +1367,6 @@ fn analyze_anonymous_function(
         is_method: false,
     });
     Ok(())
-}
-
-fn too_many_abi_params(name: &str, count: usize) -> SoplangError {
-    type_error_ex(
-        format!(
-            "hawl '{}' waxay leedahay {} dood oo ABI ah; ugu badnaan waa 8",
-            name, count
-        ),
-        0,
-        0,
-        ErrorMeta::default()
-            .with_code(codes::E022_TYPE_MISMATCH)
-            .with_hint("Yaree doodaha hawsha ama ku ururi walax ama teed."),
-    )
 }
 
 // ---------------------------------------------------------------------------
@@ -1452,6 +1429,7 @@ fn infer_expr_type(
         }),
         Expr::New { class_name, .. } => Some(TypeAnnotation::Class(class_name.clone())),
         Expr::AnonymousFunc { .. }
+        | Expr::Invoke { .. }
         | Expr::MethodCall { .. }
         | Expr::Index { .. }
         | Expr::Property { .. } => None,
@@ -1703,7 +1681,7 @@ fn note_free_expr(expr: &Expr, sym: &SymbolTable, caps: &mut Vec<String>) {
             }
         }
         Expr::AnonymousFunc { .. } => {}
-        Expr::MethodCall { obj, args, .. } => {
+        Expr::MethodCall { obj, args, .. } | Expr::Invoke { callee: obj, args } => {
             note_free_expr(obj, sym, caps);
             for a in args {
                 note_free_expr(a, sym, caps);

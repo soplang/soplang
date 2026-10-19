@@ -1317,13 +1317,16 @@ fn dispatch_instance_method(
 ) -> Result<Value, SoplangError> {
     let class_name = get_instance_class(o)
         .ok_or_else(|| runtime_error("Walaxdani ma aha nuqul qaab laga sameeyay.", 0, 0))?;
-    let fn_idx = resolve_method_fn_index(&class_name, method).ok_or_else(|| {
-        runtime_error(
-            format!("Hawl '{}' lama helin qaabka '{}'", method, class_name),
-            0,
-            0,
-        )
-    })?;
+    let fn_idx = match resolve_method_fn_index(&class_name, method) {
+        Some(index) => index,
+        None => {
+            let field = o.borrow().get(method).cloned();
+            return match field {
+                Some(value) => call_value(&value, args),
+                None => Err(runtime_error(format!("Hawl '{}' lama helin qaabka '{}'", method, class_name), 0, 0)),
+            };
+        }
+    };
     let entry = compiled_fn_entry(fn_idx)
         .ok_or_else(|| runtime_error(format!("Hawl '{}' lama diyaarin", method), 0, 0))?;
     let expected = entry.n_params.saturating_sub(1);
@@ -1517,23 +1520,10 @@ struct CompiledReturn {
     payload: i64,
 }
 
-macro_rules! compiled_fn_type {
-    ($name:ident($($ty:ty),*)) => {
-        #[cfg(all(target_os = "windows", target_arch = "x86_64"))]
-        type $name = extern "sysv64" fn($($ty),*) -> CompiledReturn;
-        #[cfg(not(all(target_os = "windows", target_arch = "x86_64")))]
-        type $name = extern "C" fn($($ty),*) -> CompiledReturn;
-    };
-}
-
-compiled_fn_type!(CompiledFn0());
-compiled_fn_type!(CompiledFn2(i64, i64));
-compiled_fn_type!(CompiledFn4(i64, i64, i64, i64));
-compiled_fn_type!(CompiledFn6(i64, i64, i64, i64, i64, i64));
-compiled_fn_type!(CompiledFn8(i64, i64, i64, i64, i64, i64, i64, i64));
-compiled_fn_type!(CompiledFn16(
-    i64, i64, i64, i64, i64, i64, i64, i64, i64, i64, i64, i64, i64, i64, i64, i64
-));
+#[cfg(all(target_os = "windows", target_arch = "x86_64"))]
+type CompiledEntry = extern "sysv64" fn(*const SoplangValue, usize) -> CompiledReturn;
+#[cfg(not(all(target_os = "windows", target_arch = "x86_64")))]
+type CompiledEntry = extern "C" fn(*const SoplangValue, usize) -> CompiledReturn;
 
 fn call_compiled_fn(
     ptr: *const u8,
@@ -1541,13 +1531,6 @@ fn call_compiled_fn(
     args: *const SoplangValue,
     n: i32,
 ) -> SoplangValue {
-    if n_params > 8 {
-        return handle_runtime_error(runtime_error(
-            "hawl la soo ururiyey ma qaadan karto wax ka badan 8 dood oo ABI ah",
-            0,
-            0,
-        ));
-    }
     if n < 0 || n as usize != n_params {
         return handle_runtime_error(type_error(
             format!(
@@ -1559,62 +1542,23 @@ fn call_compiled_fn(
             0,
         ));
     }
-    let mut raw: Vec<i64> = Vec::with_capacity(n_params * 2);
-    for i in 0..n_params {
-        if !args.is_null() && (i as i32) < n {
-            let sv = unsafe { *args.add(i) };
-            raw.push(sv.tag as i64);
-            raw.push(sv.payload);
-        } else {
-            raw.push(0);
-            raw.push(0);
-        }
+    if ptr.is_null() || (n_params > 0 && args.is_null()) {
+        return handle_runtime_error(runtime_error("Liiska doodaha hawsha ma saxna.", 0, 0));
     }
-    let CompiledReturn {
-        tag: ret_tag,
-        payload: ret_pay,
-    } = unsafe {
-        match n_params {
-            0 => {
-                let f: CompiledFn0 = std::mem::transmute(ptr);
-                f()
-            }
-            1 => {
-                let f: CompiledFn2 = std::mem::transmute(ptr);
-                f(raw[0], raw[1])
-            }
-            2 => {
-                let f: CompiledFn4 = std::mem::transmute(ptr);
-                f(raw[0], raw[1], raw[2], raw[3])
-            }
-            3 => {
-                let f: CompiledFn6 = std::mem::transmute(ptr);
-                f(raw[0], raw[1], raw[2], raw[3], raw[4], raw[5])
-            }
-            4 => {
-                let f: CompiledFn8 = std::mem::transmute(ptr);
-                f(
-                    raw[0], raw[1], raw[2], raw[3], raw[4], raw[5], raw[6], raw[7],
-                )
-            }
-            _ => {
-                let f: CompiledFn16 = std::mem::transmute(ptr);
-                let mut a = [0i64; 16];
-                for (i, v) in raw.iter().enumerate().take(16) {
-                    a[i] = *v;
-                }
-                f(
-                    a[0], a[1], a[2], a[3], a[4], a[5], a[6], a[7], a[8], a[9], a[10], a[11],
-                    a[12], a[13], a[14], a[15],
-                )
-            }
-        }
-    };
+    // Both code generators expose one vector entry, independent of arity.
+    let entry: CompiledEntry = unsafe { std::mem::transmute(ptr) };
+    let result = entry(args, n_params);
     SoplangValue {
-        tag: ret_tag as u8,
+        tag: result.tag as u8,
         _pad: [0; 7],
-        payload: ret_pay,
+        payload: result.payload,
     }
+}
+
+fn call_value(callee: &Value, args: &[Value]) -> Result<Value, SoplangError> {
+    let callee = value_to_soplang(callee);
+    let args: Vec<_> = args.iter().map(value_to_soplang).collect();
+    call_collection_callback(callee, &args)
 }
 
 fn collection_callback(value: &Value, name: &str) -> Result<SoplangValue, SoplangError> {
@@ -1779,11 +1723,14 @@ fn dispatch_object_method(
         "hel" => super::stdlib::object_hel(Rc::clone(o), args),
         "dhig" => super::stdlib::object_dhig(Rc::clone(o), args),
         "ka_qaad" => super::stdlib::object_ka_qaad(Rc::clone(o), args),
-        _ => Err(runtime_error(
-            format!("Walaxdu ma laha hawl la yiraahdo '{}'.", method),
-            0,
-            0,
-        )),
+        _ => {
+            // Release the object borrow before invoking code that may mutate it.
+            let field = o.borrow().get(method).cloned();
+            match field {
+                Some(value) => call_value(&value, args),
+                None => Err(runtime_error(format!("Walaxdu ma laha hawl la yiraahdo '{}'.", method), 0, 0)),
+            }
+        }
     }
 }
 

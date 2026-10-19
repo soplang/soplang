@@ -1,0 +1,42 @@
+hawl hubi(shuruud, magac) { haddii (!shuruud) { tuur magac } }
+hawl sum12(a,b,c,d,e,f,g,h,i,j,k,l) { celi a+b+c+d+e+f+g+h+i+j+k+l }
+hubi(sum12(1,2,3,4,5,6,7,8,9,10,11,12) == 78, "wide direct call")
+door indirect = sum12
+hubi(indirect(1,2,3,4,5,6,7,8,9,10,11,12) == 78, "wide indirect call")
+hawl make(base) { celi hawl(a,b,c,d,e,f,g,h,i,j,k,l) { celi base+a+b+c+d+e+f+g+h+i+j+k+l } }
+hubi(make(10)(1,2,3,4,5,6,7,8,9,10,11,12) == 88, "returned closure invocation")
+qaab Wide {
+    hawl dhis(a,b,c,d,e,f,g,h,i,j,k,l) { nafta.total = sum12(a,b,c,d,e,f,g,h,i,j,k,l) }
+    hawl add(a,b,c,d,e,f,g,h,i,j,k,l) { celi nafta.total + sum12(a,b,c,d,e,f,g,h,i,j,k,l) }
+}
+door wide = cusub Wide(1,2,3,4,5,6,7,8,9,10,11,12)
+hubi(wide.add(1,2,3,4,5,6,7,8,9,10,11,12) == 156, "wide constructor and method")
+door values = [make(1), make(2)]
+hubi(values[0](1,2,3,4,5,6,7,8,9,10,11,12) == 79, "indexed closure")
+hubi((hawl(x) { celi x+1 })(4) == 5, "immediately invoked closure")
+hawl first(x) { celi 1 }
+hawl second(x) { celi 2 }
+hawl choose(flag) {
+    door selected = first
+    haddii (flag) { selected = second }
+    celi (selected)(0)
+}
+hubi(choose(been) == 1 && choose(run) == 2, "function values across branches")
+door current = first
+hawl replace() { current = second celi 0 }
+hubi(current(replace()) == 1 && current(0) == 2, "callee evaluated before arguments")
+door object = { callback: first }
+object.callback = hawl(x) { object.dhig("touched", x) celi x+1 }
+hubi(object["callback"](4) == 5 && object.callback(5) == 6 && object.touched == 5, "callable object fields")
+wide.callback = hawl(x) { celi x+2 }
+hubi(wide.callback(5) == 7, "callable instance fields")
+door failures = 0
+tijaabi { (sum12)(1) } qabo (e) { failures = failures + 1 }
+tijaabi { (42)(1) } qabo (e) { failures = failures + 1 }
+tijaabi { values[0]() } qabo (e) { failures = failures + 1 }
+hubi(failures == 3, "callable and argument validation")
+// These forms also work as statements rather than only as initializers.
+make(0)(1,2,3,4,5,6,7,8,9,10,11,12)
+values[1](1,2,3,4,5,6,7,8,9,10,11,12)
+(hawl() { celi maran })()
+qor("callable expressions ok")
