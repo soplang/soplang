@@ -1783,6 +1783,7 @@ fn dispatch_string_method(s: &str, method: &str, args: &[Value]) -> Result<Value
         _ => {}
     }
     match method {
+        "qaabee" => super::stdlib::string_qaabee(s, args),
         "qeybi" => super::stdlib::string_qeybi(s.to_string(), args),
         "leeyahay" => super::stdlib::string_leeyahay(s.to_string(), args),
         "dhammaad" | "dhamaad" => super::stdlib::string_dhamaad(s.to_string(), args),

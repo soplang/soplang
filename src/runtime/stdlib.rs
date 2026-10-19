@@ -135,6 +135,20 @@ pub fn builtin_khalad(args: Vec<Value>) -> Result<Value, SoplangError> {
     Ok(Value::Error(Rc::new(error)))
 }
 
+/// Format a value with an optional static format descriptor.
+pub fn builtin_qaabee(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity_range(&args, "qaabee", 1, 2)?;
+    let descriptor = match args.get(1) {
+        None => "", Some(Value::Str(value)) => value,
+        _ => return Err(err_type("Qaabka qaabee() waa inuu noqdaa qoraal.")),
+    };
+    super::formatting::value(&args[0], descriptor).map(Value::Str)
+}
+
+pub fn string_qaabee(text: &str, args: &[Value]) -> Result<Value, SoplangError> {
+    super::formatting::template(text, args).map(Value::Str)
+}
+
 /// Built-in nooc: return type name string.
 pub fn builtin_nooc(args: Vec<Value>) -> Result<Value, SoplangError> {
     expect_arity(&args, "nooc", 1)?;
@@ -423,6 +437,7 @@ pub fn get_builtin_functions() -> HashMap<String, Value> {
     m.insert("gelin".into(), Value::NativeFunction(builtin_gelin));
     m.insert("nooc".into(), Value::NativeFunction(builtin_nooc));
     m.insert("khalad".into(), Value::NativeFunction(builtin_khalad));
+    m.insert("qaabee".into(), Value::NativeFunction(builtin_qaabee));
     m.insert("abn".into(), Value::NativeFunction(builtin_abn));
     m.insert("jajab".into(), Value::NativeFunction(builtin_jajab));
     m.insert("qoraal".into(), Value::NativeFunction(builtin_qoraal));

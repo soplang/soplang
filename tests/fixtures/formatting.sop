@@ -1,0 +1,37 @@
+hawl hubi(shuruud, magac) { haddii (!shuruud) { tuur magac } }
+hubi(qaabee(maran) == "maran" && qaabee(run) == "run", "default conversion")
+hubi(qaabee(jajab("1e20")) == "100000000000000000000", "large float display is not clamped to an integer")
+hubi(qaabee(-0.0) == "-0", "negative zero display")
+hubi(qaabee("é", "*^4s") == "*é**", "Unicode centering")
+hubi(qaabee("é😀abc", ".3s") == "é😀a", "Unicode precision")
+hubi(qaabee("é😀abc", ".3") == "é😀a", "implicit string precision")
+hubi(qaabee(42, "#08x") == "0x00002a", "hex prefix and padding")
+hubi(qaabee(-42, "#08x") == "-0x0002a", "negative hex padding")
+hubi(qaabee(42, "+06d") == "+00042", "positive sign padding")
+hubi(qaabee(-42, "06d") == "-00042", "negative decimal padding")
+hubi(qaabee(10, "#b") == "0b1010" && qaabee(10, "#o") == "0o12", "base prefixes")
+hubi(qaabee(255, "X") == "FF", "uppercase hex")
+hubi(qaabee(3.14159, ".2f") == "3.14" && qaabee(2, ".2f") == "2.00", "fixed precision")
+hubi(qaabee(12.3, ".2e") == "1.23e1" && qaabee(12.3, ".2E") == "1.23E1", "exponents")
+hubi(qaabee(0.125, ".1%") == "12.5%", "percentage")
+hubi(qaabee(-9223372036854775807 - 1, "x") == "-8000000000000000", "minimum signed integer")
+hubi("{} + {}".qaabee(2, 3) == "2 + 3", "automatic slots")
+hubi("{1}/{0}/{1}".qaabee("a", "b") == "b/a/b", "indexed slots")
+hubi("{magac}: {da:03d}".qaabee({ magac: "Ayaan", da: 7 }) == "Ayaan: 007", "named object slots")
+hubi("{{{0}}}".qaabee("x") == "{x}", "literal braces")
+hubi("{}{}{}{}{}{}{}{}{}{}{}{}".qaabee(1,2,3,4,5,6,7,8,9,10,11,12) == "123456789101112", "wide template arguments")
+door cycle = []
+cycle.geli(cycle)
+hubi(qaabee(cycle) == "[[...]]", "cycle-safe conversion")
+door failures = 0
+tijaabi { qaabee(1, "unknown") } qabo (e, xog) { hubi(xog.summad == "E036", "format code") failures = failures + 1 }
+tijaabi { qaabee(1.5, "x") } qabo (e) { failures = failures + 1 }
+tijaabi { qaabee("x", "d") } qabo (e) { failures = failures + 1 }
+tijaabi { qaabee(1, ".2d") } qabo (e) { failures = failures + 1 }
+tijaabi { qaabee("x", "1000001s") } qabo (e) { failures = failures + 1 }
+tijaabi { "{missing}".qaabee({}) } qabo (e) { failures = failures + 1 }
+tijaabi { "{} {0}".qaabee(1) } qabo (e) { failures = failures + 1 }
+tijaabi { "}".qaabee() } qabo (e) { failures = failures + 1 }
+tijaabi { "{".qaabee() } qabo (e) { failures = failures + 1 }
+hubi(failures == 9, "invalid formats are catchable")
+qor("formatting ok")

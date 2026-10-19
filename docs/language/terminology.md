@@ -445,3 +445,6 @@ Structured errors add `khalad`, `fariin`, `summad`, `sabab`, `fayl`, `saf`,
 `tiir`, and `raad`. Their contracts and exact diagnostic text are recorded in
 the [runtime error wording inventory](runtime-error-wording.md) for review
 alongside the earlier full wording inventory.
+
+`qaabee` is the shared formatting verb. The global function formats one value;
+the string method applies a template. Both use the same descriptor vocabulary.

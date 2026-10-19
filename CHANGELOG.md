@@ -20,6 +20,8 @@ All notable changes to this project will be documented in this file.
 
 * Tracing collection reclaims unreachable strings, errors, collections, instances, and closure environments, including cycles. Both backends publish explicit stack roots. Rust integrations can pin tagged values and inspect collection reports; repeated collection conversion preserves identity.
 * Explicit `e` string prefixes decode control, quote, and Unicode escapes; `r` selects raw text. Triple quotes support multiline content. Existing unprefixed strings preserve literal backslashes. Editor ranges and diagnostics retain original source bytes.
+* `qaabee(value, format?)` formats values with alignment, padding, integer bases, and floating-point precision. String `qaabee(...)` fills automatic, indexed, or named template slots and reports invalid formats as catchable Somali errors.
+* Default float display preserves large values and negative zero instead of narrowing whole-valued floats to 64-bit integers.
 
 ## [3.0.1] - 2026-10-18
 

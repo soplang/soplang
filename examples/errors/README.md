@@ -22,6 +22,7 @@ are imported helpers, not separate entry points.
 | Arithmetic | Integer/float division and modulo by zero, incompatible operands |
 | Calls | Unknown names/methods, non-callable values, closure/native arity, typed arguments and returns |
 | Collections | Invalid index types/writes, empty removal, invalid slice bounds, repeat/count/direction arguments |
+| Formatting | Unsupported value-format descriptors with exact call-site carets |
 | Callbacks | Failure inside an anonymous callback or nested function; invalid callbacks on an empty list |
 | Positions | Indentation, EOF, tabs, accents, emoji, wide characters, combining-character display width, and large line-number gutters |
 

@@ -48,6 +48,29 @@ language's error behavior. Documentation explanations remain in English.
 The former diagnostics limiting compiled functions to eight ABI values have
 been removed. Argument counts are still validated against each signature.
 
+## Formatting vocabulary and diagnostics
+
+`qaabee` means format or give a shape to a value. The same verb names the
+global value formatter and the string template method.
+
+| Somali wording | English meaning |
+| --- | --- |
+| `Qaabka qaabee() waa inuu noqdaa qoraal.` | The format descriptor must be a string. |
+| `Qaabka qoraalka '{format}' lama aqoonsan.` | The format descriptor is unsupported or malformed. |
+| `Qaabka qoraalku wuxuu ka badan yahay xadka la oggol yahay.` | Width or precision exceeds its limit. |
+| `Qaabka '{format}' wuxuu u baahan yahay tiro.` | This descriptor requires a number. |
+| `Qaabka '{format}' wuxuu u baahan yahay abn.` | This descriptor requires an integer. |
+| `Qaabka 's' wuxuu u baahan yahay qoraal.` | The string descriptor requires a string. |
+| `Saxnaanta laguma sheegi karo qaabka abn.` | Precision cannot be specified for integer formatting. |
+| `Saxnaantu waxay u baahan tahay qaab qoraal ama jajab.` | Precision requires a string or float format. |
+| `Qaabka qoraalku ma aqbalo '{' gudaha meel qiime lagu gelinayo.` | Nested replacement fields are unsupported. |
+| `Qaybta qiimaha lagu gelinayo qoraalka lama xidhin.` | A replacement field was not closed. |
+| `Qiime looma helin meesha '{name}' ee qoraalka.` | No value was supplied for this placeholder. |
+| `Qaabka qoraalku ma isku dari karo meelgelin toos ah iyo mid lambar leh.` | Automatic and numbered placeholders cannot be mixed. |
+| `Calaamadda '}' ee qoraalka ma laha '{' u dhiganta.` | A closing brace has no matching opening brace. |
+
+These definitions are in [formatting.rs](../../src/runtime/formatting.rs).
+
 `khalad()` also uses the existing argument-count template:
 
 ```text

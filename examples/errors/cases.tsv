@@ -65,3 +65,4 @@ runtime	native_argument_count.sop	1	9
 compile	invalid_escape.sop	1	19	lama aqoonsan
 compile	invalid_unicode_escape.sop	1	16	Unicode
 compile	unterminated_triple_string.sop	1	14	Qoraal aan la xidhin
+runtime	invalid_format.sop	1	14	Qaabka qoraalka

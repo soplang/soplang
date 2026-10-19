@@ -135,6 +135,45 @@ and line breaks, and close at the matching three-character delimiter. String
 prefixes attach directly to the opening quote. `e` and `r` remain ordinary
 identifiers elsewhere. Existing path strings require no migration.
 
+### Value and template formatting
+
+`qaabee(value, format?)` returns a string. Omitting the descriptor uses the
+same cycle-safe conversion as `qoraal(value)`.
+
+```soplang
+qor(qaabee(3.14159, ".2f"))
+qor(qaabee(42, "#08x"))
+qor("{magac}: {da:03d}".qaabee({ magac: "Ayaan", da: 7 }))
+qor("{} + {}".qaabee(2, 3))
+```
+
+Descriptors follow `[fill][alignment][sign][#][0][width][.precision][type]`.
+Alignment is `<`, `>`, or `^`; an optional preceding character supplies the
+fill. Width and string precision count Unicode characters. Numbers default to
+right alignment and other values to left alignment. Signs `+`, `-`, and space
+apply to numbers. Zero padding without explicit alignment follows the sign and
+any base prefix.
+
+| Type | Meaning |
+| --- | --- |
+| `s` | String, optionally truncated to precision |
+| `d` | Signed decimal integer |
+| `x`, `X`, `b`, `o` | Hexadecimal, binary, or octal integer; `#` includes a base prefix |
+| `f` | Fixed decimal; default six fractional digits |
+| `e`, `E` | Scientific notation; default six fractional digits |
+| `%` | Multiply a number by 100 and append `%` |
+
+Without a type, string precision truncates characters and float precision
+selects fractional digits. Integer precision is rejected. Width and precision
+are each limited to 1,000,000 to bound a single formatting operation.
+
+String templates use `{}` for automatic positional slots, `{0}` for explicit
+indexes, and `{name}` for keys in the first object argument. A colon introduces
+a descriptor, as in `{0:.2f}`. Automatic and numbered slots cannot be mixed.
+`{{` and `}}` produce literal braces. Missing values and invalid descriptors
+report catchable errors with code `E036`. Template descriptors are static;
+nested replacement fields are not supported.
+
 `door`, `madoor`, and `abn` are Soplang short identifiers. The terminology
 review relates them to *doorsoome*, *madoorsoome*, and *abyoone*, respectively;
 these explanations do not establish a historical abbreviation or SLS approval.

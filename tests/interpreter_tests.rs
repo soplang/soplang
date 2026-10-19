@@ -649,3 +649,11 @@ fn test_escaped_raw_and_multiline_literals() {
         "string literals ok\n"
     );
 }
+
+#[test]
+fn test_value_and_template_formatting() {
+    assert_eq!(
+        run_program(include_str!("fixtures/formatting.sop")),
+        "formatting ok\n"
+    );
+}

@@ -33,6 +33,7 @@ pub mod codes {
     pub const E033_NOT_A_FUNCTION: &str = "E033";
     pub const E034_UNKNOWN_METHOD: &str = "E034";
     pub const E035_INVALID_HANDLE: &str = "E035";
+    pub const E036_INVALID_FORMAT: &str = "E036";
 }
 
 /// A compiled function and its caller's source location.

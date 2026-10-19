@@ -606,3 +606,11 @@ fn test_llvm_escaped_raw_and_multiline_literals() {
         "string literals ok\n"
     );
 }
+
+#[test]
+fn test_llvm_value_and_template_formatting() {
+    assert_eq!(
+        run_llvm("formatting", include_str!("fixtures/formatting.sop")),
+        "formatting ok\n"
+    );
+}

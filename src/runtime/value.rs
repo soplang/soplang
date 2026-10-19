@@ -180,13 +180,7 @@ fn format_value(v: &Value, seen: &mut HashSet<(u8, usize)>) -> String {
         Value::Bool(false) => "been".to_string(),
         Value::Null => "maran".to_string(),
         Value::Int(n) => n.to_string(),
-        Value::Float(x) => {
-            if x.fract() == 0.0 && x.is_finite() {
-                (*x as i64).to_string()
-            } else {
-                x.to_string()
-            }
-        }
+        Value::Float(x) => x.to_string(),
         Value::Str(s) => s.clone(),
         Value::Error(error) => error.message().to_owned(),
         Value::List(lst) => {

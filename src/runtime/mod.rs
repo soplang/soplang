@@ -4,6 +4,7 @@ pub mod abi;
 mod context;
 mod handles;
 mod gc;
+mod formatting;
 mod roots;
 pub mod stdlib;
 pub mod value;

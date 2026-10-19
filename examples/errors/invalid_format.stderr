@@ -1,0 +1,4 @@
+Khalad nooc: Qaabka qoraalka 'z' lama aqoonsan. [E036] safka 1, tiirka 14
+     --> examples/errors/invalid_format.sop:1:14
+   1 │   door qiime = qaabee(1, "z")
+     │                ^^^^^^
