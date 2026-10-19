@@ -13,6 +13,8 @@ pub(super) struct RuntimeState {
     pub current_source: RefCell<Option<crate::error::SourceSpan>>,
     pub try_depth: Cell<u32>,
     pub pending_error: RefCell<Option<crate::error::SoplangError>>,
+    pub call_stack: RefCell<Vec<crate::error::StackFrame>>,
+    pub errors: RefCell<HandleArena<Rc<crate::error::SoplangError>>>,
     pub suspended_errors: RefCell<Vec<Option<crate::error::SoplangError>>>,
     pub strings: RefCell<HandleArena<String>>,
     pub lists: RefCell<HandleArena<Rc<RefCell<Vec<Value>>>>>,
@@ -64,6 +66,8 @@ impl RuntimeContext {
                 error: self.state.pending_error.borrow_mut().take(),
                 try_depth: self.state.try_depth.replace(0),
                 suspended: self.state.suspended_errors.replace(Vec::new()),
+                call_stack: self.state.call_stack.replace(Vec::new()),
+                source: self.state.current_source.replace(None),
             };
             let result = operation();
             let error = self.state.pending_error.borrow_mut().take();
@@ -94,6 +98,8 @@ struct ExecutionBoundary {
     error: Option<crate::error::SoplangError>,
     try_depth: u32,
     suspended: Vec<Option<crate::error::SoplangError>>,
+    call_stack: Vec<crate::error::StackFrame>,
+    source: Option<crate::error::SourceSpan>,
 }
 
 impl Drop for ExecutionBoundary {
@@ -101,6 +107,8 @@ impl Drop for ExecutionBoundary {
         *self.state.pending_error.borrow_mut() = self.error.take();
         self.state.try_depth.set(self.try_depth);
         *self.state.suspended_errors.borrow_mut() = std::mem::take(&mut self.suspended);
+        *self.state.call_stack.borrow_mut() = std::mem::take(&mut self.call_stack);
+        *self.state.current_source.borrow_mut() = self.source.take();
     }
 }
 

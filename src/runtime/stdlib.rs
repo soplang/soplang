@@ -105,6 +105,36 @@ pub fn builtin_gelin(args: Vec<Value>) -> Result<Value, SoplangError> {
     Ok(Value::Str(line))
 }
 
+/// Construct an immutable structured error without raising it.
+pub fn builtin_khalad(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity_range(&args, "khalad", 1, 3)?;
+    let Value::Str(message) = &args[0] else {
+        return Err(err_type("Fariinta khalad() waa inay noqotaa qoraal."));
+    };
+    let code = match args.get(1) {
+        None | Some(Value::Null) => None,
+        Some(Value::Str(code)) => Some(code.clone()),
+        _ => {
+            return Err(err_type(
+                "Summadda khalad() waa inay noqotaa qoraal ama maran.",
+            ))
+        }
+    };
+    let cause = match args.get(2) {
+        None | Some(Value::Null) => None,
+        Some(Value::Error(error)) => Some(Box::new((**error).clone())),
+        _ => {
+            return Err(err_type(
+                "Sababta khalad() waa inay noqotaa khalad ama maran.",
+            ))
+        }
+    };
+    let mut error = err_runtime(message.clone());
+    error.meta_mut().user_code = code;
+    error.meta_mut().cause = cause;
+    Ok(Value::Error(Rc::new(error)))
+}
+
 /// Built-in nooc: return type name string.
 pub fn builtin_nooc(args: Vec<Value>) -> Result<Value, SoplangError> {
     expect_arity(&args, "nooc", 1)?;
@@ -392,6 +422,7 @@ pub fn get_builtin_functions() -> HashMap<String, Value> {
     m.insert("qor".into(), Value::NativeFunction(builtin_qor));
     m.insert("gelin".into(), Value::NativeFunction(builtin_gelin));
     m.insert("nooc".into(), Value::NativeFunction(builtin_nooc));
+    m.insert("khalad".into(), Value::NativeFunction(builtin_khalad));
     m.insert("abn".into(), Value::NativeFunction(builtin_abn));
     m.insert("jajab".into(), Value::NativeFunction(builtin_jajab));
     m.insert("qoraal".into(), Value::NativeFunction(builtin_qoraal));

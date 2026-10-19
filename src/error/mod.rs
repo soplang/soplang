@@ -34,10 +34,22 @@ pub mod codes {
     pub const E035_INVALID_HANDLE: &str = "E035";
 }
 
+/// A compiled function and its caller's source location.
+#[derive(Debug, Clone)]
+pub struct StackFrame {
+    pub function: String,
+    pub file: Option<PathBuf>,
+    pub line: usize,
+    pub col: usize,
+}
+
 /// Optional metadata for an error (code, span end, hint, file).
 #[derive(Debug, Clone, Default)]
 pub struct ErrorMeta {
     pub code: Option<&'static str>,
+    pub user_code: Option<String>,
+    pub cause: Option<Box<SoplangError>>,
+    pub trace: Vec<StackFrame>,
     pub end_line: Option<usize>,
     pub end_col: Option<usize>,
     pub hint: Option<String>,
@@ -160,31 +172,61 @@ impl fmt::Display for SoplangError {
                 line,
                 col,
                 meta,
-            } => ("ereyayn", msg, line, col, meta.code),
+            } => (
+                "ereyayn",
+                msg,
+                line,
+                col,
+                meta.user_code.as_deref().or(meta.code),
+            ),
             SoplangError::Parser {
                 msg,
                 line,
                 col,
                 meta,
-            } => ("naxwe", msg, line, col, meta.code),
+            } => (
+                "naxwe",
+                msg,
+                line,
+                col,
+                meta.user_code.as_deref().or(meta.code),
+            ),
             SoplangError::Runtime {
                 msg,
                 line,
                 col,
                 meta,
-            } => ("fulin", msg, line, col, meta.code),
+            } => (
+                "fulin",
+                msg,
+                line,
+                col,
+                meta.user_code.as_deref().or(meta.code),
+            ),
             SoplangError::Type {
                 msg,
                 line,
                 col,
                 meta,
-            } => ("nooc", msg, line, col, meta.code),
+            } => (
+                "nooc",
+                msg,
+                line,
+                col,
+                meta.user_code.as_deref().or(meta.code),
+            ),
             SoplangError::Import {
                 msg,
                 line,
                 col,
                 meta,
-            } => ("soo-dejin", msg, line, col, meta.code),
+            } => (
+                "soo-dejin",
+                msg,
+                line,
+                col,
+                meta.user_code.as_deref().or(meta.code),
+            ),
         };
         let code_str = code.map(|c| format!(" [{}]", c)).unwrap_or_default();
         write!(f, "Khalad {}: {}{}", kind, msg, code_str)?;
@@ -216,13 +258,13 @@ impl SoplangError {
             | SoplangError::Import { line, col, .. } => (*line, *col),
         }
     }
-    pub fn code(&self) -> Option<&'static str> {
+    pub fn code(&self) -> Option<&str> {
         match self {
             SoplangError::Lexer { meta, .. }
             | SoplangError::Parser { meta, .. }
             | SoplangError::Runtime { meta, .. }
             | SoplangError::Type { meta, .. }
-            | SoplangError::Import { meta, .. } => meta.code,
+            | SoplangError::Import { meta, .. } => meta.user_code.as_deref().or(meta.code),
         }
     }
     pub fn hint(&self) -> Option<&str> {
@@ -234,6 +276,16 @@ impl SoplangError {
             | SoplangError::Import { meta, .. } => meta.hint.as_deref(),
         }
     }
+    pub(crate) fn meta_mut(&mut self) -> &mut ErrorMeta {
+        match self {
+            Self::Lexer { meta, .. }
+            | Self::Parser { meta, .. }
+            | Self::Runtime { meta, .. }
+            | Self::Type { meta, .. }
+            | Self::Import { meta, .. } => meta,
+        }
+    }
+
     pub fn meta(&self) -> &ErrorMeta {
         match self {
             SoplangError::Lexer { meta, .. }

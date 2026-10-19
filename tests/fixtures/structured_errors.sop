@@ -1,0 +1,51 @@
+hawl hubi(shuruud, magac) { haddii (!shuruud) { tuur magac } }
+door first = khalad("Xogtu ma dhammaystirna", "XOG001")
+hubi(nooc(first) == "khalad" && first.fariin == "Xogtu ma dhammaystirna", "error type and message")
+hubi(first.summad == "XOG001" && first.sabab == maran, "optional code and cause")
+door second = khalad("Hawshu ma dhammaan", "HAWL001", first)
+door message = ""
+door saved = maran
+tijaabi { tuur second } qabo (e, xog) {
+    message = e
+    saved = xog
+    hubi(xog.fariin == e && xog.summad == "HAWL001", "structured catch")
+    hubi(xog.sabab.fariin == first.fariin && xog.sabab.summad == "XOG001", "cause preserved")
+}
+hubi(message == second.fariin && qoraal(saved) == message, "legacy text and explicit conversion")
+tijaabi { tuur saved } qabo (e, xog) { hubi(xog.sabab.summad == "XOG001", "rethrow preserves cause") }
+tijaabi {
+    tijaabi { tuur first } dhammee { tuur "Cleanup failed" }
+} qabo (e, xog) {
+    hubi(xog.sabab.summad == "XOG001", "cleanup chains original error")
+}
+// Outer and inner handler names remain independent, including closures.
+tijaabi { tuur first } qabo (outer, original) {
+    tijaabi { tuur second } qabo (inner, wrapped) {
+        hubi(outer == first.fariin && original.summad == "XOG001", "nested handler scope")
+        hubi(wrapped.summad == "HAWL001", "inner details")
+    }
+    door read = hawl() { celi original.summad }
+    hubi(read() == "XOG001", "captured structured error")
+}
+door failures = 0
+tijaabi { khalad(1) } qabo (e) { failures = failures + 1 }
+tijaabi { khalad("x", 1) } qabo (e) { failures = failures + 1 }
+tijaabi { khalad("x", maran, "bad") } qabo (e) { failures = failures + 1 }
+tijaabi { first.fariin = "changed" } qabo (e) { failures = failures + 1 }
+hubi(failures == 4 && first.fariin == "Xogtu ma dhammaystirna", "validated immutable errors")
+// Early exits must reuse the original AST identity for anonymous cleanup functions.
+door callbacks = []
+hawl cleanup_closure(base) {
+    tijaabi { celi 7 } dhammee { callbacks.geli(hawl() { celi base + 1 }) }
+}
+hubi(cleanup_closure(10) == 7, "cleanup closure return")
+door read = callbacks.hore()
+hubi(read() == 11, "cleanup closure captures")
+hawl inner() { tuur khalad("Trace me", "TRACE") }
+hawl outer() { inner() }
+tijaabi { outer() } qabo (e, xog) {
+    hubi(xog.raad.dherer() == 2 && xog.raad.hore().magac == "inner" && xog.raad.dambe().magac == "outer", "compiled trace order")
+    hubi(xog.saf > 0 && xog.tiir > 0 && xog.raad.hore().saf > 0, "structured source positions")
+    hubi(xog["summad"] == "TRACE", "computed error properties")
+}
+qor("structured errors ok")

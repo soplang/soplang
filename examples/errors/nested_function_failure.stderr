@@ -2,3 +2,6 @@ Khalad fulin: Tiro looma qaybin karo eber. safka 3, tiirka 16
      --> examples/errors/nested_function_failure.sop:3:16
    3 │           celi 4 / 0
      │                  ^
+Raadka wicitaannada:
+     dibadda::gudaha (examples/errors/nested_function_failure.sop:5:10)
+     dibadda (examples/errors/nested_function_failure.sop:7:1)

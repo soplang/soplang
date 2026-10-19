@@ -705,6 +705,7 @@ impl Index {
                 Stmt::TryCatch {
                     try_body,
                     err_var,
+                    err_details,
                     catch_body,
                     finally_body,
                 } => {
@@ -724,22 +725,21 @@ impl Index {
                         }
                     }
                     let inner = self.body_scope(file, catch, scope, class.map(str::to_owned));
-                    if let Some((err_var, token)) = err_var
-                        .as_ref()
-                        .and_then(|name| self.anchor(file, catch, name).map(|token| (name, token)))
-                    {
-                        self.add(
-                            file,
-                            &token,
-                            err_var,
-                            inner,
-                            13,
-                            "door".into(),
-                            None,
-                            String::new(),
-                            None,
-                            false,
-                        );
+                    for name in err_var.iter().chain(err_details.iter()) {
+                        if let Some(token) = self.anchor(file, catch, name) {
+                            self.add(
+                                file,
+                                &token,
+                                name,
+                                inner,
+                                13,
+                                "door".into(),
+                                None,
+                                String::new(),
+                                None,
+                                false,
+                            );
+                        }
                     }
                     self.statements(catch_body, file, inner, catch, class);
                     self.statements(finally_body, file, scope, start, class);

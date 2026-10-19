@@ -162,6 +162,9 @@ fn foreign_and_malformed_handles_are_rejected_without_aliasing() {
             runtime::soplang_list_new(),
             runtime::soplang_object_new(),
             runtime::soplang_get_builtin("qor".as_ptr(), 3),
+            runtime::value_to_soplang(&Value::Error(Rc::new(soplang::error::runtime_error(
+                "owned", 0, 0,
+            )))),
         ]
     });
     foreign.with(|| {
@@ -170,6 +173,9 @@ fn foreign_and_malformed_handles_are_rejected_without_aliasing() {
             runtime::soplang_list_new(),
             runtime::soplang_object_new(),
             runtime::soplang_get_builtin("qor".as_ptr(), 3),
+            runtime::value_to_soplang(&Value::Error(Rc::new(soplang::error::runtime_error(
+                "foreign", 0, 0,
+            )))),
         ];
         for (owned, local) in values.iter().zip(other) {
             assert_ne!(owned.payload, local.payload);
@@ -183,6 +189,7 @@ fn foreign_and_malformed_handles_are_rejected_without_aliasing() {
             runtime::TAG_OBJECT,
             runtime::TAG_FUNC,
             runtime::TAG_CLOSURE,
+            runtime::TAG_ERROR,
         ] {
             for payload in [0, -1, i64::MIN, i64::MAX] {
                 let value = runtime::SoplangValue {
@@ -320,4 +327,37 @@ fn explicit_boundaries_restore_the_surrounding_pending_error() {
         assert!(result.is_err());
         assert!(context.execute(|| runtime::soplang_int(3)).is_ok());
     });
+}
+
+#[test]
+fn function_traces_preserve_call_sites_and_do_not_leak_between_executions() {
+    let source =
+        "hawl inner() { tuur khalad(\"Failure\", \"TEST\") }\nhawl outer() { inner() }\nouter()";
+    let error = soplang::run_source(source, None, false, false, false).unwrap_err();
+    assert_eq!(error.code(), Some("TEST"));
+    assert_eq!(error.location(), (1, 16));
+    let trace = &error.meta().trace;
+    assert_eq!(
+        trace
+            .iter()
+            .map(|frame| frame.function.as_str())
+            .collect::<Vec<_>>(),
+        ["inner", "outer"]
+    );
+    assert_eq!((trace[0].line, trace[0].col), (2, 16));
+    assert_eq!((trace[1].line, trace[1].col), (3, 1));
+    let formatted = soplang::error::format_error_with_source(&error, None);
+    assert!(formatted.contains("Raadka wicitaannada:"));
+    assert!(formatted.find("inner (").unwrap() < formatted.find("outer (").unwrap());
+
+    let mut session = ReplSession::new(false).unwrap();
+    session.eval("hawl ok() { celi 1 } ok()", None).unwrap();
+    let error = session.eval("tuur \"top-level\"", None).unwrap_err();
+    assert!(error.meta().trace.is_empty());
+    session.eval("ok()", None).unwrap();
+    let error = session
+        .eval("tijaabi { tuur \"old\" } dhammee { tuur \"new\" }", None)
+        .unwrap_err();
+    assert_eq!(error.message(), "new");
+    assert_eq!(error.meta().cause.as_ref().unwrap().message(), "old");
 }

@@ -463,8 +463,8 @@ tijaabi {
 }
 ```
 
-`tuur` raises a string message at its source location. A non-string value
-reports a catchable type error. The value starts on the same line as `tuur`.
+`tuur` raises a string message or a structured `khalad` value. Other values
+report a catchable type error. The value starts on the same line as `tuur`.
 Calls such as `tuur(value)` remain ordinary function calls for compatibility;
 to raise a computed message, use `tuur make_message()` or `tuur message`.
 
@@ -480,6 +480,46 @@ body's cleanup until execution actually leaves the protected block.
 
 `tuur` and `dhammee` are contextual forms. Existing variables, functions, and
 properties with those names remain supported outside these statement contexts.
+
+### Structured errors
+
+`khalad(fariin, summad?, sabab?)` constructs an immutable error without raising
+it. The message must be a string. The code is a string or `maran`; the cause
+is another error or `maran`. The two optional arguments default to `maran`.
+
+```soplang
+tijaabi {
+    tuur khalad("Xogtu ma dhammaystirna", "XOG001")
+} qabo (fariin, xog) {
+    qor(fariin, xog.summad)
+    tuur khalad("Hawshu ma dhammaan", "HAWL001", xog)
+}
+```
+
+The first catch binding remains message text. An optional second binding
+receives the structured error. The two binding names must differ. Rethrowing
+that error preserves its original location, trace, and cause. Raising a string
+creates a new error at the `tuur` statement. If cleanup fails while another
+error is pending, the new error retains that earlier error as its cause unless
+an explicit cause is already present.
+
+| Property | Value |
+| --- | --- |
+| `fariin` | Message string |
+| `summad` | Error-code string, or `maran` |
+| `sabab` | Original structured error, or `maran` |
+| `fayl` | Source filename, or `maran` |
+| `saf`, `tiir` | One-based source line and column, or `maran` |
+| `raad` | Compiled function trace, innermost call first |
+
+Trace entries are objects with `magac`, `fayl`, `saf`, and `tiir`. Their
+positions identify call sites; the error's own position identifies the failing
+operation. Trace entries are detached snapshots. Property assignment on an
+error is rejected. String-key indexing supports the same properties.
+`nooc(xog)` returns `"khalad"`, and `qoraal(xog)` returns its message.
+
+Uncaught diagnostics show the original source caret, `Raadka wicitaannada`,
+and any `Sababta` chain. Cause rendering is bounded to avoid unbounded output.
 
 ## Compatibility spellings
 

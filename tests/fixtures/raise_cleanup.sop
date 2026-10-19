@@ -57,5 +57,5 @@ hawl dhammee(value) { celi value + 1 }
 door record = { tuur: 8, dhammee: 9 }
 hubi(tuur(6) == 6 && dhammee(6) == 7 && record.tuur == 8 && record.dhammee == 9, "contextual identifiers")
 tijaabi { tuur 42 } qabo (e) { message = e }
-hubi(message == "Qiimaha 'tuur' waa inuu noqdaa qoraal.", "invalid raised value")
+hubi(message == "Qiimaha 'tuur' waa inuu noqdaa qoraal ama khalad.", "invalid raised value")
 qor("raise and cleanup ok")

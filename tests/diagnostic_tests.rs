@@ -48,10 +48,13 @@ fn check(case: &Case, result: Output) {
         .unwrap()
         .replace("\r\n", "\n");
     // File separators depend on the host; source text and caret spacing do not.
+    let mut in_trace = false;
     let stderr = stderr
         .split_inclusive('\n')
         .map(|line| {
-            if line.starts_with("     --> ") {
+            let frame = in_trace && line.starts_with("     ");
+            in_trace = frame || line.trim_end() == "Raadka wicitaannada:";
+            if line.starts_with("     --> ") || frame {
                 line.replace('\\', "/")
             } else {
                 line.to_owned()

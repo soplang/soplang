@@ -617,3 +617,11 @@ fn test_raising_and_guaranteed_cleanup() {
         "raise and cleanup ok\n"
     );
 }
+
+#[test]
+fn test_structured_errors_and_causes() {
+    assert_eq!(
+        run_program(include_str!("fixtures/structured_errors.sop")),
+        "structured errors ok\n"
+    );
+}

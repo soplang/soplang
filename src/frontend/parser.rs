@@ -694,17 +694,31 @@ impl Parser {
         self.expect(TokenType::LBrace)?;
         let try_body = self.parse_block_stmts()?;
         self.expect(TokenType::RBrace)?;
-        let (err_var, catch_body) = if self.check(TokenType::Qabo) {
+        let (err_var, err_details, catch_body) = if self.check(TokenType::Qabo) {
             self.advance();
             self.expect(TokenType::LParen)?;
             let name = self.expect_identifier()?;
+            let details = if self.check(TokenType::Comma) {
+                self.advance();
+                let details = self.expect_identifier()?;
+                if details == name {
+                    return Err(parser_error(
+                        "Magacyada 'qabo' waa inay kala duwanaadaan.",
+                        self.peek().line,
+                        self.peek().col,
+                    ));
+                }
+                Some(details)
+            } else {
+                None
+            };
             self.expect(TokenType::RParen)?;
             self.expect(TokenType::LBrace)?;
             let body = self.parse_block_stmts()?;
             self.expect(TokenType::RBrace)?;
-            (Some(name), body)
+            (Some(name), details, body)
         } else {
-            (None, Vec::new())
+            (None, None, Vec::new())
         };
         let has_cleanup = self.peek().kind == TokenType::Identifier
             && self.peek().lexeme == "dhammee"
@@ -729,6 +743,7 @@ impl Parser {
         Ok(Stmt::TryCatch {
             try_body,
             err_var,
+            err_details,
             catch_body,
             finally_body,
         })

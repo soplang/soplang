@@ -151,6 +151,9 @@ pub enum HirInstr {
     BindError {
         dst: Slot,
     },
+    BindErrorValue {
+        dst: Slot,
+    },
     CheckThrow {
         catch: Option<LabelId>,
     },
@@ -299,6 +302,7 @@ impl fmt::Display for HirInstr {
             HirInstr::CheckThrow { catch: Some(catch) } => write!(f, "  check_throw L{}", catch),
             HirInstr::CheckThrow { catch: None } => write!(f, "  propagate_error"),
             HirInstr::BindError { dst } => write!(f, "  bind_error %{}", dst),
+            HirInstr::BindErrorValue { dst } => write!(f, "  bind_error_value %{}", dst),
             HirInstr::Pop { dst } => write!(f, "  pop %{}", dst),
             HirInstr::CheckType {
                 src,
@@ -373,18 +377,18 @@ fn un_op_from_str(op: &str) -> Option<UnOpKind> {
 }
 
 #[derive(Clone)]
-enum CleanupAction {
-    Body(Vec<Stmt>),
+enum CleanupAction<'a> {
+    Body(&'a [Stmt]),
     DiscardError,
     EndTry,
 }
 
 #[derive(Clone)]
-struct CleanupFrame {
-    action: CleanupAction,
+struct CleanupFrame<'a> {
+    action: CleanupAction<'a>,
     loop_depth: usize,
     catches: Vec<LabelId>,
-    catch_var: Option<(String, Slot)>,
+    catch_vars: Vec<(String, Slot)>,
 }
 
 /// Lowers AST to HIR using the symbol table.
@@ -395,9 +399,9 @@ pub struct HirLowering<'a> {
     next_label: LabelId,
     loop_stack: Vec<(LabelId, LabelId)>, // (break_label, continue_label)
     func_scope: Option<&'a std::collections::HashMap<String, crate::semantic::VarInfo>>,
-    catch_var: Option<(String, Slot)>,
+    catch_vars: Vec<(String, Slot)>,
     catch_stack: Vec<LabelId>,
-    cleanups: Vec<CleanupFrame>,
+    cleanups: Vec<CleanupFrame<'a>>,
     /// Class whose method is being lowered. `waalid` starts lookup at its parent.
     enclosing_class: Option<&'a str>,
     /// Function being lowered. Nested `hawl` names are `parent::name`.
@@ -410,7 +414,7 @@ pub struct HirLowering<'a> {
 }
 
 impl<'a> HirLowering<'a> {
-    pub fn lower(sym: &'a SymbolTable, stmts: &[Stmt]) -> HirModule {
+    pub fn lower(sym: &'a SymbolTable, stmts: &'a [Stmt]) -> HirModule {
         let mut lower = HirLowering {
             sym,
             body: Vec::new(),
@@ -418,7 +422,7 @@ impl<'a> HirLowering<'a> {
             next_label: 0,
             loop_stack: Vec::new(),
             func_scope: None,
-            catch_var: None,
+            catch_vars: Vec::new(),
             catch_stack: Vec::new(),
             cleanups: Vec::new(),
             enclosing_class: None,
@@ -458,7 +462,7 @@ impl<'a> HirLowering<'a> {
                     next_label: 0,
                     loop_stack: Vec::new(),
                     func_scope: Some(&fm.scope_vars),
-                    catch_var: None,
+                    catch_vars: Vec::new(),
                     catch_stack: Vec::new(),
                     cleanups: Vec::new(),
                     enclosing_class: fm.class_name.as_deref(),
@@ -680,10 +684,8 @@ impl<'a> HirLowering<'a> {
     }
 
     fn var_ann(&self, name: &str) -> Option<TypeAnnotation> {
-        if let Some((catch_name, _)) = &self.catch_var {
-            if catch_name == name {
-                return Some(TypeAnnotation::Dynamic);
-            }
+        if self.catch_vars.iter().any(|(binding, _)| binding == name) {
+            return Some(TypeAnnotation::Dynamic);
         }
         resolve_name(self.sym, name, self.func_scope).map(|v| v.type_ann)
     }
@@ -723,10 +725,13 @@ impl<'a> HirLowering<'a> {
     }
 
     fn resolve_slot(&self, name: &str) -> Option<Slot> {
-        if let Some((catch_name, slot)) = &self.catch_var {
-            if catch_name == name {
-                return Some(*slot);
-            }
+        if let Some((_, slot)) = self
+            .catch_vars
+            .iter()
+            .rev()
+            .find(|(binding, _)| binding == name)
+        {
+            return Some(*slot);
         }
         if self.func_scope.is_some() {
             // Inside a function: only resolve local variables, not globals
@@ -739,8 +744,7 @@ impl<'a> HirLowering<'a> {
     }
 
     fn is_global(&self, name: &str) -> bool {
-        self.func_scope.is_none()
-            && self.catch_var.as_ref().map(|(name, _)| name.as_str()) != Some(name)
+        self.func_scope.is_none() && !self.catch_vars.iter().any(|(binding, _)| binding == name)
     }
 
     /// Functions and callbacks can replace globals. Refresh top-level slots on
@@ -762,7 +766,7 @@ impl<'a> HirLowering<'a> {
         }
     }
 
-    fn lower_stmt(&mut self, stmt: &Stmt) {
+    fn lower_stmt(&mut self, stmt: &'a Stmt) {
         match stmt {
             Stmt::Located { span, stmt } => {
                 let previous = self.current_span.replace(span.clone());
@@ -1071,10 +1075,17 @@ impl<'a> HirLowering<'a> {
             Stmt::TryCatch {
                 try_body,
                 err_var,
+                err_details,
                 catch_body,
                 finally_body,
             } => {
-                self.lower_try(try_body, err_var.as_deref(), catch_body, finally_body);
+                self.lower_try(
+                    try_body,
+                    err_var.as_deref(),
+                    err_details.as_deref(),
+                    catch_body,
+                    finally_body,
+                );
             }
             Stmt::Import(_) => {}
             Stmt::Block(stmts) => {
@@ -1091,20 +1102,21 @@ impl<'a> HirLowering<'a> {
 
     fn lower_try(
         &mut self,
-        body: &[Stmt],
+        body: &'a [Stmt],
         error_name: Option<&str>,
-        handler: &[Stmt],
-        cleanup: &[Stmt],
+        error_details: Option<&str>,
+        handler: &'a [Stmt],
+        cleanup: &'a [Stmt],
     ) {
         let end = self.new_label();
         let cleanup_error = self.new_label();
         let has_cleanup = !cleanup.is_empty() || error_name.is_none();
         if has_cleanup {
             self.cleanups.push(CleanupFrame {
-                action: CleanupAction::Body(cleanup.to_vec()),
+                action: CleanupAction::Body(cleanup),
                 loop_depth: self.loop_stack.len(),
                 catches: self.catch_stack.clone(),
-                catch_var: self.catch_var.clone(),
+                catch_vars: self.catch_vars.clone(),
             });
             self.catch_stack.push(cleanup_error);
         }
@@ -1116,7 +1128,7 @@ impl<'a> HirLowering<'a> {
                 action: CleanupAction::EndTry,
                 loop_depth: self.loop_stack.len(),
                 catches: self.catch_stack.clone(),
-                catch_var: self.catch_var.clone(),
+                catch_vars: self.catch_vars.clone(),
             });
             self.catch_stack.push(catch);
             for stmt in body {
@@ -1129,12 +1141,18 @@ impl<'a> HirLowering<'a> {
             self.emit(HirInstr::Label(catch));
             let slot = self.alloc_slot();
             self.emit(HirInstr::BindError { dst: slot });
+            let previous = self.catch_vars.len();
+            self.catch_vars.push((name.to_owned(), slot));
+            if let Some(details) = error_details {
+                let slot = self.alloc_slot();
+                self.emit(HirInstr::BindErrorValue { dst: slot });
+                self.catch_vars.push((details.to_owned(), slot));
+            }
             self.emit(HirInstr::TryEnd);
-            let previous = self.catch_var.replace((name.to_owned(), slot));
             for stmt in handler {
                 self.lower_stmt(stmt);
             }
-            self.catch_var = previous;
+            self.catch_vars.truncate(previous);
             self.emit(HirInstr::Label(after_catch));
         } else {
             for stmt in body {
@@ -1152,7 +1170,7 @@ impl<'a> HirLowering<'a> {
         self.emit(HirInstr::Label(end));
     }
 
-    fn lower_cleanup(&mut self, body: &[Stmt]) {
+    fn lower_cleanup(&mut self, body: &'a [Stmt]) {
         let failed = self.new_label();
         let end = self.new_label();
         self.emit(HirInstr::SuspendError);
@@ -1160,7 +1178,7 @@ impl<'a> HirLowering<'a> {
             action: CleanupAction::DiscardError,
             loop_depth: self.loop_stack.len(),
             catches: self.catch_stack.clone(),
-            catch_var: self.catch_var.clone(),
+            catch_vars: self.catch_vars.clone(),
         });
         self.catch_stack.push(failed);
         for stmt in body {
@@ -1181,14 +1199,14 @@ impl<'a> HirLowering<'a> {
     fn lower_exit_cleanups(&mut self, returning: bool) {
         let frames = self.cleanups.clone();
         let catches = self.catch_stack.clone();
-        let catch_var = self.catch_var.clone();
+        let catch_var = self.catch_vars.clone();
         for (index, frame) in frames.iter().enumerate().rev() {
             if !returning && frame.loop_depth < self.loop_stack.len() {
                 break;
             }
             self.cleanups = frames[..index].to_vec();
             self.catch_stack = frame.catches.clone();
-            self.catch_var = frame.catch_var.clone();
+            self.catch_vars = frame.catch_vars.clone();
             match &frame.action {
                 CleanupAction::Body(body) => self.lower_cleanup(body),
                 CleanupAction::DiscardError => self.emit(HirInstr::DiscardError),
@@ -1197,7 +1215,7 @@ impl<'a> HirLowering<'a> {
         }
         self.cleanups = frames;
         self.catch_stack = catches;
-        self.catch_var = catch_var;
+        self.catch_vars = catch_var;
     }
 
     fn lower_expr(&mut self, expr: &Expr) -> Slot {

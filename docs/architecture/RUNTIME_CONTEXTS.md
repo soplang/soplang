@@ -12,6 +12,7 @@ Each Cranelift backend owns a `RuntimeContext`. Its state contains:
 - Built-in function indices and compiled function registrations.
 - Closure environments and their captured tagged values.
 - Current source location, try depth, and pending errors.
+- Structured error handles, suspended cleanup errors, and active function frames.
 
 Compiling a module, compiling another REPL snippet, and running generated code
 activate that backend's context for the duration of the operation. The native
@@ -73,6 +74,20 @@ current function. Callers continue that propagation until a handler or execution
 boundary is reached. Callback failures retain the original error metadata.
 No Rust unwinding crosses generated code or an extern boundary.
 
+Errors retain codes, explicit causes, and compiled function traces. A user
+function records its name and caller location on entry and removes that frame
+on every normal or error return. The first failure freezes the trace, so
+propagation and rethrowing cannot replace it with an outer caller's location.
+`qabo (fariin, xog)` retrieves message text and immutable structured details
+before clearing the pending error. The one-binding catch form is unchanged.
+
+Cleanup temporarily suspends pending errors so native operations and callbacks
+can execute normally. Successful cleanup restores the original error. A new
+cleanup failure takes precedence and retains the suspended error as its cause
+when no explicit cause exists. Abrupt cleanup exits discard the suspended
+error. Execution boundaries also restore surrounding suspended errors and
+function frames, including during Rust unwinding outside the native ABI.
+
 Standalone LLVM programs use the same propagation. Their `main` calls
 `soplang_finish_execution`, which reports an uncaught Somali diagnostic and
 returns status 1. Successful programs return 0. CLI reporting remains at the
@@ -86,7 +101,7 @@ capture is read or a closure is called. Capture lookup does not dereference
 an arbitrary or already-freed pointer. The environment parameter now carries
 an opaque handle rather than a memory address in both backends.
 
-Strings, collections, native functions, compiled functions, and closures use
+Strings, collections, errors, native functions, compiled functions, and closures use
 reusable arena slots. Each insertion receives a fresh positive 64-bit identity
 from a process-wide counter. The arena maps that identity to a slot and verifies
 it on lookup. A reused slot never accepts its previous identity; different

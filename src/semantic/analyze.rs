@@ -936,6 +936,7 @@ fn analyze_stmt(
         Stmt::TryCatch {
             try_body,
             err_var,
+            err_details,
             catch_body,
             finally_body,
             ..
@@ -950,7 +951,7 @@ fn analyze_stmt(
                 enclosing_fn,
             )?;
             sym.scopes.push(Scope::default());
-            if let Some(err_var) = err_var {
+            for err_var in err_var.iter().chain(err_details.iter()) {
                 let scope = sym.scopes.last_mut().unwrap();
                 scope.vars.insert(
                     err_var.clone(),
@@ -1317,7 +1318,7 @@ fn analyze_anonymous_function(
     )?;
 
     let mut captures = Vec::new();
-    if enclosing_fn.is_some() {
+    if sym.scopes.len() > 2 {
         captures = collect_captures(body, sym);
         let nested: Vec<Vec<String>> = sym.functions[fns_before..]
             .iter()

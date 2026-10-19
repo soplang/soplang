@@ -268,6 +268,7 @@ pub enum Stmt {
     TryCatch {
         try_body: Vec<Stmt>,
         err_var: Option<String>,
+        err_details: Option<String>,
         catch_body: Vec<Stmt>,
         finally_body: Vec<Stmt>,
     },
@@ -443,6 +444,7 @@ impl Stmt {
             Stmt::TryCatch {
                 try_body,
                 err_var,
+                err_details,
                 catch_body,
                 finally_body,
             } => {
@@ -452,7 +454,11 @@ impl Stmt {
                 }
                 writeln!(f, "{}}}", pad)?;
                 if let Some(name) = err_var {
-                    writeln!(f, "{}qabo ({}) {{", pad, name)?;
+                    if let Some(details) = err_details {
+                        writeln!(f, "{}qabo ({}, {}) {{", pad, name, details)?;
+                    } else {
+                        writeln!(f, "{}qabo ({}) {{", pad, name)?;
+                    }
                     for stmt in catch_body {
                         stmt.fmt_with_depth(f, depth + 1)?;
                     }

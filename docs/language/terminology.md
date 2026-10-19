@@ -440,3 +440,8 @@ these details. Existing codes and caught-message string behavior remain intact.
 `dhammee` runs on success, errors, returns, and loop exits. It can follow a
 `tijaabi` body with or without `qabo`. Existing handler variables continue to
 receive error-message strings.
+
+Structured errors add `khalad`, `fariin`, `summad`, `sabab`, `fayl`, `saf`,
+`tiir`, and `raad`. Their contracts and exact diagnostic text are recorded in
+the [runtime error wording inventory](runtime-error-wording.md) for review
+alongside the earlier full wording inventory.

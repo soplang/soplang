@@ -130,6 +130,9 @@ fn register_runtime_symbols(builder: &mut JITBuilder) {
     sym!(builder, soplang_try_end);
     sym!(builder, soplang_has_pending_error);
     sym!(builder, soplang_get_caught_error);
+    sym!(builder, soplang_get_caught_error_value);
+    sym!(builder, soplang_enter_function);
+    sym!(builder, soplang_leave_function);
 }
 
 // JIT allocations can be farther apart than AArch64's direct branch range,
@@ -162,7 +165,8 @@ fn max_slot_in_body(body: &[HirInstr]) -> usize {
             HirInstr::Const { dst, .. }
             | HirInstr::Load { dst, .. }
             | HirInstr::Pop { dst }
-            | HirInstr::BindError { dst } => {
+            | HirInstr::BindError { dst }
+            | HirInstr::BindErrorValue { dst } => {
                 mx = mx.max(*dst + 1);
             }
             HirInstr::Copy { dst, src } => {
@@ -447,6 +451,9 @@ impl CraneliftBackend {
 
         let (var_tags, var_pays) = declare_slot_vars(&mut builder, num_slots);
 
+        let name_ptr = builder.ins().iconst(types::I64, f.name.as_ptr() as i64);
+        let name_len = builder.ins().iconst(types::I64, f.name.len() as i64);
+        call_rt_void(&mut builder, &mut self.module, "soplang_enter_function", &[name_ptr, name_len])?;
         let params = builder.block_params(entry).to_vec();
         if has_env {
             let env_ptr = params[1];
@@ -937,6 +944,7 @@ fn compile_body(
                 }
                 let t = builder.use_var(var_tags[*val]);
                 let p = builder.use_var(var_pays[*val]);
+                call_rt_void(builder, module, "soplang_leave_function", &[])?;
                 builder.ins().return_(&[t, p]);
                 terminated = true;
             }
@@ -1072,6 +1080,7 @@ fn compile_body(
                     if is_function {
                         let tag = builder.ins().iconst(types::I64, 8);
                         let payload = builder.ins().iconst(types::I64, 0);
+                        call_rt_void(builder, module, "soplang_leave_function", &[])?;
                         builder.ins().return_(&[tag, payload]);
                     } else {
                         builder.ins().return_(&[]);
@@ -1080,11 +1089,14 @@ fn compile_body(
                 builder.switch_to_block(continue_block);
             }
 
-            HirInstr::BindError { dst } => {
+            HirInstr::BindError { dst } | HirInstr::BindErrorValue { dst } => {
                 if terminated {
                     continue;
                 }
-                let (t, p) = call_rt(builder, module, "soplang_get_caught_error", &[])?;
+                let name = if matches!(instr, HirInstr::BindErrorValue { .. }) {
+                    "soplang_get_caught_error_value"
+                } else { "soplang_get_caught_error" };
+                let (t, p) = call_rt(builder, module, name, &[])?;
                 builder.def_var(var_tags[*dst], t);
                 builder.def_var(var_pays[*dst], p);
             }
@@ -1112,6 +1124,7 @@ fn compile_body(
         if is_function {
             let nt = builder.ins().iconst(types::I64, 0);
             let np = builder.ins().iconst(types::I64, 0);
+            call_rt_void(builder, module, "soplang_leave_function", &[])?;
             builder.ins().return_(&[nt, np]);
         } else {
             builder.ins().return_(&[]);

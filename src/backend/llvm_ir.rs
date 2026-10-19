@@ -62,6 +62,9 @@ declare void @soplang_try_end()
 declare i32 @soplang_has_pending_error()
 declare i32 @soplang_finish_execution()
 declare %SoplangValue @soplang_get_caught_error()
+declare %SoplangValue @soplang_get_caught_error_value()
+declare void @soplang_enter_function(ptr, i64)
+declare void @soplang_leave_function()
 declare void @soplang_check_class(i64, i64, ptr, i64, ptr, i64)
 declare void @soplang_mark_const(ptr, i64)
 declare %SoplangValue @soplang_make_closure(ptr, i64, i64, ptr)
@@ -301,7 +304,7 @@ struct Keep(*const ());
 unsafe impl Sync for Keep {}
 
 #[used]
-static KEEP: [Keep; 51] = [
+static KEEP: [Keep; 54] = [
     Keep(runtime::soplang_set_location as *const ()),
     Keep(runtime::soplang_int as *const ()),
     Keep(runtime::soplang_float as *const ()),
@@ -349,6 +352,9 @@ static KEEP: [Keep; 51] = [
     Keep(runtime::soplang_has_pending_error as *const ()),
     Keep(runtime::soplang_finish_execution as *const ()),
     Keep(runtime::soplang_get_caught_error as *const ()),
+    Keep(runtime::soplang_get_caught_error_value as *const ()),
+    Keep(runtime::soplang_enter_function as *const ()),
+    Keep(runtime::soplang_leave_function as *const ()),
     Keep(runtime::soplang_check_class as *const ()),
     Keep(runtime::soplang_mark_const as *const ()),
     Keep(runtime::soplang_make_closure as *const ()),
@@ -611,6 +617,8 @@ fn emit_function(
         cont: 0,
     };
     emit.alloc_slots();
+    let (name_ptr, name_len) = emit.str_ptr(&f.name);
+    emit.line(format!("  call void @soplang_enter_function(ptr {name_ptr}, i64 {name_len})"));
     let user_base = if has_env {
         let env_pay = emit.fresh();
         emit.line(format!("  {env_pay} = extractvalue %SoplangValue %a0, 1"));
@@ -838,6 +846,7 @@ impl<'a> FnEmit<'a> {
                 self.line(format!("  {status} = call i32 @soplang_finish_execution()"));
                 self.line(format!("  ret i32 {status}"));
             } else {
+                self.line("  call void @soplang_leave_function()");
                 self.line("  ret %SoplangValue zeroinitializer");
             }
         }
@@ -1047,6 +1056,7 @@ impl<'a> FnEmit<'a> {
                 } else {
                     let (t, p) = self.load_slot(*val);
                     let sv = self.pack(&t, &p);
+                    self.line("  call void @soplang_leave_function()");
                     self.line(format!("  ret %SoplangValue {sv}"));
                 }
                 Ok(true)
@@ -1217,14 +1227,18 @@ impl<'a> FnEmit<'a> {
                         self.line(format!("  {status} = call i32 @soplang_finish_execution()"));
                         self.line(format!("  ret i32 {status}"));
                     } else {
+                        self.line("  call void @soplang_leave_function()");
                         self.line("  ret %SoplangValue { i8 8, i64 0 }");
                     }
                 }
                 self.line(format!("K{cont}:"));
                 Ok(false)
             }
-            HirInstr::BindError { dst } => {
-                let sv = self.call_sv("soplang_get_caught_error", "");
+            HirInstr::BindError { dst } | HirInstr::BindErrorValue { dst } => {
+                let name = if matches!(instr, HirInstr::BindErrorValue { .. }) {
+                    "soplang_get_caught_error_value"
+                } else { "soplang_get_caught_error" };
+                let sv = self.call_sv(name, "");
                 self.unpack_store(&sv, *dst);
                 Ok(false)
             }
@@ -1501,7 +1515,8 @@ fn slot_hi(body: &[HirInstr]) -> usize {
             HirInstr::Const { dst, .. }
             | HirInstr::Load { dst, .. }
             | HirInstr::Pop { dst }
-            | HirInstr::BindError { dst } => mx = mx.max(*dst + 1),
+            | HirInstr::BindError { dst }
+            | HirInstr::BindErrorValue { dst } => mx = mx.max(*dst + 1),
             HirInstr::Copy { dst, src } => mx = mx.max(*dst + 1).max(*src + 1),
             HirInstr::Store { src, .. } => mx = mx.max(*src + 1),
             HirInstr::BinOp { dst, lhs, rhs, .. } => {

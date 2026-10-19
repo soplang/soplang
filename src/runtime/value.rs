@@ -7,7 +7,7 @@ use std::rc::Rc;
 
 use crate::error::SoplangError;
 
-/// Opaque function reference (index into Interpreter's function table).
+/// Opaque native or compiled function handle in its owning runtime context.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct FunctionId(pub usize);
 
@@ -26,6 +26,7 @@ pub enum Value {
     NativeFunction(NativeFn),
     /// Context-owned closure identity. Survives a trip through `Value`.
     Closure(i64),
+    Error(Rc<SoplangError>),
     Null,
 }
 
@@ -50,6 +51,7 @@ impl Value {
             Value::Function(id) => ValueDebug::Function(*id),
             Value::NativeFunction(_) => ValueDebug::NativeFn,
             Value::Closure(p) => ValueDebug::Closure(*p),
+            Value::Error(error) => ValueDebug::Error(error.message()),
             Value::Null => ValueDebug::Null,
         }
     }
@@ -67,6 +69,7 @@ enum ValueDebug<'a> {
     Function(FunctionId),
     NativeFn,
     Closure(i64),
+    Error(&'a str),
     Null,
 }
 
@@ -110,6 +113,7 @@ fn value_eq(a: &Value, b: &Value, seen: &mut HashSet<(u8, usize, usize)>) -> boo
                     b.get(key).is_some_and(|other| value_eq(value, other, seen))
                 })
         }
+        (Value::Error(a), Value::Error(b)) => Rc::ptr_eq(a, b),
         (Value::Function(a), Value::Function(b)) => a == b,
         (Value::Closure(a), Value::Closure(b)) => a == b,
         (Value::NativeFunction(a), Value::NativeFunction(b)) => {
@@ -131,6 +135,7 @@ impl Value {
             Value::List(_) => "teed",
             Value::Object(_) => "walax",
             Value::Function(_) | Value::NativeFunction(_) | Value::Closure(_) => "hawl",
+            Value::Error(_) => "khalad",
             Value::Null => "maran",
         }
     }
@@ -145,7 +150,9 @@ impl Value {
             Value::Str(s) => !s.is_empty(),
             Value::List(l) => !l.borrow().is_empty(),
             Value::Object(o) => !o.borrow().is_empty(),
-            Value::Function(_) | Value::NativeFunction(_) | Value::Closure(_) => true,
+            Value::Function(_) | Value::NativeFunction(_) | Value::Closure(_) | Value::Error(_) => {
+                true
+            }
         }
     }
 }
@@ -181,6 +188,7 @@ fn format_value(v: &Value, seen: &mut HashSet<(u8, usize)>) -> String {
             }
         }
         Value::Str(s) => s.clone(),
+        Value::Error(error) => error.message().to_owned(),
         Value::List(lst) => {
             let id = (0, Rc::as_ptr(lst) as usize);
             if !seen.insert(id) {

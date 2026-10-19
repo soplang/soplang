@@ -224,7 +224,7 @@ flowchart LR
 
 **Internal (`Value`):** Rust enum — Int(i64), Float(f64), Str(String), Bool(bool), List(Rc<RefCell<Vec<Value>>>), Object(Rc<RefCell<HashMap<String, Value>>>), Function(FunctionId), NativeFunction(NativeFn), Closure(i64), Null. Used by stdlib and when converting to/from ABI.
 
-**C ABI (`SoplangValue`):** 16 bytes, `#[repr(C)]`: tag (u8), padding (7 bytes), payload (i64). Tags: null=0, int=1, float=2, bool=3, string=4, list=5, object=6, function=7, throw=8, closure=9. This value crosses the generated-code/runtime boundary in both backends.
+**C ABI (`SoplangValue`):** 16 bytes, `#[repr(C)]`: tag (u8), padding (7 bytes), payload (i64). Tags: null=0, int=1, float=2, bool=3, string=4, list=5, object=6, function=7, throw=8, closure=9, error=10. This value crosses the generated-code/runtime boundary in both backends.
 
 **Mechanism:** Heaps (thread_local): STR_HEAP, LIST_HEAP, OBJ_HEAP; NATIVE_FN_TABLE, BUILTIN_INDICES, GLOBAL_VARS, COMPILED_FN_TABLE, CONST_GLOBALS. `value_to_soplang` / `soplang_to_value` convert; heap indices and function indices stored in payload.
 

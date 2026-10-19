@@ -25,6 +25,10 @@ fn expand(text: &str, mut column: usize) -> (String, usize) {
 
 /// Format an error with its original file and source line when available.
 pub fn format_error_with_source(err: &SoplangError, source: Option<&str>) -> String {
+    format_error(err, source, 0)
+}
+
+fn format_error(err: &SoplangError, source: Option<&str>, depth: usize) -> String {
     let (line, col) = err.location();
     let meta = err.meta();
     let mut out = format!("{}\n", err.to_string().red().bold());
@@ -60,6 +64,34 @@ pub fn format_error_with_source(err: &SoplangError, source: Option<&str>) -> Str
     }
     if let Some(hint) = meta.hint.as_deref() {
         out.push_str(&format!("{} {}\n", "     └─".dimmed(), hint.dimmed()));
+    }
+    if !meta.trace.is_empty() {
+        out.push_str("Raadka wicitaannada:\n");
+        for frame in &meta.trace {
+            if let Some(file) = frame
+                .file
+                .as_ref()
+                .filter(|_| frame.line > 0 && frame.col > 0)
+            {
+                out.push_str(&format!(
+                    "     {} ({}:{}:{})\n",
+                    frame.function,
+                    file.display(),
+                    frame.line,
+                    frame.col
+                ));
+            } else {
+                out.push_str(&format!("     {}\n", frame.function));
+            }
+        }
+    }
+    if let Some(cause) = &meta.cause {
+        if depth < 32 {
+            out.push_str("Sababta:\n");
+            out.push_str(&format_error(cause, None, depth + 1));
+        } else {
+            out.push_str("Sababaha kale waa la soo gaabiyey.\n");
+        }
     }
     if std::env::var_os("SOPLANG_ERROR_DETAILS").as_deref() == Some(std::ffi::OsStr::new("1")) {
         if let Some(details) = &meta.technical_details {

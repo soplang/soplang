@@ -44,10 +44,19 @@ fn short_circuit_if_pending() -> Option<SoplangValue> {
 }
 
 fn handle_runtime_error(e: SoplangError) -> SoplangValue {
-    let e = CURRENT_SOURCE.with(|source| match source.borrow().as_ref() {
+    let mut e = CURRENT_SOURCE.with(|source| match source.borrow().as_ref() {
         Some(span) => span.attach(e),
         None => e,
     });
+    if e.meta().cause.is_none() {
+        e.meta_mut().cause = SUSPENDED_ERRORS.with(|errors| {
+            errors.borrow().iter().rev().find_map(|error| error.as_ref())
+                .map(|error| Box::new(error.clone()))
+        });
+    }
+    if e.meta().trace.is_empty() {
+        e.meta_mut().trace = CALL_STACK.with(|stack| stack.borrow().iter().rev().cloned().collect());
+    }
     // Generated code propagates this state to the execution boundary without
     // unwinding Rust through a C ABI or terminating an embedding process.
     PENDING_ERROR.with(|pending| {
@@ -57,6 +66,11 @@ fn handle_runtime_error(e: SoplangError) -> SoplangValue {
     });
     throw_value()
 }
+
+const CALL_STACK: RuntimeLocal<RefCell<Vec<crate::error::StackFrame>>> =
+    RuntimeLocal::new(|state| &state.call_stack);
+const ERROR_HEAP: RuntimeLocal<RefCell<HandleArena<Rc<SoplangError>>>> =
+    RuntimeLocal::new(|state| &state.errors);
 
 const CURRENT_SOURCE: RuntimeLocal<RefCell<Option<crate::error::SourceSpan>>> =
     RuntimeLocal::new(|state| &state.current_source);
@@ -158,7 +172,8 @@ pub extern "C" fn soplang_raise(value: SoplangValue) -> SoplangValue {
     check_handles!(value);
     match soplang_to_value(value) {
         Ok(Value::Str(message)) => handle_runtime_error(runtime_error(message, 0, 0)),
-        Ok(_) => handle_runtime_error(type_error("Qiimaha 'tuur' waa inuu noqdaa qoraal.", 0, 0)),
+        Ok(Value::Error(error)) => handle_runtime_error((*error).clone()),
+        Ok(_) => handle_runtime_error(type_error("Qiimaha 'tuur' waa inuu noqdaa qoraal ama khalad.", 0, 0)),
         Err(error) => handle_runtime_error(error),
     }
 }
@@ -185,6 +200,41 @@ pub extern "C" fn soplang_restore_error() {
 #[no_mangle]
 pub extern "C" fn soplang_discard_error() {
     SUSPENDED_ERRORS.with(|errors| { errors.borrow_mut().pop(); });
+}
+
+/// Retrieve the structured form without consuming the pending error.
+#[no_mangle]
+pub extern "C" fn soplang_get_caught_error_value() -> SoplangValue {
+    let error = PENDING_ERROR.with(|error| error.borrow().as_ref().cloned());
+    error
+        .map(|error| value_to_soplang(&Value::Error(Rc::new(error))))
+        .unwrap_or_else(SoplangValue::null)
+}
+
+#[no_mangle]
+pub extern "C" fn soplang_enter_function(name: *const u8, len: usize) {
+    if name.is_null() {
+        return;
+    }
+    let name = unsafe { std::slice::from_raw_parts(name, len) };
+    let function = String::from_utf8_lossy(name).into_owned();
+    let frame = CURRENT_SOURCE.with(|source| {
+        let source = source.borrow();
+        crate::error::StackFrame {
+            function,
+            file: source.as_ref().and_then(|source| source.file.clone()),
+            line: source.as_ref().map(|source| source.line).unwrap_or(0),
+            col: source.as_ref().map(|source| source.col).unwrap_or(0),
+        }
+    });
+    CALL_STACK.with(|stack| stack.borrow_mut().push(frame));
+}
+
+#[no_mangle]
+pub extern "C" fn soplang_leave_function() {
+    CALL_STACK.with(|stack| {
+        stack.borrow_mut().pop();
+    });
 }
 
 /// Take an uncaught error at an execution boundary, preserving its metadata.
@@ -217,6 +267,7 @@ pub const TAG_LIST: u8 = 5;
 pub const TAG_OBJECT: u8 = 6;
 pub const TAG_FUNC: u8 = 7;
 pub const TAG_CLOSURE: u8 = 9;
+pub const TAG_ERROR: u8 = 10;
 
 /// Tagged value for C ABI. 16 bytes: tag (u8) + padding + payload (i64).
 #[repr(C)]
@@ -308,6 +359,7 @@ fn invalid_handle() -> SoplangError {
 
 fn validate_handle(value: SoplangValue) -> Result<(), SoplangError> {
     let live = match value.tag {
+        TAG_ERROR => ERROR_HEAP.with(|heap| heap.borrow().contains(value.payload)),
         TAG_STR => STR_HEAP.with(|heap| heap.borrow().contains(value.payload)),
         TAG_LIST => LIST_HEAP.with(|heap| heap.borrow().contains(value.payload)),
         TAG_OBJECT => OBJ_HEAP.with(|heap| heap.borrow().contains(value.payload)),
@@ -385,6 +437,11 @@ pub fn value_to_soplang(v: &Value) -> SoplangValue {
             _pad: [0; 7],
             payload: obj_alloc(Rc::clone(o)),
         },
+        Value::Error(error) => SoplangValue {
+            tag: TAG_ERROR,
+            _pad: [0; 7],
+            payload: ERROR_HEAP.with(|heap| heap.borrow_mut().insert(Rc::clone(error))),
+        },
         Value::Function(id) => SoplangValue {
             tag: TAG_FUNC,
             _pad: [0; 7],
@@ -427,6 +484,8 @@ pub fn soplang_to_value(sv: SoplangValue) -> Result<Value, SoplangError> {
         TAG_INT => Ok(Value::Int(sv.payload)),
         TAG_FLOAT => Ok(Value::Float(f64::from_bits(sv.payload as u64))),
         TAG_BOOL => Ok(Value::Bool(sv.payload != 0)),
+        TAG_ERROR => ERROR_HEAP.with(|heap| heap.borrow().get(sv.payload).cloned())
+            .map(Value::Error).ok_or_else(invalid_handle),
         TAG_STR => str_get(sv.payload).map(Value::Str),
         TAG_LIST => list_get(sv.payload).map(Value::List),
         TAG_OBJECT => obj_get(sv.payload).map(Value::Object),
@@ -941,6 +1000,8 @@ pub extern "C" fn soplang_get_index(obj: SoplangValue, idx: SoplangValue) -> Sop
                 .map(|ch| value_to_soplang(&Value::Str(ch.to_string())))
                 .unwrap_or_else(SoplangValue::null)
         }
+        (Ok(Value::Error(error)), Ok(Value::Str(key))) => value_to_soplang(&error_property(&error, &key)),
+        (Ok(Value::Error(_)), Ok(_)) => handle_runtime_error(type_error("Furaha khaladku waa inuu noqdaa qoraal.", 0, 0)),
         (Ok(Value::Object(o)), Ok(Value::Str(key))) => o
             .borrow()
             .get(&key)
@@ -994,12 +1055,77 @@ pub extern "C" fn soplang_set_index(
         (Ok(Value::Object(_)), Ok(_), Ok(_)) => {
             handle_runtime_error(type_error("Furaha walaxdu waa in uu noqdo qoraal", 0, 0))
         }
+        (Ok(Value::Error(_)), _, _) => handle_runtime_error(type_error("Xogta khaladka lama beddeli karo.", 0, 0)),
         (Ok(Value::Str(_)), _, _) => handle_runtime_error(type_error(
             "Qoraal toos looma beddeli karo tusmo ahaan",
             0,
             0,
         )),
         _ => handle_runtime_error(type_error("Qiimahan tusmo laguma beddeli karo", 0, 0)),
+    }
+}
+
+fn error_property(error: &SoplangError, key: &str) -> Value {
+    let meta = error.meta();
+    match key {
+        "fariin" => Value::Str(error.message().into()),
+        "summad" => error
+            .code()
+            .map(|code| Value::Str(code.into()))
+            .unwrap_or(Value::Null),
+        "sabab" => meta
+            .cause
+            .as_ref()
+            .map(|cause| Value::Error(Rc::new((**cause).clone())))
+            .unwrap_or(Value::Null),
+        "fayl" => meta
+            .file
+            .as_ref()
+            .map(|file| Value::Str(file.display().to_string()))
+            .unwrap_or(Value::Null),
+        "saf" => match error.location().0 {
+            0 => Value::Null,
+            line => Value::Int(line as i64),
+        },
+        "tiir" => match error.location().1 {
+            0 => Value::Null,
+            col => Value::Int(col as i64),
+        },
+        "raad" => Value::List(Rc::new(RefCell::new(
+            meta.trace
+                .iter()
+                .map(|frame| {
+                    Value::Object(Rc::new(RefCell::new(HashMap::from([
+                        ("magac".into(), Value::Str(frame.function.clone())),
+                        (
+                            "fayl".into(),
+                            frame
+                                .file
+                                .as_ref()
+                                .map(|file| Value::Str(file.display().to_string()))
+                                .unwrap_or(Value::Null),
+                        ),
+                        (
+                            "saf".into(),
+                            if frame.line == 0 {
+                                Value::Null
+                            } else {
+                                Value::Int(frame.line as i64)
+                            },
+                        ),
+                        (
+                            "tiir".into(),
+                            if frame.col == 0 {
+                                Value::Null
+                            } else {
+                                Value::Int(frame.col as i64)
+                            },
+                        ),
+                    ]))))
+                })
+                .collect(),
+        ))),
+        _ => Value::Null,
     }
 }
 
@@ -1012,6 +1138,7 @@ pub extern "C" fn soplang_get_prop(obj: SoplangValue, name: *const u8, len: usiz
     let key = unsafe { std::slice::from_raw_parts(name, len) };
     let key = String::from_utf8_lossy(key).into_owned();
     match soplang_to_value(obj) {
+        Ok(Value::Error(error)) => value_to_soplang(&error_property(&error, &key)),
         Ok(Value::Object(o)) => o
             .borrow()
             .get(&key)
@@ -1040,6 +1167,7 @@ pub extern "C" fn soplang_set_prop(
             o.borrow_mut().insert(key, v);
             value_to_soplang(&Value::Object(o))
         }
+        (Ok(Value::Error(_)), _) => handle_runtime_error(type_error("Xogta khaladka lama beddeli karo.", 0, 0)),
         _ => SoplangValue::null(),
     }
 }

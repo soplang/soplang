@@ -71,8 +71,7 @@ fn test_llvm_ir_prints_without_run_source() {
 }
 
 fn run_llvm(name: &str, source: &str) -> String {
-    let tokens = Lexer::new(source).tokenize().expect("lex");
-    let stmts = Parser::new(tokens).parse().expect("parse");
+    let stmts = soplang::frontend::parse_source(source, None).expect("parse");
     let sym = analyze(&stmts).expect("analyze");
     let hir = HirLowering::lower(&sym, &stmts);
     let ir = emit_llvm_ir(&hir, &sym).unwrap_or_else(|e| panic!("{e}"));
@@ -538,5 +537,16 @@ fn test_llvm_raising_and_guaranteed_cleanup() {
     assert_eq!(
         run_llvm("raise_cleanup", include_str!("fixtures/raise_cleanup.sop")),
         "raise and cleanup ok\n"
+    );
+}
+
+#[test]
+fn test_llvm_structured_errors_and_causes() {
+    assert_eq!(
+        run_llvm(
+            "structured_errors",
+            include_str!("fixtures/structured_errors.sop")
+        ),
+        "structured errors ok\n"
     );
 }
