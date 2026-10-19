@@ -56,6 +56,7 @@ declare i64 @soplang_register_user_fn(ptr, i64, ptr, i64)
 declare i32 @soplang_try_begin()
 declare void @soplang_try_end()
 declare i32 @soplang_has_pending_error()
+declare i32 @soplang_finish_execution()
 declare %SoplangValue @soplang_get_caught_error()
 declare void @soplang_check_class(i64, i64, ptr, i64, ptr, i64)
 declare void @soplang_mark_const(ptr, i64)
@@ -296,7 +297,7 @@ struct Keep(*const ());
 unsafe impl Sync for Keep {}
 
 #[used]
-static KEEP: [Keep; 46] = [
+static KEEP: [Keep; 47] = [
     Keep(runtime::soplang_set_location as *const ()),
     Keep(runtime::soplang_int as *const ()),
     Keep(runtime::soplang_float as *const ()),
@@ -338,6 +339,7 @@ static KEEP: [Keep; 46] = [
     Keep(runtime::soplang_try_begin as *const ()),
     Keep(runtime::soplang_try_end as *const ()),
     Keep(runtime::soplang_has_pending_error as *const ()),
+    Keep(runtime::soplang_finish_execution as *const ()),
     Keep(runtime::soplang_get_caught_error as *const ()),
     Keep(runtime::soplang_check_class as *const ()),
     Keep(runtime::soplang_mark_const as *const ()),
@@ -824,7 +826,9 @@ impl<'a> FnEmit<'a> {
         }
         if !terminated {
             if self.is_main {
-                self.line("  ret i32 0");
+                let status = self.fresh();
+                self.line(format!("  {status} = call i32 @soplang_finish_execution()"));
+                self.line(format!("  ret i32 {status}"));
             } else {
                 self.line("  ret %SoplangValue zeroinitializer");
             }
@@ -1029,7 +1033,9 @@ impl<'a> FnEmit<'a> {
             }
             HirInstr::Return { val } => {
                 if self.is_main {
-                    self.line("  ret i32 0");
+                    let status = self.fresh();
+                self.line(format!("  {status} = call i32 @soplang_finish_execution()"));
+                self.line(format!("  ret i32 {status}"));
                 } else {
                     let (t, p) = self.load_slot(*val);
                     let sv = self.pack(&t, &p);
@@ -1180,7 +1186,18 @@ impl<'a> FnEmit<'a> {
                     "  {pending} = call i32 @soplang_has_pending_error()"
                 ));
                 self.line(format!("  {cmp} = icmp ne i32 {pending}, 0"));
-                self.line(format!("  br i1 {cmp}, label %L{catch}, label %K{cont}"));
+                let target = catch.map(|label| format!("L{label}")).unwrap_or_else(|| format!("E{cont}"));
+                self.line(format!("  br i1 {cmp}, label %{target}, label %K{cont}"));
+                if catch.is_none() {
+                    self.line(format!("E{cont}:"));
+                    if self.is_main {
+                        let status = self.fresh();
+                        self.line(format!("  {status} = call i32 @soplang_finish_execution()"));
+                        self.line(format!("  ret i32 {status}"));
+                    } else {
+                        self.line("  ret %SoplangValue { i8 8, i64 0 }");
+                    }
+                }
                 self.line(format!("K{cont}:"));
                 Ok(false)
             }

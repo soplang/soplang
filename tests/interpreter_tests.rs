@@ -601,3 +601,11 @@ fn test_import_via_file() {
     let stdout = String::from_utf8(out.stdout).unwrap();
     assert_eq!(stdout, "6\n");
 }
+
+#[test]
+fn test_error_boundaries_stop_failed_expressions() {
+    assert_eq!(
+        run_program(include_str!("fixtures/error_boundaries.sop")),
+        "error boundaries ok\n"
+    );
+}

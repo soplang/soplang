@@ -118,7 +118,7 @@ impl SourceSpan {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum SoplangError {
     Lexer {
         msg: String,

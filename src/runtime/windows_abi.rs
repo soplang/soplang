@@ -30,6 +30,7 @@ bridge!(
 bridge!(soplang_try_begin() -> c_int);
 bridge!(soplang_try_end());
 bridge!(soplang_has_pending_error() -> c_int);
+bridge!(soplang_finish_execution() -> c_int);
 bridge!(soplang_get_caught_error() -> SoplangValue);
 bridge!(soplang_int(n: i64) -> SoplangValue);
 bridge!(soplang_float(x: f64) -> SoplangValue);

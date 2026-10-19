@@ -251,3 +251,73 @@ fn stale_operands_and_callables_produce_catchable_runtime_errors() {
         runtime::soplang_try_end();
     });
 }
+
+#[test]
+fn uncaught_execution_errors_return_to_the_host_and_repl() {
+    for _ in 0..5 {
+        let error = soplang::run_source(
+            "door zero = 0\ndoor result = 1 / zero",
+            None,
+            false,
+            false,
+            false,
+        )
+        .unwrap_err();
+        assert_eq!(error.message(), "Tiro looma qaybin karo eber.");
+        assert_eq!(error.location(), (2, 17));
+        soplang::run_source("door result = 7", None, false, false, false).unwrap();
+    }
+
+    let mut session = ReplSession::new(false).unwrap();
+    session
+        .eval(
+            "door calls = 0 hawl side() { calls = calls + 1 celi 1 }",
+            None,
+        )
+        .unwrap();
+    let error = session
+        .eval(
+            "door before = 4 door bad = 1 / 0 + side() door after = 8",
+            None,
+        )
+        .unwrap_err();
+    assert_eq!(error.message(), "Tiro looma qaybin karo eber.");
+    assert_eq!(session.get_global("calls"), Some(Value::Int(0)));
+    assert_eq!(session.get_global("before"), Some(Value::Int(4)));
+    assert!(session.get_global("after").is_none());
+    session
+        .eval("before = before + side() door after = 9", None)
+        .unwrap();
+    assert_eq!(session.get_global("calls"), Some(Value::Int(1)));
+    assert_eq!(session.get_global("before"), Some(Value::Int(5)));
+    assert_eq!(session.get_global("after"), Some(Value::Int(9)));
+}
+
+#[test]
+fn explicit_boundaries_restore_the_surrounding_pending_error() {
+    let context = RuntimeContext::new();
+    context.with(|| {
+        runtime::soplang_try_begin();
+        runtime::soplang_div(runtime::soplang_int(1), runtime::soplang_int(0));
+        let nested = context.execute(|| {
+            assert_eq!(runtime::soplang_has_pending_error(), 0);
+            runtime::soplang_capture_get(i64::MAX, 0)
+        });
+        assert!(nested.is_err());
+        assert_eq!(runtime::soplang_has_pending_error(), 1);
+        assert_eq!(
+            runtime::take_pending_error().unwrap().message(),
+            "Tiro looma qaybin karo eber."
+        );
+        runtime::soplang_try_end();
+
+        let result = catch_unwind(AssertUnwindSafe(|| {
+            context.execute(|| {
+                runtime::soplang_try_begin();
+                panic!("restore boundary state");
+            })
+        }));
+        assert!(result.is_err());
+        assert!(context.execute(|| runtime::soplang_int(3)).is_ok());
+    });
+}

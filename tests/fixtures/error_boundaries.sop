@@ -1,0 +1,33 @@
+hawl hubi(shuruud) {
+    haddii (!shuruud) { celi 1 / 0 }
+}
+door calls = 0
+hawl side() { calls = calls + 1 celi 4 }
+hawl fail() { door value = 1 / 0 calls = 100 celi value }
+door caught = 0
+// A failed left operand must stop evaluation before the right operand.
+tijaabi { door value = fail() + side() } qabo (e) { caught = caught + 1 }
+hubi(calls == 0 && caught == 1)
+// The same rule applies before entering a loop body or evaluating another argument.
+tijaabi { intay (fail()) { side() } } qabo (e) { caught = caught + 1 }
+tijaabi { qor(fail(), side()) } qabo (e) { caught = caught + 1 }
+hubi(calls == 0 && caught == 3)
+// Catch handlers run after the pending error has been cleared.
+tijaabi {
+    tijaabi { fail() } qabo (inner) { fail() }
+} qabo (outer) {
+    hubi(outer == "Tiro looma qaybin karo eber.")
+    caught = caught + 1
+}
+// Nested handlers must restore the outer handler's variable binding.
+tijaabi { fail() } qabo (outer) {
+    tijaabi { fail() } qabo (inner) { caught = caught + 1 }
+    hubi(outer == "Tiro looma qaybin karo eber.")
+    caught = caught + 1
+}
+// Compiled callbacks propagate their original failure and stop native iteration.
+door items = [1, 2, 3]
+tijaabi { items.aaddin(hawl(x) { door value = fail() side() celi value }) }
+qabo (e) { caught = caught + 1 }
+hubi(calls == 0 && caught == 7)
+qor("error boundaries ok")

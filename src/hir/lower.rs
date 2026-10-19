@@ -146,7 +146,7 @@ pub enum HirInstr {
         dst: Slot,
     },
     CheckThrow {
-        catch: LabelId,
+        catch: Option<LabelId>,
     },
     Pop {
         dst: Slot,
@@ -286,7 +286,8 @@ impl fmt::Display for HirInstr {
             HirInstr::Continue(id) => write!(f, "  continue L{}", id),
             HirInstr::TryBegin { catch } => write!(f, "  try_begin L{}", catch),
             HirInstr::TryEnd => write!(f, "  try_end"),
-            HirInstr::CheckThrow { catch } => write!(f, "  check_throw L{}", catch),
+            HirInstr::CheckThrow { catch: Some(catch) } => write!(f, "  check_throw L{}", catch),
+            HirInstr::CheckThrow { catch: None } => write!(f, "  propagate_error"),
             HirInstr::BindError { dst } => write!(f, "  bind_error %{}", dst),
             HirInstr::Pop { dst } => write!(f, "  pop %{}", dst),
             HirInstr::CheckType {
@@ -370,6 +371,7 @@ pub struct HirLowering<'a> {
     loop_stack: Vec<(LabelId, LabelId)>, // (break_label, continue_label)
     func_scope: Option<&'a std::collections::HashMap<String, crate::semantic::VarInfo>>,
     catch_var: Option<(String, Slot)>,
+    catch_stack: Vec<LabelId>,
     /// Class whose method is being lowered. `waalid` starts lookup at its parent.
     enclosing_class: Option<&'a str>,
     /// Function being lowered. Nested `hawl` names are `parent::name`.
@@ -391,6 +393,7 @@ impl<'a> HirLowering<'a> {
             loop_stack: Vec::new(),
             func_scope: None,
             catch_var: None,
+            catch_stack: Vec::new(),
             enclosing_class: None,
             enclosing_fn: None,
             return_ann: None,
@@ -429,6 +432,7 @@ impl<'a> HirLowering<'a> {
                     loop_stack: Vec::new(),
                     func_scope: Some(&fm.scope_vars),
                     catch_var: None,
+                    catch_stack: Vec::new(),
                     enclosing_class: fm.class_name.as_deref(),
                     enclosing_fn: Some(fm.name.as_str()),
                     return_ann: Some(fm.return_ann.clone()),
@@ -587,7 +591,7 @@ impl<'a> HirLowering<'a> {
     }
 
     fn emit(&mut self, instr: HirInstr) {
-        if matches!(
+        let fallible = matches!(
             instr,
             HirInstr::Load { .. }
                 | HirInstr::Store { .. }
@@ -605,13 +609,23 @@ impl<'a> HirLowering<'a> {
                 | HirInstr::CheckType { .. }
                 | HirInstr::CheckClass { .. }
                 | HirInstr::RangeContinue { .. }
-        ) {
+                | HirInstr::MakeClosure { .. }
+        );
+        if fallible {
             if let Some(span) = &self.current_span {
                 self.body
                     .push(HirInstr::SetLocation(Box::new(span.clone())));
             }
         }
+        // Statically numeric operations other than division/modulo cannot fail.
+        let infallible_numeric = matches!(instr, HirInstr::BinOp { typed: true, op, .. }
+            if !matches!(op, BinOpKind::Div | BinOpKind::Mod));
         self.body.push(instr);
+        if fallible && !infallible_numeric {
+            self.body.push(HirInstr::CheckThrow {
+                catch: self.catch_stack.last().copied(),
+            });
+        }
     }
 
     /// Direct call of an ancestor method, with `nafta` as the instance.
@@ -1021,22 +1035,23 @@ impl<'a> HirLowering<'a> {
             } => {
                 let catch_label = self.new_label();
                 self.emit(HirInstr::TryBegin { catch: catch_label });
+                self.catch_stack.push(catch_label);
                 for s in try_body {
                     self.lower_stmt(s);
-                    self.emit(HirInstr::CheckThrow { catch: catch_label });
                 }
+                self.catch_stack.pop();
                 self.emit(HirInstr::TryEnd);
                 let end_try = self.new_label();
                 self.emit(HirInstr::Jump(end_try));
                 self.emit(HirInstr::Label(catch_label));
                 let err_slot = self.alloc_slot();
-                self.catch_var = Some((err_var.clone(), err_slot));
+                let previous_catch = self.catch_var.replace((err_var.clone(), err_slot));
                 self.emit(HirInstr::BindError { dst: err_slot });
                 self.emit(HirInstr::TryEnd);
                 for s in catch_body {
                     self.lower_stmt(s);
                 }
-                self.catch_var = None;
+                self.catch_var = previous_catch;
                 self.emit(HirInstr::Label(end_try));
             }
             Stmt::Import(_) => {}

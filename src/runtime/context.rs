@@ -12,7 +12,7 @@ use super::value::{NativeFn, Value};
 pub(super) struct RuntimeState {
     pub current_source: RefCell<Option<crate::error::SourceSpan>>,
     pub try_depth: Cell<u32>,
-    pub pending_error: RefCell<Option<String>>,
+    pub pending_error: RefCell<Option<crate::error::SoplangError>>,
     pub strings: RefCell<HandleArena<String>>,
     pub lists: RefCell<HandleArena<Rc<RefCell<Vec<Value>>>>>,
     pub objects: RefCell<HandleArena<Rc<RefCell<HashMap<String, Value>>>>>,
@@ -50,6 +50,28 @@ impl RuntimeContext {
         operation()
     }
 
+    /// Execute generated code or ABI calls and return an uncaught Soplang error.
+    /// Nested execution preserves the surrounding error state. Rust panics are
+    /// not language errors and must not cross an extern boundary.
+    pub fn execute<R>(
+        &self,
+        operation: impl FnOnce() -> R,
+    ) -> Result<R, crate::error::SoplangError> {
+        self.with(|| {
+            let _boundary = ExecutionBoundary {
+                state: Rc::clone(&self.state),
+                error: self.state.pending_error.borrow_mut().take(),
+                try_depth: self.state.try_depth.replace(0),
+            };
+            let result = operation();
+            let error = self.state.pending_error.borrow_mut().take();
+            match error {
+                Some(error) => Err(error),
+                None => Ok(result),
+            }
+        })
+    }
+
     /// Inspect a global without changing the caller's active context. Callable
     /// identifiers in the result still belong to this execution environment.
     pub fn get_global(&self, name: &str) -> Option<Value> {
@@ -62,6 +84,19 @@ impl RuntimeContext {
     pub(crate) fn activate(&self) -> RuntimeScope {
         let previous = ACTIVE.with(|active| active.replace(Rc::clone(&self.state)));
         RuntimeScope { previous }
+    }
+}
+
+struct ExecutionBoundary {
+    state: Rc<RuntimeState>,
+    error: Option<crate::error::SoplangError>,
+    try_depth: u32,
+}
+
+impl Drop for ExecutionBoundary {
+    fn drop(&mut self) {
+        *self.state.pending_error.borrow_mut() = self.error.take();
+        self.state.try_depth.set(self.try_depth);
     }
 }
 

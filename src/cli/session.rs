@@ -51,9 +51,9 @@ impl ReplSession {
         let compiled = self.backend.compile_incremental(&boxed, &sym);
         self.hirs.push(boxed);
         compiled?;
-        self.backend.run_main()?;
+        let result = self.backend.run_main();
         self.remember(&sym);
-        Ok(())
+        result
     }
 
     /// Inspect a global belonging to this session.
@@ -75,7 +75,12 @@ impl ReplSession {
 
     fn remember(&mut self, sym: &SymbolTable) {
         if let Some(scope) = sym.scopes.first() {
-            self.globals = scope.vars.clone();
+            self.globals = scope
+                .vars
+                .iter()
+                .filter(|(name, _)| self.backend.get_global(name).is_some())
+                .map(|(name, info)| (name.clone(), info.clone()))
+                .collect();
         }
         self.classes = sym.classes.clone();
     }

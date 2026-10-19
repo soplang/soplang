@@ -48,22 +48,20 @@ fn handle_runtime_error(e: SoplangError) -> SoplangValue {
         Some(span) => span.attach(e),
         None => e,
     });
-    let msg = error_message(&e);
-    if TRY_DEPTH.with(|d| d.get()) > 0 {
-        PENDING_ERROR.with(|p| *p.borrow_mut() = Some(msg));
-        throw_value()
-    } else {
-        use std::io::Write;
-        let _ = std::io::stdout().flush();
-        eprintln!("{}", crate::error::format_error_with_source(&e, None));
-        std::process::exit(1);
-    }
+    // Generated code propagates this state to the execution boundary without
+    // unwinding Rust through a C ABI or terminating an embedding process.
+    PENDING_ERROR.with(|pending| {
+        if pending.borrow().is_none() {
+            *pending.borrow_mut() = Some(e);
+        }
+    });
+    throw_value()
 }
 
 const CURRENT_SOURCE: RuntimeLocal<RefCell<Option<crate::error::SourceSpan>>> =
     RuntimeLocal::new(|state| &state.current_source);
 const TRY_DEPTH: RuntimeLocal<Cell<u32>> = RuntimeLocal::new(|state| &state.try_depth);
-const PENDING_ERROR: RuntimeLocal<RefCell<Option<String>>> =
+const PENDING_ERROR: RuntimeLocal<RefCell<Option<SoplangError>>> =
     RuntimeLocal::new(|state| &state.pending_error);
 
 /// Set the source token for the next runtime operation in either backend.
@@ -135,8 +133,30 @@ pub extern "C" fn soplang_has_pending_error() -> c_int {
 /// Return the caught error message as a Soplang string value.
 #[no_mangle]
 pub extern "C" fn soplang_get_caught_error() -> SoplangValue {
-    let msg = PENDING_ERROR.with(|e| e.borrow().clone().unwrap_or_default());
+    let msg = PENDING_ERROR.with(|error| {
+        error.borrow().as_ref().map(error_message).unwrap_or_default()
+    });
     value_to_soplang(&Value::Str(msg))
+}
+
+/// Take an uncaught error at an execution boundary, preserving its metadata.
+pub fn take_pending_error() -> Option<SoplangError> {
+    PENDING_ERROR.with(|error| error.borrow_mut().take())
+}
+
+/// Complete a standalone program without terminating the embedding runtime.
+#[no_mangle]
+pub extern "C" fn soplang_finish_execution() -> c_int {
+    use std::io::Write;
+    match take_pending_error() {
+        Some(error) => {
+            let _ = std::io::stdout().flush();
+            let _ = writeln!(std::io::stderr(), "{}",
+                crate::error::format_error_with_source(&error, None));
+            1
+        }
+        None => 0,
+    }
 }
 
 // ----- Tag constants (match COMPILER_PLAN) -----
@@ -1449,8 +1469,8 @@ fn call_collection_callback(
     args: &[SoplangValue],
 ) -> Result<Value, SoplangError> {
     let result = soplang_call(callee, args.as_ptr(), args.len() as i32);
-    if let Some(message) = PENDING_ERROR.with(|error| error.borrow().clone()) {
-        return Err(runtime_error(message, 0, 0));
+    if let Some(error) = PENDING_ERROR.with(|error| error.borrow().clone()) {
+        return Err(error);
     }
     soplang_to_value(result)
 }
@@ -1725,11 +1745,7 @@ pub extern "C" fn soplang_check_class(
         0,
         0,
     );
-    if TRY_DEPTH.with(|d| d.get()) > 0 {
-        PENDING_ERROR.with(|p| *p.borrow_mut() = Some(error_message(&err)));
-    } else {
-        handle_runtime_error(err);
-    }
+    handle_runtime_error(err);
 }
 
 fn instance_matches_class(val: &Value, expected: &str) -> bool {
@@ -1816,11 +1832,7 @@ pub extern "C" fn soplang_check_type(
             0,
             0,
         );
-        if TRY_DEPTH.with(|d| d.get()) > 0 {
-            PENDING_ERROR.with(|p| *p.borrow_mut() = Some(error_message(&err)));
-        } else {
-            handle_runtime_error(err);
-        }
+        handle_runtime_error(err);
     }
 }
 

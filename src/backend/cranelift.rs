@@ -316,7 +316,6 @@ impl CraneliftBackend {
 
     pub fn run_main(&self) -> Result<(), SoplangError> {
         let _scope = self.runtime.activate();
-        runtime::reset_try_state();
         let func_id = self
             .main_func_id
             .ok_or_else(|| runtime_error("Hawsha 'main' weli lama ururin.", 0, 0))?;
@@ -328,8 +327,7 @@ impl CraneliftBackend {
         let main_fn: extern "sysv64" fn() = unsafe { std::mem::transmute(code) };
         #[cfg(not(all(target_os = "windows", target_arch = "x86_64")))]
         let main_fn: extern "C" fn() = unsafe { std::mem::transmute(code) };
-        main_fn();
-        Ok(())
+        self.runtime.execute(|| main_fn())
     }
 
     /// Inspect a global in this backend's execution environment.
@@ -1041,7 +1039,7 @@ fn compile_body(
                 if terminated {
                     continue;
                 }
-                let catch_block = block_map[catch];
+                let catch_block = catch.map(|label| block_map[&label]).unwrap_or_else(|| builder.create_block());
                 let continue_block = builder.create_block();
                 let pending = call_rt_i64(builder, module, "soplang_has_pending_error", &[])?;
                 let zero = builder.ins().iconst(types::I64, 0);
@@ -1049,6 +1047,16 @@ fn compile_body(
                 builder
                     .ins()
                     .brif(test, catch_block, &[], continue_block, &[]);
+                if catch.is_none() {
+                    builder.switch_to_block(catch_block);
+                    if is_function {
+                        let tag = builder.ins().iconst(types::I64, 8);
+                        let payload = builder.ins().iconst(types::I64, 0);
+                        builder.ins().return_(&[tag, payload]);
+                    } else {
+                        builder.ins().return_(&[]);
+                    }
+                }
                 builder.switch_to_block(continue_block);
             }
 

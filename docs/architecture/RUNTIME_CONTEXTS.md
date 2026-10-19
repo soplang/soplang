@@ -34,7 +34,8 @@ function registrations from a backend that has already been dropped.
 
 A `ReplSession` retains one backend and context across snippets. Two sessions
 on the same thread remain independent, including when their function and class
-names match. A new execution resets that context's leftover try state.
+names match. Each execution starts with a fresh pending-error state and restores
+the surrounding boundary's state when it finishes.
 
 Rust callers can inspect a session or backend with `get_global(name)`, which
 returns `Option<Value>`. Missing globals return `None`. The lookup uses the
@@ -52,6 +53,30 @@ are unchanged.
 Rust integrations can use `RuntimeContext::with` to scope low-level ABI work
 explicitly. Tagged handles must be used in their owning context. Leaving a
 scope restores its caller; dropping a context releases its owned tables.
+
+## Recoverable execution boundaries
+
+`RuntimeContext::execute(operation)` returns `Result<R, SoplangError>`. Runtime
+failures retain the original structured diagnostic, including its source span,
+and return to this boundary without terminating the host process. Nested
+boundaries preserve surrounding pending errors and try depth, including during
+Rust unwinding outside the C ABI. Rust panics are not caught as language errors.
+
+The JIT executes `main` inside this boundary. An uncaught error becomes the
+`Err` returned by `run_source`, `run_main`, or `ReplSession::eval`. A session
+retains bindings that were initialized before a failure, then accepts another
+snippet. Definitions that execution never reached are not remembered as globals.
+
+HIR checks pending errors after each fallible operation, including operations
+inside expressions. It jumps to the nearest local handler or returns from the
+current function. Callers continue that propagation until a handler or execution
+boundary is reached. Callback failures retain the original error metadata.
+No Rust unwinding crosses generated code or an extern boundary.
+
+Standalone LLVM programs use the same propagation. Their `main` calls
+`soplang_finish_execution`, which reports an uncaught Somali diagnostic and
+returns status 1. Successful programs return 0. CLI reporting remains at the
+outer boundary, so embedding applications can choose how to report failures.
 
 ## Allocation lifetime
 
@@ -85,8 +110,8 @@ This is ownership at the execution-environment boundary, not a garbage
 collector. Unreachable allocations inside a live context are not reclaimed
 yet, and cyclic `Rc` collection graphs still need cycle reclamation. Arena slot
 reuse is implemented and tested; automatic reclamation still requires explicit
-generated-code roots before it can safely remove allocations. Resource cleanup and recoverable
-uncaught execution errors also remain separate stages.
+generated-code roots before it can safely remove allocations. Guaranteed
+resource cleanup remains a separate stage.
 
 ## Verification
 
@@ -99,6 +124,9 @@ uncaught execution errors also remain separate stages.
 - Continued execution after another session is dropped.
 - Repeated program execution inside a host context without contaminating it.
 - Foreign, expired, and malformed handles, including stale operands and calls.
+- Recovery after uncaught failures, preserved error locations, and bindings
+  initialized before a failed REPL snippet.
+- Nested execution boundaries and restoration after a Rust panic.
 
 Arena unit tests repeatedly reuse one slot and reject all its old identities,
 and verify that independently created arenas cannot alias one another.

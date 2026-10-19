@@ -521,3 +521,14 @@ fn test_llvm_runtime_names_inside_strings_are_preserved() {
         " = call @soplang_add\n"
     );
 }
+
+#[test]
+fn test_llvm_error_boundaries_stop_failed_expressions() {
+    assert_eq!(
+        run_llvm(
+            "error_boundaries",
+            include_str!("fixtures/error_boundaries.sop")
+        ),
+        "error boundaries ok\n"
+    );
+}
