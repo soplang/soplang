@@ -110,6 +110,8 @@ fn register_runtime_symbols(builder: &mut JITBuilder) {
     sym!(builder, soplang_truthy);
     sym!(builder, soplang_range_continue);
     sym!(builder, soplang_range_advance);
+    sym!(builder, soplang_iter_begin);
+    sym!(builder, soplang_iter_next);
     sym!(builder, soplang_qor);
     sym!(builder, soplang_gelin);
     sym!(builder, soplang_nooc);
@@ -178,7 +180,10 @@ fn max_slot_in_body(body: &[HirInstr]) -> usize {
             | HirInstr::BindErrorValue { dst } => {
                 mx = mx.max(*dst + 1);
             }
-            HirInstr::Copy { dst, src } | HirInstr::FormatValue { dst, src, .. } => {
+            HirInstr::IterBegin { dst, src }
+            | HirInstr::IterNext { dst, iterator: src, .. }
+            | HirInstr::Copy { dst, src }
+            | HirInstr::FormatValue { dst, src, .. } => {
                 mx = mx.max(*dst + 1).max(*src + 1);
             }
             HirInstr::Store { src, .. } => {
@@ -678,6 +683,32 @@ fn compile_body(
                 } else {
                     slot_compiled_fn.remove(dst);
                 }
+            }
+
+            HirInstr::IterBegin { dst, src } => {
+                if terminated {
+                    continue;
+                }
+                let t = builder.use_var(var_tags[*src]);
+                let p = builder.use_var(var_pays[*src]);
+                let (t, p) = call_rt(builder, module, "soplang_iter_begin", &[t, p])?;
+                builder.def_var(var_tags[*dst], t);
+                builder.def_var(var_pays[*dst], p);
+            }
+            HirInstr::IterNext {
+                dst,
+                iterator,
+                bindings,
+            } => {
+                if terminated {
+                    continue;
+                }
+                let t = builder.use_var(var_tags[*iterator]);
+                let p = builder.use_var(var_pays[*iterator]);
+                let n = builder.ins().iconst(types::I64, *bindings as i64);
+                let (t, p) = call_rt(builder, module, "soplang_iter_next", &[t, p, n])?;
+                builder.def_var(var_tags[*dst], t);
+                builder.def_var(var_pays[*dst], p);
             }
 
             HirInstr::FormatValue { dst, src, format } => {

@@ -51,7 +51,9 @@ switch_stmt      = "dooro" "(" expression ")" "{"
                    [ ( "kale" | "ugudambeyn" ) "{" block "}" ]
                    "}" .
 for_stmt         = "kuceli" "(" identifier expression "ilaa" expression
-                   [ "::" expression ] ")" "{" block "}" .
+                   [ "::" expression ] ")" "{" block "}"
+                 | "kuceli" "(" identifier { "," identifier } "ku" expression
+                   ")" "{" block "}" .
 while_stmt       = "intay" "(" expression ")" "{" block "}" .
 try_catch        = ( "tijaabi" | "fasax" ) "{" block "}" ( catch [ cleanup ] | cleanup ) .
 catch            = "qabo" "(" identifier [ "," identifier ] ")" "{" block "}" .
@@ -132,3 +134,9 @@ Numeric loops compare integer bounds without converting them to floating point.
 representable integer range ends either sequence instead of wrapping. A float
 step too small to change the current value raises a catchable error when an
 endpoint remains ahead; an already-reached endpoint finishes normally.
+
+Collection loops use contextual `ku`, single values or exact-length row bindings,
+and the [iterator protocol](iteration.md). Numeric headers retain precedence
+when an existing expression beginning with a variable/call named `ku` forms a
+complete numeric loop header. Parenthesized collection expressions disambiguate
+that case.

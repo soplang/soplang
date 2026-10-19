@@ -31,6 +31,7 @@ pub(super) struct RuntimeState {
     pub constants: RefCell<HashSet<String>>,
     pub classes: RefCell<HashMap<String, ClassRegistryEntry>>,
     pub closures: RefCell<HandleArena<Rc<ClosureData>>>,
+    pub iterators: RefCell<HandleArena<Rc<super::iterators::IteratorData>>>,
 }
 
 impl Drop for RuntimeState {

@@ -310,6 +310,11 @@ pub enum Stmt {
         step: Option<Expr>,
         body: Vec<Stmt>,
     },
+    ForEach {
+        vars: Vec<String>,
+        iterable: Expr,
+        body: Vec<Stmt>,
+    },
     While {
         cond: Expr,
         body: Vec<Stmt>,
@@ -479,6 +484,17 @@ impl Stmt {
                 writeln!(f, ") {{")?;
                 for s in body {
                     s.fmt_with_depth(f, depth + 1)?;
+                }
+                writeln!(f, "{}}}", pad)
+            }
+            Stmt::ForEach {
+                vars,
+                iterable,
+                body,
+            } => {
+                writeln!(f, "{}kuceli ({} ku {}) {{", pad, vars.join(", "), iterable)?;
+                for stmt in body {
+                    stmt.fmt_with_depth(f, depth + 1)?;
                 }
                 writeln!(f, "{}}}", pad)
             }

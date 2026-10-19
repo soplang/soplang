@@ -44,6 +44,8 @@ declare %SoplangValue @soplang_or(%SoplangValue, %SoplangValue)
 declare %SoplangValue @soplang_truthy(%SoplangValue)
 declare %SoplangValue @soplang_range_continue(%SoplangValue, %SoplangValue, %SoplangValue)
 declare %SoplangValue @soplang_range_advance(%SoplangValue, %SoplangValue, %SoplangValue)
+declare %SoplangValue @soplang_iter_begin(%SoplangValue)
+declare %SoplangValue @soplang_iter_next(%SoplangValue, i64)
 declare %SoplangValue @soplang_get_builtin(ptr, i64)
 declare void @soplang_store_global(ptr, i64, i64, i64)
 declare %SoplangValue @soplang_call(%SoplangValue, ptr, i32)
@@ -312,7 +314,7 @@ struct Keep(*const ());
 unsafe impl Sync for Keep {}
 
 #[used]
-static KEEP: [Keep; 60] = [
+static KEEP: [Keep; 62] = [
     Keep(runtime::soplang_set_location as *const ()),
     Keep(runtime::soplang_enter_roots as *const ()),
     Keep(runtime::soplang_gc_safepoint as *const ()),
@@ -342,6 +344,8 @@ static KEEP: [Keep; 60] = [
     Keep(runtime::soplang_truthy as *const ()),
     Keep(runtime::soplang_range_continue as *const ()),
     Keep(runtime::soplang_range_advance as *const ()),
+    Keep(runtime::soplang_iter_begin as *const ()),
+    Keep(runtime::soplang_iter_next as *const ()),
     Keep(runtime::soplang_get_builtin as *const ()),
     Keep(runtime::soplang_store_global as *const ()),
     Keep(runtime::soplang_call as *const ()),
@@ -834,19 +838,21 @@ impl<'a> FnEmit<'a> {
             ));
         }
         for (name, meta) in &sym.classes {
+            let (cp, cl) = self.str_ptr(name);
+            let (pp, pl) = match &meta.parent {
+                Some(parent) => {
+                    let (p, n) = self.str_ptr(parent);
+                    (p, n.to_string())
+                }
+                None => ("null".to_string(), "0".to_string()),
+            };
+            // Empty subclasses still need their parent relationship registered.
+            self.line(format!("  call void @soplang_register_class(ptr {cp}, i64 {cl}, ptr {pp}, i64 {pl}, ptr null, i64 0, i64 0)"));
             for (method, mangled) in &meta.methods {
                 let (np, nl) = self.str_ptr(mangled);
                 let sv = self.call_sv("soplang_get_builtin", &format!("ptr {np}, i64 {nl}"));
                 let (_, pay) = self.unpack(&sv);
-                let (cp, cl) = self.str_ptr(name);
                 let (mp, ml) = self.str_ptr(method);
-                let (pp, pl) = match &meta.parent {
-                    Some(parent) => {
-                        let (p, n) = self.str_ptr(parent);
-                        (p, n.to_string())
-                    }
-                    None => ("null".to_string(), "0".to_string()),
-                };
                 self.line(format!(
                     "  call void @soplang_register_class(ptr {cp}, i64 {cl}, ptr {pp}, i64 {pl}, ptr {mp}, i64 {ml}, i64 {pay})"
                 ));
@@ -959,6 +965,27 @@ impl<'a> FnEmit<'a> {
                 } else {
                     self.slot_fn.remove(dst);
                 }
+                Ok(false)
+            }
+            HirInstr::IterBegin { dst, src } => {
+                let value = self.pack_slot(*src);
+                let value = self.call_sv("soplang_iter_begin", &format!("%SoplangValue {value}"));
+                self.unpack_store(&value, *dst);
+                self.set_kind(*dst, SlotNum::Dyn);
+                Ok(false)
+            }
+            HirInstr::IterNext {
+                dst,
+                iterator,
+                bindings,
+            } => {
+                let value = self.pack_slot(*iterator);
+                let value = self.call_sv(
+                    "soplang_iter_next",
+                    &format!("%SoplangValue {value}, i64 {bindings}"),
+                );
+                self.unpack_store(&value, *dst);
+                self.set_kind(*dst, SlotNum::Dyn);
                 Ok(false)
             }
             HirInstr::FormatValue { dst, src, format } => {
@@ -1605,9 +1632,12 @@ fn slot_hi(body: &[HirInstr]) -> usize {
             | HirInstr::Pop { dst }
             | HirInstr::BindError { dst }
             | HirInstr::BindErrorValue { dst } => mx = mx.max(*dst + 1),
-            HirInstr::Copy { dst, src } | HirInstr::FormatValue { dst, src, .. } => {
-                mx = mx.max(*dst + 1).max(*src + 1)
+            HirInstr::IterBegin { dst, src }
+            | HirInstr::IterNext {
+                dst, iterator: src, ..
             }
+            | HirInstr::Copy { dst, src }
+            | HirInstr::FormatValue { dst, src, .. } => mx = mx.max(*dst + 1).max(*src + 1),
             HirInstr::Store { src, .. } => mx = mx.max(*src + 1),
             HirInstr::BinOp { dst, lhs, rhs, .. } => {
                 mx = mx.max(*dst + 1).max(*lhs + 1).max(*rhs + 1)

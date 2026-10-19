@@ -262,3 +262,23 @@ context ownership rules established here:
 
 Native resource variants will need collector graph edges and lifecycle tests
 when introduced. This contract does not add file or network operations to 3.1.
+
+## Iterator state (3.2 iteration stage)
+
+Context-owned iterator handles use tag 11. Their snapshots, adapter sources,
+and protocol objects are graph nodes in the same collector. Cursor state is
+moved temporarily into a Rust frame before a callback runs, with a Busy marker
+rejecting reentrant advances. No iterator borrow crosses a callback. References
+in that native frame remain external roots during nested collection. Tracing
+snapshot edges clones managed references without duplicating scalar strings.
+
+Context teardown clears its cursors before graph collection: an opaque
+iterator retained by Rust cannot use a dead owner, so its captures must not keep
+otherwise unreachable cycles alive. Ordinary collection preserves live Rust-held
+iterators. `MemoryStats.iterators` includes these arena allocations.
+
+The [iteration contract](../language/iteration.md) specifies snapshot behavior,
+shared cursors, exhaustion, failure, and native nesting limits. Shared JIT/LLVM
+fixtures exercise collection during protocol callbacks and partial zip rows;
+`tests/iteration_tests.rs` checks ownership, cycles, scoped borrows, parser/editor
+bindings, independent sessions, bounded heaps, and a small native stack.

@@ -679,6 +679,76 @@ impl Parser {
         self.advance_contextual(); // kuceli
         self.expect(TokenType::LParen)?;
         let var = self.expect_identifier()?;
+        if self.check(TokenType::Comma) {
+            let mut vars = vec![var];
+            let mut names = std::collections::HashSet::from([vars[0].clone()]);
+            while self.check(TokenType::Comma) {
+                self.advance();
+                let token = self.peek().clone();
+                let name = self.expect_identifier()?;
+                if !names.insert(name.clone()) {
+                    return Err(parser_error(
+                        "Magacyada wareeggu waa inay kala duwanaadaan.",
+                        token.line,
+                        token.col,
+                    ));
+                }
+                vars.push(name);
+            }
+            if self.peek().kind != TokenType::Identifier || self.peek().lexeme != "ku" {
+                return Err(parser_error(
+                    "Waxaa la filayay 'ku' (kuceli).",
+                    self.peek().line,
+                    self.peek().col,
+                ));
+            }
+            self.advance_contextual();
+            let iterable = self.parse_expression()?;
+            return self.finish_for_each(vars, iterable);
+        }
+        if self.peek().kind == TokenType::Identifier && self.peek().lexeme == "ku" {
+            // Preserve every complete numeric header starting with a variable
+            // or call named ku. A parenthesized iterable disambiguates the rare
+            // source expression that is itself a complete numeric header.
+            let saved = self.current;
+            let offset = self.peek().start;
+            if self.has_range_separator() {
+                if let Ok((start, end, step)) = self.parse_range_header() {
+                    return self.finish_range_for(var, start, end, step);
+                }
+            }
+            self.current = saved;
+            // Header parsing only moves forward; discard its contextual marks.
+            self.contextual_keywords
+                .retain(|position| *position < offset);
+            self.advance_contextual();
+            let iterable = self.parse_expression()?;
+            return self.finish_for_each(vec![var], iterable);
+        }
+        let (start, end, step) = self.parse_range_header()?;
+        self.finish_range_for(var, start, end, step)
+    }
+
+    fn has_range_separator(&self) -> bool {
+        // Do not speculatively parse nested function bodies in foreach sources.
+        // A numeric header always has an ilaa outside its nested expressions.
+        let mut depth = 0usize;
+        for token in &self.tokens[self.current..] {
+            match token.kind {
+                TokenType::RParen if depth == 0 => break,
+                TokenType::Identifier if depth == 0 && token.lexeme == "ilaa" => return true,
+                TokenType::LParen | TokenType::LBracket | TokenType::LBrace => depth += 1,
+                TokenType::RParen | TokenType::RBracket | TokenType::RBrace => {
+                    depth = depth.saturating_sub(1)
+                }
+                TokenType::Eof => break,
+                _ => (),
+            }
+        }
+        false
+    }
+
+    fn parse_range_header(&mut self) -> Result<(Expr, Expr, Option<Expr>), SoplangError> {
         let start = self.parse_expression()?;
         // "ilaa" keyword
         let t = self.peek();
@@ -707,6 +777,16 @@ impl Parser {
             None
         };
         self.expect(TokenType::RParen)?;
+        Ok((start, end, step))
+    }
+
+    fn finish_range_for(
+        &mut self,
+        var: String,
+        start: Expr,
+        end: Expr,
+        step: Option<Expr>,
+    ) -> Result<Stmt, SoplangError> {
         self.expect(TokenType::LBrace)?;
         let body = self.parse_block_stmts()?;
         self.expect(TokenType::RBrace)?;
@@ -715,6 +795,18 @@ impl Parser {
             start,
             end,
             step,
+            body,
+        })
+    }
+
+    fn finish_for_each(&mut self, vars: Vec<String>, iterable: Expr) -> Result<Stmt, SoplangError> {
+        self.expect(TokenType::RParen)?;
+        self.expect(TokenType::LBrace)?;
+        let body = self.parse_block_stmts()?;
+        self.expect(TokenType::RBrace)?;
+        Ok(Stmt::ForEach {
+            vars,
+            iterable,
             body,
         })
     }

@@ -673,3 +673,19 @@ fn test_numeric_boundaries() {
         "numeric edges ok\n"
     );
 }
+
+#[test]
+fn test_collection_iteration_and_protocol() {
+    assert_eq!(
+        run_program(include_str!("fixtures/iteration.sop")),
+        "iteration ok\n"
+    );
+}
+
+#[test]
+fn test_iteration_gc_and_reentrant_callbacks() {
+    assert_eq!(
+        run_program(include_str!("fixtures/iteration_gc.sop")),
+        "iteration gc ok\n"
+    );
+}

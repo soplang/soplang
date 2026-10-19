@@ -728,6 +728,32 @@ impl Index {
                     }
                     self.statements(body, file, scope, start, class);
                 }
+                Stmt::ForEach {
+                    vars,
+                    iterable,
+                    body,
+                } => {
+                    self.expression(iterable, file, scope, start, class);
+                    for name in vars {
+                        if self.resolve(name, scope, start, &file.path).is_none() {
+                            if let Some(token) = self.anchor(file, start, name) {
+                                self.add(
+                                    file,
+                                    &token,
+                                    name,
+                                    scope,
+                                    13,
+                                    "door".into(),
+                                    None,
+                                    String::new(),
+                                    None,
+                                    false,
+                                );
+                            }
+                        }
+                    }
+                    self.statements(body, file, scope, start, class);
+                }
                 Stmt::TryCatch {
                     try_body,
                     err_var,

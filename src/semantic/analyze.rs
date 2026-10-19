@@ -261,6 +261,10 @@ fn validate_control_flow(
                 }
                 validate_control_flow(body, in_function, loop_depth + 1)?;
             }
+            Stmt::ForEach { iterable, body, .. } => {
+                validate_control_expr(iterable)?;
+                validate_control_flow(body, in_function, loop_depth + 1)?;
+            }
             Stmt::While { cond, body } => {
                 validate_control_expr(cond)?;
                 validate_control_flow(body, in_function, loop_depth + 1)?;
@@ -868,6 +872,46 @@ fn analyze_stmt(
             analyze_expr(end, sym, opts, fn_sigs, current_class, enclosing_fn)?;
             if let Some(s) = step {
                 analyze_expr(s, sym, opts, fn_sigs, current_class, enclosing_fn)?;
+            }
+            analyze_block(
+                body,
+                sym,
+                opts,
+                fn_sigs,
+                current_return,
+                current_class,
+                enclosing_fn,
+            )?;
+        }
+        Stmt::ForEach {
+            vars,
+            iterable,
+            body,
+        } => {
+            analyze_expr(iterable, sym, opts, fn_sigs, current_class, enclosing_fn)?;
+            let scope = sym.scopes.last_mut().unwrap();
+            for name in vars {
+                if let Some(info) = scope.vars.get(name) {
+                    if info.is_const {
+                        return Err(type_error_ex(
+                            format!("Ma bedeli kartid qiimaha doorsamaha madoor '{}'", name),
+                            0,
+                            0,
+                            ErrorMeta::default().with_code(codes::E020_REDECLARED),
+                        ));
+                    }
+                } else {
+                    let slot = scope.vars.len();
+                    scope.vars.insert(
+                        name.clone(),
+                        VarInfo {
+                            slot,
+                            type_ann: TypeAnnotation::Dynamic,
+                            is_const: false,
+                            is_captured: false,
+                        },
+                    );
+                }
             }
             analyze_block(
                 body,
@@ -1627,7 +1671,7 @@ fn collect_function_sigs_rec(
                     collect_function_sigs_rec(b, out, current_class);
                 }
             }
-            Stmt::For { body, .. } | Stmt::While { body, .. } => {
+            Stmt::For { body, .. } | Stmt::ForEach { body, .. } | Stmt::While { body, .. } => {
                 collect_function_sigs_rec(body, out, current_class);
             }
             Stmt::TryCatch {
@@ -1789,6 +1833,10 @@ fn note_free_stmt(stmt: &Stmt, sym: &SymbolTable, caps: &mut Vec<String>) {
             if let Some(s) = step {
                 note_free_expr(s, sym, caps);
             }
+            note_free_stmts(body, sym, caps);
+        }
+        Stmt::ForEach { iterable, body, .. } => {
+            note_free_expr(iterable, sym, caps);
             note_free_stmts(body, sym, caps);
         }
         Stmt::While { cond, body } => {

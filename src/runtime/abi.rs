@@ -289,6 +289,7 @@ pub const TAG_OBJECT: u8 = 6;
 pub const TAG_FUNC: u8 = 7;
 pub const TAG_CLOSURE: u8 = 9;
 pub const TAG_ERROR: u8 = 10;
+pub const TAG_ITERATOR: u8 = 11;
 
 /// Tagged value for C ABI. 16 bytes: tag (u8) + padding + payload (i64).
 #[repr(C)]
@@ -383,6 +384,7 @@ pub(super) fn invalid_handle() -> SoplangError {
 
 fn validate_handle(value: SoplangValue) -> Result<(), SoplangError> {
     let live = match value.tag {
+        TAG_ITERATOR => STATE.with(|state| state.iterators.borrow().contains(value.payload)),
         TAG_ERROR => ERROR_HEAP.with(|heap| heap.borrow().contains(value.payload)),
         TAG_STR => STR_HEAP.with(|heap| heap.borrow().contains(value.payload)),
         TAG_LIST => LIST_HEAP.with(|heap| heap.borrow().contains(value.payload)),
@@ -489,6 +491,9 @@ pub fn value_to_soplang(v: &Value) -> SoplangValue {
             _pad: [0; 7],
             payload: id.0 as i64,
         },
+        Value::Iterator(data) => SoplangValue {
+            tag: TAG_ITERATOR, _pad: [0; 7], payload: data.handle(),
+        },
         Value::Closure(data) => SoplangValue {
             tag: TAG_CLOSURE,
             _pad: [0; 7],
@@ -526,6 +531,8 @@ pub fn soplang_to_value(sv: SoplangValue) -> Result<Value, SoplangError> {
         TAG_INT => Ok(Value::Int(sv.payload)),
         TAG_FLOAT => Ok(Value::Float(f64::from_bits(sv.payload as u64))),
         TAG_BOOL => Ok(Value::Bool(sv.payload != 0)),
+        TAG_ITERATOR => STATE.with(|state| state.iterators.borrow().get(sv.payload).cloned())
+            .map(Value::Iterator).ok_or_else(invalid_handle),
         TAG_ERROR => ERROR_HEAP.with(|heap| heap.borrow().get(sv.payload).cloned())
             .map(Value::Error).ok_or_else(invalid_handle),
         TAG_STR => str_get(sv.payload).map(Value::Str),
@@ -1393,6 +1400,72 @@ fn compiled_fn_entry(id: i64) -> Option<CompiledFnEntry> {
     COMPILED_FN_TABLE.with(|table| table.borrow().get(id).copied())
 }
 
+pub(super) fn iteration_is_instance(value: &Value) -> bool {
+    matches!(value, Value::Object(object) if get_instance_class(object).is_some())
+}
+
+pub(super) fn iteration_has_method(value: &Value, method: &str) -> bool {
+    let Value::Object(object) = value else {
+        return false;
+    };
+    let Ok(fields) = object.try_borrow() else {
+        return false;
+    };
+    if let Some(Value::Str(class)) = fields.get(INSTANCE_CLASS_FIELD) {
+        if resolve_method_fn_index(class, method).is_some() {
+            return true;
+        }
+    }
+    matches!(
+        fields.get(method),
+        Some(Value::Function(_) | Value::NativeFunction(_) | Value::Closure(_))
+    )
+}
+
+pub(super) fn iteration_call_method(value: &Value, method: &str) -> Result<Value, SoplangError> {
+    let Value::Object(object) = value else {
+        return Err(type_error("Wareeggu wuxuu u baahan yahay walax.", 0, 0));
+    };
+    object
+        .try_borrow()
+        .map_err(|_| super::iterators::borrowed_error())?;
+    let source = CURRENT_SOURCE.with(|current| current.borrow().clone());
+    let result = if get_instance_class(object).is_some() {
+        dispatch_instance_method(object, method, &[])
+    } else {
+        dispatch_object_method(object, method, &[])
+    };
+    // Callback failures already own their inner span. Validation performed
+    // after a successful callback belongs to the caller's iteration operation.
+    CURRENT_SOURCE.with(|current| {
+        *current.borrow_mut() = source;
+    });
+    // Preserve the first callback failure instead of replacing THROW with an
+    // invalid-tag conversion error when an inner compiled function failed.
+    PENDING_ERROR.with(|pending| match pending.borrow().as_ref() {
+        Some(error) => Err(error.clone()),
+        None => result,
+    })
+}
+
+#[no_mangle]
+pub extern "C" fn soplang_iter_begin(value: SoplangValue) -> SoplangValue {
+    check_handles!(value);
+    match soplang_to_value(value).and_then(|value| super::iterators::begin(&value)) {
+        Ok(value) => value_to_soplang(&value),
+        Err(error) => handle_runtime_error(error),
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn soplang_iter_next(value: SoplangValue, bindings: usize) -> SoplangValue {
+    check_handles!(value);
+    match soplang_to_value(value).and_then(|value| super::iterators::next_step(&value, bindings)) {
+        Ok(value) => value_to_soplang(&value),
+        Err(error) => handle_runtime_error(error),
+    }
+}
+
 fn get_instance_class(o: &Rc<RefCell<HashMap<String, Value>>>) -> Option<String> {
     o.borrow().get(INSTANCE_CLASS_FIELD).and_then(|v| {
         if let Value::Str(s) = v {
@@ -1585,7 +1658,7 @@ pub extern "C" fn soplang_register_class(
     method_len: usize,
     fn_payload: i64,
 ) {
-    if name_ptr.is_null() || name_len == 0 || method_ptr.is_null() || method_len == 0 {
+    if name_ptr.is_null() || name_len == 0 {
         return;
     }
     let name = unsafe {
@@ -1598,8 +1671,12 @@ pub extern "C" fn soplang_register_class(
             String::from_utf8_lossy(std::slice::from_raw_parts(parent_ptr, parent_len)).into_owned()
         })
     };
-    let method = unsafe {
-        String::from_utf8_lossy(std::slice::from_raw_parts(method_ptr, method_len)).into_owned()
+    let method = if method_ptr.is_null() || method_len == 0 {
+        None
+    } else {
+        Some(unsafe {
+            String::from_utf8_lossy(std::slice::from_raw_parts(method_ptr, method_len)).into_owned()
+        })
     };
     CLASS_REGISTRY.with(|r| {
         let mut reg = r.borrow_mut();
@@ -1610,7 +1687,9 @@ pub extern "C" fn soplang_register_class(
         if entry.parent.is_none() {
             entry.parent = parent;
         }
-        entry.methods.insert(method, fn_payload);
+        if let Some(method) = method {
+            entry.methods.insert(method, fn_payload);
+        }
     });
 }
 
@@ -1644,29 +1723,44 @@ pub extern "C" fn soplang_call_method(
             }
         }
     }
-    let result = match &obj_val {
-        Value::Object(o) if get_instance_class(o).is_some() => {
-            dispatch_instance_method(o, method, &argv)
+    let result = if method == "wareeg" && !iteration_has_method(&obj_val, method) {
+        super::stdlib::expect_arity(&argv, method, 0)
+            .and_then(|_| super::iterators::begin(&obj_val))
+    } else {
+        match &obj_val {
+            Value::Object(o) if get_instance_class(o).is_some() => {
+                dispatch_instance_method(o, method, &argv)
+            }
+            Value::Iterator(_) => {
+                super::stdlib::expect_arity(&argv, method, 0).and_then(|_| match method {
+                    "wareeg" => super::iterators::begin(&obj_val),
+                    "xiga" => super::iterators::next_step(&obj_val, 1),
+                    _ => Err(runtime_error(
+                        format!("Wareeggu ma laha hawl la yiraahdo '{}'.", method),
+                        0,
+                        0,
+                    )),
+                })
+            }
+            Value::List(l) => dispatch_list_method(l, method, &argv),
+            Value::Object(o) => dispatch_object_method(o, method, &argv),
+            Value::Str(s) => dispatch_string_method(s, method, &argv),
+            _ => Err(runtime_error(
+                format!(
+                    "Nooca '{}' ma laha hawl la yiraahdo '{}'.",
+                    obj_val.type_name(),
+                    method
+                ),
+                0,
+                0,
+            )),
         }
-        Value::List(l) => dispatch_list_method(l, method, &argv),
-        Value::Object(o) => dispatch_object_method(o, method, &argv),
-        Value::Str(s) => dispatch_string_method(s, method, &argv),
-        _ => Err(runtime_error(
-            format!(
-                "Nooca '{}' ma laha hawl la yiraahdo '{}'.",
-                obj_val.type_name(),
-                method
-            ),
-            0,
-            0,
-        )),
     };
     match result {
         Ok(v) => value_to_soplang(&v),
         Err(e) => handle_runtime_error(e),
     }
 }
-
 
 #[repr(C)]
 struct CompiledReturn {

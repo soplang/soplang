@@ -92,3 +92,48 @@ Runtime definitions are in [abi.rs](../../src/runtime/abi.rs),
 [parser.rs](../../src/frontend/parser.rs); string diagnostics are in
 [lexer.rs](../../src/frontend/lexer.rs). The
 [language reference](keywords.md#structured-errors) defines contracts and examples.
+
+## Iteration vocabulary (3.2 implementation stage)
+
+| Somali form | Meaning |
+| --- | --- |
+| `kuceli (qiime ku source)` | Iterate over each value in a source. |
+| `ku` | Contextual collection separator; ordinary identifier elsewhere. |
+| `wareeg(value)` / `value.wareeg()` | Create an iterator; also its runtime type name. |
+| `xiga(iterator)` / `iterator.xiga()` | Advance to the next step. |
+| `taxane(...)` | Lazy, exclusive integer sequence; see the reference for positional forms. |
+| `tirso(source, start?)` | Enumerate values with their indices. |
+| `lamaane(source, ...)` | Combine sources into rows, using the same word as object key/value pairs. |
+| `dhammaad` | Boolean flag indicating exhaustion. |
+| `qiime` | The value produced by a nonterminal step. |
+| `<wareeg>` | Display text for an opaque iterator. |
+
+New iteration failures use `E037`. Name validation and ordinary argument counts
+reuse existing parser, semantic, and standard-library diagnostics.
+
+| Exact Somali wording | English meaning |
+| --- | --- |
+| `Waxaa la filayay 'ku' (kuceli).` | The collection loop header requires its separator. |
+| `Magacyada wareeggu waa inay kala duwanaadaan.` | Loop binding names must differ. |
+| `Nooca '{type}' laguma wareegi karo.` | This value type cannot be iterated. |
+| `Hawsha wareeg() waa inay celisaa wax leh hawl xiga().` | The iterator factory must return an iterator with a next method. |
+| `Qaabkani ma laha hawl wareeg() ama xiga().` | The instance does not implement iteration. |
+| `Hawsha xiga() waa inay celisaa walax leh dhammaad iyo qiime.` | A next method must return an object describing its step. |
+| `Natiijada xiga() waxaa ka maqan qiime.` | A nonterminal step is missing its value. |
+| `Sifada dhammaad ee xiga() waa inay noqotaa bool.` | The exhaustion flag must be boolean. |
+| `Wareeggan mar hore ayaa la wadaa.` | This iterator is already advancing. |
+| `Wareegyada aad bay isugu dhex jiraan.` | Native iterator nesting exceeds the limit. |
+| `Qiimaha hadda la beddelayo laguma wareegi karo.` | A conflicting mutable borrow prevents iteration. |
+| `xiga() wuxuu u baahan yahay wareeg.` | The next helper requires a native iterator. |
+| `Tusmada tirso() waxay ka baxday xadka abn.` | An enumeration index cannot be represented as an integer. |
+| `Tusmada bilowga ee tirso() waa inay noqotaa abn.` | The starting index must be an integer. |
+| `Doodaha taxane() waa inay noqdaan abn.` | Range arguments must be integers. |
+| `Tallaabada taxane() eber ma noqon karto.` | A range step cannot be zero. |
+| `Wareeggu wuxuu u baahan yahay teed ka kooban {count} qiime si loo qaybiyo magacyada.` | A row must contain exactly as many values as there are binding names. |
+| `Wareeggu wuxuu u baahan yahay walax.` | An internal protocol method receiver must be an object. |
+| `Wareeggu ma laha hawl la yiraahdo '{method}'.` | This iterator has no such method; uses the ordinary runtime error category. |
+
+The implementation is in [iterators.rs](../../src/runtime/iterators.rs), with
+ABI dispatch in [abi.rs](../../src/runtime/abi.rs). The [iteration reference](iteration.md)
+defines the public contracts and examples. Argument counts for `wareeg`, `xiga`,
+`tirso`, and `taxane` use the existing `Hawsha ... dood ...` templates.

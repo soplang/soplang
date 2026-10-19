@@ -1,0 +1,4 @@
+Khalad nooc: Ma bedeli kartid qiimaha doorsamaha madoor 'qiime' [E020] safka 2, tiirka 1
+     --> examples/errors/iteration_constant.sop:2:1
+   2 │   kuceli (qiime ku [2]) {}
+     │   ^^^^^^

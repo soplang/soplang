@@ -1,0 +1,50 @@
+hawl hubi(shuruud, magac) { haddii (!shuruud) { tuur magac } }
+hawl burn() {
+    abn n = 0
+    intay (n < 1300) {
+        door garbage = []
+        garbage.geli(garbage)
+        n = n + 1
+    }
+}
+hawl maker(seed) {
+    door payload = [{name: f"value={seed}"}]
+    door state = [been]
+    celi { xiga: hawl() {
+        haddii (state[0]) { celi {dhammaad: run} }
+        state[0] = run
+        door value = payload[0]
+        payload.nadiifi()
+        burn()
+        celi {dhammaad: been, qiime: value}
+    } }
+}
+abn n = 0
+intay (n < 12) {
+    door zipped = lamaane([[{first: n}]], maker(n))
+    door step = xiga(zipped)
+    hubi(step.qiime[0][0].first == n, "native zip partial row survives callback collection")
+    hubi(step.qiime[1].name == f"value={n}", "busy protocol retains callback payload")
+    hubi(xiga(zipped).dhammaad, "zip exhaustion")
+    n = n + 1
+}
+door recursive = maran
+recursive = wareeg({xiga: hawl() { celi xiga(recursive) }})
+tijaabi { xiga(recursive) } qabo (e, xog) { hubi(xog.summad == "E037", "reentrancy error") }
+hubi(xiga(recursive).dhammaad, "failed reentrant iterator finishes")
+door deep = wareeg([1])
+kuceli (level 1 ilaa 70) { deep = tirso(deep) }
+tijaabi { xiga(deep) } qabo (e, xog) { hubi(xog.summad == "E037", "bounded native iteration depth") }
+hubi(xiga(deep).dhammaad, "deep failure leaves no busy cursor")
+qaab RecursiveFactory { hawl wareeg() { celi wareeg(nafta) } }
+tijaabi { wareeg(cusub RecursiveFactory()) } qabo (e, xog) { hubi(xog.summad == "E037", "bounded factory depth") }
+door after = wareeg([8])
+hubi(xiga(after).qiime == 8, "depth guards restore after failures")
+hawl cycle() {
+    door list = []
+    list.geli(list)
+    door iter = wareeg(list)
+    list.geli(iter)
+}
+kuceli (cycleIndex 1 ilaa 2500) { cycle() }
+qor("iteration gc ok")

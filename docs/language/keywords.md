@@ -114,6 +114,14 @@ Division produces a `jajab`. Division and modulo by zero remain catchable errors
 decimal arithmetic. `qoraal` is a string,
 `teed` is a mutable list, and `walax` stores string keys and values.
 
+### Collection loops
+
+`kuceli (item ku source)` iterates collections and lazy ranges. Multiple names
+bind row elements, as in `kuceli (index, item ku tirso(source))`. `ku` is
+contextual inside the header. See [iteration.md](iteration.md) for snapshots,
+Unicode characters, object entries, `wareeg`/`xiga`, `taxane`, `tirso`, `lamaane`,
+and user-defined class iterators.
+
 ### String literals
 
 Unprefixed single and double quotes keep their existing literal-backslash

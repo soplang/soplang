@@ -6,6 +6,15 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+* Collection loops use `kuceli (item ku source)` and exact-length row bindings. Lists use shallow snapshots, strings yield Unicode scalars, and objects yield sorted keys. `wareeg`/`xiga`, lazy `taxane`, `tirso`, and `lamaane` support shared cursors and user-defined class/object protocols in both backends.
+* Iterator state participates in context ownership and tracing collection, including cyclic snapshots and native roots held across callbacks. Invalid protocols, reentrant advances, excessive native nesting, and conflicting snapshot borrows produce recoverable Somali errors.
+
+### Fixed
+
+* LLVM registers empty classes and subclasses, preserving inherited constructors and iterator methods even when the subclass declares no methods.
+
 ## [3.1.0]
 
 Implementation milestone; distribution and publication are pending.

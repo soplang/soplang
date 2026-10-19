@@ -1,0 +1,4 @@
+Khalad fulin: Tallaabada taxane() eber ma noqon karto. [E037] safka 1, tiirka 14
+     --> examples/errors/iteration_range_zero.sop:1:14
+   1 │   door socod = taxane(0, 5, 0)
+     │                ^^^^^^

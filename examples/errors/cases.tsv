@@ -72,3 +72,10 @@ compile	interpolation_brace.sop	1	14	ma laha '{'
 runtime	interpolation_expression.sop	2	20	eber
 runtime	interpolation_format.sop	1	13	lama aqoonsan
 runtime	range_stalled.sop	1	1	ma beddelayso
+runtime	iteration_not_iterable.sop	1	1	laguma wareegi karo
+runtime	iteration_row_length.sop	1	1	ka kooban 2 qiime
+runtime	iteration_protocol_result.sop	2	1	walax leh dhammaad
+runtime	iteration_range_zero.sop	1	14	eber ma noqon karto
+compile	iteration_constant.sop	2	1	madoor
+compile	iteration_duplicate.sop	1	12	kala duwanaadaan
+runtime	iteration_callback.sop	1	38	eber

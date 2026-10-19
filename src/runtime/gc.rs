@@ -5,7 +5,7 @@ use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
 
 use super::abi::{
-    ClosureData, SoplangValue, TAG_CLOSURE, TAG_ERROR, TAG_LIST, TAG_OBJECT, TAG_STR,
+    ClosureData, SoplangValue, TAG_CLOSURE, TAG_ERROR, TAG_ITERATOR, TAG_LIST, TAG_OBJECT, TAG_STR,
 };
 use super::context::RuntimeState;
 use super::value::Value;
@@ -55,6 +55,7 @@ pub struct MemoryStats {
     pub objects: usize,
     pub closures: usize,
     pub errors: usize,
+    pub iterators: usize,
     pub active_frames: usize,
     pub pinned_values: usize,
     pub collections: usize,
@@ -63,7 +64,7 @@ pub struct MemoryStats {
 
 impl MemoryStats {
     pub fn values(&self) -> usize {
-        self.strings + self.lists + self.objects + self.closures + self.errors
+        self.strings + self.lists + self.objects + self.closures + self.errors + self.iterators
     }
 }
 
@@ -83,6 +84,7 @@ pub(super) fn stats(state: &RuntimeState) -> MemoryStats {
         objects: state.objects.borrow().len(),
         closures: state.closures.borrow().len(),
         errors: state.errors.borrow().len(),
+        iterators: state.iterators.borrow().len(),
         active_frames: state.roots.borrow().len(),
         pinned_values: state.pins.borrow().len(),
         collections: state.collector.collections.get(),
@@ -95,6 +97,7 @@ enum Node {
     List(Rc<std::cell::RefCell<Vec<Value>>>),
     Object(Rc<std::cell::RefCell<HashMap<String, Value>>>),
     Closure(Rc<ClosureData>),
+    Iterator(Rc<super::IteratorData>),
 }
 
 type Key = (u8, usize);
@@ -105,6 +108,7 @@ impl Node {
             Self::List(value) => (TAG_LIST, Rc::as_ptr(value) as usize),
             Self::Object(value) => (TAG_OBJECT, Rc::as_ptr(value) as usize),
             Self::Closure(value) => (TAG_CLOSURE, Rc::as_ptr(value) as usize),
+            Self::Iterator(value) => (TAG_ITERATOR, Rc::as_ptr(value) as usize),
         }
     }
 
@@ -113,6 +117,7 @@ impl Node {
             Self::List(value) => Rc::strong_count(value),
             Self::Object(value) => Rc::strong_count(value),
             Self::Closure(value) => Rc::strong_count(value),
+            Self::Iterator(value) => Rc::strong_count(value),
         }
     }
 
@@ -121,6 +126,7 @@ impl Node {
             Value::List(value) => Some(Self::List(Rc::clone(value))),
             Value::Object(value) => Some(Self::Object(Rc::clone(value))),
             Value::Closure(value) => Some(Self::Closure(Rc::clone(value))),
+            Value::Iterator(value) => Some(Self::Iterator(Rc::clone(value))),
             _ => None,
         }
     }
@@ -147,6 +153,14 @@ impl Node {
             // opaque captures no longer own otherwise unreachable collections.
             Self::Closure(value) if !teardown => (Vec::new(), value.env.clone(), false),
             Self::Closure(_) => (Vec::new(), Vec::new(), false),
+            Self::Iterator(value) => match value.children() {
+                Some(values) => (
+                    values.iter().filter_map(Self::from_value).collect(),
+                    Vec::new(),
+                    false,
+                ),
+                None => (Vec::new(), Vec::new(), true),
+            },
         }
     }
 
@@ -163,6 +177,7 @@ impl Node {
                 }
             }
             Self::Closure(_) => (),
+            Self::Iterator(value) => value.clear(),
         }
     }
 }
@@ -226,6 +241,9 @@ impl Graph {
         for (id, value) in state.closures.borrow().iter() {
             graph.arena(id, Node::Closure(Rc::clone(value)));
         }
+        for (id, value) in state.iterators.borrow().iter() {
+            graph.arena(id, Node::Iterator(Rc::clone(value)));
+        }
         let mut index = 0;
         while index < graph.nodes.len() {
             let (references, handles, borrowed) = graph.nodes[index].node.children(teardown);
@@ -246,6 +264,13 @@ impl Graph {
 
 pub(super) fn collect(state: &RuntimeState, teardown: bool) -> CollectionReport {
     let before = stats(state);
+    if teardown {
+        // Cursors are opaque and unusable after their owner dies. Release their
+        // owned graph edges even if Rust still retains the iterator handle.
+        for (_, iterator) in state.iterators.borrow().iter() {
+            iterator.clear();
+        }
+    }
     let mut graph = Graph::build(state, teardown);
     let mut work = Vec::new();
     for (index, entry) in graph.nodes.iter().enumerate() {
@@ -329,6 +354,10 @@ pub(super) fn collect(state: &RuntimeState, teardown: bool) -> CollectionReport 
         .closures
         .borrow_mut()
         .retain(|id, _| keep(TAG_CLOSURE, id));
+    state
+        .iterators
+        .borrow_mut()
+        .retain(|id, _| keep(TAG_ITERATOR, id));
     let swept = before.values().saturating_sub(stats(state).values());
     state
         .list_ids
@@ -361,7 +390,7 @@ pub(super) fn collect(state: &RuntimeState, teardown: bool) -> CollectionReport 
                         .borrow_mut()
                         .insert(Rc::as_ptr(value) as usize, id);
                 }
-                Node::Closure(_) => (), // Closures remain in their owning context.
+                Node::Closure(_) | Node::Iterator(_) => (), // Opaque values stay in their owning context.
             }
         }
     }

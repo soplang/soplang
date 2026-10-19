@@ -224,7 +224,7 @@ flowchart LR
 
 **Internal (`Value`):** Rust enum with integers, floats, strings, booleans, reference-counted lists and objects, function handles, closure handles, immutable structured errors, and null. Used by the standard library and when converting to and from the ABI.
 
-**C ABI (`SoplangValue`):** 16 bytes, `#[repr(C)]`: tag (u8), padding (7 bytes), payload (i64). Tags: null=0, int=1, float=2, bool=3, string=4, list=5, object=6, function=7, throw=8, closure=9, error=10. This value crosses the generated-code/runtime boundary in both backends.
+**C ABI (`SoplangValue`):** 16 bytes, `#[repr(C)]`: tag (u8), padding (7 bytes), payload (i64). Tags: null=0, int=1, float=2, bool=3, string=4, list=5, object=6, function=7, throw=8, closure=9, error=10, iterator=11. This value crosses the generated-code/runtime boundary in both backends.
 
 **Mechanism:** Runtime contexts own reusable handle arenas, globals, function registrations, classes, and error state. The current thread selects an active context for native ABI calls. Heap values and functions carry opaque allocation identities; conversions validate them before lookup. Compiled user functions receive an argument-vector pointer and its length. See [runtime contexts](RUNTIME_CONTEXTS.md) for ownership, error boundaries, and the calling representation.
 

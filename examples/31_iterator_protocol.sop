@@ -1,0 +1,22 @@
+// User-defined iterators return a bool termination flag and a value.
+qaab Tiriye {
+    hawl dhis(bilow, dhammaad) {
+        nafta.hadda = bilow
+        nafta.xad = dhammaad
+    }
+    hawl wareeg() { celi nafta }
+    hawl xiga() {
+        haddii (nafta.hadda >= nafta.xad) { celi {dhammaad: run} }
+        door qiime = nafta.hadda
+        nafta.hadda = qiime + 1
+        celi {dhammaad: been, qiime: qiime}
+    }
+}
+qaab TiriyeYar dhaxal Tiriye {}
+kuceli (qiime ku cusub TiriyeYar(1,4)) { qor(qiime) }
+
+door socod = wareeg([maran])
+door hore = xiga(socod)
+qor(hore.dhammaad, hore.qiime)
+door dambe = xiga(socod)
+qor(dambe.dhammaad, dambe.qiime)

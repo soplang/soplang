@@ -636,3 +636,19 @@ fn test_llvm_numeric_boundaries() {
         );
     }
 }
+
+#[test]
+fn test_llvm_collection_iteration_and_protocol() {
+    assert_eq!(
+        run_llvm("iteration", include_str!("fixtures/iteration.sop")),
+        "iteration ok\n"
+    );
+}
+
+#[test]
+fn test_llvm_iteration_gc_and_reentrant_callbacks() {
+    assert_eq!(
+        run_llvm("iteration_gc", include_str!("fixtures/iteration_gc.sop")),
+        "iteration gc ok\n"
+    );
+}

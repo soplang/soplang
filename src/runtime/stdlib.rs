@@ -33,7 +33,7 @@ pub(crate) fn expect_arity(
     }
 }
 
-fn expect_arity_range(
+pub(crate) fn expect_arity_range(
     args: &[Value],
     name: &str,
     minimum: usize,
@@ -440,6 +440,26 @@ pub fn get_builtin_functions() -> HashMap<String, Value> {
     m.insert("nooc".into(), Value::NativeFunction(builtin_nooc));
     m.insert("khalad".into(), Value::NativeFunction(builtin_khalad));
     m.insert("qaabee".into(), Value::NativeFunction(builtin_qaabee));
+    m.insert(
+        "wareeg".into(),
+        Value::NativeFunction(super::iterators::builtin_wareeg),
+    );
+    m.insert(
+        "xiga".into(),
+        Value::NativeFunction(super::iterators::builtin_xiga),
+    );
+    m.insert(
+        "taxane".into(),
+        Value::NativeFunction(super::iterators::builtin_taxane),
+    );
+    m.insert(
+        "tirso".into(),
+        Value::NativeFunction(super::iterators::builtin_tirso),
+    );
+    m.insert(
+        "lamaane".into(),
+        Value::NativeFunction(super::iterators::builtin_lamaane),
+    );
     m.insert("abn".into(), Value::NativeFunction(builtin_abn));
     m.insert("jajab".into(), Value::NativeFunction(builtin_jajab));
     m.insert("qoraal".into(), Value::NativeFunction(builtin_qoraal));

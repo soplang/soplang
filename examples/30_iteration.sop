@@ -1,0 +1,12 @@
+// Collections, lazy ranges, and row bindings.
+door magacyo = ["Ayaan", "Cali", "Sahal"]
+kuceli (magac ku magacyo) { qor(magac) }
+kuceli (tiro, magac ku tirso(magacyo, 1)) { qor(tiro, magac) }
+kuceli (tiro ku taxane(5, 0, -2)) { qor(tiro) }
+kuceli (xaraf ku "é😀") { qor(xaraf) }
+kuceli (fure, qiime ku { magac: "Ayaan", da: 7 }.lamaane().habee()) {
+    qor(fure, qiime)
+}
+kuceli (magac, da ku lamaane(["Ayaan", "Cali"], [20,25])) {
+    qor(magac, da)
+}

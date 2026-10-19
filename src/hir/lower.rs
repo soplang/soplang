@@ -138,6 +138,15 @@ pub enum HirInstr {
         end: Slot,
         step: Slot,
     },
+    IterBegin {
+        dst: Slot,
+        src: Slot,
+    },
+    IterNext {
+        dst: Slot,
+        iterator: Slot,
+        bindings: usize,
+    },
     Call {
         dst: Slot,
         callee: Slot,
@@ -207,7 +216,9 @@ impl HirInstr {
     pub(crate) fn may_allocate(&self) -> bool {
         matches!(
             self,
-            Self::FormatValue { .. }
+            Self::IterBegin { .. }
+                | Self::IterNext { .. }
+                | Self::FormatValue { .. }
                 | Self::BuildString { .. }
                 | Self::Const {
                     val: HirConst::Str(_),
@@ -229,7 +240,9 @@ impl HirInstr {
 
     pub(crate) fn destination(&self) -> Option<Slot> {
         match self {
-            Self::FormatValue { dst, .. }
+            Self::IterBegin { dst, .. }
+            | Self::IterNext { dst, .. }
+            | Self::FormatValue { dst, .. }
             | Self::BuildString { dst, .. }
             | Self::Const { dst, .. }
             | Self::Copy { dst, .. }
@@ -280,6 +293,12 @@ impl fmt::Display for HirInstr {
             HirInstr::SetLocation(span) => write!(f, "  location {}:{}", span.line, span.col),
             HirInstr::Const { dst, val } => write!(f, "  %{} = const {:?}", dst, val),
             HirInstr::Copy { dst, src } => write!(f, "  %{} = copy %{}", dst, src),
+            HirInstr::IterBegin { dst, src } => write!(f, "  %{} = iter %{}", dst, src),
+            HirInstr::IterNext {
+                dst,
+                iterator,
+                bindings,
+            } => write!(f, "  %{} = next %{} bind {}", dst, iterator, bindings),
             HirInstr::FormatValue { dst, src, format } => {
                 write!(f, "  %{} = format %{} {:?}", dst, src, format)
             }
@@ -705,7 +724,9 @@ impl<'a> HirLowering<'a> {
     fn emit(&mut self, instr: HirInstr) {
         let fallible = matches!(
             instr,
-            HirInstr::FormatValue { .. }
+            HirInstr::IterBegin { .. }
+                | HirInstr::IterNext { .. }
+                | HirInstr::FormatValue { .. }
                 | HirInstr::BuildString { .. }
                 | HirInstr::Load { .. }
                 | HirInstr::Store { .. }
@@ -1115,6 +1136,84 @@ impl<'a> HirLowering<'a> {
                 }
                 self.emit(HirInstr::Jump(cond_lbl));
                 self.emit(HirInstr::Label(break_lbl));
+                self.loop_stack.pop();
+            }
+            Stmt::ForEach {
+                vars,
+                iterable,
+                body,
+            } => {
+                let source = self.lower_expr(iterable);
+                let iterator = self.alloc_slot();
+                self.emit(HirInstr::IterBegin {
+                    dst: iterator,
+                    src: source,
+                });
+                let next = self.new_label();
+                let enter = self.new_label();
+                let end = self.new_label();
+                self.loop_stack.push((end, next));
+                self.emit(HirInstr::Label(next));
+                let step = self.alloc_slot();
+                self.emit(HirInstr::IterNext {
+                    dst: step,
+                    iterator,
+                    bindings: vars.len(),
+                });
+                let done = self.alloc_slot();
+                self.emit(HirInstr::GetProp {
+                    dst: done,
+                    obj: step,
+                    prop: "dhammaad".into(),
+                });
+                self.emit(HirInstr::JumpIf {
+                    cond: done,
+                    on_true: end,
+                    on_false: enter,
+                });
+                self.emit(HirInstr::Label(enter));
+                let value = self.alloc_slot();
+                self.emit(HirInstr::GetProp {
+                    dst: value,
+                    obj: step,
+                    prop: "qiime".into(),
+                });
+                let mut values = Vec::new();
+                for (index, name) in vars.iter().enumerate() {
+                    let item = if vars.len() == 1 {
+                        value
+                    } else {
+                        let offset = self.alloc_slot();
+                        self.emit_const(offset, HirConst::Int(index as i64));
+                        let item = self.alloc_slot();
+                        self.emit(HirInstr::GetIndex {
+                            dst: item,
+                            obj: value,
+                            idx: offset,
+                        });
+                        item
+                    };
+                    if let Some(ann) = self.var_ann(name) {
+                        self.emit_type_check(item, &ann, name);
+                    }
+                    values.push(item);
+                }
+                for (name, item) in vars.iter().zip(values) {
+                    if let Some(slot) = self.resolve_slot(name) {
+                        self.emit_copy(slot, item);
+                    }
+                    if self.is_global(name) || self.resolve_slot(name).is_none() {
+                        self.emit(HirInstr::Store {
+                            name: name.clone(),
+                            src: item,
+                        });
+                    }
+                }
+                for stmt in body {
+                    self.lower_stmt(stmt);
+                }
+                self.emit(HirInstr::Jump(next));
+                self.emit(HirInstr::Label(end));
                 self.loop_stack.pop();
             }
             Stmt::While { cond, body } => {
@@ -1632,6 +1731,10 @@ fn collect_funcs_stmt<'a>(stmt: &'a Stmt, out: &mut Vec<&'a [Stmt]>) {
             if let Some(step) = step {
                 collect_funcs_expr(step, out);
             }
+            collect_funcs(body, out);
+        }
+        Stmt::ForEach { iterable, body, .. } => {
+            collect_funcs_expr(iterable, out);
             collect_funcs(body, out);
         }
         Stmt::While { cond, body } => {
