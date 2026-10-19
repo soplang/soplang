@@ -1,0 +1,12 @@
+// Qoraalka UTF-8 iyo xogta baytyada.
+baytyo xog = baytyo("Salaan, Soomaali!")
+qor(nooc(xog), xog.dherer())
+qor(xog.qoraal())
+qor(baytyo("é").teed())
+xog[0] = 115
+qor(qoraal(xog))
+qor(xog.jar(0, 6).qoraal())
+door tirooyin = []
+kuceli (bayt ku baytyo([0, 128, 255])) { tirooyin.geli(bayt) }
+qor(tirooyin)
+tijaabi { qoraal(baytyo([255])) } qabo (fariin) { qor(fariin) }

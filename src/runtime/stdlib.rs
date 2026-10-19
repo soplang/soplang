@@ -210,7 +210,10 @@ pub fn builtin_jajab(args: Vec<Value>) -> Result<Value, SoplangError> {
 /// Built-in qoraal: convert to string (value_to_string).
 pub fn builtin_qoraal(args: Vec<Value>) -> Result<Value, SoplangError> {
     expect_arity(&args, "qoraal", 1)?;
-    Ok(Value::Str(value_to_string(&args[0])))
+    match &args[0] {
+        Value::Bytes(bytes) => super::bytes::decode(bytes).map(Value::Str),
+        value => Ok(Value::Str(value_to_string(value))),
+    }
 }
 
 /// Built-in bool: truthiness (0, "", false, null, "false", "False" -> false).
@@ -224,6 +227,7 @@ pub fn builtin_bool(args: Vec<Value>) -> Result<Value, SoplangError> {
         Value::Float(x) => *x != 0.0,
         Value::Str(s) => !s.is_empty() && s != "false" && s != "False",
         Value::List(l) => !l.borrow().is_empty(),
+        Value::Bytes(bytes) => !super::bytes::read(bytes)?.is_empty(),
         Value::Object(o) => !o.borrow().is_empty(),
         _ => true,
     };
@@ -274,9 +278,10 @@ pub fn builtin_dherer(args: Vec<Value>) -> Result<Value, SoplangError> {
     let v = args.into_iter().next().unwrap();
     let len = match &v {
         Value::List(l) => l.borrow().len(),
+        Value::Bytes(bytes) => super::bytes::read(bytes)?.len(),
         Value::Str(s) => s.chars().count(),
         Value::Object(o) => o.borrow().len(),
-        _ => return Err(err_type("Qiimaha ma ahan teed, qoraal, ama walax")),
+        _ => return Err(err_type("Qiimaha ma ahan teed, qoraal, walax, ama baytyo")),
     };
     Ok(Value::Int(len as i64))
 }
@@ -473,6 +478,11 @@ impl CallbackArity {
 
 // Registration and callback metadata use the same list, including aliases.
 const BUILTINS: &[(&str, super::NativeFn, CallbackArity)] = &[
+    (
+        "baytyo",
+        super::bytes::construct,
+        CallbackArity::range(0, 1),
+    ),
     ("qor", builtin_qor, CallbackArity::range(0, usize::MAX)),
     ("gelin", builtin_gelin, CallbackArity::range(0, 1)),
     ("nooc", builtin_nooc, CallbackArity::range(1, 1)),
@@ -650,7 +660,7 @@ pub fn list_habee(lst: Rc<RefCell<Vec<Value>>>, args: &[Value]) -> Result<Value,
 
 /// Shared character/item slicing: integer bounds, negative offsets, clamped
 /// endpoints, and an empty result when the normalized end precedes the start.
-fn slice_bounds(args: &[Value], len: usize) -> Result<(usize, usize), SoplangError> {
+pub(super) fn slice_bounds(args: &[Value], len: usize) -> Result<(usize, usize), SoplangError> {
     expect_arity_range(args, "jar", 0, 2)?;
     let normalize = |bound: &Value| -> Result<usize, SoplangError> {
         let index = to_integer(bound, "jar")?;

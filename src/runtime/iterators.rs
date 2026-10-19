@@ -53,6 +53,7 @@ pub struct IteratorData {
 
 enum Cursor {
     Items(VecDeque<Value>),
+    Bytes(VecDeque<u8>),
     Text {
         text: String,
         offset: usize,
@@ -85,7 +86,11 @@ impl IteratorData {
                 .filter(|value| {
                     matches!(
                         value,
-                        Value::List(_) | Value::Object(_) | Value::Closure(_) | Value::Iterator(_)
+                        Value::List(_)
+                            | Value::Bytes(_)
+                            | Value::Object(_)
+                            | Value::Closure(_)
+                            | Value::Iterator(_)
                     )
                 })
                 .cloned()
@@ -107,6 +112,7 @@ fn create(cursor: Cursor) -> Value {
     let bytes = std::mem::size_of::<IteratorData>().saturating_add(match &cursor {
         Cursor::Items(items) => items.len().saturating_mul(std::mem::size_of::<Value>()),
         Cursor::Text { text, .. } => text.len(),
+        Cursor::Bytes(bytes) => bytes.len(),
         Cursor::Zip(sources) => sources.len().saturating_mul(std::mem::size_of::<Value>()),
         _ => 0,
     });
@@ -151,6 +157,9 @@ pub(super) fn begin(value: &Value) -> Result<Value, SoplangError> {
                 .iter()
                 .cloned()
                 .collect(),
+        ))),
+        Value::Bytes(bytes) => Ok(create(Cursor::Bytes(
+            super::bytes::read(bytes)?.iter().copied().collect(),
         ))),
         Value::Str(text) => Ok(create(Cursor::Text {
             text: text.clone(),
@@ -225,6 +234,7 @@ pub(super) fn advance(data: &Rc<IteratorData>) -> Result<Option<Value>, SoplangE
     // moved into this Rust frame retain their own references through nested GC.
     let result = (|| match &mut cursor {
         Cursor::Items(items) => Ok(items.pop_front()),
+        Cursor::Bytes(bytes) => Ok(bytes.pop_front().map(|byte| Value::Int(byte as i64))),
         Cursor::Text { text, offset } => {
             let next = text[*offset..].chars().next();
             if let Some(ch) = next {

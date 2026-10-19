@@ -1781,6 +1781,7 @@ fn type_ann_to_tag(ann: &TypeAnnotation) -> u8 {
         TypeAnnotation::Qoraal => 3,
         TypeAnnotation::Bool => 4,
         TypeAnnotation::Teed => 5,
+        TypeAnnotation::Bytes => 7,
         TypeAnnotation::Walax => 6,
         TypeAnnotation::Dynamic | TypeAnnotation::Class(_) => 0,
     }

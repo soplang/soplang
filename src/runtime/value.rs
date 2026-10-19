@@ -21,6 +21,7 @@ pub enum Value {
     Str(String),
     Bool(bool),
     List(Rc<RefCell<Vec<Value>>>),
+    Bytes(Rc<RefCell<Vec<u8>>>),
     Object(Rc<RefCell<HashMap<String, Value>>>),
     Function(FunctionId),
     NativeFunction(NativeFn),
@@ -48,6 +49,7 @@ impl Value {
             Value::Str(s) => ValueDebug::Str(s.as_str()),
             Value::Bool(b) => ValueDebug::Bool(*b),
             Value::List(l) => ValueDebug::List(l.borrow().len()),
+            Value::Bytes(bytes) => ValueDebug::Bytes(bytes.try_borrow().map(|b| b.len()).ok()),
             Value::Object(o) => ValueDebug::Object(o.borrow().len()),
             Value::Function(id) => ValueDebug::Function(*id),
             Value::NativeFunction(_) => ValueDebug::NativeFn,
@@ -67,6 +69,7 @@ enum ValueDebug<'a> {
     Str(&'a str),
     Bool(bool),
     List(usize),
+    Bytes(Option<usize>),
     Object(usize),
     Function(FunctionId),
     NativeFn,
@@ -89,6 +92,13 @@ fn value_eq(a: &Value, b: &Value, seen: &mut HashSet<(u8, usize, usize)>) -> boo
         (Value::Str(a), Value::Str(b)) => a == b,
         (Value::Bool(a), Value::Bool(b)) => a == b,
         (Value::Null, Value::Null) => true,
+        (Value::Bytes(a), Value::Bytes(b)) => {
+            Rc::ptr_eq(a, b)
+                || match (a.try_borrow(), b.try_borrow()) {
+                    (Ok(a), Ok(b)) => *a == *b,
+                    _ => false,
+                }
+        }
         (Value::List(a), Value::List(b)) => {
             if Rc::ptr_eq(a, b) {
                 return true;
@@ -137,6 +147,7 @@ impl Value {
             Value::Str(_) => "qoraal",
             Value::Bool(_) => "bool",
             Value::List(_) => "teed",
+            Value::Bytes(_) => "baytyo",
             Value::Object(_) => "walax",
             Value::Function(_) | Value::NativeFunction(_) | Value::Closure(_) => "hawl",
             Value::Error(_) => "khalad",
@@ -154,6 +165,7 @@ impl Value {
             Value::Float(x) => *x != 0.0,
             Value::Str(s) => !s.is_empty(),
             Value::List(l) => !l.borrow().is_empty(),
+            Value::Bytes(bytes) => bytes.try_borrow().map(|b| !b.is_empty()).unwrap_or(true),
             Value::Object(o) => !o.borrow().is_empty(),
             Value::Function(_)
             | Value::NativeFunction(_)
@@ -191,6 +203,10 @@ fn format_value(v: &Value, seen: &mut HashSet<(u8, usize)>) -> String {
         Value::Str(s) => s.clone(),
         Value::Error(error) => error.message().to_owned(),
         Value::Iterator(_) => "<wareeg>".into(),
+        Value::Bytes(bytes) => match bytes.try_borrow() {
+            Ok(bytes) => format!("baytyo({:?})", &*bytes),
+            Err(_) => "<baytyo>".into(),
+        },
         Value::List(lst) => {
             let id = (0, Rc::as_ptr(lst) as usize);
             if !seen.insert(id) {

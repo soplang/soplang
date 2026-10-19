@@ -705,3 +705,17 @@ fn test_llvm_named_arguments() {
         );
     }
 }
+
+#[test]
+fn test_llvm_bytes() {
+    for opt in [0, 2] {
+        assert_eq!(
+            run_llvm_with_opt(
+                &format!("llvm_bytes_{opt}"),
+                include_str!("fixtures/bytes.sop"),
+                opt
+            ),
+            "bytes ok\n"
+        );
+    }
+}

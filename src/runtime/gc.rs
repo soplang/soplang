@@ -5,7 +5,8 @@ use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
 
 use super::abi::{
-    ClosureData, SoplangValue, TAG_CLOSURE, TAG_ERROR, TAG_ITERATOR, TAG_LIST, TAG_OBJECT, TAG_STR,
+    ClosureData, SoplangValue, TAG_BYTES, TAG_CLOSURE, TAG_ERROR, TAG_ITERATOR, TAG_LIST,
+    TAG_OBJECT, TAG_STR,
 };
 use super::context::RuntimeState;
 use super::value::Value;
@@ -52,6 +53,7 @@ impl CollectorState {
 pub struct MemoryStats {
     pub strings: usize,
     pub lists: usize,
+    pub bytes: usize,
     pub objects: usize,
     pub closures: usize,
     pub errors: usize,
@@ -64,7 +66,13 @@ pub struct MemoryStats {
 
 impl MemoryStats {
     pub fn values(&self) -> usize {
-        self.strings + self.lists + self.objects + self.closures + self.errors + self.iterators
+        self.strings
+            + self.lists
+            + self.bytes
+            + self.objects
+            + self.closures
+            + self.errors
+            + self.iterators
     }
 }
 
@@ -81,6 +89,7 @@ pub(super) fn stats(state: &RuntimeState) -> MemoryStats {
     MemoryStats {
         strings: state.strings.borrow().len(),
         lists: state.lists.borrow().len(),
+        bytes: state.bytes.borrow().len(),
         objects: state.objects.borrow().len(),
         closures: state.closures.borrow().len(),
         errors: state.errors.borrow().len(),
@@ -95,6 +104,7 @@ pub(super) fn stats(state: &RuntimeState) -> MemoryStats {
 #[derive(Clone)]
 enum Node {
     List(Rc<std::cell::RefCell<Vec<Value>>>),
+    Bytes(Rc<std::cell::RefCell<Vec<u8>>>),
     Object(Rc<std::cell::RefCell<HashMap<String, Value>>>),
     Closure(Rc<ClosureData>),
     Iterator(Rc<super::IteratorData>),
@@ -106,6 +116,7 @@ impl Node {
     fn key(&self) -> Key {
         match self {
             Self::List(value) => (TAG_LIST, Rc::as_ptr(value) as usize),
+            Self::Bytes(value) => (TAG_BYTES, Rc::as_ptr(value) as usize),
             Self::Object(value) => (TAG_OBJECT, Rc::as_ptr(value) as usize),
             Self::Closure(value) => (TAG_CLOSURE, Rc::as_ptr(value) as usize),
             Self::Iterator(value) => (TAG_ITERATOR, Rc::as_ptr(value) as usize),
@@ -115,6 +126,7 @@ impl Node {
     fn strong_count(&self) -> usize {
         match self {
             Self::List(value) => Rc::strong_count(value),
+            Self::Bytes(value) => Rc::strong_count(value),
             Self::Object(value) => Rc::strong_count(value),
             Self::Closure(value) => Rc::strong_count(value),
             Self::Iterator(value) => Rc::strong_count(value),
@@ -124,6 +136,7 @@ impl Node {
     fn from_value(value: &Value) -> Option<Self> {
         match value {
             Value::List(value) => Some(Self::List(Rc::clone(value))),
+            Value::Bytes(value) => Some(Self::Bytes(Rc::clone(value))),
             Value::Object(value) => Some(Self::Object(Rc::clone(value))),
             Value::Closure(value) => Some(Self::Closure(Rc::clone(value))),
             Value::Iterator(value) => Some(Self::Iterator(Rc::clone(value))),
@@ -133,6 +146,7 @@ impl Node {
 
     fn children(&self, teardown: bool) -> (Vec<Self>, Vec<SoplangValue>, bool) {
         match self {
+            Self::Bytes(_) => (Vec::new(), Vec::new(), false),
             Self::List(value) => match value.try_borrow_mut() {
                 Ok(values) => (
                     values.iter().filter_map(Self::from_value).collect(),
@@ -176,7 +190,7 @@ impl Node {
                     values.clear();
                 }
             }
-            Self::Closure(_) => (),
+            Self::Bytes(_) | Self::Closure(_) => (),
             Self::Iterator(value) => value.clear(),
         }
     }
@@ -232,6 +246,9 @@ impl Graph {
 
     fn build(state: &RuntimeState, teardown: bool) -> Self {
         let mut graph = Self::default();
+        for (id, value) in state.bytes.borrow().iter() {
+            graph.arena(id, Node::Bytes(Rc::clone(value)));
+        }
         for (id, value) in state.lists.borrow().iter() {
             graph.arena(id, Node::List(Rc::clone(value)));
         }
@@ -346,6 +363,7 @@ pub(super) fn collect(state: &RuntimeState, teardown: bool) -> CollectionReport 
         .borrow_mut()
         .retain(|id, _| handles.contains(&(TAG_ERROR, id)));
     state.lists.borrow_mut().retain(|id, _| keep(TAG_LIST, id));
+    state.bytes.borrow_mut().retain(|id, _| keep(TAG_BYTES, id));
     state
         .objects
         .borrow_mut()
@@ -359,6 +377,10 @@ pub(super) fn collect(state: &RuntimeState, teardown: bool) -> CollectionReport 
         .borrow_mut()
         .retain(|id, _| keep(TAG_ITERATOR, id));
     let swept = before.values().saturating_sub(stats(state).values());
+    state
+        .byte_ids
+        .borrow_mut()
+        .retain(|_, id| state.bytes.borrow().contains(*id));
     state
         .list_ids
         .borrow_mut()
@@ -376,6 +398,13 @@ pub(super) fn collect(state: &RuntimeState, teardown: bool) -> CollectionReport 
             .filter(|entry| entry.marked && entry.arena_refs == 0)
         {
             match &entry.node {
+                Node::Bytes(value) => {
+                    let id = state.bytes.borrow_mut().insert(Rc::clone(value));
+                    state
+                        .byte_ids
+                        .borrow_mut()
+                        .insert(Rc::as_ptr(value) as usize, id);
+                }
                 Node::List(value) => {
                     let id = state.lists.borrow_mut().insert(Rc::clone(value));
                     state
@@ -417,6 +446,19 @@ pub(super) fn collect(state: &RuntimeState, teardown: bool) -> CollectionReport 
         .iter()
         .map(|(_, value)| value.len())
         .sum::<usize>()
+        .saturating_add(
+            state
+                .bytes
+                .borrow()
+                .iter()
+                .map(|(_, value)| {
+                    value
+                        .try_borrow()
+                        .map(|bytes| bytes.capacity())
+                        .unwrap_or(0)
+                })
+                .sum::<usize>(),
+        )
         .saturating_add(after.values().saturating_mul(64));
     state.collector.next_bytes.set(
         state

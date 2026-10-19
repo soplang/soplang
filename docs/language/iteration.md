@@ -48,6 +48,7 @@ and retain their existing lookup behavior.
 | --- | --- |
 | List | Elements from a shallow snapshot made when iteration begins |
 | String | Unicode scalar characters, each returned as a string |
+| Byte array | Integer byte values from a compact snapshot |
 | Plain object | Keys sorted lexicographically at iterator creation |
 | Native iterator | Its remaining values, using the same cursor |
 | Class or object with the protocol below | Values produced by its `xiga()` method |

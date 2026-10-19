@@ -61,6 +61,7 @@ pub fn type_name(ty: &TypeAnnotation) -> String {
         TypeAnnotation::Qoraal => "qoraal",
         TypeAnnotation::Bool => "bool",
         TypeAnnotation::Teed => "teed",
+        TypeAnnotation::Bytes => "baytyo",
         TypeAnnotation::Walax => "walax",
         TypeAnnotation::Dynamic => "door",
         TypeAnnotation::Class(name) => name,

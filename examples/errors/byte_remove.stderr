@@ -1,0 +1,4 @@
+Khalad fulin: Ma saari kartid baytyo madhan. [E038] safka 1, tiirka 10
+     --> examples/errors/byte_remove.sop:1:10
+   1 │   baytyo().saar()
+     │            ^^^^

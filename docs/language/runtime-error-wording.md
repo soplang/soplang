@@ -205,3 +205,29 @@ that collection method. This is `E022` and is checked even on empty lists.
 Known signatures report bad names and collisions at the named argument and
 inferable type errors at the supplied value. Missing arguments and dynamic
 binding errors point to the call. Runtime binding failures use `E022`.
+
+## Byte arrays
+
+`bayt` means byte; `baytyo` names the byte-array type and constructor. The
+[byte-array contract](bytes.md) documents storage, conversion, and mutation.
+`qoraal` decodes text; `teed` creates a list copy. Other method names reuse the
+existing collection vocabulary. New byte-operation failures use `E038`.
+
+| Somali diagnostic | Meaning |
+| --- | --- |
+| `Qiimaha baytku waa inuu noqdaa abn u dhexeeya 0 iyo 255.` | A byte value must be an integer from 0 through 255. |
+| `Tusmada baytyadu waa inay noqotaa abn.` | A byte index must be an integer. |
+| `Tusmadu way ka baxsan tahay baytyada.` | The write or removal index is outside the byte array. |
+| `baytyo() waxay u baahan tahay qoraal, teed ka kooban baytyo, ama baytyo kale.` | The constructor accepts text, a list of bytes, or another byte array. |
+| `Baytyadu ma aha qoraal UTF-8 ah oo sax ah.` | The bytes are not valid UTF-8 text. |
+| `Baytyada hadda lama akhriyi karo.` | A host borrow prevents reading bytes. |
+| `Baytyada hadda lama beddeli karo.` | A host borrow prevents mutation. |
+| `Teedka hadda lama akhriyi karo.` | A host borrow prevents reading the source list. |
+| `Ma saari kartid baytyo madhan.` | An empty byte array has nothing to remove. |
+| `midee() waxay u baahan tahay baytyo.` | Concatenation requires another byte array. |
+| `Baytyadu ma laha hawl la yiraahdo '{method}'.` | The byte array has no such method. |
+| `Magaca 'baytyo' waxaa loo adeegsadaa nooc hore u jiray.` | A class name conflicts with the built-in byte type; `E020`. |
+
+Length conversion errors now include bytes among the accepted types:
+`Qiimaha ma ahan teed, qoraal, walax, ama baytyo`.
+Arity, slicing, stale-handle, and annotation errors reuse their existing forms.

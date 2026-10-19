@@ -721,3 +721,11 @@ fn test_named_arguments() {
         "named arguments ok\n"
     );
 }
+
+#[test]
+fn test_bytes() {
+    assert_eq!(
+        run_program(include_str!("fixtures/bytes.sop")),
+        "bytes ok\n"
+    );
+}

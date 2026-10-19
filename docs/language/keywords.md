@@ -18,6 +18,7 @@ compatibility names are listed below. The collection design record explains shar
 | `bool`   | Boolean type                  | `bool`             | `bool waaRun = run`                    |
 | `walax`  | Object type                   | `object`           | `walax person = { name: "Sharafdin" }` |
 | `teed`   | List/array type               | `array`            | `teed numbers = [1, 2, 3]`             |
+| `baytyo` | Byte array type and constructor (contextual) | `bytes` | `baytyo data = baytyo([0, 255])` |
 | `maran`  | Null value                    | `null`             | `door a = maran`                       |
 
 ## Control Flow Keywords
@@ -721,3 +722,8 @@ An accepted integral float is converted to `abn` for an integer annotation, and
 an accepted integer is converted to `jajab` for a floating-point annotation,
 keeping the representation consistent with native arithmetic. Fractional floats
 are rejected for `abn` annotations; use `abn(value)` for explicit truncation.
+
+## Byte arrays
+
+The [byte-array reference](bytes.md) defines construction, strict UTF-8 conversion,
+indexing, checked writes, collection methods, type annotations, and iteration.

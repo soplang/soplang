@@ -764,6 +764,14 @@ fn analyze_stmt(
             }
         }
         Stmt::ClassDef { name, parent, body } => {
+            if name == "baytyo" {
+                return Err(type_error_ex(
+                    "Magaca 'baytyo' waxaa loo adeegsadaa nooc hore u jiray.",
+                    0,
+                    0,
+                    ErrorMeta::default().with_code(codes::E020_REDECLARED),
+                ));
+            }
             if sym.classes.contains_key(name) {
                 return Err(type_error_ex(
                     format!("Qaab '{}' mar hore ayaa la qeexay", name),
@@ -1684,6 +1692,7 @@ fn is_type_compatible(sym: &SymbolTable, target: &TypeAnnotation, value: &TypeAn
         (Qoraal, Qoraal) => true,
         (Bool, Bool) => true,
         (Teed, Teed) => true,
+        (Bytes, Bytes) => true,
         (Walax, Walax) => true,
         _ => false,
     }
@@ -1753,6 +1762,7 @@ fn ty_str(a: &TypeAnnotation) -> String {
         TypeAnnotation::Qoraal => "qoraal".to_string(),
         TypeAnnotation::Bool => "bool".to_string(),
         TypeAnnotation::Teed => "teed".to_string(),
+        TypeAnnotation::Bytes => "baytyo".to_string(),
         TypeAnnotation::Walax => "walax".to_string(),
         TypeAnnotation::Dynamic => "dynamic".to_string(),
         TypeAnnotation::Class(name) => name.clone(),

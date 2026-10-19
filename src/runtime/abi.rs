@@ -290,6 +290,7 @@ pub const TAG_FUNC: u8 = 7;
 pub const TAG_CLOSURE: u8 = 9;
 pub const TAG_ERROR: u8 = 10;
 pub const TAG_ITERATOR: u8 = 11;
+pub const TAG_BYTES: u8 = 12;
 /// Internal argument slot marker; never a language value.
 pub(crate) const TAG_MISSING: u8 = 255;
 
@@ -394,6 +395,7 @@ fn validate_handle(value: SoplangValue) -> Result<(), SoplangError> {
         TAG_ERROR => ERROR_HEAP.with(|heap| heap.borrow().contains(value.payload)),
         TAG_STR => STR_HEAP.with(|heap| heap.borrow().contains(value.payload)),
         TAG_LIST => LIST_HEAP.with(|heap| heap.borrow().contains(value.payload)),
+        TAG_BYTES => STATE.with(|state| state.bytes.borrow().contains(value.payload)),
         TAG_OBJECT => OBJ_HEAP.with(|heap| heap.borrow().contains(value.payload)),
         TAG_FUNC => native_fn_get(value.payload).is_some() || compiled_fn_entry(value.payload).is_some(),
         TAG_CLOSURE => CLOSURE_HEAP.with(|heap| heap.borrow().contains(value.payload)),
@@ -435,6 +437,32 @@ fn list_get(id: i64) -> Result<Rc<RefCell<Vec<Value>>>, SoplangError> {
     LIST_HEAP.with(|heap| heap.borrow().get(id).cloned().ok_or_else(invalid_handle))
 }
 
+pub(super) fn record_bytes_growth(bytes: usize) {
+    if bytes > 0 {
+        COLLECTOR.with(|collector| collector.allocated(bytes));
+    }
+}
+
+fn bytes_alloc(value: Rc<RefCell<Vec<u8>>>) -> i64 {
+    STATE.with(|state| {
+        let key = Rc::as_ptr(&value) as usize;
+        if let Some(id) = state.byte_ids.borrow().get(&key).copied() {
+            if state.bytes.borrow().contains(id) {
+                return id;
+            }
+        }
+        state.collector.allocated(
+            value
+                .try_borrow()
+                .map(|bytes| bytes.capacity())
+                .unwrap_or(0),
+        );
+        let id = state.bytes.borrow_mut().insert(value);
+        state.byte_ids.borrow_mut().insert(key, id);
+        id
+    })
+}
+
 fn obj_alloc(value: Rc<RefCell<HashMap<String, Value>>>) -> i64 {
     let key = Rc::as_ptr(&value) as usize;
     if let Some(id) = OBJECT_IDS.with(|ids| ids.borrow().get(&key).copied()) {
@@ -473,6 +501,11 @@ pub fn value_to_soplang(v: &Value) -> SoplangValue {
             tag: TAG_STR,
             _pad: [0; 7],
             payload: str_alloc(s.clone()),
+        },
+        Value::Bytes(bytes) => SoplangValue {
+            tag: TAG_BYTES,
+            _pad: [0; 7],
+            payload: bytes_alloc(Rc::clone(bytes)),
         },
         Value::List(l) => SoplangValue {
             tag: TAG_LIST,
@@ -550,6 +583,10 @@ pub fn soplang_to_value(sv: SoplangValue) -> Result<Value, SoplangError> {
             .map(Value::Error).ok_or_else(invalid_handle),
         TAG_STR => str_get(sv.payload).map(Value::Str),
         TAG_LIST => list_get(sv.payload).map(Value::List),
+        TAG_BYTES => STATE
+            .with(|state| state.bytes.borrow().get(sv.payload).cloned())
+            .map(Value::Bytes)
+            .ok_or_else(invalid_handle),
         TAG_OBJECT => obj_get(sv.payload).map(Value::Object),
         TAG_FUNC if native_fn_get(sv.payload).is_some() || compiled_fn_entry(sv.payload).is_some() => {
             Ok(Value::Function(super::value::FunctionId(sv.payload as usize)))
@@ -1154,6 +1191,10 @@ pub extern "C" fn soplang_object_new() -> SoplangValue {
 pub extern "C" fn soplang_get_index(obj: SoplangValue, idx: SoplangValue) -> SoplangValue {
     check_handles!(obj, idx);
     match (soplang_to_value(obj), soplang_to_value(idx)) {
+        (Ok(Value::Bytes(bytes)), Ok(index)) => match super::bytes::get(&bytes, &index) {
+            Ok(value) => value_to_soplang(&value),
+            Err(error) => handle_runtime_error(error),
+        },
         (Ok(Value::List(l)), Ok(Value::Int(i))) => {
             let v = l.borrow();
             let position = if i < 0 { v.len() as i64 + i } else { i };
@@ -1206,6 +1247,12 @@ pub extern "C" fn soplang_set_index(
         soplang_to_value(idx),
         soplang_to_value(val),
     ) {
+        (Ok(Value::Bytes(bytes)), Ok(index), Ok(value)) => {
+            match super::bytes::set(&bytes, &index, &value) {
+                Ok(value) => value_to_soplang(&value),
+                Err(error) => handle_runtime_error(error),
+            }
+        }
         (Ok(Value::List(l)), Ok(Value::Int(i)), Ok(v)) => {
             let len = l.borrow().len() as i64;
             let position = if i < 0 { len + i } else { i };
@@ -1767,6 +1814,7 @@ pub extern "C" fn soplang_call_method(
                 })
             }
             Value::List(l) => dispatch_list_method(l, method, &argv),
+            Value::Bytes(bytes) => super::bytes::dispatch(bytes, method, &argv),
             Value::Object(o) => dispatch_object_method(o, method, &argv),
             Value::Str(s) => dispatch_string_method(s, method, &argv),
             _ => Err(runtime_error(
@@ -2249,7 +2297,7 @@ fn instance_matches_class(val: &Value, expected: &str) -> bool {
 }
 
 /// Runtime type validation for typed variable assignment (C ABI).
-/// expected_type: 1=abn, 2=jajab, 3=qoraal, 4=bool, 5=teed, 6=walax, 0=dynamic(skip).
+/// expected_type: 1=abn, 2=jajab, 3=qoraal, 4=bool, 5=teed, 6=walax, 7=baytyo, 0=dynamic(skip).
 #[no_mangle]
 pub extern "C" fn soplang_check_type(
     tag: i64,
@@ -2280,6 +2328,7 @@ pub extern "C" fn soplang_check_type(
         4 => matches!(val, Value::Bool(_)),
         5 => matches!(val, Value::List(_)),
         6 => matches!(val, Value::Object(_)),
+        7 => matches!(val, Value::Bytes(_)),
         _ => true,
     };
     if !ok {
@@ -2295,6 +2344,7 @@ pub extern "C" fn soplang_check_type(
             4 => "bool",
             5 => "teed",
             6 => "walax",
+            7 => "baytyo",
             _ => "?",
         };
         let err = type_error(

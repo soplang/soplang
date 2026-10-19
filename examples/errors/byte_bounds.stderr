@@ -1,0 +1,4 @@
+Khalad fulin: Tusmadu way ka baxsan tahay baytyada. [E038] safka 2, tiirka 1
+     --> examples/errors/byte_bounds.sop:2:1
+   2 │   xog[1] = 2
+     │   ^^^

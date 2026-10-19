@@ -10,10 +10,21 @@ pub enum TypeAnnotation {
     Qoraal,
     Bool,
     Teed,
+    Bytes,
     Walax,
     Dynamic,
     /// Instance of this class, or of a class that extends it.
     Class(String),
+}
+
+impl TypeAnnotation {
+    pub(crate) fn named(name: String) -> Self {
+        if name == "baytyo" {
+            Self::Bytes
+        } else {
+            Self::Class(name)
+        }
+    }
 }
 
 /// Literal values at parse time.
@@ -254,6 +265,7 @@ fn type_annotation_name(ann: &TypeAnnotation) -> &str {
         TypeAnnotation::Qoraal => "qoraal",
         TypeAnnotation::Bool => "bool",
         TypeAnnotation::Teed => "teed",
+        TypeAnnotation::Bytes => "baytyo",
         TypeAnnotation::Walax => "walax",
         TypeAnnotation::Dynamic => "door",
         TypeAnnotation::Class(name) => name,
@@ -380,6 +392,7 @@ impl Stmt {
                     TypeAnnotation::Qoraal => "qoraal".to_string(),
                     TypeAnnotation::Bool => "bool".to_string(),
                     TypeAnnotation::Teed => "teed".to_string(),
+                    TypeAnnotation::Bytes => "baytyo".to_string(),
                     TypeAnnotation::Walax => "walax".to_string(),
                     TypeAnnotation::Class(class) => class.clone(),
                 };
@@ -404,6 +417,7 @@ impl Stmt {
                         TypeAnnotation::Qoraal => "qoraal".to_string(),
                         TypeAnnotation::Bool => "bool".to_string(),
                         TypeAnnotation::Teed => "teed".to_string(),
+                        TypeAnnotation::Bytes => "baytyo".to_string(),
                         TypeAnnotation::Walax => "walax".to_string(),
                         TypeAnnotation::Class(class) => class.clone(),
                     };
@@ -431,6 +445,7 @@ impl Stmt {
                     TypeAnnotation::Qoraal => "qoraal".to_string(),
                     TypeAnnotation::Bool => "bool".to_string(),
                     TypeAnnotation::Teed => "teed".to_string(),
+                    TypeAnnotation::Bytes => "baytyo".to_string(),
                     TypeAnnotation::Walax => "walax".to_string(),
                     TypeAnnotation::Class(class) => class.clone(),
                 };

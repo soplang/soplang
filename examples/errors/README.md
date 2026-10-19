@@ -23,6 +23,7 @@ are imported helpers, not separate entry points.
 | Calls | Unknown names/methods, non-callable values, closure/native arity, typed arguments and returns |
 | Collections | Invalid index types/writes, empty removal, invalid slice bounds, repeat/count/direction arguments |
 | Iteration | Invalid sources, zero steps, malformed protocol results, row lengths, duplicate/constant bindings, and callback failures |
+| Byte arrays | Invalid values, UTF-8 decoding, index types, bounds, removal, annotations, and reserved class names |
 | Formatting | Unsupported value-format descriptors with exact call-site carets |
 | Callbacks | Failure inside an anonymous callback or nested function; invalid callbacks on an empty list |
 | Positions | Indentation, EOF, tabs, accents, emoji, wide characters, combining-character display width, and large line-number gutters |

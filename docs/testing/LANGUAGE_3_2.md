@@ -106,3 +106,29 @@ cargo check --locked --offline --target aarch64-apple-darwin
 The extracted LLVM linker wrapper also passes Rust metadata compilation against
 both target libraries. This checks references to the runtime bridges and their
 signatures; platform executable execution remains a distribution gate.
+
+## Byte arrays stage
+
+The debug suite passes 205 tests, including all 31 LLVM tests. The dedicated
+error and example suites pass 14 tests covering all 116 diagnostic programs
+and 35 public examples through JIT and LLVM. Six host tests cover byte handle
+identity, foreign and stale handles, nested ownership, conflicting borrows,
+concrete annotations, REPL recovery, and collection cycles.
+
+```sh
+cargo test --locked -- --skip test_aot
+cargo test --locked --test byte_tests --test diagnostic_tests --test examples_tests
+cargo test --locked --release --test byte_tests --test interpreter_tests --test llvm_ir_tests
+cargo check --locked --offline --target x86_64-pc-windows-msvc
+cargo check --locked --offline --target aarch64-apple-darwin
+```
+
+The optimized selection passes 79 tests. The byte fixture runs LLVM at levels
+0 and 2. It checks encoding and strict decoding, embedded zero bytes, malformed
+UTF-8, range validation, copy and alias behavior, negative and extreme indexes,
+atomic failed mutations, slices, method contracts, snapshot iteration,
+enumerate/zip, annotations, fresh defaults, dynamic parameter and return checks,
+callback signatures, and live values across collection safepoints.
+
+Both cross-target checks pass. Executable tests on Windows and macOS remain
+required for distribution. The complete 3.2 milestone remains untagged.

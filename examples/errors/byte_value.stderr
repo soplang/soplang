@@ -1,0 +1,4 @@
+Khalad fulin: Qiimaha baytku waa inuu noqdaa abn u dhexeeya 0 iyo 255. [E038] safka 1, tiirka 12
+     --> examples/errors/byte_value.sop:1:12
+   1 │   door xog = baytyo([256])
+     │              ^^^^^^

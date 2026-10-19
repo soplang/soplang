@@ -136,8 +136,10 @@ The iteration stage is implemented in both backends; see the
 [iteration contract](docs/language/iteration.md). [Default arguments](docs/language/function-arguments.md)
 and variadic positional parameters are also implemented, with callback signature
 validation for empty and nonempty collections. Named arguments and `**`
-keyword collectors are implemented too. New data types and the remaining
-library operations below are still planned.
+keyword collectors are implemented too. Compact [byte arrays](docs/language/bytes.md)
+are implemented with checked mutation, strict UTF-8 conversion, type annotations,
+and snapshot iteration. Sets, tuples, optional/union types, typed collections,
+and the remaining library operations below are still planned.
 The 3.2 milestone is not yet complete or tagged.
 
 ### Iteration
@@ -165,7 +167,7 @@ step representation.
 
 1. Sets for unique values.
 2. Immutable tuples.
-3. Byte arrays.
+3. Byte arrays: implemented as `baytyo`, with shared collection vocabulary.
 4. Explicit structured error values.
 5. Optional and union types.
 6. Typed lists, objects, sets, and tuples.

@@ -1,6 +1,7 @@
 //! Runtime: values, stdlib builtins, and C ABI for backends.
 
 pub mod abi;
+mod bytes;
 mod context;
 mod handles;
 mod gc;

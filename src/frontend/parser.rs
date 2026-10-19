@@ -314,7 +314,7 @@ impl Parser {
                 let class_name = self.peek().lexeme.clone();
                 self.advance();
                 return self.parse_var_decl_rest(
-                    TypeAnnotation::Class(class_name),
+                    TypeAnnotation::named(class_name),
                     false,
                     line,
                     col,
@@ -383,7 +383,7 @@ impl Parser {
         } else if self.looks_like_class_decl() {
             let class_name = self.peek().lexeme.clone();
             self.advance();
-            return self.parse_var_decl_rest(TypeAnnotation::Class(class_name), true, line, col);
+            return self.parse_var_decl_rest(TypeAnnotation::named(class_name), true, line, col);
         } else {
             (TypeAnnotation::Dynamic, false)
         };
@@ -462,9 +462,11 @@ impl Parser {
     }
 
     fn expect_member_name(&mut self) -> Result<String, SoplangError> {
-        if self.check(TokenType::Kuceli) {
-            self.advance();
-            return Ok("kuceli".to_string());
+        if matches!(
+            self.peek().kind,
+            TokenType::Kuceli | TokenType::Teed | TokenType::Qoraal
+        ) {
+            return Ok(self.advance().lexeme.clone());
         }
         self.expect_identifier()
     }
@@ -507,7 +509,7 @@ impl Parser {
             {
                 let class_name = self.peek().lexeme.clone();
                 self.advance();
-                TypeAnnotation::Class(class_name)
+                TypeAnnotation::named(class_name)
             } else {
                 TypeAnnotation::Dynamic
             };
@@ -629,7 +631,7 @@ impl Parser {
             } else if matches!(self.peek().kind, TokenType::Identifier) {
                 let class_name = self.peek().lexeme.clone();
                 self.advance();
-                TypeAnnotation::Class(class_name)
+                TypeAnnotation::named(class_name)
             } else {
                 return Err(parser_error(
                     "Waxaa la filayay nooca celi (abn/jajab/qoraal/bool/teed/walax)",

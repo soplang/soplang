@@ -107,3 +107,11 @@ runtime	dynamic_named_unknown.sop	2	1	ma aqbasho
 runtime	dynamic_named_missing.sop	2	1	ka maqan
 runtime	dynamic_named_collision.sop	2	1	laba jeer
 runtime	named_builtin.sop	1	1	boosaska
+runtime	byte_value.sop	1	12	0 iyo 255
+runtime	byte_utf8.sop	2	1	UTF-8
+runtime	byte_index.sop	2	4	Tusmada baytyadu
+runtime	byte_write.sop	2	1	0 iyo 255
+runtime	byte_bounds.sop	2	1	ka baxsan
+runtime	byte_remove.sop	1	10	madhan
+compile	byte_type.sop	1	1	baytyo
+compile	byte_class.sop	1	1	nooc hore
