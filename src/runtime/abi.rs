@@ -9,6 +9,7 @@ use std::os::raw::c_int;
 use std::rc::Rc;
 
 use super::context::RuntimeLocal;
+use super::handles::HandleArena;
 use super::stdlib;
 use super::value::{value_to_string, NativeFn, Value};
 use crate::error::{runtime_error, type_error, SoplangError};
@@ -175,24 +176,24 @@ impl SoplangValue {
 }
 
 // ----- Heaps for heap-allocated types (used across C boundary) -----
-const STR_HEAP: RuntimeLocal<RefCell<Vec<String>>> = RuntimeLocal::new(|state| &state.strings);
-const LIST_HEAP: RuntimeLocal<RefCell<Vec<Rc<RefCell<Vec<Value>>>>>> =
+const STR_HEAP: RuntimeLocal<RefCell<HandleArena<String>>> = RuntimeLocal::new(|state| &state.strings);
+const LIST_HEAP: RuntimeLocal<RefCell<HandleArena<Rc<RefCell<Vec<Value>>>>>> =
     RuntimeLocal::new(|state| &state.lists);
-const OBJ_HEAP: RuntimeLocal<RefCell<Vec<Rc<RefCell<HashMap<String, Value>>>>>> =
+const OBJ_HEAP: RuntimeLocal<RefCell<HandleArena<Rc<RefCell<HashMap<String, Value>>>>>> =
     RuntimeLocal::new(|state| &state.objects);
-const NATIVE_FN_TABLE: RuntimeLocal<RefCell<Vec<NativeFn>>> =
+const NATIVE_FN_TABLE: RuntimeLocal<RefCell<HandleArena<NativeFn>>> =
     RuntimeLocal::new(|state| &state.native_functions);
 const BUILTIN_INDICES: RuntimeLocal<RefCell<Option<HashMap<String, i64>>>> =
     RuntimeLocal::new(|state| &state.builtin_indices);
 const GLOBAL_VARS: RuntimeLocal<RefCell<HashMap<String, SoplangValue>>> =
     RuntimeLocal::new(|state| &state.globals);
-const COMPILED_FN_TABLE: RuntimeLocal<RefCell<Vec<CompiledFnEntry>>> =
+const COMPILED_FN_TABLE: RuntimeLocal<RefCell<HandleArena<CompiledFnEntry>>> =
     RuntimeLocal::new(|state| &state.compiled_functions);
 const CONST_GLOBALS: RuntimeLocal<RefCell<HashSet<String>>> =
     RuntimeLocal::new(|state| &state.constants);
 const CLASS_REGISTRY: RuntimeLocal<RefCell<HashMap<String, ClassRegistryEntry>>> =
     RuntimeLocal::new(|state| &state.classes);
-const CLOSURE_HEAP: RuntimeLocal<RefCell<HashMap<i64, Rc<ClosureData>>>> =
+const CLOSURE_HEAP: RuntimeLocal<RefCell<HandleArena<Rc<ClosureData>>>> =
     RuntimeLocal::new(|state| &state.closures);
 
 const INSTANCE_CLASS_FIELD: &str = "__class__";
@@ -218,8 +219,7 @@ fn ensure_builtins() {
                 let mut v = t.borrow_mut();
                 for (name, val) in builtins {
                     if let Value::NativeFunction(f) = val {
-                        let idx = v.len() as i64;
-                        v.push(f);
+                        let idx = v.insert(f);
                         m.insert(name, idx);
                     }
                 }
@@ -229,54 +229,68 @@ fn ensure_builtins() {
     });
 }
 
-fn native_fn_get(idx: i64) -> Option<NativeFn> {
-    NATIVE_FN_TABLE.with(|t| {
-        let v = t.borrow();
-        if idx >= 0 && (idx as usize) < v.len() {
-            Some(v[idx as usize])
-        } else {
-            None
+fn invalid_handle() -> SoplangError {
+    crate::error::runtime_error_ex(
+        "Qiimahan ma jiro ama wuxuu ka tirsan yahay fulin kale.",
+        0,
+        0,
+        crate::error::ErrorMeta::default().with_code(crate::error::codes::E035_INVALID_HANDLE),
+    )
+}
+
+fn validate_handle(value: SoplangValue) -> Result<(), SoplangError> {
+    let live = match value.tag {
+        TAG_STR => STR_HEAP.with(|heap| heap.borrow().contains(value.payload)),
+        TAG_LIST => LIST_HEAP.with(|heap| heap.borrow().contains(value.payload)),
+        TAG_OBJECT => OBJ_HEAP.with(|heap| heap.borrow().contains(value.payload)),
+        TAG_FUNC => native_fn_get(value.payload).is_some() || compiled_fn_entry(value.payload).is_some(),
+        TAG_CLOSURE => CLOSURE_HEAP.with(|heap| heap.borrow().contains(value.payload)),
+        _ => true,
+    };
+    if live {
+        Ok(())
+    } else {
+        Err(invalid_handle())
+    }
+}
+
+macro_rules! check_handles {
+    ($($value:expr),+ $(,)?) => {
+        if let Some(value) = short_circuit_if_pending() {
+            return value;
         }
-    })
+        $(if let Err(error) = validate_handle($value) {
+            return handle_runtime_error(error);
+        })+
+    };
 }
 
-fn str_alloc(s: String) -> i64 {
-    STR_HEAP.with(|h| {
-        let mut v = h.borrow_mut();
-        let idx = v.len() as i64;
-        v.push(s);
-        idx
-    })
+fn native_fn_get(id: i64) -> Option<NativeFn> {
+    NATIVE_FN_TABLE.with(|table| table.borrow().get(id).copied())
 }
 
-fn str_get(idx: i64) -> String {
-    STR_HEAP.with(|h| h.borrow()[idx as usize].clone())
+fn str_alloc(value: String) -> i64 {
+    STR_HEAP.with(|heap| heap.borrow_mut().insert(value))
 }
 
-fn list_alloc(lst: Rc<RefCell<Vec<Value>>>) -> i64 {
-    LIST_HEAP.with(|h| {
-        let mut v = h.borrow_mut();
-        let idx = v.len() as i64;
-        v.push(lst);
-        idx
-    })
+fn str_get(id: i64) -> Result<String, SoplangError> {
+    STR_HEAP.with(|heap| heap.borrow().get(id).cloned().ok_or_else(invalid_handle))
 }
 
-fn list_get(idx: i64) -> Rc<RefCell<Vec<Value>>> {
-    LIST_HEAP.with(|h| Rc::clone(&h.borrow()[idx as usize]))
+fn list_alloc(value: Rc<RefCell<Vec<Value>>>) -> i64 {
+    LIST_HEAP.with(|heap| heap.borrow_mut().insert(value))
 }
 
-fn obj_alloc(m: Rc<RefCell<HashMap<String, Value>>>) -> i64 {
-    OBJ_HEAP.with(|h| {
-        let mut v = h.borrow_mut();
-        let idx = v.len() as i64;
-        v.push(m);
-        idx
-    })
+fn list_get(id: i64) -> Result<Rc<RefCell<Vec<Value>>>, SoplangError> {
+    LIST_HEAP.with(|heap| heap.borrow().get(id).cloned().ok_or_else(invalid_handle))
 }
 
-fn obj_get(idx: i64) -> Rc<RefCell<HashMap<String, Value>>> {
-    OBJ_HEAP.with(|h| Rc::clone(&h.borrow()[idx as usize]))
+fn obj_alloc(value: Rc<RefCell<HashMap<String, Value>>>) -> i64 {
+    OBJ_HEAP.with(|heap| heap.borrow_mut().insert(value))
+}
+
+fn obj_get(id: i64) -> Result<Rc<RefCell<HashMap<String, Value>>>, SoplangError> {
+    OBJ_HEAP.with(|heap| heap.borrow().get(id).cloned().ok_or_else(invalid_handle))
 }
 
 // ----- Conversion Value <-> SoplangValue -----
@@ -355,13 +369,16 @@ pub fn soplang_to_value(sv: SoplangValue) -> Result<Value, SoplangError> {
         TAG_INT => Ok(Value::Int(sv.payload)),
         TAG_FLOAT => Ok(Value::Float(f64::from_bits(sv.payload as u64))),
         TAG_BOOL => Ok(Value::Bool(sv.payload != 0)),
-        TAG_STR => Ok(Value::Str(str_get(sv.payload))),
-        TAG_LIST => Ok(Value::List(list_get(sv.payload))),
-        TAG_OBJECT => Ok(Value::Object(obj_get(sv.payload))),
-        TAG_FUNC => Ok(Value::Function(super::value::FunctionId(
-            sv.payload as usize,
-        ))),
-        TAG_CLOSURE => Ok(Value::Closure(sv.payload)),
+        TAG_STR => str_get(sv.payload).map(Value::Str),
+        TAG_LIST => list_get(sv.payload).map(Value::List),
+        TAG_OBJECT => obj_get(sv.payload).map(Value::Object),
+        TAG_FUNC if native_fn_get(sv.payload).is_some() || compiled_fn_entry(sv.payload).is_some() => {
+            Ok(Value::Function(super::value::FunctionId(sv.payload as usize)))
+        }
+        TAG_CLOSURE if CLOSURE_HEAP.with(|heap| heap.borrow().contains(sv.payload)) => {
+            Ok(Value::Closure(sv.payload))
+        }
+        TAG_FUNC | TAG_CLOSURE => Err(invalid_handle()),
         _ => Err(runtime_error(
             format!("Summadda qiimaha ma saxna: {}.", sv.tag), 0, 0,
         )),
@@ -422,7 +439,7 @@ fn binop<'a>(
             Ok(v) => value_to_soplang(&v),
             Err(e) => handle_runtime_error(e),
         },
-        _ => SoplangValue::null(),
+        (Err(error), _) | (_, Err(error)) => handle_runtime_error(error),
     }
 }
 
@@ -452,6 +469,7 @@ fn add_impl(a: Value, b: Value) -> Result<Value, SoplangError> {
 
 #[no_mangle]
 pub extern "C" fn soplang_add(a: SoplangValue, b: SoplangValue) -> SoplangValue {
+    check_handles!(a, b);
     binop(a, b, add_impl)
 }
 
@@ -471,6 +489,7 @@ fn sub_impl(a: Value, b: Value) -> Result<Value, SoplangError> {
 
 #[no_mangle]
 pub extern "C" fn soplang_sub(a: SoplangValue, b: SoplangValue) -> SoplangValue {
+    check_handles!(a, b);
     binop(a, b, sub_impl)
 }
 
@@ -490,6 +509,7 @@ fn mul_impl(a: Value, b: Value) -> Result<Value, SoplangError> {
 
 #[no_mangle]
 pub extern "C" fn soplang_mul(a: SoplangValue, b: SoplangValue) -> SoplangValue {
+    check_handles!(a, b);
     binop(a, b, mul_impl)
 }
 
@@ -533,6 +553,7 @@ fn div_impl(a: Value, b: Value) -> Result<Value, SoplangError> {
 
 #[no_mangle]
 pub extern "C" fn soplang_div(a: SoplangValue, b: SoplangValue) -> SoplangValue {
+    check_handles!(a, b);
     binop(a, b, div_impl)
 }
 
@@ -592,6 +613,7 @@ fn mod_impl(a: Value, b: Value) -> Result<Value, SoplangError> {
 
 #[no_mangle]
 pub extern "C" fn soplang_mod(a: SoplangValue, b: SoplangValue) -> SoplangValue {
+    check_handles!(a, b);
     binop(a, b, mod_impl)
 }
 
@@ -609,6 +631,7 @@ fn neg_impl(a: Value) -> Result<Value, SoplangError> {
 
 #[no_mangle]
 pub extern "C" fn soplang_neg(a: SoplangValue) -> SoplangValue {
+    check_handles!(a);
     match soplang_to_value(a) {
         Ok(va) => match neg_impl(va) {
             Ok(v) => value_to_soplang(&v),
@@ -624,6 +647,7 @@ fn not_impl(a: Value) -> Value {
 
 #[no_mangle]
 pub extern "C" fn soplang_not(a: SoplangValue) -> SoplangValue {
+    check_handles!(a);
     match soplang_to_value(a) {
         Ok(va) => value_to_soplang(&not_impl(va)),
         _ => SoplangValue::null(),
@@ -632,6 +656,7 @@ pub extern "C" fn soplang_not(a: SoplangValue) -> SoplangValue {
 
 #[no_mangle]
 pub extern "C" fn soplang_truthy(value: SoplangValue) -> SoplangValue {
+    check_handles!(value);
     match soplang_to_value(value) {
         Ok(value) => value_to_soplang(&Value::Bool(value.is_truthy())),
         Err(error) => handle_runtime_error(error),
@@ -644,6 +669,7 @@ pub extern "C" fn soplang_range_continue(
     end: SoplangValue,
     step: SoplangValue,
 ) -> SoplangValue {
+    check_handles!(current, end, step);
     fn number(value: SoplangValue) -> Result<f64, SoplangError> {
         match soplang_to_value(value)? {
             Value::Int(value) => Ok(value as f64),
@@ -687,6 +713,7 @@ fn cmp_eq(a: &Value, b: &Value) -> bool {
 
 #[no_mangle]
 pub extern "C" fn soplang_eq(a: SoplangValue, b: SoplangValue) -> SoplangValue {
+    check_handles!(a, b);
     match (soplang_to_value(a), soplang_to_value(b)) {
         (Ok(va), Ok(vb)) => value_to_soplang(&Value::Bool(cmp_eq(&va, &vb))),
         _ => value_to_soplang(&Value::Bool(false)),
@@ -695,6 +722,7 @@ pub extern "C" fn soplang_eq(a: SoplangValue, b: SoplangValue) -> SoplangValue {
 
 #[no_mangle]
 pub extern "C" fn soplang_ne(a: SoplangValue, b: SoplangValue) -> SoplangValue {
+    check_handles!(a, b);
     match (soplang_to_value(a), soplang_to_value(b)) {
         (Ok(va), Ok(vb)) => value_to_soplang(&Value::Bool(!cmp_eq(&va, &vb))),
         _ => value_to_soplang(&Value::Bool(true)),
@@ -718,6 +746,7 @@ fn cmp_lt(a: &Value, b: &Value) -> Result<bool, SoplangError> {
 
 #[no_mangle]
 pub extern "C" fn soplang_lt(a: SoplangValue, b: SoplangValue) -> SoplangValue {
+    check_handles!(a, b);
     match (soplang_to_value(a), soplang_to_value(b)) {
         (Ok(va), Ok(vb)) => match cmp_lt(&va, &vb) {
             Ok(r) => value_to_soplang(&Value::Bool(r)),
@@ -729,6 +758,7 @@ pub extern "C" fn soplang_lt(a: SoplangValue, b: SoplangValue) -> SoplangValue {
 
 #[no_mangle]
 pub extern "C" fn soplang_le(a: SoplangValue, b: SoplangValue) -> SoplangValue {
+    check_handles!(a, b);
     match (soplang_to_value(a), soplang_to_value(b)) {
         (Ok(va), Ok(vb)) => {
             let lt = cmp_lt(&va, &vb).unwrap_or(false);
@@ -741,6 +771,7 @@ pub extern "C" fn soplang_le(a: SoplangValue, b: SoplangValue) -> SoplangValue {
 
 #[no_mangle]
 pub extern "C" fn soplang_gt(a: SoplangValue, b: SoplangValue) -> SoplangValue {
+    check_handles!(a, b);
     match (soplang_to_value(a), soplang_to_value(b)) {
         (Ok(va), Ok(vb)) => match cmp_lt(&vb, &va) {
             Ok(r) => value_to_soplang(&Value::Bool(r)),
@@ -752,6 +783,7 @@ pub extern "C" fn soplang_gt(a: SoplangValue, b: SoplangValue) -> SoplangValue {
 
 #[no_mangle]
 pub extern "C" fn soplang_ge(a: SoplangValue, b: SoplangValue) -> SoplangValue {
+    check_handles!(a, b);
     match (soplang_to_value(a), soplang_to_value(b)) {
         (Ok(va), Ok(vb)) => {
             let lt = cmp_lt(&vb, &va).unwrap_or(false);
@@ -767,6 +799,10 @@ pub extern "C" fn soplang_qor(v: SoplangValue) {
     if has_pending_error() || v.tag == TAG_THROW {
         return;
     }
+    if let Err(error) = validate_handle(v) {
+        handle_runtime_error(error);
+        return;
+    }
     if let Ok(val) = soplang_to_value(v) {
         println!("{}", value_to_string(&val));
     }
@@ -774,6 +810,9 @@ pub extern "C" fn soplang_qor(v: SoplangValue) {
 
 #[no_mangle]
 pub extern "C" fn soplang_gelin() -> SoplangValue {
+    if let Some(value) = short_circuit_if_pending() {
+        return value;
+    }
     match run_native("gelin", vec![]) {
         Ok(v) => value_to_soplang(&v),
         Err(_) => SoplangValue::null(),
@@ -782,6 +821,7 @@ pub extern "C" fn soplang_gelin() -> SoplangValue {
 
 #[no_mangle]
 pub extern "C" fn soplang_nooc(v: SoplangValue) -> SoplangValue {
+    check_handles!(v);
     match soplang_to_value(v) {
         Ok(val) => match run_native("nooc", vec![val]) {
             Ok(v) => value_to_soplang(&v),
@@ -801,6 +841,7 @@ pub extern "C" fn soplang_list_new() -> SoplangValue {
 
 #[no_mangle]
 pub extern "C" fn soplang_list_push(list: SoplangValue, val: SoplangValue) -> SoplangValue {
+    check_handles!(list, val);
     match (soplang_to_value(list), soplang_to_value(val)) {
         (Ok(Value::List(l)), Ok(v)) => {
             l.borrow_mut().push(v);
@@ -820,6 +861,7 @@ pub extern "C" fn soplang_object_new() -> SoplangValue {
 
 #[no_mangle]
 pub extern "C" fn soplang_get_index(obj: SoplangValue, idx: SoplangValue) -> SoplangValue {
+    check_handles!(obj, idx);
     match (soplang_to_value(obj), soplang_to_value(idx)) {
         (Ok(Value::List(l)), Ok(Value::Int(i))) => {
             let v = l.borrow();
@@ -865,6 +907,7 @@ pub extern "C" fn soplang_set_index(
     idx: SoplangValue,
     val: SoplangValue,
 ) -> SoplangValue {
+    check_handles!(obj, idx, val);
     match (
         soplang_to_value(obj),
         soplang_to_value(idx),
@@ -904,6 +947,7 @@ pub extern "C" fn soplang_set_index(
 
 #[no_mangle]
 pub extern "C" fn soplang_get_prop(obj: SoplangValue, name: *const u8, len: usize) -> SoplangValue {
+    check_handles!(obj);
     if name.is_null() {
         return SoplangValue::null();
     }
@@ -927,6 +971,7 @@ pub extern "C" fn soplang_set_prop(
     len: usize,
     val: SoplangValue,
 ) -> SoplangValue {
+    check_handles!(obj, val);
     if name.is_null() {
         return SoplangValue::null();
     }
@@ -945,6 +990,7 @@ pub extern "C" fn soplang_set_prop(
 
 #[no_mangle]
 pub extern "C" fn soplang_and(a: SoplangValue, b: SoplangValue) -> SoplangValue {
+    check_handles!(a, b);
     match soplang_to_value(a) {
         Ok(va) => {
             if !va.is_truthy() {
@@ -962,6 +1008,7 @@ pub extern "C" fn soplang_and(a: SoplangValue, b: SoplangValue) -> SoplangValue 
 
 #[no_mangle]
 pub extern "C" fn soplang_or(a: SoplangValue, b: SoplangValue) -> SoplangValue {
+    check_handles!(a, b);
     match soplang_to_value(a) {
         Ok(va) => {
             if va.is_truthy() {
@@ -1002,17 +1049,8 @@ fn global_fn_payload(name: &str) -> Option<i64> {
     })
 }
 
-fn compiled_fn_entry(fn_payload: i64) -> Option<CompiledFnEntry> {
-    let native_count = NATIVE_FN_TABLE.with(|t| t.borrow().len()) as i64;
-    let compiled_idx = fn_payload - native_count;
-    COMPILED_FN_TABLE.with(|t| {
-        let v = t.borrow();
-        if compiled_idx >= 0 && (compiled_idx as usize) < v.len() {
-            Some(v[compiled_idx as usize])
-        } else {
-            None
-        }
-    })
+fn compiled_fn_entry(id: i64) -> Option<CompiledFnEntry> {
+    COMPILED_FN_TABLE.with(|table| table.borrow().get(id).copied())
 }
 
 fn get_instance_class(o: &Rc<RefCell<HashMap<String, Value>>>) -> Option<String> {
@@ -1151,7 +1189,10 @@ pub extern "C" fn soplang_new_instance(
     if !args_ptr.is_null() && n > 0 {
         for i in 0..n as usize {
             let sv = unsafe { *args_ptr.add(i) };
-            user_args.push(soplang_to_value(sv).unwrap_or(Value::Null));
+            match soplang_to_value(sv) {
+                Ok(value) => user_args.push(value),
+                Err(error) => return handle_runtime_error(error),
+            }
         }
     }
 
@@ -1240,6 +1281,7 @@ pub extern "C" fn soplang_call_method(
     args_ptr: *const SoplangValue,
     n: i32,
 ) -> SoplangValue {
+    check_handles!(obj);
     let method = if method_ptr.is_null() || method_len == 0 {
         ""
     } else {
@@ -1253,7 +1295,10 @@ pub extern "C" fn soplang_call_method(
     if !args_ptr.is_null() && n > 0 {
         for i in 0..n as usize {
             let sv = unsafe { *args_ptr.add(i) };
-            argv.push(soplang_to_value(sv).unwrap_or(Value::Null));
+            match soplang_to_value(sv) {
+                Ok(value) => argv.push(value),
+                Err(error) => return handle_runtime_error(error),
+            }
         }
     }
     let result = match &obj_val {
@@ -1660,7 +1705,10 @@ pub extern "C" fn soplang_check_class(
         _pad: [0; 7],
         payload,
     };
-    let val = soplang_to_value(sv).unwrap_or(Value::Null);
+    let val = match soplang_to_value(sv) {
+        Ok(value) => value,
+        Err(error) => { handle_runtime_error(error); return; }
+    };
     if instance_matches_class(&val, expected) {
         return;
     }
@@ -1729,7 +1777,10 @@ pub extern "C" fn soplang_check_type(
         _pad: [0; 7],
         payload,
     };
-    let val = soplang_to_value(sv).unwrap_or(Value::Null);
+    let val = match soplang_to_value(sv) {
+        Ok(value) => value,
+        Err(error) => { handle_runtime_error(error); return; }
+    };
     let ok = match expected_type {
         1 => {
             matches!(val, Value::Int(_))
@@ -1803,18 +1854,11 @@ pub extern "C" fn soplang_get_builtin(name: *const u8, len: usize) -> SoplangVal
     ))
 }
 
-/// Register a compiled function pointer so soplang_call can dispatch to it.
-/// Returns an index that can be used as the payload of a TAG_FUNC SoplangValue.
-/// The index is offset past native functions.
+/// Register a compiled function pointer in the active runtime context.
+/// Returns an opaque handle for the payload of a TAG_FUNC value.
 pub fn register_compiled_fn(ptr: *const u8, n_params: usize) -> i64 {
     ensure_builtins();
-    let native_count = NATIVE_FN_TABLE.with(|t| t.borrow().len());
-    COMPILED_FN_TABLE.with(|t| {
-        let mut v = t.borrow_mut();
-        let idx = native_count as i64 + v.len() as i64;
-        v.push(CompiledFnEntry { ptr, n_params });
-        idx
-    })
+    COMPILED_FN_TABLE.with(|table| table.borrow_mut().insert(CompiledFnEntry { ptr, n_params }))
 }
 
 /// Record an AOT function pointer under `name` so calls, methods, and closures can find it.
@@ -1855,6 +1899,9 @@ pub extern "C" fn soplang_make_closure(
     n: i64,
     args: *const SoplangValue,
 ) -> SoplangValue {
+    if let Some(value) = short_circuit_if_pending() {
+        return value;
+    }
     let callee = soplang_get_builtin(name, name_len);
     if callee.tag != TAG_FUNC {
         let val = soplang_to_value(callee).unwrap_or(Value::Null);
@@ -1867,15 +1914,16 @@ pub extern "C" fn soplang_make_closure(
     let mut env = Vec::new();
     if !args.is_null() && n > 0 {
         for i in 0..n as usize {
-            env.push(unsafe { *args.add(i) });
+            let value = unsafe { *args.add(i) };
+            check_handles!(value);
+            env.push(value);
         }
     }
     let data = Rc::new(ClosureData {
         fn_index: callee.payload,
         env,
     });
-    let payload = Rc::as_ptr(&data) as i64;
-    CLOSURE_HEAP.with(|heap| heap.borrow_mut().insert(payload, data));
+    let payload = CLOSURE_HEAP.with(|heap| heap.borrow_mut().insert(data));
     SoplangValue {
         tag: TAG_CLOSURE,
         _pad: [0; 7],
@@ -1883,15 +1931,18 @@ pub extern "C" fn soplang_make_closure(
     }
 }
 
-/// Read one captured value. `env_ptr` is the closure data pointer.
+/// Read one captured value. `env_ptr` is the owning context's closure handle.
 #[no_mangle]
 pub extern "C" fn soplang_capture_get(env_ptr: i64, index: i64) -> SoplangValue {
-    if env_ptr == 0 || index < 0 {
+    if let Some(value) = short_circuit_if_pending() {
+        return value;
+    }
+    let Some(data) = CLOSURE_HEAP.with(|heap| heap.borrow().get(env_ptr).cloned()) else {
+        return handle_runtime_error(invalid_handle());
+    };
+    if index < 0 {
         return SoplangValue::null();
     }
-    let Some(data) = CLOSURE_HEAP.with(|heap| heap.borrow().get(&env_ptr).cloned()) else {
-        return SoplangValue::null();
-    };
     data.env
         .get(index as usize)
         .copied()
@@ -1902,8 +1953,8 @@ fn call_closure(callee: SoplangValue, args: *const SoplangValue, n: i32) -> Sopl
     if callee.payload == 0 {
         return SoplangValue::null();
     }
-    let Some(data) = CLOSURE_HEAP.with(|heap| heap.borrow().get(&callee.payload).cloned()) else {
-        return SoplangValue::null();
+    let Some(data) = CLOSURE_HEAP.with(|heap| heap.borrow().get(callee.payload).cloned()) else {
+        return handle_runtime_error(invalid_handle());
     };
     let mut full = Vec::with_capacity(1 + n.max(0) as usize);
     full.push(SoplangValue {
@@ -1916,16 +1967,7 @@ fn call_closure(callee: SoplangValue, args: *const SoplangValue, n: i32) -> Sopl
             full.push(unsafe { *args.add(i) });
         }
     }
-    let native_count = NATIVE_FN_TABLE.with(|t| t.borrow().len()) as i64;
-    let compiled_idx = data.fn_index - native_count;
-    let entry = COMPILED_FN_TABLE.with(|t| {
-        let v = t.borrow();
-        if compiled_idx >= 0 && (compiled_idx as usize) < v.len() {
-            Some(v[compiled_idx as usize])
-        } else {
-            None
-        }
-    });
+    let entry = compiled_fn_entry(data.fn_index);
     if let Some(entry) = entry {
         let expected = entry.n_params.saturating_sub(1);
         if n < 0 || n as usize != expected {
@@ -1952,8 +1994,14 @@ pub extern "C" fn soplang_call(
     args: *const SoplangValue,
     n: i32,
 ) -> SoplangValue {
-    if let Some(v) = short_circuit_if_pending() {
-        return v;
+    check_handles!(callee);
+    if let Err(error) = soplang_to_value(callee) {
+        return handle_runtime_error(error);
+    }
+    if !args.is_null() && n > 0 {
+        for index in 0..n as usize {
+            check_handles!(unsafe { *args.add(index) });
+        }
     }
     if callee.tag == TAG_CLOSURE {
         return call_closure(callee, args, n);
@@ -1971,10 +2019,9 @@ pub extern "C" fn soplang_call(
         if !args.is_null() && n > 0 {
             for i in 0..n as usize {
                 let sv = unsafe { *args.add(i) };
-                if let Ok(v) = soplang_to_value(sv) {
-                    argv.push(v);
-                } else {
-                    argv.push(Value::Null);
+                match soplang_to_value(sv) {
+                    Ok(value) => argv.push(value),
+                    Err(error) => return handle_runtime_error(error),
                 }
             }
         }
@@ -1983,16 +2030,7 @@ pub extern "C" fn soplang_call(
             Err(e) => handle_runtime_error(e),
         }
     } else {
-        let native_count = NATIVE_FN_TABLE.with(|t| t.borrow().len()) as i64;
-        let compiled_idx = callee.payload - native_count;
-        let entry = COMPILED_FN_TABLE.with(|t| {
-            let v = t.borrow();
-            if compiled_idx >= 0 && (compiled_idx as usize) < v.len() {
-                Some(v[compiled_idx as usize])
-            } else {
-                None
-            }
-        });
+        let entry = compiled_fn_entry(callee.payload);
         if let Some(entry) = entry {
             call_compiled_fn(entry.ptr, entry.n_params, args, n)
         } else {

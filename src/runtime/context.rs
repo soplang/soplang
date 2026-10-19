@@ -5,6 +5,7 @@ use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
 
 use super::abi::{ClassRegistryEntry, ClosureData, CompiledFnEntry, SoplangValue};
+use super::handles::HandleArena;
 use super::value::{NativeFn, Value};
 
 #[derive(Default)]
@@ -12,16 +13,16 @@ pub(super) struct RuntimeState {
     pub current_source: RefCell<Option<crate::error::SourceSpan>>,
     pub try_depth: Cell<u32>,
     pub pending_error: RefCell<Option<String>>,
-    pub strings: RefCell<Vec<String>>,
-    pub lists: RefCell<Vec<Rc<RefCell<Vec<Value>>>>>,
-    pub objects: RefCell<Vec<Rc<RefCell<HashMap<String, Value>>>>>,
-    pub native_functions: RefCell<Vec<NativeFn>>,
+    pub strings: RefCell<HandleArena<String>>,
+    pub lists: RefCell<HandleArena<Rc<RefCell<Vec<Value>>>>>,
+    pub objects: RefCell<HandleArena<Rc<RefCell<HashMap<String, Value>>>>>,
+    pub native_functions: RefCell<HandleArena<NativeFn>>,
     pub builtin_indices: RefCell<Option<HashMap<String, i64>>>,
     pub globals: RefCell<HashMap<String, SoplangValue>>,
-    pub compiled_functions: RefCell<Vec<CompiledFnEntry>>,
+    pub compiled_functions: RefCell<HandleArena<CompiledFnEntry>>,
     pub constants: RefCell<HashSet<String>>,
     pub classes: RefCell<HashMap<String, ClassRegistryEntry>>,
-    pub closures: RefCell<HashMap<i64, Rc<ClosureData>>>,
+    pub closures: RefCell<HandleArena<Rc<ClosureData>>>,
 }
 
 thread_local! {
@@ -110,12 +111,12 @@ mod tests {
             let value = soplang_capture_get(closure.payload, 0);
             assert_eq!(soplang_to_value(value).unwrap(), Value::Str("owned".into()));
             let heap = context.state.closures.borrow();
-            (closure, Rc::downgrade(heap.get(&closure.payload).unwrap()))
+            (closure, Rc::downgrade(heap.get(closure.payload).unwrap()))
         });
-        assert_eq!(soplang_capture_get(closure.payload, 0).tag, TAG_NULL);
+        assert!(soplang_to_value(closure).is_err());
         assert!(weak.upgrade().is_some());
         drop(context);
         assert!(weak.upgrade().is_none());
-        assert_eq!(soplang_capture_get(closure.payload, 0).tag, TAG_NULL);
+        assert!(soplang_to_value(closure).is_err());
     }
 }

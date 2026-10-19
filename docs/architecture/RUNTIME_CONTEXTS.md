@@ -1,7 +1,7 @@
 # Runtime ownership and execution contexts
 
-Implemented in the first runtime-foundations stage after 3.0.1. This stage
-isolates execution environments and gives their allocations an owner.
+Implemented in the runtime-foundations stages after 3.0.1. Execution
+environments own their allocations and validate opaque handles at ABI boundaries.
 
 ## State ownership
 
@@ -58,8 +58,21 @@ scope restores its caller; dropping a context releases its owned tables.
 Closure environments are held in the context instead of leaked with
 `Box::leak`. Their identities are looked up in the active context before a
 capture is read or a closure is called. Capture lookup does not dereference
-an arbitrary or already-freed pointer. This retains the existing environment
-parameter representation used by both backends.
+an arbitrary or already-freed pointer. The environment parameter now carries
+an opaque handle rather than a memory address in both backends.
+
+Strings, collections, native functions, compiled functions, and closures use
+reusable arena slots. Each insertion receives a fresh positive 64-bit identity
+from a process-wide counter. The arena maps that identity to a slot and verifies
+it on lookup. A reused slot never accepts its previous identity; different
+contexts and different value kinds cannot accidentally share identities.
+Counter exhaustion is checked instead of wrapping. Zero and negative handles
+are invalid.
+
+Invalid handles produce `E035` with a Somali explanation. Runtime entry points
+validate heap operands, callable arguments, and captured values. With an active
+`tijaabi` block the error is catchable; Rust conversions return `Err`.
+The tagged value layout remains 16 bytes. Primitive payloads are unchanged.
 
 Dropping a backend first releases its runtime, including closure environments
 and acyclic collections whose references have not escaped. It then explicitly
@@ -70,9 +83,9 @@ release them once the backend is dropped.
 
 This is ownership at the execution-environment boundary, not a garbage
 collector. Unreachable allocations inside a live context are not reclaimed
-yet, and cyclic `Rc` collection graphs still need cycle reclamation. Slot reuse,
-generation checks, and validation of foreign or stale tagged handles belong to
-the following handle-management stage. Resource cleanup and recoverable
+yet, and cyclic `Rc` collection graphs still need cycle reclamation. Arena slot
+reuse is implemented and tested; automatic reclamation still requires explicit
+generated-code roots before it can safely remove allocations. Resource cleanup and recoverable
 uncaught execution errors also remain separate stages.
 
 ## Verification
@@ -85,6 +98,10 @@ uncaught execution errors also remain separate stages.
 - Interleaved REPL globals, collections, classes, and captured functions.
 - Continued execution after another session is dropped.
 - Repeated program execution inside a host context without contaminating it.
+- Foreign, expired, and malformed handles, including stale operands and calls.
+
+Arena unit tests repeatedly reuse one slot and reject all its old identities,
+and verify that independently created arenas cannot alias one another.
 
 A runtime unit test verifies that closure environments survive their owning
 scope, are inaccessible through a different context, and are released when

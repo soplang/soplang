@@ -2,6 +2,7 @@
 
 pub mod abi;
 mod context;
+mod handles;
 pub mod stdlib;
 pub mod value;
 

@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 
 * Owned runtime contexts isolate JIT programs and REPL sessions, including their globals, classes, function registrations, source locations, and pending errors. Rust integrations can inspect globals through their owning session or backend.
 * Closure environments are released with their runtime context. Dropping a JIT backend also frees its generated code and data allocations.
+* Runtime strings, collections, functions, and closures use opaque allocation handles. Foreign, expired, and malformed handles are rejected with catchable Somali errors instead of indexing another allocation or dereferencing a closure address.
 
 ## [3.0.1] - 2026-10-18
 

@@ -31,6 +31,7 @@ pub mod codes {
     pub const E032_BREAK_OUTSIDE_LOOP: &str = "E032";
     pub const E033_NOT_A_FUNCTION: &str = "E033";
     pub const E034_UNKNOWN_METHOD: &str = "E034";
+    pub const E035_INVALID_HANDLE: &str = "E035";
 }
 
 /// Optional metadata for an error (code, span end, hint, file).
