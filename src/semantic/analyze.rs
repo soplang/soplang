@@ -268,13 +268,15 @@ fn validate_control_flow(
             Stmt::TryCatch {
                 try_body,
                 catch_body,
+                finally_body,
                 ..
             } => {
                 validate_control_flow(try_body, in_function, loop_depth)?;
                 validate_control_flow(catch_body, in_function, loop_depth)?;
+                validate_control_flow(finally_body, in_function, loop_depth)?;
             }
             Stmt::Block(body) => validate_control_flow(body, in_function, loop_depth)?,
-            Stmt::VarDecl { value, .. } | Stmt::Expr(value) => validate_control_expr(value)?,
+            Stmt::VarDecl { value, .. } | Stmt::Expr(value) | Stmt::Throw(value) => validate_control_expr(value)?,
             Stmt::Assign { target, value, .. } => {
                 validate_control_expr(target)?;
                 validate_control_expr(value)?;
@@ -935,6 +937,7 @@ fn analyze_stmt(
             try_body,
             err_var,
             catch_body,
+            finally_body,
             ..
         } => {
             analyze_block(
@@ -947,7 +950,7 @@ fn analyze_stmt(
                 enclosing_fn,
             )?;
             sym.scopes.push(Scope::default());
-            {
+            if let Some(err_var) = err_var {
                 let scope = sym.scopes.last_mut().unwrap();
                 scope.vars.insert(
                     err_var.clone(),
@@ -969,6 +972,7 @@ fn analyze_stmt(
                 enclosing_fn,
             )?;
             sym.scopes.pop();
+            analyze_block(finally_body, sym, opts, fn_sigs, current_return, current_class, enclosing_fn)?;
         }
         Stmt::Import(_) => {}
         Stmt::Block(stmts) => analyze_block(
@@ -980,7 +984,7 @@ fn analyze_stmt(
             current_class,
             enclosing_fn,
         )?,
-        Stmt::Expr(e) => analyze_expr(e, sym, opts, fn_sigs, current_class, enclosing_fn)?,
+        Stmt::Expr(e) | Stmt::Throw(e) => analyze_expr(e, sym, opts, fn_sigs, current_class, enclosing_fn)?,
     }
     Ok(())
 }
@@ -1634,10 +1638,12 @@ fn collect_function_sigs_rec(
             Stmt::TryCatch {
                 try_body,
                 catch_body,
+                finally_body,
                 ..
             } => {
                 collect_function_sigs_rec(try_body, out, current_class);
                 collect_function_sigs_rec(catch_body, out, current_class);
+                collect_function_sigs_rec(finally_body, out, current_class);
             }
             _ => {}
         }
@@ -1791,13 +1797,15 @@ fn note_free_stmt(stmt: &Stmt, sym: &SymbolTable, caps: &mut Vec<String>) {
         Stmt::TryCatch {
             try_body,
             catch_body,
+            finally_body,
             ..
         } => {
             note_free_stmts(try_body, sym, caps);
             note_free_stmts(catch_body, sym, caps);
+            note_free_stmts(finally_body, sym, caps);
         }
         Stmt::Block(b) => note_free_stmts(b, sym, caps),
-        Stmt::Expr(e) => note_free_expr(e, sym, caps),
+        Stmt::Expr(e) | Stmt::Throw(e) => note_free_expr(e, sym, caps),
     }
 }
 

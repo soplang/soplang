@@ -706,6 +706,7 @@ impl Index {
                     try_body,
                     err_var,
                     catch_body,
+                    finally_body,
                 } => {
                     self.statements(try_body, file, scope, start, class);
                     let tokens = self.tokens.get(&file.path).cloned().unwrap_or_default();
@@ -723,7 +724,10 @@ impl Index {
                         }
                     }
                     let inner = self.body_scope(file, catch, scope, class.map(str::to_owned));
-                    if let Some(token) = self.anchor(file, catch, err_var) {
+                    if let Some((err_var, token)) = err_var
+                        .as_ref()
+                        .and_then(|name| self.anchor(file, catch, name).map(|token| (name, token)))
+                    {
                         self.add(
                             file,
                             &token,
@@ -738,6 +742,7 @@ impl Index {
                         );
                     }
                     self.statements(catch_body, file, inner, catch, class);
+                    self.statements(finally_body, file, scope, start, class);
                 }
                 Stmt::If {
                     cond,
@@ -774,7 +779,7 @@ impl Index {
                     self.statements(body, file, scope, start, class);
                 }
                 Stmt::Block(body) => self.statements(body, file, scope, start, class),
-                Stmt::Expr(expr) | Stmt::Return(Some(expr)) => {
+                Stmt::Expr(expr) | Stmt::Return(Some(expr)) | Stmt::Throw(expr) => {
                     self.expression(expr, file, scope, start, class)
                 }
                 Stmt::Assign { target, value, .. } => {

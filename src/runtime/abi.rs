@@ -63,6 +63,8 @@ const CURRENT_SOURCE: RuntimeLocal<RefCell<Option<crate::error::SourceSpan>>> =
 const TRY_DEPTH: RuntimeLocal<Cell<u32>> = RuntimeLocal::new(|state| &state.try_depth);
 const PENDING_ERROR: RuntimeLocal<RefCell<Option<SoplangError>>> =
     RuntimeLocal::new(|state| &state.pending_error);
+const SUSPENDED_ERRORS: RuntimeLocal<RefCell<Vec<Option<SoplangError>>>> =
+    RuntimeLocal::new(|state| &state.suspended_errors);
 
 /// Set the source token for the next runtime operation in either backend.
 #[no_mangle]
@@ -137,6 +139,52 @@ pub extern "C" fn soplang_get_caught_error() -> SoplangValue {
         error.borrow().as_ref().map(error_message).unwrap_or_default()
     });
     value_to_soplang(&Value::Str(msg))
+}
+
+macro_rules! check_handles {
+    ($($value:expr),+ $(,)?) => {
+        if let Some(value) = short_circuit_if_pending() {
+            return value;
+        }
+        $(if let Err(error) = validate_handle($value) {
+            return handle_runtime_error(error);
+        })+
+    };
+}
+
+/// Raise a user message at the current source location.
+#[no_mangle]
+pub extern "C" fn soplang_raise(value: SoplangValue) -> SoplangValue {
+    check_handles!(value);
+    match soplang_to_value(value) {
+        Ok(Value::Str(message)) => handle_runtime_error(runtime_error(message, 0, 0)),
+        Ok(_) => handle_runtime_error(type_error("Qiimaha 'tuur' waa inuu noqdaa qoraal.", 0, 0)),
+        Err(error) => handle_runtime_error(error),
+    }
+}
+
+/// Temporarily clear a pending error so guaranteed cleanup can execute.
+#[no_mangle]
+pub extern "C" fn soplang_suspend_error() {
+    let error = take_pending_error();
+    SUSPENDED_ERRORS.with(|errors| errors.borrow_mut().push(error));
+}
+
+/// Resume an error after successful cleanup. A new error takes precedence.
+#[no_mangle]
+pub extern "C" fn soplang_restore_error() {
+    let previous = SUSPENDED_ERRORS.with(|errors| errors.borrow_mut().pop().flatten());
+    PENDING_ERROR.with(|pending| {
+        if pending.borrow().is_none() {
+            *pending.borrow_mut() = previous;
+        }
+    });
+}
+
+/// An abrupt cleanup exit supersedes the original error or return.
+#[no_mangle]
+pub extern "C" fn soplang_discard_error() {
+    SUSPENDED_ERRORS.with(|errors| { errors.borrow_mut().pop(); });
 }
 
 /// Take an uncaught error at an execution boundary, preserving its metadata.
@@ -274,16 +322,6 @@ fn validate_handle(value: SoplangValue) -> Result<(), SoplangError> {
     }
 }
 
-macro_rules! check_handles {
-    ($($value:expr),+ $(,)?) => {
-        if let Some(value) = short_circuit_if_pending() {
-            return value;
-        }
-        $(if let Err(error) = validate_handle($value) {
-            return handle_runtime_error(error);
-        })+
-    };
-}
 
 fn native_fn_get(id: i64) -> Option<NativeFn> {
     NATIVE_FN_TABLE.with(|table| table.borrow().get(id).copied())

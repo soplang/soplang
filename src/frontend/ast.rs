@@ -262,12 +262,14 @@ pub enum Stmt {
         body: Vec<Stmt>,
     },
     Return(Option<Expr>),
+    Throw(Expr),
     Break,
     Continue,
     TryCatch {
         try_body: Vec<Stmt>,
-        err_var: String,
+        err_var: Option<String>,
         catch_body: Vec<Stmt>,
+        finally_body: Vec<Stmt>,
     },
     Import(String),
     Block(Vec<Stmt>),
@@ -433,6 +435,7 @@ impl Stmt {
                 }
                 writeln!(f, "{}}}", pad)
             }
+            Stmt::Throw(e) => writeln!(f, "{}tuur {};", pad, e),
             Stmt::Return(Some(e)) => writeln!(f, "{}celi {};", pad, e),
             Stmt::Return(None) => writeln!(f, "{}celi;", pad),
             Stmt::Break => writeln!(f, "{}jooji;", pad),
@@ -441,16 +444,28 @@ impl Stmt {
                 try_body,
                 err_var,
                 catch_body,
+                finally_body,
             } => {
-                writeln!(f, "{}fasax {{", pad)?;
-                for s in try_body {
-                    s.fmt_with_depth(f, depth + 1)?;
+                writeln!(f, "{}tijaabi {{", pad)?;
+                for stmt in try_body {
+                    stmt.fmt_with_depth(f, depth + 1)?;
                 }
-                writeln!(f, "{}}} qabo ({}) {{", pad, err_var)?;
-                for s in catch_body {
-                    s.fmt_with_depth(f, depth + 1)?;
+                writeln!(f, "{}}}", pad)?;
+                if let Some(name) = err_var {
+                    writeln!(f, "{}qabo ({}) {{", pad, name)?;
+                    for stmt in catch_body {
+                        stmt.fmt_with_depth(f, depth + 1)?;
+                    }
+                    writeln!(f, "{}}}", pad)?;
                 }
-                writeln!(f, "{}}}", pad)
+                if !finally_body.is_empty() || err_var.is_none() {
+                    writeln!(f, "{}dhammee {{", pad)?;
+                    for stmt in finally_body {
+                        stmt.fmt_with_depth(f, depth + 1)?;
+                    }
+                    writeln!(f, "{}}}", pad)?;
+                }
+                Ok(())
             }
             Stmt::Import(path) => writeln!(f, "{}keen {:?};", pad, path),
             Stmt::Block(stmts) => {

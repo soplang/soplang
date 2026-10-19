@@ -142,6 +142,12 @@ pub enum HirInstr {
         catch: LabelId,
     },
     TryEnd,
+    Raise {
+        src: Slot,
+    },
+    SuspendError,
+    RestoreError,
+    DiscardError,
     BindError {
         dst: Slot,
     },
@@ -286,6 +292,10 @@ impl fmt::Display for HirInstr {
             HirInstr::Continue(id) => write!(f, "  continue L{}", id),
             HirInstr::TryBegin { catch } => write!(f, "  try_begin L{}", catch),
             HirInstr::TryEnd => write!(f, "  try_end"),
+            HirInstr::Raise { src } => write!(f, "  raise %{}", src),
+            HirInstr::SuspendError => write!(f, "  suspend_error"),
+            HirInstr::RestoreError => write!(f, "  restore_error"),
+            HirInstr::DiscardError => write!(f, "  discard_error"),
             HirInstr::CheckThrow { catch: Some(catch) } => write!(f, "  check_throw L{}", catch),
             HirInstr::CheckThrow { catch: None } => write!(f, "  propagate_error"),
             HirInstr::BindError { dst } => write!(f, "  bind_error %{}", dst),
@@ -362,6 +372,21 @@ fn un_op_from_str(op: &str) -> Option<UnOpKind> {
     }
 }
 
+#[derive(Clone)]
+enum CleanupAction {
+    Body(Vec<Stmt>),
+    DiscardError,
+    EndTry,
+}
+
+#[derive(Clone)]
+struct CleanupFrame {
+    action: CleanupAction,
+    loop_depth: usize,
+    catches: Vec<LabelId>,
+    catch_var: Option<(String, Slot)>,
+}
+
 /// Lowers AST to HIR using the symbol table.
 pub struct HirLowering<'a> {
     sym: &'a SymbolTable,
@@ -372,6 +397,7 @@ pub struct HirLowering<'a> {
     func_scope: Option<&'a std::collections::HashMap<String, crate::semantic::VarInfo>>,
     catch_var: Option<(String, Slot)>,
     catch_stack: Vec<LabelId>,
+    cleanups: Vec<CleanupFrame>,
     /// Class whose method is being lowered. `waalid` starts lookup at its parent.
     enclosing_class: Option<&'a str>,
     /// Function being lowered. Nested `hawl` names are `parent::name`.
@@ -394,6 +420,7 @@ impl<'a> HirLowering<'a> {
             func_scope: None,
             catch_var: None,
             catch_stack: Vec::new(),
+            cleanups: Vec::new(),
             enclosing_class: None,
             enclosing_fn: None,
             return_ann: None,
@@ -433,6 +460,7 @@ impl<'a> HirLowering<'a> {
                     func_scope: Some(&fm.scope_vars),
                     catch_var: None,
                     catch_stack: Vec::new(),
+                    cleanups: Vec::new(),
                     enclosing_class: fm.class_name.as_deref(),
                     enclosing_fn: Some(fm.name.as_str()),
                     return_ann: Some(fm.return_ann.clone()),
@@ -610,6 +638,8 @@ impl<'a> HirLowering<'a> {
                 | HirInstr::CheckClass { .. }
                 | HirInstr::RangeContinue { .. }
                 | HirInstr::MakeClosure { .. }
+                | HirInstr::Raise { .. }
+                | HirInstr::RestoreError
         );
         if fallible {
             if let Some(span) = &self.current_span {
@@ -1016,43 +1046,35 @@ impl<'a> HirLowering<'a> {
                 if let Some(ann) = self.return_ann.clone() {
                     self.emit_type_check(slot, &ann, "celi");
                 }
-                self.emit(HirInstr::Return { val: slot });
+                // Cleanup may change the variable that supplied the result.
+                let result = self.alloc_slot();
+                self.emit_copy(result, slot);
+                self.lower_exit_cleanups(true);
+                self.emit(HirInstr::Return { val: result });
+            }
+            Stmt::Throw(value) => {
+                let src = self.lower_expr(value);
+                self.emit(HirInstr::Raise { src });
             }
             Stmt::Break => {
-                if let Some((lbl, _)) = self.loop_stack.last() {
-                    self.emit(HirInstr::Break(*lbl));
+                if let Some(&(label, _)) = self.loop_stack.last() {
+                    self.lower_exit_cleanups(false);
+                    self.emit(HirInstr::Break(label));
                 }
             }
             Stmt::Continue => {
-                if let Some((_, lbl)) = self.loop_stack.last() {
-                    self.emit(HirInstr::Continue(*lbl));
+                if let Some(&(_, label)) = self.loop_stack.last() {
+                    self.lower_exit_cleanups(false);
+                    self.emit(HirInstr::Continue(label));
                 }
             }
             Stmt::TryCatch {
                 try_body,
                 err_var,
                 catch_body,
+                finally_body,
             } => {
-                let catch_label = self.new_label();
-                self.emit(HirInstr::TryBegin { catch: catch_label });
-                self.catch_stack.push(catch_label);
-                for s in try_body {
-                    self.lower_stmt(s);
-                }
-                self.catch_stack.pop();
-                self.emit(HirInstr::TryEnd);
-                let end_try = self.new_label();
-                self.emit(HirInstr::Jump(end_try));
-                self.emit(HirInstr::Label(catch_label));
-                let err_slot = self.alloc_slot();
-                let previous_catch = self.catch_var.replace((err_var.clone(), err_slot));
-                self.emit(HirInstr::BindError { dst: err_slot });
-                self.emit(HirInstr::TryEnd);
-                for s in catch_body {
-                    self.lower_stmt(s);
-                }
-                self.catch_var = previous_catch;
-                self.emit(HirInstr::Label(end_try));
+                self.lower_try(try_body, err_var.as_deref(), catch_body, finally_body);
             }
             Stmt::Import(_) => {}
             Stmt::Block(stmts) => {
@@ -1065,6 +1087,117 @@ impl<'a> HirLowering<'a> {
                 self.emit(HirInstr::Pop { dst: slot });
             }
         }
+    }
+
+    fn lower_try(
+        &mut self,
+        body: &[Stmt],
+        error_name: Option<&str>,
+        handler: &[Stmt],
+        cleanup: &[Stmt],
+    ) {
+        let end = self.new_label();
+        let cleanup_error = self.new_label();
+        let has_cleanup = !cleanup.is_empty() || error_name.is_none();
+        if has_cleanup {
+            self.cleanups.push(CleanupFrame {
+                action: CleanupAction::Body(cleanup.to_vec()),
+                loop_depth: self.loop_stack.len(),
+                catches: self.catch_stack.clone(),
+                catch_var: self.catch_var.clone(),
+            });
+            self.catch_stack.push(cleanup_error);
+        }
+        if let Some(name) = error_name {
+            let catch = self.new_label();
+            let after_catch = self.new_label();
+            self.emit(HirInstr::TryBegin { catch });
+            self.cleanups.push(CleanupFrame {
+                action: CleanupAction::EndTry,
+                loop_depth: self.loop_stack.len(),
+                catches: self.catch_stack.clone(),
+                catch_var: self.catch_var.clone(),
+            });
+            self.catch_stack.push(catch);
+            for stmt in body {
+                self.lower_stmt(stmt);
+            }
+            self.catch_stack.pop();
+            self.cleanups.pop();
+            self.emit(HirInstr::TryEnd);
+            self.emit(HirInstr::Jump(after_catch));
+            self.emit(HirInstr::Label(catch));
+            let slot = self.alloc_slot();
+            self.emit(HirInstr::BindError { dst: slot });
+            self.emit(HirInstr::TryEnd);
+            let previous = self.catch_var.replace((name.to_owned(), slot));
+            for stmt in handler {
+                self.lower_stmt(stmt);
+            }
+            self.catch_var = previous;
+            self.emit(HirInstr::Label(after_catch));
+        } else {
+            for stmt in body {
+                self.lower_stmt(stmt);
+            }
+        }
+        if has_cleanup {
+            self.catch_stack.pop();
+            self.cleanups.pop();
+            self.lower_cleanup(cleanup);
+            self.emit(HirInstr::Jump(end));
+            self.emit(HirInstr::Label(cleanup_error));
+            self.lower_cleanup(cleanup);
+        }
+        self.emit(HirInstr::Label(end));
+    }
+
+    fn lower_cleanup(&mut self, body: &[Stmt]) {
+        let failed = self.new_label();
+        let end = self.new_label();
+        self.emit(HirInstr::SuspendError);
+        self.cleanups.push(CleanupFrame {
+            action: CleanupAction::DiscardError,
+            loop_depth: self.loop_stack.len(),
+            catches: self.catch_stack.clone(),
+            catch_var: self.catch_var.clone(),
+        });
+        self.catch_stack.push(failed);
+        for stmt in body {
+            self.lower_stmt(stmt);
+        }
+        self.catch_stack.pop();
+        self.cleanups.pop();
+        self.emit(HirInstr::RestoreError);
+        self.emit(HirInstr::Jump(end));
+        self.emit(HirInstr::Label(failed));
+        self.emit(HirInstr::DiscardError);
+        self.emit(HirInstr::CheckThrow {
+            catch: self.catch_stack.last().copied(),
+        });
+        self.emit(HirInstr::Label(end));
+    }
+
+    fn lower_exit_cleanups(&mut self, returning: bool) {
+        let frames = self.cleanups.clone();
+        let catches = self.catch_stack.clone();
+        let catch_var = self.catch_var.clone();
+        for (index, frame) in frames.iter().enumerate().rev() {
+            if !returning && frame.loop_depth < self.loop_stack.len() {
+                break;
+            }
+            self.cleanups = frames[..index].to_vec();
+            self.catch_stack = frame.catches.clone();
+            self.catch_var = frame.catch_var.clone();
+            match &frame.action {
+                CleanupAction::Body(body) => self.lower_cleanup(body),
+                CleanupAction::DiscardError => self.emit(HirInstr::DiscardError),
+                CleanupAction::EndTry => self.emit(HirInstr::TryEnd),
+            }
+        }
+        self.cleanups = frames;
+        self.catch_stack = catches;
+        self.catch_var = catch_var;
     }
 
     fn lower_expr(&mut self, expr: &Expr) -> Slot {
@@ -1349,13 +1482,17 @@ fn collect_funcs_stmt<'a>(stmt: &'a Stmt, out: &mut Vec<&'a [Stmt]>) {
         Stmt::TryCatch {
             try_body,
             catch_body,
+            finally_body,
             ..
         } => {
             collect_funcs(try_body, out);
             collect_funcs(catch_body, out);
+            collect_funcs(finally_body, out);
         }
         Stmt::Block(body) => collect_funcs(body, out),
-        Stmt::Return(Some(expr)) | Stmt::Expr(expr) => collect_funcs_expr(expr, out),
+        Stmt::Return(Some(expr)) | Stmt::Expr(expr) | Stmt::Throw(expr) => {
+            collect_funcs_expr(expr, out)
+        }
         Stmt::Return(None) | Stmt::Break | Stmt::Continue | Stmt::Import(_) => {}
     }
 }

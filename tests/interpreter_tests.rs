@@ -609,3 +609,11 @@ fn test_error_boundaries_stop_failed_expressions() {
         "error boundaries ok\n"
     );
 }
+
+#[test]
+fn test_raising_and_guaranteed_cleanup() {
+    assert_eq!(
+        run_program(include_str!("fixtures/raise_cleanup.sop")),
+        "raise and cleanup ok\n"
+    );
+}

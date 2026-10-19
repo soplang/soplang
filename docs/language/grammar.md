@@ -52,8 +52,10 @@ switch_stmt      = "dooro" "(" expression ")" "{"
 for_stmt         = "kuceli" "(" identifier expression "ilaa" expression
                    [ "::" expression ] ")" "{" block "}" .
 while_stmt       = "intay" "(" expression ")" "{" block "}" .
-try_catch        = ( "tijaabi" | "fasax" ) "{" block "}" "qabo" "(" identifier ")"
-                   "{" block "}" .
+try_catch        = ( "tijaabi" | "fasax" ) "{" block "}" ( catch [ cleanup ] | cleanup ) .
+catch            = "qabo" "(" identifier ")" "{" block "}" .
+cleanup          = "dhammee" "{" block "}" .
+throw_stmt       = "tuur" expression .
 return_stmt      = "celi" [ expression ] .
 ```
 

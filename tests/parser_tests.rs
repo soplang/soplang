@@ -152,8 +152,42 @@ fn test_parse_import_and_try_catch() {
     let stmts = Parser::new(tokens).parse().unwrap();
     assert!(matches!(&stmts[0], Stmt::Import(_)));
     if let Stmt::TryCatch { err_var, .. } = &stmts[1] {
-        assert_eq!(err_var, "e");
+        assert_eq!(err_var.as_deref(), Some("e"));
     } else {
         panic!("expected try/catch");
     }
+}
+
+#[test]
+fn test_contextual_raise_and_cleanup_syntax() {
+    let source = r#"
+        hawl tuur(value) { celi value }
+        hawl dhammee(value) { celi value }
+        door value = tuur(1)
+        dhammee(value)
+        tijaabi { tuur "fariin" } dhammee { qor("xiran") }
+        tijaabi { tuur value } qabo (e) { qor(e) } dhammee { qor("xiran") }
+    "#;
+    let tokens = Lexer::new(source).tokenize().unwrap();
+    let statements = Parser::new(tokens).parse().unwrap();
+    assert!(matches!(&statements[3], Stmt::Expr(_)));
+    match &statements[4] {
+        Stmt::TryCatch {
+            err_var,
+            finally_body,
+            try_body,
+            ..
+        } => {
+            assert!(err_var.is_none());
+            assert_eq!(finally_body.len(), 1);
+            assert!(matches!(&try_body[0], Stmt::Throw(_)));
+        }
+        other => panic!("unexpected {other:?}"),
+    }
+    let tokens = Lexer::new("tijaabi { qor(1) }").tokenize().unwrap();
+    assert!(Parser::new(tokens)
+        .parse()
+        .unwrap_err()
+        .message()
+        .contains("'qabo' ama 'dhammee'"));
 }

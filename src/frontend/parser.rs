@@ -76,8 +76,14 @@ impl Parser {
     pub fn parse_partial(&mut self) -> Vec<Stmt> {
         let mut statements = Vec::new();
         while !self.at_end() {
-            if self.check(TokenType::Semicolon) { self.advance(); continue; }
-            match self.parse_stmt() { Ok(stmt) => statements.push(stmt), Err(_) => break }
+            if self.check(TokenType::Semicolon) {
+                self.advance();
+                continue;
+            }
+            match self.parse_stmt() {
+                Ok(stmt) => statements.push(stmt),
+                Err(_) => break,
+            }
             self.consume_semicolons();
         }
         statements
@@ -225,6 +231,30 @@ impl Parser {
             && self.tokens.get(self.current + 1).map(|t| &t.kind) == Some(&TokenType::LBrace)
         {
             return self.parse_try_catch(line, col);
+        }
+
+        // Calls, assignments and property access on an identifier named tuur
+        // retain their meaning. Raising requires an adjacent same-line value.
+        if t.kind == TokenType::Identifier
+            && t.lexeme == "tuur"
+            && self.tokens.get(self.current + 1).is_some_and(|next| {
+                next.line == line
+                    && matches!(
+                        next.kind,
+                        TokenType::String
+                            | TokenType::Number
+                            | TokenType::Identifier
+                            | TokenType::True
+                            | TokenType::False
+                            | TokenType::Null
+                            | TokenType::Cusub
+                            | TokenType::Hawl
+                            | TokenType::LBrace
+                    )
+            })
+        {
+            self.advance();
+            return Ok(Stmt::Throw(self.parse_expression()?));
         }
 
         match &t.kind {
@@ -664,17 +694,43 @@ impl Parser {
         self.expect(TokenType::LBrace)?;
         let try_body = self.parse_block_stmts()?;
         self.expect(TokenType::RBrace)?;
-        self.expect(TokenType::Qabo)?;
-        self.expect(TokenType::LParen)?;
-        let err_var = self.expect_identifier()?;
-        self.expect(TokenType::RParen)?;
-        self.expect(TokenType::LBrace)?;
-        let catch_body = self.parse_block_stmts()?;
-        self.expect(TokenType::RBrace)?;
+        let (err_var, catch_body) = if self.check(TokenType::Qabo) {
+            self.advance();
+            self.expect(TokenType::LParen)?;
+            let name = self.expect_identifier()?;
+            self.expect(TokenType::RParen)?;
+            self.expect(TokenType::LBrace)?;
+            let body = self.parse_block_stmts()?;
+            self.expect(TokenType::RBrace)?;
+            (Some(name), body)
+        } else {
+            (None, Vec::new())
+        };
+        let has_cleanup = self.peek().kind == TokenType::Identifier
+            && self.peek().lexeme == "dhammee"
+            && self.tokens.get(self.current + 1).map(|token| &token.kind)
+                == Some(&TokenType::LBrace);
+        let finally_body = if has_cleanup {
+            self.advance();
+            self.expect(TokenType::LBrace)?;
+            let body = self.parse_block_stmts()?;
+            self.expect(TokenType::RBrace)?;
+            body
+        } else {
+            Vec::new()
+        };
+        if err_var.is_none() && !has_cleanup {
+            return Err(parser_error(
+                "Waxaa la filayay 'qabo' ama 'dhammee' ka dib 'tijaabi'.",
+                self.peek().line,
+                self.peek().col,
+            ));
+        }
         Ok(Stmt::TryCatch {
             try_body,
             err_var,
             catch_body,
+            finally_body,
         })
     }
 

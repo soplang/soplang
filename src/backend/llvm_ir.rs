@@ -53,6 +53,10 @@ declare %SoplangValue @soplang_call_method(%SoplangValue, ptr, i64, ptr, i32)
 declare %SoplangValue @soplang_new_instance(ptr, i64, ptr, i32)
 declare void @soplang_register_class(ptr, i64, ptr, i64, ptr, i64, i64)
 declare i64 @soplang_register_user_fn(ptr, i64, ptr, i64)
+declare %SoplangValue @soplang_raise(%SoplangValue)
+declare void @soplang_suspend_error()
+declare void @soplang_restore_error()
+declare void @soplang_discard_error()
 declare i32 @soplang_try_begin()
 declare void @soplang_try_end()
 declare i32 @soplang_has_pending_error()
@@ -297,7 +301,7 @@ struct Keep(*const ());
 unsafe impl Sync for Keep {}
 
 #[used]
-static KEEP: [Keep; 47] = [
+static KEEP: [Keep; 51] = [
     Keep(runtime::soplang_set_location as *const ()),
     Keep(runtime::soplang_int as *const ()),
     Keep(runtime::soplang_float as *const ()),
@@ -336,6 +340,10 @@ static KEEP: [Keep; 47] = [
     Keep(runtime::soplang_new_instance as *const ()),
     Keep(runtime::soplang_register_class as *const ()),
     Keep(runtime::soplang_register_user_fn as *const ()),
+    Keep(runtime::soplang_raise as *const ()),
+    Keep(runtime::soplang_suspend_error as *const ()),
+    Keep(runtime::soplang_restore_error as *const ()),
+    Keep(runtime::soplang_discard_error as *const ()),
     Keep(runtime::soplang_try_begin as *const ()),
     Keep(runtime::soplang_try_end as *const ()),
     Keep(runtime::soplang_has_pending_error as *const ()),
@@ -1168,6 +1176,20 @@ impl<'a> FnEmit<'a> {
                 ));
                 Ok(false)
             }
+            HirInstr::Raise { src } => {
+                let value = self.pack_slot(*src);
+                self.call_sv("soplang_raise", &format!("%SoplangValue {value}"));
+                Ok(false)
+            }
+            HirInstr::SuspendError | HirInstr::RestoreError | HirInstr::DiscardError => {
+                let name = match instr {
+                    HirInstr::SuspendError => "soplang_suspend_error",
+                    HirInstr::RestoreError => "soplang_restore_error",
+                    _ => "soplang_discard_error",
+                };
+                self.line(format!("  call void @{name}()"));
+                Ok(false)
+            }
             HirInstr::TryBegin { .. } => {
                 let v = self.fresh();
                 self.line(format!("  {v} = call i32 @soplang_try_begin()"));
@@ -1518,7 +1540,7 @@ fn slot_hi(body: &[HirInstr]) -> usize {
                     mx = mx.max(*s + 1);
                 }
             }
-            HirInstr::Return { val } => mx = mx.max(*val + 1),
+            HirInstr::Return { val } | HirInstr::Raise { src: val } => mx = mx.max(*val + 1),
             HirInstr::JumpIf { cond, .. } => mx = mx.max(*cond + 1),
             HirInstr::RangeContinue {
                 dst,

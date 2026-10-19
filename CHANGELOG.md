@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file.
 * Closure environments are released with their runtime context. Dropping a JIT backend also frees its generated code and data allocations.
 * Runtime strings, collections, functions, and closures use opaque allocation handles. Foreign, expired, and malformed handles are rejected with catchable Somali errors instead of indexing another allocation or dereferencing a closure address.
 * Recoverable execution boundaries return uncaught runtime errors to Rust callers and the REPL. Failed expressions stop before later arguments or side effects run, while standalone programs retain Somali diagnostics and unsuccessful exit status.
+* Contextual `tuur` raises error messages. `dhammee` guarantees cleanup after protected blocks, handlers, returns, and loop exits in both compiler backends.
 
 ## [3.0.1] - 2026-10-18
 

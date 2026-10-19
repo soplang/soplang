@@ -427,6 +427,8 @@ Notes:
 | `keen`  | Import another `.sop` file       | `import` | `keen "lib.sop"`                          |
 | `tijaabi` | Start a protected try block      | `try`    | `tijaabi { ... } qabo (e) { ... }`          |
 | `qabo`  | Catch block with error variable  | `catch`  | `qabo (khalad) { qor(khalad) }`           |
+| `tuur` | Raise an error message | `raise` / `throw` | `tuur "Faylka lama helin"` |
+| `dhammee` | Run guaranteed cleanup | `finally` | `tijaabi { ... } dhammee { ... }` |
 
 **Import example:**
 
@@ -448,6 +450,36 @@ tijaabi {
 ```
 
 Runtime errors inside the `tijaabi` block are caught; the error message is bound to the variable in `qabo (...)`.
+
+**Raising errors and guaranteed cleanup:**
+
+```soplang
+tijaabi {
+    tuur "Xogtu ma dhammaystirna"
+} qabo (fariin) {
+    qor(fariin)
+} dhammee {
+    qor("Hawshii waa dhammaatay")
+}
+```
+
+`tuur` raises a string message at its source location. A non-string value
+reports a catchable type error. The value starts on the same line as `tuur`.
+Calls such as `tuur(value)` remain ordinary function calls for compatibility;
+to raise a computed message, use `tuur make_message()` or `tuur message`.
+
+`dhammee` runs once when its protected block finishes, including after a
+handler and on errors, `celi`, `jooji`, and `soco`. It can follow either a
+`tijaabi` body alone or a `tijaabi`/`qabo` pair. A try block must have a handler,
+cleanup, or both. Nested cleanup runs from the innermost block outward.
+
+The return value is evaluated before cleanup. If cleanup completes normally,
+the original return or error continues. A return or error from cleanup takes
+precedence. Breaking out of a loop inside a protected body does not run that
+body's cleanup until execution actually leaves the protected block.
+
+`tuur` and `dhammee` are contextual forms. Existing variables, functions, and
+properties with those names remain supported outside these statement contexts.
 
 ## Compatibility spellings
 

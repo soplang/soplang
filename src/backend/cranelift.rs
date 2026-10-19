@@ -122,6 +122,10 @@ fn register_runtime_symbols(builder: &mut JITBuilder) {
     sym!(builder, soplang_make_closure);
     sym!(builder, soplang_capture_get);
     sym!(builder, soplang_register_class);
+    sym!(builder, soplang_raise);
+    sym!(builder, soplang_suspend_error);
+    sym!(builder, soplang_restore_error);
+    sym!(builder, soplang_discard_error);
     sym!(builder, soplang_try_begin);
     sym!(builder, soplang_try_end);
     sym!(builder, soplang_has_pending_error);
@@ -209,7 +213,7 @@ fn max_slot_in_body(body: &[HirInstr]) -> usize {
                     mx = mx.max(*s + 1);
                 }
             }
-            HirInstr::Return { val } => {
+            HirInstr::Return { val } | HirInstr::Raise { src: val } => {
                 mx = mx.max(*val + 1);
             }
             HirInstr::JumpIf { cond, .. } => {
@@ -1020,6 +1024,22 @@ fn compile_body(
             }
 
             HirInstr::Pop { .. } => {}
+
+            HirInstr::Raise { src } => {
+                if terminated { continue; }
+                let tag = builder.use_var(var_tags[*src]);
+                let pay = builder.use_var(var_pays[*src]);
+                call_rt(builder, module, "soplang_raise", &[tag, pay])?;
+            }
+            HirInstr::SuspendError | HirInstr::RestoreError | HirInstr::DiscardError => {
+                if terminated { continue; }
+                let name = match instr {
+                    HirInstr::SuspendError => "soplang_suspend_error",
+                    HirInstr::RestoreError => "soplang_restore_error",
+                    _ => "soplang_discard_error",
+                };
+                call_rt_void(builder, module, name, &[])?;
+            }
 
             HirInstr::TryBegin { catch: _ } => {
                 if terminated {
