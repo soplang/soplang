@@ -1,0 +1,107 @@
+hawl hubi(shuruud,magac){haddii(!shuruud){tuur magac}}
+hawl fashil(cb,code="E022"){door failed=been tijaabi{cb()}qabo(e,xog){failed=run hubi(xog.summad==code,"type error code")} hubi(failed,"expected type error")}
+qoraal? name=maran
+hubi(name==maran,"nullable string")
+name="Ayaan"
+hubi(name=="Ayaan","optional assignment")
+name=maran
+abn | qoraal value=1
+value="two"
+hubi(value=="two","union assignment")
+bool? truth=been
+hubi(truth==been && !truth,"nullable false stays supplied")
+truth=run
+hubi(truth==run,"nullable true")
+maran none=maran
+maran | qoraal label="label"
+label=maran
+madoor bool? flag=maran
+hubi(none==maran && label==maran && flag==maran,"null type and constant option")
+hawl optional(qoraal? text=maran):qoraal?{celi text}
+hubi(optional()==maran && optional("ok")=="ok" && optional(text:maran)==maran,"optional calls")
+hawl combine(abn | qoraal value,qoraal? text=maran):abn | qoraal {celi value}
+hubi(combine(value:"x")=="x" && combine(7,text:"a")==7,"union defaults and names")
+hawl fresh(teed? values=maran):teed?{celi values}
+hubi(fresh()==maran && fresh([1])==[1],"optional list")
+hawl make(seed){celi hawl(abn? a=seed):abn?{celi a}}
+hubi(make(3)()==3 && make(maran)()==maran,"captured optional arguments")
+hawl as_float(jajab? a):jajab?{celi a}
+hawl as_int(abn? a):abn?{celi a}
+hubi(nooc(as_float(3))=="jajab" && as_float(maran)==maran,"optional numeric conversion")
+hubi(nooc(as_int(3.0))=="abn" && as_int(maran)==maran,"integral float conversion")
+hawl numeric(jajab | abn a):jajab | abn{celi a}
+hubi(nooc(numeric(3))=="abn" && nooc(numeric(3.0))=="jajab","exact numeric type takes precedence")
+hawl mixed(abn | qoraal a):abn | qoraal{celi a}
+hubi(nooc(mixed(3.0))=="abn","union numeric fallback")
+hawl void():maran { celi }
+hawl empty():abn? {}
+hubi(void()==maran && empty()==maran,"bare and implicit null returns")
+hawl missing():abn | qoraal {}
+fashil(hawl(){missing()})
+hawl conditional(bool flag):abn | qoraal { haddii(flag){celi 1} }
+hubi(conditional(run)==1,"explicit return through a branch")
+fashil(hawl(){conditional(been)})
+hawl old_missing():abn {}
+fashil(hawl(){old_missing()},maran)
+qaab Base { hawl dhis(qoraal? name=maran){nafta.name=name} hawl get():qoraal?{celi nafta.name} }
+qaab Child dhaxal Base {}
+qaab Other {}
+Base? item=maran
+item=cusub Child("Cali")
+hubi(item.get()=="Cali","nullable class accepts derived instance")
+hawl classes(Base | Other? a):Base | Other? {celi a}
+hubi(classes(cusub Child()).get()==maran && classes(cusub Other())!=maran && classes(maran)==maran,"class alternatives")
+hawl child(Base? a=maran):Base?{celi a}
+hubi(child()==maran && child(a:cusub Child()).get()==maran,"class optional defaults")
+baytyo? data=maran
+data=baytyo("ok")
+hubi(data.qoraal()=="ok","optional bytes")
+hawl bytes(baytyo | qoraal? a):baytyo | qoraal?{celi a}
+hubi(bytes(maran)==maran && bytes("x")=="x" && bytes(baytyo([1]))[0]==1,"bytes and text union")
+walax? object=maran
+object={a:1}
+hubi(object.a==1,"optional object")
+abn? | abn repeated=maran
+repeated=1
+hubi(repeated==1,"duplicates normalize")
+hawl wrong(){celi run}
+fashil(hawl(){name=wrong()})
+hubi(name==maran,"failed optional write preserves prior value")
+fashil(hawl(){value=wrong()})
+hubi(value=="two","failed union write preserves prior value")
+door dynamic=combine
+fashil(hawl(){dynamic(run)})
+fashil(hawl(){dynamic(value:run)})
+door dyn_float=as_float
+door dyn_int=as_int
+fashil(hawl(){dyn_int(1.5)})
+hubi(dyn_int(jajab("1e100"))==9223372036854775807,"existing integer saturation")
+fashil(hawl(){dyn_int(jajab("1e308")*10)})
+fashil(hawl(){dyn_float("3")})
+door dyn_class=classes
+fashil(hawl(){dyn_class({})})
+fashil(hawl(){dyn_class(1)})
+hawl bad():abn | qoraal{celi wrong()}
+fashil(hawl(){bad()})
+hawl baddefault(abn? value=wrong()){celi value}
+fashil(hawl(){baddefault()})
+hubi(baddefault(1)==1,"supplied value skips invalid default")
+// Optional/union slots must retain dynamic numeric representations through loops.
+hawl loop(abn | qoraal n):abn | qoraal {
+    abn i=0
+    intay(i<3){n=n+1 i=i+1}
+    celi n
+}
+hubi(loop(1)==4,"union arithmetic stays dynamic")
+abn? index=maran
+kuceli(index ku [1,2,3]){}
+hubi(index==3,"optional collection loop target")
+qoraal? | abn nullable=maran
+nullable="x"
+hubi(nullable=="x","nullable union")
+// Keep managed union values alive through safepoints and closure captures.
+hawl capture(value){celi hawl(){celi value}}
+door kept=capture(baytyo([9]))
+kuceli(i 1 ilaa 2200){door garbage=baytyo("temporary")}
+hubi(data.qoraal()=="ok" && item.get()=="Cali" && kept()[0]==9,"managed union roots")
+qor("union types ok")

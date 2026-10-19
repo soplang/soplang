@@ -132,3 +132,31 @@ callback signatures, and live values across collection safepoints.
 
 Both cross-target checks pass. Executable tests on Windows and macOS remain
 required for distribution. The complete 3.2 milestone remains untagged.
+
+## Optional and union annotations stage
+
+The debug suite passes 213 tests, including all 32 LLVM tests. The dedicated
+error and example suites pass 14 tests covering all 125 diagnostic programs
+and all 36 public examples in both execution paths. Optimized checks pass
+81 tests:
+
+```sh
+cargo test --locked -- --skip test_aot
+cargo test --locked --test diagnostic_tests --test examples_tests
+cargo test --locked --release --test union_type_tests --test interpreter_tests --test llvm_ir_tests
+cargo check --locked --offline --target x86_64-pc-windows-msvc
+cargo check --locked --offline --target aarch64-apple-darwin
+```
+
+The shared optional/union fixture runs LLVM at levels 0 and 2. It covers null,
+all current concrete type families, exact numeric matches and conversions,
+class inheritance, required/default/named calls, captured closures, argument
+and return checks, implicit returns, branch fallthrough, failed-write atomicity,
+loop targets, dynamic arithmetic, and managed roots across collection.
+
+Six dedicated tests cover syntax and alternative limits, conservative static
+compatibility, strict annotations, editor/AST displays, persistent REPL metadata,
+malformed native descriptors, foreign handles, and borrowed class metadata.
+Cross-target checks and metadata compilation of the extracted LLVM linker
+wrapper pass for Windows x64 and macOS ARM64, including the new runtime bridge.
+Actual platform executable checks remain distribution gates.

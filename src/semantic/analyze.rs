@@ -995,7 +995,7 @@ fn analyze_stmt(
         }
         Stmt::Return(None) => {
             if let Some(ret_ann) = current_return {
-                if ret_ann != &TypeAnnotation::Dynamic {
+                if !is_type_compatible(sym, ret_ann, &TypeAnnotation::Null) {
                     return Err(type_error_ex(
                         format!(
                             "hawshu waxay rabtaa '{}' laakiin celi qiimo ma leh",
@@ -1623,7 +1623,7 @@ fn infer_expr_type(
             Literal::Float(_) => TypeAnnotation::Jajab,
             Literal::Str(_) => TypeAnnotation::Qoraal,
             Literal::Bool(_) => TypeAnnotation::Bool,
-            Literal::Null => TypeAnnotation::Dynamic,
+            Literal::Null => TypeAnnotation::Null,
         }),
         Expr::Identifier(name) => resolve_name(sym, name, None).map(|v| v.type_ann.clone()),
         Expr::List(_) => Some(TypeAnnotation::Teed),
@@ -1682,6 +1682,10 @@ fn is_type_compatible(sym: &SymbolTable, target: &TypeAnnotation, value: &TypeAn
     use TypeAnnotation::*;
     match (target, value) {
         (Dynamic, _) => true,
+        (_, Union(found)) => found.iter().all(|ty| is_type_compatible(sym, target, ty)),
+        (Union(_) | Null, Dynamic) => true,
+        (Union(types), found) => types.iter().any(|ty| is_type_compatible(sym, ty, found)),
+        (Null, Null) => true,
         // A door value has no static class. The runtime check accepts a real instance.
         (Class(_), Dynamic) => true,
         (Class(expected), Class(found)) => is_same_or_subclass(sym, found, expected),
@@ -1715,6 +1719,12 @@ fn is_same_or_subclass(sym: &SymbolTable, found: &str, expected: &str) -> bool {
 }
 
 fn ensure_known_class(sym: &SymbolTable, ann: &TypeAnnotation) -> Result<(), SoplangError> {
+    if let TypeAnnotation::Union(types) = ann {
+        for ty in types {
+            ensure_known_class(sym, ty)?;
+        }
+        return Ok(());
+    }
     let TypeAnnotation::Class(name) = ann else {
         return Ok(());
     };
@@ -1756,16 +1766,10 @@ fn type_mismatch_error(
 }
 
 fn ty_str(a: &TypeAnnotation) -> String {
-    match a {
-        TypeAnnotation::Abn => "abn".to_string(),
-        TypeAnnotation::Jajab => "jajab".to_string(),
-        TypeAnnotation::Qoraal => "qoraal".to_string(),
-        TypeAnnotation::Bool => "bool".to_string(),
-        TypeAnnotation::Teed => "teed".to_string(),
-        TypeAnnotation::Bytes => "baytyo".to_string(),
-        TypeAnnotation::Walax => "walax".to_string(),
-        TypeAnnotation::Dynamic => "dynamic".to_string(),
-        TypeAnnotation::Class(name) => name.clone(),
+    if *a == TypeAnnotation::Dynamic {
+        "dynamic".to_owned()
+    } else {
+        a.to_string()
     }
 }
 

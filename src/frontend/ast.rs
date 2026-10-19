@@ -13,11 +13,48 @@ pub enum TypeAnnotation {
     Bytes,
     Walax,
     Dynamic,
+    Null,
+    Union(Vec<TypeAnnotation>),
     /// Instance of this class, or of a class that extends it.
     Class(String),
 }
 
 impl TypeAnnotation {
+    pub(crate) fn union(types: Vec<Self>) -> Self {
+        let mut result = Vec::new();
+        for ty in types {
+            if ty == Self::Dynamic {
+                return Self::Dynamic;
+            }
+            let alternatives = match ty {
+                Self::Union(types) => types,
+                ty => vec![ty],
+            };
+            for ty in alternatives {
+                if !result.contains(&ty) {
+                    result.push(ty);
+                }
+            }
+        }
+        if result.len() == 1 {
+            result.remove(0)
+        } else {
+            Self::Union(result)
+        }
+    }
+
+    pub(crate) fn runtime_contract(&self) -> String {
+        match self {
+            Self::Class(name) => format!("@{name}"),
+            Self::Union(types) => types
+                .iter()
+                .map(Self::runtime_contract)
+                .collect::<Vec<_>>()
+                .join("|"),
+            ty => ty.to_string(),
+        }
+    }
+
     pub(crate) fn named(name: String) -> Self {
         if name == "baytyo" {
             Self::Bytes
@@ -258,18 +295,39 @@ impl fmt::Display for Expr {
     }
 }
 
-fn type_annotation_name(ann: &TypeAnnotation) -> &str {
-    match ann {
-        TypeAnnotation::Abn => "abn",
-        TypeAnnotation::Jajab => "jajab",
-        TypeAnnotation::Qoraal => "qoraal",
-        TypeAnnotation::Bool => "bool",
-        TypeAnnotation::Teed => "teed",
-        TypeAnnotation::Bytes => "baytyo",
-        TypeAnnotation::Walax => "walax",
-        TypeAnnotation::Dynamic => "door",
-        TypeAnnotation::Class(name) => name,
+impl fmt::Display for TypeAnnotation {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Abn => f.write_str("abn"),
+            Self::Jajab => f.write_str("jajab"),
+            Self::Qoraal => f.write_str("qoraal"),
+            Self::Bool => f.write_str("bool"),
+            Self::Teed => f.write_str("teed"),
+            Self::Walax => f.write_str("walax"),
+            Self::Bytes => f.write_str("baytyo"),
+            Self::Dynamic => f.write_str("door"),
+            Self::Null => f.write_str("maran"),
+            Self::Class(name) => f.write_str(name),
+            Self::Union(types) => {
+                if types.len() == 2 && types.contains(&Self::Null) {
+                    let value = types.iter().find(|ty| **ty != Self::Null).unwrap();
+                    write!(f, "{value}?")
+                } else {
+                    for (index, ty) in types.iter().enumerate() {
+                        if index > 0 {
+                            f.write_str(" | ")?;
+                        }
+                        write!(f, "{ty}")?;
+                    }
+                    Ok(())
+                }
+            }
+        }
     }
+}
+
+fn type_annotation_name(ann: &TypeAnnotation) -> String {
+    ann.to_string()
 }
 
 /// A required parameter or a value evaluated when the argument is omitted.
@@ -383,18 +441,10 @@ impl Stmt {
                 value,
                 ..
             } => {
-                let ty = match type_ann {
-                    TypeAnnotation::Dynamic => {
-                        if *is_const { "madoor" } else { "door" }.to_string()
-                    }
-                    TypeAnnotation::Abn => "abn".to_string(),
-                    TypeAnnotation::Jajab => "jajab".to_string(),
-                    TypeAnnotation::Qoraal => "qoraal".to_string(),
-                    TypeAnnotation::Bool => "bool".to_string(),
-                    TypeAnnotation::Teed => "teed".to_string(),
-                    TypeAnnotation::Bytes => "baytyo".to_string(),
-                    TypeAnnotation::Walax => "walax".to_string(),
-                    TypeAnnotation::Class(class) => class.clone(),
+                let ty = if *type_ann == TypeAnnotation::Dynamic && *is_const {
+                    "madoor".to_owned()
+                } else {
+                    type_ann.to_string()
                 };
                 writeln!(f, "{}{} {} = {};", pad, ty, name, value)
             }
@@ -410,17 +460,7 @@ impl Stmt {
                     if i > 0 {
                         write!(f, ", ")?;
                     }
-                    let param_ty = match &p.type_ann {
-                        TypeAnnotation::Dynamic => "door".to_string(),
-                        TypeAnnotation::Abn => "abn".to_string(),
-                        TypeAnnotation::Jajab => "jajab".to_string(),
-                        TypeAnnotation::Qoraal => "qoraal".to_string(),
-                        TypeAnnotation::Bool => "bool".to_string(),
-                        TypeAnnotation::Teed => "teed".to_string(),
-                        TypeAnnotation::Bytes => "baytyo".to_string(),
-                        TypeAnnotation::Walax => "walax".to_string(),
-                        TypeAnnotation::Class(class) => class.clone(),
-                    };
+                    let param_ty = p.type_ann.to_string();
                     write!(
                         f,
                         "{} {}{}",
@@ -438,17 +478,7 @@ impl Stmt {
                         write!(f, " = {}", default)?;
                     }
                 }
-                let ret_ty = match return_ann {
-                    TypeAnnotation::Dynamic => "door".to_string(),
-                    TypeAnnotation::Abn => "abn".to_string(),
-                    TypeAnnotation::Jajab => "jajab".to_string(),
-                    TypeAnnotation::Qoraal => "qoraal".to_string(),
-                    TypeAnnotation::Bool => "bool".to_string(),
-                    TypeAnnotation::Teed => "teed".to_string(),
-                    TypeAnnotation::Bytes => "baytyo".to_string(),
-                    TypeAnnotation::Walax => "walax".to_string(),
-                    TypeAnnotation::Class(class) => class.clone(),
-                };
+                let ret_ty = return_ann.to_string();
                 writeln!(f, ") : {} {{", ret_ty)?;
                 for s in body {
                     s.fmt_with_depth(f, depth + 1)?;

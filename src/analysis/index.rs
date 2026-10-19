@@ -55,18 +55,7 @@ pub struct Index {
     by_name: HashMap<(usize, String), Vec<usize>>,
 }
 pub fn type_name(ty: &TypeAnnotation) -> String {
-    match ty {
-        TypeAnnotation::Abn => "abn",
-        TypeAnnotation::Jajab => "jajab",
-        TypeAnnotation::Qoraal => "qoraal",
-        TypeAnnotation::Bool => "bool",
-        TypeAnnotation::Teed => "teed",
-        TypeAnnotation::Bytes => "baytyo",
-        TypeAnnotation::Walax => "walax",
-        TypeAnnotation::Dynamic => "door",
-        TypeAnnotation::Class(name) => name,
-    }
-    .to_owned()
+    ty.to_string()
 }
 fn inferred(expr: &Expr) -> String {
     match expr.unlocated() {

@@ -1,0 +1,5 @@
+Khalad nooc: 'qiime' waa abn | qoraal laakin qiimaheeda 'bool' ma ahan abn | qoraal [E022] safka 1, tiirka 1
+     --> examples/errors/union_initializer.sop:1:1
+   1 │   abn | qoraal qiime = run
+     │   ^^^
+     └─ Hubi in nooca qiimaha uu la mid yahay nooca lagu qeexay doorsamaha.

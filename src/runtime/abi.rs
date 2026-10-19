@@ -2226,6 +2226,115 @@ pub extern "C" fn soplang_mark_const(name: *const u8, len: usize) {
     CONST_GLOBALS.with(|c| c.borrow_mut().insert(key));
 }
 
+fn contract_error(message: impl Into<String>, line: usize, col: usize) -> SoplangError {
+    crate::error::type_error_ex(
+        message,
+        line,
+        col,
+        crate::error::ErrorMeta::default().with_code(crate::error::codes::E022_TYPE_MISMATCH),
+    )
+}
+
+/// Validate a flat union descriptor and return its accepted representation.
+/// Generated descriptors use canonical type names and @Class alternatives.
+#[no_mangle]
+pub extern "C" fn soplang_check_contract(
+    tag: i64,
+    payload: i64,
+    contract_ptr: *const u8,
+    contract_len: usize,
+    name_ptr: *const u8,
+    name_len: usize,
+) -> SoplangValue {
+    if let Some(value) = short_circuit_if_pending() {
+        return value;
+    }
+    let result = (|| {
+        let invalid = || contract_error("Qaabka noocyadu ma saxna.", 0, 0);
+        let text = |ptr: *const u8, len: usize| -> Result<&str, SoplangError> {
+            if len == 0 {
+                return Ok("");
+            }
+            if ptr.is_null() {
+                return Err(invalid());
+            }
+            std::str::from_utf8(unsafe { std::slice::from_raw_parts(ptr, len) })
+                .map_err(|_| invalid())
+        };
+        let contract = text(contract_ptr, contract_len)?;
+        let name = text(name_ptr, name_len)?;
+        let types: Vec<_> = contract.split('|').collect();
+        if types.is_empty()
+            || types.len() > 64
+            || types.iter().any(|ty| {
+                !matches!(
+                    *ty,
+                    "abn" | "jajab" | "qoraal" | "bool" | "teed" | "walax" | "baytyo" | "maran"
+                ) && !ty.strip_prefix('@').is_some_and(|name| {
+                    !name.is_empty() && name.chars().all(|c| c.is_alphanumeric() || c == '_')
+                })
+            })
+        {
+            return Err(invalid());
+        }
+        let value = soplang_to_value(SoplangValue {
+            tag: u8::try_from(tag).map_err(|_| invalid())?,
+            _pad: [0; 7],
+            payload,
+        })?;
+        // Preserve an exact runtime kind even if a numeric alternative appears
+        // first. Conversion is only needed when no exact alternative accepts it.
+        if types.contains(&value.type_name()) {
+            return Ok(value_to_soplang(&value));
+        }
+        for ty in &types {
+            if let Some(class) = ty.strip_prefix('@') {
+                if let Value::Object(object) = &value {
+                    object
+                        .try_borrow()
+                        .map_err(|_| contract_error("Walaxda hadda lama akhriyi karo.", 0, 0))?;
+                }
+                if instance_matches_class(&value, class) {
+                    return Ok(value_to_soplang(&value));
+                }
+            }
+        }
+        let converted = match &value {
+            Value::Int(_) if types.contains(&"jajab") => {
+                Some(stdlib::builtin_jajab(vec![value.clone()]))
+            }
+            Value::Float(number)
+                if number.is_finite() && number.fract() == 0.0 && types.contains(&"abn") =>
+            {
+                Some(stdlib::builtin_abn(vec![value.clone()]))
+            }
+            _ => None,
+        };
+        if let Some(Ok(value)) = converted {
+            return Ok(value_to_soplang(&value));
+        }
+        let expected = types
+            .iter()
+            .map(|ty| ty.strip_prefix('@').unwrap_or(ty))
+            .collect::<Vec<_>>()
+            .join(" | ");
+        Err(contract_error(
+            format!(
+                "'{}' wuxuu u baahan yahay nooca {}, laakiin waxaa la helay {}.",
+                name,
+                expected,
+                value.type_name()
+            ),
+            0,
+            0,
+        ))
+    })();
+    match result {
+        Ok(value) => value,
+        Err(error) => handle_runtime_error(error),
+    }
+}
+
 /// The value must be an instance of `expected` or of a class that extends it.
 #[no_mangle]
 pub extern "C" fn soplang_check_class(

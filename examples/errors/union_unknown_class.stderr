@@ -1,0 +1,5 @@
+Khalad nooc: Qaab 'Maqan' lama aqoonsan [E021] safka 1, tiirka 1
+     --> examples/errors/union_unknown_class.sop:1:1
+   1 │   abn | Maqan? qiime = maran
+     │   ^^^
+     └─ Qeex qaabka ka hor intaadan u isticmaalin nooc ahaan.

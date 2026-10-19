@@ -115,3 +115,12 @@ runtime	byte_bounds.sop	2	1	ka baxsan
 runtime	byte_remove.sop	1	10	madhan
 compile	byte_type.sop	1	1	baytyo
 compile	byte_class.sop	1	1	nooc hore
+compile	union_initializer.sop	1	1	ma ahan
+compile	optional_argument.sop	2	1	doodda 1
+compile	optional_required.sop	2	1	dood
+compile	union_unknown_class.sop	1	1	lama aqoonsan
+compile	union_missing_type.sop	1	7	nooc
+runtime	optional_assignment.sop	3	1	qoraal | maran
+runtime	union_dynamic_argument.sop	3	1	abn | qoraal
+runtime	union_return.sop	2	32	abn | qoraal
+runtime	union_fallthrough.sop	2	1	maran

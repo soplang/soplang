@@ -147,9 +147,71 @@ impl Parser {
 
     /// `ClassName var = ...` at the start of a statement or after `madoor`.
     fn looks_like_class_decl(&self) -> bool {
-        matches!(self.peek().kind, TokenType::Identifier)
-            && matches!(self.peek_nth(1).kind, TokenType::Identifier)
-            && matches!(self.peek_nth(2).kind, TokenType::Assign)
+        matches!(self.peek().kind, TokenType::Identifier | TokenType::Null)
+            && (matches!(
+                self.peek_nth(1).kind,
+                TokenType::Optional | TokenType::Union
+            ) || (self.peek_nth(1).kind == TokenType::Identifier
+                && self.peek_nth(2).kind == TokenType::Assign))
+    }
+
+    fn starts_type_annotation(&self) -> bool {
+        matches!(
+            self.peek().kind,
+            TokenType::Abn
+                | TokenType::Jajab
+                | TokenType::Qoraal
+                | TokenType::Bool
+                | TokenType::Teed
+                | TokenType::Walax
+                | TokenType::Null
+        ) || (self.peek().kind == TokenType::Identifier
+            && matches!(
+                self.peek_nth(1).kind,
+                TokenType::Identifier | TokenType::Optional | TokenType::Union
+            ))
+    }
+
+    fn parse_type_annotation(&mut self) -> Result<TypeAnnotation, SoplangError> {
+        let mut alternatives = Vec::new();
+        loop {
+            if alternatives.len() >= 32 {
+                return Err(parser_error(
+                    "Noocyada la isku daray aad bay u badan yihiin.",
+                    self.peek().line,
+                    self.peek().col,
+                ));
+            }
+            let token = self.peek().clone();
+            let mut ty = match token.kind {
+                TokenType::Abn
+                | TokenType::Jajab
+                | TokenType::Qoraal
+                | TokenType::Bool
+                | TokenType::Teed
+                | TokenType::Walax
+                | TokenType::Null => token_to_type_ann(&token.kind),
+                TokenType::Identifier => TypeAnnotation::named(token.lexeme),
+                _ => {
+                    return Err(parser_error(
+                        "Waxaa la filayay nooc.",
+                        token.line,
+                        token.col,
+                    ))
+                }
+            };
+            self.advance();
+            if self.check(TokenType::Optional) {
+                self.advance();
+                ty = TypeAnnotation::union(vec![ty, TypeAnnotation::Null]);
+            }
+            alternatives.push(ty);
+            if !self.check(TokenType::Union) {
+                break;
+            }
+            self.advance();
+        }
+        Ok(TypeAnnotation::union(alternatives))
     }
 
     /// Recognize a contextual branch without consuming an ordinary `kale(...)`
@@ -274,6 +336,10 @@ impl Parser {
             return Ok(Stmt::Throw(self.parse_expression()?));
         }
 
+        if t.kind == TokenType::Null && self.looks_like_class_decl() {
+            let ann = self.parse_type_annotation()?;
+            return self.parse_var_decl_rest(ann, false, line, col);
+        }
         match &t.kind {
             TokenType::Haddii => return self.parse_if(line, col),
             TokenType::Dooro => return self.parse_switch(line, col),
@@ -311,14 +377,8 @@ impl Parser {
             }
             TokenType::LBrace => return self.parse_block(),
             TokenType::Identifier if self.looks_like_class_decl() => {
-                let class_name = self.peek().lexeme.clone();
-                self.advance();
-                return self.parse_var_decl_rest(
-                    TypeAnnotation::named(class_name),
-                    false,
-                    line,
-                    col,
-                );
+                let ann = self.parse_type_annotation()?;
+                return self.parse_var_decl_rest(ann, false, line, col);
             }
             TokenType::Identifier | TokenType::Nafta | TokenType::Waalid => {
                 return self.parse_identifier_stmt(line, col)
@@ -370,32 +430,16 @@ impl Parser {
 
     fn parse_madoor(&mut self, line: usize, col: usize) -> Result<Stmt, SoplangError> {
         self.advance(); // madoor
-        let (type_ann, is_static) = if matches!(
-            self.peek().kind,
-            TokenType::Abn
-                | TokenType::Jajab
-                | TokenType::Qoraal
-                | TokenType::Bool
-                | TokenType::Teed
-                | TokenType::Walax
-        ) {
-            (token_to_type_ann(&self.peek().kind), true)
-        } else if self.looks_like_class_decl() {
-            let class_name = self.peek().lexeme.clone();
-            self.advance();
-            return self.parse_var_decl_rest(TypeAnnotation::named(class_name), true, line, col);
+        let type_ann = if self.starts_type_annotation() {
+            self.parse_type_annotation()?
         } else {
-            (TypeAnnotation::Dynamic, false)
+            TypeAnnotation::Dynamic
         };
-        if is_static {
-            self.advance();
-        }
         self.parse_var_decl_rest(type_ann, true, line, col)
     }
 
     fn parse_var_decl_static(&mut self, line: usize, col: usize) -> Result<Stmt, SoplangError> {
-        let type_ann = token_to_type_ann(&self.peek().kind);
-        self.advance();
+        let type_ann = self.parse_type_annotation()?;
         self.parse_var_decl_rest(type_ann, false, line, col)
     }
 
@@ -492,24 +536,8 @@ impl Parser {
         let mut optional = false;
         let mut saw_rest = false;
         while !self.check(TokenType::RParen) {
-            let mut type_ann = if matches!(
-                self.peek().kind,
-                TokenType::Abn
-                    | TokenType::Jajab
-                    | TokenType::Qoraal
-                    | TokenType::Bool
-                    | TokenType::Teed
-                    | TokenType::Walax
-            ) {
-                let ann = token_to_type_ann(&self.peek().kind);
-                self.advance();
-                ann
-            } else if matches!(self.peek().kind, TokenType::Identifier)
-                && matches!(self.peek_nth(1).kind, TokenType::Identifier)
-            {
-                let class_name = self.peek().lexeme.clone();
-                self.advance();
-                TypeAnnotation::named(class_name)
+            let mut type_ann = if self.starts_type_annotation() {
+                self.parse_type_annotation()?
             } else {
                 TypeAnnotation::Dynamic
             };
@@ -616,29 +644,7 @@ impl Parser {
         self.expect(TokenType::RParen)?;
         let return_ann = if self.check(TokenType::Colon) {
             self.advance();
-            if matches!(
-                self.peek().kind,
-                TokenType::Abn
-                    | TokenType::Jajab
-                    | TokenType::Qoraal
-                    | TokenType::Bool
-                    | TokenType::Teed
-                    | TokenType::Walax
-            ) {
-                let ann = token_to_type_ann(&self.peek().kind);
-                self.advance();
-                ann
-            } else if matches!(self.peek().kind, TokenType::Identifier) {
-                let class_name = self.peek().lexeme.clone();
-                self.advance();
-                TypeAnnotation::named(class_name)
-            } else {
-                return Err(parser_error(
-                    "Waxaa la filayay nooca celi (abn/jajab/qoraal/bool/teed/walax)",
-                    self.peek().line,
-                    self.peek().col,
-                ));
-            }
+            self.parse_type_annotation()?
         } else {
             TypeAnnotation::Dynamic
         };
@@ -1505,6 +1511,7 @@ impl Parser {
 
 fn token_to_type_ann(k: &TokenType) -> TypeAnnotation {
     match k {
+        TokenType::Null => TypeAnnotation::Null,
         TokenType::Abn => TypeAnnotation::Abn,
         TokenType::Jajab => TypeAnnotation::Jajab,
         TokenType::Qoraal => TypeAnnotation::Qoraal,

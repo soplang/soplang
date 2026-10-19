@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+* Optional (`T?`), union (`A | B`), and null-only (`maran`) annotations constrain variables, constants, parameters, and returns. Both backends preserve exact numeric alternatives, apply existing numeric conversions when needed, and report recoverable Somali contract errors.
 * Compact `baytyo` byte arrays support checked mutation, byte indexing and slicing, snapshot iteration, strict UTF-8 encoding/decoding, shared collection methods, and concrete type annotations. Both backends retain byte storage through tracing roots; stale handles and conflicting host borrows produce recoverable errors.
 * Named arguments (`name: value`) support reordered values and omitted defaults in user functions, closures, methods, constructors, and parent calls. `**options` collects extra named arguments into a fresh object. Known signatures receive static checks; dynamic binding errors remain catchable.
 * Collection callbacks are checked before iteration, including empty lists. User functions, closures, and builtins expose fixed, optional, variadic, or pairwise argument contracts without running the callback to inspect it.
@@ -18,6 +19,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+* Functions that fall through validate their implicit null return against their annotation, closing a gap for primitive and class return types.
 * Callable parameters and variables shadow global function signatures during static call validation and return-type inference. Windows LLVM wrappers retain the argument-signature registration bridges.
 * Native Rust callbacks receive reusable context-owned handles when converted to Soplang values.
 * LLVM registers empty classes and subclasses, preserving inherited constructors and iterator methods even when the subclass declares no methods.

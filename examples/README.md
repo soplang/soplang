@@ -56,6 +56,7 @@ You can also run an example by its position in the sorted file list:
 | `33_variadic_arguments.sop` | Variadic positional parameters, empty rest lists, and default prefixes |
 | `34_named_arguments.sop` | Named arguments, omitted defaults, and keyword collectors |
 | `35_bytes.sop` | Byte arrays, strict UTF-8 conversion, indexing, slices, and iteration |
+| `36_optional_union_types.sop` | Nullable values, union annotations, defaults, and return contracts |
 
 `_math_lib.sop` is imported by `16_import.sop`; it is not a standalone demo.
 

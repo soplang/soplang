@@ -1,0 +1,6 @@
+Khalad nooc: 'dood' wuxuu u baahan yahay nooca abn | qoraal, laakiin waxaa la helay bool. [E022] safka 3, tiirka 1
+     --> examples/errors/union_dynamic_argument.sop:3:1
+   3 │   wac(run)
+     │   ^^^
+Raadka wicitaannada:
+     tijaabo (examples/errors/union_dynamic_argument.sop:3:1)

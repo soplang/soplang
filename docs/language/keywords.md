@@ -727,3 +727,9 @@ are rejected for `abn` annotations; use `abn(value)` for explicit truncation.
 
 The [byte-array reference](bytes.md) defines construction, strict UTF-8 conversion,
 indexing, checked writes, collection methods, type annotations, and iteration.
+
+## Optional and union annotations
+
+`T?` permits a value of type `T` or `maran`. `A | B` permits either type.
+The [optional and union reference](optional-union-types.md) defines argument
+requirements, conversions, class alternatives, and return validation.

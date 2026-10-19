@@ -729,3 +729,11 @@ fn test_bytes() {
         "bytes ok\n"
     );
 }
+
+#[test]
+fn test_union_types() {
+    assert_eq!(
+        run_program(include_str!("fixtures/union_types.sop")),
+        "union types ok\n"
+    );
+}

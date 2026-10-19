@@ -231,3 +231,21 @@ existing collection vocabulary. New byte-operation failures use `E038`.
 Length conversion errors now include bytes among the accepted types:
 `Qiimaha ma ahan teed, qoraal, walax, ama baytyo`.
 Arity, slicing, stale-handle, and annotation errors reuse their existing forms.
+
+## Optional and union types
+
+`Nooc oggol maran` describes a nullable type. `Noocyo la isku daray` describes
+union alternatives. The public syntax uses `T?`, `A | B`, and `maran`.
+
+| Somali diagnostic | Meaning |
+| --- | --- |
+| `Waxaa la filayay nooc.` | A concrete type annotation was expected. |
+| `Noocyada la isku daray aad bay u badan yihiin.` | The annotation exceeds the alternative limit. |
+| `Qaabka noocyadu ma saxna.` | A native type-contract descriptor is malformed; `E022`. |
+| `'{name}' wuxuu u baahan yahay nooca {types}, laakiin waxaa la helay {actual}.` | The value does not satisfy its runtime type alternatives; `E022`. |
+
+`{types}` joins canonical type names with ` | `, including `maran` when null
+is allowed. `{name}` is a variable name, `dood` for an argument, or `celi` for
+a return value. Class alternatives use class names. Static mismatches, unknown
+classes, required arguments, and bare returns reuse existing diagnostic forms.
+The [type reference](optional-union-types.md) defines the contracts.

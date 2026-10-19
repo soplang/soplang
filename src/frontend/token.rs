@@ -56,6 +56,8 @@ pub enum TokenType {
     LessEq,    // <=
     And,       // &&
     Or,        // ||
+    Union,     // | in type annotations
+    Optional,  // ? in type annotations
     Not,       // !
     Assign,    // =
     // Structural

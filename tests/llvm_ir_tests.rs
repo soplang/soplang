@@ -719,3 +719,17 @@ fn test_llvm_bytes() {
         );
     }
 }
+
+#[test]
+fn test_llvm_union_types() {
+    for opt in [0, 2] {
+        assert_eq!(
+            run_llvm_with_opt(
+                &format!("llvm_union_{opt}"),
+                include_str!("fixtures/union_types.sop"),
+                opt
+            ),
+            "union types ok\n"
+        );
+    }
+}

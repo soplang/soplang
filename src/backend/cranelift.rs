@@ -133,6 +133,7 @@ fn register_runtime_symbols(builder: &mut JITBuilder) {
     sym!(builder, soplang_call_method);
     sym!(builder, soplang_check_type);
     sym!(builder, soplang_check_class);
+    sym!(builder, soplang_check_contract);
     sym!(builder, soplang_mark_const);
     sym!(builder, soplang_new_instance);
     sym!(builder, soplang_make_closure);
@@ -259,7 +260,9 @@ fn max_slot_in_body(body: &[HirInstr]) -> usize {
                     .max(*end + 1)
                     .max(*step + 1);
             }
-            HirInstr::CheckType { src, .. } | HirInstr::CheckClass { src, .. } => {
+            HirInstr::CheckType { src, .. }
+            | HirInstr::CheckClass { src, .. }
+            | HirInstr::CheckContract { src, .. } => {
                 mx = mx.max(*src + 1);
             }
             HirInstr::NewInstance { dst, args, .. } => {
@@ -1190,6 +1193,29 @@ fn compile_body(
                 builder.ins().call(fref, &[st, sp, et, nptr, nlen]);
             }
 
+            HirInstr::CheckContract {
+                src,
+                contract,
+                name,
+            } => {
+                if terminated {
+                    continue;
+                }
+                let st = builder.use_var(var_tags[*src]);
+                let sp = builder.use_var(var_pays[*src]);
+                let cptr = builder.ins().iconst(types::I64, contract.as_ptr() as i64);
+                let clen = builder.ins().iconst(types::I64, contract.len() as i64);
+                let nptr = builder.ins().iconst(types::I64, name.as_ptr() as i64);
+                let nlen = builder.ins().iconst(types::I64, name.len() as i64);
+                let (dt, dp) = call_rt(
+                    builder,
+                    module,
+                    "soplang_check_contract",
+                    &[st, sp, cptr, clen, nptr, nlen],
+                )?;
+                builder.def_var(var_tags[*src], dt);
+                builder.def_var(var_pays[*src], dp);
+            }
             HirInstr::CheckClass {
                 src,
                 class_name,

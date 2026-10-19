@@ -127,14 +127,10 @@ impl<'a> Lexer<'a> {
                     self.advance();
                     return Ok(Token::new(TokenType::Or, "||", line, col, start));
                 }
-                return Err(lexer_error_ex(
-                    format!("Xaraf aan la filayn: {}", c),
-                    line,
-                    col,
-                    ErrorMeta::default().with_code(codes::E001_UNEXPECTED_CHAR),
-                ));
+                return Ok(Token::new(TokenType::Union, "|", line, col, start));
             }
             let (kind, lexeme) = match c {
+                '?' => (TokenType::Optional, "?"),
                 '+' => (TokenType::Plus, "+"),
                 '-' => (TokenType::Minus, "-"),
                 '*' => (TokenType::Star, "*"),

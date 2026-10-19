@@ -1,0 +1,6 @@
+Khalad nooc: 'celi' wuxuu u baahan yahay nooca abn | qoraal, laakiin waxaa la helay bool. [E022] safka 2, tiirka 32
+     --> examples/errors/union_return.sop:2:32
+   2 │   hawl tijaabo(): abn | qoraal { celi qalad() }
+     │                                  ^^^^
+Raadka wicitaannada:
+     tijaabo (examples/errors/union_return.sop:3:1)

@@ -1,0 +1,6 @@
+Khalad nooc: 'celi' wuxuu u baahan yahay nooca abn | qoraal, laakiin waxaa la helay maran. [E022] safka 2, tiirka 1
+     --> examples/errors/union_fallthrough.sop:2:1
+   2 │   tijaabo()
+     │   ^^^^^^^
+Raadka wicitaannada:
+     tijaabo (examples/errors/union_fallthrough.sop:2:1)

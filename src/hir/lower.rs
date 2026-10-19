@@ -203,6 +203,12 @@ pub enum HirInstr {
         type_tag: u8,
         name: String,
     },
+    /// Validate and normalize a nullable or union value in place.
+    CheckContract {
+        src: Slot,
+        contract: String,
+        name: String,
+    },
     /// Value must be an instance of `class_name` or a subclass.
     CheckClass {
         src: Slot,
@@ -441,6 +447,11 @@ impl fmt::Display for HirInstr {
                 type_tag,
                 name,
             } => write!(f, "  check_type %{} {} {}", src, type_tag, name),
+            HirInstr::CheckContract {
+                src,
+                contract,
+                name,
+            } => write!(f, "  check_contract %{} {} {}", src, contract, name),
             HirInstr::CheckClass {
                 src,
                 class_name,
@@ -642,6 +653,13 @@ impl<'a> HirLowering<'a> {
                 for s in body_stmts {
                     inner.lower_stmt(s);
                 }
+                // Falling through returns null, subject to the declared contract.
+                if fm.return_ann != TypeAnnotation::Dynamic {
+                    let result = inner.alloc_slot();
+                    inner.emit_const(result, HirConst::Null);
+                    inner.emit_type_check(result, &fm.return_ann, "celi");
+                    inner.emit(HirInstr::Return { val: result });
+                }
                 HirFunction {
                     name: fm.name.clone(),
                     params: fm.param_slots.clone(),
@@ -808,6 +826,7 @@ impl<'a> HirLowering<'a> {
                 | HirInstr::NewInstance { .. }
                 | HirInstr::CheckType { .. }
                 | HirInstr::CheckClass { .. }
+                | HirInstr::CheckContract { .. }
                 | HirInstr::RangeContinue { .. }
                 | HirInstr::RangeAdvance { .. }
                 | HirInstr::MakeClosure { .. }
@@ -873,6 +892,14 @@ impl<'a> HirLowering<'a> {
     fn emit_type_check(&mut self, src: Slot, ann: &TypeAnnotation, name: &str) {
         match ann {
             TypeAnnotation::Dynamic => {}
+            TypeAnnotation::Union(_) | TypeAnnotation::Null => {
+                self.emit(HirInstr::CheckContract {
+                    src,
+                    contract: ann.runtime_contract(),
+                    name: name.to_owned(),
+                });
+                self.set_temp_num(src, SlotNum::Dyn);
+            }
             TypeAnnotation::Class(class) => self.emit(HirInstr::CheckClass {
                 src,
                 class_name: class.clone(),
@@ -1783,7 +1810,10 @@ fn type_ann_to_tag(ann: &TypeAnnotation) -> u8 {
         TypeAnnotation::Teed => 5,
         TypeAnnotation::Bytes => 7,
         TypeAnnotation::Walax => 6,
-        TypeAnnotation::Dynamic | TypeAnnotation::Class(_) => 0,
+        TypeAnnotation::Dynamic
+        | TypeAnnotation::Class(_)
+        | TypeAnnotation::Null
+        | TypeAnnotation::Union(_) => 0,
     }
 }
 

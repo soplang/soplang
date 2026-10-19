@@ -50,6 +50,7 @@ declare %SoplangValue @soplang_get_builtin(ptr, i64)
 declare void @soplang_store_global(ptr, i64, i64, i64)
 declare %SoplangValue @soplang_call(%SoplangValue, ptr, i32)
 declare void @soplang_check_type(i64, i64, i64, ptr, i64)
+declare %SoplangValue @soplang_check_contract(i64, i64, ptr, i64, ptr, i64)
 declare %SoplangValue @soplang_list_new()
 declare %SoplangValue @soplang_list_push(%SoplangValue, %SoplangValue)
 declare %SoplangValue @soplang_object_new()
@@ -322,7 +323,7 @@ struct Keep(*const ());
 unsafe impl Sync for Keep {}
 
 #[used]
-static KEEP: [Keep; 66] = [
+static KEEP: [Keep; 67] = [
     Keep(runtime::soplang_set_location as *const ()),
     Keep(runtime::soplang_enter_roots as *const ()),
     Keep(runtime::soplang_gc_safepoint as *const ()),
@@ -386,6 +387,7 @@ static KEEP: [Keep; 66] = [
     Keep(runtime::soplang_enter_function as *const ()),
     Keep(runtime::soplang_leave_function as *const ()),
     Keep(runtime::soplang_check_class as *const ()),
+    Keep(runtime::soplang_check_contract as *const ()),
     Keep(runtime::soplang_mark_const as *const ()),
     Keep(runtime::soplang_make_closure as *const ()),
     Keep(runtime::soplang_capture_get as *const ()),
@@ -1317,6 +1319,21 @@ impl<'a> FnEmit<'a> {
                 self.unpack_store(&sv, *dst);
                 Ok(false)
             }
+            HirInstr::CheckContract {
+                src,
+                contract,
+                name,
+            } => {
+                let (t, p) = self.load_slot(*src);
+                let (cp, cl) = self.str_ptr(contract);
+                let (np, nl) = self.str_ptr(name);
+                let sv = self.call_sv(
+                    "soplang_check_contract",
+                    &format!("i64 {t}, i64 {p}, ptr {cp}, i64 {cl}, ptr {np}, i64 {nl}"),
+                );
+                self.unpack_store(&sv, *src);
+                Ok(false)
+            }
             HirInstr::CheckClass {
                 src,
                 class_name,
@@ -1756,9 +1773,9 @@ fn slot_hi(body: &[HirInstr]) -> usize {
                     .max(*end + 1)
                     .max(*step + 1)
             }
-            HirInstr::CheckType { src, .. } | HirInstr::CheckClass { src, .. } => {
-                mx = mx.max(*src + 1)
-            }
+            HirInstr::CheckType { src, .. }
+            | HirInstr::CheckClass { src, .. }
+            | HirInstr::CheckContract { src, .. } => mx = mx.max(*src + 1),
             HirInstr::NewInstance { dst, args, .. } => {
                 mx = mx.max(*dst + 1);
                 for s in args {

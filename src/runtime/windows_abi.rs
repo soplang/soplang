@@ -147,6 +147,8 @@ bridge!(
         name_len: usize,
     )
 );
+bridge!(soplang_check_contract(tag: i64, payload: i64, contract_ptr: *const u8,
+    contract_len: usize, name_ptr: *const u8, name_len: usize) -> SoplangValue);
 bridge!(soplang_get_builtin(name: *const u8, len: usize) -> SoplangValue);
 bridge!(
     soplang_register_user_fn(
