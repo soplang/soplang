@@ -6,6 +6,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [3.1.0]
+
+Implementation milestone; distribution and publication are pending.
+
 ### Added
 
 * `qor()` accepts zero or more values, separates them with spaces, and prints a newline. It returns the printed text without the newline. File execution, the REPL, and LLVM builds support the same calls, including more than eight built-in arguments.

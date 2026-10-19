@@ -235,3 +235,30 @@ The same program runs against optimized Rust runtimes in both backends.
 original modules, grows incremental storage, and invokes older functions.
 Literal values, format descriptors, function names, and diagnostic source text
 must remain unchanged.
+
+## External resource ownership contract
+
+File and network APIs belong to 3.3. Their implementations must use the same
+context ownership rules established here:
+
+- A context owns each native resource. Language values carry opaque handles,
+  never file descriptors, raw pointers, or transferable Rust references.
+- An explicit close operation releases the resource deterministically and is
+  idempotent. Operations on a closed resource return a catchable error. Invalid
+  or foreign handles remain distinct from valid handles whose resource is closed.
+- Use `dhammee` when a close must happen before control leaves a block. Garbage
+  collection provides fallback reclamation and cannot promise when it runs.
+- A reachable stream, callback, or child view keeps its underlying resource
+  reachable. Rust integrations pin retained tagged handles across safepoints.
+- Unreachable resources close during collection; all remaining resources close
+  when their context is dropped. Destruction releases native resources without
+  executing Soplang callbacks or unwinding through generated code.
+- Explicit close and flush operations report I/O failures. Fallback destruction
+  cannot raise an error into already-completed language execution. Programs that
+  need confirmation must flush and close explicitly inside protected code.
+- Resource handles remain confined to their owner. Later task/channel APIs must
+  define transfer or sharing explicitly instead of copying a tagged handle to a
+  different context or thread.
+
+Native resource variants will need collector graph edges and lifecycle tests
+when introduced. This contract does not add file or network operations to 3.1.

@@ -8,7 +8,7 @@ and tests are complete.
 ## Version policy
 
 Soplang is on the **version 3 product line**. The released baseline is
-`3.0.0`, and planned releases use `3.x.y` versions.
+`3.0.1`, and planned releases use `3.x.y` versions.
 
 - `3.x.0` releases may add compatible language, runtime, library, and tooling
   capabilities.
@@ -78,6 +78,10 @@ Soplang 3.0 establishes the release baseline:
 
 ## Soplang 3.1 — runtime stability and diagnostics
 
+Implementation complete; publication pending. See the [milestone notes](docs/releases/3.1.0.md)
+and [local verification](docs/testing/RUNTIME_3_1.md). Later milestones below
+remain planned; their scope is not implied by the completed 3.1 foundation.
+
 Every later feature depends on a runtime that supports long-running programs
 and reports failures precisely.
 
@@ -91,8 +95,9 @@ and reports failures precisely.
 6. Define ownership and cleanup for external resources such as file handles
    and network connections.
 
-The memory design must compare reference counting, reusable handle tables, and
-tracing collection before an implementation is selected.
+The [ownership design](docs/architecture/RUNTIME_CONTEXTS.md) compares reference
+counting, reusable handle tables, and tracing collection. The implementation
+combines them with explicit stack roots and context ownership.
 
 ### Diagnostics and errors
 
