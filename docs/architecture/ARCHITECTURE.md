@@ -2,6 +2,9 @@
 
 This document describes the full architecture of the Soplang compiler: pipeline, data structures, algorithms, and mechanisms. Soplang is a Somali-language scripting language implemented in Rust with a Cranelift JIT and a textual LLVM AOT backend. It describes the v3.0.0 implementation; see the [measured Python/v2/v3 comparison](../../benchmarks/RESULTS.md) for performance.
 
+Unreleased runtime ownership and session isolation are described in
+[Runtime ownership and execution contexts](RUNTIME_CONTEXTS.md).
+
 ---
 
 ## 1. High-Level Pipeline

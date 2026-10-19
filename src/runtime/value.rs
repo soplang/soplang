@@ -24,7 +24,7 @@ pub enum Value {
     Object(Rc<RefCell<HashMap<String, Value>>>),
     Function(FunctionId),
     NativeFunction(NativeFn),
-    /// Leaked closure data pointer. Survives a trip through `Value`.
+    /// Context-owned closure identity. Survives a trip through `Value`.
     Closure(i64),
     Null,
 }

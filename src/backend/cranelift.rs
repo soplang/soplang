@@ -31,7 +31,8 @@ struct CompiledFnInfo {
 }
 
 pub struct CraneliftBackend {
-    module: cranelift_jit::JITModule,
+    runtime: runtime::RuntimeContext,
+    module: OwnedJitModule,
     ctx: cranelift::codegen::Context,
     fn_ctx: FunctionBuilderContext,
     main_func_id: Option<FuncId>,
@@ -40,6 +41,32 @@ pub struct CraneliftBackend {
     registered_fns: usize,
     /// Unique suffix for Cranelift function declarations in this module.
     fn_seq: u32,
+}
+
+struct OwnedJitModule(Option<cranelift_jit::JITModule>);
+
+impl std::ops::Deref for OwnedJitModule {
+    type Target = cranelift_jit::JITModule;
+
+    fn deref(&self) -> &Self::Target {
+        self.0.as_ref().expect("JIT module is alive")
+    }
+}
+
+impl std::ops::DerefMut for OwnedJitModule {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        self.0.as_mut().expect("JIT module is alive")
+    }
+}
+
+impl Drop for OwnedJitModule {
+    fn drop(&mut self) {
+        if let Some(module) = self.0.take() {
+            // The backend owns its function registry and exposes no code pointers.
+            // Its runtime is dropped first, and synchronous execution has returned.
+            unsafe { module.free_memory() };
+        }
+    }
 }
 
 fn register_runtime_symbols(builder: &mut JITBuilder) {
@@ -236,10 +263,11 @@ impl CraneliftBackend {
         let mut jit_builder = JITBuilder::with_isa(isa, cranelift_module::default_libcall_names());
         register_runtime_symbols(&mut jit_builder);
 
-        let module = cranelift_jit::JITModule::new(jit_builder);
+        let module = OwnedJitModule(Some(cranelift_jit::JITModule::new(jit_builder)));
         let ctx = module.make_context();
 
         Ok(Self {
+            runtime: runtime::RuntimeContext::new(),
             module,
             ctx,
             fn_ctx: FunctionBuilderContext::new(),
@@ -255,6 +283,7 @@ impl CraneliftBackend {
         hir: &HirModule,
         sym: &SymbolTable,
     ) -> Result<(), SoplangError> {
+        let _scope = self.runtime.activate();
         runtime::clear_class_registry();
         self.compile_new(hir)?;
         runtime::register_classes_from_sym(&sym.classes);
@@ -267,6 +296,7 @@ impl CraneliftBackend {
         hir: &HirModule,
         sym: &SymbolTable,
     ) -> Result<(), SoplangError> {
+        let _scope = self.runtime.activate();
         self.compile_new(hir)?;
         runtime::merge_classes_from_sym(&sym.classes);
         Ok(())
@@ -285,6 +315,8 @@ impl CraneliftBackend {
     }
 
     pub fn run_main(&self) -> Result<(), SoplangError> {
+        let _scope = self.runtime.activate();
+        runtime::reset_try_state();
         let func_id = self
             .main_func_id
             .ok_or_else(|| runtime_error("Hawsha 'main' weli lama ururin.", 0, 0))?;
@@ -298,6 +330,11 @@ impl CraneliftBackend {
         let main_fn: extern "C" fn() = unsafe { std::mem::transmute(code) };
         main_fn();
         Ok(())
+    }
+
+    /// Inspect a global in this backend's execution environment.
+    pub fn get_global(&self, name: &str) -> Option<runtime::Value> {
+        self.runtime.get_global(name)
     }
 
     fn register_compiled_fns(&mut self) {

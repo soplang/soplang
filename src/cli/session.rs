@@ -7,7 +7,6 @@ use crate::backend::cranelift::CraneliftBackend;
 use crate::error::SoplangError;
 use crate::frontend::{parse_snippet, parse_source};
 use crate::hir::HirLowering;
-use crate::runtime;
 use crate::semantic::{self, AnalyzeOptions, ClassMeta, Scope, SymbolTable, VarInfo};
 
 pub struct ReplSession {
@@ -32,7 +31,6 @@ impl ReplSession {
 
     /// Compile and run one snippet. `path` is set when the snippet comes from a file.
     pub fn eval(&mut self, source: &str, path: Option<&Path>) -> Result<(), SoplangError> {
-        runtime::reset_try_state();
         let parsed = if path.is_none() {
             parse_snippet(source)?
         } else {
@@ -56,6 +54,11 @@ impl ReplSession {
         self.backend.run_main()?;
         self.remember(&sym);
         Ok(())
+    }
+
+    /// Inspect a global belonging to this session.
+    pub fn get_global(&self, name: &str) -> Option<crate::runtime::Value> {
+        self.backend.get_global(name)
     }
 
     fn prelude(&self) -> SymbolTable {

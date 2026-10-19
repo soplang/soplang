@@ -1,6 +1,7 @@
 //! Runtime: values, stdlib builtins, and C ABI for backends.
 
 pub mod abi;
+mod context;
 pub mod stdlib;
 pub mod value;
 
@@ -8,4 +9,5 @@ pub mod value;
 pub mod windows_abi;
 
 pub use abi::*;
+pub use context::RuntimeContext;
 pub use value::{value_to_string, NativeFn, Value};

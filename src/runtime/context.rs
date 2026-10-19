@@ -1,0 +1,121 @@
+//! Owned runtime state selected at the native ABI boundary.
+
+use std::cell::{Cell, RefCell};
+use std::collections::{HashMap, HashSet};
+use std::rc::Rc;
+
+use super::abi::{ClassRegistryEntry, ClosureData, CompiledFnEntry, SoplangValue};
+use super::value::{NativeFn, Value};
+
+#[derive(Default)]
+pub(super) struct RuntimeState {
+    pub current_source: RefCell<Option<crate::error::SourceSpan>>,
+    pub try_depth: Cell<u32>,
+    pub pending_error: RefCell<Option<String>>,
+    pub strings: RefCell<Vec<String>>,
+    pub lists: RefCell<Vec<Rc<RefCell<Vec<Value>>>>>,
+    pub objects: RefCell<Vec<Rc<RefCell<HashMap<String, Value>>>>>,
+    pub native_functions: RefCell<Vec<NativeFn>>,
+    pub builtin_indices: RefCell<Option<HashMap<String, i64>>>,
+    pub globals: RefCell<HashMap<String, SoplangValue>>,
+    pub compiled_functions: RefCell<Vec<CompiledFnEntry>>,
+    pub constants: RefCell<HashSet<String>>,
+    pub classes: RefCell<HashMap<String, ClassRegistryEntry>>,
+    pub closures: RefCell<HashMap<i64, Rc<ClosureData>>>,
+}
+
+thread_local! {
+    // Direct ABI callers and standalone LLVM programs use this default context.
+    // JIT backends activate their own state while compiling and executing.
+    static ACTIVE: RefCell<Rc<RuntimeState>> = RefCell::new(Rc::default());
+}
+
+/// State for one execution environment. Values and callable handles belong to
+/// the context that created them. Contexts remain on their owning thread.
+#[derive(Default)]
+pub struct RuntimeContext {
+    state: Rc<RuntimeState>,
+}
+
+impl RuntimeContext {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Run an ABI operation in this context. Nested scopes and Rust panics
+    /// restore the caller's context. A panic must not cross an extern boundary.
+    pub fn with<R>(&self, operation: impl FnOnce() -> R) -> R {
+        let _scope = self.activate();
+        operation()
+    }
+
+    /// Inspect a global without changing the caller's active context. Callable
+    /// identifiers in the result still belong to this execution environment.
+    pub fn get_global(&self, name: &str) -> Option<Value> {
+        self.with(|| {
+            let value = self.state.globals.borrow().get(name).copied()?;
+            super::abi::soplang_to_value(value).ok()
+        })
+    }
+
+    pub(crate) fn activate(&self) -> RuntimeScope {
+        let previous = ACTIVE.with(|active| active.replace(Rc::clone(&self.state)));
+        RuntimeScope { previous }
+    }
+}
+
+pub(crate) struct RuntimeScope {
+    previous: Rc<RuntimeState>,
+}
+
+impl Drop for RuntimeScope {
+    fn drop(&mut self) {
+        ACTIVE.with(|active| {
+            active.replace(Rc::clone(&self.previous));
+        });
+    }
+}
+
+/// Select a store without retaining a borrow of ACTIVE across runtime callbacks.
+pub(super) struct RuntimeLocal<T> {
+    select: fn(&RuntimeState) -> &T,
+}
+
+impl<T> RuntimeLocal<T> {
+    pub const fn new(select: fn(&RuntimeState) -> &T) -> Self {
+        Self { select }
+    }
+
+    pub fn with<R>(&self, operation: impl FnOnce(&T) -> R) -> R {
+        let state = ACTIVE.with(|active| Rc::clone(&active.borrow()));
+        operation((self.select)(&state))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::runtime::abi::*;
+
+    #[test]
+    fn closures_are_owned_and_only_read_in_their_context() {
+        extern "C" fn unused_entry() {}
+
+        let context = RuntimeContext::new();
+        let (closure, weak) = context.with(|| {
+            // Only registration and capture lookup are exercised; no entry call.
+            soplang_register_user_fn("f".as_ptr(), 1, unused_entry as *const u8, 1);
+            let captured = soplang_str("owned".as_ptr(), 5);
+            let closure = soplang_make_closure("f".as_ptr(), 1, 1, &captured);
+            let value = soplang_capture_get(closure.payload, 0);
+            assert_eq!(soplang_to_value(value).unwrap(), Value::Str("owned".into()));
+            let heap = context.state.closures.borrow();
+            (closure, Rc::downgrade(heap.get(&closure.payload).unwrap()))
+        });
+        assert_eq!(soplang_capture_get(closure.payload, 0).tag, TAG_NULL);
+        assert!(weak.upgrade().is_some());
+        drop(context);
+        assert!(weak.upgrade().is_none());
+        assert_eq!(soplang_capture_get(closure.payload, 0).tag, TAG_NULL);
+    }
+}

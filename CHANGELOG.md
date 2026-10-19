@@ -10,6 +10,9 @@ All notable changes to this project will be documented in this file.
 
 * `qor()` accepts zero or more values, separates them with spaces, and prints a newline. It returns the printed text without the newline. File execution, the REPL, and LLVM builds support the same calls, including more than eight built-in arguments.
 
+* Owned runtime contexts isolate JIT programs and REPL sessions, including their globals, classes, function registrations, source locations, and pending errors. Rust integrations can inspect globals through their owning session or backend.
+* Closure environments are released with their runtime context. Dropping a JIT backend also frees its generated code and data allocations.
+
 ## [3.0.1] - 2026-10-18
 
 ### Fixed

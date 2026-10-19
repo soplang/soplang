@@ -8,6 +8,7 @@ use std::collections::{HashMap, HashSet};
 use std::os::raw::c_int;
 use std::rc::Rc;
 
+use super::context::RuntimeLocal;
 use super::stdlib;
 use super::value::{value_to_string, NativeFn, Value};
 use crate::error::{runtime_error, type_error, SoplangError};
@@ -58,11 +59,11 @@ fn handle_runtime_error(e: SoplangError) -> SoplangValue {
     }
 }
 
-thread_local! {
-    static CURRENT_SOURCE: RefCell<Option<crate::error::SourceSpan>> = RefCell::new(None);
-    static TRY_DEPTH: Cell<u32> = Cell::new(0);
-    static PENDING_ERROR: RefCell<Option<String>> = RefCell::new(None);
-}
+const CURRENT_SOURCE: RuntimeLocal<RefCell<Option<crate::error::SourceSpan>>> =
+    RuntimeLocal::new(|state| &state.current_source);
+const TRY_DEPTH: RuntimeLocal<Cell<u32>> = RuntimeLocal::new(|state| &state.try_depth);
+const PENDING_ERROR: RuntimeLocal<RefCell<Option<String>>> =
+    RuntimeLocal::new(|state| &state.pending_error);
 
 /// Set the source token for the next runtime operation in either backend.
 #[no_mangle]
@@ -174,28 +175,36 @@ impl SoplangValue {
 }
 
 // ----- Heaps for heap-allocated types (used across C boundary) -----
-thread_local! {
-    static STR_HEAP: RefCell<Vec<String>> = RefCell::new(Vec::new());
-    static LIST_HEAP: RefCell<Vec<Rc<RefCell<Vec<Value>>>>> = RefCell::new(Vec::new());
-    static OBJ_HEAP: RefCell<Vec<Rc<RefCell<HashMap<String, Value>>>>> = RefCell::new(Vec::new());
-    static NATIVE_FN_TABLE: RefCell<Vec<NativeFn>> = RefCell::new(Vec::new());
-    static BUILTIN_INDICES: RefCell<Option<HashMap<String, i64>>> = RefCell::new(None);
-    static GLOBAL_VARS: RefCell<HashMap<String, SoplangValue>> = RefCell::new(HashMap::new());
-    static COMPILED_FN_TABLE: RefCell<Vec<CompiledFnEntry>> = RefCell::new(Vec::new());
-    static CONST_GLOBALS: RefCell<HashSet<String>> = RefCell::new(HashSet::new());
-    static CLASS_REGISTRY: RefCell<HashMap<String, ClassRegistryEntry>> = RefCell::new(HashMap::new());
-}
+const STR_HEAP: RuntimeLocal<RefCell<Vec<String>>> = RuntimeLocal::new(|state| &state.strings);
+const LIST_HEAP: RuntimeLocal<RefCell<Vec<Rc<RefCell<Vec<Value>>>>>> =
+    RuntimeLocal::new(|state| &state.lists);
+const OBJ_HEAP: RuntimeLocal<RefCell<Vec<Rc<RefCell<HashMap<String, Value>>>>>> =
+    RuntimeLocal::new(|state| &state.objects);
+const NATIVE_FN_TABLE: RuntimeLocal<RefCell<Vec<NativeFn>>> =
+    RuntimeLocal::new(|state| &state.native_functions);
+const BUILTIN_INDICES: RuntimeLocal<RefCell<Option<HashMap<String, i64>>>> =
+    RuntimeLocal::new(|state| &state.builtin_indices);
+const GLOBAL_VARS: RuntimeLocal<RefCell<HashMap<String, SoplangValue>>> =
+    RuntimeLocal::new(|state| &state.globals);
+const COMPILED_FN_TABLE: RuntimeLocal<RefCell<Vec<CompiledFnEntry>>> =
+    RuntimeLocal::new(|state| &state.compiled_functions);
+const CONST_GLOBALS: RuntimeLocal<RefCell<HashSet<String>>> =
+    RuntimeLocal::new(|state| &state.constants);
+const CLASS_REGISTRY: RuntimeLocal<RefCell<HashMap<String, ClassRegistryEntry>>> =
+    RuntimeLocal::new(|state| &state.classes);
+const CLOSURE_HEAP: RuntimeLocal<RefCell<HashMap<i64, Rc<ClosureData>>>> =
+    RuntimeLocal::new(|state| &state.closures);
 
 const INSTANCE_CLASS_FIELD: &str = "__class__";
 
 #[derive(Clone)]
-struct ClassRegistryEntry {
+pub(super) struct ClassRegistryEntry {
     parent: Option<String>,
     methods: HashMap<String, i64>,
 }
 
 #[derive(Clone, Copy)]
-struct CompiledFnEntry {
+pub(super) struct CompiledFnEntry {
     ptr: *const u8,
     n_params: usize,
 }
@@ -1833,7 +1842,7 @@ pub extern "C" fn soplang_register_user_fn(
     idx
 }
 
-struct ClosureData {
+pub(super) struct ClosureData {
     fn_index: i64,
     env: Vec<SoplangValue>,
 }
@@ -1861,14 +1870,16 @@ pub extern "C" fn soplang_make_closure(
             env.push(unsafe { *args.add(i) });
         }
     }
-    let data = Box::leak(Box::new(ClosureData {
+    let data = Rc::new(ClosureData {
         fn_index: callee.payload,
         env,
-    }));
+    });
+    let payload = Rc::as_ptr(&data) as i64;
+    CLOSURE_HEAP.with(|heap| heap.borrow_mut().insert(payload, data));
     SoplangValue {
         tag: TAG_CLOSURE,
         _pad: [0; 7],
-        payload: data as *mut ClosureData as i64,
+        payload,
     }
 }
 
@@ -1878,7 +1889,9 @@ pub extern "C" fn soplang_capture_get(env_ptr: i64, index: i64) -> SoplangValue 
     if env_ptr == 0 || index < 0 {
         return SoplangValue::null();
     }
-    let data = unsafe { &*(env_ptr as *const ClosureData) };
+    let Some(data) = CLOSURE_HEAP.with(|heap| heap.borrow().get(&env_ptr).cloned()) else {
+        return SoplangValue::null();
+    };
     data.env
         .get(index as usize)
         .copied()
@@ -1889,7 +1902,9 @@ fn call_closure(callee: SoplangValue, args: *const SoplangValue, n: i32) -> Sopl
     if callee.payload == 0 {
         return SoplangValue::null();
     }
-    let data = unsafe { &*(callee.payload as *const ClosureData) };
+    let Some(data) = CLOSURE_HEAP.with(|heap| heap.borrow().get(&callee.payload).cloned()) else {
+        return SoplangValue::null();
+    };
     let mut full = Vec::with_capacity(1 + n.max(0) as usize);
     full.push(SoplangValue {
         tag: TAG_NULL,

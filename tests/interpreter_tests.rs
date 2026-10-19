@@ -81,7 +81,7 @@ fn test_repl_qor_multiple_arguments() {
     session
         .eval("door output = qor(magac1, magac2, 3)", None)
         .unwrap();
-    assert_eq!(global_string("output"), "Ayaan Cali 3");
+    assert_eq!(global_string(&session, "output"), "Ayaan Cali 3");
 }
 
 #[test]
@@ -523,29 +523,29 @@ fn test_repl_global_updates_across_snippets() {
             None,
         )
         .unwrap();
-    assert_eq!(global_int("total"), 1);
-    assert_eq!(global_int("observed"), 1);
+    assert_eq!(global_int(&session, "total"), 1);
+    assert_eq!(global_int(&session, "observed"), 1);
     session
         .eval("increment() total = total + 1 observed = total", None)
         .unwrap();
-    assert_eq!(global_int("total"), 3);
-    assert_eq!(global_int("observed"), 3);
+    assert_eq!(global_int(&session, "total"), 3);
+    assert_eq!(global_int(&session, "observed"), 3);
     session
         .eval(
             "kuceli (index 1 ilaa 3) { observed = observed + index }",
             None,
         )
         .unwrap();
-    assert_eq!(global_int("observed"), 9);
-    assert_eq!(global_int("index"), 4);
+    assert_eq!(global_int(&session, "observed"), 9);
+    assert_eq!(global_int(&session, "index"), 4);
     session
         .eval(
             "kuceli (index 1 ilaa 2) { observed = observed + index }",
             None,
         )
         .unwrap();
-    assert_eq!(global_int("observed"), 12);
-    assert_eq!(global_int("index"), 3);
+    assert_eq!(global_int(&session, "observed"), 12);
+    assert_eq!(global_int(&session, "index"), 3);
 }
 
 #[test]
@@ -564,30 +564,28 @@ fn test_repl_session_keeps_names() {
         .unwrap();
     session.eval(r#"door b = cusub Bisad()"#, None).unwrap();
     session.eval(r#"b.salaam()"#, None).unwrap();
-    assert_eq!(global_string("natiijo"), "Mia");
+    assert_eq!(global_string(&session, "natiijo"), "Mia");
 
     session.eval("door x = 1", None).unwrap();
     session.eval("x = x + 4", None).unwrap();
-    assert_eq!(global_int("x"), 5);
+    assert_eq!(global_int(&session, "x"), 5);
 
     session
         .eval(r#"hawl foo() { natiijo = "fn" }"#, None)
         .unwrap();
     session.eval("foo()", None).unwrap();
-    assert_eq!(global_string("natiijo"), "fn");
+    assert_eq!(global_string(&session, "natiijo"), "fn");
 }
 
-fn global_string(name: &str) -> String {
-    let sv = soplang::runtime::soplang_get_builtin(name.as_ptr(), name.len());
-    match soplang::runtime::soplang_to_value(sv).unwrap() {
+fn global_string(session: &soplang::ReplSession, name: &str) -> String {
+    match session.get_global(name).expect("global exists") {
         soplang::Value::Str(s) => s,
         other => panic!("expected string for {name}, got {other:?}"),
     }
 }
 
-fn global_int(name: &str) -> i64 {
-    let sv = soplang::runtime::soplang_get_builtin(name.as_ptr(), name.len());
-    match soplang::runtime::soplang_to_value(sv).unwrap() {
+fn global_int(session: &soplang::ReplSession, name: &str) -> i64 {
+    match session.get_global(name).expect("global exists") {
         soplang::Value::Int(n) => n,
         other => panic!("expected int for {name}, got {other:?}"),
     }
