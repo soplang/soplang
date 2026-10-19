@@ -43,6 +43,7 @@ declare %SoplangValue @soplang_and(%SoplangValue, %SoplangValue)
 declare %SoplangValue @soplang_or(%SoplangValue, %SoplangValue)
 declare %SoplangValue @soplang_truthy(%SoplangValue)
 declare %SoplangValue @soplang_range_continue(%SoplangValue, %SoplangValue, %SoplangValue)
+declare %SoplangValue @soplang_range_advance(%SoplangValue, %SoplangValue, %SoplangValue)
 declare %SoplangValue @soplang_get_builtin(ptr, i64)
 declare void @soplang_store_global(ptr, i64, i64, i64)
 declare %SoplangValue @soplang_call(%SoplangValue, ptr, i32)
@@ -311,7 +312,7 @@ struct Keep(*const ());
 unsafe impl Sync for Keep {}
 
 #[used]
-static KEEP: [Keep; 59] = [
+static KEEP: [Keep; 60] = [
     Keep(runtime::soplang_set_location as *const ()),
     Keep(runtime::soplang_enter_roots as *const ()),
     Keep(runtime::soplang_gc_safepoint as *const ()),
@@ -340,6 +341,7 @@ static KEEP: [Keep; 59] = [
     Keep(runtime::soplang_or as *const ()),
     Keep(runtime::soplang_truthy as *const ()),
     Keep(runtime::soplang_range_continue as *const ()),
+    Keep(runtime::soplang_range_advance as *const ()),
     Keep(runtime::soplang_get_builtin as *const ()),
     Keep(runtime::soplang_store_global as *const ()),
     Keep(runtime::soplang_call as *const ()),
@@ -1075,8 +1077,19 @@ impl<'a> FnEmit<'a> {
                 current,
                 end,
                 step,
+            }
+            | HirInstr::RangeAdvance {
+                dst,
+                current,
+                end,
+                step,
             } => {
-                let sv = self.call_three("soplang_range_continue", *current, *end, *step);
+                let function = if matches!(instr, HirInstr::RangeAdvance { .. }) {
+                    "soplang_range_advance"
+                } else {
+                    "soplang_range_continue"
+                };
+                let sv = self.call_three(function, *current, *end, *step);
                 self.unpack_store(&sv, *dst);
                 Ok(false)
             }
@@ -1456,6 +1469,19 @@ impl<'a> FnEmit<'a> {
                 BinOpKind::Ge => "icmp sge",
                 _ => unreachable!(),
             };
+            let divisor;
+            let rp = if op == BinOpKind::Mod {
+                // LLVM srem MIN, -1 is poison. Both divisors have remainder 0.
+                let negative_one = self.fresh();
+                divisor = self.fresh();
+                self.line(format!("  {negative_one} = icmp eq i64 {rp}, -1"));
+                self.line(format!(
+                    "  {divisor} = select i1 {negative_one}, i64 1, i64 {rp}"
+                ));
+                &divisor
+            } else {
+                rp
+            };
             let value = self.fresh();
             self.line(format!("  {value} = {instruction} i64 {lp}, {rp}"));
             if matches!(
@@ -1622,6 +1648,12 @@ fn slot_hi(body: &[HirInstr]) -> usize {
             HirInstr::Return { val } | HirInstr::Raise { src: val } => mx = mx.max(*val + 1),
             HirInstr::JumpIf { cond, .. } => mx = mx.max(*cond + 1),
             HirInstr::RangeContinue {
+                dst,
+                current,
+                end,
+                step,
+            }
+            | HirInstr::RangeAdvance {
                 dst,
                 current,
                 end,

@@ -44,6 +44,7 @@ language's error behavior. Documentation explanations remain in English.
 | `Xarafka ka dambeeya '\' lama aqoonsan: {character}.` | The character after a backslash is not a supported escape. |
 | `Xaraf waa inuu ka dambeeyaa calaamadda '\'.` | A backslash must be followed by a character. |
 | `Koodhka Unicode ee qoraalku ma saxna.` | A Unicode escape does not name a valid scalar value. |
+| `Tallaabada kuceli ma beddelayso qiimaha hadda.` | The floating-point step cannot advance toward the endpoint. |
 
 The former diagnostics limiting compiled functions to eight ABI values have
 been removed. Argument counts are still validated against each signature.

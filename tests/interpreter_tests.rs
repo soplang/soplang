@@ -665,3 +665,11 @@ fn test_interpolated_strings() {
         "interpolation ok\n"
     );
 }
+
+#[test]
+fn test_numeric_boundaries() {
+    assert_eq!(
+        run_program(include_str!("fixtures/numeric_edges.sop")),
+        "numeric edges ok\n"
+    );
+}

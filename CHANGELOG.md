@@ -25,6 +25,8 @@ All notable changes to this project will be documented in this file.
 
 * `f` string literals interpolate expressions with optional format descriptors. Nested literals, escaped braces, multiline content, closures, and original source locations work in both compiler backends. Fields evaluate once in order, and failures stop later fields. Editor indexing resolves references inside interpolation.
 
+* Integer arithmetic wraps consistently in native and dynamic execution, including minimum-value negation and remainder. Floating remainder preserves extreme magnitudes and signed zero. Numeric ranges retain exact integer bounds, stop before overflow, and report non-advancing floating-point steps.
+
 ## [3.0.1] - 2026-10-18
 
 ### Fixed

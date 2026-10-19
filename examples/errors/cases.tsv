@@ -71,3 +71,4 @@ compile	interpolation_unclosed.sop	1	14	lama xidhin
 compile	interpolation_brace.sop	1	14	ma laha '{'
 runtime	interpolation_expression.sop	2	20	eber
 runtime	interpolation_format.sop	1	13	lama aqoonsan
+runtime	range_stalled.sop	1	1	ma beddelayso

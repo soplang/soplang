@@ -131,6 +131,13 @@ pub enum HirInstr {
         end: Slot,
         step: Slot,
     },
+    /// Next range value, or null when stepping leaves the numeric domain.
+    RangeAdvance {
+        dst: Slot,
+        current: Slot,
+        end: Slot,
+        step: Slot,
+    },
     Call {
         dst: Slot,
         callee: Slot,
@@ -234,6 +241,7 @@ impl HirInstr {
             | Self::GetIndex { dst, .. }
             | Self::GetProp { dst, .. }
             | Self::RangeContinue { dst, .. }
+            | Self::RangeAdvance { dst, .. }
             | Self::Call { dst, .. }
             | Self::CallMethod { dst, .. }
             | Self::BindError { dst }
@@ -317,6 +325,16 @@ impl fmt::Display for HirInstr {
             } => {
                 write!(f, "  jump_if %{} L{} L{}", cond, on_true, on_false)
             }
+            HirInstr::RangeAdvance {
+                dst,
+                current,
+                end,
+                step,
+            } => write!(
+                f,
+                "  %{} = range_next %{}, %{}, %{}",
+                dst, current, end, step
+            ),
             HirInstr::RangeContinue {
                 dst,
                 current,
@@ -705,6 +723,7 @@ impl<'a> HirLowering<'a> {
                 | HirInstr::CheckType { .. }
                 | HirInstr::CheckClass { .. }
                 | HirInstr::RangeContinue { .. }
+                | HirInstr::RangeAdvance { .. }
                 | HirInstr::MakeClosure { .. }
                 | HirInstr::Raise { .. }
                 | HirInstr::RestoreError
@@ -1070,7 +1089,23 @@ impl<'a> HirLowering<'a> {
                     });
                 }
                 let new_var = self.alloc_slot();
-                self.emit_binop(new_var, BinOpKind::Add, var_slot, step_slot);
+                self.emit(HirInstr::RangeAdvance {
+                    dst: new_var,
+                    current: var_slot,
+                    end: end_slot,
+                    step: step_slot,
+                });
+                let null = self.alloc_slot();
+                self.emit_const(null, HirConst::Null);
+                let finished = self.alloc_slot();
+                self.emit_binop(finished, BinOpKind::Eq, new_var, null);
+                let advanced = self.new_label();
+                self.emit(HirInstr::JumpIf {
+                    cond: finished,
+                    on_true: break_lbl,
+                    on_false: advanced,
+                });
+                self.emit(HirInstr::Label(advanced));
                 self.emit_copy(var_slot, new_var);
                 if self.is_global(var) {
                     self.emit(HirInstr::Store {

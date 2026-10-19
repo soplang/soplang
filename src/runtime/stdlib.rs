@@ -345,7 +345,9 @@ pub fn builtin_baaxad(args: Vec<Value>) -> Result<Value, SoplangError> {
     let mut i = start;
     while (step > 0 && i < stop) || (step < 0 && i > stop) {
         out.push(Value::Int(i));
-        i += step;
+        // Once the next value leaves i64, it is also past every valid bound.
+        let Some(next) = i.checked_add(step) else { break };
+        i = next;
     }
     Ok(Value::List(Rc::new(RefCell::new(out))))
 }

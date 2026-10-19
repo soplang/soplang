@@ -106,6 +106,7 @@ fn register_runtime_symbols(builder: &mut JITBuilder) {
     sym!(builder, soplang_or);
     sym!(builder, soplang_truthy);
     sym!(builder, soplang_range_continue);
+    sym!(builder, soplang_range_advance);
     sym!(builder, soplang_qor);
     sym!(builder, soplang_gelin);
     sym!(builder, soplang_nooc);
@@ -233,7 +234,8 @@ fn max_slot_in_body(body: &[HirInstr]) -> usize {
                 current,
                 end,
                 step,
-            } => {
+            }
+            | HirInstr::RangeAdvance { dst, current, end, step } => {
                 mx = mx
                     .max(*dst + 1)
                     .max(*current + 1)
@@ -981,7 +983,8 @@ fn compile_body(
                 current,
                 end,
                 step,
-            } => {
+            }
+            | HirInstr::RangeAdvance { dst, current, end, step } => {
                 if terminated {
                     continue;
                 }
@@ -993,7 +996,12 @@ fn compile_body(
                     builder.use_var(var_tags[*step]),
                     builder.use_var(var_pays[*step]),
                 ];
-                let (t, p) = call_rt(builder, module, "soplang_range_continue", &args)?;
+                let function = if matches!(instr, HirInstr::RangeAdvance { .. }) {
+                    "soplang_range_advance"
+                } else {
+                    "soplang_range_continue"
+                };
+                let (t, p) = call_rt(builder, module, function, &args)?;
                 builder.def_var(var_tags[*dst], t);
                 builder.def_var(var_pays[*dst], p);
             }
@@ -1319,6 +1327,11 @@ fn emit_native_binop(
     rp: Value,
 ) -> Result<Option<(Value, Value, SlotNum)>, SoplangError> {
     let use_float = matches!(op, BinOpKind::Div) || lk == SlotNum::Float || rk == SlotNum::Float;
+    // A quotient/truncation/subtraction expansion loses the remainder for
+    // extreme magnitudes and the sign of zero. Use the runtime's fmod path.
+    if op == BinOpKind::Mod && use_float {
+        return Ok(None);
+    }
     let result_kind = match op {
         BinOpKind::Div => SlotNum::Float,
         BinOpKind::Add | BinOpKind::Sub | BinOpKind::Mul | BinOpKind::Mod if use_float => {
@@ -1352,20 +1365,15 @@ fn emit_native_binop(
                     float_to_bits(builder, f),
                 )
             }
-            BinOpKind::Mod if !use_float => (
-                builder.ins().iconst(types::I64, 1),
-                builder.ins().srem(lp, rp),
-            ),
             BinOpKind::Mod => {
-                let l = payload_as_float(builder, lk, lp);
-                let r = payload_as_float(builder, rk, rp);
-                let quot = builder.ins().fdiv(l, r);
-                let whole = builder.ins().trunc(quot);
-                let scaled = builder.ins().fmul(whole, r);
-                let rem = builder.ins().fsub(l, scaled);
+                // MIN % -1 is zero; replacing -1 with 1 avoids a trapping
+                // integer divide while preserving every other remainder.
+                let negative_one = builder.ins().icmp_imm(IntCC::Equal, rp, -1);
+                let one = builder.ins().iconst(types::I64, 1);
+                let divisor = builder.ins().select(negative_one, one, rp);
                 (
-                    builder.ins().iconst(types::I64, 2),
-                    float_to_bits(builder, rem),
+                    builder.ins().iconst(types::I64, 1),
+                    builder.ins().srem(lp, divisor),
                 )
             }
             BinOpKind::Eq

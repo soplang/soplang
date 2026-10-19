@@ -662,7 +662,7 @@ fn val_to_str(v: &Value) -> String {
 
 fn add_impl(a: Value, b: Value) -> Result<Value, SoplangError> {
     match (&a, &b) {
-        (Value::Int(n), Value::Int(m)) => Ok(Value::Int(n + m)),
+        (Value::Int(n), Value::Int(m)) => Ok(Value::Int(n.wrapping_add(*m))),
         (Value::Int(n), Value::Float(y)) => Ok(Value::Float(*n as f64 + y)),
         (Value::Float(x), Value::Int(m)) => Ok(Value::Float(x + *m as f64)),
         (Value::Float(x), Value::Float(y)) => Ok(Value::Float(x + y)),
@@ -684,7 +684,7 @@ pub extern "C" fn soplang_add(a: SoplangValue, b: SoplangValue) -> SoplangValue 
 
 fn sub_impl(a: Value, b: Value) -> Result<Value, SoplangError> {
     match (&a, &b) {
-        (Value::Int(n), Value::Int(m)) => Ok(Value::Int(n - m)),
+        (Value::Int(n), Value::Int(m)) => Ok(Value::Int(n.wrapping_sub(*m))),
         (Value::Int(n), Value::Float(y)) => Ok(Value::Float(*n as f64 - y)),
         (Value::Float(x), Value::Int(m)) => Ok(Value::Float(x - *m as f64)),
         (Value::Float(x), Value::Float(y)) => Ok(Value::Float(x - y)),
@@ -704,7 +704,7 @@ pub extern "C" fn soplang_sub(a: SoplangValue, b: SoplangValue) -> SoplangValue 
 
 fn mul_impl(a: Value, b: Value) -> Result<Value, SoplangError> {
     match (&a, &b) {
-        (Value::Int(n), Value::Int(m)) => Ok(Value::Int(n * m)),
+        (Value::Int(n), Value::Int(m)) => Ok(Value::Int(n.wrapping_mul(*m))),
         (Value::Int(n), Value::Float(y)) => Ok(Value::Float(*n as f64 * y)),
         (Value::Float(x), Value::Int(m)) => Ok(Value::Float(x * *m as f64)),
         (Value::Float(x), Value::Float(y)) => Ok(Value::Float(x * y)),
@@ -776,7 +776,7 @@ fn mod_impl(a: Value, b: Value) -> Result<Value, SoplangError> {
                     0,
                 ))
             } else {
-                Ok(Value::Int(n % m))
+                Ok(Value::Int(n.wrapping_rem(*m)))
             }
         }
         (Value::Float(x), Value::Float(y)) => {
@@ -828,7 +828,7 @@ pub extern "C" fn soplang_mod(a: SoplangValue, b: SoplangValue) -> SoplangValue 
 
 fn neg_impl(a: Value) -> Result<Value, SoplangError> {
     match &a {
-        Value::Int(n) => Ok(Value::Int(-n)),
+        Value::Int(n) => Ok(Value::Int(n.wrapping_neg())),
         Value::Float(x) => Ok(Value::Float(-x)),
         _ => Err(runtime_error(
             "Hawlgalka (-) wuxuu u baahan yahay tiro.",
@@ -887,6 +887,20 @@ pub extern "C" fn soplang_range_continue(
         }
     }
 
+    if current.tag == TAG_INT && end.tag == TAG_INT && step.tag == TAG_INT {
+        if step.payload == 0 {
+            return handle_runtime_error(runtime_error(
+                "tallaabada kuceli ma noqon karto eber",
+                0,
+                0,
+            ));
+        }
+        return value_to_soplang(&Value::Bool(if step.payload > 0 {
+            current.payload <= end.payload
+        } else {
+            current.payload >= end.payload
+        }));
+    }
     let result = (|| {
         let current = number(current)?;
         let end = number(end)?;
@@ -904,6 +918,54 @@ pub extern "C" fn soplang_range_continue(
         }))
     })();
 
+    match result {
+        Ok(value) => value_to_soplang(&value),
+        Err(error) => handle_runtime_error(error),
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn soplang_range_advance(
+    current: SoplangValue,
+    end: SoplangValue,
+    step: SoplangValue,
+) -> SoplangValue {
+    check_handles!(current, end, step);
+    if let Some(value) = short_circuit_if_pending() {
+        return value;
+    }
+    if current.tag == TAG_INT && step.tag == TAG_INT {
+        return current
+            .payload
+            .checked_add(step.payload)
+            .map(|next| value_to_soplang(&Value::Int(next)))
+            .unwrap_or_else(SoplangValue::null);
+    }
+    let number = |value: SoplangValue| match value.tag {
+        TAG_INT => Ok(value.payload as f64),
+        TAG_FLOAT => Ok(f64::from_bits(value.payload as u64)),
+        _ => Err(runtime_error("kuceli wuxuu u baahan yahay tirooyin", 0, 0)),
+    };
+    let result = (|| {
+        let value = number(current)?;
+        let end = number(end)?;
+        let step = number(step)?;
+        if !value.is_finite() || !end.is_finite() || !step.is_finite() {
+            return Err(runtime_error("kuceli ma aqbalo tiro aan xad lahayn", 0, 0));
+        }
+        let next = value + step;
+        if !next.is_finite() || (next == value && value == end) {
+            return Ok(Value::Null);
+        }
+        if next == value {
+            return Err(runtime_error(
+                "Tallaabada kuceli ma beddelayso qiimaha hadda.",
+                0,
+                0,
+            ));
+        }
+        Ok(Value::Float(next))
+    })();
     match result {
         Ok(value) => value_to_soplang(&value),
         Err(error) => handle_runtime_error(error),

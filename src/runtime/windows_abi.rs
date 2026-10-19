@@ -64,6 +64,7 @@ bridge!(
         step: SoplangValue,
     ) -> SoplangValue
 );
+bridge!(soplang_range_advance(current: SoplangValue, end: SoplangValue, step: SoplangValue) -> SoplangValue);
 bridge!(soplang_eq(a: SoplangValue, b: SoplangValue) -> SoplangValue);
 bridge!(soplang_ne(a: SoplangValue, b: SoplangValue) -> SoplangValue);
 bridge!(soplang_lt(a: SoplangValue, b: SoplangValue) -> SoplangValue);

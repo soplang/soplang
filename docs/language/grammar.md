@@ -126,3 +126,9 @@ the normal grammar, including nested strings and anonymous functions. Format
 descriptors are static text; dynamic nested descriptors are not supported.
 Unprefixed strings preserve literal backslashes for compatibility. Triple
 quotes preserve line breaks and indentation. Unicode escapes use `\u{HEX}`.
+
+Numeric loops compare integer bounds without converting them to floating point.
+`kuceli` includes its endpoint, while `baaxad` excludes it. A step beyond the
+representable integer range ends either sequence instead of wrapping. A float
+step too small to change the current value raises a catchable error when an
+endpoint remains ahead; an already-reached endpoint finishes normally.

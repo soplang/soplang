@@ -106,8 +106,12 @@ declared class methods receive an implicit instance.
 | `teed`      | `list`/`array`        | List of items       | `teed numbers = [1, 2, 3]`         |
 | `walax`     | `object`              | Key-value pairs     | `walax person = { name: "Ali" }`   |
 
-`abn` uses signed 64-bit integers. `jajab` uses 64-bit binary floating-point
-values; it does not provide exact decimal arithmetic. `qoraal` is a string,
+`abn` uses signed 64-bit integers. Addition, subtraction, multiplication, and
+negation wrap in two's-complement arithmetic in both static and dynamic code.
+Integer `%` keeps the dividend's sign; the minimum integer modulo `-1` is zero.
+Division produces a `jajab`. Division and modulo by zero remain catchable errors.
+`jajab` uses 64-bit binary floating-point values; it does not provide exact
+decimal arithmetic. `qoraal` is a string,
 `teed` is a mutable list, and `walax` stores string keys and values.
 
 ### String literals

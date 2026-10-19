@@ -622,3 +622,17 @@ fn test_llvm_interpolated_strings() {
         "interpolation ok\n"
     );
 }
+
+#[test]
+fn test_llvm_numeric_boundaries() {
+    for opt in [0, 2] {
+        assert_eq!(
+            run_llvm_with_opt(
+                &format!("numeric_edges_{opt}"),
+                include_str!("fixtures/numeric_edges.sop"),
+                opt
+            ),
+            "numeric edges ok\n"
+        );
+    }
+}
