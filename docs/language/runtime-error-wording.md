@@ -167,3 +167,13 @@ default expressions.
 For an unbounded argument range, count messages use `N ama ka badan dood`
 (N or more arguments). Duplicate names and unavailable default dependencies
 keep the wording above.
+
+## Collection callback signatures
+
+`Hawsha la siiyay '{method}()' ma aqbasho {count} dood; waxay u baahan tahay {contract}.`
+means the supplied callback cannot accept the number of arguments passed by
+that collection method. This is `E022` and is checked even on empty lists.
+
+`{contract}` is a fixed count such as `2 dood`, an inclusive range such as
+`1 ilaa 3 dood`, an unbounded range such as `1 ama ka badan dood`, or
+`tiro dhaban ah oo doodo ah` for an even number of arguments.

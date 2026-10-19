@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+* Collection callbacks are checked before iteration, including empty lists. User functions, closures, and builtins expose fixed, optional, variadic, or pairwise argument contracts without running the callback to inspect it.
 * Variadic positional parameters (`*items`) collect surplus arguments into a fresh list. Required and defaulted parameters can precede them; methods, closures, constructors, and callbacks share the same behavior.
 * User functions, closures, methods, constructors, and callbacks accept default parameters evaluated at call time. Defaults can refer to earlier parameters and lexical captures; mutable literals are fresh on each call, and both backends preserve type checks, errors, and collection roots.
 * Collection loops use `kuceli (item ku source)` and exact-length row bindings. Lists use shallow snapshots, strings yield Unicode scalars, and objects yield sorted keys. `wareeg`/`xiga`, lazy `taxane`, `tirso`, and `lamaane` support shared cursors and user-defined class/object protocols in both backends.
@@ -15,6 +16,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+* Native Rust callbacks receive reusable context-owned handles when converted to Soplang values.
 * LLVM registers empty classes and subclasses, preserving inherited constructors and iterator methods even when the subclass declares no methods.
 
 ## [3.1.0]

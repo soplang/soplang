@@ -72,3 +72,6 @@ evaluating a default.
 
 Variadic-argument cases cover rest-parameter order, invalid defaults and types,
 and static and dynamic minimum argument counts.
+
+Empty-list callback cases check user functions, fixed native functions, and
+pairwise native argument contracts without invoking any callback.

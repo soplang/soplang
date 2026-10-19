@@ -53,3 +53,22 @@ closures; inherited constructors and methods; parent calls; callbacks;
 argument evaluation order; shared element identity; fresh list ownership;
 minimum-count failures; and collection while the rest list is live. Dedicated
 tests check declaration constraints, strict typing, and persistent REPL calls.
+
+## Callback signature validation stage
+
+The debug suite passes 190 tests. The diagnostic and example suites pass 14
+tests, including all 95 error cases and 33 public examples through both JIT
+and LLVM. The shared callback fixture covers every callback-taking list method,
+empty and nonempty collections, spelling of compatibility aliases, invalid
+user and native signatures, fixed/defaulted/variadic contracts, captured
+environments, native pairwise arguments, and validation without execution.
+
+The host test checks that unknown Rust callbacks are not probed, that repeated
+conversions reuse a context registration, and that foreign handles are rejected.
+Actual callback calls remain responsible for validating parameter types.
+
+Optimized checks pass 70 tests, including all 29 LLVM tests:
+
+```sh
+cargo test --locked --release --test callback_signature_tests --test interpreter_tests --test llvm_ir_tests
+```

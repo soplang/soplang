@@ -91,3 +91,6 @@ compile	variadic_default.sop	1	15	qiime hordhac
 compile	variadic_type.sop	1	18	teed
 compile	variadic_count.sop	2	1	1 ama ka badan
 runtime	variadic_dynamic_count.sop	2	1	1 ama ka badan
+runtime	empty_callback.sop	1	4	ma aqbasho
+runtime	empty_native_callback.sop	1	4	ma aqbasho
+runtime	empty_pair_callback.sop	1	4	ma aqbasho

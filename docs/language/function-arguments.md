@@ -101,6 +101,35 @@ collection callbacks. Both Cranelift JIT and LLVM executables use the same
 argument binding rules. A callback may have optional trailing parameters when
 the collection supplies its required arguments.
 
+## Collection callback signatures
+
+List methods validate a callback before iterating, including when the list is
+empty. `aaddin`, `shaandhee`, `dhammaan`, and `qaar` supply one argument;
+`ururi` and its `isku_gee` alias supply two. A callback must accept that count.
+Defaults, rest parameters, and closure environments are included in this check.
+
+```sop
+qor([1, 2].aaddin(hawl(qiime, kordhin = 3) { celi qiime + kordhin }))
+qor([1, 2].aaddin(hawl(*qiimayaal) { celi qiimayaal }))
+tijaabi {
+    [].aaddin(hawl(a, b) { celi a + b })
+} qabo (fariin, xog) {
+    qor(xog.summad)
+}
+```
+
+Invalid signatures raise `E022` at the collection method call. Validation does
+not invoke the callback, evaluate its defaults, read input, print output, or
+mutate its captured state. Actual argument types are checked when a call is
+made. Builtins carry their argument-count contracts too, including aliases and
+pairwise arguments to `walax`.
+
+Rust host callbacks registered through `Value::NativeFunction` have no declared
+parameter contract. They validate their own arguments when invoked; the runtime
+does not probe them. Converting the same native function repeatedly reuses its
+context-owned registration. Opaque handles from a different runtime context
+remain invalid.
+
 ## Embedding ABI
 
 Compiled functions retain the vector entry `(values, supplied_count)`. Runtime

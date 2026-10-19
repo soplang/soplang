@@ -433,58 +433,123 @@ pub fn builtin_xidid(args: Vec<Value>) -> Result<Value, SoplangError> {
     Ok(Value::Float(value.sqrt()))
 }
 
+/// Native callback argument contract. A stride represents pairwise arguments.
+#[derive(Clone, Copy, Debug)]
+pub(crate) struct CallbackArity {
+    pub minimum: usize,
+    pub maximum: usize,
+    pub stride: usize,
+}
+
+impl CallbackArity {
+    const fn range(minimum: usize, maximum: usize) -> Self {
+        Self {
+            minimum,
+            maximum,
+            stride: 1,
+        }
+    }
+
+    const fn pairs() -> Self {
+        Self {
+            minimum: 0,
+            maximum: usize::MAX,
+            stride: 2,
+        }
+    }
+
+    pub fn accepts(self, count: usize) -> bool {
+        count >= self.minimum && count <= self.maximum && (count - self.minimum) % self.stride == 0
+    }
+
+    pub fn description(self) -> String {
+        if self.stride == 2 {
+            "tiro dhaban ah oo doodo ah".to_string()
+        } else {
+            format!("{} dood", crate::error::argument_count(self.minimum, self.maximum))
+        }
+    }
+}
+
+// Registration and callback metadata use the same list, including aliases.
+const BUILTINS: &[(&str, super::NativeFn, CallbackArity)] = &[
+    ("qor", builtin_qor, CallbackArity::range(0, usize::MAX)),
+    ("gelin", builtin_gelin, CallbackArity::range(0, 1)),
+    ("nooc", builtin_nooc, CallbackArity::range(1, 1)),
+    ("khalad", builtin_khalad, CallbackArity::range(1, 3)),
+    ("qaabee", builtin_qaabee, CallbackArity::range(1, 2)),
+    (
+        "wareeg",
+        super::iterators::builtin_wareeg,
+        CallbackArity::range(1, 1),
+    ),
+    (
+        "xiga",
+        super::iterators::builtin_xiga,
+        CallbackArity::range(1, 1),
+    ),
+    (
+        "taxane",
+        super::iterators::builtin_taxane,
+        CallbackArity::range(1, 3),
+    ),
+    (
+        "tirso",
+        super::iterators::builtin_tirso,
+        CallbackArity::range(1, 2),
+    ),
+    (
+        "lamaane",
+        super::iterators::builtin_lamaane,
+        CallbackArity::range(0, usize::MAX),
+    ),
+    ("abn", builtin_abn, CallbackArity::range(1, 1)),
+    ("jajab", builtin_jajab, CallbackArity::range(1, 1)),
+    ("qoraal", builtin_qoraal, CallbackArity::range(1, 1)),
+    ("bool", builtin_bool, CallbackArity::range(1, 1)),
+    ("teed", builtin_teed, CallbackArity::range(0, usize::MAX)),
+    ("walax", builtin_walax, CallbackArity::pairs()),
+    ("daji", builtin_daji, CallbackArity::range(1, 1)),
+    ("kor", builtin_kor, CallbackArity::range(1, 1)),
+    ("dherer", builtin_dherer, CallbackArity::range(1, 1)),
+    ("xul", builtin_xul, CallbackArity::range(0, 2)),
+    ("baaxad", builtin_baaxad, CallbackArity::range(1, 3)),
+    (
+        "dhammeystir",
+        builtin_dhammeystir,
+        CallbackArity::range(1, 1),
+    ),
+    ("sugan", builtin_sugan, CallbackArity::range(1, 1)),
+    (
+        "ugu_yar",
+        builtin_ugu_yar,
+        CallbackArity::range(1, usize::MAX),
+    ),
+    (
+        "ugu_weyn",
+        builtin_ugu_weyn,
+        CallbackArity::range(1, usize::MAX),
+    ),
+    ("yar", builtin_yar, CallbackArity::range(1, usize::MAX)),
+    ("weyn", builtin_weyn, CallbackArity::range(1, usize::MAX)),
+    ("awood", builtin_awood, CallbackArity::range(2, 2)),
+    ("jibbaar", builtin_jibbaar, CallbackArity::range(2, 2)),
+    ("duub", builtin_duub, CallbackArity::range(1, 1)),
+    ("xidid", builtin_xidid, CallbackArity::range(1, 1)),
+];
+
+pub(crate) fn builtin_callback_arity(function: super::NativeFn) -> Option<CallbackArity> {
+    BUILTINS
+        .iter()
+        .find(|(_, candidate, _)| std::ptr::fn_addr_eq(*candidate, function))
+        .map(|(_, _, arity)| *arity)
+}
+
 pub fn get_builtin_functions() -> HashMap<String, Value> {
-    let mut m = HashMap::new();
-    m.insert("qor".into(), Value::NativeFunction(builtin_qor));
-    m.insert("gelin".into(), Value::NativeFunction(builtin_gelin));
-    m.insert("nooc".into(), Value::NativeFunction(builtin_nooc));
-    m.insert("khalad".into(), Value::NativeFunction(builtin_khalad));
-    m.insert("qaabee".into(), Value::NativeFunction(builtin_qaabee));
-    m.insert(
-        "wareeg".into(),
-        Value::NativeFunction(super::iterators::builtin_wareeg),
-    );
-    m.insert(
-        "xiga".into(),
-        Value::NativeFunction(super::iterators::builtin_xiga),
-    );
-    m.insert(
-        "taxane".into(),
-        Value::NativeFunction(super::iterators::builtin_taxane),
-    );
-    m.insert(
-        "tirso".into(),
-        Value::NativeFunction(super::iterators::builtin_tirso),
-    );
-    m.insert(
-        "lamaane".into(),
-        Value::NativeFunction(super::iterators::builtin_lamaane),
-    );
-    m.insert("abn".into(), Value::NativeFunction(builtin_abn));
-    m.insert("jajab".into(), Value::NativeFunction(builtin_jajab));
-    m.insert("qoraal".into(), Value::NativeFunction(builtin_qoraal));
-    m.insert("bool".into(), Value::NativeFunction(builtin_bool));
-    m.insert("teed".into(), Value::NativeFunction(builtin_teed));
-    m.insert("walax".into(), Value::NativeFunction(builtin_walax));
-    m.insert("daji".into(), Value::NativeFunction(builtin_daji));
-    m.insert("kor".into(), Value::NativeFunction(builtin_kor));
-    m.insert("dherer".into(), Value::NativeFunction(builtin_dherer));
-    m.insert("xul".into(), Value::NativeFunction(builtin_xul));
-    m.insert("baaxad".into(), Value::NativeFunction(builtin_baaxad));
-    m.insert(
-        "dhammeystir".into(),
-        Value::NativeFunction(builtin_dhammeystir),
-    );
-    m.insert("sugan".into(), Value::NativeFunction(builtin_sugan));
-    m.insert("ugu_yar".into(), Value::NativeFunction(builtin_ugu_yar));
-    m.insert("ugu_weyn".into(), Value::NativeFunction(builtin_ugu_weyn));
-    m.insert("yar".into(), Value::NativeFunction(builtin_yar));
-    m.insert("weyn".into(), Value::NativeFunction(builtin_weyn));
-    m.insert("awood".into(), Value::NativeFunction(builtin_awood));
-    m.insert("jibbaar".into(), Value::NativeFunction(builtin_jibbaar));
-    m.insert("duub".into(), Value::NativeFunction(builtin_duub));
-    m.insert("xidid".into(), Value::NativeFunction(builtin_xidid));
-    m
+    BUILTINS
+        .iter()
+        .map(|(name, function, _)| (name.to_string(), Value::NativeFunction(*function)))
+        .collect()
 }
 
 // ---------- List methods (kasaar=pop, dherer=length, kudar=concat/push, leeyahay, nuqul, nadiifi, rog, habee, jar, muuji) ----------

@@ -521,7 +521,14 @@ pub fn value_to_soplang(v: &Value) -> SoplangValue {
             SoplangValue {
                 tag: TAG_FUNC,
                 _pad: [0; 7],
-                payload: -1,
+                payload: NATIVE_FN_TABLE.with(|table| {
+                    let mut table = table.borrow_mut();
+                    let existing = table
+                        .iter()
+                        .find(|(_, candidate)| std::ptr::fn_addr_eq(*f, **candidate))
+                        .map(|(index, _)| index);
+                    existing.unwrap_or_else(|| table.insert(*f))
+                }),
             }
         }
     }
@@ -1852,17 +1859,64 @@ fn call_value(callee: &Value, args: &[Value]) -> Result<Value, SoplangError> {
     call_collection_callback(callee, &args)
 }
 
-fn collection_callback(value: &Value, name: &str) -> Result<SoplangValue, SoplangError> {
-    match value {
+fn collection_callback(
+    value: &Value,
+    name: &str,
+    supplied: usize,
+) -> Result<SoplangValue, SoplangError> {
+    let callee = match value {
         Value::Function(_) | Value::NativeFunction(_) | Value::Closure(_) => {
-            Ok(value_to_soplang(value))
+            value_to_soplang(value)
         }
-        _ => Err(type_error(
-            format!("Hawsha '{}()' waxay u baahan tahay dood hawl ah", name),
-            0,
-            0,
-        )),
+        _ => {
+            return Err(type_error(
+                format!("Hawsha '{}()' waxay u baahan tahay dood hawl ah", name),
+                0,
+                0,
+            ))
+        }
+    };
+    validate_handle(callee)?;
+    let (entry, hidden) = if callee.tag == TAG_CLOSURE {
+        let index = CLOSURE_HEAP.with(|heap| {
+            heap.borrow()
+                .get(callee.payload)
+                .map(|closure| closure.fn_index)
+        });
+        (index.and_then(compiled_fn_entry), 1)
+    } else {
+        (compiled_fn_entry(callee.payload), 0)
+    };
+    let arity = if let Some(entry) = entry {
+        Some(super::stdlib::CallbackArity {
+            minimum: entry.required_params.saturating_sub(hidden),
+            maximum: if entry.variadic {
+                usize::MAX
+            } else {
+                entry.n_params.saturating_sub(hidden)
+            },
+            stride: 1,
+        })
+    } else {
+        native_fn_get(callee.payload).and_then(super::stdlib::builtin_callback_arity)
+    };
+    if let Some(arity) = arity {
+        if !arity.accepts(supplied) {
+            return Err(crate::error::type_error_ex(
+                format!(
+                    "Hawsha la siiyay '{}()' ma aqbasho {} dood; waxay u baahan tahay {}.",
+                    name,
+                    supplied,
+                    arity.description()
+                ),
+                0,
+                0,
+                crate::error::ErrorMeta::default()
+                    .with_code(crate::error::codes::E022_TYPE_MISMATCH),
+            ));
+        }
     }
+    Ok(callee)
 }
 
 fn call_collection_callback(
@@ -1896,7 +1950,7 @@ fn dispatch_list_method(
                     0,
                 ));
             }
-            let callee_sv = collection_callback(&args[0], method)?;
+            let callee_sv = collection_callback(&args[0], method, 1)?;
             let mut out = Vec::new();
             let items = l.borrow().clone();
             for item in items {
@@ -1915,7 +1969,7 @@ fn dispatch_list_method(
                     0,
                 ));
             }
-            let callee_sv = collection_callback(&args[0], method)?;
+            let callee_sv = collection_callback(&args[0], method, 1)?;
             let mut out = Vec::new();
             let items = l.borrow().clone();
             for item in items {
@@ -1932,7 +1986,7 @@ fn dispatch_list_method(
                     0,
                 ));
             }
-            let callee = collection_callback(&args[0], method)?;
+            let callee = collection_callback(&args[0], method, 2)?;
             let mut accumulator = args[1].clone();
             let items = l.borrow().clone();
             for item in items {
@@ -1949,7 +2003,7 @@ fn dispatch_list_method(
                     0,
                 ));
             }
-            let callee = collection_callback(&args[0], method)?;
+            let callee = collection_callback(&args[0], method, 1)?;
             let want_every = method == "dhammaan";
             let items = l.borrow().clone();
             for item in items {

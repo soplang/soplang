@@ -705,3 +705,11 @@ fn test_variadic_arguments() {
         "variadic arguments ok\n"
     );
 }
+
+#[test]
+fn test_callback_signatures() {
+    assert_eq!(
+        run_program(include_str!("fixtures/callback_signatures.sop")),
+        "callback signatures ok\n"
+    );
+}

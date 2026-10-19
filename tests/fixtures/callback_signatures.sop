@@ -1,0 +1,32 @@
+hawl hubi(shuruud, magac) { haddii (!shuruud) { tuur magac } }
+door effects=0
+hawl none(){effects=effects+1 celi run}
+hawl two(a,b){effects=effects+1 celi a+b}
+door failures=0
+tijaabi { [].aaddin(none) } qabo(message, detail) { hubi(detail.summad=="E022","callback error code") failures=failures+1 }
+tijaabi { [].shaandhee(two) } qabo(message) { failures=failures+1 }
+tijaabi { [].ururi(none,0) } qabo(message) { failures=failures+1 }
+tijaabi { [].isku_gee(none,0) } qabo(message) { hubi(message.leeyahay("isku_gee"),"alias spelling") failures=failures+1 }
+tijaabi { [].dhammaan(two) } qabo(message) { failures=failures+1 }
+tijaabi { [].qaar(none) } qabo(message) { failures=failures+1 }
+hawl make(seed){celi hawl(){celi seed}}
+tijaabi { [].aaddin(make(4)) } qabo(message) { failures=failures+1 }
+tijaabi { [].aaddin(jibbaar) } qabo(message) { failures=failures+1 }
+tijaabi { [].ururi(abn,0) } qabo(message) { failures=failures+1 }
+tijaabi { [].aaddin(walax) } qabo(message) { hubi(message.leeyahay("dhaban"),"pairwise native arity") failures=failures+1 }
+hubi(failures==10 && effects==0,"invalid empty callbacks fail without invocation")
+hawl optional(a,b=2){celi a+b}
+hawl rest(a=2,*values){celi a+values.dherer()}
+hubi([].aaddin(optional)==[] && [].shaandhee(rest)==[],"empty valid callbacks")
+hubi([1,2].aaddin(optional)==[3,4] && [1,2].aaddin(rest)==[1,2],"defaults and variadics")
+hubi([].aaddin(qor)==[] && [].aaddin(gelin)==[],"native callbacks validated without I/O")
+hubi(["1","2"].aaddin(abn)==[1,2],"fixed native conversion callback")
+hubi([].ururi(walax,7)==7,"native pairwise reducer signature")
+hubi([].aaddin(teed)==[] && [].aaddin(lamaane)==[],"native variadic callbacks")
+hubi([].aaddin(ugu_yar)==[] && [].aaddin(yar)==[],"native aliases")
+hubi([].dhammaan(optional)==run && [].qaar(optional)==been,"empty short-circuit defaults")
+hawl captured(seed){celi hawl(value,other=seed){celi value+other}}
+hubi([1,2].aaddin(captured(3))==[4,5],"environment excluded from callback signature")
+tijaabi { [1].aaddin(two) } qabo(message) { failures=failures+1 }
+hubi(failures==11 && effects==0,"nonempty invalid callback also rejected before invocation")
+qor("callback signatures ok")

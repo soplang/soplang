@@ -680,3 +680,14 @@ fn test_llvm_variadic_arguments() {
         );
     }
 }
+
+#[test]
+fn test_llvm_callback_signatures() {
+    assert_eq!(
+        run_llvm(
+            "llvm_callback_signatures",
+            include_str!("fixtures/callback_signatures.sop")
+        ),
+        "callback signatures ok\n"
+    );
+}

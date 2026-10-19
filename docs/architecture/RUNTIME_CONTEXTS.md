@@ -298,3 +298,16 @@ values. The runtime normalizes that slot before entry, excluding the implicit
 instance or environment from its contents. Direct calls bypass this binding
 only for functions without a rest parameter and with every parameter supplied.
 The supplied count can differ from the normalized slot count.
+
+### Native callbacks and argument contracts
+
+Builtin registrations and their callback arity metadata share one definition
+table. Collections validate known compiled and native callback signatures once
+before iteration, including empty inputs, without probing execution. Closure
+environments are excluded from the user argument count. Fixed, optional,
+variadic, and pairwise native contracts are represented explicitly.
+
+Custom Rust `NativeFn` pointers are registered lazily when converted to a value.
+Repeated conversions reuse the registration within the owning context. Their
+argument contracts remain the host function's responsibility; it is never
+called to discover arity. An opaque function handle remains tied to its context.
