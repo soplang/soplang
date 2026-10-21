@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Add dependency command forms and consistent strict/offline project run/build options, reject ignored command arguments, and discover project roots from nested directories. Generate public API Markdown from original signatures and documentation comments with atomic output.
+
 - Add source breakpoints, stepping, caller-frame selection and bounded local inspection to JIT and instrumented LLVM executables. Keep debugger state in its execution context and ordinary builds free of source instrumentation.
 
 - Generate strict typed database clients from `schema.sop`, with record getters, input/filter/update classes, safe bulk mutations, transactions and editor signatures. Add atomic `xog abuur --qor` and read-only stale-client checks with `--hubi`. Preserve imported types during unfinished editor expressions.

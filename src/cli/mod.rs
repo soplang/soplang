@@ -2,7 +2,9 @@
 
 mod data;
 mod debug;
+mod document;
 pub mod lsp;
+mod options;
 pub mod project;
 pub mod session;
 pub mod shell;

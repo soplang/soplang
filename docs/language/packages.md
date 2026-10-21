@@ -213,3 +213,20 @@ that registry or a separate package-hosting service.
 HTTP/HTTPS `.sopkg` URLs resolve an archive directly. Their locked `sumad` fields
 pin content. In online mode, a registry version is still checked against its
 published bytes; offline mode can use its verified cache.
+
+## Dependency commands
+
+```sh
+soplang add xisaab github.com/koox/xisaab@v1.2.3
+soplang update
+soplang remove xisaab
+soplang run --offline
+soplang dhis --offline -O 2 -o app
+```
+
+The repository is illustrative. `add` takes an explicit package name and source;
+a local path such as `../xisaab` is supported too. All three dependency commands
+accept an optional project directory and `--offline`. They use the same resolver
+and root lock as the existing package flags. Offline mode needs a valid cached
+snapshot for remote dependencies. A failed resolution does not rewrite the
+manifest. Source and lock writes follow the package manager's existing behavior.

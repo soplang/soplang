@@ -7,13 +7,56 @@ These commands are separate from `soplang file.sop`. Their help text is Somali.
 | `soplang fmt FILE [--qor]` | Print the canonical form. `--qor` replaces the file. Formatting the result again does not change it. |
 | `soplang check FILE [--adag]` | Analyze without running. `--adag` requires strict types. A `schema.sop` in the same directory is validated. |
 | `soplang test [FILE or DIR] [--shaandhe TEXT] [--wada] [--dabool]` | Run top-level tests. |
-| `soplang doc FILE [--qor OUT]` | Write Markdown for functions, classes, exports, and tests. |
+| `soplang doc FILE [--qor OUT] [--gaar]` | Write public API signatures, documentation comments and tests as Markdown. |
 | `soplang xog abuur [SCHEMA] [--qor CLIENT or --hubi CLIENT]` | Generate or verify a typed database client without connecting. |
 | `soplang lsp` | Speak Language Server Protocol on standard input. |
 | `soplang debug FILE [--jebi [FILE:]LINE] [--soco] [--adag] [--dhis OUT]` | Debug source statements, inspect frames and locals, or build an instrumented LLVM executable. |
 | `soplang profile FILE` | Print function call counts, inclusive/exclusive time, and separate compilation/execution time. |
-| `soplang run [DIR]` | Run the package entry, `main.sop` or `lib.sop` inside `gelid`. |
-| `soplang dhis [DIR]` | Build that entry to `dhis/<magac>`. |
+| `soplang run [DIR] [--adag] [--offline] [-- ARGS]` | Run the package entry with application arguments. |
+| `soplang dhis [DIR] [-o OUT] [-O 0..3] [--adag] [--offline] [-q]` | Build that entry to a native executable. `build` is an alias. |
+| `soplang add NAME SOURCE [DIR] [--offline]` | Add a dependency and update the root lock. |
+| `soplang remove NAME [DIR] [--offline]` | Remove a dependency and update the root lock. |
+| `soplang update [DIR] [--offline]` | Resolve dependencies again and update the root lock. |
+
+## Project commands
+
+Project commands search for the nearest `soplang.toml` from the given directory
+or the current directory, including when invoked inside a nested source folder.
+`run` and `dhis` choose `main.sop`, then `lib.sop`, inside the manifest's `gelid`.
+Application paths remain relative to the caller's working directory. Arguments
+after `run --` are available through `amarro()`.
+
+`--adag` and `--strict` are equivalent. `--offline` verifies existing locked
+caches without fetching; it does not make a missing remote dependency available.
+The same option is accepted by `check` and the dependency commands. Source
+analysis itself never downloads packages. Run/build may prepare dependencies
+unless offline mode is selected.
+
+`dhis` defaults to LLVM optimization level 2 and writes `dhis/<magac>` under the
+project root, with `.exe` on Windows. `-o`, `--output` and `--qor` select an
+output path relative to the caller; `-O` and `--opt-level` select 0 through 3.
+`-q` or `--quiet` suppresses the success message. Conflicting aliases, missing
+option values, unknown options and extra positional arguments are errors.
+Existing package flags remain supported alongside `add`, `remove` and `update`.
+See [packages](packages.md) for supported source forms and lock behavior.
+
+## API documentation
+
+`doc` parses the source without executing it or fetching dependencies. It keeps
+function parameter types, collector types, default expressions, return types,
+class parents and constructor/method signatures exactly as written. Contiguous
+`///` comments immediately above a declaration become its documentation.
+
+The same `soosaar` and private-name rules select public declarations. Public
+reexports are listed by name; their declarations are documented at their source.
+Class members starting with `_` are omitted. `--gaar` includes private declarations
+and methods. Test names and expected error codes are included separately.
+
+`--qor` writes atomically, follows existing symbolic links, preserves permissions,
+and refuses read-only files or replacement of the source itself. Invalid syntax
+leaves the existing documentation intact. Without `--qor`, output goes to
+standard output. Generated prose is English; Soplang signatures and comments
+retain their original language.
 
 ## Formatting
 

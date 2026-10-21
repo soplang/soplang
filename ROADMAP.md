@@ -372,9 +372,9 @@ are already settled. Document each connector's supported operations explicitly.
 1. `soplang fmt` for deterministic formatting — implemented. `--qor` writes the file. A second format leaves the text unchanged.
 2. `soplang check` for analysis without execution — implemented. `--adag` is strict mode, and a sibling `schema.sop` is validated.
 3. `soplang test` for native test discovery and execution — implemented.
-4. `soplang doc` for API documentation generation — implemented. `--qor` writes Markdown.
-5. Package add, remove, and update commands — implemented as `--ku-dar`, `--ka-saar`, and `--cusbooneysii`.
-6. Consistent run and build commands for package projects — implemented as `soplang run` and `soplang dhis`. `run` executes `gelid/main.sop` or `main.sop`. `dhis` writes `dhis/<magac>`.
+4. `soplang doc` for API documentation generation — implemented with public signatures, types/defaults, documentation comments and atomic Markdown output. `--gaar` includes private declarations.
+5. Package add, remove, and update commands — implemented as `add`, `remove` and `update`, with the earlier flags retained. Project directories and offline resolution are supported.
+6. Consistent run and build commands for package projects — implemented as `run`, `dhis` and its `build` alias, with strict/offline options, application arguments, output/optimization settings and nested project discovery.
 
 ### Testing
 

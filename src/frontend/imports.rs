@@ -533,12 +533,16 @@ fn const_binding(name: String, value: Expr) -> Stmt {
     }
 }
 
-fn export_names(stmts: &[Stmt]) -> Result<Vec<String>, SoplangError> {
+pub(crate) fn export_names(stmts: &[Stmt]) -> Result<Vec<String>, SoplangError> {
     let mut defined = HashSet::new();
     let mut explicit = Vec::new();
     for stmt in stmts {
         match stmt.unlocated() {
             Stmt::Export(names) => explicit.extend(names.iter().cloned()),
+            Stmt::Import(spec) => {
+                defined.extend(spec.alias.iter().cloned());
+                defined.extend(spec.selected.iter().map(|selected|selected.alias.as_ref().unwrap_or(&selected.name).clone()));
+            }
             Stmt::FuncDef { name, .. }
             | Stmt::VarDecl { name, .. }
             | Stmt::ClassDef { name, .. }
