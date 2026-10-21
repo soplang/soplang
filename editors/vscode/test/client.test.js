@@ -11,6 +11,8 @@ function extension({ trusted = true, executable = "soplang", start } = {}) {
     const config = { "server.path": executable, "server.enabled": true };
     const workspace = {
         isTrusted: trusted,
+        createFileSystemWatcher: () => ({ dispose() {} }),
+        registerTextDocumentContentProvider: () => ({ dispose() {} }),
         workspaceFolders: [{ uri: { fsPath: path.resolve("workspace with spaces") } }],
         getConfiguration: () => ({ get: (key, fallback) => config[key] ?? fallback }),
         onDidChangeConfiguration: (handler) => { events.changed = handler; return { dispose() {} }; },
@@ -55,7 +57,7 @@ test("starts the configured executable over stdio and disposes it on restart", a
     assert.equal(first.server.transport, 0);
     assert.equal(first.server.options.shell, undefined);
     assert.equal(first.options.markdown.isTrusted, false);
-    assert.equal(JSON.stringify(first.options.documentSelector), '[{"language":"soplang","scheme":"file"},{"language":"soplang","scheme":"untitled"}]');
+    assert.equal(JSON.stringify(first.options.documentSelector), '[{"language":"soplang","scheme":"file"},{"language":"soplang","scheme":"untitled"},{"language":"soplang","scheme":"soplang-stdlib"}]');
     ext.config["server.path"] = "another-soplang";
     await ext.commands.get("soplang.restartServer")();
     assert.equal(first.stopped, 1);

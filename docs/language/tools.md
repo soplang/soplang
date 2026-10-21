@@ -98,6 +98,28 @@ Semantic token lengths include source delimiters and prefixes, and multiline
 strings and comments are split into valid per-line ranges. Stdio headers and
 message sizes are bounded.
 
+Files have separate symbol scopes. Namespace and selective imports follow
+public exports; explicit aliases retain their own rename identity while go to
+definition follows the target. Same-named classes in different modules have
+distinct member identities. Completion and navigation cover namespace exports,
+inherited methods, declared return types, typed collection elements, chained
+calls and known instance fields. Inferred receiver types become uncertain after
+reassignment. Unsafe renames that could capture another binding, rename a
+constructor, or split an override family are refused.
+
+References and rename include open documents and source files under initialized
+workspace roots, including closed importers. Discovery skips hidden/build/vendor
+directories and links and has explicit file, depth and byte limits. A global
+rename is refused when analysis is incomplete instead of returning a partial
+edit. Source reads are bounded before allocation; overlays take precedence over
+disk. File watchers refresh diagnostics for changed imports and manifests.
+
+Bundled-library definitions open `soplang-stdlib:` read-only documents supplied
+by the server. Their source matches the installed compiler and cannot be renamed;
+local import aliases can still be renamed. User files named `web.sop` or
+`xog.sop` continue to take precedence over the bundled imports.
+
+
 ## Breakpoints and profile
 
 `jebi()` prints each stack frame as `name line:column` and reads one line.

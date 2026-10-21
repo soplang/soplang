@@ -1,4 +1,7 @@
 //! Source identities for editor symbols. Runtime slots are deliberately unused.
+mod modules;
+mod types;
+
 use super::SourceFile;
 use crate::frontend::{
     ast::{Expr, InterpolationPart, Literal, Param, Stmt, TypeAnnotation},
@@ -51,6 +54,15 @@ pub struct Index {
     pub parents: HashMap<String, String>,
     pub tokens: HashMap<PathBuf, Vec<Token>>,
     pub unresolved_members: HashSet<String>,
+    file_scopes: HashMap<PathBuf, usize>,
+    class_scopes: HashSet<usize>,
+    class_keys: HashMap<String, String>,
+    function_scopes: HashSet<usize>,
+    exports: HashMap<PathBuf, HashMap<String, usize>>,
+    module_aliases: HashMap<String, PathBuf>,
+    alias_targets: HashMap<String, String>,
+    member_locations: HashSet<Location>,
+    value_hints: HashMap<String, Vec<(Expr, usize)>>,
     by_id: HashMap<String, usize>,
     by_name: HashMap<(usize, String), Vec<usize>>,
 }
@@ -130,13 +142,27 @@ impl Index {
             }
         }
         for file in files {
-            index.statements(&file.statements, file, 0, 0, None);
+            let scope = index.scopes.len();
+            index.scopes.push(Scope {
+                path: file.path.clone(),
+                start: 0,
+                end: file.text.len(),
+                parent: None,
+                class: None,
+            });
+            index.file_scopes.insert(file.path.clone(), scope);
+            index.statements(&file.statements, file, scope, 0, None);
         }
+        index.bind_modules(files);
         let mut assigned = HashSet::new();
         for file in files {
             if let Some(tokens) = index.tokens.get(&file.path) {
-                for pair in tokens.windows(2) {
-                    if pair[1].kind == K::Assign {
+                for (position, pair) in tokens.windows(2).enumerate() {
+                    if pair[1].kind == K::Assign
+                        && !tokens
+                            .get(position.wrapping_sub(1))
+                            .is_some_and(|token| token.kind == K::Dot)
+                    {
                         let scope = index.scope_at(&file.path, pair[0].start);
                         if let Some(symbol) =
                             index.resolve(&pair[0].lexeme, scope, pair[0].start, &file.path)
@@ -150,12 +176,20 @@ impl Index {
             }
         }
         for symbol in &mut index.symbols {
-            if assigned.contains(&symbol.id) && symbol.returns == "inferred" {
+            if assigned.contains(&symbol.id)
+                && symbol.owner.is_none()
+                && symbol.returns == "inferred"
+            {
                 symbol.ty = "door".into();
+                index.value_hints.remove(&symbol.id);
             }
         }
-        let declarations: HashSet<Location> =
-            index.symbols.iter().map(|s| s.location.clone()).collect();
+        index.normalize_types();
+        let declarations: HashSet<Location> = index
+            .occurrences
+            .iter()
+            .map(|occurrence| occurrence.location.clone())
+            .collect();
         for file in files {
             let tokens = index.tokens.get(&file.path).cloned().unwrap_or_default();
             if tokens.is_empty() {
@@ -204,6 +238,9 @@ impl Index {
                         .map(|recv| index.receiver_type(&file.path, recv.start, scope))
                         .unwrap_or_default();
                     let found = index.method(&ty, &token.lexeme).map(|s| s.id.clone());
+                    if found.is_some() {
+                        index.member_locations.insert(location.clone());
+                    }
                     if found.is_none() {
                         index.unresolved_members.insert(token.lexeme.clone());
                     }
@@ -232,7 +269,11 @@ impl Index {
             .map(|o| o.symbol.clone())
             .collect();
         for symbol in &mut index.symbols {
-            if assigned.contains(&symbol.id) && !symbol.constant && symbol.returns == "inferred" {
+            if assigned.contains(&symbol.id)
+                && symbol.owner.is_none()
+                && !symbol.constant
+                && symbol.returns == "inferred"
+            {
                 symbol.ty = "door".into();
             }
         }
@@ -244,32 +285,92 @@ impl Index {
         let Some(target) = self.symbol(id) else {
             return true;
         };
-        if self
-            .symbols
-            .iter()
-            .any(|s| s.id != id && s.scope == target.scope && s.owner.is_none() && s.name == new)
+        if target.owner.is_some()
+            && (matches!(target.name.as_str(), "dhis" | "dhaw")
+                || self.unresolved_members.contains(&target.name))
         {
+            return false;
+        }
+        if let Some(owner) = &target.owner {
+            let related = |left: &str, right: &str| {
+                let ancestors = |start: &str, goal: &str| {
+                    let mut next = Some(start);
+                    let mut seen = HashSet::new();
+                    while let Some(current) = next {
+                        if current == goal {
+                            return true;
+                        }
+                        if !seen.insert(current) {
+                            break;
+                        }
+                        next = self.parents.get(current).map(String::as_str);
+                    }
+                    false
+                };
+                ancestors(left, right) || ancestors(right, left)
+            };
+            if self.symbols.iter().any(|symbol| {
+                symbol.id != id
+                    && symbol
+                        .owner
+                        .as_deref()
+                        .is_some_and(|other| related(owner, other))
+                    && (symbol.name == new || symbol.name == target.name)
+            }) {
+                return false;
+            }
+        }
+        if self.symbols.iter().any(|symbol| {
+            symbol.id != id
+                && symbol.owner == target.owner
+                && symbol.name == new
+                && (target.owner.is_some() || symbol.scope == target.scope)
+        }) {
             return false;
         }
         let mut renamed = self.clone();
         let index = renamed.by_id[id];
-        if let Some(entries) = renamed
+        let bindings: Vec<_> = renamed
             .by_name
-            .get_mut(&(target.scope, target.name.clone()))
-        {
-            entries.retain(|i| *i != index);
+            .iter()
+            .filter(|((_, name), entries)| name == &target.name && entries.contains(&index))
+            .map(|(key, _)| key.clone())
+            .collect();
+        for (scope, old) in bindings {
+            if renamed
+                .by_name
+                .get(&(scope, new.into()))
+                .is_some_and(|entries| entries.iter().any(|entry| *entry != index))
+            {
+                return false;
+            }
+            renamed
+                .by_name
+                .get_mut(&(scope, old))
+                .unwrap()
+                .retain(|entry| *entry != index);
+            renamed
+                .by_name
+                .entry((scope, new.into()))
+                .or_default()
+                .push(index);
         }
-        renamed
-            .by_name
-            .entry((target.scope, new.to_owned()))
-            .or_default()
-            .push(index);
+        for exports in renamed.exports.values_mut() {
+            if exports.get(&target.name) == Some(&index) {
+                if exports.get(new).is_some_and(|entry| *entry != index) {
+                    return false;
+                }
+                exports.remove(&target.name);
+                exports.insert(new.into(), index);
+            }
+        }
         renamed.symbols[index].name = new.to_owned();
         for occurrence in &self.occurrences {
             let Some(symbol) = self.symbol(&occurrence.symbol) else {
                 continue;
             };
             if symbol.owner.is_some()
+                || self.member_locations.contains(&occurrence.location)
                 || occurrence.declaration
                 || symbol.id != id && symbol.name != new
             {
@@ -315,7 +416,12 @@ impl Index {
         offset: usize,
         path: &Path,
     ) -> Option<&Symbol> {
-        let in_function = scope != 0;
+        let mut cursor = Some(scope);
+        let mut in_function = false;
+        while let Some(current) = cursor {
+            in_function |= self.function_scopes.contains(&current);
+            cursor = self.scopes.get(current).and_then(|scope| scope.parent);
+        }
         loop {
             if let Some(s) = self
                 .by_name
@@ -331,7 +437,8 @@ impl Index {
                                     || s.location.start <= offset
                                     || s.parameters.is_some()
                                     || s.kind == 5
-                                    || in_function && s.scope == 0)
+                                    || in_function
+                                        && self.file_scopes.values().any(|root| *root == s.scope))
                         })
                 })
             {
@@ -345,14 +452,20 @@ impl Index {
         let mut scope = self.scope_at(path, offset);
         let mut result = vec![];
         loop {
-            for s in self.symbols.iter().rev().filter(|s| {
-                s.scope == scope
-                    && s.owner.is_none()
-                    && (s.location.path != path
-                        || s.location.start <= offset
-                        || s.parameters.is_some()
-                        || s.kind == 5)
-            }) {
+            for s in self
+                .by_name
+                .iter()
+                .filter(|((owner, _), _)| *owner == scope)
+                .flat_map(|(_, entries)| entries.iter().rev())
+                .filter_map(|index| self.symbols.get(*index))
+                .filter(|s| {
+                    s.owner.is_none()
+                        && (s.location.path != path
+                            || s.location.start <= offset
+                            || s.parameters.is_some()
+                            || s.kind == 5)
+                })
+            {
                 if found.insert(s.name.clone()) {
                     result.push(s);
                 }
@@ -365,6 +478,13 @@ impl Index {
         result
     }
     pub fn method(&self, ty: &str, name: &str) -> Option<&Symbol> {
+        if let Some(module) = self.module_aliases.get(ty) {
+            return self
+                .exports
+                .get(module)?
+                .get(name)
+                .and_then(|index| self.symbols.get(*index));
+        }
         let mut ty = ty;
         let mut seen = HashSet::new();
         loop {
@@ -389,37 +509,6 @@ impl Index {
                 return Some(s);
             }
             ty = self.parents.get(ty)?;
-        }
-    }
-    pub fn receiver_type(&self, path: &Path, start: usize, scope: usize) -> String {
-        let Some(t) = self
-            .tokens
-            .get(path)
-            .and_then(|tokens| tokens.iter().find(|t| t.start == start))
-        else {
-            return "door".into();
-        };
-        if t.lexeme == "nafta" || t.lexeme == "waalid" {
-            let mut cursor = Some(scope);
-            while let Some(i) = cursor {
-                if let Some(class) = &self.scopes[i].class {
-                    return if t.lexeme == "waalid" {
-                        self.parents.get(class).cloned().unwrap_or_default()
-                    } else {
-                        class.clone()
-                    };
-                }
-                cursor = self.scopes[i].parent;
-            }
-            return "door".into();
-        }
-        match t.kind {
-            K::String | K::FormattedString => "qoraal".into(),
-            K::Number => "abn".into(),
-            _ => self
-                .resolve(&t.lexeme, scope, start, path)
-                .map(|s| s.ty.clone())
-                .unwrap_or_else(|| "door".into()),
         }
     }
     fn anchor(&self, file: &SourceFile, start: usize, name: &str) -> Option<Token> {
@@ -570,6 +659,7 @@ impl Index {
         }
         let inner = self.body_scope(file, body_start, scope, class.map(str::to_owned));
         self.scopes[inner].start = start;
+        self.function_scopes.insert(inner);
         for (param, segment) in params.iter().zip(segments) {
             let token = tokens[segment]
                 .iter()
@@ -654,7 +744,7 @@ impl Index {
                                 },
                             )
                         };
-                        self.add(
+                        let id = self.add(
                             file,
                             &token,
                             name,
@@ -666,6 +756,9 @@ impl Index {
                             None,
                             *is_const,
                         );
+                        if inferred_type {
+                            self.value_hints.insert(id, vec![(value.clone(), scope)]);
+                        }
                     }
                     self.expression(value, file, scope, start, class);
                 }
@@ -681,11 +774,15 @@ impl Index {
                             &token,
                             name,
                             scope,
-                            if class.is_some() && scope == 0 { 6 } else { 12 },
+                            if self.class_scopes.contains(&scope) {
+                                6
+                            } else {
+                                12
+                            },
                             "hawl".into(),
                             Some(params.iter().map(parameter_label).collect()),
                             type_name(return_ann),
-                            if scope == 0 {
+                            if self.class_scopes.contains(&scope) {
                                 class.map(str::to_owned)
                             } else {
                                 None
@@ -697,7 +794,7 @@ impl Index {
                 }
                 Stmt::ClassDef { name, parent, body } => {
                     if let Some(token) = self.anchor(file, start, name) {
-                        self.add(
+                        let id = self.add(
                             file,
                             &token,
                             name,
@@ -709,11 +806,16 @@ impl Index {
                             None,
                             true,
                         );
+                        let key = format!("@class{}", self.by_id[&id]);
+                        self.class_keys.insert(key.clone(), id);
+                        self.symbols.last_mut().unwrap().ty = key.clone();
+                        if let Some(parent) = parent {
+                            self.parents.insert(key.clone(), parent.clone());
+                        }
+                        let inner = self.body_scope(file, start, scope, Some(key.clone()));
+                        self.class_scopes.insert(inner);
+                        self.statements(body, file, inner, start, Some(&key));
                     }
-                    if let Some(parent) = parent {
-                        self.parents.insert(name.clone(), parent.clone());
-                    }
-                    self.statements(body, file, scope, start, Some(name));
                 }
                 Stmt::For {
                     var,
@@ -854,6 +956,42 @@ impl Index {
                     self.expression(expr, file, scope, start, class)
                 }
                 Stmt::Assign { target, value, .. } => {
+                    if let (Some(owner), Expr::Property { obj, prop: name }) =
+                        (class, target.unlocated())
+                    {
+                        if matches!(obj.unlocated(), Expr::Identifier(receiver) if receiver == "nafta")
+                        {
+                            let existing = self
+                                .symbols
+                                .iter()
+                                .find(|symbol| {
+                                    symbol.owner.as_deref() == Some(owner) && symbol.name == *name
+                                })
+                                .map(|symbol| symbol.id.clone());
+                            let id = existing.or_else(|| {
+                                self.anchor(file, start, name).map(|token| {
+                                    self.add(
+                                        file,
+                                        &token,
+                                        name,
+                                        scope,
+                                        8,
+                                        "door".into(),
+                                        None,
+                                        "inferred".into(),
+                                        Some(owner.into()),
+                                        false,
+                                    )
+                                })
+                            });
+                            if let Some(id) = id {
+                                self.value_hints
+                                    .entry(id)
+                                    .or_default()
+                                    .push((value.clone(), scope));
+                            }
+                        }
+                    }
                     self.expression(target, file, scope, start, class);
                     self.expression(value, file, scope, start, class);
                 }

@@ -48,6 +48,246 @@ fn request(server: &mut Server, method: &str, uri: &str, position: Value, extra:
         .clone()
 }
 
+fn at(source: &str, needle: &str, within: usize) -> Value {
+    let offset = source.rfind(needle).unwrap() + within;
+    let before = &source[..offset];
+    json!({"line":before.bytes().filter(|byte| *byte == b'\n').count(),
+        "character":before.rsplit('\n').next().unwrap().encode_utf16().count()})
+}
+
+#[test]
+fn namespace_members_and_same_named_classes_keep_distinct_identities() {
+    let tree = Tree::new("module-identities");
+    let left = tree.0.join("left[,].sop");
+    let right = tree.0.join("right.sop");
+    let main = tree.0.join("main.sop");
+    let left_source = "soosaar C, factory\nqaab C {\n hawl dhis(qoraal value) { nafta.name = value }\n hawl same(): qoraal { celi nafta.name }\n hawl child(): C { celi nafta }\n}\nhawl factory(): C { celi cusub C(\"test\") }\nhawl _private() {}\n";
+    let right_source = "soosaar C\nqaab C {\n hawl same(): abn { celi 2 }\n}\n";
+    let source = "keen \"left[,].sop\" sida a\nkeen \"right.sop\" sida b\nkeen \"left[,].sop\" ka C sida Local\nLocal p = cusub Local(\"x\")\ndoor q = cusub b.C()\nqor(p.same())\nqor(q.same())\nqor(a.factory().child().name)\ndoor rows = [p]\nqor(rows[0].same())\n";
+    fs::write(&left, left_source).unwrap();
+    fs::write(&right, right_source).unwrap();
+    fs::write(&main, source).unwrap();
+    let main_uri = uri(&main);
+    let mut server = Server::default();
+    let notices = open(&mut server, &main_uri, source);
+    assert!(
+        notices.iter().all(|notice| notice["params"]["diagnostics"]
+            .as_array()
+            .unwrap()
+            .is_empty()),
+        "{notices:?}"
+    );
+    for (needle, within, file, line) in [
+        ("p.same", 3, &left, 3),
+        ("q.same", 3, &right, 2),
+        ("rows[0].same", 9, &left, 3),
+        ("child().name", 9, &left, 2),
+        ("Local p", 2, &left, 1),
+    ] {
+        let found = request(
+            &mut server,
+            "textDocument/definition",
+            &main_uri,
+            at(source, needle, within),
+            json!({}),
+        );
+        assert_eq!(found["uri"], uri(file), "{needle}: {found}");
+        assert_eq!(found["range"]["start"]["line"], line, "{needle}: {found}");
+    }
+    let labels = |items: Value| {
+        items
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|item| item["label"].as_str().unwrap().to_string())
+            .collect::<Vec<_>>()
+    };
+    let members = labels(request(
+        &mut server,
+        "textDocument/completion",
+        &main_uri,
+        at(source, "a.factory", 2),
+        json!({}),
+    ));
+    assert_eq!(members, ["C", "factory"]);
+    let members = labels(request(
+        &mut server,
+        "textDocument/completion",
+        &main_uri,
+        at(source, "p.same", 2),
+        json!({}),
+    ));
+    assert!(
+        members.contains(&"same".into())
+            && members.contains(&"name".into())
+            && members.contains(&"child".into()),
+        "{members:?}"
+    );
+    assert!(!members.contains(&"_private".into()));
+}
+
+#[test]
+fn explicit_alias_rename_changes_the_binding_and_target_rename_changes_import_names() {
+    let tree = Tree::new("alias-rename");
+    let lib = tree.0.join("lib.sop");
+    let main = tree.0.join("main.sop");
+    let source = "keen \"lib.sop\" ka original sida local\nqor(local())\n";
+    fs::write(&lib, "soosaar original\nhawl original(): abn { celi 1 }\n").unwrap();
+    fs::write(&main, source).unwrap();
+    let (main_uri, lib_uri) = (uri(&main), uri(&lib));
+    let mut server = Server::default();
+    open(&mut server, &main_uri, source);
+    let local = request(
+        &mut server,
+        "textDocument/rename",
+        &main_uri,
+        at(source, "local()", 1),
+        json!({"newName":"mine"}),
+    );
+    assert_eq!(local["changes"].as_object().unwrap().len(), 1, "{local}");
+    assert_eq!(
+        local["changes"][&main_uri].as_array().unwrap().len(),
+        2,
+        "{local}"
+    );
+    let target = request(
+        &mut server,
+        "textDocument/rename",
+        &main_uri,
+        at(source, "original sida", 1),
+        json!({"newName":"changed"}),
+    );
+    assert_eq!(target["changes"].as_object().unwrap().len(), 2, "{target}");
+    assert_eq!(
+        target["changes"][&main_uri].as_array().unwrap().len(),
+        1,
+        "{target}"
+    );
+    assert_eq!(
+        target["changes"][&lib_uri].as_array().unwrap().len(),
+        2,
+        "{target}"
+    );
+}
+
+#[test]
+fn a_module_import_does_not_offer_private_or_unimported_globals() {
+    let tree = Tree::new("private-completion");
+    let lib = tree.0.join("lib.sop");
+    let main = tree.0.join("main.sop");
+    fs::write(&lib, "soosaar public\ndoor hidden = 7\ndoor public = 3\n").unwrap();
+    let source = "keen \"lib.sop\" sida m\ndoor visible = 1\nqor(visible)\n";
+    fs::write(&main, source).unwrap();
+    let mut server = Server::default();
+    let main_uri = uri(&main);
+    open(&mut server, &main_uri, source);
+    let result = request(
+        &mut server,
+        "textDocument/completion",
+        &main_uri,
+        at(source, "visible)", 2),
+        json!({}),
+    );
+    let labels: Vec<_> = result
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|item| item["label"].as_str().unwrap())
+        .collect();
+    assert!(
+        labels.contains(&"m") && labels.contains(&"visible"),
+        "{labels:?}"
+    );
+    assert!(
+        !labels.contains(&"hidden") && !labels.contains(&"public"),
+        "{labels:?}"
+    );
+}
+
+#[test]
+fn workspace_references_include_closed_importers_and_refuse_incomplete_renames() {
+    let tree = Tree::new("workspace");
+    let lib = tree.0.join("lib.sop");
+    let main = tree.0.join("main.sop");
+    let other = tree.0.join("other.sop");
+    let lib_source = "hawl value(): abn { celi 7 }\n";
+    fs::write(&lib, lib_source).unwrap();
+    fs::write(&main, "keen \"lib.sop\" sida m\nqor(m.value())\n").unwrap();
+    fs::write(
+        &other,
+        "keen \"lib.sop\" ka value sida local\nqor(local())\n",
+    )
+    .unwrap();
+    let mut server = Server::default();
+    server.handle(
+        &json!({"jsonrpc":"2.0","id":1,"method":"initialize","params":{"rootUri":uri(&tree.0)}})
+            .to_string(),
+    );
+    let lib_uri = uri(&lib);
+    open(&mut server, &lib_uri, lib_source);
+    let refs = request(
+        &mut server,
+        "textDocument/references",
+        &lib_uri,
+        at(lib_source, "value()", 1),
+        json!({"context":{"includeDeclaration":true}}),
+    );
+    assert_eq!(refs.as_array().unwrap().len(), 3, "{refs}");
+    let edits = request(
+        &mut server,
+        "textDocument/rename",
+        &lib_uri,
+        at(lib_source, "value()", 1),
+        json!({"newName":"result"}),
+    );
+    assert_eq!(edits["changes"].as_object().unwrap().len(), 3, "{edits}");
+    assert_eq!(
+        edits["changes"][uri(&other)].as_array().unwrap().len(),
+        1,
+        "explicit alias references retain their names: {edits}"
+    );
+    fs::write(tree.0.join("broken.sop"), "door x = @").unwrap();
+    let refused = request(
+        &mut server,
+        "textDocument/rename",
+        &lib_uri,
+        at(lib_source, "value()", 1),
+        json!({"newName":"result"}),
+    );
+    assert!(
+        refused.is_null(),
+        "must not return a partial workspace edit: {refused}"
+    );
+}
+
+#[test]
+fn bundled_definitions_have_read_only_source_uris_and_cannot_be_renamed() {
+    let mut server = Server::default();
+    let source = "keen \"web\" sida w\ndoor app = cusub w.Web()\napp.hel(\"GET\", \"/\", hawl(c) { celi w.json({}) })\n";
+    let uri = "untitled:bundled-navigation";
+    open(&mut server, uri, source);
+    let definition = request(
+        &mut server,
+        "textDocument/definition",
+        uri,
+        at(source, "app.hel", 5),
+        json!({}),
+    );
+    assert_eq!(definition["uri"], "soplang-stdlib:/web.sop", "{definition}");
+    let reply = server.handle(&json!({"jsonrpc":"2.0","id":2,"method":"soplang/source","params":{"uri":definition["uri"]}}).to_string());
+    assert!(reply[0]["result"].as_str().unwrap().contains("hawl hel("));
+    let refused = request(
+        &mut server,
+        "textDocument/rename",
+        uri,
+        at(source, "app.hel", 5),
+        json!({"newName":"other"}),
+    );
+    assert!(refused.is_null());
+    let invalid = server.handle(&json!({"jsonrpc":"2.0","id":2,"method":"soplang/source","params":{"uri":"file:///etc/passwd"}}).to_string());
+    assert!(invalid[0]["result"].is_null());
+}
+
 #[test]
 fn definitions_and_rename_use_each_files_unsaved_text_and_encoded_uri() {
     let tree = Tree::new("Af Soomaali 😀");

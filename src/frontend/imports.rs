@@ -899,12 +899,17 @@ fn preserved_import_end(tokens: &[crate::frontend::token::Token], index: usize) 
     }
 }
 
+/// Embedded library source for read-only editor documents.
+pub fn bundled_source(spec: &str) -> Option<(&'static str, &'static str)> {
+    match spec {
+        "web" | "web.sop" => Some(("web.sop", include_str!("../stdlib/web.sop"))),
+        "xog" | "xog.sop" => Some(("xog.sop", include_str!("../stdlib/xog.sop"))),
+        _ => None,
+    }
+}
+
 fn standard_import(base: &Path, spec: &str) -> Option<(PathBuf, &'static str)> {
-    let (name, source) = match spec {
-        "web" | "web.sop" => ("web.sop", include_str!("../stdlib/web.sop")),
-        "xog" | "xog.sop" => ("xog.sop", include_str!("../stdlib/xog.sop")),
-        _ => return None,
-    };
+    let (name, source) = bundled_source(spec)?;
     let direct = base.join(spec);
     let with_extension = if spec.ends_with(".sop") {
         direct.clone()

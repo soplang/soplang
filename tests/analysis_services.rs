@@ -143,3 +143,23 @@ fn editor_import_expansion_obeys_cancellation_and_depth_budgets() {
     );
     assert_eq!(result.error.unwrap().code(), Some("EDITOR_LIMIT"));
 }
+
+#[test]
+fn filesystem_source_reads_are_bounded_and_unsaved_overlays_take_precedence() {
+    let path =
+        std::env::temp_dir().join(format!("soplang_editor_large_{}.sop", std::process::id()));
+    std::fs::File::create(&path)
+        .unwrap()
+        .set_len(Limits::default().max_file_bytes as u64 + 1)
+        .unwrap();
+    assert!(overlay_loader(&HashMap::new(), &path)
+        .unwrap_err()
+        .contains("xadka"));
+    let overlays = HashMap::from([(path.clone(), "door x = 1".into())]);
+    assert_eq!(overlay_loader(&overlays, &path).unwrap(), "door x = 1");
+    std::fs::remove_file(path).unwrap();
+    #[cfg(unix)]
+    assert!(overlay_loader(&HashMap::new(), Path::new("/dev/zero"))
+        .unwrap_err()
+        .contains("fayl caadi ah"));
+}

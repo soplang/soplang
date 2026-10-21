@@ -6,6 +6,7 @@ const { LanguageClient, TransportKind } = require("vscode-languageclient/node");
 
 let client;
 let output;
+let watcher;
 let disposed = false;
 let pending = Promise.resolve();
 
@@ -41,9 +42,11 @@ async function restart() {
         documentSelector: [
             { language: "soplang", scheme: "file" },
             { language: "soplang", scheme: "untitled" },
+            { language: "soplang", scheme: "soplang-stdlib" },
         ],
         outputChannel: output,
         traceOutputChannel: output,
+        synchronize: { fileEvents: watcher },
         markdown: { isTrusted: false },
     });
     await client.start();
@@ -70,6 +73,14 @@ function activate(context) {
     disposed = false;
     output = vscode.window.createOutputChannel("Soplang");
     context.subscriptions.push(output);
+    watcher = vscode.workspace.createFileSystemWatcher("**/*.{sop,toml,lock}");
+    context.subscriptions.push(watcher);
+    context.subscriptions.push(vscode.workspace.registerTextDocumentContentProvider("soplang-stdlib", {
+        provideTextDocumentContent: async (uri) => {
+            if (!client) throw new Error("Adeegga luuqadda Soplang ma furna.");
+            return (await client.sendRequest("soplang/source", { uri: uri.toString() })) || "";
+        },
+    }));
     context.subscriptions.push(vscode.commands.registerCommand("soplang.restartServer", requestRestart));
     context.subscriptions.push(vscode.workspace.onDidChangeConfiguration((event) => {
         if (event.affectsConfiguration("soplang.server")) void requestRestart();

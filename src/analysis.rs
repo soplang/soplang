@@ -234,8 +234,42 @@ impl frontend::imports::ImportSources for EditorSources<'_> {
 
 /// Read-only filesystem provider with unsaved entry/import overlays.
 pub fn overlay_loader(overlays: &HashMap<PathBuf, String>, path: &Path) -> Result<String, String> {
+    use std::io::Read;
     let path = source_identity(path);
-    overlays.get(&path).cloned().map(Ok).unwrap_or_else(|| {
-        std::fs::read_to_string(&path).map_err(|_| format!("Faylka '{}' ma helin", path.display()))
-    })
+    let max = Limits::default().max_file_bytes;
+    if let Some(text) = overlays.get(&path) {
+        return if text.len() <= max {
+            Ok(text.clone())
+        } else {
+            Err("Faylku wuxuu dhaafay xadka qoraalka ee tifaftiraha.".into())
+        };
+    }
+    let meta = std::fs::metadata(&path).map_err(|error| {
+        crate::error::file_read_error(&path, &error)
+            .message()
+            .to_string()
+    })?;
+    if !meta.is_file() {
+        return Err("Isha barnaamijku waa inay noqotaa fayl caadi ah.".into());
+    }
+    if meta.len() > max as u64 {
+        return Err("Faylku wuxuu dhaafay xadka qoraalka ee tifaftiraha.".into());
+    }
+    let file = std::fs::File::open(&path).map_err(|error| {
+        crate::error::file_read_error(&path, &error)
+            .message()
+            .to_string()
+    })?;
+    let mut source = String::new();
+    file.take(max as u64 + 1)
+        .read_to_string(&mut source)
+        .map_err(|error| {
+            crate::error::file_read_error(&path, &error)
+                .message()
+                .to_string()
+        })?;
+    if source.len() > max {
+        return Err("Faylku wuxuu dhaafay xadka qoraalka ee tifaftiraha.".into());
+    }
+    Ok(source)
 }

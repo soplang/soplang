@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Give editor symbols separate file scopes, resolve namespace/export aliases and class member identities, and include closed workspace importers in references and rename. Refuse incomplete or unsafe edits, bound source reads, and open bundled definitions as read-only source documents.
+
 - Connect the VS Code extension to the native language server with executable settings, restart/shutdown handling and workspace trust. Correct comments and string highlighting, add compiler-checked snippets, and verify the real extension host and VSIX packaging.
 
 - Secure and bound web sessions, add rotation/logout and cookie options, preserve form/upload contents, and enforce absolute TCP/TLS exchange deadlines. Add the bundled web test client and structured HTTP error handlers. Keep private function signatures from changing caller builtin contracts.

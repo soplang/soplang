@@ -41,6 +41,16 @@ async function run() {
         const rows = await vscode.commands.executeCommand("vscode.executeDefinitionProvider", document.uri, position);
         return rows?.length > 0;
     }, "server restart did not restore navigation");
+    const libraryUse = await vscode.workspace.openTextDocument({ language: "soplang", content: 'keen "web" sida w\ndoor app = cusub w.Web()\n' });
+    await vscode.window.showTextDocument(libraryUse);
+    const libraryDefinitions = await eventually(async () => {
+        const rows = await vscode.commands.executeCommand("vscode.executeDefinitionProvider", libraryUse.uri, libraryUse.positionAt(libraryUse.getText().indexOf("Web") + 1));
+        return rows?.length ? rows : undefined;
+    }, "bundled class definition was not provided");
+    const libraryUri = libraryDefinitions[0].uri || libraryDefinitions[0].targetUri;
+    assert.equal(libraryUri.scheme, "soplang-stdlib");
+    const library = await vscode.workspace.openTextDocument(libraryUri);
+    assert.ok(library.getText().includes("qaab Web"));
     console.log("SOPLANG_VSCODE_INTEGRATION_OK");
 }
 

@@ -1,6 +1,6 @@
 //! Stdio language server for `.sop` and `schema.sop`.
 
-use std::collections::{BTreeMap, HashMap, HashSet};
+use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::io::{BufRead, Write};
 use std::path::{Path, PathBuf};
 
@@ -13,6 +13,7 @@ use crate::error::{runtime_error_ex, ErrorMeta, SoplangError};
 use crate::frontend::{Lexer, TokenType};
 
 mod position;
+mod workspace;
 use position::{offset as offset_at, range as range_of};
 
 struct Indexed {
@@ -20,6 +21,7 @@ struct Indexed {
     files: Vec<SourceFile>,
     path: PathBuf,
     offset: usize,
+    complete: bool,
 }
 
 impl Indexed {
@@ -37,6 +39,7 @@ pub struct Server {
     versions: HashMap<String, i64>,
     published: HashSet<String>,
     shutdown: bool,
+    roots: BTreeSet<PathBuf>,
     pub exit: bool,
 }
 
@@ -96,27 +99,55 @@ impl Server {
             return id.map(|id| vec![json!({"jsonrpc":"2.0", "id":id, "error":{"code":-32600,"message":"LSP hore ayaa loo joojiyey."}})]).unwrap_or_default();
         }
         let result = match method {
-            "initialize" => json!({
-                "capabilities": {
-                    "textDocumentSync": 2,
-                    "positionEncoding": "utf-16",
-                    "completionProvider": {"triggerCharacters": ["."]},
-                    "hoverProvider": true,
-                    "definitionProvider": true,
-                    "referencesProvider": true,
-                    "renameProvider": true,
-                    "documentFormattingProvider": true,
-                    "codeActionProvider": true,
-                    "semanticTokensProvider": {
-                        "legend": {
-                            "tokenTypes": ["keyword", "function", "variable", "string", "number", "comment", "type"],
-                            "tokenModifiers": []
-                        },
-                        "full": true
+            "initialize" => {
+                self.roots = workspace::roots(&message["params"]);
+                json!({
+                    "capabilities": {
+                        "workspace": {"workspaceFolders":{"supported":true,"changeNotifications":true}},
+                        "textDocumentSync": 2,
+                        "positionEncoding": "utf-16",
+                        "completionProvider": {"triggerCharacters": ["."]},
+                        "hoverProvider": true,
+                        "definitionProvider": true,
+                        "referencesProvider": true,
+                        "renameProvider": true,
+                        "documentFormattingProvider": true,
+                        "codeActionProvider": true,
+                        "semanticTokensProvider": {
+                            "legend": {
+                                "tokenTypes": ["keyword", "function", "variable", "string", "number", "comment", "type"],
+                                "tokenModifiers": []
+                            },
+                            "full": true
+                        }
+                    },
+                    "serverInfo": {"name": "soplang", "version": env!("CARGO_PKG_VERSION")}
+                })
+            }
+            "workspace/didChangeWorkspaceFolders" => {
+                for folder in message
+                    .pointer("/params/event/removed")
+                    .and_then(Value::as_array)
+                    .into_iter()
+                    .flatten()
+                {
+                    if let Some(path) = folder["uri"].as_str().and_then(workspace::file_path) {
+                        self.roots.remove(&path);
                     }
-                },
-                "serverInfo": {"name": "soplang", "version": env!("CARGO_PKG_VERSION")}
-            }),
+                }
+                for folder in message
+                    .pointer("/params/event/added")
+                    .and_then(Value::as_array)
+                    .into_iter()
+                    .flatten()
+                {
+                    if let Some(path) = folder["uri"].as_str().and_then(workspace::file_path) {
+                        self.roots.insert(path);
+                    }
+                }
+                return self.refresh_diagnostics();
+            }
+            "workspace/didChangeWatchedFiles" => return self.refresh_diagnostics(),
             "shutdown" => {
                 self.shutdown = true;
                 Value::Null
@@ -163,6 +194,17 @@ impl Server {
             "textDocument/hover" => self.hover(&message),
             "textDocument/definition" => self.definition(&message),
             "textDocument/references" => self.references(&message),
+            "soplang/source" => message
+                .pointer("/params/uri")
+                .and_then(Value::as_str)
+                .and_then(bundled_path)
+                .and_then(|path| {
+                    path.file_name()
+                        .and_then(|name| name.to_str())
+                        .and_then(crate::frontend::imports::bundled_source)
+                })
+                .map(|(_, text)| Value::String(text.into()))
+                .unwrap_or(Value::Null),
             "textDocument/rename" => self.rename(&message),
             "textDocument/formatting" => self.formatting(&message),
             "textDocument/codeAction" => self.code_action(&message),
@@ -210,19 +252,61 @@ impl Server {
     fn indexed(&self, uri: &str, text: &str, position: (u64, u64)) -> Option<Indexed> {
         let path = path_of(uri);
         let overlays = self.overlays();
-        let analysis = check_source(
-            text,
-            &path,
-            false,
-            Limits::default(),
-            &|imported| overlay_loader(&overlays, imported),
-            &|| false,
+        let limits = Limits::default();
+        let (mut candidates, mut complete) = workspace::discover(&self.roots, limits.max_files);
+        candidates.extend(
+            overlays
+                .keys()
+                .filter(|path| path.file_name().is_none_or(|name| name != "schema.sop"))
+                .cloned(),
         );
+        candidates.remove(&path);
+        let mut files = BTreeMap::<PathBuf, SourceFile>::new();
+        let mut bytes = 0;
+        let sources = std::iter::once((path.clone(), Ok(text.to_string()))).chain(
+            candidates.into_iter().map(|path| {
+                let source = overlay_loader(&overlays, &path);
+                (path, source)
+            }),
+        );
+        for (source_path, source) in sources {
+            if files.contains_key(&source_path) {
+                continue;
+            }
+            let Ok(source) = source else {
+                complete = false;
+                continue;
+            };
+            let analysis = check_source(
+                &source,
+                &source_path,
+                false,
+                limits,
+                &|imported| overlay_loader(&overlays, imported),
+                &|| false,
+            );
+            complete &= analysis.error.is_none();
+            for file in analysis.files {
+                if files.contains_key(&file.path) {
+                    continue;
+                }
+                if files.len() >= limits.max_files
+                    || bytes + file.text.len() > limits.max_total_bytes
+                {
+                    complete = false;
+                    break;
+                }
+                bytes += file.text.len();
+                files.insert(file.path.clone(), file);
+            }
+        }
+        let files: Vec<_> = files.into_values().collect();
         Some(Indexed {
-            index: Index::build(&analysis.files),
-            files: analysis.files,
+            index: Index::build(&files),
+            files,
             offset: offset_at(text, position.0, position.1)?,
             path,
+            complete,
         })
     }
 
@@ -267,26 +351,34 @@ impl Server {
         let Some(analysis) = self.indexed(&uri, &text, position(message)) else {
             return json!([]);
         };
-        let items: Vec<Value> = analysis
+        let symbols = analysis
             .index
-            .visible(&analysis.path, analysis.offset)
+            .members_at(&analysis.path, analysis.offset)
+            .unwrap_or_else(|| analysis.index.visible(&analysis.path, analysis.offset));
+        let items: Vec<Value> = symbols
             .into_iter()
-            .map(|symbol| json!({"label": symbol.name, "kind": completion_kind(symbol)}))
+            .map(|symbol| {
+                json!({
+                    "label": symbol.name, "kind": completion_kind(symbol),
+                    "detail": analysis.index.display_type(&symbol.ty)
+                })
+            })
             .collect();
         json!(items)
     }
 
     fn hover(&self, message: &Value) -> Value {
-        let Some((symbol, _)) = self.symbol_at(message) else {
+        let Some((symbol, analysis)) = self.symbol_at(message) else {
             return Value::Null;
         };
-        json!({"contents": {"kind": "plaintext", "value": format!("{}: {}", symbol.name, symbol.ty)}})
+        json!({"contents": {"kind": "plaintext", "value": format!("{}: {}", symbol.name, analysis.index.display_type(&symbol.ty))}})
     }
 
     fn definition(&self, message: &Value) -> Value {
         let Some((symbol, analysis)) = self.symbol_at(message) else {
             return Value::Null;
         };
+        let symbol = analysis.index.definition_symbol(&symbol);
         json!({
             "uri": self.uri_for_path(&symbol.location.path),
             "range": range_of(analysis.source(&symbol.location.path).unwrap_or(""), symbol.location.start, symbol.location.end)
@@ -322,6 +414,11 @@ impl Server {
         let Some((symbol, analysis)) = self.symbol_at(message) else {
             return Value::Null;
         };
+        if symbol.location.path.starts_with("<soplang>")
+            || (!analysis.complete && analysis.index.workspace_symbol(&symbol.id))
+        {
+            return Value::Null;
+        }
         let Ok(tokens) = Lexer::new(new_name).tokenize() else {
             return Value::Null;
         };
@@ -550,7 +647,24 @@ fn position(message: &Value) -> (u64, u64) {
     (line, character)
 }
 
+fn bundled_path(uri: &str) -> Option<PathBuf> {
+    let uri = url::Url::parse(uri).ok()?;
+    if uri.scheme() != "soplang-stdlib"
+        || uri.host_str().is_some()
+        || uri.query().is_some()
+        || uri.fragment().is_some()
+    {
+        return None;
+    }
+    let name = uri.path().strip_prefix('/')?;
+    let (name, _) = crate::frontend::imports::bundled_source(name)?;
+    Some(PathBuf::from("<soplang>").join(name))
+}
+
 fn path_of(uri: &str) -> PathBuf {
+    if let Some(path) = bundled_path(uri) {
+        return path;
+    }
     if let Ok(url) = url::Url::parse(uri) {
         if let Ok(path) = url.to_file_path() {
             return source_identity(&path);
@@ -560,6 +674,16 @@ fn path_of(uri: &str) -> PathBuf {
 }
 
 fn uri_of(path: &Path) -> String {
+    if path.starts_with("<soplang>") {
+        if let Some(name) = path
+            .file_name()
+            .and_then(|name| name.to_str())
+            .and_then(crate::frontend::imports::bundled_source)
+            .map(|(name, _)| name)
+        {
+            return format!("soplang-stdlib:/{name}");
+        }
+    }
     let absolute = if path.is_absolute() {
         path.to_path_buf()
     } else {

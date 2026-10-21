@@ -4,7 +4,10 @@ Install Soplang and make `soplang` available on `PATH`, then open a `.sop` file.
 The extension starts `soplang lsp` over standard input/output in trusted
 workspaces. It uses the compiler's language server for diagnostics, completion,
 hover, definitions, references, rename, formatting, code actions, and semantic
-highlighting. File documents and untitled buffers are supported.
+highlighting. File documents and untitled buffers are supported. Bundled library
+definitions open read-only source documents from the installed compiler, and
+workspace file changes refresh imported-source diagnostics. The extension runs
+on the workspace host in remote development environments.
 
 The extension runs the installed compiler. It does not download or bundle one.
 Use a compiler built from the same Soplang milestone as this extension.
