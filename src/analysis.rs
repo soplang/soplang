@@ -151,20 +151,27 @@ pub fn check_source(
             });
             let mut flattened = vec![];
             for stmt in parsed? {
-                if let Stmt::Import(target) = stmt.unlocated() {
+                if let Stmt::Import(import) = stmt.unlocated() {
+                    let import_path = import.path.clone();
+                    let alias = import.alias.clone();
                     let target =
-                        source_identity(&path.parent().unwrap_or(Path::new(".")).join(target));
+                        source_identity(&path.parent().unwrap_or(Path::new(".")).join(import_path));
                     let result = (self.load)(&target).map_err(|message| {
                         import_error_ex(message, 0, 0, ErrorMeta::default().with_code("E021"))
                     });
                     let result = result.and_then(|text| self.one(&text, &target, depth + 1));
-                    flattened.extend(result.map_err(|e| {
+                    let loaded = result.map_err(|e| {
                         if let Stmt::Located { span, .. } = &stmt {
                             span.attach(e)
                         } else {
                             e
                         }
-                    })?);
+                    })?;
+                    if alias.is_some() {
+                        flattened.push(stmt);
+                    } else {
+                        flattened.extend(loaded);
+                    }
                 } else {
                     flattened.push(stmt);
                 }

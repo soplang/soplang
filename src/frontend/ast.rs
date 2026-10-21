@@ -395,7 +395,12 @@ pub struct Param {
     pub keyword_rest: bool,
 }
 
-/// Statements (side effects; optional line for errors).
+/// A file import. `alias` keeps the file's public names on one value.
+#[derive(Debug, Clone)]
+pub struct ImportSpec {
+    pub path: String,
+    pub alias: Option<String>,
+}
 #[derive(Debug, Clone)]
 pub enum Stmt {
     Located {
@@ -469,7 +474,7 @@ pub enum Stmt {
         catch_body: Vec<Stmt>,
         finally_body: Vec<Stmt>,
     },
-    Import(String),
+    Import(ImportSpec),
     Block(Vec<Stmt>),
     Expr(Expr),
 }
@@ -671,7 +676,13 @@ impl Stmt {
                 }
                 Ok(())
             }
-            Stmt::Import(path) => writeln!(f, "{}keen {:?};", pad, path),
+            Stmt::Import(import) => {
+                if let Some(alias) = &import.alias {
+                    writeln!(f, "{}keen {:?} sida {};", pad, import.path, alias)
+                } else {
+                    writeln!(f, "{}keen {:?};", pad, import.path)
+                }
+            }
             Stmt::Block(stmts) => {
                 writeln!(f, "{} {{", pad)?;
                 for s in stmts {

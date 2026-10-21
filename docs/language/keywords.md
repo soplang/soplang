@@ -632,7 +632,7 @@ Notes:
 
 | Keyword | Meaning | English | Example |
 | --------- | ---------- | ---------- | ---------- |
-| `keen`  | Import another `.sop` file       | `import` | `keen "lib.sop"`                          |
+| `keen`  | Import another `.sop` file       | `import` | `keen "lib.sop"` or `keen "lib.sop" sida xisaab` |
 | `tijaabi` | Start a protected try block      | `try`    | `tijaabi { ... } qabo (e) { ... }`          |
 | `qabo`  | Catch block with error variable  | `catch`  | `qabo (khalad) { qor(khalad) }`           |
 | `tuur` | Raise an error message | `raise` / `throw` | `tuur "Faylka lama helin"` |

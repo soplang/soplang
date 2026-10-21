@@ -42,6 +42,8 @@ All notable changes to this project will be documented in this file.
 
 * WebSocket builtins `ws_fur`, `ws_qor`, `ws_akhris`, and `ws_xidh` connect to `ws://` and `wss://`, send text or binary frames, and read the next data frame. Connection and protocol failures use `E056`.
 
+* `keen "file.sop" sida name` initializes that file as a namespace. Public top-level functions and variables are fields of `name`. Names that start with `_` stay private, and flat `keen` imports are unchanged.
+
 
 * Numeric builtins add logarithms, radian trigonometry with optional inverse mode, `atan2`-style angles, named constants, clamping, and context-local seeded random streams. Integer-only extrema keep exact 64-bit results; invalid random calls do not advance the generator.
 

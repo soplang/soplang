@@ -1,11 +1,11 @@
 //! Resolve `keen` imports by loading and flattening imported modules at compile time.
 
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 
 use crate::error::{codes, file_read_error, import_error_ex, ErrorMeta, SoplangError};
-use crate::frontend::ast::Stmt;
+use crate::frontend::ast::{Expr, Stmt, TypeAnnotation};
 use crate::frontend::token::TokenType;
 use crate::frontend::Lexer;
 
@@ -60,6 +60,18 @@ fn bundle_one(
         }
 
         let start = tokens[i].start;
+        if tokens.get(i + 2).is_some_and(|token| token.kind == TokenType::Identifier && token.lexeme == "sida")
+            && tokens.get(i + 3).is_some_and(|token| token.kind == TokenType::Identifier)
+        {
+            let end = tokens.get(i + 4).map(|token| token.start).unwrap_or(source.len());
+            if start > cursor {
+                out.push_str(&source[cursor..start]);
+            }
+            out.push_str(&source[start..end]);
+            cursor = end;
+            i += 4;
+            continue;
+        }
         if start > cursor {
             out.push_str(&source[cursor..start]);
         }
@@ -141,10 +153,10 @@ fn flatten_imports(
             Stmt::Located { span, stmt } if matches!(stmt.unlocated(), Stmt::Import(_)) => {
                 flatten_imports(vec![*stmt], source_path, out, seen).map_err(|e| span.attach(e))?;
             }
-            Stmt::Import(path) => {
-                let import_path = resolve_import_path(&base_dir, &path)?;
+            Stmt::Import(import) => {
+                let import_path = resolve_import_path(&base_dir, &import.path)?;
                 let canon = import_path.canonicalize().map_err(|e| {
-                    let error = file_read_error(Path::new(&path), &e);
+                    let error = file_read_error(Path::new(&import.path), &e);
                     import_error_ex(
                         error.message(),
                         0,
@@ -157,10 +169,18 @@ fn flatten_imports(
                     )
                 })?;
                 if !seen.insert(canon) {
+                    if import.alias.is_some() {
+                        return Err(import_error_ex(
+                            "Keen-ku waa wareeg, ama faylkan horay ayaa loo keenay.",
+                            0,
+                            0,
+                            ErrorMeta::default().with_code(codes::E021_UNDECLARED),
+                        ));
+                    }
                     continue;
                 }
                 let source = fs::read_to_string(&import_path).map_err(|e| {
-                    let error = file_read_error(Path::new(&path), &e);
+                    let error = file_read_error(Path::new(&import.path), &e);
                     import_error_ex(
                         error.message(),
                         0,
@@ -173,12 +193,203 @@ fn flatten_imports(
                     )
                 })?;
                 let imported = super::parse_source(&source, Some(&import_path))?;
-                flatten_imports(imported, Some(&import_path), out, seen)?;
+                if let Some(alias) = import.alias {
+                    let mut body = Vec::new();
+                    flatten_imports(imported, Some(&import_path), &mut body, seen)?;
+                    let public = export_names(&body);
+                    let renamed = mangled_bindings(&alias, &body);
+                    rename_stmts(&mut body, &renamed);
+                    body.push(Stmt::Return(Some(Expr::Object(
+                        public
+                            .into_iter()
+                            .map(|name| {
+                                let value = renamed.get(&name).cloned().unwrap_or_else(|| name.clone());
+                                (name, Expr::Identifier(value))
+                            })
+                            .collect(),
+                    ))));
+                    out.push(Stmt::VarDecl {
+                        name: alias,
+                        type_ann: TypeAnnotation::Dynamic,
+                        is_const: true,
+                        value: Expr::Invoke {
+                            callee: Box::new(Expr::AnonymousFunc {
+                                params: Vec::new(),
+                                return_ann: TypeAnnotation::Dynamic,
+                                body,
+                            }),
+                            args: Vec::new(),
+                        },
+                        line: 0,
+                        col: 0,
+                    });
+                } else {
+                    flatten_imports(imported, Some(&import_path), out, seen)?;
+                }
             }
             other => out.push(other),
         }
     }
     Ok(())
+}
+
+fn export_names(stmts: &[Stmt]) -> Vec<String> {
+    let mut names = Vec::new();
+    for stmt in stmts {
+        match stmt.unlocated() {
+            Stmt::FuncDef { name, .. } | Stmt::VarDecl { name, .. } if !name.starts_with('_') => {
+                names.push(name.clone());
+            }
+            _ => {}
+        }
+    }
+    names
+}
+
+fn mangled_bindings(alias: &str, stmts: &[Stmt]) -> HashMap<String, String> {
+    let mut names = HashMap::new();
+    for stmt in stmts {
+        if let Stmt::FuncDef { name, .. } | Stmt::ClassDef { name, .. } = stmt.unlocated() {
+            names.insert(name.clone(), format!("__soplang_{alias}_{name}"));
+        }
+    }
+    names
+}
+
+fn rename_stmts(stmts: &mut [Stmt], names: &HashMap<String, String>) {
+    for stmt in stmts {
+        rename_stmt(stmt, names);
+    }
+}
+
+fn rename_stmt(stmt: &mut Stmt, names: &HashMap<String, String>) {
+    match stmt {
+        Stmt::Located { stmt, .. } => rename_stmt(stmt, names),
+        Stmt::VarDecl { value, .. } => rename_expr(value, names),
+        Stmt::Assign { target, value, .. } => {
+            rename_expr(target, names);
+            rename_expr(value, names);
+        }
+        Stmt::FuncDef { name, body, .. } => {
+            if let Some(renamed) = names.get(name) {
+                *name = renamed.clone();
+            }
+            rename_stmts(body, names);
+        }
+        Stmt::ClassDef { name, parent, body } => {
+            if let Some(renamed) = names.get(name) {
+                *name = renamed.clone();
+            }
+            if let Some(parent) = parent {
+                if let Some(renamed) = names.get(parent) {
+                    *parent = renamed.clone();
+                }
+            }
+            rename_stmts(body, names);
+        }
+        Stmt::If { cond, then_body, elseifs, else_body } => {
+            rename_expr(cond, names);
+            rename_stmts(then_body, names);
+            for (cond, body) in elseifs {
+                rename_expr(cond, names);
+                rename_stmts(body, names);
+            }
+            if let Some(body) = else_body {
+                rename_stmts(body, names);
+            }
+        }
+        Stmt::Switch { expr, cases, default } => {
+            rename_expr(expr, names);
+            for (value, body) in cases {
+                rename_expr(value, names);
+                rename_stmts(body, names);
+            }
+            if let Some(body) = default {
+                rename_stmts(body, names);
+            }
+        }
+        Stmt::For { start, end, step, body, .. } => {
+            rename_expr(start, names);
+            rename_expr(end, names);
+            if let Some(step) = step {
+                rename_expr(step, names);
+            }
+            rename_stmts(body, names);
+        }
+        Stmt::ForEach { iterable, body, .. } => {
+            rename_expr(iterable, names);
+            rename_stmts(body, names);
+        }
+        Stmt::While { cond, body } => {
+            rename_expr(cond, names);
+            rename_stmts(body, names);
+        }
+        Stmt::Return(value) => {
+            if let Some(value) = value {
+                rename_expr(value, names);
+            }
+        }
+        Stmt::Throw(value) | Stmt::Expr(value) => rename_expr(value, names),
+        Stmt::TryCatch { try_body, catch_body, finally_body, .. } => {
+            rename_stmts(try_body, names);
+            rename_stmts(catch_body, names);
+            rename_stmts(finally_body, names);
+        }
+        Stmt::Block(body) => rename_stmts(body, names),
+        Stmt::Break | Stmt::Continue | Stmt::Import(_) => {}
+    }
+}
+
+fn rename_expr(expr: &mut Expr, names: &HashMap<String, String>) {
+    match expr {
+        Expr::Located { expr, .. } => rename_expr(expr, names),
+        Expr::Identifier(name) | Expr::Call { name, .. } => {
+            if let Some(renamed) = names.get(name) {
+                *name = renamed.clone();
+            }
+            if let Expr::Call { args, .. } = expr {
+                for arg in args {
+                    rename_expr(arg, names);
+                }
+            }
+        }
+        Expr::BinaryOp { left, right, .. } => {
+            rename_expr(left, names);
+            rename_expr(right, names);
+        }
+        Expr::UnaryOp { expr, .. } => rename_expr(expr, names),
+        Expr::Invoke { callee, args } | Expr::MethodCall { obj: callee, args, .. } => {
+            rename_expr(callee, names);
+            for arg in args {
+                rename_expr(arg, names);
+            }
+        }
+        Expr::AnonymousFunc { body, .. } => rename_stmts(body, names),
+        Expr::Index { obj, idx } => {
+            rename_expr(obj, names);
+            rename_expr(idx, names);
+        }
+        Expr::Property { obj, .. } | Expr::NamedArgument { value: obj, .. } => rename_expr(obj, names),
+        Expr::List(items) => {
+            for item in items {
+                rename_expr(item, names);
+            }
+        }
+        Expr::Object(fields) => {
+            for (_, value) in fields {
+                rename_expr(value, names);
+            }
+        }
+        Expr::New { class_name, args } => {
+            if let Some(renamed) = names.get(class_name) {
+                *class_name = renamed.clone();
+            }
+            for arg in args {
+                rename_expr(arg, names);
+            }
+        }
+        Expr::Literal(_) | Expr::Interpolated { .. } => {}
+    }
 }
 
 fn resolve_import_path(base_dir: &Path, path: &str) -> Result<PathBuf, SoplangError> {

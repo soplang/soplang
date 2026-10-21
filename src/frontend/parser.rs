@@ -1147,7 +1147,13 @@ impl Parser {
                 ));
             }
         };
-        Ok(Stmt::Import(path))
+        let alias = if self.peek().kind == TokenType::Identifier && self.peek().lexeme == "sida" {
+            self.advance();
+            Some(self.expect_identifier()?)
+        } else {
+            None
+        };
+        Ok(Stmt::Import(crate::frontend::ast::ImportSpec { path, alias }))
     }
 
     fn parse_class_def(&mut self) -> Result<Stmt, SoplangError> {
