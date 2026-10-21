@@ -26,6 +26,8 @@ All notable changes to this project will be documented in this file.
 
 * Regular-expression builtins `regex_raadi`, `regex_dhammaan`, and `regex_beddel` search and replace text with the Rust `regex` dialect. Invalid patterns use `E049`.
 
+* UTC time builtins `waqti`, `waqti_akhris`, `waqti_qor`, `waqti_qayb`, `waqti_ka_qayb`, and `waqti_kudar` parse, format, split, and shift whole seconds. Invalid dates and non-`Z` offsets use `E050`.
+
 
 * Numeric builtins add logarithms, radian trigonometry with optional inverse mode, `atan2`-style angles, named constants, clamping, and context-local seeded random streams. Integer-only extrema keep exact 64-bit results; invalid random calls do not advance the generator.
 

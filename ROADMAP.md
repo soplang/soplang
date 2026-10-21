@@ -255,7 +255,7 @@ wait for handles, streaming, or file watching.
 3. URL encoding and decoding — implemented as `url_qor` and `url_akhris`; see [URL encoding](docs/language/url.md).
 4. Base64 encoding and decoding — implemented as `b64_qor` and `b64_akhris`; see [Base64](docs/language/base64.md).
 5. Regular expressions — implemented as `regex_raadi`, `regex_dhammaan`, and `regex_beddel`; see [regular expressions](docs/language/regular-expressions.md).
-6. Date, time, duration, parsing, and formatting APIs.
+6. Date, time, duration, parsing, and formatting APIs — implemented for UTC seconds as `waqti`, `waqti_akhris`, `waqti_qor`, `waqti_qayb`, `waqti_ka_qayb`, and `waqti_kudar`; see [date and time](docs/language/time.md). Time zones other than `Z` remain later work.
 7. Program arguments and environment variables.
 8. Child processes, exit codes, and captured command output.
 

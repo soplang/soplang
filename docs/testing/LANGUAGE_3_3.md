@@ -84,3 +84,13 @@ cargo test --locked --test regex_tests --test llvm_ir_tests
 The regular-expression suite covers the first match, a missing match, every
 match, numbered replacements, catchable invalid patterns, and LLVM execution at
 optimization levels 0 and 2.
+
+## Date and time
+
+```sh
+cargo test --locked --lib time --test time_tests --test llvm_ir_tests
+```
+
+The time suite covers the Unix epoch, a known UTC instant, leap-day rejection,
+offsets other than `Z`, calendar parts, one-day durations, the current clock
+round trip, and LLVM execution at optimization levels 0 and 2.

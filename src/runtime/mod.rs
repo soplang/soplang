@@ -24,6 +24,7 @@ mod csv;
 mod url;
 mod base64;
 mod patterns;
+mod time;
 pub mod stdlib;
 pub mod value;
 

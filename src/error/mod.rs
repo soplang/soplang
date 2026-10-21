@@ -49,6 +49,7 @@ pub mod codes {
     pub const E047_URL: &str = "E047";
     pub const E048_BASE64: &str = "E048";
     pub const E049_REGEX: &str = "E049";
+    pub const E050_TIME: &str = "E050";
 }
 
 /// A compiled function and its caller's source location.

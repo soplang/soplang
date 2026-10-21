@@ -271,6 +271,50 @@ pub fn builtin_regex_beddel(args: Vec<Value>) -> Result<Value, SoplangError> {
     super::patterns::replace(pattern, text, replacement)
 }
 
+fn expect_time_int(value: &Value, name: &str) -> Result<i64, SoplangError> {
+    match value {
+        Value::Int(value) => Ok(*value),
+        _ => Err(err_type(format!("{name}() waa inuu helaa abn."))),
+    }
+}
+
+pub fn builtin_waqti(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "waqti", 0)?;
+    Ok(Value::Int(super::time::now()))
+}
+
+pub fn builtin_waqti_akhris(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "waqti_akhris", 1)?;
+    let Value::Str(text) = &args[0] else {
+        return Err(err_type("waqti_akhris() waa inuu helaa qoraal."));
+    };
+    Ok(Value::Int(super::time::parse(text)?))
+}
+
+pub fn builtin_waqti_qor(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "waqti_qor", 1)?;
+    let seconds = expect_time_int(&args[0], "waqti_qor")?;
+    Ok(Value::Str(super::time::format_utc(seconds)?))
+}
+
+pub fn builtin_waqti_qayb(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "waqti_qayb", 1)?;
+    let seconds = expect_time_int(&args[0], "waqti_qayb")?;
+    super::time::parts(seconds)
+}
+
+pub fn builtin_waqti_ka_qayb(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "waqti_ka_qayb", 1)?;
+    Ok(Value::Int(super::time::from_parts(&args[0])?))
+}
+
+pub fn builtin_waqti_kudar(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "waqti_kudar", 2)?;
+    let seconds = expect_time_int(&args[0], "waqti_kudar")?;
+    let delta = expect_time_int(&args[1], "waqti_kudar")?;
+    Ok(Value::Int(super::time::add(seconds, delta)?))
+}
+
 fn optional_truthy(args: &[Value], index: usize) -> bool {
     args.get(index).is_some_and(|value| value.is_truthy())
 }
@@ -730,6 +774,12 @@ const BUILTINS: &[(&str, super::NativeFn, CallbackArity)] = &[
     ("regex_raadi", builtin_regex_raadi, CallbackArity::range(2, 2)),
     ("regex_dhammaan", builtin_regex_dhammaan, CallbackArity::range(2, 2)),
     ("regex_beddel", builtin_regex_beddel, CallbackArity::range(3, 3)),
+    ("waqti", builtin_waqti, CallbackArity::range(0, 0)),
+    ("waqti_akhris", builtin_waqti_akhris, CallbackArity::range(1, 1)),
+    ("waqti_qor", builtin_waqti_qor, CallbackArity::range(1, 1)),
+    ("waqti_qayb", builtin_waqti_qayb, CallbackArity::range(1, 1)),
+    ("waqti_ka_qayb", builtin_waqti_ka_qayb, CallbackArity::range(1, 1)),
+    ("waqti_kudar", builtin_waqti_kudar, CallbackArity::range(2, 2)),
     ("fayl_jiraa", builtin_fayl_jiraa, CallbackArity::range(1, 1)),
     ("fayl_xog", builtin_fayl_xog, CallbackArity::range(1, 1)),
     ("isku_xidh", builtin_isku_xidh, CallbackArity::range(1, usize::MAX)),

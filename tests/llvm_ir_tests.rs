@@ -997,6 +997,21 @@ qor("llvm regex ok")
     }
 }
 
+#[test]
+fn test_llvm_time() {
+    let source = r#"
+hawl hubi(v, name) { haddii (!v) { tuur name } }
+hubi(waqti_qor(0) == "1970-01-01T00:00:00Z", "time")
+qor("llvm time ok")
+"#;
+    for opt in [0, 2] {
+        assert_eq!(
+            run_llvm_with_opt(&format!("llvm_time_{opt}"), source, opt),
+            "llvm time ok\n"
+        );
+    }
+}
+
 fn run_llvm_with_opt_in_dir(name: &str, source: &str, opt: u8, dir: &Path) -> String {
     let stmts = soplang::frontend::parse_source(source, None).expect("parse");
     let sym = analyze(&stmts).expect("analyze");

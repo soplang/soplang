@@ -262,6 +262,12 @@ these explanations do not establish a historical abbreviation or SLS approval.
 | `regex_raadi` | First regular-expression match       | `search`             | `regex_raadi("a+", "baa")`                 |
 | `regex_dhammaan` | Every non-overlapping match       | `findall`            | `regex_dhammaan(e"\\d+", "a1")`            |
 | `regex_beddel` | Replace every match                 | `replace`            | `regex_beddel("(a)", "a", "$1!")`          |
+| `waqti` | Current UTC time in seconds             | (unix time)          | `door hadda = waqti()`                     |
+| `waqti_akhris` | Parse a UTC date or timestamp     | (parse time)         | `waqti_akhris("2026-10-21T08:12:00Z")`     |
+| `waqti_qor` | Format UTC seconds                   | (format time)        | `waqti_qor(0)`                             |
+| `waqti_qayb` | Split seconds into calendar fields  | (time parts)         | `waqti_qayb(0).sanad`                      |
+| `waqti_ka_qayb` | Build seconds from calendar fields | (from parts)       | `waqti_ka_qayb(qayb)`                      |
+| `waqti_kudar` | Add a duration in seconds           | (add duration)       | `waqti_kudar(0, 86400)`                    |
 | `fayl_jiraa` | Test whether a path exists              | (path exists)        | `haddii (fayl_jiraa("magac.txt")) {...}`   |
 | `fayl_xog` | Query path metadata                     | (path stat)          | `door x = fayl_xog("magac.txt")`           |
 | `isku_xidh` | Join path segments                     | (path join)          | `isku_xidh("data", "magac.txt")`           |
