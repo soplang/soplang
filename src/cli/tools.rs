@@ -37,10 +37,25 @@ fn format_file(args: &[String]) -> Result<i32, SoplangError> {
     let write = flag(args, "--qor");
     let path =
         positional(args, &[]).ok_or_else(|| tool_error("Adeegsiga: soplang fmt FAYLKA [--qor]"))?;
-    let text = fs::read_to_string(&path).map_err(|error| tool_error(error.to_string()))?;
+    let target = fs::canonicalize(&path)
+        .map_err(|error| crate::error::file_read_error(Path::new(&path), &error))?;
+    let text = fs::read_to_string(&target)
+        .map_err(|error| crate::error::file_read_error(Path::new(&path), &error))?;
     let formatted = format_source(&text, Path::new(&path))?;
     if write {
-        fs::write(&path, formatted).map_err(|error| tool_error(error.to_string()))?;
+        let permissions = fs::metadata(&target)
+            .map_err(|error| crate::error::file_write_error(&target, &error))?
+            .permissions();
+        if permissions.readonly() {
+            return Err(tool_error(
+                "Faylkan waa akhris-keliya; qaabkiisa lama qori karo.",
+            ));
+        }
+        crate::runtime::replace_file_with_permissions(
+            &target,
+            formatted.as_bytes(),
+            Some(permissions),
+        )?;
     } else {
         print!("{formatted}");
         let _ = std::io::stdout().flush();
@@ -49,8 +64,7 @@ fn format_file(args: &[String]) -> Result<i32, SoplangError> {
 }
 
 pub fn format_source(text: &str, path: &Path) -> Result<String, SoplangError> {
-    let stmts = parse_source(text, Some(path))?;
-    Ok(stmts.iter().map(|stmt| stmt.to_string()).collect())
+    crate::frontend::formatter::format_source(text, path)
 }
 
 fn check_file(args: &[String]) -> Result<i32, SoplangError> {

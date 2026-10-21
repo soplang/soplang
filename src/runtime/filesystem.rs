@@ -145,11 +145,27 @@ pub fn remove_directory(path: &str, recursive: bool) -> Result<(), SoplangError>
 }
 
 pub(crate) fn replace_bytes(path: &Path, bytes: &[u8]) -> Result<(), SoplangError> {
+    replace_bytes_with_permissions(path, bytes, None)
+}
+
+pub(crate) fn replace_bytes_with_permissions(
+    path: &Path,
+    bytes: &[u8],
+    permissions: Option<fs::Permissions>,
+) -> Result<(), SoplangError> {
     let (temp, mut file) = create_temp_beside(path, |temp| {
         OpenOptions::new().write(true).create_new(true).open(temp)
     })
     .map_err(|error| path_io_error(path, &error, "Beddelka faylka"))?;
-    let write_result = file.write_all(bytes).and_then(|_| file.sync_all());
+    let write_result = (|| {
+        if let Some(permissions) = permissions {
+            file.set_permissions(permissions)
+        } else {
+            Ok(())
+        }
+    })()
+    .and_then(|_| file.write_all(bytes))
+    .and_then(|_| file.sync_all());
     drop(file); // Windows also requires the temporary handle to be closed.
     if let Err(error) = write_result.and_then(|_| atomic_rename(&temp, path)) {
         let _ = fs::remove_file(&temp);

@@ -43,6 +43,7 @@ pub use abi::*;
 pub use context::RuntimeContext;
 pub(crate) use context::with_databases;
 pub(crate) use filesystem::replace_bytes as replace_file_bytes;
+pub(crate) use filesystem::replace_bytes_with_permissions as replace_file_with_permissions;
 pub use gc::{CollectionReport, MemoryStats};
 pub use iterators::IteratorData;
 pub use process::set_program_arguments;

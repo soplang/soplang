@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Format source without reconstructing tokens or losing comments, closures, branches, keys or literal contents. Validate output before atomic replacement, preserve file permissions and symbolic links, and refuse to overwrite invalid or read-only source.
+
 - Resolve imported class types in their lexical module, support class reexports, and retain each instance's captured method environment across inheritance, named calls, garbage collection and REPL commands.
 
 - Bind SQL values as driver parameters, validate schema contracts, preserve MongoDB records during migrations, and own database connections per execution context. Add explicit pool cleanup, shared SQLite memory pools, SQL Server TLS, and live connector regressions for migrations and transactions.

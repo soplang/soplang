@@ -14,6 +14,17 @@ These commands are separate from `soplang file.sop`. Their help text is Somali.
 | `soplang run [DIR]` | Run the package entry, `main.sop` or `lib.sop` inside `gelid`. |
 | `soplang dhis [DIR]` | Build that entry to `dhis/<magac>`. |
 
+## Formatting
+
+The formatter uses four-space indentation and consistent spacing. It preserves
+comments, anonymous function bodies, quoted object keys, type annotations and
+the exact contents of strings, including raw strings and interpolation.
+Existing line boundaries are retained because some call syntax depends on them.
+
+`fmt --qor` validates the formatted source before replacing the file atomically.
+It follows an existing symbolic link to its target, preserves file permissions,
+and refuses to replace a read-only file. A syntax error leaves the source intact.
+
 ## Tests
 
 A test file keeps its normal program. `soplang file.sop` skips tests. `soplang test` runs them.
