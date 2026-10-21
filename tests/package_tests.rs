@@ -98,3 +98,46 @@ fn a_local_path_dependency_must_match_the_package_name() {
     assert!(stderr.contains("kale"), "{stderr}");
     let _ = fs::remove_dir_all(root);
 }
+
+#[test]
+fn a_lockfile_must_match_the_resolved_dependencies() {
+    let root = temp_dir("package_lock");
+    let lib = root.join("xisaab");
+    let app = root.join("app");
+    fs::create_dir_all(&lib).unwrap();
+    fs::create_dir_all(&app).unwrap();
+    fs::write(
+        lib.join("soplang.toml"),
+        "magac = \"xisaab\"\nnusxa = \"0.1.0\"\nsoplang = \"3\"\n",
+    )
+    .unwrap();
+    fs::write(
+        app.join("soplang.toml"),
+        "magac = \"app\"\nnusxa = \"0.1.0\"\nsoplang = \"3\"\n\n[ku-tiirsan]\nxisaab = \"../xisaab\"\n",
+    )
+    .unwrap();
+    fs::write(app.join("main.sop"), "qor(\"lock ok\")\n").unwrap();
+    fs::write(
+        app.join("soplang.lock"),
+        "# soplang.lock\n\n[[xirmo]]\nmagac = \"xisaab\"\nnusxa = \"0.1.0\"\njid = \"../xisaab\"\n",
+    )
+    .unwrap();
+    let output = Command::new(env!("CARGO_BIN_EXE_soplang"))
+        .arg(app.join("main.sop"))
+        .output()
+        .unwrap();
+    assert!(output.status.success(), "{}", String::from_utf8_lossy(&output.stderr));
+    fs::write(
+        app.join("soplang.lock"),
+        "# soplang.lock\n\n[[xirmo]]\nmagac = \"xisaab\"\nnusxa = \"9.9.9\"\njid = \"../xisaab\"\n",
+    )
+    .unwrap();
+    let output = Command::new(env!("CARGO_BIN_EXE_soplang"))
+        .arg(app.join("main.sop"))
+        .output()
+        .unwrap();
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(!output.status.success(), "{stderr}");
+    assert!(stderr.contains("soplang.lock"), "{stderr}");
+    let _ = fs::remove_dir_all(root);
+}

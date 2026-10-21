@@ -26,4 +26,5 @@ The parser checks the package name, version, language requirement, source
 directory, and unknown keys. Running a file beside a compatible `soplang.toml`
 still executes the program. An incompatible language requirement stops the
 program before it prints. A `[ku-tiirsan]` path must point at a package of the
-same name.
+same name. A `soplang.lock` file, when present, must match those resolved
+dependencies.

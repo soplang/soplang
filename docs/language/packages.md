@@ -34,5 +34,19 @@ error.
 xisaab = "../xisaab"
 ```
 
-Lockfiles, download, and version constraints on dependencies remain later 3.4
-work.
+A `soplang.lock` file, when present, must list the same packages. Its
+entries are sorted by name:
+
+```toml
+# soplang.lock
+
+[[xirmo]]
+magac = "xisaab"
+nusxa = "0.1.0"
+jid = "../xisaab"
+```
+
+`nusxa` is the version from that package's manifest. `jid` is the path from the
+root package. A missing lockfile is allowed. A lockfile that does not match the
+resolved dependencies is an error. Download and version constraints on
+dependencies remain later 3.4 work.

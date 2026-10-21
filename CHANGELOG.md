@@ -52,6 +52,8 @@ All notable changes to this project will be documented in this file.
 
 * `[ku-tiirsan]` declares a local path dependency. The path must contain a package whose `magac` matches the dependency name, and dependency cycles are rejected.
 
+* `soplang.lock`, when present, must list each resolved dependency's name, version, and path in name order. A mismatch fails with `E057` before the program runs.
+
 
 * Numeric builtins add logarithms, radian trigonometry with optional inverse mode, `atan2`-style angles, named constants, clamping, and context-local seeded random streams. Integer-only extrema keep exact 64-bit results; invalid random calls do not advance the generator.
 

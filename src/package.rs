@@ -6,6 +6,7 @@ use std::path::{Path, PathBuf};
 use crate::error::{codes, file_read_error, runtime_error_ex, ErrorMeta, SoplangError};
 
 pub const MANIFEST_FILE: &str = "soplang.toml";
+pub const LOCK_FILE: &str = "soplang.lock";
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Dependency {
@@ -36,7 +37,9 @@ pub fn load_beside_source(source: &Path) -> Result<Option<Manifest>, SoplangErro
 
 pub fn load_manifest(dir: &Path, text: &str) -> Result<Manifest, SoplangError> {
     let manifest = parse_manifest(text)?;
-    check_dependencies(dir, &manifest, &mut Vec::new())?;
+    let mut locked = Vec::new();
+    check_dependencies(dir, &manifest, &mut Vec::new(), "", &mut locked)?;
+    verify_lock(dir, &locked)?;
     Ok(manifest)
 }
 
@@ -162,7 +165,13 @@ fn validate_dependency_path(path: &str, line: usize) -> Result<(), SoplangError>
     Ok(())
 }
 
-fn check_dependencies(dir: &Path, manifest: &Manifest, stack: &mut Vec<PathBuf>) -> Result<(), SoplangError> {
+fn check_dependencies(
+    dir: &Path,
+    manifest: &Manifest,
+    stack: &mut Vec<PathBuf>,
+    prefix: &str,
+    locked: &mut Vec<LockEntry>,
+) -> Result<(), SoplangError> {
     let canon = dir.canonicalize().unwrap_or_else(|_| dir.to_path_buf());
     if stack.iter().any(|seen| seen == &canon) {
         return Err(manifest_error("Ku-tiirsanayaasha xirmada waa wareeg.", 1));
@@ -188,10 +197,74 @@ fn check_dependencies(dir: &Path, manifest: &Manifest, stack: &mut Vec<PathBuf>)
                 1,
             ));
         }
-        check_dependencies(&child, &child_manifest, stack)?;
+        let path = join_relative(prefix, &dependency.path);
+        if let Some(previous) = locked.iter().find(|entry| entry.name == dependency.name) {
+            if previous.version != child_manifest.version || previous.path != path {
+                return Err(manifest_error(
+                    format!("Ku-tiirsiga '{}' waa la soo celiyey jid kale.", dependency.name),
+                    1,
+                ));
+            }
+        } else {
+            locked.push(LockEntry {
+                name: dependency.name.clone(),
+                version: child_manifest.version.clone(),
+                path,
+            });
+        }
+        check_dependencies(&child, &child_manifest, stack, &join_relative(prefix, &dependency.path), locked)?;
     }
     stack.pop();
     Ok(())
+}
+
+#[derive(Clone)]
+struct LockEntry {
+    name: String,
+    version: String,
+    path: String,
+}
+
+fn verify_lock(dir: &Path, locked: &[LockEntry]) -> Result<(), SoplangError> {
+    let path = dir.join(LOCK_FILE);
+    if !path.is_file() {
+        return Ok(());
+    }
+    let text = fs::read_to_string(&path).map_err(|error| file_read_error(&path, &error))?;
+    if text.trim_end() != render_lock(locked).trim_end() {
+        return Err(manifest_error("soplang.lock ma waafaqsana xirmada.", 1));
+    }
+    Ok(())
+}
+
+fn render_lock(locked: &[LockEntry]) -> String {
+    let mut entries = locked.to_vec();
+    entries.sort_by(|left, right| left.name.cmp(&right.name).then(left.path.cmp(&right.path)));
+    let mut out = String::from("# soplang.lock\n");
+    for entry in entries {
+        out.push('\n');
+        out.push_str("[[xirmo]]\n");
+        out.push_str(&format!("magac = \"{}\"\n", entry.name));
+        out.push_str(&format!("nusxa = \"{}\"\n", entry.version));
+        out.push_str(&format!("jid = \"{}\"\n", entry.path));
+    }
+    out
+}
+
+fn join_relative(prefix: &str, next: &str) -> String {
+    let combined = if prefix.is_empty() { next.to_string() } else { format!("{prefix}/{next}") };
+    let mut parts = Vec::new();
+    for part in combined.split(['/', '\\']) {
+        if part.is_empty() || part == "." {
+            continue;
+        }
+        if part == ".." && parts.last().is_some_and(|last| *last != "..") {
+            parts.pop();
+        } else {
+            parts.push(part);
+        }
+    }
+    if parts.is_empty() { ".".to_string() } else { parts.join("/") }
 }
 
 fn validate_source(source: &str) -> Result<(), SoplangError> {
