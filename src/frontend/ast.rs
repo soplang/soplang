@@ -475,6 +475,8 @@ pub enum Stmt {
         finally_body: Vec<Stmt>,
     },
     Import(ImportSpec),
+    /// Names listed by `soosaar` in a namespaced file.
+    Export(Vec<String>),
     Block(Vec<Stmt>),
     Expr(Expr),
 }
@@ -683,6 +685,7 @@ impl Stmt {
                     writeln!(f, "{}keen {:?};", pad, import.path)
                 }
             }
+            Stmt::Export(names) => writeln!(f, "{}soosaar {};", pad, names.join(", ")),
             Stmt::Block(stmts) => {
                 writeln!(f, "{} {{", pad)?;
                 for s in stmts {

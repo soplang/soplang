@@ -297,7 +297,7 @@ fn validate_control_flow(
                 validate_control_expr(target)?;
                 validate_control_expr(value)?;
             }
-            Stmt::Import(_) => {}
+            Stmt::Import(_) | Stmt::Export(_) => {}
         }
     }
     Ok(())
@@ -1061,7 +1061,7 @@ fn analyze_stmt(
             sym.scopes.pop();
             analyze_block(finally_body, sym, opts, fn_sigs, current_return, current_class, enclosing_fn)?;
         }
-        Stmt::Import(_) => {}
+        Stmt::Import(_) | Stmt::Export(_) => {}
         Stmt::Block(stmts) => analyze_block(
             stmts,
             sym,
@@ -2033,6 +2033,7 @@ fn note_free_stmt(stmt: &Stmt, sym: &SymbolTable, caps: &mut Vec<String>) {
         | Stmt::Break
         | Stmt::Continue
         | Stmt::Import(_)
+        | Stmt::Export(_)
         | Stmt::Return(None) => {}
         Stmt::If {
             cond,

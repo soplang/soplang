@@ -1395,7 +1395,7 @@ impl<'a> HirLowering<'a> {
                     finally_body,
                 );
             }
-            Stmt::Import(_) => {}
+            Stmt::Import(_) | Stmt::Export(_) => {}
             Stmt::Block(stmts) => {
                 for s in stmts {
                     self.lower_stmt(s);
@@ -1924,7 +1924,7 @@ fn collect_funcs_stmt<'a>(stmt: &'a Stmt, out: &mut Vec<(&'a [Param], &'a [Stmt]
         Stmt::Return(Some(expr)) | Stmt::Expr(expr) | Stmt::Throw(expr) => {
             collect_funcs_expr(expr, out)
         }
-        Stmt::Return(None) | Stmt::Break | Stmt::Continue | Stmt::Import(_) => {}
+        Stmt::Return(None) | Stmt::Break | Stmt::Continue | Stmt::Import(_) | Stmt::Export(_) => {}
     }
 }
 

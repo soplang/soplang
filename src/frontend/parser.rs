@@ -478,6 +478,11 @@ impl Parser {
             }
             TokenType::Fasax => return self.parse_try_catch(line, col),
             TokenType::Keen => return self.parse_import(),
+            TokenType::Identifier
+                if t.lexeme == "soosaar" && self.peek_nth(1).kind == TokenType::Identifier =>
+            {
+                return self.parse_export();
+            }
             TokenType::Qaab => return self.parse_class_def(),
             TokenType::LParen
             | TokenType::LBracket
@@ -1154,6 +1159,16 @@ impl Parser {
             None
         };
         Ok(Stmt::Import(crate::frontend::ast::ImportSpec { path, alias }))
+    }
+
+    fn parse_export(&mut self) -> Result<Stmt, SoplangError> {
+        self.advance();
+        let mut names = vec![self.expect_identifier()?];
+        while self.check(TokenType::Comma) {
+            self.advance();
+            names.push(self.expect_identifier()?);
+        }
+        Ok(Stmt::Export(names))
     }
 
     fn parse_class_def(&mut self) -> Result<Stmt, SoplangError> {

@@ -322,7 +322,7 @@ the concurrency and asynchronous I/O work in 3.6.
 ### Module system
 
 1. Give imported files their own namespaces — implemented as `keen "file.sop" sida name`; see [modules](docs/language/modules.md). Flat `keen` imports stay unchanged.
-2. Add explicit public exports. Names that start with `_` are already private to a namespaced import.
+2. Add explicit public exports — implemented as `soosaar name, ...` inside a namespaced file. Without `soosaar`, names that start with `_` stay private.
 3. Add selective imports and import aliases. `sida` is the namespace alias. Selective imports remain later work.
 4. Define relative and package imports.
 5. Detect conflicting names and cycles with clear diagnostics. A repeated or cyclic namespaced import is an error.

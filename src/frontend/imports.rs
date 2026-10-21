@@ -196,7 +196,7 @@ fn flatten_imports(
                 if let Some(alias) = import.alias {
                     let mut body = Vec::new();
                     flatten_imports(imported, Some(&import_path), &mut body, seen)?;
-                    let public = export_names(&body);
+                    let public = export_names(&body)?;
                     let renamed = mangled_bindings(&alias, &body);
                     rename_stmts(&mut body, &renamed);
                     body.push(Stmt::Return(Some(Expr::Object(
@@ -233,17 +233,41 @@ fn flatten_imports(
     Ok(())
 }
 
-fn export_names(stmts: &[Stmt]) -> Vec<String> {
-    let mut names = Vec::new();
+fn export_names(stmts: &[Stmt]) -> Result<Vec<String>, SoplangError> {
+    let mut defined = HashSet::new();
+    let mut explicit = Vec::new();
     for stmt in stmts {
         match stmt.unlocated() {
-            Stmt::FuncDef { name, .. } | Stmt::VarDecl { name, .. } if !name.starts_with('_') => {
-                names.push(name.clone());
+            Stmt::Export(names) => explicit.extend(names.iter().cloned()),
+            Stmt::FuncDef { name, .. } | Stmt::VarDecl { name, .. } => {
+                defined.insert(name.clone());
             }
             _ => {}
         }
     }
-    names
+    if explicit.is_empty() {
+        let mut names: Vec<String> = defined
+            .into_iter()
+            .filter(|name| !name.starts_with('_'))
+            .collect();
+        names.sort();
+        return Ok(names);
+    }
+    let mut names = Vec::new();
+    for name in explicit {
+        if !defined.contains(&name) {
+            return Err(import_error_ex(
+                format!("'{name}' lama soo saari karo sababtoo ah lama qeexin."),
+                0,
+                0,
+                ErrorMeta::default().with_code(codes::E021_UNDECLARED),
+            ));
+        }
+        if !names.contains(&name) {
+            names.push(name);
+        }
+    }
+    Ok(names)
 }
 
 fn mangled_bindings(alias: &str, stmts: &[Stmt]) -> HashMap<String, String> {
@@ -336,7 +360,7 @@ fn rename_stmt(stmt: &mut Stmt, names: &HashMap<String, String>) {
             rename_stmts(finally_body, names);
         }
         Stmt::Block(body) => rename_stmts(body, names),
-        Stmt::Break | Stmt::Continue | Stmt::Import(_) => {}
+        Stmt::Break | Stmt::Continue | Stmt::Import(_) | Stmt::Export(_) => {}
     }
 }
 

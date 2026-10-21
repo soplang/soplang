@@ -44,6 +44,8 @@ All notable changes to this project will be documented in this file.
 
 * `keen "file.sop" sida name` initializes that file as a namespace. Public top-level functions and variables are fields of `name`. Names that start with `_` stay private, and flat `keen` imports are unchanged.
 
+* `soosaar` lists the public names of a namespaced file. An unknown export name is an import error. Files without `soosaar` still export every top-level name that does not start with `_`.
+
 
 * Numeric builtins add logarithms, radian trigonometry with optional inverse mode, `atan2`-style angles, named constants, clamping, and context-local seeded random streams. Integer-only extrema keep exact 64-bit results; invalid random calls do not advance the generator.
 

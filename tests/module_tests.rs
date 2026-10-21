@@ -22,7 +22,7 @@ fn namespaced_import_hides_private_names_and_keeps_flat_imports() {
     let dir = temp_dir("module");
     fs::write(
         dir.join("math.sop"),
-        "door base = 10\nhawl wad(a, b) { celi a + b + base }\nhawl _hidden() { celi 1 }\n",
+        "soosaar wad, base\ndoor base = 10\nhawl wad(a, b) { celi a + b + base }\nhawl kale() { celi 1 }\nhawl _hidden() { celi 1 }\n",
     )
     .unwrap();
     fs::write(
@@ -38,6 +38,9 @@ hubi(failed, "hidden function")
 failed = been
 tijaabi { xisaab._hidden() } qabo (e) { failed = run }
 hubi(failed, "private")
+failed = been
+tijaabi { xisaab.kale() } qabo (e) { failed = run }
+hubi(failed, "unlisted")
 qor("module ok")
 "#,
     )
@@ -74,5 +77,20 @@ fn namespaced_import_builds_with_llvm() {
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(output.status.success(), "{stderr}\n{stdout}");
     assert_eq!(stdout, "5\n");
+    let _ = fs::remove_dir_all(dir);
+}
+
+#[test]
+fn unknown_export_is_rejected() {
+    let dir = temp_dir("module_export");
+    fs::write(dir.join("math.sop"), "soosaar maqan\nhawl wad(a, b) { celi a + b }\n").unwrap();
+    fs::write(dir.join("main.sop"), "keen \"math.sop\" sida xisaab\n").unwrap();
+    let output = Command::new(env!("CARGO_BIN_EXE_soplang"))
+        .arg(dir.join("main.sop"))
+        .output()
+        .unwrap();
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(!output.status.success(), "{stderr}");
+    assert!(stderr.contains("maqan"), "{stderr}");
     let _ = fs::remove_dir_all(dir);
 }
