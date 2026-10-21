@@ -28,7 +28,7 @@ server_aqbal(server, [
 ])
 ```
 
-Methods are `GET`, `POST`, `PUT`, `PATCH`, and `DELETE`. A path segment that
+Methods are `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, and `OPTIONS`. A path segment that
 starts with `:` captures that part of the path.
 
 ## Request

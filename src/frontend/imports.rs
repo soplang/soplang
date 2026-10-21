@@ -85,6 +85,13 @@ fn bundle_one(
         cursor = import_end;
         i += 2;
 
+        if let Some((_, source)) = standard_import(&base_dir, &path_tok.lexeme) {
+            out.push_str(source);
+            if !source.ends_with('\n') {
+                out.push('\n');
+            }
+            continue;
+        }
         let import_path = resolve_import_path_from_root(
             &base_dir,
             &path_tok.lexeme,
@@ -205,6 +212,23 @@ impl ImportResolver {
                     );
                 }
                 Stmt::Import(import) => {
+                    if let Some((key, source)) = standard_import(base, &import.path) {
+                        if import.alias.is_none() && import.selected.is_empty() {
+                            if !self.flat_seen.insert(key.clone()) {
+                                continue;
+                            }
+                            let parsed = super::parse_source(source, Some(&key))?;
+                            let inserted = self.active.insert(key.clone());
+                            out.extend(self.flatten(parsed, Some(&key))?);
+                            if inserted {
+                                self.active.remove(&key);
+                            }
+                            continue;
+                        }
+                        let module = self.module_from_source(&key, &key, source)?;
+                        self.bind_import(import, &module, &mut out)?;
+                        continue;
+                    }
                     let path = resolve_import_path_from_root(
                         base,
                         &import.path,
@@ -233,50 +257,7 @@ impl ImportResolver {
                         continue;
                     }
                     let module = self.module(&canon, &path)?;
-                    let value = Expr::Call {
-                        name: module.loader,
-                        args: Vec::new(),
-                    };
-                    if let Some(alias) = import.alias {
-                        out.push(const_binding(alias.clone(), value));
-                        out.push(Stmt::UseModule {
-                            alias,
-                            classes: module.classes.clone(),
-                        });
-                    } else {
-                        for item in &import.selected {
-                            if !module.public.contains(&item.name) {
-                                return Err(import_error_ex(
-                                    format!("'{}' lama soo saarin.", item.name),
-                                    0,
-                                    0,
-                                    ErrorMeta::default().with_code(codes::E021_UNDECLARED),
-                                ));
-                            }
-                        }
-                        let hidden = format!("#module_import{}", self.next_id);
-                        self.next_id += 1;
-                        out.push(const_binding(hidden.clone(), value));
-                        for item in import.selected {
-                            let local = item.alias.unwrap_or(item.name.clone());
-                            if let Some((_, class_name)) =
-                                module.classes.iter().find(|(name, _)| name == &item.name)
-                            {
-                                out.push(Stmt::UseClass {
-                                    name: local,
-                                    class_name: class_name.clone(),
-                                });
-                            } else {
-                                out.push(const_binding(
-                                    local,
-                                    Expr::Property {
-                                        obj: Box::new(Expr::Identifier(hidden.clone())),
-                                        prop: item.name,
-                                    },
-                                ));
-                            }
-                        }
-                    }
+                    self.bind_import(import, &module, &mut out)?;
                 }
                 stmt => out.push(stmt),
             }
@@ -284,7 +265,70 @@ impl ImportResolver {
         Ok(out)
     }
 
+    fn bind_import(
+        &mut self,
+        import: crate::frontend::ast::ImportSpec,
+        module: &Module,
+        out: &mut Vec<Stmt>,
+    ) -> Result<(), SoplangError> {
+        let value = Expr::Call {
+            name: module.loader.clone(),
+            args: Vec::new(),
+        };
+        if let Some(alias) = import.alias {
+            out.push(const_binding(alias.clone(), value));
+            out.push(Stmt::UseModule {
+                alias,
+                classes: module.classes.clone(),
+            });
+            return Ok(());
+        }
+        for item in &import.selected {
+            if !module.public.contains(&item.name) {
+                return Err(import_error_ex(
+                    format!("'{}' lama soo saarin.", item.name),
+                    0,
+                    0,
+                    ErrorMeta::default().with_code(codes::E021_UNDECLARED),
+                ));
+            }
+        }
+        let hidden = format!("#module_import{}", self.next_id);
+        self.next_id += 1;
+        out.push(const_binding(hidden.clone(), value));
+        for item in import.selected {
+            let local = item.alias.unwrap_or(item.name.clone());
+            if let Some((_, class_name)) =
+                module.classes.iter().find(|(name, _)| name == &item.name)
+            {
+                out.push(Stmt::UseClass {
+                    name: local,
+                    class_name: class_name.clone(),
+                });
+            } else {
+                out.push(const_binding(
+                    local,
+                    Expr::Property {
+                        obj: Box::new(Expr::Identifier(hidden.clone())),
+                        prop: item.name,
+                    },
+                ));
+            }
+        }
+        Ok(())
+    }
+
     fn module(&mut self, path: &Path, source_path: &Path) -> Result<Module, SoplangError> {
+        let source = fs::read_to_string(path).map_err(|error| import_read_error(path, &error))?;
+        self.module_from_source(path, source_path, &source)
+    }
+
+    fn module_from_source(
+        &mut self,
+        path: &Path,
+        source_path: &Path,
+        source: &str,
+    ) -> Result<Module, SoplangError> {
         if self.active.contains(path) {
             return Err(import_error_ex(
                 "Keen-ku waa wareeg; faylka ayaa dib ugu noqday fayl weli la soo dejinayo.",
@@ -299,8 +343,7 @@ impl ImportResolver {
         let id = self.next_id;
         self.next_id += 1;
         self.active.insert(path.to_path_buf());
-        let source = fs::read_to_string(path).map_err(|error| import_read_error(path, &error))?;
-        let parsed = super::parse_source(&source, Some(source_path))?;
+        let parsed = super::parse_source(source, Some(source_path))?;
         let mut body = self.flatten(parsed, Some(source_path))?;
         let public = export_names(&body)?;
         let classes: HashMap<String, String> = body
@@ -699,6 +742,23 @@ fn preserved_import_end(tokens: &[crate::frontend::token::Token], index: usize) 
         }
         return Some(cursor);
     }
+}
+
+fn standard_import(base: &Path, spec: &str) -> Option<(PathBuf, &'static str)> {
+    let source = match spec {
+        "web" | "web.sop" => include_str!("../stdlib/web.sop"),
+        _ => return None,
+    };
+    let direct = base.join(spec);
+    let with_extension = if spec.ends_with(".sop") {
+        direct.clone()
+    } else {
+        base.join(format!("{spec}.sop"))
+    };
+    if direct.is_file() || with_extension.is_file() {
+        return None;
+    }
+    Some((PathBuf::from("<soplang>/web.sop"), source))
 }
 
 fn resolve_import_path_from_root(

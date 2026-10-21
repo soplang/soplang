@@ -272,6 +272,51 @@ fn atomic_rename(from: &Path, to: &Path) -> io::Result<()> {
     }
 }
 
+pub fn contained_read(root: &str, request_path: &str) -> Result<Option<Vec<u8>>, SoplangError> {
+    if root.is_empty() || request_path.contains('\0') {
+        return Err(external_error(
+            "Jidka faylka ma saxna.",
+            "invalid static path".to_string(),
+        ));
+    }
+    let root_path = Path::new(root);
+    let root_canon = fs::canonicalize(root_path)
+        .map_err(|error| path_io_error(root_path, &error, "Akhriska xididka"))?;
+    if !root_canon.is_dir() {
+        return Err(external_error(
+            "Xididka faylka waa inuu noqdaa gal.",
+            "static root".to_string(),
+        ));
+    }
+    let relative = request_path.trim_start_matches(['/', '\\']);
+    if relative.split(['/', '\\']).any(|part| part == "..") {
+        return Err(external_error(
+            "Jidka faylka wuxuu ka baxayaa xididka.",
+            "path escape".to_string(),
+        ));
+    }
+    let joined = root_canon.join(relative);
+    let metadata = match fs::symlink_metadata(&joined) {
+        Ok(metadata) => metadata,
+        Err(error) if error.kind() == io::ErrorKind::NotFound => return Ok(None),
+        Err(error) => return Err(path_io_error(&joined, &error, "Akhriska faylka")),
+    };
+    if metadata.is_dir() {
+        return Ok(None);
+    }
+    let canon = fs::canonicalize(&joined)
+        .map_err(|error| path_io_error(&joined, &error, "Akhriska faylka"))?;
+    if !canon.starts_with(&root_canon) || !canon.is_file() {
+        return Err(external_error(
+            "Jidka faylka wuxuu ka baxayaa xididka.",
+            "path escape".to_string(),
+        ));
+    }
+    fs::read(&canon)
+        .map(Some)
+        .map_err(|error| path_io_error(&canon, &error, "Akhriska faylka"))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

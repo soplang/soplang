@@ -345,18 +345,19 @@ are preserved. See [packages](docs/language/packages.md#create-a-project).
 
 The directory-registry and `.sopkg` providers remain compatibility sources.
 Standard command forms continue in 3.5. Public class exports are implemented.
-The web framework and ORM below still prevent marking all of 3.4 complete.
+The sequential web framework is implemented; TLS, multipart uploads, a template
+engine, and the ORM below still prevent marking all of 3.4 complete.
 
 ### Web application facilities
 
 Build a bundled, importable web framework on the server and module foundations.
 The minimal sequential JSON server alone does not complete this requirement.
 
-1. Routers, method/path matching, route groups, middleware order and error propagation.
-2. Path/query/header/cookie access, JSON and form parsing, validation, response status and JSON/HTML/redirect/file helpers.
-3. Static-file containment, templates, bounded multipart uploads, downloads and CORS.
-4. Sessions with expiration, authentication hooks, logging, request limits and timeouts.
-5. TLS, a test client, graceful shutdown, and integration with concurrent handlers, streaming/backpressure and WebSocket servers from 3.6.
+1. Routers, method/path matching, route groups, middleware order and error propagation — implemented by `keen "web"`; see [web](docs/language/web.md). An uncaught handler or middleware error is still status 500.
+2. Path/query/header/cookie access, JSON and form parsing, validation, response status and JSON/HTML/redirect/file helpers — implemented. Form parsing covers `application/x-www-form-urlencoded`.
+3. Static-file containment and CORS — implemented. `fayl_gudaha` rejects paths that leave the root. A template engine, multipart uploads, and ranged downloads remain later web work.
+4. Sessions with expiration, authentication hooks, logging, request limits and timeouts — implemented on the `Web` value. Limits and timeouts use the existing `waqti` and `cabbir` options.
+5. TLS, a test client, graceful shutdown, and integration with concurrent handlers, streaming/backpressure and WebSocket servers from 3.6. The integration tests are the client for this sequential server. TLS serving remains later web work.
 6. A Prisma-style ORM with required `schema.sop`, schema validation, typed query/editor support, migrations, pools and transactions.
 7. Real connector implementations and tests for SQLite, PostgreSQL, MySQL, MariaDB, MongoDB, SQL Server and CockroachDB, with a documented capability matrix.
 

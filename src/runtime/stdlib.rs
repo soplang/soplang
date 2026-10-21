@@ -704,6 +704,16 @@ pub fn builtin_fayl_meel(args: Vec<Value>) -> Result<Value, SoplangError> {
     super::file_handles::position(&args[0])
 }
 
+pub fn builtin_fayl_gudaha(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "fayl_gudaha", 2)?;
+    let root = expect_text_path(&args[0], "fayl_gudaha")?;
+    let path = expect_text_path(&args[1], "fayl_gudaha")?;
+    match super::filesystem::contained_read(&root, &path)? {
+        Some(bytes) => Ok(super::bytes::from_raw_vec(bytes)),
+        None => Ok(Value::Null),
+    }
+}
+
 pub fn builtin_fayl_beddel(args: Vec<Value>) -> Result<Value, SoplangError> {
     expect_arity(&args, "fayl_beddel", 2)?;
     let path = expect_text_path(&args[0], "fayl_beddel")?;
@@ -1232,6 +1242,11 @@ const BUILTINS: &[(&str, super::NativeFn, CallbackArity)] = &[
     (
         "fayl_beddel",
         builtin_fayl_beddel,
+        CallbackArity::range(2, 2),
+    ),
+    (
+        "fayl_gudaha",
+        builtin_fayl_gudaha,
         CallbackArity::range(2, 2),
     ),
     ("nooc", builtin_nooc, CallbackArity::range(1, 1)),

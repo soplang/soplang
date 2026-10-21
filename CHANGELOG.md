@@ -20,6 +20,8 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+* `keen "web"` provides a sequential web framework: route groups, middleware order, JSON, HTML, redirects, cookies, forms, sessions, authentication hooks, CORS, request logs, and static files that cannot escape their root. TLS, multipart uploads, and a template engine remain later web work.
+
 * Namespaced modules export public classes. `cusub m.Qof(...)`, `m.Qof q = ...`, and `qaab Arday dhaxal m.Qof` use that class, and `ka Qof sida Student` binds the same identity. A class left out of `soosaar` stays private.
 
 * Git dependencies accept repository URLs, hosting-service short forms, and explicit revisions. Root locks pin commits and content hashes, transitive imports share one resolved graph, and `--offline` verifies cached snapshots without fetching. Cache publication supports concurrent installers.

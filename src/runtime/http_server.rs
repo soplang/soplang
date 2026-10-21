@@ -282,7 +282,10 @@ fn read_request(stream: &mut TcpStream, limit: usize) -> Result<RawRequest, Resp
         ));
     }
     let method = parsed.method.unwrap_or("").to_ascii_uppercase();
-    if !matches!(method.as_str(), "GET" | "POST" | "PUT" | "PATCH" | "DELETE") {
+    if !matches!(
+        method.as_str(),
+        "GET" | "POST" | "PUT" | "PATCH" | "DELETE" | "OPTIONS"
+    ) {
         return Err(ResponseFault::Reply(405, "Habka lama oggola.".into()));
     }
     let target = parsed.path.unwrap_or("/");
@@ -419,9 +422,12 @@ fn compile_route(value: &Value) -> Result<Route, SoplangError> {
         return Err(error("Habka waddada waa inuu noqdaa qoraal."));
     };
     let method = method.to_ascii_uppercase();
-    if !matches!(method.as_str(), "GET" | "POST" | "PUT" | "PATCH" | "DELETE") {
+    if !matches!(
+        method.as_str(),
+        "GET" | "POST" | "PUT" | "PATCH" | "DELETE" | "OPTIONS"
+    ) {
         return Err(error(
-            "Habka waddada waa inuu noqdaa GET, POST, PUT, PATCH, ama DELETE.",
+            "Habka waddada waa inuu noqdaa GET, POST, PUT, PATCH, DELETE, ama OPTIONS.",
         ));
     }
     let Value::Str(path) = &route[1] else {

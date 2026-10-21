@@ -311,6 +311,7 @@ these explanations do not establish a historical abbreviation or SLS approval.
 | `fayl_raad` | Seek to a file position               | (seek)               | `fayl_raad(fayl, 0, "bilow")`              |
 | `fayl_meel` | Return the file position              | (tell)               | `fayl_meel(fayl)`                          |
 | `fayl_beddel` | Atomically replace a file           | (replace)            | `fayl_beddel("magac.txt", "cusub")`        |
+| `fayl_gudaha` | Read a file that stays inside a root | (safe file)        | `fayl_gudaha("public", "note.txt")`       |
 | `nooc`   | Get type of variable                         | `typeof`             | `qor(nooc(magac))`                        |
 | `abn`    | Convert value to an integer (also the `int` type keyword above) | `int` | `door n = abn("5")`                 |
 | `jajab`  | Convert a number or numeric string to floating point | `float` | `door n = jajab("3.5")`             |
