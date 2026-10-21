@@ -19,6 +19,9 @@ declare void @soplang_gc_safepoint()
 declare void @soplang_set_program_args(i32, ptr)
 declare void @soplang_enter_roots(ptr, ptr, i64, i64)
 declare void @soplang_leave_roots()
+declare void @soplang_debug_begin(ptr, i64)
+declare void @soplang_debug_point(ptr, i64)
+declare void @soplang_debug_init(i64)
 declare void @soplang_set_location(ptr, i64, i64, i64, i64, ptr, i64)
 declare %SoplangValue @soplang_int(i64)
 declare %SoplangValue @soplang_float(double)
@@ -324,8 +327,11 @@ struct Keep(*const ());
 unsafe impl Sync for Keep {}
 
 #[used]
-static KEEP: [Keep; 68] = [
+static KEEP: [Keep; 71] = [
     Keep(runtime::soplang_set_location as *const ()),
+    Keep(runtime::soplang_debug_begin as *const ()),
+    Keep(runtime::soplang_debug_point as *const ()),
+    Keep(runtime::soplang_debug_init as *const ()),
     Keep(runtime::soplang_enter_roots as *const ()),
     Keep(runtime::soplang_gc_safepoint as *const ()),
     Keep(runtime::soplang_set_program_args as *const ()),
@@ -947,6 +953,16 @@ impl<'a> FnEmit<'a> {
 
     fn instr(&mut self, instr: &HirInstr) -> Result<bool, SoplangError> {
         match instr {
+            HirInstr::DebugStart(metadata) | HirInstr::DebugPoint(metadata) => {
+                let (ptr,len) = self.str_ptr(metadata);
+                let name = if matches!(instr, HirInstr::DebugStart(_)) { "soplang_debug_begin" } else { "soplang_debug_point" };
+                self.line(format!("  call void @{name}(ptr {ptr}, i64 {len})"));
+                Ok(false)
+            }
+            HirInstr::DebugInit(slot) => {
+                self.line(format!("  call void @soplang_debug_init(i64 {slot})"));
+                Ok(false)
+            }
             HirInstr::SetLocation(span) => {
                 let file = span
                     .file

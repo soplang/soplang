@@ -115,6 +115,7 @@ fn doc_debug_profile_and_project_run() {
     let mut child = Command::new(env!("CARGO_BIN_EXE_soplang"))
         .arg("debug")
         .arg(&main)
+        .arg("--soco")
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())

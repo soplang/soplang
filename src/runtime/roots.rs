@@ -20,6 +20,7 @@ pub(super) struct RootFrame {
 const FRAMES: RuntimeLocal<RefCell<Vec<RootFrame>>> = RuntimeLocal::new(|state| &state.roots);
 
 pub(super) fn enter(tags: *const i64, payloads: *const i64, len: usize, stride: usize) {
+    super::debugger::enter();
     FRAMES.with(|frames| {
         frames.borrow_mut().push(RootFrame {
             tags,
@@ -31,6 +32,7 @@ pub(super) fn enter(tags: *const i64, payloads: *const i64, len: usize, stride: 
 }
 
 pub(super) fn leave() {
+    super::debugger::leave();
     FRAMES.with(|frames| {
         frames.borrow_mut().pop();
     });

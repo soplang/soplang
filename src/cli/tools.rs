@@ -27,11 +27,7 @@ pub fn dispatch(command: &str) -> Result<i32, SoplangError> {
         "check" => check_file(&args),
         "test" => super::testing::run(&args),
         "doc" => document_file(&args),
-        "debug" => {
-            let path = required_file(&args, "soplang debug FAYLKA")?;
-            run_path(&path, false)?;
-            Ok(0)
-        }
+        "debug" => super::debug::run(&args),
         "profile" => profile_file(&args),
         "run" => run_project(&args),
         "dhis" => build_project(&args),
@@ -301,12 +297,6 @@ fn positional_skip(args: &[String], valued: &[&str]) -> Option<String> {
         }
     }
     None
-}
-
-fn required_file(args: &[String], usage: &str) -> Result<PathBuf, SoplangError> {
-    positional(args, &[])
-        .map(PathBuf::from)
-        .ok_or_else(|| tool_error(format!("Adeegsiga: {usage}")))
 }
 
 fn tool_error(message: impl Into<String>) -> SoplangError {

@@ -98,6 +98,30 @@ pub extern "C" fn soplang_gc_safepoint() {
     }
 }
 
+/// Compiler-generated debugger metadata; pointers refer to immutable code data.
+#[no_mangle]
+pub extern "C" fn soplang_debug_begin(ptr: *const u8, len: usize) {
+    let metadata = unsafe { std::slice::from_raw_parts(ptr, len) };
+    if let Ok(config) = serde_json::from_slice(metadata) {
+        super::debugger::begin(config);
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn soplang_debug_init(slot: usize) {
+    super::debugger::initialize(slot);
+}
+
+#[no_mangle]
+pub extern "C" fn soplang_debug_point(ptr: *const u8, len: usize) {
+    let metadata = unsafe { std::slice::from_raw_parts(ptr, len) };
+    if let Ok(location) = serde_json::from_slice(metadata) {
+        if let Err(error) = super::debugger::point(location) {
+            handle_runtime_error(error);
+        }
+    }
+}
+
 /// Record the program arguments from a hosted or standalone C main.
 ///
 /// # Safety

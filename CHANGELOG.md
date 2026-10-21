@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Add source breakpoints, stepping, caller-frame selection and bounded local inspection to JIT and instrumented LLVM executables. Keep debugger state in its execution context and ordinary builds free of source instrumentation.
+
 - Generate strict typed database clients from `schema.sop`, with record getters, input/filter/update classes, safe bulk mutations, transactions and editor signatures. Add atomic `xog abuur --qor` and read-only stale-client checks with `--hubi`. Preserve imported types during unfinished editor expressions.
 
 - Add `hawl` annotations for callable variables, parameters, returns and collection elements, including nullable callables and strict callback APIs. Preserve named/native functions and captured closures while enforcing callable contracts in JIT and LLVM execution.

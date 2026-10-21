@@ -315,7 +315,7 @@ these explanations do not establish a historical abbreviation or SLS approval.
 | `habee_qoraal` | Render an HTML template            | (template)           | `habee_qoraal("<p>{{ magac }}</p>", xog)`  |
 | `qayb_foom` | Parse multipart form data            | (multipart)          | `qayb_foom(nooca, baytyo)`                 |
 | `hubi` | Assert a boolean or two equal values | `assert`             | `hubi(n, 1)`                               |
-| `jebi` | Print the call stack and wait        | (breakpoint)         | `jebi()`                                   |
+| `jebi` | Pause at the source debugger        | (breakpoint)         | `jebi()`                                   |
 | `xog_fur` | Open a database pool                 | (connect)            | `xog_fur("sqlite", "app.db", { wadarta: 2 })` |
 | `xog_awood` | Report connector capabilities        | (capabilities)       | `xog_awood("postgres")`                    |
 | `nooc`   | Get type of variable                         | `typeof`             | `qor(nooc(magac))`                        |

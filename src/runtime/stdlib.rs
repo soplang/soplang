@@ -500,16 +500,7 @@ pub fn builtin_hubi(args: Vec<Value>) -> Result<Value, SoplangError> {
 
 pub fn builtin_jebi(args: Vec<Value>) -> Result<Value, SoplangError> {
     expect_arity(&args, "jebi", 0)?;
-    for frame in super::abi::call_stack() {
-        println!("{} {}:{}", frame.function, frame.line, frame.col);
-    }
-    let mut line = String::new();
-    std::io::stdin()
-        .read_line(&mut line)
-        .map_err(|failure| err_runtime(failure.to_string()))?;
-    if line.trim() == "jooji" {
-        return Err(err_runtime("Joojinta waa la dalbaday."));
-    }
+    super::debugger::explicit_break()?;
     Ok(Value::Null)
 }
 

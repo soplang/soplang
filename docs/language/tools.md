@@ -10,7 +10,7 @@ These commands are separate from `soplang file.sop`. Their help text is Somali.
 | `soplang doc FILE [--qor OUT]` | Write Markdown for functions, classes, exports, and tests. |
 | `soplang xog abuur [SCHEMA] [--qor CLIENT or --hubi CLIENT]` | Generate or verify a typed database client without connecting. |
 | `soplang lsp` | Speak Language Server Protocol on standard input. |
-| `soplang debug FILE` | Run a file. `jebi()` prints the stack and waits. |
+| `soplang debug FILE [--jebi [FILE:]LINE] [--soco] [--adag] [--dhis OUT]` | Debug source statements, inspect frames and locals, or build an instrumented LLVM executable. |
 | `soplang profile FILE` | Print function call counts, inclusive/exclusive time, and separate compilation/execution time. |
 | `soplang run [DIR]` | Run the package entry, `main.sop` or `lib.sop` inside `gelid`. |
 | `soplang dhis [DIR]` | Build that entry to `dhis/<magac>`. |
@@ -123,9 +123,50 @@ local import aliases can still be renamed. User files named `web.sop` or
 
 ## Breakpoints and profile
 
-`jebi()` prints each stack frame as `name line:column` and reads one line.
-`soco` continues. `jooji` stops the program. The frame does not include local
-values.
+`soplang debug file.sop` pauses before the first executable statement. A pause
+shows the current source line and stack on standard error; application output
+stays on standard output. `--soco` runs until a breakpoint or `jebi()`.
+Repeat `--jebi LINE` or `--jebi FILE:LINE` to set up to 128 breakpoints, including
+in imported files. CLI breakpoints must name an executable source line; blank
+lines and comments are rejected. Loop-header breakpoints stop at every check.
+`--adag` enables strict analysis.
+
+| Console command | Action |
+| --- | --- |
+| `soco` | Continue to the next breakpoint. |
+| `tallaabo` | Stop at the next statement, entering compiled calls. |
+| `xiga` | Stop at the next statement at the current or an outer call depth. |
+| `bax` | Continue until the current call returns. |
+| `raad` | Print the stack with source files, lines and columns. |
+| `jir N` | Select a frame for inspection; zero is the current frame. |
+| `deegaan` | List that frame's local and captured values. |
+| `eeg NAME` | Inspect one variable without evaluating an expression. |
+| `jebi FILE:LINE` / `tir FILE:LINE` | Add or remove a breakpoint. |
+| `jooji` | End execution with an error. |
+
+Frames read the compiler's rooted value storage. Variables not yet initialized
+show `<lama qeexin>`, distinct from `maran`. Inspection does not call methods or
+execute source. Strings, collection entries and recursion are bounded; tuples,
+sets and errors currently show a kind summary. Console commands are limited to
+4096 bytes. Closing debugger input ends execution with an error.
+
+`jebi()` also works during ordinary execution, printing the available call stack
+and reading console commands. Local inspection and stepping require the
+instrumentation produced by `debug`; ordinary run/build does not add it. For
+compatibility, an ordinary `jebi()` continues when standard input is closed.
+
+```sh
+soplang debug main.sop --jebi 12 --soco
+soplang debug main.sop --jebi 12 --soco --dhis app-debug
+./app-debug
+```
+
+`--dhis` produces a standalone LLVM executable containing the same source
+console, without running it during the build. Debug builds use optimization
+level zero. This is Soplang source instrumentation, not DWARF or a debug adapter
+for a native debugger. Stepping follows executable statements; it does not
+enter Rust builtins. The console shares standard input with the application.
+Frame selection affects inspection; stepping resumes the executing frame.
 
 `soplang profile` reports calls and inclusive/exclusive execution seconds per
 compiled function. Inclusive time includes compiled callees; exclusive time

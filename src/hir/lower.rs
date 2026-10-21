@@ -68,6 +68,9 @@ pub enum HirInstr {
         index: usize,
     },
     SetLocation(Box<crate::error::SourceSpan>),
+    DebugStart(String),
+    DebugPoint(String),
+    DebugInit(Slot),
     Const {
         dst: Slot,
         val: HirConst,
@@ -333,6 +336,9 @@ impl fmt::Display for HirInstr {
                 dst, kind, callee, name, args, labels
             ),
             HirInstr::ParamProvided { dst, index } => write!(f, "  %{} = provided {}", dst, index),
+            HirInstr::DebugStart(_) => write!(f, "  debug_start"),
+            HirInstr::DebugPoint(_) => write!(f, "  debug_point"),
+            HirInstr::DebugInit(slot) => write!(f, "  debug_init %{slot}"),
             HirInstr::SetLocation(span) => write!(f, "  location {}:{}", span.line, span.col),
             HirInstr::Const { dst, val } => write!(f, "  %{} = const {:?}", dst, val),
             HirInstr::Copy { dst, src } => write!(f, "  %{} = copy %{}", dst, src),
@@ -559,6 +565,7 @@ pub struct HirLowering<'a> {
     fixed: Vec<bool>,
     current_span: Option<crate::error::SourceSpan>,
     cover: bool,
+    debug: bool,
     coverage: crate::runtime::CoverageMap,
 }
 
@@ -568,6 +575,23 @@ impl<'a> HirLowering<'a> {
     }
 
     pub fn lower_with_coverage(sym: &'a SymbolTable, stmts: &'a [Stmt], cover: bool) -> HirModule {
+        Self::lower_instrumented(sym, stmts, cover, None)
+    }
+
+    pub fn lower_with_debug(
+        sym: &'a SymbolTable,
+        stmts: &'a [Stmt],
+        config: crate::runtime::DebugConfig,
+    ) -> HirModule {
+        Self::lower_instrumented(sym, stmts, false, Some(config))
+    }
+
+    fn lower_instrumented(
+        sym: &'a SymbolTable,
+        stmts: &'a [Stmt],
+        cover: bool,
+        debug: Option<crate::runtime::DebugConfig>,
+    ) -> HirModule {
         let mut lower = HirLowering {
             sym,
             body: Vec::new(),
@@ -585,10 +609,16 @@ impl<'a> HirLowering<'a> {
             fixed: Vec::new(),
             current_span: None,
             cover,
+            debug: debug.is_some(),
             coverage: Default::default(),
         };
         if let Some(scope) = sym.scopes.first() {
             lower.prepare_vars(&scope.vars);
+        }
+        if let Some(config) = debug {
+            lower.body.push(HirInstr::DebugStart(
+                serde_json::to_string(&config).expect("debug config serialization"),
+            ));
         }
         let top_nums = lower.nums.clone();
         let func_bodies = collect_func_bodies(stmts);
@@ -627,9 +657,20 @@ impl<'a> HirLowering<'a> {
                     fixed: Vec::new(),
                     current_span: None,
                     cover: lower.cover,
+                    debug: lower.debug,
                     coverage: Default::default(),
                 };
                 inner.prepare_vars(&fm.scope_vars);
+                if inner.debug {
+                    for name in &fm.captures {
+                        if let Some(info) = fm.scope_vars.get(name) {
+                            inner.body.push(HirInstr::DebugInit(info.slot));
+                        }
+                    }
+                    for slot in &fm.param_slots {
+                        inner.body.push(HirInstr::DebugInit(*slot));
+                    }
+                }
                 let local_nums = inner.nums.clone();
                 let capture_slots: Vec<Slot> = fm
                     .captures
@@ -860,7 +901,13 @@ impl<'a> HirLowering<'a> {
         // Statically numeric operations other than division/modulo cannot fail.
         let infallible_numeric = matches!(instr, HirInstr::BinOp { typed: true, op, .. }
             if !matches!(op, BinOpKind::Div | BinOpKind::Mod));
+        let destination = instr.destination();
         self.body.push(instr);
+        if self.debug {
+            if let Some(slot) = destination {
+                self.body.push(HirInstr::DebugInit(slot));
+            }
+        }
         if fallible && !infallible_numeric {
             self.body.push(HirInstr::CheckThrow {
                 catch: self.catch_stack.last().copied(),
@@ -1025,6 +1072,44 @@ impl<'a> HirLowering<'a> {
         });
     }
 
+    fn debug_point(&mut self, span: &crate::error::SourceSpan) {
+        if !self.debug {
+            return;
+        }
+        let vars = self
+            .func_scope
+            .or_else(|| self.sym.scopes.first().map(|scope| &scope.vars));
+        let mut locals: Vec<_> = vars
+            .into_iter()
+            .flat_map(|vars| vars.iter())
+            .map(|(name, info)| (name.clone(), info.slot))
+            .collect();
+        for (name, slot) in &self.catch_vars {
+            locals.retain(|(local, _)| local != name);
+            locals.push((name.clone(), *slot));
+        }
+        locals.sort();
+        let location = crate::runtime::debugger::Location {
+            file: span
+                .file
+                .as_ref()
+                .map(|file| std::fs::canonicalize(file).unwrap_or_else(|_| file.clone()))
+                .unwrap_or_else(|| "<command>".into()),
+            line: span.line,
+            col: span.col,
+            source: span.source_line.clone(),
+            locals,
+        };
+        self.body
+            .push(HirInstr::SetLocation(Box::new(span.clone())));
+        self.body.push(HirInstr::DebugPoint(
+            serde_json::to_string(&location).expect("debug location serialization"),
+        ));
+        self.body.push(HirInstr::CheckThrow {
+            catch: self.catch_stack.last().copied(),
+        });
+    }
+
     fn lower_stmt(&mut self, stmt: &'a Stmt) {
         match stmt {
             Stmt::Located { span, stmt } => {
@@ -1043,6 +1128,23 @@ impl<'a> HirLowering<'a> {
                     )
                 {
                     self.cover_line(span);
+                }
+                if !matches!(
+                    stmt.unlocated(),
+                    Stmt::Import(_)
+                        | Stmt::Export(_)
+                        | Stmt::UseModule { .. }
+                        | Stmt::UseClass { .. }
+                        | Stmt::Test { .. }
+                        | Stmt::Fixture { .. }
+                        | Stmt::FuncDef { .. }
+                        | Stmt::ClassDef { .. }
+                        | Stmt::Block(_)
+                        | Stmt::While { .. }
+                        | Stmt::For { .. }
+                        | Stmt::ForEach { .. }
+                ) {
+                    self.debug_point(span);
                 }
                 let previous = self.current_span.replace(span.clone());
                 self.lower_stmt(stmt);
@@ -1287,6 +1389,9 @@ impl<'a> HirLowering<'a> {
                     });
                 }
                 self.emit(HirInstr::Label(cond_lbl));
+                if let Some(span) = self.current_span.clone() {
+                    self.debug_point(&span);
+                }
                 if self.is_global(var) {
                     self.emit(HirInstr::Load {
                         dst: var_slot,
@@ -1362,6 +1467,9 @@ impl<'a> HirLowering<'a> {
                 let end = self.new_label();
                 self.loop_stack.push((end, next));
                 self.emit(HirInstr::Label(next));
+                if let Some(span) = self.current_span.clone() {
+                    self.debug_point(&span);
+                }
                 let step = self.alloc_slot();
                 self.emit(HirInstr::IterNext {
                     dst: step,
@@ -1429,6 +1537,9 @@ impl<'a> HirLowering<'a> {
                 let cont_lbl = self.new_label();
                 self.loop_stack.push((break_lbl, cont_lbl));
                 self.emit(HirInstr::Label(cont_lbl));
+                if let Some(span) = self.current_span.clone() {
+                    self.debug_point(&span);
+                }
                 let cond_slot = self.lower_expr(cond);
                 let body_lbl = self.new_label();
                 self.emit(HirInstr::JumpIf {

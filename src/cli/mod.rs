@@ -1,6 +1,7 @@
 //! CLI: REPL and interactive shell.
 
 mod data;
+mod debug;
 pub mod lsp;
 pub mod project;
 pub mod session;

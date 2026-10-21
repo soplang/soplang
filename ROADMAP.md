@@ -392,8 +392,8 @@ are already settled. Document each connector's supported operations explicitly.
 3. Live diagnostics, completion, hover help, and semantic highlighting — implemented.
 4. Go to definition, find references, and rename — implemented.
 5. Formatting and code actions — implemented. The code action is `Hagaaji qaabka`.
-6. Source-level debugger information and breakpoints — implemented. `soplang debug file.sop` runs the file, and `jebi()` pauses.
-7. Stack inspection — implemented. `jebi()` prints each frame's function, line, and column. `soco` continues and `jooji` stops. Local values stay in the compiled frame and are not listed.
+6. Source-level debugger information and breakpoints — implemented in JIT and instrumented LLVM executables. `soplang debug` supports file/line breakpoints, statement stepping, step-over and return; ordinary builds omit instrumentation.
+7. Stack and local inspection — implemented. The source console selects caller frames and reads initialized local and captured values from rooted compiled storage without evaluating source. Inspection depth and output are bounded.
 8. Profiler integration — implemented as `soplang profile file.sop`. It reports per-function calls and inclusive/exclusive time, with compilation timed separately from execution.
 
 ## Soplang 3.6 — concurrency, asynchronous I/O, and servers

@@ -86,6 +86,9 @@ fn register_runtime_symbols(builder: &mut JITBuilder) {
         };
     }
     sym!(builder, soplang_set_location);
+    sym!(builder, soplang_debug_begin);
+    sym!(builder, soplang_debug_point);
+    sym!(builder, soplang_debug_init);
     sym!(builder, soplang_enter_roots);
     sym!(builder, soplang_gc_safepoint);
     sym!(builder, soplang_leave_roots);
@@ -659,6 +662,18 @@ fn compile_body(
 
     for instr in body {
         match instr {
+            HirInstr::DebugStart(metadata) | HirInstr::DebugPoint(metadata) => {
+                if terminated { continue; }
+                let ptr = builder.ins().iconst(types::I64, metadata.as_ptr() as i64);
+                let len = builder.ins().iconst(types::I64, metadata.len() as i64);
+                let name = if matches!(instr, HirInstr::DebugStart(_)) { "soplang_debug_begin" } else { "soplang_debug_point" };
+                call_rt_void(builder, module, name, &[ptr,len])?;
+            }
+            HirInstr::DebugInit(slot) => {
+                if terminated { continue; }
+                let slot = builder.ins().iconst(types::I64, *slot as i64);
+                call_rt_void(builder, module, "soplang_debug_init", &[slot])?;
+            }
             HirInstr::SetLocation(span) => {
                 if terminated {
                     continue;

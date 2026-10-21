@@ -14,6 +14,7 @@ pub(super) struct RuntimeState {
     pub try_depth: Cell<u32>,
     pub random: Cell<Option<u64>>,
     pub reporting: RefCell<super::report::Reporting>,
+    pub debugger: RefCell<super::debugger::Debugger>,
     pub databases: RefCell<HashMap<i64, crate::data::Database>>,
     pub files: RefCell<Option<HashMap<i64, super::file_handles::OpenFile>>>,
     pub tcp_connections: RefCell<Option<HashMap<i64, std::net::TcpStream>>>,
@@ -99,6 +100,7 @@ impl RuntimeContext {
                 source: self.state.current_source.replace(None),
                 root_depth: self.state.roots.borrow().len(),
                 profile_frames: std::mem::take(&mut self.state.reporting.borrow_mut().frames),
+                debugger: self.state.debugger.replace(Default::default()),
             };
             let result = operation();
             let error = self.state.pending_error.borrow_mut().take();
@@ -172,6 +174,7 @@ struct ExecutionBoundary {
     source: Option<crate::error::SourceSpan>,
     root_depth: usize,
     profile_frames: Vec<super::report::ProfileFrame>,
+    debugger: super::debugger::Debugger,
 }
 
 impl Drop for ExecutionBoundary {
@@ -183,6 +186,7 @@ impl Drop for ExecutionBoundary {
         *self.state.current_source.borrow_mut() = self.source.take();
         self.state.roots.borrow_mut().truncate(self.root_depth);
         self.state.reporting.borrow_mut().frames = std::mem::take(&mut self.profile_frames);
+        *self.state.debugger.borrow_mut() = std::mem::take(&mut self.debugger);
     }
 }
 
