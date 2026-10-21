@@ -61,7 +61,11 @@ fn namespaced_import_builds_with_llvm() {
     let dir = temp_dir("module_llvm");
     fs::write(dir.join("math.sop"), "hawl wad(a, b) { celi a + b }\n").unwrap();
     let main = dir.join("main.sop");
-    fs::write(&main, "keen \"math.sop\" sida xisaab\nqor(xisaab.wad(2, 3))\n").unwrap();
+    fs::write(
+        &main,
+        "keen \"math.sop\" sida xisaab\nqor(xisaab.wad(2, 3))\n",
+    )
+    .unwrap();
     let binary = dir.join("module-bin");
     let built = Command::new(env!("CARGO_BIN_EXE_soplang"))
         .arg("--build")
@@ -71,7 +75,11 @@ fn namespaced_import_builds_with_llvm() {
         .arg("-q")
         .output()
         .unwrap();
-    assert!(built.status.success(), "{}", String::from_utf8_lossy(&built.stderr));
+    assert!(
+        built.status.success(),
+        "{}",
+        String::from_utf8_lossy(&built.stderr)
+    );
     let output = Command::new(&binary).output().unwrap();
     let stdout = String::from_utf8(output.stdout).unwrap();
     let stderr = String::from_utf8_lossy(&output.stderr);
@@ -83,7 +91,11 @@ fn namespaced_import_builds_with_llvm() {
 #[test]
 fn unknown_export_is_rejected() {
     let dir = temp_dir("module_export");
-    fs::write(dir.join("math.sop"), "soosaar maqan\nhawl wad(a, b) { celi a + b }\n").unwrap();
+    fs::write(
+        dir.join("math.sop"),
+        "soosaar maqan\nhawl wad(a, b) { celi a + b }\n",
+    )
+    .unwrap();
     fs::write(dir.join("main.sop"), "keen \"math.sop\" sida xisaab\n").unwrap();
     let output = Command::new(env!("CARGO_BIN_EXE_soplang"))
         .arg(dir.join("main.sop"))
@@ -128,4 +140,208 @@ qor("select ok")
     assert!(output.status.success(), "{stderr}\n{stdout}");
     assert_eq!(stdout, "select ok\n");
     let _ = fs::remove_dir_all(dir);
+}
+
+fn assert_backends(dir: &std::path::Path, expected: &str, strict: bool) {
+    let main = dir.join("main.sop");
+    let mut run = Command::new(env!("CARGO_BIN_EXE_soplang"));
+    if strict {
+        run.arg("--strict");
+    }
+    let output = run.arg(&main).output().unwrap();
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert_eq!(String::from_utf8(output.stdout).unwrap(), expected);
+    for level in [0, 2] {
+        let binary = dir.join(format!("module-{level}{}", std::env::consts::EXE_SUFFIX));
+        let mut build = Command::new(env!("CARGO_BIN_EXE_soplang"));
+        if strict {
+            build.arg("--strict");
+        }
+        let output = build
+            .arg("--build")
+            .arg(&main)
+            .arg("-o")
+            .arg(&binary)
+            .arg("--opt-level")
+            .arg(level.to_string())
+            .arg("-q")
+            .output()
+            .unwrap();
+        assert!(
+            output.status.success(),
+            "{}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        let output = Command::new(binary).output().unwrap();
+        assert!(
+            output.status.success(),
+            "{}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        assert_eq!(String::from_utf8(output.stdout).unwrap(), expected);
+    }
+}
+
+#[test]
+fn module_functions_keep_lexical_names_defaults_and_interpolation() {
+    let dir = temp_dir("module_lexical");
+    fs::write(
+        dir.join("m.sop"),
+        r#"
+soosaar wad, shadow, defaultValue, formatted, make
+hawl wad(abn x):abn { celi x+1 }
+hawl shadow(wad) { celi wad(2) }
+hawl defaultValue(x=wad(2)) { celi x }
+hawl formatted() { celi f"{wad(2)}" }
+qaab Local {
+    hawl dhis(abn n=7) { nafta.n=n }
+    hawl cod() { celi nafta.n }
+}
+hawl make(Local? value=maran) {
+    haddii (value==maran) { value=cusub Local() }
+    teed[Local] typed=[value]
+    celi typed[0]
+}
+"#,
+    )
+    .unwrap();
+    fs::write(
+        dir.join("main.sop"),
+        r#"
+keen "m.sop" sida m
+qor(m.shadow(hawl(x){celi x+9}),m.defaultValue(),m.formatted(),m.make().cod())
+"#,
+    )
+    .unwrap();
+    assert_backends(&dir, "11 3 3 7\n", false);
+    fs::remove_dir_all(dir).unwrap();
+}
+
+#[test]
+fn repeated_and_diamond_imports_share_initialization_and_exports() {
+    let dir = temp_dir("module_cache");
+    fs::write(
+        dir.join("shared.sop"),
+        "qor(\"shared\")\ndoor values=[]\nhawl add(n){values.geli(n)}\n",
+    )
+    .unwrap();
+    fs::write(dir.join("left.sop"), "qor(\"left start\")\nkeen \"shared.sop\" sida shared\nqor(\"left end\")\nhawl add(n){shared.add(n)}\n").unwrap();
+    fs::write(
+        dir.join("right.sop"),
+        "keen \"shared.sop\" sida shared\nhawl add(n){shared.add(n)}\n",
+    )
+    .unwrap();
+    fs::write(
+        dir.join("main.sop"),
+        r#"
+qor("main")
+keen "left.sop" sida left
+keen "right.sop" sida right
+keen "shared.sop" sida a
+keen "./shared.sop" sida b
+keen "shared.sop" ka values, add sida insert
+left.add(1) right.add(2) insert(3)
+a.values.geli(4)
+qor(b.values==[1,2,3,4],values==[1,2,3,4])
+"#,
+    )
+    .unwrap();
+    assert_backends(&dir, "main\nleft start\nshared\nleft end\nrun run\n", false);
+    fs::remove_dir_all(dir).unwrap();
+}
+
+#[test]
+fn namespaced_cycles_report_the_importing_file() {
+    let dir = temp_dir("module_cycle");
+    fs::write(dir.join("main.sop"), "keen \"other.sop\" sida other\n").unwrap();
+    fs::write(dir.join("other.sop"), "keen \"main.sop\" sida main\n").unwrap();
+    let output = Command::new(env!("CARGO_BIN_EXE_soplang"))
+        .arg(dir.join("main.sop"))
+        .output()
+        .unwrap();
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(!output.status.success());
+    assert!(
+        stderr.contains("wareeg") && stderr.contains("other.sop:1:"),
+        "{stderr}"
+    );
+    fs::remove_dir_all(dir).unwrap();
+}
+
+#[test]
+fn module_generated_initializers_work_in_strict_mode() {
+    let dir = temp_dir("module_strict");
+    fs::write(dir.join("m.sop"), "hawl wad(abn x):abn{celi x+1}\n").unwrap();
+    fs::write(
+        dir.join("main.sop"),
+        "keen \"m.sop\" sida m\nkeen \"m.sop\" ka wad sida add\nqor(m.wad(2),add(4))\n",
+    )
+    .unwrap();
+    assert_backends(&dir, "3 5\n", true);
+    fs::remove_dir_all(dir).unwrap();
+}
+
+#[test]
+fn repl_import_cache_survives_collection_and_failed_analysis() {
+    let dir = temp_dir("module_repl");
+    let path = dir.join("main.sop");
+    fs::write(&path, "").unwrap();
+    fs::write(
+        dir.join("m.sop"),
+        "door values=[]\nhawl add(n){values.geli(n)}\n",
+    )
+    .unwrap();
+    let mut session = soplang::ReplSession::new(false).unwrap();
+    session
+        .eval("keen \"m.sop\" sida first\nfirst.add(1)", Some(&path))
+        .unwrap();
+    session.collect();
+    session
+        .eval("keen \"m.sop\" sida second\nsecond.add(2)", Some(&path))
+        .unwrap();
+    session
+        .eval(
+            "haddii (first.values != [1,2] || second.values != [1,2]) { tuur \"cache reset\" }",
+            Some(&path),
+        )
+        .unwrap();
+    fs::write(dir.join("new.sop"), "door values=[3]\n").unwrap();
+    assert!(session
+        .eval(
+            "keen \"new.sop\" sida pending\nabn bad=\"wrong\"",
+            Some(&path)
+        )
+        .is_err());
+    session.eval("keen \"new.sop\" sida valid\nhaddii (valid.values != [3]) { tuur \"lost initializer\" }", Some(&path)).unwrap();
+    fs::remove_dir_all(dir).unwrap();
+}
+
+#[test]
+fn repl_can_retry_an_initializer_after_a_runtime_error() {
+    let dir = temp_dir("module_retry");
+    let path = dir.join("main.sop");
+    let ready = dir.join("ready").to_str().unwrap().replace('\\', "/");
+    fs::write(&path, "").unwrap();
+    fs::write(
+        dir.join("m.sop"),
+        format!("haddii (!fayl_jiraa(\"{ready}\")) {{ tuur \"not ready\" }}\ndoor values=[4]\n"),
+    )
+    .unwrap();
+    let mut session = soplang::ReplSession::new(false).unwrap();
+    assert!(session
+        .eval("keen \"m.sop\" sida pending", Some(&path))
+        .is_err());
+    session.collect();
+    fs::write(dir.join("ready"), "").unwrap();
+    session
+        .eval(
+            "keen \"m.sop\" sida valid\nhaddii (valid.values != [4]) { tuur \"retry\" }",
+            Some(&path),
+        )
+        .unwrap();
+    fs::remove_dir_all(dir).unwrap();
 }

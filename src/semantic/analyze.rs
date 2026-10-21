@@ -477,7 +477,10 @@ fn analyze_stmt(
             line,
             col,
         } => {
-            if opts.strict && type_ann == &TypeAnnotation::Dynamic {
+            // Import bindings are synthesized with no source position. They
+            // carry the exported value; strict mode applies to declarations
+            // written in source, including declarations inside imported files.
+            if opts.strict && type_ann == &TypeAnnotation::Dynamic && (*line != 0 || *col != 0) {
                 return Err(type_error_ex(
                     format!("Habka adag wuxuu u baahan yahay nooc cad oo loo qoro '{}'.", name),
                     *line,

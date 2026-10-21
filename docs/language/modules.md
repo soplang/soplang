@@ -9,7 +9,7 @@ path.
 The namespace is initialized when the import is reached. Without `soosaar`, its
 top-level functions and variables are fields of `name`, except names that
 start with `_`. A `soosaar` list exports only the names it mentions, and those
-names must already be defined in the file. Functions and classes defined in
+names must be defined in the file. Functions and classes defined in
 the file are not copied into the caller's global scope.
 
 ```soplang
@@ -39,9 +39,22 @@ keen "math.sop" ka wad sida add, base
 qor(add(base, 2))
 ```
 
-A file can be imported this way once. Importing it again, or a cycle back to a
-file already loaded, is an import error. Flat `keen` imports keep their
-existing cycle behavior.
+Each canonical file has one namespace and one initializer per program or REPL
+session. Multiple aliases and selective imports reuse the same exports, including
+when several modules import the same dependency. Initialization runs at the first
+import reached, in source order. A cycle through a module still being loaded is
+an import error with the location of the import that closes the cycle. Flat
+`keen` imports keep their existing once-per-program expansion behavior.
+
+Private functions retain their lexical names. Parameters may shadow them;
+default expressions and interpolated strings resolve names in the same scope as
+ordinary expressions. Classes used internally have distinct identities across
+modules, including inside nested type annotations. Class declarations themselves
+are not first-class namespace exports yet; expose factory functions instead.
+
+REPL imports survive garbage collection and later commands. An analysis failure
+does not reserve a new module or discard the initializer needed by a later
+successful import. A failed runtime initializer remains eligible for retry.
 
 `keen "xisaab"` loads a package named in the nearest `soplang.toml`. The file is
 `<gelid>/xisaab.sop`. `keen "xisaab/util.sop"` loads `<gelid>/util.sop`. A

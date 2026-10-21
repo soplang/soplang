@@ -29,3 +29,16 @@ same name. A `soplang.lock` file, when present, must match those resolved
 dependencies. Registry installs pin `sumad`. `--cusbooneysii` moves a caret
 constraint to a newer published version, and `keen "xisaab"` loads the cached
 package. An HTTP `.sopkg` download is checked against a local server.
+
+## Module regression audit
+
+The full locked debug suite passes 353 tests, including 52 dedicated LLVM tests.
+The ten module tests cover JIT and LLVM levels 0 and 2, lexical shadowing,
+defaults, interpolation, private class annotations, repeated and diamond imports,
+source-order initialization, cycle locations, strict imports, REPL collection,
+transactional import discovery after analysis failure, and initializer retry.
+Existing import diagnostic snapshots retain their relative file names and carets.
+
+Windows and macOS checks currently stop in the `ring` C dependency because this
+Linux host has no Windows SDK or macOS SDK headers. Native platform CI remains
+required; these checks do not establish cross-platform release readiness.

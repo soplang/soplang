@@ -14,6 +14,7 @@ pub struct ReplSession {
     globals: HashMap<String, VarInfo>,
     classes: HashMap<String, ClassMeta>,
     strict: bool,
+    imports: crate::frontend::imports::ImportResolver,
 }
 
 impl ReplSession {
@@ -23,6 +24,7 @@ impl ReplSession {
             globals: HashMap::new(),
             classes: HashMap::new(),
             strict,
+            imports: Default::default(),
         })
     }
 
@@ -33,7 +35,10 @@ impl ReplSession {
         } else {
             parse_source(source, path)?
         };
-        let stmts = crate::frontend::imports::resolve_imports(parsed, path)?;
+        // Keep import discovery transactional until analysis and compilation
+        // succeed. Runtime errors retain compiled initializers for a later retry.
+        let mut imports = self.imports.clone();
+        let stmts = imports.resolve(parsed, path)?;
         let mut sym = self.prelude();
         semantic::analyze_into(
             &mut sym,
@@ -45,6 +50,7 @@ impl ReplSession {
         )?;
         let hir = HirLowering::lower(&sym, &stmts);
         self.backend.compile_incremental_owned(hir, &sym)?;
+        self.imports = imports;
         let result = self.backend.run_main();
         self.remember(&sym);
         result

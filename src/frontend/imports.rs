@@ -122,110 +122,97 @@ fn bundle_one(
     Ok(out)
 }
 
-/// Expand `Stmt::Import` nodes into the imported module's top-level statements.
+/// Expand file imports and retain one initializer for each namespaced module.
 pub fn resolve_imports(
     stmts: Vec<Stmt>,
     source_path: Option<&Path>,
 ) -> Result<Vec<Stmt>, SoplangError> {
-    let mut out = Vec::new();
-    let mut seen = HashSet::new();
-    if let Some(path) = source_path {
-        if let Ok(canon) = path.canonicalize() {
-            seen.insert(canon);
-        }
-    }
-    flatten_imports(stmts, source_path, &mut out, &mut seen)?;
-    Ok(out)
+    ImportResolver::default().resolve(stmts, source_path)
 }
 
-fn flatten_imports(
-    stmts: Vec<Stmt>,
-    source_path: Option<&Path>,
-    out: &mut Vec<Stmt>,
-    seen: &mut HashSet<PathBuf>,
-) -> Result<(), SoplangError> {
-    let base_dir = source_path
-        .and_then(|p| p.parent())
-        .map(Path::to_path_buf)
-        .unwrap_or_else(|| PathBuf::from("."));
+#[derive(Clone)]
+struct Module {
+    loader: String,
+    public: Vec<String>,
+}
 
-    for stmt in stmts {
-        match stmt {
-            Stmt::Located { span, stmt } if matches!(stmt.unlocated(), Stmt::Import(_)) => {
-                flatten_imports(vec![*stmt], source_path, out, seen).map_err(|e| span.attach(e))?;
-            }
-            Stmt::Import(import) => {
-                let import_path =
-                    resolve_import_path(&base_dir, &import.path, source_path.is_some())?;
-                let canon = import_path.canonicalize().map_err(|e| {
-                    let error = file_read_error(Path::new(&import.path), &e);
-                    import_error_ex(
-                        error.message(),
-                        0,
-                        0,
-                        error
-                            .meta()
-                            .clone()
-                            .with_code(codes::E021_UNDECLARED)
-                            .with_hint("Hubi in magaca faylka iyo jidka ay sax yihiin."),
-                    )
-                })?;
-                if !seen.insert(canon) {
-                    if import.alias.is_some() || !import.selected.is_empty() {
-                        return Err(import_error_ex(
-                            "Keen-ku waa wareeg, ama faylkan horay ayaa loo keenay.",
-                            0,
-                            0,
-                            ErrorMeta::default().with_code(codes::E021_UNDECLARED),
-                        ));
-                    }
-                    continue;
+#[derive(Default, Clone)]
+pub(crate) struct ImportResolver {
+    flat_seen: HashSet<PathBuf>,
+    active: HashSet<PathBuf>,
+    modules: HashMap<PathBuf, Module>,
+    caches: Vec<Stmt>,
+    loaders: Vec<Stmt>,
+    next_id: usize,
+}
+
+impl ImportResolver {
+    pub(crate) fn resolve(
+        &mut self,
+        stmts: Vec<Stmt>,
+        source_path: Option<&Path>,
+    ) -> Result<Vec<Stmt>, SoplangError> {
+        self.flat_seen.clear();
+        self.active.clear();
+        if let Some(path) = source_path.and_then(|path| path.canonicalize().ok()) {
+            self.flat_seen.insert(path.clone());
+            self.active.insert(path);
+        }
+        let body = self.flatten(stmts, source_path)?;
+        self.active.clear();
+        let mut result = std::mem::take(&mut self.caches);
+        result.extend(std::mem::take(&mut self.loaders));
+        result.extend(body);
+        Ok(result)
+    }
+
+    fn flatten(
+        &mut self,
+        stmts: Vec<Stmt>,
+        source_path: Option<&Path>,
+    ) -> Result<Vec<Stmt>, SoplangError> {
+        let base = source_path
+            .and_then(Path::parent)
+            .unwrap_or_else(|| Path::new("."));
+        let mut out = Vec::new();
+        for stmt in stmts {
+            match stmt {
+                Stmt::Located { span, stmt } if matches!(stmt.unlocated(), Stmt::Import(_)) => {
+                    out.extend(
+                        self.flatten(vec![*stmt], source_path)
+                            .map_err(|error| span.attach(error))?,
+                    );
                 }
-                let source = fs::read_to_string(&import_path).map_err(|e| {
-                    let error = file_read_error(Path::new(&import.path), &e);
-                    import_error_ex(
-                        error.message(),
-                        0,
-                        0,
-                        error
-                            .meta()
-                            .clone()
-                            .with_code(codes::E021_UNDECLARED)
-                            .with_hint("Hubi in faylka uu jiro oo akhriska loo oggol yahay."),
-                    )
-                })?;
-                let imported = super::parse_source(&source, Some(&import_path))?;
-                if import.alias.is_some() || !import.selected.is_empty() {
-                    let mut body = Vec::new();
-                    flatten_imports(imported, Some(&import_path), &mut body, seen)?;
-                    let public = export_names(&body)?;
-                    let label = import
-                        .alias
-                        .clone()
-                        .unwrap_or_else(|| format!("keen{}", seen.len()));
-                    let renamed = mangled_bindings(&label, &body);
-                    rename_stmts(&mut body, &renamed);
-                    let fields = public
-                        .iter()
-                        .map(|name| {
-                            let value = renamed.get(name).cloned().unwrap_or_else(|| name.clone());
-                            (name.clone(), Expr::Identifier(value))
-                        })
-                        .collect();
-                    body.push(Stmt::Return(Some(Expr::Object(fields))));
-                    let namespace = Expr::Invoke {
-                        callee: Box::new(Expr::AnonymousFunc {
-                            params: Vec::new(),
-                            return_ann: TypeAnnotation::Dynamic,
-                            body,
-                        }),
+                Stmt::Import(import) => {
+                    let path = resolve_import_path(base, &import.path, source_path.is_some())?;
+                    let canon = path
+                        .canonicalize()
+                        .map_err(|error| import_read_error(Path::new(&import.path), &error))?;
+                    if import.alias.is_none() && import.selected.is_empty() {
+                        if !self.flat_seen.insert(canon.clone()) {
+                            continue;
+                        }
+                        let source = fs::read_to_string(&canon)
+                            .map_err(|error| import_read_error(Path::new(&import.path), &error))?;
+                        let parsed = super::parse_source(&source, Some(&path))?;
+                        // Preserve flat imports' existing once-per-program behavior.
+                        let inserted = self.active.insert(canon.clone());
+                        out.extend(self.flatten(parsed, Some(&path))?);
+                        if inserted {
+                            self.active.remove(&canon);
+                        }
+                        continue;
+                    }
+                    let module = self.module(&canon, &path)?;
+                    let value = Expr::Call {
+                        name: module.loader,
                         args: Vec::new(),
                     };
                     if let Some(alias) = import.alias {
-                        out.push(const_binding(alias, namespace));
+                        out.push(const_binding(alias, value));
                     } else {
                         for item in &import.selected {
-                            if !public.iter().any(|name| name == &item.name) {
+                            if !module.public.contains(&item.name) {
                                 return Err(import_error_ex(
                                     format!("'{}' lama soo saarin.", item.name),
                                     0,
@@ -234,12 +221,12 @@ fn flatten_imports(
                                 ));
                             }
                         }
-                        let hidden = format!("__soplang_{label}");
-                        out.push(const_binding(hidden.clone(), namespace));
+                        let hidden = format!("#module_import{}", self.next_id);
+                        self.next_id += 1;
+                        out.push(const_binding(hidden.clone(), value));
                         for item in import.selected {
-                            let local = item.alias.unwrap_or(item.name.clone());
                             out.push(const_binding(
-                                local,
+                                item.alias.unwrap_or(item.name.clone()),
                                 Expr::Property {
                                     obj: Box::new(Expr::Identifier(hidden.clone())),
                                     prop: item.name,
@@ -247,14 +234,122 @@ fn flatten_imports(
                             ));
                         }
                     }
-                } else {
-                    flatten_imports(imported, Some(&import_path), out, seen)?;
                 }
+                stmt => out.push(stmt),
             }
-            other => out.push(other),
         }
+        Ok(out)
     }
-    Ok(())
+
+    fn module(&mut self, path: &Path, source_path: &Path) -> Result<Module, SoplangError> {
+        if self.active.contains(path) {
+            return Err(import_error_ex(
+                "Keen-ku waa wareeg; faylka ayaa dib ugu noqday fayl weli la soo dejinayo.",
+                0,
+                0,
+                ErrorMeta::default().with_code(codes::E021_UNDECLARED),
+            ));
+        }
+        if let Some(module) = self.modules.get(path) {
+            return Ok(module.clone());
+        }
+        let id = self.next_id;
+        self.next_id += 1;
+        self.active.insert(path.to_path_buf());
+        let source = fs::read_to_string(path).map_err(|error| import_read_error(path, &error))?;
+        let parsed = super::parse_source(&source, Some(source_path))?;
+        let mut body = self.flatten(parsed, Some(source_path))?;
+        let public = export_names(&body)?;
+        let classes: HashMap<String, String> = body
+            .iter()
+            .filter_map(|stmt| match stmt.unlocated() {
+                Stmt::ClassDef { name, .. } => {
+                    Some((name.clone(), format!("__soplang_module{id}_{name}")))
+                }
+                _ => None,
+            })
+            .collect();
+        rename_stmts(&mut body, &classes);
+        let fields = public
+            .iter()
+            .map(|name| (name.clone(), Expr::Identifier(name.clone())))
+            .collect();
+        body.push(Stmt::Return(Some(Expr::Object(fields))));
+        let cache = format!("#module_cache{id}");
+        let loader = format!("#module_load{id}");
+        let loaded = format!("#module_loaded{id}");
+        self.caches.push(Stmt::VarDecl {
+            name: loaded.clone(),
+            type_ann: TypeAnnotation::Bool,
+            is_const: false,
+            value: Expr::Literal(super::ast::Literal::Bool(false)),
+            line: 0,
+            col: 0,
+        });
+        self.caches.push(Stmt::VarDecl {
+            name: cache.clone(),
+            type_ann: TypeAnnotation::Walax,
+            is_const: false,
+            value: Expr::Object(Vec::new()),
+            line: 0,
+            col: 0,
+        });
+        self.loaders.push(Stmt::FuncDef {
+            name: loader.clone(),
+            params: Vec::new(),
+            return_ann: TypeAnnotation::Walax,
+            body: vec![
+                Stmt::If {
+                    cond: Expr::UnaryOp {
+                        op: "!".into(),
+                        expr: Box::new(Expr::Identifier(loaded.clone())),
+                    },
+                    then_body: vec![
+                        Stmt::Assign {
+                            target: Expr::Identifier(cache.clone()),
+                            value: Expr::Invoke {
+                                callee: Box::new(Expr::AnonymousFunc {
+                                    params: Vec::new(),
+                                    return_ann: TypeAnnotation::Walax,
+                                    body,
+                                }),
+                                args: Vec::new(),
+                            },
+                            line: 0,
+                            col: 0,
+                        },
+                        Stmt::Assign {
+                            target: Expr::Identifier(loaded),
+                            value: Expr::Literal(super::ast::Literal::Bool(true)),
+                            line: 0,
+                            col: 0,
+                        },
+                    ],
+                    elseifs: Vec::new(),
+                    else_body: None,
+                },
+                Stmt::Return(Some(Expr::Identifier(cache))),
+            ],
+        });
+        self.active.remove(path);
+        let module = Module { loader, public };
+        self.modules.insert(path.to_path_buf(), module.clone());
+        Ok(module)
+    }
+}
+
+fn import_read_error(path: &Path, error: &std::io::Error) -> SoplangError {
+    let error = file_read_error(path, error);
+    import_error_ex(
+        error.message(),
+        0,
+        0,
+        error
+            .meta()
+            .clone()
+            .with_code(codes::E021_UNDECLARED)
+            .with_hint("Hubi in magaca faylka iyo jidka ay sax yihiin."),
+    )
 }
 
 fn const_binding(name: String, value: Expr) -> Stmt {
@@ -283,7 +378,7 @@ fn export_names(stmts: &[Stmt]) -> Result<Vec<String>, SoplangError> {
     if explicit.is_empty() {
         let mut names: Vec<String> = defined
             .into_iter()
-            .filter(|name| !name.starts_with('_'))
+            .filter(|name| !name.starts_with('_') && !name.starts_with('#'))
             .collect();
         names.sort();
         return Ok(names);
@@ -305,16 +400,6 @@ fn export_names(stmts: &[Stmt]) -> Result<Vec<String>, SoplangError> {
     Ok(names)
 }
 
-fn mangled_bindings(alias: &str, stmts: &[Stmt]) -> HashMap<String, String> {
-    let mut names = HashMap::new();
-    for stmt in stmts {
-        if let Stmt::FuncDef { name, .. } | Stmt::ClassDef { name, .. } = stmt.unlocated() {
-            names.insert(name.clone(), format!("__soplang_{alias}_{name}"));
-        }
-    }
-    names
-}
-
 fn rename_stmts(stmts: &mut [Stmt], names: &HashMap<String, String>) {
     for stmt in stmts {
         rename_stmt(stmt, names);
@@ -324,15 +409,24 @@ fn rename_stmts(stmts: &mut [Stmt], names: &HashMap<String, String>) {
 fn rename_stmt(stmt: &mut Stmt, names: &HashMap<String, String>) {
     match stmt {
         Stmt::Located { stmt, .. } => rename_stmt(stmt, names),
-        Stmt::VarDecl { value, .. } => rename_expr(value, names),
+        Stmt::VarDecl {
+            value, type_ann, ..
+        } => {
+            rename_type(type_ann, names);
+            rename_expr(value, names);
+        }
         Stmt::Assign { target, value, .. } => {
             rename_expr(target, names);
             rename_expr(value, names);
         }
-        Stmt::FuncDef { name, body, .. } => {
-            if let Some(renamed) = names.get(name) {
-                *name = renamed.clone();
-            }
+        Stmt::FuncDef {
+            params,
+            return_ann,
+            body,
+            ..
+        } => {
+            rename_parameters(params, names);
+            rename_type(return_ann, names);
             rename_stmts(body, names);
         }
         Stmt::ClassDef { name, parent, body } => {
@@ -422,14 +516,10 @@ fn rename_stmt(stmt: &mut Stmt, names: &HashMap<String, String>) {
 fn rename_expr(expr: &mut Expr, names: &HashMap<String, String>) {
     match expr {
         Expr::Located { expr, .. } => rename_expr(expr, names),
-        Expr::Identifier(name) | Expr::Call { name, .. } => {
-            if let Some(renamed) = names.get(name) {
-                *name = renamed.clone();
-            }
-            if let Expr::Call { args, .. } = expr {
-                for arg in args {
-                    rename_expr(arg, names);
-                }
+        Expr::Identifier(_) => {}
+        Expr::Call { args, .. } => {
+            for arg in args {
+                rename_expr(arg, names);
             }
         }
         Expr::BinaryOp { left, right, .. } => {
@@ -446,7 +536,15 @@ fn rename_expr(expr: &mut Expr, names: &HashMap<String, String>) {
                 rename_expr(arg, names);
             }
         }
-        Expr::AnonymousFunc { body, .. } => rename_stmts(body, names),
+        Expr::AnonymousFunc {
+            params,
+            return_ann,
+            body,
+        } => {
+            rename_parameters(params, names);
+            rename_type(return_ann, names);
+            rename_stmts(body, names);
+        }
         Expr::Index { obj, idx } => {
             rename_expr(obj, names);
             rename_expr(idx, names);
@@ -472,7 +570,42 @@ fn rename_expr(expr: &mut Expr, names: &HashMap<String, String>) {
                 rename_expr(arg, names);
             }
         }
-        Expr::Literal(_) | Expr::Interpolated { .. } => {}
+        Expr::Interpolated { parts } => {
+            for part in parts {
+                if let super::ast::InterpolationPart::Value { expression, .. } = part {
+                    rename_expr(expression, names);
+                }
+            }
+        }
+        Expr::Literal(_) => {}
+    }
+}
+
+fn rename_parameters(params: &mut [super::ast::Param], names: &HashMap<String, String>) {
+    for param in params {
+        rename_type(&mut param.type_ann, names);
+        if let Some(default) = &mut param.default {
+            rename_expr(default, names);
+        }
+    }
+}
+
+fn rename_type(ty: &mut TypeAnnotation, names: &HashMap<String, String>) {
+    match ty {
+        TypeAnnotation::Class(name) => {
+            if let Some(new) = names.get(name) {
+                *name = new.clone();
+            }
+        }
+        TypeAnnotation::SetOf(inner)
+        | TypeAnnotation::ListOf(inner)
+        | TypeAnnotation::ObjectOf(inner) => rename_type(inner, names),
+        TypeAnnotation::TupleOf(types) | TypeAnnotation::Union(types) => {
+            for ty in types {
+                rename_type(ty, names);
+            }
+        }
+        _ => {}
     }
 }
 
