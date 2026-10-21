@@ -37,6 +37,8 @@ The ten module tests cover JIT and LLVM levels 0 and 2, lexical shadowing,
 defaults, interpolation, private class annotations, repeated and diamond imports,
 source-order initialization, cycle locations, strict imports, REPL collection,
 transactional import discovery after analysis failure, and initializer retry.
+Public class tests construct a namespace class, extend it, check `m.Qof` in
+strict mode, bind `ka Qof sida Student`, and reject a private or unknown class.
 Existing import diagnostic snapshots retain their relative file names and carets.
 
 Windows and macOS checks currently stop in the `ring` C dependency because this

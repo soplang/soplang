@@ -147,6 +147,7 @@ pub fn resolve_imports(
 struct Module {
     loader: String,
     public: Vec<String>,
+    classes: Vec<(String, String)>,
 }
 
 #[derive(Default, Clone)]
@@ -237,7 +238,11 @@ impl ImportResolver {
                         args: Vec::new(),
                     };
                     if let Some(alias) = import.alias {
-                        out.push(const_binding(alias, value));
+                        out.push(const_binding(alias.clone(), value));
+                        out.push(Stmt::UseModule {
+                            alias,
+                            classes: module.classes.clone(),
+                        });
                     } else {
                         for item in &import.selected {
                             if !module.public.contains(&item.name) {
@@ -253,13 +258,23 @@ impl ImportResolver {
                         self.next_id += 1;
                         out.push(const_binding(hidden.clone(), value));
                         for item in import.selected {
-                            out.push(const_binding(
-                                item.alias.unwrap_or(item.name.clone()),
-                                Expr::Property {
-                                    obj: Box::new(Expr::Identifier(hidden.clone())),
-                                    prop: item.name,
-                                },
-                            ));
+                            let local = item.alias.unwrap_or(item.name.clone());
+                            if let Some((_, class_name)) =
+                                module.classes.iter().find(|(name, _)| name == &item.name)
+                            {
+                                out.push(Stmt::UseClass {
+                                    name: local,
+                                    class_name: class_name.clone(),
+                                });
+                            } else {
+                                out.push(const_binding(
+                                    local,
+                                    Expr::Property {
+                                        obj: Box::new(Expr::Identifier(hidden.clone())),
+                                        prop: item.name,
+                                    },
+                                ));
+                            }
                         }
                     }
                 }
@@ -297,9 +312,15 @@ impl ImportResolver {
                 _ => None,
             })
             .collect();
+        let class_exports: Vec<(String, String)> = classes
+            .iter()
+            .filter(|(name, _)| public.contains(name))
+            .map(|(name, mangled)| (name.clone(), mangled.clone()))
+            .collect();
         rename_stmts(&mut body, &classes);
         let fields = public
             .iter()
+            .filter(|name| !classes.contains_key(name.as_str()))
             .map(|name| (name.clone(), Expr::Identifier(name.clone())))
             .collect();
         body.push(Stmt::Return(Some(Expr::Object(fields))));
@@ -360,7 +381,11 @@ impl ImportResolver {
             ],
         });
         self.active.remove(path);
-        let module = Module { loader, public };
+        let module = Module {
+            loader,
+            public,
+            classes: class_exports,
+        };
         self.modules.insert(path.to_path_buf(), module.clone());
         Ok(module)
     }
@@ -397,7 +422,9 @@ fn export_names(stmts: &[Stmt]) -> Result<Vec<String>, SoplangError> {
     for stmt in stmts {
         match stmt.unlocated() {
             Stmt::Export(names) => explicit.extend(names.iter().cloned()),
-            Stmt::FuncDef { name, .. } | Stmt::VarDecl { name, .. } => {
+            Stmt::FuncDef { name, .. }
+            | Stmt::VarDecl { name, .. }
+            | Stmt::ClassDef { name, .. } => {
                 defined.insert(name.clone());
             }
             _ => {}
@@ -537,7 +564,12 @@ fn rename_stmt(stmt: &mut Stmt, names: &HashMap<String, String>) {
             rename_stmts(finally_body, names);
         }
         Stmt::Block(body) => rename_stmts(body, names),
-        Stmt::Break | Stmt::Continue | Stmt::Import(_) | Stmt::Export(_) => {}
+        Stmt::Break
+        | Stmt::Continue
+        | Stmt::Import(_)
+        | Stmt::Export(_)
+        | Stmt::UseModule { .. }
+        | Stmt::UseClass { .. } => {}
     }
 }
 

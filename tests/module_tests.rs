@@ -345,3 +345,104 @@ fn repl_can_retry_an_initializer_after_a_runtime_error() {
         .unwrap();
     fs::remove_dir_all(dir).unwrap();
 }
+
+#[test]
+fn public_classes_construct_inherit_and_typecheck() {
+    let dir = temp_dir("module_classes");
+    fs::write(
+        dir.join("people.sop"),
+        r#"
+soosaar Qof, Arday
+qaab Qof {
+    hawl dhis(qoraal magac): maran { nafta.magac = magac }
+    hawl magac(): qoraal { celi nafta.magac }
+}
+qaab Arday dhaxal Qof {
+    hawl dhis(qoraal magac): maran { waalid.dhis(magac) }
+    hawl nooc(): qoraal { celi "arday" }
+}
+qaab Local {
+    hawl dhis(): maran {}
+}
+"#,
+    )
+    .unwrap();
+    fs::write(
+        dir.join("main.sop"),
+        r#"
+keen "people.sop" sida m
+qaab Koox dhaxal m.Qof {
+    hawl dhis(qoraal magac): maran { waalid.dhis(magac) }
+    hawl nooc(): qoraal { celi "koox" }
+}
+m.Qof person = cusub m.Qof("Amina")
+m.Qof student = cusub m.Arday("Cali")
+m.Qof group = cusub Koox("Hodan")
+qor(person.magac(), student.magac(), student.nooc(), group.magac(), group.nooc())
+"#,
+    )
+    .unwrap();
+    assert_backends(&dir, "Amina Cali arday Hodan koox\n", true);
+    fs::remove_dir_all(dir).unwrap();
+}
+
+#[test]
+fn selective_class_imports_keep_one_identity() {
+    let dir = temp_dir("module_class_select");
+    fs::write(
+        dir.join("people.sop"),
+        "soosaar Qof\nqaab Qof {\n    hawl dhis(abn n): maran { nafta.n = n }\n    hawl n(): abn { celi nafta.n }\n}\n",
+    )
+    .unwrap();
+    fs::write(
+        dir.join("main.sop"),
+        "keen \"people.sop\" ka Qof sida Student\nStudent s = cusub Student(4)\nqor(s.n())\n",
+    )
+    .unwrap();
+    assert_backends(&dir, "4\n", true);
+    fs::remove_dir_all(dir).unwrap();
+}
+
+#[test]
+fn private_and_unknown_classes_are_not_exported() {
+    let dir = temp_dir("module_class_private");
+    fs::write(
+        dir.join("people.sop"),
+        "soosaar Qof\nqaab Qof { hawl dhis() {} }\nqaab Local { hawl dhis() {} }\n",
+    )
+    .unwrap();
+    fs::write(
+        dir.join("main.sop"),
+        "keen \"people.sop\" sida m\ndoor hidden = cusub m.Local()\n",
+    )
+    .unwrap();
+    let output = Command::new(env!("CARGO_BIN_EXE_soplang"))
+        .arg(dir.join("main.sop"))
+        .output()
+        .unwrap();
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(!output.status.success(), "{stderr}");
+    assert!(stderr.contains("lama soo saarin"), "{stderr}");
+    fs::write(dir.join("main.sop"), "keen \"people.sop\" ka Local\n").unwrap();
+    let output = Command::new(env!("CARGO_BIN_EXE_soplang"))
+        .arg(dir.join("main.sop"))
+        .output()
+        .unwrap();
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(!output.status.success(), "{stderr}");
+    assert!(stderr.contains("lama soo saarin"), "{stderr}");
+    fs::write(
+        dir.join("people.sop"),
+        "soosaar Maqan\nqaab Qof { hawl dhis() {} }\n",
+    )
+    .unwrap();
+    fs::write(dir.join("main.sop"), "keen \"people.sop\" sida m\n").unwrap();
+    let output = Command::new(env!("CARGO_BIN_EXE_soplang"))
+        .arg(dir.join("main.sop"))
+        .output()
+        .unwrap();
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(!output.status.success(), "{stderr}");
+    assert!(stderr.contains("Maqan"), "{stderr}");
+    fs::remove_dir_all(dir).unwrap();
+}

@@ -323,7 +323,7 @@ the concurrency and asynchronous I/O work in 3.6.
 ### Module system
 
 1. Give imported files their own namespaces — implemented as `keen "file.sop" sida name`; see [modules](docs/language/modules.md). Flat `keen` imports stay unchanged.
-2. Add explicit public exports — implemented as `soosaar name, ...` inside a namespaced file. Without `soosaar`, names that start with `_` stay private.
+2. Add explicit public exports — implemented as `soosaar name, ...` inside a namespaced file, including classes. Callers construct and type-check an exported class through its namespace or a selective import. Without `soosaar`, names that start with `_` stay private.
 3. Add selective imports and import aliases — implemented as `keen "file.sop" ka name` and `name sida local`. A namespace `sida` and `ka` cannot share one import.
 4. Define relative and package imports — relative `keen` resolves from the importing file. `keen "xisaab"` and `keen "xisaab/util.sop"` load a dependency from the nearest manifest; see [packages](docs/language/packages.md).
 5. Detect conflicting names and cycles with clear diagnostics — implemented. Cycles are errors; repeated namespaced imports share one initializer.
@@ -344,8 +344,8 @@ are preserved. See [packages](docs/language/packages.md#create-a-project).
 7. Add, remove and explicitly update dependencies: implemented through the package flags. Git publication uses the repository's own commit/tag workflow; no central package host is required.
 
 The directory-registry and `.sopkg` providers remain compatibility sources.
-Standard command forms continue in 3.5. Public class exports and the remaining
-web/ORM facilities below still prevent marking all of 3.4 complete.
+Standard command forms continue in 3.5. Public class exports are implemented.
+The web framework and ORM below still prevent marking all of 3.4 complete.
 
 ### Web application facilities
 

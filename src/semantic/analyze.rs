@@ -15,6 +15,8 @@ pub struct SymbolTable {
     pub functions: Vec<FunctionMeta>,
     /// Class name -> metadata (methods, parent).
     pub classes: HashMap<String, ClassMeta>,
+    /// Namespace alias -> exported class name -> canonical class.
+    pub module_classes: HashMap<String, HashMap<String, String>>,
     /// Anonymous expression address -> deterministic compiler-internal name.
     pub anonymous_functions: HashMap<usize, String>,
     /// Globals carried in from a REPL session. Top-level uses load/store them
@@ -66,6 +68,23 @@ pub struct ClassMeta {
 /// Mangle a class method name for global registration.
 pub fn mangle_method(class: &str, method: &str) -> String {
     format!("{}::{}", class, method)
+}
+
+/// Runtime class identity for a source name, namespace path, or local alias.
+pub fn canonical_class_name(sym: &SymbolTable, name: &str) -> String {
+    if let Some((module, class)) = name.split_once('.') {
+        if let Some(found) = sym
+            .module_classes
+            .get(module)
+            .and_then(|map| map.get(class))
+        {
+            return found.clone();
+        }
+    }
+    sym.classes
+        .get(name)
+        .map(|meta| meta.name.clone())
+        .unwrap_or_else(|| name.to_string())
 }
 
 /// Method on an ancestor, starting at the parent of `class`. Skips `class` itself.
@@ -292,12 +311,14 @@ fn validate_control_flow(
                 validate_control_flow(finally_body, in_function, loop_depth)?;
             }
             Stmt::Block(body) => validate_control_flow(body, in_function, loop_depth)?,
-            Stmt::VarDecl { value, .. } | Stmt::Expr(value) | Stmt::Throw(value) => validate_control_expr(value)?,
+            Stmt::VarDecl { value, .. } | Stmt::Expr(value) | Stmt::Throw(value) => {
+                validate_control_expr(value)?
+            }
             Stmt::Assign { target, value, .. } => {
                 validate_control_expr(target)?;
                 validate_control_expr(value)?;
             }
-            Stmt::Import(_) | Stmt::Export(_) => {}
+            Stmt::Import(_) | Stmt::Export(_) | Stmt::UseModule { .. } | Stmt::UseClass { .. } => {}
         }
     }
     Ok(())
@@ -811,11 +832,14 @@ fn analyze_stmt(
                     methods.insert(mname.clone(), mangle_method(name, mname));
                 }
             }
+            let parent = parent
+                .as_ref()
+                .map(|parent| canonical_class_name(sym, parent));
             sym.classes.insert(
                 name.clone(),
                 ClassMeta {
                     name: name.clone(),
-                    parent: parent.clone(),
+                    parent,
                     methods,
                 },
             );
@@ -1062,9 +1086,50 @@ fn analyze_stmt(
                 enclosing_fn,
             )?;
             sym.scopes.pop();
-            analyze_block(finally_body, sym, opts, fn_sigs, current_return, current_class, enclosing_fn)?;
+            analyze_block(
+                finally_body,
+                sym,
+                opts,
+                fn_sigs,
+                current_return,
+                current_class,
+                enclosing_fn,
+            )?;
         }
         Stmt::Import(_) | Stmt::Export(_) => {}
+        Stmt::UseModule { alias, classes } => {
+            sym.module_classes
+                .insert(alias.clone(), classes.iter().cloned().collect());
+        }
+        Stmt::UseClass { name, class_name } => {
+            let Some(meta) = sym.classes.get(class_name).cloned() else {
+                return Err(type_error_ex(
+                    format!("Qaab '{class_name}' lama aqoonsan"),
+                    0,
+                    0,
+                    ErrorMeta::default().with_code(codes::E021_UNDECLARED),
+                ));
+            };
+            if let Some(existing) = sym.classes.get(name) {
+                if existing.name != meta.name {
+                    return Err(type_error_ex(
+                        format!("Qaab '{name}' mar hore ayaa la qeexay"),
+                        0,
+                        0,
+                        ErrorMeta::default().with_code(codes::E020_REDECLARED),
+                    ));
+                }
+            } else {
+                sym.classes.insert(
+                    name.clone(),
+                    ClassMeta {
+                        name: meta.name,
+                        parent: meta.parent.clone(),
+                        methods: meta.methods.clone(),
+                    },
+                );
+            }
+        }
         Stmt::Block(stmts) => analyze_block(
             stmts,
             sym,
@@ -1074,7 +1139,9 @@ fn analyze_stmt(
             current_class,
             enclosing_fn,
         )?,
-        Stmt::Expr(e) | Stmt::Throw(e) => analyze_expr(e, sym, opts, fn_sigs, current_class, enclosing_fn)?,
+        Stmt::Expr(e) | Stmt::Throw(e) => {
+            analyze_expr(e, sym, opts, fn_sigs, current_class, enclosing_fn)?
+        }
     }
     Ok(())
 }
@@ -1208,7 +1275,9 @@ fn analyze_expr(
         }
         Expr::Invoke { callee, args } => {
             analyze_expr(callee, sym, opts, fn_sigs, current_class, enclosing_fn)?;
-            for arg in args { analyze_expr(arg, sym, opts, fn_sigs, current_class, enclosing_fn)?; }
+            for arg in args {
+                analyze_expr(arg, sym, opts, fn_sigs, current_class, enclosing_fn)?;
+            }
         }
         Expr::Call { name, args } => {
             check_default_dependency(name, sym)?;
@@ -1358,16 +1427,7 @@ fn analyze_expr(
             }
         }
         Expr::New { class_name, args } => {
-            if !sym.classes.contains_key(class_name) {
-                return Err(type_error_ex(
-                    format!("Qaab '{}' lama aqoonsan", class_name),
-                    0,
-                    0,
-                    ErrorMeta::default()
-                        .with_code(codes::E021_UNDECLARED)
-                        .with_hint("Hubi in qaabka uu ka horreeyo isticmaalkiisa."),
-                ));
-            }
+            let class_name = require_class(sym, class_name)?;
             for a in args {
                 analyze_expr(a, sym, opts, fn_sigs, current_class, enclosing_fn)?;
             }
@@ -1597,7 +1657,6 @@ fn analyze_anonymous_function(
         }
     }
 
-
     let scope = sym.scopes.pop().unwrap();
     sym.functions.push(FunctionMeta {
         name: fn_name,
@@ -1729,9 +1788,47 @@ fn is_type_compatible(sym: &SymbolTable, target: &TypeAnnotation, value: &TypeAn
     }
 }
 
+fn class_is_known(sym: &SymbolTable, name: &str) -> bool {
+    if let Some((module, class)) = name.split_once('.') {
+        return sym
+            .module_classes
+            .get(module)
+            .is_some_and(|map| map.contains_key(class));
+    }
+    sym.classes.contains_key(name)
+}
+
+fn require_class(sym: &SymbolTable, name: &str) -> Result<String, SoplangError> {
+    if let Some((module, class)) = name.split_once('.') {
+        if let Some(map) = sym.module_classes.get(module) {
+            if let Some(found) = map.get(class) {
+                return Ok(found.clone());
+            }
+            return Err(type_error_ex(
+                format!("'{class}' lama soo saarin."),
+                0,
+                0,
+                ErrorMeta::default().with_code(codes::E021_UNDECLARED),
+            ));
+        }
+    }
+    if let Some(meta) = sym.classes.get(name) {
+        return Ok(meta.name.clone());
+    }
+    Err(type_error_ex(
+        format!("Qaab '{name}' lama aqoonsan"),
+        0,
+        0,
+        ErrorMeta::default()
+            .with_code(codes::E021_UNDECLARED)
+            .with_hint("Hubi in qaabka uu ka horreeyo isticmaalkiisa."),
+    ))
+}
+
 /// `found` is the instance class. True when it is `expected` or extends it.
 fn is_same_or_subclass(sym: &SymbolTable, found: &str, expected: &str) -> bool {
-    let mut current = Some(found.to_string());
+    let expected = canonical_class_name(sym, expected);
+    let mut current = Some(canonical_class_name(sym, found));
     let mut seen = HashSet::new();
     while let Some(name) = current {
         if name == expected {
@@ -1780,7 +1877,7 @@ fn ensure_known_class(sym: &SymbolTable, ann: &TypeAnnotation) -> Result<(), Sop
     let TypeAnnotation::Class(name) = ann else {
         return Ok(());
     };
-    if sym.classes.contains_key(name) {
+    if class_is_known(sym, name) {
         return Ok(());
     }
     Err(type_error_ex(
@@ -1850,6 +1947,62 @@ fn analyze_assign_target(
     Ok(())
 }
 
+fn collect_sigs_expr(
+    expr: &Expr,
+    out: &mut HashMap<String, FunctionSig>,
+    current_class: Option<&str>,
+) {
+    match expr.unlocated() {
+        Expr::AnonymousFunc { body, .. } => collect_function_sigs_rec(body, out, current_class),
+        Expr::Invoke { callee, args }
+        | Expr::MethodCall {
+            obj: callee, args, ..
+        } => {
+            collect_sigs_expr(callee, out, current_class);
+            for arg in args {
+                collect_sigs_expr(arg, out, current_class);
+            }
+        }
+        Expr::Call { args, .. } | Expr::New { args, .. } => {
+            for arg in args {
+                collect_sigs_expr(arg, out, current_class);
+            }
+        }
+        Expr::BinaryOp { left, right, .. } => {
+            collect_sigs_expr(left, out, current_class);
+            collect_sigs_expr(right, out, current_class);
+        }
+        Expr::UnaryOp { expr, .. }
+        | Expr::Property { obj: expr, .. }
+        | Expr::NamedArgument { value: expr, .. } => {
+            collect_sigs_expr(expr, out, current_class);
+        }
+        Expr::Index { obj, idx } => {
+            collect_sigs_expr(obj, out, current_class);
+            collect_sigs_expr(idx, out, current_class);
+        }
+        Expr::List(items) => {
+            for item in items {
+                collect_sigs_expr(item, out, current_class);
+            }
+        }
+        Expr::Object(fields) => {
+            for (_, value) in fields {
+                collect_sigs_expr(value, out, current_class);
+            }
+        }
+        Expr::Interpolated { parts } => {
+            for part in parts {
+                if let InterpolationPart::Value { expression, .. } = part {
+                    collect_sigs_expr(expression, out, current_class);
+                }
+            }
+        }
+        Expr::Literal(_) | Expr::Identifier(_) => {}
+        Expr::Located { expr, .. } => collect_sigs_expr(expr, out, current_class),
+    }
+}
+
 fn collect_function_sigs(stmts: &[Stmt]) -> HashMap<String, FunctionSig> {
     let mut out = HashMap::new();
     collect_function_sigs_rec(stmts, &mut out, None);
@@ -1870,7 +2023,7 @@ fn collect_function_sigs_rec(
                 name,
                 params,
                 return_ann,
-                ..
+                body,
             } => {
                 let key = if let Some(class) = current_class {
                     mangle_method(class, name)
@@ -1888,6 +2041,7 @@ fn collect_function_sigs_rec(
                         ret: return_ann.clone(),
                     },
                 );
+                collect_function_sigs_rec(body, out, None);
             }
             Stmt::ClassDef { name, body, .. } => {
                 collect_function_sigs_rec(body, out, Some(name));
@@ -1918,6 +2072,11 @@ fn collect_function_sigs_rec(
             Stmt::For { body, .. } | Stmt::ForEach { body, .. } | Stmt::While { body, .. } => {
                 collect_function_sigs_rec(body, out, current_class);
             }
+            Stmt::VarDecl { value, .. }
+            | Stmt::Assign { value, .. }
+            | Stmt::Return(Some(value))
+            | Stmt::Throw(value)
+            | Stmt::Expr(value) => collect_sigs_expr(value, out, current_class),
             Stmt::TryCatch {
                 try_body,
                 catch_body,
@@ -2037,6 +2196,8 @@ fn note_free_stmt(stmt: &Stmt, sym: &SymbolTable, caps: &mut Vec<String>) {
         | Stmt::Continue
         | Stmt::Import(_)
         | Stmt::Export(_)
+        | Stmt::UseModule { .. }
+        | Stmt::UseClass { .. }
         | Stmt::Return(None) => {}
         Stmt::If {
             cond,

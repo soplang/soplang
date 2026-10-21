@@ -20,6 +20,8 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+* Namespaced modules export public classes. `cusub m.Qof(...)`, `m.Qof q = ...`, and `qaab Arday dhaxal m.Qof` use that class, and `ka Qof sida Student` binds the same identity. A class left out of `soosaar` stays private.
+
 * Git dependencies accept repository URLs, hosting-service short forms, and explicit revisions. Root locks pin commits and content hashes, transitive imports share one resolved graph, and `--offline` verifies cached snapshots without fetching. Cache publication supports concurrent installers.
 
 * `soplang init [directory] [--lib] [--name name]` creates a root application or library starter and `soplang.toml` without overwriting existing files. Bare package imports prefer `lib.sop` while retaining the older package-named layout.

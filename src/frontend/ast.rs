@@ -445,6 +445,16 @@ pub enum Stmt {
         parent: Option<String>,
         body: Vec<Stmt>,
     },
+    /// Namespace alias whose properties name exported classes.
+    UseModule {
+        alias: String,
+        classes: Vec<(String, String)>,
+    },
+    /// Local name for a class defined in another module.
+    UseClass {
+        name: String,
+        class_name: String,
+    },
     If {
         cond: Expr,
         then_body: Vec<Stmt>,
@@ -707,6 +717,8 @@ impl Stmt {
                 writeln!(f, ";")
             }
             Stmt::Export(names) => writeln!(f, "{}soosaar {};", pad, names.join(", ")),
+            Stmt::UseModule { alias, .. } => writeln!(f, "{pad}keen qaab {alias};"),
+            Stmt::UseClass { name, class_name } => writeln!(f, "{pad}qaab {name} = {class_name};"),
             Stmt::Block(stmts) => {
                 writeln!(f, "{} {{", pad)?;
                 for s in stmts {

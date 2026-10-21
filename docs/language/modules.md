@@ -49,8 +49,13 @@ an import error with the location of the import that closes the cycle. Flat
 Private functions retain their lexical names. Parameters may shadow them;
 default expressions and interpolated strings resolve names in the same scope as
 ordinary expressions. Classes used internally have distinct identities across
-modules, including inside nested type annotations. Class declarations themselves
-are not first-class namespace exports yet; expose factory functions instead.
+modules, including inside nested type annotations.
+
+A public class is exported with the same rules as a function. `cusub m.Qof(...)`
+constructs it, `m.Qof q = cusub m.Qof(...)` names its type, and `qaab Arday dhaxal m.Qof`
+extends it. `keen "people.sop" ka Qof sida Student` binds that same class under
+`Student`. A class omitted from `soosaar`, or one whose name starts with `_`
+when `soosaar` is absent, cannot be constructed or named from the caller.
 
 REPL imports survive garbage collection and later commands. An analysis failure
 does not reserve a new module or discard the initializer needed by a later

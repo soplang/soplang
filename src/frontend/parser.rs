@@ -153,7 +153,23 @@ impl Parser {
                 TokenType::Optional | TokenType::Union
             ) || (self.peek_nth(1).kind == TokenType::Identifier
                 && self.peek_nth(2).kind == TokenType::Assign)
-                || self.contextual_generic_declaration())
+                || self.contextual_generic_declaration()
+                || self.looks_like_dotted_type_decl())
+    }
+
+    fn looks_like_dotted_type_decl(&self) -> bool {
+        if self.peek().kind != TokenType::Identifier {
+            return false;
+        }
+        let mut offset = 0;
+        while self.peek_nth(offset + 1).kind == TokenType::Dot
+            && self.peek_nth(offset + 2).kind == TokenType::Identifier
+        {
+            offset += 2;
+        }
+        offset > 0
+            && self.peek_nth(offset + 1).kind == TokenType::Identifier
+            && self.peek_nth(offset + 2).kind == TokenType::Assign
     }
 
     fn contextual_generic_declaration(&self) -> bool {
@@ -258,7 +274,7 @@ impl Parser {
                 | TokenType::Teed
                 | TokenType::Walax
                 | TokenType::Null => token_to_type_ann(&token.kind),
-                TokenType::Identifier => TypeAnnotation::named(token.lexeme),
+                TokenType::Identifier => TypeAnnotation::named(token.lexeme.clone()),
                 _ => {
                     return Err(parser_error(
                         "Waxaa la filayay nooc.",
@@ -268,6 +284,14 @@ impl Parser {
                 }
             };
             self.advance();
+            if let TypeAnnotation::Class(mut name) = ty {
+                while self.check(TokenType::Dot) {
+                    self.advance();
+                    name.push('.');
+                    name.push_str(&self.expect_identifier()?);
+                }
+                ty = TypeAnnotation::Class(name);
+            }
             if self.check(TokenType::LBracket) {
                 self.advance();
                 if ty == TypeAnnotation::Tuple {
@@ -1158,7 +1182,10 @@ impl Parser {
         } else {
             None
         };
-        if alias.is_some() && self.peek().kind == TokenType::Identifier && self.peek().lexeme == "ka" {
+        if alias.is_some()
+            && self.peek().kind == TokenType::Identifier
+            && self.peek().lexeme == "ka"
+        {
             return Err(parser_error(
                 "Ha isku darin sida iyo ka isla hal keen.",
                 self.peek().line,
@@ -1174,14 +1201,21 @@ impl Parser {
         } else {
             Vec::new()
         };
-        Ok(Stmt::Import(crate::frontend::ast::ImportSpec { path, alias, selected }))
+        Ok(Stmt::Import(crate::frontend::ast::ImportSpec {
+            path,
+            alias,
+            selected,
+        }))
     }
 
-    fn parse_selected_imports(&mut self) -> Result<Vec<crate::frontend::ast::SelectedImport>, SoplangError> {
+    fn parse_selected_imports(
+        &mut self,
+    ) -> Result<Vec<crate::frontend::ast::SelectedImport>, SoplangError> {
         let mut items = Vec::new();
         loop {
             let name = self.expect_identifier()?;
-            let alias = if self.peek().kind == TokenType::Identifier && self.peek().lexeme == "sida" {
+            let alias = if self.peek().kind == TokenType::Identifier && self.peek().lexeme == "sida"
+            {
                 self.advance();
                 Some(self.expect_identifier()?)
             } else {
@@ -1207,6 +1241,16 @@ impl Parser {
         Ok(Stmt::Export(names))
     }
 
+    fn parse_dotted_name(&mut self) -> Result<String, SoplangError> {
+        let mut name = self.expect_identifier()?;
+        while self.check(TokenType::Dot) {
+            self.advance();
+            name.push('.');
+            name.push_str(&self.expect_identifier()?);
+        }
+        Ok(name)
+    }
+
     fn parse_class_def(&mut self) -> Result<Stmt, SoplangError> {
         let t = self.peek();
         let (line, col) = (t.line, t.col);
@@ -1214,7 +1258,7 @@ impl Parser {
         let name = self.expect_identifier()?;
         let parent = if self.check(TokenType::Dhaxal) {
             self.advance();
-            Some(self.expect_identifier()?)
+            Some(self.parse_dotted_name()?)
         } else {
             None
         };
@@ -1294,19 +1338,36 @@ impl Parser {
         let mut named = false;
         while !self.check(TokenType::RParen) {
             let marker = self.peek().clone();
-            let argument = if self.check(TokenType::Identifier) && self.peek_nth(1).kind == TokenType::Colon {
-                let name = self.expect_identifier()?;
-                self.expect(TokenType::Colon)?;
-                if !names.insert(name.clone()) {
-                    return Err(parser_error(format!("Doodda '{}' laba jeer ayaa la bixiyay.", name), marker.line, marker.col));
-                }
-                named = true;
-                let value = self.parse_logical()?;
-                self.locate(Expr::NamedArgument { name, value: Box::new(value) }, &marker)
-            } else {
-                if named { return Err(parser_error("Dood boos leh ma raaci karto dood magac leh.", marker.line, marker.col)); }
-                self.parse_logical()?
-            };
+            let argument =
+                if self.check(TokenType::Identifier) && self.peek_nth(1).kind == TokenType::Colon {
+                    let name = self.expect_identifier()?;
+                    self.expect(TokenType::Colon)?;
+                    if !names.insert(name.clone()) {
+                        return Err(parser_error(
+                            format!("Doodda '{}' laba jeer ayaa la bixiyay.", name),
+                            marker.line,
+                            marker.col,
+                        ));
+                    }
+                    named = true;
+                    let value = self.parse_logical()?;
+                    self.locate(
+                        Expr::NamedArgument {
+                            name,
+                            value: Box::new(value),
+                        },
+                        &marker,
+                    )
+                } else {
+                    if named {
+                        return Err(parser_error(
+                            "Dood boos leh ma raaci karto dood magac leh.",
+                            marker.line,
+                            marker.col,
+                        ));
+                    }
+                    self.parse_logical()?
+                };
             args.push(argument);
             if self.at_end() {
                 break;
@@ -1619,7 +1680,7 @@ impl Parser {
             }
             TokenType::Cusub => {
                 self.advance();
-                let class_name = self.expect_identifier()?;
+                let class_name = self.parse_dotted_name()?;
                 self.expect(TokenType::LParen)?;
                 let args = self.parse_call_args()?;
                 Ok(Expr::New { class_name, args })

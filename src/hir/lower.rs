@@ -4,7 +4,9 @@
 use std::fmt;
 
 use crate::frontend::ast::{Expr, InterpolationPart, Literal, Param, Stmt, TypeAnnotation};
-use crate::semantic::{resolve_name, resolve_parent_method, SymbolTable, VarInfo};
+use crate::semantic::{
+    canonical_class_name, resolve_name, resolve_parent_method, SymbolTable, VarInfo,
+};
 
 pub type Slot = usize;
 pub type LabelId = usize;
@@ -909,7 +911,7 @@ impl<'a> HirLowering<'a> {
             }
             TypeAnnotation::Class(class) => self.emit(HirInstr::CheckClass {
                 src,
-                class_name: class.clone(),
+                class_name: canonical_class_name(self.sym, class),
                 var_name: name.to_string(),
             }),
             other => self.emit(HirInstr::CheckType {
@@ -1395,7 +1397,7 @@ impl<'a> HirLowering<'a> {
                     finally_body,
                 );
             }
-            Stmt::Import(_) | Stmt::Export(_) => {}
+            Stmt::Import(_) | Stmt::Export(_) | Stmt::UseModule { .. } | Stmt::UseClass { .. } => {}
             Stmt::Block(stmts) => {
                 for s in stmts {
                     self.lower_stmt(s);
@@ -1774,6 +1776,7 @@ impl<'a> HirLowering<'a> {
                 dst
             }
             Expr::New { class_name, args } => {
+                let class_name = canonical_class_name(self.sym, class_name);
                 let arg_slots: Vec<Slot> = args.iter().map(|a| self.lower_expr(a)).collect();
                 let dst = self.alloc_slot();
                 if let Some(labels) = argument_labels(args) {
@@ -1924,7 +1927,13 @@ fn collect_funcs_stmt<'a>(stmt: &'a Stmt, out: &mut Vec<(&'a [Param], &'a [Stmt]
         Stmt::Return(Some(expr)) | Stmt::Expr(expr) | Stmt::Throw(expr) => {
             collect_funcs_expr(expr, out)
         }
-        Stmt::Return(None) | Stmt::Break | Stmt::Continue | Stmt::Import(_) | Stmt::Export(_) => {}
+        Stmt::Return(None)
+        | Stmt::Break
+        | Stmt::Continue
+        | Stmt::Import(_)
+        | Stmt::Export(_)
+        | Stmt::UseModule { .. }
+        | Stmt::UseClass { .. } => {}
     }
 }
 
