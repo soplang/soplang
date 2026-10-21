@@ -12,6 +12,7 @@ use super::value::{NativeFn, Value};
 pub(super) struct RuntimeState {
     pub current_source: RefCell<Option<crate::error::SourceSpan>>,
     pub try_depth: Cell<u32>,
+    pub random: Cell<Option<u64>>,
     pub pending_error: RefCell<Option<crate::error::SoplangError>>,
     pub call_stack: RefCell<Vec<crate::error::StackFrame>>,
     pub errors: RefCell<HandleArena<Rc<crate::error::SoplangError>>>,

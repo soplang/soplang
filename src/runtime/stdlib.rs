@@ -295,45 +295,9 @@ pub fn builtin_dherer(args: Vec<Value>) -> Result<Value, SoplangError> {
     Ok(Value::Int(len as i64))
 }
 
-/// Built-in xul: random float [0,1), or random in [a,b], or random choice from list.
+/// Built-in xul: context-local random float, range, or list choice.
 pub fn builtin_xul(args: Vec<Value>) -> Result<Value, SoplangError> {
-    use std::time::{SystemTime, UNIX_EPOCH};
-    let mut seed = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .unwrap()
-        .as_nanos() as u64;
-    let mut next = || {
-        seed = seed
-            .wrapping_mul(6364136223846793005)
-            .wrapping_add(1442695040888963407);
-        (seed >> 32) as f64 / (1u64 << 32) as f64
-    };
-    match args.len() {
-        0 => Ok(Value::Float(next())),
-        1 => {
-            let list = match &args[0] {
-                Value::List(l) => l.borrow().clone(),
-                _ => return Err(err_type("Qiimaha ma ahan teed")),
-            };
-            if list.is_empty() {
-                return Err(err_runtime("teedku waa madhan yahay"));
-            }
-            let i = (next() * list.len() as f64).floor() as usize;
-            Ok(list[i].clone())
-        }
-        2 => {
-            let a = to_number(&args[0])?;
-            let b = to_number(&args[1])?;
-            if a > b {
-                return Err(err_runtime(
-                    "Qiimaha koowaad waa in uu ka yar yahay ama la mid yahay qiimaha labaad",
-                ));
-            }
-            let x = a + next() * (b - a);
-            Ok(Value::Float(x))
-        }
-        _ => Err(err_type("Hawsha 'xul()' waxay qaadataa 0, 1, ama 2 dood")),
-    }
+    super::numeric::random(args)
 }
 
 /// Built-in baaxad: range as list (1, 2, or 3 numeric args).
@@ -390,19 +354,7 @@ fn numeric_extreme(args: Vec<Value>, name: &str, minimum: bool) -> Result<Value,
             name
         )));
     }
-    let all_int = args.iter().all(|v| matches!(v, Value::Int(_)));
-    let mut best = to_number(&args[0])?;
-    for value in &args[1..] {
-        let number = to_number(value)?;
-        if (minimum && number < best) || (!minimum && number > best) {
-            best = number;
-        }
-    }
-    if all_int {
-        Ok(Value::Int(best as i64))
-    } else {
-        Ok(Value::Float(best))
-    }
+    super::numeric::extreme(&args, name, minimum)
 }
 
 pub fn builtin_ugu_yar(args: Vec<Value>) -> Result<Value, SoplangError> {
@@ -487,6 +439,14 @@ impl CallbackArity {
 
 // Registration and callback metadata use the same list, including aliases.
 const BUILTINS: &[(&str, super::NativeFn, CallbackArity)] = &[
+    ("loog", super::numeric::logarithm, CallbackArity::range(1, 2)),
+    ("sin", super::numeric::sine, CallbackArity::range(1, 2)),
+    ("cos", super::numeric::cosine, CallbackArity::range(1, 2)),
+    ("tan", super::numeric::tangent, CallbackArity::range(1, 2)),
+    ("xagal", super::numeric::angle, CallbackArity::range(2, 2)),
+    ("joogto", super::numeric::constant, CallbackArity::range(1, 1)),
+    ("xadid", super::numeric::clamp, CallbackArity::range(3, 3)),
+    ("abuur", super::numeric::seed, CallbackArity::range(1, 1)),
     (
         "urur",
         super::sets::construct,

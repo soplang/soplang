@@ -803,3 +803,10 @@ fn test_llvm_object_operations() {
         assert_eq!(run_llvm_with_opt(&format!("llvm_object_operations_{opt}"), include_str!("fixtures/object_operations.sop"), opt), "object operations ok\n");
     }
 }
+
+#[test]
+fn test_llvm_numeric_library() {
+    for opt in [0, 2] {
+        assert_eq!(run_llvm_with_opt(&format!("llvm_numeric_library_{opt}"), include_str!("fixtures/numeric_library.sop"), opt), "numeric library ok\n");
+    }
+}

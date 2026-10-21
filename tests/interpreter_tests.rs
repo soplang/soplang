@@ -778,3 +778,8 @@ fn test_list_operations() {
 fn test_object_operations() {
     assert_eq!(run_program(include_str!("fixtures/object_operations.sop")), "object operations ok\n");
 }
+
+#[test]
+fn test_numeric_library() {
+    assert_eq!(run_program(include_str!("fixtures/numeric_library.sop")), "numeric library ok\n");
+}

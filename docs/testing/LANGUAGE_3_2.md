@@ -380,3 +380,28 @@ Windows x64 and macOS ARM64 cross-target checks pass. The extracted LLVM linker
 wrapper passes Rust metadata compilation against both target libraries.
 Native platform execution and packaging remain distribution gates. Numeric
 library work remains before the complete 3.2 milestone tag.
+
+## Expanded numeric-library stage
+
+The debug suite passes with `--skip test_aot`. The diagnostic and example suites
+pass through JIT and LLVM. Optimized checks cover the shared numeric fixture at
+LLVM optimization levels 0 and 2:
+
+```sh
+cargo test --locked -- --skip test_aot
+cargo test --locked --test diagnostic_tests --test examples_tests
+cargo test --locked --release --test numeric_library_tests --test interpreter_tests --test llvm_ir_tests
+cargo check --locked --offline --target x86_64-pc-windows-msvc
+cargo check --locked --offline --target aarch64-apple-darwin
+```
+
+The fixture checks logarithm and trigonometry domains, inverse mode, quadrant
+angles, clamping with exact large integers, integer extrema precision, named
+constants, reproducible streams, list and range draws, failed calls that do not
+advance the generator, and native callbacks through `sin` and `loog`.
+
+Three host tests cover independent context streams, nested activation, invalid
+random calls with conflicting list borrows, and REPL persistence across
+collection and function shadowing. Windows x64 and macOS ARM64 cross-target
+checks pass. Native platform execution and packaging remain distribution gates.
+The complete 3.2 milestone tag remains pending any remaining roadmap scope.

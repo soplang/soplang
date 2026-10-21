@@ -116,6 +116,15 @@ fn float_float(a: f64, b: f64) -> Ordering {
         (false, false) => a.partial_cmp(&b).unwrap(),
     }
 }
+pub(super) fn numeric_compare(a: &Value, b: &Value) -> Option<Ordering> {
+    match (a, b) {
+        (Value::Int(a), Value::Int(b)) => Some(a.cmp(b)),
+        (Value::Int(a), Value::Float(b)) => Some(int_float(*a, *b)),
+        (Value::Float(a), Value::Int(b)) => Some(int_float(*b, *a).reverse()),
+        (Value::Float(a), Value::Float(b)) => Some(float_float(*a, *b)),
+        _ => None,
+    }
+}
 enum SortKey {
     Null,
     Bool(bool),

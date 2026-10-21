@@ -256,6 +256,14 @@ these explanations do not establish a historical abbreviation or SLS approval.
 | `kor`    | Round up to integer                          | `Math.ceil()`        | `door n = kor(4.2)`                       |
 | `dherer` | Count list items, object keys, or string characters | `len()`/`.length` | `door n = dherer(qoraal)`             |
 | `xul`    | Get random value                             | `random()`           | `door n = xul(1, 6)`                      |
+| `abuur`  | Seed the context random stream               | (seed PRNG)          | `abuur(42)`                               |
+| `loog`   | Natural or base logarithm                    | `log()`              | `door n = loog(100, 10)`                  |
+| `sin`    | Sine or inverse sine                         | `sin()` / `asin()`   | `door n = sin(1, "rogan")`                |
+| `cos`    | Cosine or inverse cosine                     | `cos()` / `acos()`   | `door n = cos(0)`                         |
+| `tan`    | Tangent or inverse tangent                   | `tan()` / `atan()`   | `door n = tan(1)`                         |
+| `xagal`  | Angle from `y` and `x`                       | `atan2()`            | `door n = xagal(1, -1)`                   |
+| `joogto` | Named math constant                          | (constants)          | `door pi = joogto("pi")`                  |
+| `xadid`  | Clamp a value between bounds                 | `clamp()`            | `door n = xadid(5, 0, 10)`                |
 | `baaxad` | Create an integer range                      | `range()`            | `door n = baaxad(1, 5)`                   |
 | `duub` | Round to the nearest integer            | `round()`            | `door n = duub(4.6)`               |
 | `sugan`  | Get the absolute value                       | `abs()`              | `door n = sugan(-5)`                      |
@@ -282,7 +290,20 @@ qor()
 `duub()` rounds to the nearest integer, with halfway values rounded away
 from zero. `xidid()` computes only a square root, not an arbitrary root.
 
-`xul()` returns a floating-point number in `[0, 1)`. `xul(a, b)` returns a floating-point number in `[a, b)`. `xul(teed)` returns one item and reports an error for an empty list.
+`abuur(seed)` resets the context-local random stream used by `xul`. Each runtime
+context keeps its own stream; reusing the same seed reproduces the same draws.
+
+`xul()` returns a floating-point number in `[0, 1)`. `xul(a, b)` returns a
+floating-point number in `[a, b)` and excludes the upper endpoint. `xul(teed)`
+returns one item and reports an error for an empty list. Failed calls do not
+advance the stream.
+
+`loog(x)` and `loog(x, base)` require positive finite inputs with a base other
+than `1`. Trigonometric builtins use radians; pass `"rogan"` as the second
+argument for inverse sine, cosine, or tangent. `joogto("pi")`, `joogto("e")`,
+`joogto("tau")`, `joogto("inf")`, and `joogto("nan")` return named constants.
+`xadid(value, low, high)` clamps using the same numeric ordering as comparisons.
+Domain and type failures for these builtins use error code `E044`.
 
 > **Note:** `abn`, `qoraal`, `bool`, `teed`, and `walax` are used both as static **type keywords** (see Variable Declaration Keywords / Data Types above) and as **built-in conversion/constructor functions** here. The meaning depends on context: e.g. `abn age = 25` declares a typed variable, while `abn("5")` converts a string to a number.
 

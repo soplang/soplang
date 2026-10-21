@@ -8,6 +8,8 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+* Numeric builtins add logarithms, radian trigonometry with optional inverse mode, `atan2`-style angles, named constants, clamping, and context-local seeded random streams. Integer-only extrema keep exact 64-bit results; invalid random calls do not advance the generator.
+
 * Object methods add insert-if-absent, atomic in-place merging, sorted-snapshot value and entry mapping, entry filtering, and explicit nested paths. Mapping can rename keys through checked pair results; path lookup preserves mutable aliases and supports existing indexed value kinds.
 
 * List methods add explicit removal by value, atomic in-place iterable extension, stable generic uniqueness, numeric sums, enumerate/zip adapters, and stable callback-key sorting. Sorting preserves large-integer precision and rejects changed receiver slots without discarding callback writes.
