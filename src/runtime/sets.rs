@@ -7,7 +7,7 @@ use super::value::Value;
 use crate::error::{codes, runtime_error_ex, ErrorMeta, SoplangError};
 
 #[derive(Clone, PartialEq, Eq, Hash)]
-enum Key {
+pub(super) enum Key {
     Null,
     Bool(bool),
     Int(i64),
@@ -16,7 +16,7 @@ enum Key {
     Tuple(Vec<Key>),
 }
 impl Key {
-    fn of(value: &Value, depth: usize) -> Result<Self, SoplangError> {
+    pub(super) fn of(value: &Value, depth: usize) -> Result<Self, SoplangError> {
         Ok(match value {
             Value::Null => Self::Null,
             Value::Bool(value) => Self::Bool(*value),

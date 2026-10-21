@@ -224,16 +224,20 @@ impl fmt::Display for FunctionId {
 
 impl fmt::Display for Value {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(&format_value(self, &mut HashSet::new()))
+        f.write_str(&format_value(self, &mut HashSet::new(), false))
     }
 }
 
 /// String conversion for stdlib and qor.
 pub fn value_to_string(v: &Value) -> String {
-    format_value(v, &mut HashSet::new())
+    format_value(v, &mut HashSet::new(), false)
 }
 
-fn format_value(v: &Value, seen: &mut HashSet<(u8, usize)>) -> String {
+pub(super) fn ordering_text(value: &Value) -> String {
+    format_value(value, &mut HashSet::new(), true)
+}
+
+fn format_value(v: &Value, seen: &mut HashSet<(u8, usize)>, opaque_functions: bool) -> String {
     // Display is bounded independently of graph depth; equality and GC walk
     // complete graphs iteratively, including immutable tuple chains.
     if seen.len() >= 64
@@ -261,7 +265,7 @@ fn format_value(v: &Value, seen: &mut HashSet<(u8, usize)>) -> String {
             let parts: Vec<_> = set
                 .values()
                 .iter()
-                .map(|value| format_value(value, seen))
+                .map(|value| format_value(value, seen, opaque_functions))
                 .collect();
             format!("urur({})", parts.join(", "))
         }
@@ -273,7 +277,7 @@ fn format_value(v: &Value, seen: &mut HashSet<(u8, usize)>) -> String {
             let parts: Vec<_> = tuple
                 .values()
                 .iter()
-                .map(|value| format_value(value, seen))
+                .map(|value| format_value(value, seen, opaque_functions))
                 .collect();
             seen.remove(&id);
             format!("xirmo({})", parts.join(", "))
@@ -284,7 +288,10 @@ fn format_value(v: &Value, seen: &mut HashSet<(u8, usize)>) -> String {
                 return "[...]".to_string();
             }
             let v = lst.borrow();
-            let parts: Vec<String> = v.iter().map(|value| format_value(value, seen)).collect();
+            let parts: Vec<String> = v
+                .iter()
+                .map(|value| format_value(value, seen, opaque_functions))
+                .collect();
             seen.remove(&id);
             format!("[{}]", parts.join(", "))
         }
@@ -296,12 +303,13 @@ fn format_value(v: &Value, seen: &mut HashSet<(u8, usize)>) -> String {
             let m = obj.borrow();
             let mut pairs: Vec<_> = m
                 .iter()
-                .map(|(k, val)| format!("{}: {}", k, format_value(val, seen)))
+                .map(|(k, val)| format!("{}: {}", k, format_value(val, seen, opaque_functions)))
                 .collect();
             pairs.sort();
             seen.remove(&id);
             format!("{{{}}}", pairs.join(", "))
         }
+        Value::Function(_) if opaque_functions => "<hawl>".into(),
         Value::Function(id) => format!("{}", id),
         Value::NativeFunction(_) | Value::Closure(_) => "<hawl>".to_string(),
     }

@@ -761,3 +761,10 @@ for immutable key types, shared contracts, nested aliases, and diagnostics.
 zero-argument `qeybi()` extend the string library. The [text reference](text-methods.md)
 defines classification, word boundaries, scalar widths, Unicode line endings,
 and compatibility with earlier spellings.
+
+## Expanded list methods
+
+`saar(value, "qiime")`, `ballaadhi`, `keli`, `wadar`, `tirso`, `lamaane`, and
+optional `habee` key/reverse arguments extend the list library. The
+[list reference](list-methods.md) defines snapshots, atomic publication,
+structural equality, consistent sorting, and callback side effects.

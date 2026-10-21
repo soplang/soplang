@@ -158,3 +158,10 @@ runtime	text_width.sop	2	7	ballacu waa inuu noqdaa abn
 runtime	text_fill.sop	2	7	hal xaraf
 runtime	text_partition.sop	2	7	madhan ma noqon karo
 runtime	text_lines.sop	2	7	waa inay noqotaa bool
+runtime	list_value_mode.sop	2	7	doodda labaad
+runtime	list_sum_type.sop	2	7	xubnaha teedka
+runtime	list_sort_flag.sop	2	7	rogistu waa inay
+runtime	list_sort_mutation.sop	2	5	hawsha furaha ayaa beddeshay
+runtime	list_sort_signature.sop	2	5	ma aqbasho 1 dood
+runtime	list_extend_contract.sop	2	7	Beddelkani ma waafaqsana
+runtime	list_sort_key_error.sop	2	12	eber

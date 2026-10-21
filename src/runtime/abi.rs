@@ -2011,7 +2011,7 @@ fn call_value(callee: &Value, args: &[Value]) -> Result<Value, SoplangError> {
     call_collection_callback(callee, &args)
 }
 
-fn collection_callback(
+pub(super) fn collection_callback(
     value: &Value,
     name: &str,
     supplied: usize,
@@ -2073,11 +2073,17 @@ fn collection_callback(
     Ok(callee)
 }
 
-fn call_collection_callback(
+pub(super) fn call_collection_callback(
     callee: SoplangValue,
     args: &[SoplangValue],
 ) -> Result<Value, SoplangError> {
+    let source = CURRENT_SOURCE.with(|current| current.borrow().clone());
     let result = soplang_call(callee, args.as_ptr(), args.len() as i32);
+    // Inner failures already own their span; later collection validation must
+    // point at the outer operation rather than the callback's last expression.
+    CURRENT_SOURCE.with(|current| {
+        *current.borrow_mut() = source;
+    });
     if let Some(error) = PENDING_ERROR.with(|error| error.borrow().clone()) {
         return Err(error);
     }
@@ -2096,6 +2102,9 @@ fn dispatch_list_method(
         _ => {}
     }
     match method {
+        "ballaadhi" | "keli" | "wadar" | "tirso" | "lamaane" => {
+            super::list_ops::dispatch(l, method, args)
+        }
         "shaandhee" => {
             if args.len() != 1 {
                 return Err(runtime_error(

@@ -8,6 +8,8 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+* List methods add explicit removal by value, atomic in-place iterable extension, stable generic uniqueness, numeric sums, enumerate/zip adapters, and stable callback-key sorting. Sorting preserves large-integer precision and rejects changed receiver slots without discarding callback writes.
+
 * Unicode text methods add classification, capitalization, title casing, scalar-width padding, tuple partitioning, Unicode line splitting, and default whitespace splitting. Unicode 17 titlecase mappings and word boundaries work through both compiler backends.
 
 * Typed sets (`urur[T]`) enforce immutable element contracts through aliases, nested collections, parameters, defaults, returns, and typed rest collectors. Every mutation validates all affected parent contracts before changing membership or insertion order.
@@ -26,6 +28,8 @@ All notable changes to this project will be documented in this file.
 * Iterator state participates in context ownership and tracing collection, including cyclic snapshots and native roots held across callbacks. Invalid protocols, reentrant advances, excessive native nesting, and conflicting snapshot borrows produce recoverable Somali errors.
 
 ### Fixed
+
+* List sorting uses consistent type ordering, preserves large integer precision, and hides opaque callable handles during comparisons. Collection validation after callbacks reports the outer call site while callback failures retain their inner locations and traces.
 
 * Structural collection equality uses an iterative graph walk, and display bounds active nesting to 64 containers. Unreachable tuple edges are cleared during collection so deep immutable chains and mixed cycles can be reclaimed without recursive destruction.
 * Functions that fall through validate their implicit null return against their annotation, closing a gap for primitive and class return types.

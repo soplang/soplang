@@ -1,0 +1,4 @@
+Khalad nooc: habee() rogistu waa inay noqotaa bool. [E043] safka 2, tiirka 7
+     --> examples/errors/list_sort_flag.sop:2:7
+   2 │     xog.habee(maran, 1)
+     │         ^^^^^

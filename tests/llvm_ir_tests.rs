@@ -789,3 +789,10 @@ fn test_llvm_text_methods() {
         assert_eq!(run_llvm_with_opt(&format!("llvm_text_methods_{opt}"), include_str!("fixtures/text_methods.sop"), opt), "text methods ok\n");
     }
 }
+
+#[test]
+fn test_llvm_list_operations() {
+    for opt in [0, 2] {
+        assert_eq!(run_llvm_with_opt(&format!("llvm_list_operations_{opt}"), include_str!("fixtures/list_operations.sop"), opt), "list operations ok\n");
+    }
+}

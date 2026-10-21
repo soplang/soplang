@@ -184,7 +184,7 @@ step representation.
 | Value | Planned operations |
 | --- | --- |
 | String | Implemented: character classification, capitalization, title casing, padding, partitioning, lines, words, and formatting; see [text methods](docs/language/text-methods.md). |
-| List | remove by value, extend in place, unique values, enumerate, zip, sum, and callback-based sorting |
+| List | Implemented: remove by value, extend in place, unique values, enumerate, zip, sum, and callback-based sorting; see [list methods](docs/language/list-methods.md). |
 | Object | insert when absent, merge in place, map entries, filter entries, and nested-path lookup |
 | Number | logarithms, trigonometry, constants, clamping, and seeded random generation |
 

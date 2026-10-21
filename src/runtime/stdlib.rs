@@ -668,30 +668,8 @@ pub fn list_rog(lst: Rc<RefCell<Vec<Value>>>, args: &[Value]) -> Result<Value, S
     Ok(Value::List(Rc::clone(&lst)))
 }
 
-fn value_cmp_for_sort(a: &Value, b: &Value) -> std::cmp::Ordering {
-    match (a, b) {
-        (Value::Int(a), Value::Int(b)) => a.cmp(b),
-        (Value::Float(a), Value::Float(b)) => a.total_cmp(b),
-        (Value::Int(a), Value::Float(b)) => (*a as f64).total_cmp(b),
-        (Value::Float(a), Value::Int(b)) => a.total_cmp(&(*b as f64)),
-        (Value::Str(a), Value::Str(b)) => a.cmp(b),
-        (Value::Bool(a), Value::Bool(b)) => a.cmp(b),
-        _ => value_to_string(a).cmp(&value_to_string(b)),
-    }
-}
-
 pub fn list_habee(lst: Rc<RefCell<Vec<Value>>>, args: &[Value]) -> Result<Value, SoplangError> {
-    expect_arity(args, "habee", 0)?;
-    let mut sorted = lst
-        .try_borrow()
-        .map_err(|_| err_runtime("Teedka hadda lama akhriyi karo."))?
-        .clone();
-    sorted.sort_by(value_cmp_for_sort);
-    mutate_list(&lst, |items| {
-        *items = sorted;
-        Ok(())
-    })?;
-    Ok(Value::List(Rc::clone(&lst)))
+    super::list_ops::sort(&lst, args)
 }
 
 /// Shared character/item slicing: integer bounds, negative offsets, clamped
@@ -787,7 +765,10 @@ pub fn list_ka_saar(lst: Rc<RefCell<Vec<Value>>>, args: &[Value]) -> Result<Valu
 }
 
 pub fn list_saar(lst: Rc<RefCell<Vec<Value>>>, args: &[Value]) -> Result<Value, SoplangError> {
-    expect_arity_range(args, "saar", 0, 1)?;
+    expect_arity_range(args, "saar", 0, 2)?;
+    if args.len() == 2 {
+        return super::list_ops::remove_value(&lst, args);
+    }
     if args.is_empty() {
         return list_kasaar(lst, args);
     }

@@ -1,0 +1,4 @@
+Khalad nooc: saar() doodda labaad waa inay noqotaa 'qiime'. [E043] safka 2, tiirka 7
+     --> examples/errors/list_value_mode.sop:2:7
+   2 │     xog.saar(1, "khaldan")
+     │         ^^^^

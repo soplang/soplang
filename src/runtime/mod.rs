@@ -13,6 +13,7 @@ mod tuples;
 mod text;
 mod unicode_case;
 mod sets;
+mod list_ops;
 pub mod stdlib;
 pub mod value;
 

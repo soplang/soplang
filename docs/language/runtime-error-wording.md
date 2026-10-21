@@ -349,3 +349,23 @@ word splitting. Explanations and exact contracts are in the [text reference](tex
 These text operation errors use `E042`. Wrong argument counts retain the shared
 method diagnostics. Classification kinds are `xarfo`, `tiro`, `xarfo iyo tiro`,
 `bannaan`, `waaweyn`, `yaryar`, `cinwaan`, and `ascii`.
+
+## Expanded list vocabulary and diagnostics
+
+`ballaadhi` means extend, `keli` selects unique values, and `wadar` computes a
+numeric sum. Existing `saar` uses explicit `qiime` mode for value removal;
+`tirso`, `lamaane`, and `habee` retain their enumeration, pairing, and sorting
+roles. See the [list reference](list-methods.md).
+
+| Somali wording | English meaning |
+| --- | --- |
+| `saar() doodda labaad waa inay noqotaa 'qiime'.` | Invalid removal-by-value mode. |
+| `wadar() qiimaha bilowgu waa inuu noqdaa abn ama jajab.` | Invalid initial sum value. |
+| `wadar() xubnaha teedka waa inay noqdaan abn ama jajab.` | Invalid list element in numeric summation. |
+| `habee() rogistu waa inay noqotaa bool.` | Invalid reverse flag. |
+| `habee() hawsha furaha ayaa beddeshay teedka.` | Key callbacks left the receiver's outer slots changed. |
+| `Furaha habaynta hadda lama akhriyi karo.` | A conflicting native borrow prevents rendering a sort key. |
+
+New operation failures use `E043`. Existing read-borrow wording, method arities,
+callback errors, iteration failures, and collection-contract diagnostics remain
+in use with their established codes.

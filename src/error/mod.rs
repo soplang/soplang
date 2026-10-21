@@ -41,6 +41,7 @@ pub mod codes {
     pub const E040_TUPLE: &str = "E040";
     pub const E041_SET: &str = "E041";
     pub const E042_TEXT: &str = "E042";
+    pub const E043_COLLECTION_OPERATION: &str = "E043";
 }
 
 /// A compiled function and its caller's source location.

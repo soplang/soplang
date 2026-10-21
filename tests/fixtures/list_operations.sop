@@ -1,0 +1,103 @@
+hawl hubi(v,name){haddii(!v){tuur name}}
+hawl fails(cb,code="E043"){door failed=been tijaabi{cb()}qabo(e,x){failed=run hubi(x.summad==code,"error code")}hubi(failed,"expected failure")}
+door values=[1,2,1,maran]
+hubi(values.saar(1,"qiime")==1 && values==[2,1,maran],"remove first matching value")
+hubi(values.saar(99,"qiime")==maran && values==[2,1,maran],"missing value")
+hubi(values.saar(maran,"qiime")==maran && values==[2,1],"remove null")
+hubi(values.saar(0)==2 && values.saar()==1,"existing index and pop")
+fails(hawl(){values.saar(1,"bad")})
+door child=[1]
+door nested=[child,[2]]
+hubi(nested.saar([1],"qiime")==child && nested==[[2]],"structural value removal")
+door source=[1,2]
+hubi(source.ballaadhi(source)==source && source==[1,2,1,2],"self extension snapshot")
+source.ballaadhi(xirmo(3,4)).ballaadhi(urur(5,6)).ballaadhi(baytyo([7,8]))
+hubi(source==[1,2,1,2,3,4,5,6,7,8],"extend collection kinds")
+source.ballaadhi(taxane(9,11))
+hubi(source.dambe()==10,"extend iterator")
+hubi([].ballaadhi("é🙂")==["é","🙂"] && [].ballaadhi({b:2,a:1})==["a","b"],"extend text and sorted object keys")
+fails(hawl(){source.ballaadhi(1)},"E037")
+teed[abn] ints=[1]
+fails(hawl(){ints.ballaadhi([2,"bad",3])},"E039")
+hubi(ints==[1],"guarded extension is atomic")
+door state={index:0,wareeg:hawl(){celi state},xiga:hawl(){state.index=state.index+1 haddii(state.index==2){tuur khalad("stop","STOP")} celi {dhammaad:been,qiime:9}}}
+fails(hawl(){ints.ballaadhi(state)},"STOP")
+hubi(ints==[1] && state.index==2,"failed protocol consumption appends nothing")
+hubi([3,1,3,2,1].keli()==[3,1,2],"stable uniqueness")
+hubi([1,1.0,run,1,1.0].keli()==[1,1.0,run],"unique numeric kinds")
+hubi([xirmo(1),xirmo(1),[2],[2],{a:1},{a:1},baytyo([3]),baytyo([3]),urur(1,2),urur(2,1)].keli()==[xirmo(1),[2],{a:1},baytyo([3]),urur(1,2)],"generic structural uniqueness")
+door cyclic=[]
+cyclic.geli(cyclic)
+door another=[]
+another.geli(another)
+hubi([cyclic,another,cyclic].keli().dherer()==1,"cyclic uniqueness")
+door copied=[child,child].keli()
+copied[0].geli(9)
+hubi(child==[1,9],"unique output shares nested members")
+hubi([].wadar()==0 && [1,2,3].wadar()==6 && [1,2].wadar(10)==13,"sum and initial value")
+hubi(nooc([1,2].wadar(0.0))=="jajab" && [1,2.5].wadar()==3.5,"numeric sum promotion")
+hubi([9223372036854775807,1].wadar()==-9223372036854775807-1,"integer sum wraps")
+fails(hawl(){[1,"x"].wadar()})
+fails(hawl(){[].wadar(run)})
+door numbered=[]
+kuceli(i,x ku ["a","b"].tirso(-1)){numbered.geli(xirmo(i,x))}
+hubi(numbered==[xirmo(-1,"a"),xirmo(0,"b")],"list enumerate adapter")
+door zipped=[]
+kuceli(a,b,c ku [1,2].lamaane([3,4],xirmo(5))){zipped.geli(xirmo(a,b,c))}
+hubi(zipped==[xirmo(1,3,5)],"list zip uses shortest source")
+door rows=[]
+kuceli(a ku [1,2].lamaane()){rows.geli(a)}
+hubi(rows==[[1],[2]],"zip without additional sources")
+door numbers=[3,1,2]
+door calls=[]
+hubi(numbers.habee(hawl(x){calls.geli(x) celi -x})==numbers && numbers==[3,2,1],"key sort returns receiver")
+hubi(calls==[3,1,2],"key evaluated once in source order")
+numbers.habee(maran,run)
+hubi(numbers==[3,2,1],"reverse default sort")
+numbers.habee()
+hubi(numbers==[1,2,3],"existing default sort")
+door stable=[{key:1,id:"a"},{key:2,id:"b"},{key:1,id:"c"}]
+stable.habee(hawl(x){celi x.key},run)
+hubi(stable.aaddin(hawl(x){celi x.id})==["b","a","c"],"reverse sort preserves equal-key order")
+door exact=[9007199254740993,9007199254740992.0,9007199254740992]
+exact.habee()
+hubi(nooc(exact[0])=="jajab" && nooc(exact[1])=="abn" && exact[2]==9007199254740993,"exact mixed numeric comparison")
+door mixed=["a",2,maran,run,1.5,been]
+mixed.habee()
+hubi(mixed==[maran,been,run,1.5,2,"a"],"consistent cross-kind ordering")
+fails(hawl(){[].habee(hawl(a,b){celi a})},"E022")
+fails(hawl(){[].habee(1)},maran)
+fails(hawl(){[].habee(maran,1)})
+door changing=[3,1,2]
+fails(hawl(){changing.habee(hawl(x){changing.geli(9) celi x})})
+hubi(changing==[3,1,2,9,9,9],"sort rejects changed membership without losing callback writes")
+door failing=[3,1,2]
+calls=[]
+fails(hawl(){failing.habee(hawl(x){calls.geli(x) haddii(x==1){tuur khalad("bad","KEY")} celi x})},"KEY")
+hubi(failing==[3,1,2] && calls==[3,1],"failed key stops before sorting")
+teed[abn] guarded=[3,1,2]
+guarded.habee(hawl(x){celi -x})
+hubi(guarded==[3,2,1],"typed source sorted through guard")
+door originals=[{x:2},{x:1}]
+originals.habee(hawl(x){x.changed=run celi x.x})
+hubi(originals[0].x==1 && originals[1].changed,"nested callback mutations remain supported")
+door fixed=[child]
+fails(hawl(){fixed.habee(hawl(x){fixed[0]=[1,9] celi 0})})
+hubi(fixed[0]==child,"equal-valued replacement is still a changed identity")
+child.geli(10)
+hubi(fixed[0]!=child,"replacement callback identity is preserved")
+kuceli(i ku taxane(1600)){door garbage=[xirmo(i)].keli(); [garbage]}
+hubi(source.dambe()==10 && guarded==[3,2,1],"roots survive collection")
+door managed=[3,1,2]
+managed.habee(hawl(x){kuceli(i ku taxane(1100)){door waste=[i]} celi {key:x}})
+hubi(managed==[1,2,3],"managed sorting keys survive callback GC")
+door seq={n:0,wareeg:hawl(){celi seq},xiga:hawl(){seq.n=seq.n+1 kuceli(i ku taxane(1100)){door waste=[i]} celi {dhammaad:seq.n>3,qiime:xirmo(seq.n)}}}
+door grown=[]
+grown.ballaadhi(seq)
+hubi(grown==[xirmo(1),xirmo(2),xirmo(3)],"extension retains earlier elements across protocol GC")
+door fna=hawl(){}
+door fnb=hawl(){}
+door opaque=[{f:fnb},{f:fna}]
+opaque.habee()
+hubi(opaque[0].f==fnb && opaque[1].f==fna,"nested callables preserve order independently of runtime handles")
+qor("list operations ok")

@@ -314,3 +314,37 @@ Windows x64 and macOS ARM64 cross-target checks pass. The extracted LLVM linker
 wrapper passes Rust metadata compilation against both target libraries.
 Native platform execution, installer builds, and the Docker build remain
 distribution gates. List, object, and numeric library work remains before 3.2.
+
+## Expanded list-library stage
+
+The debug suite passes 256 tests, including all 38 LLVM tests. The diagnostic
+and example suites pass 14 tests covering 166 error programs and 42 public
+examples through JIT and LLVM. Optimized checks pass 107 tests:
+
+```sh
+cargo test --locked -- --skip test_aot
+cargo test --locked --test diagnostic_tests --test examples_tests
+cargo test --locked --release --lib --test list_operation_tests --test interpreter_tests --test llvm_ir_tests
+cargo check --locked --offline --target x86_64-pc-windows-msvc
+cargo check --locked --offline --target aarch64-apple-darwin
+```
+
+The shared fixture runs LLVM at levels 0 and 2. It covers value removal,
+self-extension, iterable kinds, failed protocol consumption, guarded atomic
+extension, structural and cyclic uniqueness, numeric kinds and wrapping sums,
+enumerate/zip adapters, stable reverse sorting, callback signatures and call
+counts, changed receiver slots, exact integer/float ordering, opaque callable
+keys, typed sources, nested side effects, and GC during protocol and key calls.
+
+Three host tests cover guarded ABI extension and removal, conflicting native
+borrows, cursor retention after source collection, and REPL callback persistence.
+Three unit tests cover numeric comparison symmetry and transitivity around
+64-bit and floating-point boundaries, infinities and NaNs, nested borrowed sort
+keys, opaque callable rendering, and a 20,000-value hash-based uniqueness case.
+
+Diagnostic snapshots verify the outer sorting location after a successful
+callback and the inner location and trace when a callback raises an error.
+Windows x64 and macOS ARM64 cross-target checks pass, as does Rust metadata
+compilation of the extracted LLVM linker wrapper against both target libraries.
+Native platform execution and packaging remain distribution gates. Object and
+numeric library work remains before the 3.2 milestone tag.
