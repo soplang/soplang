@@ -9,10 +9,13 @@ const PROGRAM: &str = r#"
 hawl hello(c) { celi {json: {id: c.qayb.id, x: c.weydiimo.x}} }
 hawl create(c) { celi {heer: 201, json: c.json} }
 hawl boom(c) { tuur "xumo" }
+hawl injection(c) { celi {cinwaan: {"X-Test": e"ok\r\nX-Evil: yes"}} }
 hawl go(c) { celi {heer: 302, cinwaan: {Location: "/next"}} }
 door s = server_fur("127.0.0.1", 0)
 qor(s.deked)
-door routes = [["GET", "/users/:id", hello], ["POST", "/items", create], ["GET", "/fail", boom], ["GET", "/go", go]]
+door routes = [["GET", "/users/:id", hello], ["POST", "/items", create], ["GET", "/fail", boom], ["GET", "/go", go], ["GET", "/injection", injection]]
+server_aqbal(s, routes)
+server_aqbal(s, routes)
 server_aqbal(s, routes)
 server_aqbal(s, routes)
 server_aqbal(s, routes)
@@ -27,7 +30,9 @@ qor("server done")
 
 fn exchange(port: &str, request: &str) -> (u16, String, String) {
     let mut stream = TcpStream::connect(format!("127.0.0.1:{port}")).expect("connect");
-    stream.set_read_timeout(Some(Duration::from_secs(3))).unwrap();
+    stream
+        .set_read_timeout(Some(Duration::from_secs(3)))
+        .unwrap();
     stream.write_all(request.as_bytes()).unwrap();
     let mut buffer = Vec::new();
     let mut chunk = [0u8; 1024];
@@ -48,7 +53,11 @@ fn exchange(port: &str, request: &str) -> (u16, String, String) {
 }
 
 fn drive(command: &mut Command) {
-    let mut child = command.stdout(Stdio::piped()).stderr(Stdio::piped()).spawn().unwrap();
+    let mut child = command
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .unwrap();
     let mut stdout = child.stdout.take().unwrap();
     let mut port = String::new();
     let mut byte = [0u8; 1];
@@ -69,19 +78,40 @@ fn drive(command: &mut Command) {
         "GET /users/9?x=1 HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n",
     );
     assert_eq!(status, 200, "{body}");
-    assert!(body.contains("\"id\":\"9\"") && body.contains("\"x\":\"1\""), "{body}");
+    assert!(
+        body.contains("\"id\":\"9\"") && body.contains("\"x\":\"1\""),
+        "{body}"
+    );
     let (status, _, body) = exchange(
         port,
         "POST /items HTTP/1.1\r\nHost: localhost\r\nContent-Type: application/json\r\nContent-Length: 17\r\nConnection: close\r\n\r\n{\"magac\":\"Ayaan\"}",
     );
     assert_eq!(status, 201, "{body}");
     assert!(body.contains("Ayaan"), "{body}");
-    let (status, _, body) = exchange(port, "GET /missing HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n");
+    let (status, _, body) = exchange(
+        port,
+        "GET /missing HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n",
+    );
     assert_eq!(status, 404, "{body}");
-    let (status, _, body) = exchange(port, "GET /fail HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n");
+    let (status, _, body) = exchange(
+        port,
+        "GET /fail HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n",
+    );
     assert_eq!(status, 500, "{body}");
     assert!(body.contains("xumo"), "{body}");
-    let (status, headers, _) = exchange(port, "GET /go HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n");
+    let (status, headers, body) =
+        exchange(port, "GET /injection HTTP/1.1\r\nHost: localhost\r\n\r\n");
+    assert_eq!(status, 500, "{body}");
+    assert!(!headers.contains("x-evil"), "{headers}");
+    let (status, _, body) = exchange(
+        port,
+        "POST /items HTTP/1.1\r\nHost: localhost\r\nContent-Length: 0\r\nContent-Length: 1\r\n\r\n",
+    );
+    assert_eq!(status, 400, "{body}");
+    let (status, headers, _) = exchange(
+        port,
+        "GET /go HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n",
+    );
     assert_eq!(status, 302, "{headers}");
     assert!(headers.contains("location: /next"), "{headers}");
     let mut rest = String::new();

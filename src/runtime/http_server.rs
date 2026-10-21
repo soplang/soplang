@@ -264,6 +264,12 @@ fn read_request(stream: &mut TcpStream, limit: usize) -> Result<RawRequest, Resp
             break;
         }
     }
+    if header_end > MAX_HEADERS {
+        return Err(ResponseFault::Reply(
+            431,
+            "Cinwaannada HTTP way ka weyn yihiin.".into(),
+        ));
+    }
     let mut headers = [httparse::EMPTY_HEADER; 64];
     let mut parsed = httparse::Request::new(&mut headers);
     let status = parsed
@@ -286,17 +292,53 @@ fn read_request(stream: &mut TcpStream, limit: usize) -> Result<RawRequest, Resp
         let name = header.name.to_ascii_lowercase();
         let value = std::str::from_utf8(header.value)
             .map_err(|_| ResponseFault::Reply(400, "Cinwaanka HTTP ma aha UTF-8.".into()))?;
+        if matches!(
+            name.as_str(),
+            "host" | "content-length" | "transfer-encoding"
+        ) && header_map.contains_key(&name)
+        {
+            return Err(ResponseFault::Reply(
+                400,
+                "Cinwaan muhiim ah ayaa lagu celiyey codsiga HTTP.".into(),
+            ));
+        }
         header_map.insert(name, value.to_string());
     }
+    if parsed.version == Some(1)
+        && header_map.get("host").is_none_or(|host| {
+            host.is_empty()
+                || host
+                    .bytes()
+                    .any(|byte| byte.is_ascii_whitespace() || byte == b',')
+        })
+    {
+        return Err(ResponseFault::Reply(
+            400,
+            "Codsiga HTTP wuxuu u baahan yahay hal martigeliye oo sax ah.".into(),
+        ));
+    }
+    if header_map.contains_key("transfer-encoding") {
+        let (status, message) = if header_map.contains_key("content-length") {
+            (
+                400,
+                "Dhererka iyo habka gudbinta codsiga HTTP isma waafaqaan.",
+            )
+        } else {
+            (411, "Jidhka chunked lama taageero.")
+        };
+        return Err(ResponseFault::Reply(status, message.into()));
+    }
     let length = match header_map.get("content-length") {
-        Some(value) => value
-            .parse::<usize>()
-            .map_err(|_| ResponseFault::Reply(400, "Dhererka jidhka ma saxna.".into()))?,
-        None if header_map.contains_key("transfer-encoding") => {
+        Some(value) if !value.is_empty() && value.bytes().all(|byte| byte.is_ascii_digit()) => {
+            value
+                .parse::<usize>()
+                .map_err(|_| ResponseFault::Reply(400, "Dhererka jidhka ma saxna.".into()))?
+        }
+        Some(_) => {
             return Err(ResponseFault::Reply(
-                411,
-                "Jidhka chunked lama taageero.".into(),
-            ));
+                400,
+                "Dhererka jidhka ma saxna.".into(),
+            ))
         }
         None => 0,
     };
@@ -334,7 +376,8 @@ fn split_target(target: &str) -> Result<(String, HashMap<String, String>), Respo
     if !path.starts_with('/') {
         return Err(ResponseFault::Reply(400, "Jidka codsiga ma saxna.".into()));
     }
-    let path = super::url::decode(path, false).map_err(|_| ResponseFault::Reply(400, "Jidka codsiga ma saxna.".into()))?;
+    let path = super::url::decode(path, false)
+        .map_err(|_| ResponseFault::Reply(400, "Jidka codsiga ma saxna.".into()))?;
     let mut fields = HashMap::new();
     if !query.is_empty() {
         for pair in query.split('&') {
@@ -342,8 +385,10 @@ fn split_target(target: &str) -> Result<(String, HashMap<String, String>), Respo
                 continue;
             }
             let (name, value) = pair.split_once('=').unwrap_or((pair, ""));
-            let name = super::url::decode(name, true).map_err(|_| ResponseFault::Reply(400, "Weydiinta codsiga ma saxna.".into()))?;
-            let value = super::url::decode(value, true).map_err(|_| ResponseFault::Reply(400, "Weydiinta codsiga ma saxna.".into()))?;
+            let name = super::url::decode(name, true)
+                .map_err(|_| ResponseFault::Reply(400, "Weydiinta codsiga ma saxna.".into()))?;
+            let value = super::url::decode(value, true)
+                .map_err(|_| ResponseFault::Reply(400, "Weydiinta codsiga ma saxna.".into()))?;
             fields.insert(name, value);
         }
     }
@@ -354,7 +399,9 @@ fn compile_routes(value: &Value) -> Result<Vec<Route>, SoplangError> {
     let Value::List(routes) = value else {
         return Err(error("Waddooyinka serverka waa inay noqdaan teed."));
     };
-    let routes = routes.try_borrow().map_err(|_| error("Teedka hadda lama akhriyi karo."))?;
+    let routes = routes
+        .try_borrow()
+        .map_err(|_| error("Teedka hadda lama akhriyi karo."))?;
     routes.iter().map(compile_route).collect()
 }
 
@@ -403,7 +450,11 @@ fn parse_pattern(path: &str) -> Result<Vec<Part>, SoplangError> {
             continue;
         }
         if let Some(name) = part.strip_prefix(':') {
-            if name.is_empty() || parts.iter().any(|item| matches!(item, Part::Param(found) if found == name)) {
+            if name.is_empty()
+                || parts
+                    .iter()
+                    .any(|item| matches!(item, Part::Param(found) if found == name))
+            {
                 return Err(error("Magaca qaybta jidka ma saxna."));
             }
             parts.push(Part::Param(name.to_string()));
@@ -436,10 +487,12 @@ fn response_from(value: &Value) -> Result<(u16, Vec<(String, String)>, Vec<u8>, 
     let Value::Object(object) = value else {
         return Err("Jawaabtu waa inay noqotaa walax.".into());
     };
-    let object = object.try_borrow().map_err(|_| "Walaxda jawaabta lama akhriyi karo.".to_string())?;
+    let object = object
+        .try_borrow()
+        .map_err(|_| "Walaxda jawaabta lama akhriyi karo.".to_string())?;
     let status = match object.get("heer") {
         None => 200,
-        Some(Value::Int(status)) if (100..=599).contains(status) => *status as u16,
+        Some(Value::Int(status)) if (200..=599).contains(status) => *status as u16,
         _ => return Err("Heerka jawaabta ma saxna.".into()),
     };
     let mut headers = Vec::new();
@@ -447,13 +500,36 @@ fn response_from(value: &Value) -> Result<(u16, Vec<(String, String)>, Vec<u8>, 
         let Value::Object(fields) = value else {
             return Err("Cinwaannada jawaabta waa inay noqdaan walax.".into());
         };
-        let fields = fields.try_borrow().map_err(|_| "Cinwaannada jawaabta lama akhriyi karo.".to_string())?;
+        let fields = fields
+            .try_borrow()
+            .map_err(|_| "Cinwaannada jawaabta lama akhriyi karo.".to_string())?;
         for (name, value) in fields.iter() {
             let Value::Str(text) = value else {
                 return Err("Qiimaha cinwaanka jawaabta waa inuu noqdaa qoraal.".into());
             };
+            if !valid_response_header(name, text) {
+                return Err("Magaca ama qiimaha cinwaanka jawaabta ma saxna.".into());
+            }
             headers.push((name.clone(), text.clone()));
         }
+    }
+    if headers.len() > 64
+        || headers
+            .iter()
+            .map(|(name, value)| name.len() + value.len() + 4)
+            .sum::<usize>()
+            > MAX_HEADERS
+    {
+        return Err("Cinwaannada jawaabta way ka weyn yihiin xadka.".into());
+    }
+    if object
+        .get("qoraal")
+        .is_some_and(|value| !matches!(value, Value::Str(_)))
+        || object
+            .get("baytyo")
+            .is_some_and(|value| !matches!(value, Value::Bytes(_)))
+    {
+        return Err("Nooca jidhka jawaabta ma saxna.".into());
     }
     let mut kinds = 0;
     let mut body = Vec::new();
@@ -465,18 +541,29 @@ fn response_from(value: &Value) -> Result<(u16, Vec<(String, String)>, Vec<u8>, 
     }
     if let Some(Value::Bytes(bytes)) = object.get("baytyo") {
         kinds += 1;
-        body = super::bytes::read(bytes).map_err(|_| "Baytyada jawaabta lama akhriyi karo.".to_string())?.clone();
+        body = super::bytes::read(bytes)
+            .map_err(|_| "Baytyada jawaabta lama akhriyi karo.".to_string())?
+            .clone();
         content_type = "application/octet-stream".into();
     }
     if let Some(value) = object.get("json") {
         kinds += 1;
-        body = super::json::stringify(value).map_err(|failure| failure.message().to_string())?.into_bytes();
+        body = super::json::stringify(value)
+            .map_err(|failure| failure.message().to_string())?
+            .into_bytes();
         content_type = "application/json".into();
     }
     if kinds > 1 {
         return Err("Jawaabtu waxay qaadan kartaa hal nooc oo jidh ah.".into());
     }
-    if !headers.iter().any(|(name, _)| name.eq_ignore_ascii_case("content-type")) && !content_type.is_empty() {
+    if matches!(status, 204 | 304) && !body.is_empty() {
+        return Err("Heerkan jawaabtu ma qaadan karo jidh.".into());
+    }
+    if !headers
+        .iter()
+        .any(|(name, _)| name.eq_ignore_ascii_case("content-type"))
+        && !content_type.is_empty()
+    {
         headers.push(("content-type".into(), content_type.clone()));
     }
     Ok((status, headers, body, content_type))
@@ -489,12 +576,15 @@ fn limits(options: Option<&Value>) -> Result<(Duration, usize), SoplangError> {
     let Value::Object(object) = value else {
         return Err(error("Xulashada serverka waa inay noqotaa walax."));
     };
-    let object = object.try_borrow().map_err(|_| error("Walaxda hadda lama akhriyi karo."))?;
+    let object = object
+        .try_borrow()
+        .map_err(|_| error("Walaxda hadda lama akhriyi karo."))?;
     let timeout = match object.get("waqti") {
         None => DEFAULT_TIMEOUT,
         Some(Value::Int(seconds)) if *seconds > 0 => Duration::from_secs(*seconds as u64),
         Some(Value::Float(seconds)) if seconds.is_finite() && *seconds > 0.0 => {
-            Duration::try_from_secs_f64(*seconds).map_err(|_| error("Waqtiga serverka ma saxna."))?
+            Duration::try_from_secs_f64(*seconds)
+                .map_err(|_| error("Waqtiga serverka ma saxna."))?
         }
         _ => return Err(error("Waqtiga serverka waa inuu noqdaa tiro ka weyn eber.")),
     };
@@ -509,6 +599,20 @@ fn limits(options: Option<&Value>) -> Result<(Duration, usize), SoplangError> {
     Ok((timeout, limit))
 }
 
+fn valid_response_header(name: &str, value: &str) -> bool {
+    !name.is_empty()
+        && name
+            .bytes()
+            .all(|byte| byte.is_ascii_alphanumeric() || b"!#$%&'*+-.^_`|~".contains(&byte))
+        && !matches!(
+            name.to_ascii_lowercase().as_str(),
+            "content-length" | "transfer-encoding" | "connection"
+        )
+        && value
+            .bytes()
+            .all(|byte| byte == b'\t' || (byte >= 0x20 && byte != 0x7f))
+}
+
 fn write_response(
     stream: &mut TcpStream,
     status: u16,
@@ -517,10 +621,12 @@ fn write_response(
     content_type: &str,
 ) -> std::io::Result<()> {
     let mut message = format!(
-        "HTTP/1.1 {status} {}\r\nContent-Length: {}\r\nConnection: close\r\n",
-        reason(status),
-        body.len()
+        "HTTP/1.1 {status} {}\r\nConnection: close\r\n",
+        reason(status)
     );
+    if !matches!(status, 204 | 304) {
+        message.push_str(&format!("Content-Length: {}\r\n", body.len()));
+    }
     if !content_type.is_empty()
         && !headers
             .iter()
@@ -572,7 +678,9 @@ fn server_id(value: &Value) -> Result<i64, SoplangError> {
     let Value::Object(object) = value else {
         return Err(error("Serverka waa inuu noqdaa walax."));
     };
-    let object = object.try_borrow().map_err(|_| error("Walaxda hadda lama akhriyi karo."))?;
+    let object = object
+        .try_borrow()
+        .map_err(|_| error("Walaxda hadda lama akhriyi karo."))?;
     match object.get("aqoonsi") {
         Some(Value::Int(id)) => Ok(*id),
         _ => Err(error("Aqoonsiga serverka ma saxna.")),
@@ -593,4 +701,135 @@ fn string_object(fields: &HashMap<String, String>) -> Value {
         map.insert(name.clone(), Value::Str(value.clone()));
     }
     Value::Object(std::rc::Rc::new(std::cell::RefCell::new(map)))
+}
+
+#[cfg(test)]
+mod protocol_tests {
+    use super::*;
+
+    fn parse(request: &[u8], limit: usize) -> Result<RawRequest, ResponseFault> {
+        let listener = TcpListener::bind(("127.0.0.1", 0)).unwrap();
+        let address = listener.local_addr().unwrap();
+        let request = request.to_vec();
+        let client = std::thread::spawn(move || {
+            let mut stream = TcpStream::connect(address).unwrap();
+            let _ = stream.write_all(&request);
+            let _ = stream.shutdown(std::net::Shutdown::Write);
+        });
+        let (mut stream, _) = listener.accept().unwrap();
+        stream
+            .set_read_timeout(Some(Duration::from_secs(2)))
+            .unwrap();
+        let result = read_request(&mut stream, limit);
+        drop(stream);
+        client.join().unwrap();
+        result
+    }
+
+    #[test]
+    fn ambiguous_request_framing_and_invalid_hosts_are_rejected() {
+        for (headers, status) in [
+            ("Host: a\r\nContent-Length: 0\r\nContent-Length: 1\r\n", 400),
+            ("Host: a\r\nContent-Length: 0\r\ncontent-length: 0\r\n", 400),
+            (
+                "Host: a\r\nContent-Length: 0\r\nTransfer-Encoding: chunked\r\n",
+                400,
+            ),
+            ("Host: a\r\nTransfer-Encoding: chunked\r\n", 411),
+            ("Host: a\r\nHost: b\r\n", 400),
+            ("Host: \r\n", 400),
+            ("Host: a b\r\n", 400),
+            ("", 400),
+            ("Host: a\r\nContent-Length: +0\r\n", 400),
+            ("Host: a\r\nContent-Length: 1, 1\r\n", 400),
+        ] {
+            let request = format!("POST / HTTP/1.1\r\n{headers}\r\n");
+            assert!(
+                matches!(parse(request.as_bytes(), 32), Err(ResponseFault::Reply(found, _)) if found == status),
+                "{request:?}"
+            );
+        }
+        let request = parse(
+            b"POST / HTTP/1.1\r\nHost: localhost\r\nContent-Length: 3\r\n\r\nabc",
+            3,
+        );
+        assert!(matches!(request, Ok(request) if request.body == b"abc"));
+        assert!(parse(b"GET / HTTP/1.0\r\n\r\n", 32).is_ok());
+    }
+
+    #[test]
+    fn header_terminator_cannot_bypass_the_size_limit() {
+        let prefix = "GET / HTTP/1.1\r\nHost: localhost\r\nX: ";
+        let suffix = "\r\n\r\n";
+        let request = format!(
+            "{prefix}{}{suffix}",
+            "a".repeat(MAX_HEADERS + 1 - prefix.len() - suffix.len())
+        );
+        assert!(matches!(
+            parse(request.as_bytes(), 32),
+            Err(ResponseFault::Reply(431, _))
+        ));
+        assert!(matches!(
+            parse(
+                b"POST / HTTP/1.1\r\nHost: a\r\nContent-Length: 33\r\n\r\n",
+                32
+            ),
+            Err(ResponseFault::Reply(413, _))
+        ));
+    }
+
+    #[test]
+    fn responses_cannot_inject_headers_or_override_framing() {
+        for (name, value) in [
+            ("X-Test", "ok\r\nX-Evil: yes"),
+            ("X-Test", "nul\0"),
+            ("X-Test", "del\x7f"),
+            ("X Test", "ok"),
+            ("X\r\nBad", "ok"),
+            ("", "ok"),
+            ("Content-Length", "0"),
+            ("TRANSFER-ENCODING", "chunked"),
+            ("Connection", "keep-alive"),
+        ] {
+            let response = object(&[("cinwaan", object(&[(name, Value::Str(value.into()))]))]);
+            assert!(response_from(&response).is_err(), "{name:?}: {value:?}");
+        }
+        assert!(response_from(&object(&[(
+            "cinwaan",
+            object(&[("X-Test", Value::Str("ok\tvalue".into()))])
+        )]))
+        .is_ok());
+        assert!(response_from(&object(&[("qoraal", Value::Int(1))])).is_err());
+        assert!(response_from(&object(&[("baytyo", Value::Str("wrong".into()))])).is_err());
+        assert!(response_from(&object(&[(
+            "cinwaan",
+            object(&[("X-Test", Value::Str("a".repeat(MAX_HEADERS)))])
+        )]))
+        .is_err());
+    }
+
+    #[test]
+    fn no_body_responses_omit_framing_and_reject_payloads() {
+        assert!(response_from(&object(&[("heer", Value::Int(101))])).is_err());
+        for status in [204, 304] {
+            assert!(response_from(&object(&[
+                ("heer", Value::Int(status)),
+                ("qoraal", Value::Str("body".into()))
+            ]))
+            .is_err());
+            let listener = TcpListener::bind(("127.0.0.1", 0)).unwrap();
+            let address = listener.local_addr().unwrap();
+            let client = std::thread::spawn(move || {
+                let mut stream = TcpStream::connect(address).unwrap();
+                let mut message = String::new();
+                stream.read_to_string(&mut message).unwrap();
+                message
+            });
+            let (mut stream, _) = listener.accept().unwrap();
+            write_response(&mut stream, status as u16, &[], &[], "").unwrap();
+            drop(stream);
+            let message = client.join().unwrap().to_ascii_lowercase();
+            assert!(!message.contains("content-length") && message.ends_with("\r\n\r\n"));
+        }
+    }
 }

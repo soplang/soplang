@@ -168,3 +168,12 @@ on context teardown, and TCP/WebSocket peers observing transport closure.
 Filesystem tests cover concurrent atomic replacements, existing scratch-looking
 neighbors, failed replacement cleanup, symlink targets, and dangling metadata.
 The existing file and network integration suites exercise both JIT and LLVM.
+
+## HTTP framing regression checks
+
+The locked debug suite passes 357 tests, including 52 LLVM tests. Four local
+protocol tests exercise duplicate and conflicting framing, Host validation,
+unsigned decimal lengths, header/body size limits, CRLF and control-character
+injection, reserved response headers, body types, and 204/304 framing.
+The JIT and LLVM server tests verify that rejected requests and invalid handler
+headers do not stop subsequent requests.

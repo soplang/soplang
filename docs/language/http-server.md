@@ -64,3 +64,26 @@ Open listeners and connections belong to the current runtime context. Another
 session cannot use or close them. Destroying the context closes its remaining
 TCP, UDP, HTTP, and WebSocket resources. Close them explicitly when finished
 to release resources during a long-running session.
+
+## Message validation
+
+HTTP/1.1 requests need one nonempty `Host` field. Duplicate `Host`,
+`Content-Length`, or `Transfer-Encoding` fields are rejected. A request that
+combines transfer encoding and content length receives 400. Lengths must be
+unsigned decimal digits. The 8192-byte header limit includes the terminating
+blank line. This server requires known-length bodies and still rejects chunked
+transfer encoding.
+
+Response header names must be HTTP tokens. Values cannot contain carriage
+returns, newlines, NUL, or other control characters except tab. The server owns
+`Content-Length`, `Transfer-Encoding`, and `Connection`; handlers cannot supply
+them. Extra headers are limited to 64 fields and 8192 bytes. An invalid handler
+response becomes a 500 response, and the listener remains available.
+
+Final response statuses range from 200 to 599. Status 204 and 304 responses
+cannot contain a body and omit `Content-Length`. A supplied text or byte body
+must have the matching Soplang type.
+
+The framing rules follow [RFC 9112, sections 3.2 and 6.3](https://www.rfc-editor.org/rfc/rfc9112#section-6.3).
+The current server remains a sequential HTTP subset; keep-alive, chunked
+streaming, upgrades, and TLS serving need the later server work.

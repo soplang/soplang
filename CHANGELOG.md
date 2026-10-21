@@ -12,6 +12,8 @@ All notable changes to this project will be documented in this file.
 
 - Cache module namespaces across aliases, dependency paths, and REPL commands. Preserve lexical function bindings in defaults and interpolation, and support generated import bindings in strict mode.
 
+- Validate HTTP message framing and response headers, reject ambiguous request lengths and header injection, and enforce header limits and body-free response statuses.
+
 ### Added
 
 * [3.2.0 implementation milestone notes](docs/releases/3.2.0.md) record completed language foundations. A version tag and distribution builds remain pending.
