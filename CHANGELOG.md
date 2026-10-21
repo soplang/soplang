@@ -48,6 +48,8 @@ All notable changes to this project will be documented in this file.
 
 * `keen "file.sop" ka name` binds selected public names in the caller. `name sida local` renames one of them. A name that was not exported is an import error.
 
+* `soplang.toml` records a package name, version, supported Soplang version, and optional source directory. Running or building a file beside an invalid manifest fails with `E057`.
+
 
 * Numeric builtins add logarithms, radian trigonometry with optional inverse mode, `atan2`-style angles, named constants, clamping, and context-local seeded random streams. Integer-only extrema keep exact 64-bit results; invalid random calls do not advance the generator.
 

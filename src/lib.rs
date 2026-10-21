@@ -8,6 +8,7 @@ pub mod frontend;
 pub mod hir;
 pub mod runtime;
 pub mod semantic;
+pub mod package;
 
 pub use cli::ReplSession;
 pub use error::{format_error_with_source, SoplangError};
@@ -33,6 +34,9 @@ pub fn run_source(
     dump_hir: bool,
     strict: bool,
 ) -> Result<(), SoplangError> {
+    if let Some(path) = path {
+        package::load_beside_source(path)?;
+    }
     let parsed = if path.is_none() {
         frontend::parse_snippet(source)?
     } else {
@@ -99,6 +103,9 @@ pub fn build_source(
     opt_level: u8,
     strict: bool,
 ) -> Result<(), SoplangError> {
+    if let Some(path) = source_path {
+        package::load_beside_source(path)?;
+    }
     let parsed = frontend::parse_source(source, source_path)?;
     let stmts = frontend::imports::resolve_imports(parsed, source_path)?;
     let sym = semantic::analyze_with_options(

@@ -15,3 +15,14 @@ global, rejects a private `_` name and a name omitted from `soosaar`, rejects
 an unknown export, binds selected names with `ka` and `sida`, and builds a
 program with LLVM.
 Flat `keen` imports stay covered by the existing import example.
+
+## Package manifest
+
+```sh
+cargo test --locked --lib package:: --test package_tests
+```
+
+The parser checks the package name, version, language requirement, source
+directory, and unknown keys. Running a file beside a compatible `soplang.toml`
+still executes the program. An incompatible language requirement stops the
+program before it prints.
