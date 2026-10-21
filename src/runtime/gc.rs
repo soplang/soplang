@@ -58,6 +58,8 @@ pub struct MemoryStats {
     pub closures: usize,
     pub errors: usize,
     pub iterators: usize,
+    /// Number of shared collection identities with element contracts.
+    pub type_contracts: usize,
     pub active_frames: usize,
     pub pinned_values: usize,
     pub collections: usize,
@@ -94,6 +96,7 @@ pub(super) fn stats(state: &RuntimeState) -> MemoryStats {
         closures: state.closures.borrow().len(),
         errors: state.errors.borrow().len(),
         iterators: state.iterators.borrow().len(),
+        type_contracts: state.contracts.borrow().len(),
         active_frames: state.roots.borrow().len(),
         pinned_values: state.pins.borrow().len(),
         collections: state.collector.collections.get(),
@@ -424,6 +427,8 @@ pub(super) fn collect(state: &RuntimeState, teardown: bool) -> CollectionReport 
         }
     }
     let deferred = graph.nodes.iter().filter(|entry| entry.borrowed).count();
+    drop(graph);
+    state.contracts.borrow_mut().prune();
     state
         .collector
         .collections

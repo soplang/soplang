@@ -17,6 +17,7 @@ pub(super) struct RuntimeState {
     pub errors: RefCell<HandleArena<Rc<crate::error::SoplangError>>>,
     pub suspended_errors: RefCell<Vec<Option<crate::error::SoplangError>>>,
     pub collector: super::gc::CollectorState,
+    pub contracts: RefCell<super::contracts::ContractStore>,
     pub roots: RefCell<Vec<super::roots::RootFrame>>,
     pub pins: RefCell<HandleArena<SoplangValue>>,
     pub list_ids: RefCell<HashMap<usize, i64>>,

@@ -1,0 +1,4 @@
+Khalad nooc: Beddelkani ma waafaqsana nooca ururka teed[teed[abn]]. [E039] safka 3, tiirka 5
+     --> examples/errors/typed_nested_alias.sop:3:5
+   3 │   saf.geli("x")
+     │       ^^^^

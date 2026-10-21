@@ -1,0 +1,17 @@
+// Xubnaha teedka iyo qiimayaasha walaxda waxay leeyihiin noocyo la hubiyo.
+teed[abn] tirooyin = [1, 2]
+tirooyin.geli(3)
+qor(tirooyin)
+door nuqul = tirooyin.nuqul()
+nuqul.geli("afar")
+qor(nuqul)
+teed[teed[abn]] safaf = [[1]]
+door saf = safaf[0]
+tijaabi { saf.geli("qalad") } qabo (fariin) { qor(fariin) }
+saf.geli(2)
+qor(safaf)
+walax[qoraal, abn] dhibco = {Ayaan: 90}
+dhibco.dhig("Cali", 85)
+qor(dhibco)
+hawl ururi(teed[abn] *qiimayaal): teed[abn] { celi qiimayaal }
+qor(ururi(4, 5))

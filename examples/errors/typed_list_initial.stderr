@@ -1,0 +1,4 @@
+Khalad nooc: 'tirooyin' wuxuu u baahan yahay nooca teed[abn], laakiin waxaa la helay teed. [E022] safka 1, tiirka 1
+     --> examples/errors/typed_list_initial.sop:1:1
+   1 │   teed[abn] tirooyin = ["x"]
+     │   ^^^^

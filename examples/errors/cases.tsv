@@ -124,3 +124,11 @@ runtime	optional_assignment.sop	3	1	qoraal | maran
 runtime	union_dynamic_argument.sop	3	1	abn | qoraal
 runtime	union_return.sop	2	32	abn | qoraal
 runtime	union_fallthrough.sop	2	1	maran
+runtime	typed_list_initial.sop	1	1	teed[abn]
+runtime	typed_list_alias.sop	3	7	Beddelkani
+runtime	typed_object_write.sop	2	1	walax[qoraal, abn]
+runtime	typed_nested_alias.sop	3	5	teed[teed[abn]]
+runtime	typed_rest_values.sop	2	1	teed[abn]
+compile	typed_object_key.sop	1	7	qoraal
+compile	typed_scalar_arguments.sop	1	1	noocyo xubno
+compile	typed_unknown_class.sop	1	1	Maqan

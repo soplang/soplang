@@ -733,3 +733,17 @@ fn test_llvm_union_types() {
         );
     }
 }
+
+#[test]
+fn test_llvm_typed_collections() {
+    for opt in [0, 2] {
+        assert_eq!(
+            run_llvm_with_opt(
+                &format!("llvm_typed_{opt}"),
+                include_str!("fixtures/typed_collections.sop"),
+                opt
+            ),
+            "typed collections ok\n"
+        );
+    }
+}

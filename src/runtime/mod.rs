@@ -3,6 +3,7 @@
 pub mod abi;
 mod bytes;
 mod context;
+mod contracts;
 mod handles;
 mod gc;
 mod formatting;

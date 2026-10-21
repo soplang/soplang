@@ -31,7 +31,8 @@ accepted per annotation.
 
 `door` retains its meaning as an untyped declaration. It is not a union member.
 This syntax does not introduce bitwise `|`, ternary expressions, grouping of
-type expressions, flow narrowing, type aliases, or generic element types.
+type expressions, flow narrowing, or type aliases. [Typed list and object
+elements](typed-collections.md) use the separate `teed[T]` and `walax[qoraal, T]` forms.
 Logical `||` retains its existing meaning.
 
 ## Required arguments and defaults
@@ -80,7 +81,8 @@ converted by these annotations.
 Class alternatives accept instances of the class and its subclasses. `walax`
 retains its existing object contract. No automatic collection or byte encoding
 conversion is performed. A nullable list constrains whether the value is a
-list or null; element contracts belong to the separate typed-collections work.
+list or null; parameterized list and object annotations enforce shared
+[element contracts](typed-collections.md).
 
 When a source variable already has a union annotation, every possible source
 member must fit a statically checked destination. The analyzer currently does

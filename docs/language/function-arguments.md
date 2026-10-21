@@ -60,7 +60,8 @@ qor(wadarta(10, 1, 2, 3))
 ```
 
 `*tirooyin` is always a `teed`, including in strict mode. The equivalent explicit
-annotation is `teed *tirooyin`; scalar annotations such as `abn *tirooyin` are
+annotation is `teed *tirooyin`. A [typed element contract](typed-collections.md)
+can be written `teed[abn] *tirooyin`; scalar annotations such as `abn *tirooyin` are
 rejected. List elements retain their original types and identities. An empty
 rest list is still freshly allocated. Passing an existing list supplies one
 argument; it does not expand that list. Call-site spread syntax is not yet
@@ -93,7 +94,8 @@ or the body; effects of supplied expressions have already happened.
 
 A final `**options` parameter collects otherwise unmatched named arguments in
 a fresh object. Its type is `walax`, also in strict mode; `walax **options` is
-an equivalent explicit annotation. It cannot have a default. A `*` collector
+an equivalent explicit annotation. `walax[qoraal, abn] **options` also checks
+the collected value types. It cannot have a default. A `*` collector
 may precede it. Ordinary parameters cannot follow either collector.
 
 ```sop

@@ -173,8 +173,31 @@ impl Parser {
     }
 
     fn parse_type_annotation(&mut self) -> Result<TypeAnnotation, SoplangError> {
+        self.parse_type_annotation_depth(0, &mut 0)
+    }
+
+    fn parse_type_annotation_depth(
+        &mut self,
+        depth: usize,
+        nodes: &mut usize,
+    ) -> Result<TypeAnnotation, SoplangError> {
+        if depth >= 32 {
+            return Err(parser_error(
+                "Noocyadu aad bay isugu dhex jiraan.",
+                self.peek().line,
+                self.peek().col,
+            ));
+        }
         let mut alternatives = Vec::new();
         loop {
+            *nodes += 1;
+            if *nodes > 1024 {
+                return Err(parser_error(
+                    "Qaabka noocan aad buu u weyn yahay.",
+                    self.peek().line,
+                    self.peek().col,
+                ));
+            }
             if alternatives.len() >= 32 {
                 return Err(parser_error(
                     "Noocyada la isku daray aad bay u badan yihiin.",
@@ -201,6 +224,38 @@ impl Parser {
                 }
             };
             self.advance();
+            if self.check(TokenType::LBracket) {
+                self.advance();
+                let inner_token = self.peek().clone();
+                let inner = self.parse_type_annotation_depth(depth + 1, nodes)?;
+                ty = match ty {
+                    TypeAnnotation::Teed => TypeAnnotation::ListOf(Box::new(inner)),
+                    TypeAnnotation::Walax => {
+                        let value = if self.check(TokenType::Comma) {
+                            if inner != TypeAnnotation::Qoraal {
+                                return Err(parser_error(
+                                    "Furaha walaxda noocaysan waa inuu noqdaa qoraal.",
+                                    inner_token.line,
+                                    inner_token.col,
+                                ));
+                            }
+                            self.advance();
+                            self.parse_type_annotation_depth(depth + 1, nodes)?
+                        } else {
+                            inner
+                        };
+                        TypeAnnotation::ObjectOf(Box::new(value))
+                    }
+                    _ => {
+                        return Err(parser_error(
+                            "Noocan ma qaato noocyo xubno ah.",
+                            token.line,
+                            token.col,
+                        ))
+                    }
+                };
+                self.expect(TokenType::RBracket)?;
+            }
             if self.check(TokenType::Optional) {
                 self.advance();
                 ty = TypeAnnotation::union(vec![ty, TypeAnnotation::Null]);
@@ -527,6 +582,33 @@ impl Parser {
         })
     }
 
+    fn next_keyword_collector(&self) -> bool {
+        let mut offset = 0;
+        if self.check(TokenType::Walax) {
+            offset = 1;
+            if self.peek_nth(offset).kind == TokenType::LBracket {
+                let mut depth = 0;
+                loop {
+                    match self.peek_nth(offset).kind {
+                        TokenType::LBracket => depth += 1,
+                        TokenType::RBracket => {
+                            depth -= 1;
+                            if depth == 0 {
+                                offset += 1;
+                                break;
+                            }
+                        }
+                        TokenType::Eof => return false,
+                        _ => {}
+                    }
+                    offset += 1;
+                }
+            }
+        }
+        self.peek_nth(offset).kind == TokenType::Star
+            && self.peek_nth(offset + 1).kind == TokenType::Star
+    }
+
     fn parse_function_tail(
         &mut self,
     ) -> Result<(Vec<Param>, TypeAnnotation, Vec<Stmt>), SoplangError> {
@@ -564,7 +646,13 @@ impl Parser {
                 } else {
                     TypeAnnotation::Teed
                 };
-                if type_ann != TypeAnnotation::Dynamic && type_ann != expected {
+                let typed_collection = matches!(
+                    (&type_ann, &expected),
+                    (TypeAnnotation::ListOf(_), TypeAnnotation::Teed)
+                        | (TypeAnnotation::ObjectOf(_), TypeAnnotation::Walax)
+                );
+                if type_ann != TypeAnnotation::Dynamic && type_ann != expected && !typed_collection
+                {
                     return Err(parser_error(
                         if keyword_rest {
                             "Doodda '**' waxay ururisaa walax; nooc kale lama siin karo."
@@ -575,7 +663,9 @@ impl Parser {
                         rest_marker.col,
                     ));
                 }
-                type_ann = expected;
+                if type_ann == TypeAnnotation::Dynamic {
+                    type_ann = expected;
+                }
                 saw_rest = true;
             }
             let marker = self.peek().clone();
@@ -622,11 +712,7 @@ impl Parser {
             if !self.check(TokenType::RParen) {
                 self.expect(TokenType::Comma)?;
             }
-            let next_keyword_collector =
-                (self.check(TokenType::Star) && self.peek_nth(1).kind == TokenType::Star)
-                || (self.check(TokenType::Walax)
-                    && self.peek_nth(1).kind == TokenType::Star
-                    && self.peek_nth(2).kind == TokenType::Star);
+            let next_keyword_collector = self.next_keyword_collector();
             if (keyword_rest || (variadic && !next_keyword_collector))
                 && !self.check(TokenType::RParen)
             {

@@ -10,6 +10,8 @@ pub enum TypeAnnotation {
     Qoraal,
     Bool,
     Teed,
+    ListOf(Box<TypeAnnotation>),
+    ObjectOf(Box<TypeAnnotation>),
     Bytes,
     Walax,
     Dynamic,
@@ -20,6 +22,19 @@ pub enum TypeAnnotation {
 }
 
 impl TypeAnnotation {
+    pub(crate) fn same_contract(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::ListOf(a), Self::ListOf(b)) | (Self::ObjectOf(a), Self::ObjectOf(b)) => {
+                a.same_contract(b)
+            }
+            (Self::Union(a), Self::Union(b)) => {
+                a.len() == b.len()
+                    && a.iter()
+                        .all(|ty| b.iter().any(|other| ty.same_contract(other)))
+            }
+            _ => self == other,
+        }
+    }
     pub(crate) fn union(types: Vec<Self>) -> Self {
         let mut result = Vec::new();
         for ty in types {
@@ -31,7 +46,10 @@ impl TypeAnnotation {
                 ty => vec![ty],
             };
             for ty in alternatives {
-                if !result.contains(&ty) {
+                if !result
+                    .iter()
+                    .any(|existing: &Self| existing.same_contract(&ty))
+                {
                     result.push(ty);
                 }
             }
@@ -46,6 +64,8 @@ impl TypeAnnotation {
     pub(crate) fn runtime_contract(&self) -> String {
         match self {
             Self::Class(name) => format!("@{name}"),
+            Self::ListOf(inner) => format!("teed[{}]", inner.runtime_contract()),
+            Self::ObjectOf(inner) => format!("walax[qoraal,{}]", inner.runtime_contract()),
             Self::Union(types) => types
                 .iter()
                 .map(Self::runtime_contract)
@@ -303,6 +323,8 @@ impl fmt::Display for TypeAnnotation {
             Self::Qoraal => f.write_str("qoraal"),
             Self::Bool => f.write_str("bool"),
             Self::Teed => f.write_str("teed"),
+            Self::ListOf(inner) => write!(f, "teed[{inner}]"),
+            Self::ObjectOf(inner) => write!(f, "walax[qoraal, {inner}]"),
             Self::Walax => f.write_str("walax"),
             Self::Bytes => f.write_str("baytyo"),
             Self::Dynamic => f.write_str("door"),

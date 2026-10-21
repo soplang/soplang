@@ -737,3 +737,11 @@ fn test_union_types() {
         "union types ok\n"
     );
 }
+
+#[test]
+fn test_typed_collections() {
+    assert_eq!(
+        run_program(include_str!("fixtures/typed_collections.sop")),
+        "typed collections ok\n"
+    );
+}

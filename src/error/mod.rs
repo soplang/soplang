@@ -37,6 +37,7 @@ pub mod codes {
     pub const E036_INVALID_FORMAT: &str = "E036";
     pub const E037_INVALID_ITERATION: &str = "E037";
     pub const E038_INVALID_BYTES: &str = "E038";
+    pub const E039_COLLECTION_CONTRACT: &str = "E039";
 }
 
 /// A compiled function and its caller's source location.

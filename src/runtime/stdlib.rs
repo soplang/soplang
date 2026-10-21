@@ -6,6 +6,7 @@ use std::collections::HashMap;
 use std::io::{self, Write};
 use std::rc::Rc;
 
+use super::contracts::{mutate_list, mutate_object};
 use super::value::{value_to_string, Value};
 use crate::error::{input_error, io_error, runtime_error, type_error, SoplangError};
 
@@ -566,11 +567,11 @@ pub fn get_builtin_functions() -> HashMap<String, Value> {
 
 pub fn list_kasaar(lst: Rc<RefCell<Vec<Value>>>, args: &[Value]) -> Result<Value, SoplangError> {
     expect_arity(args, "kasaar", 0)?;
-    let mut v = lst.borrow_mut();
-    if v.is_empty() {
-        return Err(err_runtime("Ma saari kartid teed madhan"));
-    }
-    Ok(v.pop().unwrap())
+    mutate_list(&lst, |items| {
+        items
+            .pop()
+            .ok_or_else(|| err_runtime("Ma saari kartid teed madhan"))
+    })
 }
 
 pub fn list_dherer(lst: Rc<RefCell<Vec<Value>>>, args: &[Value]) -> Result<Value, SoplangError> {
@@ -601,7 +602,10 @@ pub fn list_kudar(lst: Rc<RefCell<Vec<Value>>>, args: &[Value]) -> Result<Value,
         v.extend(other.borrow().iter().cloned());
         Ok(Value::List(Rc::new(RefCell::new(v))))
     } else {
-        lst.borrow_mut().push(second);
+        mutate_list(&lst, |items| {
+            items.push(second);
+            Ok(())
+        })?;
         Ok(Value::List(Rc::clone(&lst)))
     }
 }
@@ -630,13 +634,19 @@ pub fn list_nuqul(lst: Rc<RefCell<Vec<Value>>>, args: &[Value]) -> Result<Value,
 
 pub fn list_nadiifi(lst: Rc<RefCell<Vec<Value>>>, args: &[Value]) -> Result<Value, SoplangError> {
     expect_arity(args, "nadiifi", 0)?;
-    lst.borrow_mut().clear();
+    mutate_list(&lst, |items| {
+        items.clear();
+        Ok(())
+    })?;
     Ok(Value::List(Rc::clone(&lst)))
 }
 
 pub fn list_rog(lst: Rc<RefCell<Vec<Value>>>, args: &[Value]) -> Result<Value, SoplangError> {
     expect_arity(args, "rog", 0)?;
-    lst.borrow_mut().reverse();
+    mutate_list(&lst, |items| {
+        items.reverse();
+        Ok(())
+    })?;
     Ok(Value::List(Rc::clone(&lst)))
 }
 
@@ -654,7 +664,15 @@ fn value_cmp_for_sort(a: &Value, b: &Value) -> std::cmp::Ordering {
 
 pub fn list_habee(lst: Rc<RefCell<Vec<Value>>>, args: &[Value]) -> Result<Value, SoplangError> {
     expect_arity(args, "habee", 0)?;
-    lst.borrow_mut().sort_by(value_cmp_for_sort);
+    let mut sorted = lst
+        .try_borrow()
+        .map_err(|_| err_runtime("Teedka hadda lama akhriyi karo."))?
+        .clone();
+    sorted.sort_by(value_cmp_for_sort);
+    mutate_list(&lst, |items| {
+        *items = sorted;
+        Ok(())
+    })?;
     Ok(Value::List(Rc::clone(&lst)))
 }
 
@@ -720,26 +738,34 @@ fn list_position(
 
 pub fn list_geli(lst: Rc<RefCell<Vec<Value>>>, args: &[Value]) -> Result<Value, SoplangError> {
     expect_arity_range(args, "geli", 1, 2)?;
-    if args.len() == 1 {
-        lst.borrow_mut().push(args[0].clone());
-        return Ok(Value::List(lst));
-    }
-    let position = list_position(&args[0], lst.borrow().len(), true, "geli")?;
-    lst.borrow_mut().insert(position, args[1].clone());
+    mutate_list(&lst, |items| {
+        if args.len() == 1 {
+            items.push(args[0].clone());
+        } else {
+            let index = list_position(&args[0], items.len(), true, "geli")?;
+            items.insert(index, args[1].clone());
+        }
+        Ok(())
+    })?;
     Ok(Value::List(Rc::clone(&lst)))
 }
 
 pub fn list_dhig(lst: Rc<RefCell<Vec<Value>>>, args: &[Value]) -> Result<Value, SoplangError> {
     expect_arity(args, "dhig", 2)?;
-    let index = list_position(&args[0], lst.borrow().len(), false, "dhig")?;
-    lst.borrow_mut()[index] = args[1].clone();
+    mutate_list(&lst, |items| {
+        let index = list_position(&args[0], items.len(), false, "dhig")?;
+        items[index] = args[1].clone();
+        Ok(())
+    })?;
     Ok(Value::List(lst))
 }
 
 pub fn list_ka_saar(lst: Rc<RefCell<Vec<Value>>>, args: &[Value]) -> Result<Value, SoplangError> {
     expect_arity(args, "ka_saar", 1)?;
-    let position = list_position(&args[0], lst.borrow().len(), false, "ka_saar")?;
-    Ok(lst.borrow_mut().remove(position))
+    mutate_list(&lst, |items| {
+        let index = list_position(&args[0], items.len(), false, "ka_saar")?;
+        Ok(items.remove(index))
+    })
 }
 
 pub fn list_saar(lst: Rc<RefCell<Vec<Value>>>, args: &[Value]) -> Result<Value, SoplangError> {
@@ -747,8 +773,10 @@ pub fn list_saar(lst: Rc<RefCell<Vec<Value>>>, args: &[Value]) -> Result<Value, 
     if args.is_empty() {
         return list_kasaar(lst, args);
     }
-    let index = list_position(&args[0], lst.borrow().len(), false, "saar")?;
-    Ok(lst.borrow_mut().remove(index))
+    mutate_list(&lst, |items| {
+        let index = list_position(&args[0], items.len(), false, "saar")?;
+        Ok(items.remove(index))
+    })
 }
 
 pub fn list_koowaad(lst: Rc<RefCell<Vec<Value>>>, args: &[Value]) -> Result<Value, SoplangError> {
@@ -818,7 +846,10 @@ pub fn object_tir(
             }
         })
         .ok_or_else(|| err_type("Furaha waa in uu noqdo qoraal"))?;
-    obj.borrow_mut().remove(&key);
+    mutate_object(&obj, |items| {
+        items.remove(&key);
+        Ok(())
+    })?;
     Ok(Value::Object(Rc::clone(&obj)))
 }
 
@@ -857,7 +888,10 @@ pub fn object_nadiifi(
     args: &[Value],
 ) -> Result<Value, SoplangError> {
     expect_arity(args, "nadiifi", 0)?;
-    obj.borrow_mut().clear();
+    mutate_object(&obj, |items| {
+        items.clear();
+        Ok(())
+    })?;
     Ok(Value::Object(Rc::clone(&obj)))
 }
 
@@ -919,7 +953,10 @@ pub fn object_dhig(
 ) -> Result<Value, SoplangError> {
     expect_arity(args, "dhig", 2)?;
     let key = object_key(&args[0])?.to_string();
-    obj.borrow_mut().insert(key, args[1].clone());
+    mutate_object(&obj, |items| {
+        items.insert(key, args[1].clone());
+        Ok(())
+    })?;
     Ok(Value::Object(Rc::clone(&obj)))
 }
 
@@ -944,7 +981,7 @@ fn object_remove(
 ) -> Result<Value, SoplangError> {
     expect_arity(args, name, 1)?;
     let key = object_key(&args[0])?;
-    Ok(obj.borrow_mut().remove(key).unwrap_or(Value::Null))
+    mutate_object(&obj, |items| Ok(items.remove(key).unwrap_or(Value::Null)))
 }
 
 // ---------- String methods ----------

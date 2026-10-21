@@ -1683,7 +1683,7 @@ fn is_type_compatible(sym: &SymbolTable, target: &TypeAnnotation, value: &TypeAn
     match (target, value) {
         (Dynamic, _) => true,
         (_, Union(found)) => found.iter().all(|ty| is_type_compatible(sym, target, ty)),
-        (Union(_) | Null, Dynamic) => true,
+        (Union(_) | Null | ListOf(_) | ObjectOf(_), Dynamic) => true,
         (Union(types), found) => types.iter().any(|ty| is_type_compatible(sym, ty, found)),
         (Null, Null) => true,
         // A door value has no static class. The runtime check accepts a real instance.
@@ -1695,7 +1695,14 @@ fn is_type_compatible(sym: &SymbolTable, target: &TypeAnnotation, value: &TypeAn
         (Jajab, Abn | Jajab) => true,
         (Qoraal, Qoraal) => true,
         (Bool, Bool) => true,
-        (Teed, Teed) => true,
+        (Teed, Teed | ListOf(_)) => true,
+        (Walax, ObjectOf(_)) => true,
+        (ListOf(_), Teed) | (ObjectOf(_), Walax) => true,
+        // Mutable element contracts are invariant; a dynamic alias can request
+        // another contract after validating the actual shared contents.
+        (ListOf(expected), ListOf(found)) | (ObjectOf(expected), ObjectOf(found)) => {
+            expected.same_contract(found)
+        }
         (Bytes, Bytes) => true,
         (Walax, Walax) => true,
         _ => false,
@@ -1719,6 +1726,9 @@ fn is_same_or_subclass(sym: &SymbolTable, found: &str, expected: &str) -> bool {
 }
 
 fn ensure_known_class(sym: &SymbolTable, ann: &TypeAnnotation) -> Result<(), SoplangError> {
+    if let TypeAnnotation::ListOf(inner) | TypeAnnotation::ObjectOf(inner) = ann {
+        return ensure_known_class(sym, inner);
+    }
     if let TypeAnnotation::Union(types) = ann {
         for ty in types {
             ensure_known_class(sym, ty)?;

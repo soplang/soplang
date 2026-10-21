@@ -249,3 +249,24 @@ is allowed. `{name}` is a variable name, `dood` for an argument, or `celi` for
 a return value. Class alternatives use class names. Static mismatches, unknown
 classes, required arguments, and bare returns reuse existing diagnostic forms.
 The [type reference](optional-union-types.md) defines the contracts.
+
+## Typed lists and objects
+
+`Urur` describes a collection; `noocaysan` means typed. Existing method names
+remain unchanged. Initial annotation failures use the existing `E022` contract
+message. Rejected mutations use `E039`; missing classes retain `E021`.
+
+| Somali diagnostic | Meaning |
+| --- | --- |
+| `Beddelkani ma waafaqsana nooca ururka {type}.` | The proposed mutation violates a collection contract. |
+| `Teedka hadda lama akhriyi karo.` | A conflicting host borrow prevents reading the list. |
+| `Teedka hadda lama beddeli karo.` | A conflicting host borrow prevents mutation. |
+| `Walaxda hadda lama beddeli karo.` | A conflicting host borrow prevents object mutation. |
+| `Furaha walaxda noocaysan waa inuu noqdaa qoraal.` | A typed object's key annotation must be string. |
+| `Noocan ma qaato noocyo xubno ah.` | This type does not accept element arguments. |
+| `Noocyadu aad bay isugu dhex jiraan.` | The annotation exceeds the nesting limit. |
+| `Qaabka noocan aad buu u weyn yahay.` | The annotation exceeds its total node budget. |
+
+`Walaxda hadda lama akhriyi karo.` and malformed-descriptor diagnostics retain
+their existing wording. The [typed-collections reference](typed-collections.md)
+defines shared alias, mutation, and ownership behavior.

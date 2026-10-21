@@ -733,3 +733,9 @@ indexing, checked writes, collection methods, type annotations, and iteration.
 `T?` permits a value of type `T` or `maran`. `A | B` permits either type.
 The [optional and union reference](optional-union-types.md) defines argument
 requirements, conversions, class alternatives, and return validation.
+
+## Typed collections
+
+`teed[T]` constrains list elements; `walax[qoraal, T]` constrains string-keyed
+object values. See the [shared collection contracts](typed-collections.md) for
+aliases, nesting, numeric kinds, mutation, rest collectors, and lifetime.

@@ -1,0 +1,5 @@
+Khalad nooc: Qaab 'Maqan' lama aqoonsan [E021] safka 1, tiirka 1
+     --> examples/errors/typed_unknown_class.sop:1:1
+   1 │   teed[Maqan] tirooyin = []
+     │   ^^^^
+     └─ Qeex qaabka ka hor intaadan u isticmaalin nooc ahaan.

@@ -160,3 +160,34 @@ malformed native descriptors, foreign handles, and borrowed class metadata.
 Cross-target checks and metadata compilation of the extracted LLVM linker
 wrapper pass for Windows x64 and macOS ARM64, including the new runtime bridge.
 Actual platform executable checks remain distribution gates.
+
+## Shared typed lists and objects stage
+
+The debug suite passes 221 tests, including all 33 LLVM tests. The dedicated
+error and example suites pass 14 tests covering all 133 diagnostic programs
+and 37 public examples through JIT and LLVM. Optimized checks pass 83 tests:
+
+```sh
+cargo test --locked -- --skip test_aot
+cargo test --locked --test diagnostic_tests --test examples_tests
+cargo test --locked --release --test typed_collection_tests --test interpreter_tests --test llvm_ir_tests
+cargo check --locked --offline --target x86_64-pc-windows-msvc
+cargo check --locked --offline --target aarch64-apple-darwin
+```
+
+The shared fixture runs LLVM at levels 0 and 2. It checks all current list and
+object mutation paths, method aliases, nested aliases, replacement and removal
+of dependencies, correlated whole-container unions, intersections of shared
+contracts, all-parent mutation atomicity, nominal class members, typed defaults,
+rest collectors, named calls, returned closures, return contracts, optional
+containers, equivalent unions, cycles, and contracts across GC safepoints.
+
+Six host tests cover syntax and depth limits, key types, invariance, strict
+annotations, weak guard lifetime, repeated identity checks, direct ABI and
+standard-library writes, conflicting borrows, unrelated fast paths, failed
+registration, malformed native descriptors, REPL metadata, and cyclic cleanup.
+
+Windows x64 and macOS ARM64 cross-target checks pass. The extracted LLVM linker
+wrapper passes Rust metadata compilation against both target libraries. Native
+platform execution and packaging remain distribution gates. Sets, tuples, their
+typed forms, and the remaining library operations are still required for 3.2.

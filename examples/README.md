@@ -57,6 +57,7 @@ You can also run an example by its position in the sorted file list:
 | `34_named_arguments.sop` | Named arguments, omitted defaults, and keyword collectors |
 | `35_bytes.sop` | Byte arrays, strict UTF-8 conversion, indexing, slices, and iteration |
 | `36_optional_union_types.sop` | Nullable values, union annotations, defaults, and return contracts |
+| `37_typed_collections.sop` | Shared list/object element types, nested aliases, and typed rest parameters |
 
 `_math_lib.sop` is imported by `16_import.sop`; it is not a standalone demo.
 
