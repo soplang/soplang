@@ -1,7 +1,8 @@
 # Local verification for the 3.2 language foundations
 
-These checks cover implemented stages. They do not declare the complete 3.2
-milestone or its distribution ready. The remaining scope is in [ROADMAP.md](../../ROADMAP.md).
+These checks cover implemented stages. Soplang 3.2 language scope is complete
+locally; a version tag, installer builds, and native platform execution remain
+distribution gates. Later roadmap work is in [ROADMAP.md](../../ROADMAP.md).
 
 ## Iteration stage
 
@@ -131,7 +132,7 @@ enumerate/zip, annotations, fresh defaults, dynamic parameter and return checks,
 callback signatures, and live values across collection safepoints.
 
 Both cross-target checks pass. Executable tests on Windows and macOS remain
-required for distribution. The complete 3.2 milestone remains untagged.
+required for distribution.
 
 ## Optional and union annotations stage
 
@@ -249,8 +250,7 @@ reference model and verifies bounded tombstones and indexed membership.
 
 Windows x64 and macOS ARM64 cross-target checks pass. The extracted LLVM linker
 wrapper passes Rust metadata compilation against both target libraries.
-Native execution and packaging remain distribution gates. Typed sets and the
-remaining library operations are still required before the 3.2 milestone tag.
+Native execution and packaging remain distribution gates.
 
 ## Shared typed sets stage
 
@@ -280,8 +280,7 @@ A unit test checks conflicting set-state borrows and the unrelated fast path.
 
 Windows x64 and macOS ARM64 cross-target checks pass. The extracted LLVM linker
 wrapper passes Rust metadata compilation against both target libraries.
-Native platform execution and packaging remain distribution gates. Expanded
-string, list, object, and numeric library operations remain before the 3.2 tag.
+Native platform execution and packaging remain distribution gates.
 
 ## Unicode text-library stage
 
@@ -313,7 +312,7 @@ new public example through JIT and a standalone LLVM-built binary.
 Windows x64 and macOS ARM64 cross-target checks pass. The extracted LLVM linker
 wrapper passes Rust metadata compilation against both target libraries.
 Native platform execution, installer builds, and the Docker build remain
-distribution gates. List, object, and numeric library work remains before 3.2.
+distribution gates.
 
 ## Expanded list-library stage
 
@@ -346,8 +345,7 @@ Diagnostic snapshots verify the outer sorting location after a successful
 callback and the inner location and trace when a callback raises an error.
 Windows x64 and macOS ARM64 cross-target checks pass, as does Rust metadata
 compilation of the extracted LLVM linker wrapper against both target libraries.
-Native platform execution and packaging remain distribution gates. Object and
-numeric library work remains before the 3.2 milestone tag.
+Native platform execution and packaging remain distribution gates.
 
 ## Expanded object-library stage
 
@@ -378,14 +376,14 @@ keys, and inner carets and traces for callback failures.
 
 Windows x64 and macOS ARM64 cross-target checks pass. The extracted LLVM linker
 wrapper passes Rust metadata compilation against both target libraries.
-Native platform execution and packaging remain distribution gates. Numeric
-library work remains before the complete 3.2 milestone tag.
+Native platform execution and packaging remain distribution gates.
 
 ## Expanded numeric-library stage
 
-The debug suite passes with `--skip test_aot`. The diagnostic and example suites
-pass through JIT and LLVM. Optimized checks cover the shared numeric fixture at
-LLVM optimization levels 0 and 2:
+The debug suite passes 269 tests with `--skip test_aot`, including all 40 LLVM
+tests. The diagnostic and example suites pass 14 tests through JIT and LLVM.
+Optimized checks pass 94 tests, including the shared numeric fixture at LLVM
+optimization levels 0 and 2:
 
 ```sh
 cargo test --locked -- --skip test_aot
@@ -404,4 +402,12 @@ Three host tests cover independent context streams, nested activation, invalid
 random calls with conflicting list borrows, and REPL persistence across
 collection and function shadowing. Windows x64 and macOS ARM64 cross-target
 checks pass. Native platform execution and packaging remain distribution gates.
-The complete 3.2 milestone tag remains pending any remaining roadmap scope.
+
+## 3.2 language scope complete
+
+Commit `b382a32` finishes the expanded numeric library. With text, list, object,
+and numeric collection methods in place, the 3.2 language foundations described
+in [ROADMAP.md](../../ROADMAP.md) are implemented locally. See
+[3.2.0 release notes](../releases/3.2.0.md) for a feature summary. A git tag,
+cross-platform executables, installers, and publication remain open distribution
+work; 3.3 I/O and later milestones stay on the roadmap.

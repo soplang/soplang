@@ -145,8 +145,10 @@ now enforce shared element contracts through aliases and nested mutations.
 implemented. [Sets](docs/language/sets.md) support immutable keys, hashing,
 ordered iteration, and set algebra. [Typed sets](docs/language/typed-sets.md)
 now enforce shared element contracts through aliases and nested collections.
-The remaining library operations are still planned.
-The 3.2 milestone is not yet complete or tagged.
+Expanded [text](docs/language/text-methods.md), [list](docs/language/list-methods.md),
+[object](docs/language/object-methods.md), and [numeric](docs/language/numeric-functions.md)
+library operations are implemented in both backends. The 3.2 language scope is
+complete locally; a version tag and distribution builds remain pending.
 
 ### Iteration
 
@@ -174,7 +176,8 @@ step representation.
 1. Sets for unique immutable values: implemented as `urur`.
 2. Immutable tuples: implemented as `xirmo`, including positional annotations.
 3. Byte arrays: implemented as `baytyo`, with shared collection vocabulary.
-4. Explicit structured error values.
+4. Explicit structured error values: implemented as immutable `khalad` values with
+   codes, causes, traces, and optional structured catches (see [3.1 errors](docs/releases/3.1.0.md#errors-and-cleanup)).
 5. Optional and union types: implemented for variables, parameters, and returns.
 6. Typed lists, objects, and positional tuples: implemented with shared nested
    contracts. Typed sets are also implemented as `urur[T]`.
@@ -186,7 +189,7 @@ step representation.
 | String | Implemented: character classification, capitalization, title casing, padding, partitioning, lines, words, and formatting; see [text methods](docs/language/text-methods.md). |
 | List | Implemented: remove by value, extend in place, unique values, enumerate, zip, sum, and callback-based sorting; see [list methods](docs/language/list-methods.md). |
 | Object | Implemented: insert when absent, merge in place, map entries, filter entries, and nested-path lookup; see [object methods](docs/language/object-methods.md). |
-| Number | logarithms, trigonometry, constants, clamping, and seeded random generation |
+| Number | Implemented: logarithms, trigonometry, constants, clamping, and context-local seeded random generation; see [numeric functions](docs/language/numeric-functions.md). |
 
 ## Soplang 3.3 — files, structured data, and networking
 
