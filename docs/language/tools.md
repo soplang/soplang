@@ -62,6 +62,15 @@ local path dependencies are analyzed directly.
 definition, references, rename, formatting, semantic tokens, and the code
 action `Hagaaji qaabka`.
 
+The server uses UTF-16 positions and accepts incremental document updates.
+Definitions and references use the target file's current text; rename groups
+edits by document URI and preserves untitled-buffer URIs. Open imported files
+use their unsaved contents. Stale document versions and changes that split a
+surrogate pair are ignored, and closing a document clears stale diagnostics.
+Semantic token lengths include source delimiters and prefixes, and multiline
+strings and comments are split into valid per-line ranges. Stdio headers and
+message sizes are bounded.
+
 ## Breakpoints and profile
 
 `jebi()` prints each stack frame as `name line:column` and reads one line.

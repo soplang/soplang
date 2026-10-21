@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Use each file's unsaved text and UTF-16 coordinates for language-server edits. Group renames by URI, preserve untitled buffers, handle incremental updates and closed documents, include comments in semantic tokens, and bound stdio messages.
+
 - Share import expansion between compilation and source analysis. Support bundled modules, class namespaces and package imports in `check` and editor diagnostics while preserving unsaved overlays, cancellation and read-only verified caches.
 
 - Format source without reconstructing tokens or losing comments, closures, branches, keys or literal contents. Validate output before atomic replacement, preserve file permissions and symbolic links, and refuse to overwrite invalid or read-only source.
