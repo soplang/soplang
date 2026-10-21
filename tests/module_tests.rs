@@ -404,6 +404,147 @@ fn selective_class_imports_keep_one_identity() {
 }
 
 #[test]
+fn class_aliases_are_lexical_and_reexports_keep_the_original_identity() {
+    let dir = temp_dir("lexical_class_aliases");
+    for (name, number) in [("one", 1), ("two", 2)] {
+        fs::write(
+            dir.join(format!("{name}.sop")),
+            format!("soosaar C\nqaab C {{ hawl value(): abn {{ celi {number} }} }}\n"),
+        )
+        .unwrap();
+    }
+    for (module, leaf) in [("a", "one"), ("b", "two")] {
+        fs::write(
+            dir.join(format!("{module}.sop")),
+            format!(
+                r#"
+keen "{leaf}.sop" sida m
+keen "{leaf}.sop" ka C sida Local
+soosaar Local, make, accept
+hawl make(): m.C {{ celi cusub m.C() }}
+hawl accept(teed[Local] values): Local {{ celi values[0] }}
+"#
+            ),
+        )
+        .unwrap();
+    }
+    fs::write(
+        dir.join("main.sop"),
+        r#"
+keen "a.sop" sida a
+keen "b.sop" sida b
+a.Local first = cusub a.Local()
+b.Local second = cusub b.Local()
+qor(a.make().value(), b.make().value(), a.accept([first]).value(), b.accept([second]).value())
+"#,
+    )
+    .unwrap();
+    assert_backends(&dir, "1 2 1 2\n", true);
+
+    let mut session = soplang::ReplSession::new(false).unwrap();
+    session
+        .eval("keen \"a.sop\" sida a", Some(&dir.join("main.sop")))
+        .unwrap();
+    session
+        .eval("a.Local first = cusub a.Local()", None)
+        .unwrap();
+    session
+        .eval("keen \"b.sop\" sida b", Some(&dir.join("main.sop")))
+        .unwrap();
+    session
+        .eval("door answer = a.accept([first]).value()", None)
+        .unwrap();
+    assert_eq!(session.get_global("answer"), Some(soplang::Value::Int(1)));
+    fs::remove_dir_all(dir).unwrap();
+}
+
+#[test]
+fn conflicting_class_imports_are_rejected_in_the_callers_scope() {
+    let dir = temp_dir("class_alias_conflict");
+    for name in ["one", "two"] {
+        fs::write(
+            dir.join(format!("{name}.sop")),
+            "qaab C { hawl value() { celi 1 } }\n",
+        )
+        .unwrap();
+    }
+    let main = dir.join("main.sop");
+    fs::write(
+        &main,
+        "keen \"one.sop\" ka C sida Local\nkeen \"two.sop\" ka C sida Local\n",
+    )
+    .unwrap();
+    let output = Command::new(env!("CARGO_BIN_EXE_soplang"))
+        .arg(main)
+        .output()
+        .unwrap();
+    assert!(!output.status.success());
+    assert!(String::from_utf8_lossy(&output.stderr).contains("E020"));
+    fs::remove_dir_all(dir).unwrap();
+}
+
+#[test]
+fn exported_methods_capture_module_values_defaults_and_private_functions() {
+    let dir = temp_dir("class_environments");
+    fs::write(
+        dir.join("people.sop"),
+        r#"
+soosaar C
+teed[abn] secret = [11]
+hawl private(abn n): abn { celi n + secret[0] }
+qaab C {
+    hawl dhis(abn n = secret[0]): maran { nafta.n = n }
+    hawl value(abn n = secret[0]): abn { celi private(n) + nafta.n }
+}
+"#,
+    )
+    .unwrap();
+    fs::write(
+        dir.join("main.sop"),
+        r#"
+keen "people.sop" sida m
+m.C first = cusub m.C()
+m.C second = cusub m.C(n: 2)
+qor(first.value(), second.value(n: 3))
+"#,
+    )
+    .unwrap();
+    assert_backends(&dir, "33 16\n", true);
+    fs::remove_dir_all(dir).unwrap();
+}
+
+#[test]
+fn class_factories_keep_each_instances_lexical_methods_after_collection() {
+    let dir = temp_dir("class_factory_capture");
+    let source = r#"
+hawl make(seed) {
+    qaab Parent {
+        hawl dhis(n = seed) { nafta.n = n }
+        hawl value(n = seed) { celi seed + nafta.n + n }
+    }
+    qaab Child dhaxal Parent {
+        hawl value(n = seed) { celi waalid.value(n: n) + seed }
+    }
+    celi cusub Child()
+}
+door first = make(1)
+door second = make(10)
+kuceli (i ku taxane(1500)) { door cycle = [] cycle.geli(cycle) }
+qor(first.value(), second.value(n: 2), first.value(n: 3))
+"#;
+    fs::write(dir.join("main.sop"), source).unwrap();
+    assert_backends(&dir, "4 32 6\n", false);
+    let mut session = soplang::ReplSession::new(false).unwrap();
+    session.eval(source, Some(&dir.join("main.sop"))).unwrap();
+    session.collect();
+    session
+        .eval("door checked = first.value(n: 3)", None)
+        .unwrap();
+    assert_eq!(session.get_global("checked"), Some(soplang::Value::Int(6)));
+    fs::remove_dir_all(dir).unwrap();
+}
+
+#[test]
 fn private_and_unknown_classes_are_not_exported() {
     let dir = temp_dir("module_class_private");
     fs::write(

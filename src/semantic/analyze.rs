@@ -15,8 +15,6 @@ pub struct SymbolTable {
     pub functions: Vec<FunctionMeta>,
     /// Class name -> metadata (methods, parent).
     pub classes: HashMap<String, ClassMeta>,
-    /// Namespace alias -> exported class name -> canonical class.
-    pub module_classes: HashMap<String, HashMap<String, String>>,
     /// Anonymous expression address -> deterministic compiler-internal name.
     pub anonymous_functions: HashMap<usize, String>,
     /// Globals carried in from a REPL session. Top-level uses load/store them
@@ -24,6 +22,7 @@ pub struct SymbolTable {
     pub session_globals: HashSet<String>,
     unavailable_parameters: Vec<(usize, HashSet<String>)>,
     pub class_spans: HashMap<String, crate::error::SourceSpan>,
+    method_contexts: Vec<(String, Option<String>)>,
 }
 
 #[derive(Debug, Default, Clone)]
@@ -72,15 +71,6 @@ pub fn mangle_method(class: &str, method: &str) -> String {
 
 /// Runtime class identity for a source name, namespace path, or local alias.
 pub fn canonical_class_name(sym: &SymbolTable, name: &str) -> String {
-    if let Some((module, class)) = name.split_once('.') {
-        if let Some(found) = sym
-            .module_classes
-            .get(module)
-            .and_then(|map| map.get(class))
-        {
-            return found.clone();
-        }
-    }
     sym.classes
         .get(name)
         .map(|meta| meta.name.clone())
@@ -622,7 +612,9 @@ fn analyze_stmt(
             return_ann,
             body,
         } => {
-            let is_method = current_class.is_some() && enclosing_fn.is_none();
+            let is_method = sym.method_contexts.last().is_some_and(|(class, parent)| {
+                current_class == Some(class.as_str()) && enclosing_fn == parent.as_deref()
+            });
             if is_method {
                 if params.iter().any(|p| p.name == "nafta") {
                     return Err(type_error_ex(
@@ -773,7 +765,7 @@ fn analyze_stmt(
                 class_name,
                 is_method,
             });
-            if enclosing_fn.is_some() {
+            if enclosing_fn.is_some() && !is_method {
                 let scope = sym.scopes.last_mut().unwrap();
                 if !scope.vars.contains_key(name) {
                     let slot = scope.vars.len();
@@ -845,7 +837,19 @@ fn analyze_stmt(
                     methods,
                 },
             );
-            analyze_block(body, sym, opts, fn_sigs, current_return, Some(name), None)?;
+            sym.method_contexts
+                .push((name.clone(), enclosing_fn.map(str::to_string)));
+            let result = analyze_block(
+                body,
+                sym,
+                opts,
+                fn_sigs,
+                current_return,
+                Some(name),
+                enclosing_fn,
+            );
+            sym.method_contexts.pop();
+            result?;
         }
         Stmt::If {
             cond,
@@ -1099,38 +1103,9 @@ fn analyze_stmt(
             )?;
         }
         Stmt::Import(_) | Stmt::Export(_) | Stmt::Test { .. } | Stmt::Fixture { .. } => {}
-        Stmt::UseModule { alias, classes } => {
-            sym.module_classes
-                .insert(alias.clone(), classes.iter().cloned().collect());
-        }
-        Stmt::UseClass { name, class_name } => {
-            let Some(meta) = sym.classes.get(class_name).cloned() else {
-                return Err(type_error_ex(
-                    format!("Qaab '{class_name}' lama aqoonsan"),
-                    0,
-                    0,
-                    ErrorMeta::default().with_code(codes::E021_UNDECLARED),
-                ));
-            };
-            if let Some(existing) = sym.classes.get(name) {
-                if existing.name != meta.name {
-                    return Err(type_error_ex(
-                        format!("Qaab '{name}' mar hore ayaa la qeexay"),
-                        0,
-                        0,
-                        ErrorMeta::default().with_code(codes::E020_REDECLARED),
-                    ));
-                }
-            } else {
-                sym.classes.insert(
-                    name.clone(),
-                    ClassMeta {
-                        name: meta.name,
-                        parent: meta.parent.clone(),
-                        methods: meta.methods.clone(),
-                    },
-                );
-            }
+        Stmt::UseModule { .. } => {}
+        Stmt::UseClass { class_name, .. } => {
+            require_class(sym, class_name)?;
         }
         Stmt::Block(stmts) => analyze_block(
             stmts,
@@ -1791,29 +1766,10 @@ fn is_type_compatible(sym: &SymbolTable, target: &TypeAnnotation, value: &TypeAn
 }
 
 fn class_is_known(sym: &SymbolTable, name: &str) -> bool {
-    if let Some((module, class)) = name.split_once('.') {
-        return sym
-            .module_classes
-            .get(module)
-            .is_some_and(|map| map.contains_key(class));
-    }
     sym.classes.contains_key(name)
 }
 
 fn require_class(sym: &SymbolTable, name: &str) -> Result<String, SoplangError> {
-    if let Some((module, class)) = name.split_once('.') {
-        if let Some(map) = sym.module_classes.get(module) {
-            if let Some(found) = map.get(class) {
-                return Ok(found.clone());
-            }
-            return Err(type_error_ex(
-                format!("'{class}' lama soo saarin."),
-                0,
-                0,
-                ErrorMeta::default().with_code(codes::E021_UNDECLARED),
-            ));
-        }
-    }
     if let Some(meta) = sym.classes.get(name) {
         return Ok(meta.name.clone());
     }

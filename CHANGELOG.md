@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Resolve imported class types in their lexical module, support class reexports, and retain each instance's captured method environment across inheritance, named calls, garbage collection and REPL commands.
+
 - Bind SQL values as driver parameters, validate schema contracts, preserve MongoDB records during migrations, and own database connections per execution context. Add explicit pool cleanup, shared SQLite memory pools, SQL Server TLS, and live connector regressions for migrations and transactions.
 
 - Keep class identity separate from object fields so JSON input cannot invoke class methods or satisfy class contracts. Reject non-JSON whitespace.

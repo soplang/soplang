@@ -304,7 +304,16 @@ impl Graph {
         }
         let mut index = 0;
         while index < graph.nodes.len() {
-            let (references, handles, borrowed) = graph.nodes[index].node.children(teardown);
+            let (references, mut handles, borrowed) = graph.nodes[index].node.children(teardown);
+            if !teardown {
+                if let Node::Object(object) = &graph.nodes[index].node {
+                    if let Some(instance) =
+                        state.instances.borrow().get(&(Rc::as_ptr(object) as usize))
+                    {
+                        handles.extend(instance.methods.values().copied());
+                    }
+                }
+            }
             graph.nodes[index].borrowed = borrowed;
             for reference in references {
                 let child = graph.node(reference);

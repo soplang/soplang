@@ -1080,7 +1080,44 @@ impl<'a> HirLowering<'a> {
                     _ => {}
                 }
             }
-            Stmt::ClassDef { .. } => {}
+            Stmt::ClassDef { name, body, .. } => {
+                for method in body {
+                    let Stmt::FuncDef { name: method, .. } = method.unlocated() else {
+                        continue;
+                    };
+                    let mangled = crate::semantic::mangle_method(name, method);
+                    let Some(function) = self
+                        .sym
+                        .functions
+                        .iter()
+                        .find(|function| function.name == mangled)
+                    else {
+                        continue;
+                    };
+                    if function.captures.is_empty() {
+                        continue;
+                    }
+                    let captures = function
+                        .captures
+                        .iter()
+                        .map(|capture| {
+                            let slot = self.alloc_slot();
+                            self.load_name(slot, capture);
+                            slot
+                        })
+                        .collect();
+                    let dst = self.alloc_slot();
+                    self.emit(HirInstr::MakeClosure {
+                        dst,
+                        fn_name: mangled.clone(),
+                        captures,
+                    });
+                    self.emit(HirInstr::Store {
+                        name: mangled,
+                        src: dst,
+                    });
+                }
+            }
             Stmt::FuncDef { name, .. } => {
                 let Some(parent) = self.enclosing_fn else {
                     return;

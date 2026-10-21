@@ -57,6 +57,17 @@ extends it. `keen "people.sop" ka Qof sida Student` binds that same class under
 `Student`. A class omitted from `soosaar`, or one whose name starts with `_`
 when `soosaar` is absent, cannot be constructed or named from the caller.
 
+Class aliases belong to the module that imports them. Two modules can each use
+`sida m` or `ka Qof sida Local` for different classes without changing each
+other's constructors or type contracts. A selective class import can be exported
+again with `soosaar Local`, retaining its original identity.
+
+Methods, constructor defaults, and nested method functions can capture private
+module values and functions. An instance retains its lexical method environment
+when another call to a factory creates an instance with different captures.
+Inherited methods and `waalid` use the same environment, including named calls.
+These environments remain valid across garbage collection and REPL commands.
+
 REPL imports survive garbage collection and later commands. An analysis failure
 does not reserve a new module or discard the initializer needed by a later
 successful import. A failed runtime initializer remains eligible for retry.

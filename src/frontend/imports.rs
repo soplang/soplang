@@ -166,6 +166,7 @@ pub(crate) struct ImportResolver {
     loaders: Vec<Stmt>,
     next_id: usize,
     project: Option<crate::package::Project>,
+    class_bindings: ClassBindings,
 }
 
 impl ImportResolver {
@@ -186,7 +187,8 @@ impl ImportResolver {
             self.flat_seen.insert(path.clone());
             self.active.insert(path);
         }
-        let body = self.flatten(stmts, source_path)?;
+        let mut body = self.flatten(stmts, source_path)?;
+        bind_class_imports(&mut body, &mut self.class_bindings)?;
         self.active.clear();
         let mut result = std::mem::take(&mut self.caches);
         result.extend(std::mem::take(&mut self.loaders));
@@ -345,6 +347,7 @@ impl ImportResolver {
         self.active.insert(path.to_path_buf());
         let parsed = super::parse_source(source, Some(source_path))?;
         let mut body = self.flatten(parsed, Some(source_path))?;
+        bind_class_imports(&mut body, &mut ClassBindings::default())?;
         let public = export_names(&body)?;
         let classes: HashMap<String, String> = body
             .iter()
@@ -352,6 +355,7 @@ impl ImportResolver {
                 Stmt::ClassDef { name, .. } => {
                     Some((name.clone(), format!("__soplang_module{id}_{name}")))
                 }
+                Stmt::UseClass { name, class_name } => Some((name.clone(), class_name.clone())),
                 _ => None,
             })
             .collect();
@@ -360,7 +364,13 @@ impl ImportResolver {
             .filter(|(name, _)| public.contains(name))
             .map(|(name, mangled)| (name.clone(), mangled.clone()))
             .collect();
-        rename_stmts(&mut body, &classes);
+        rename_stmts(
+            &mut body,
+            &ClassBindings {
+                names: classes.clone(),
+                ..Default::default()
+            },
+        )?;
         let fields = public
             .iter()
             .filter(|name| !classes.contains_key(name.as_str()))
@@ -467,7 +477,8 @@ fn export_names(stmts: &[Stmt]) -> Result<Vec<String>, SoplangError> {
             Stmt::Export(names) => explicit.extend(names.iter().cloned()),
             Stmt::FuncDef { name, .. }
             | Stmt::VarDecl { name, .. }
-            | Stmt::ClassDef { name, .. } => {
+            | Stmt::ClassDef { name, .. }
+            | Stmt::UseClass { name, .. } => {
                 defined.insert(name.clone());
             }
             _ => {}
@@ -498,24 +509,94 @@ fn export_names(stmts: &[Stmt]) -> Result<Vec<String>, SoplangError> {
     Ok(names)
 }
 
-fn rename_stmts(stmts: &mut [Stmt], names: &HashMap<String, String>) {
-    for stmt in stmts {
-        rename_stmt(stmt, names);
+#[derive(Default, Clone)]
+struct ClassBindings {
+    names: HashMap<String, String>,
+    namespaces: HashSet<String>,
+}
+
+impl ClassBindings {
+    fn get(&self, name: &str) -> Result<Option<&String>, SoplangError> {
+        if let Some(found) = self.names.get(name) {
+            return Ok(Some(found));
+        }
+        if let Some((module, class)) = name.split_once('.') {
+            if self.namespaces.contains(module) {
+                return Err(import_error_ex(
+                    format!("'{class}' lama soo saarin."),
+                    0,
+                    0,
+                    ErrorMeta::default().with_code(codes::E021_UNDECLARED),
+                ));
+            }
+        }
+        Ok(None)
+    }
+
+    fn insert(&mut self, name: String, canonical: String) -> Result<(), SoplangError> {
+        if self
+            .names
+            .get(&name)
+            .is_some_and(|found| found != &canonical)
+        {
+            return Err(import_error_ex(
+                format!("Qaab '{name}' mar hore ayaa la qeexay."),
+                0,
+                0,
+                ErrorMeta::default().with_code(codes::E020_REDECLARED),
+            ));
+        }
+        self.names.insert(name, canonical);
+        Ok(())
     }
 }
 
-fn rename_stmt(stmt: &mut Stmt, names: &HashMap<String, String>) {
+/// Resolve static class paths while their lexical module is still known. HIR
+/// must never consult an alias map populated later by an unrelated module.
+fn bind_class_imports(
+    stmts: &mut [Stmt],
+    bindings: &mut ClassBindings,
+) -> Result<(), SoplangError> {
+    for stmt in stmts {
+        match stmt.unlocated() {
+            Stmt::UseModule { alias, classes } => {
+                bindings.namespaces.insert(alias.clone());
+                for (name, canonical) in classes {
+                    bindings.insert(format!("{alias}.{name}"), canonical.clone())?;
+                }
+            }
+            Stmt::UseClass { name, class_name } => {
+                bindings.insert(name.clone(), class_name.clone())?
+            }
+            Stmt::ClassDef { name, .. } => bindings.insert(name.clone(), name.clone())?,
+            _ => {}
+        }
+        rename_stmt(stmt, bindings)?;
+    }
+    Ok(())
+}
+
+fn rename_stmts(stmts: &mut [Stmt], names: &ClassBindings) -> Result<(), SoplangError> {
+    for stmt in stmts {
+        rename_stmt(stmt, names)?;
+    }
+    Ok(())
+}
+
+fn rename_stmt(stmt: &mut Stmt, names: &ClassBindings) -> Result<(), SoplangError> {
     match stmt {
-        Stmt::Located { stmt, .. } => rename_stmt(stmt, names),
+        Stmt::Located { span, stmt } => {
+            rename_stmt(stmt, names).map_err(|error| span.attach(error))?
+        }
         Stmt::VarDecl {
             value, type_ann, ..
         } => {
-            rename_type(type_ann, names);
-            rename_expr(value, names);
+            rename_type(type_ann, names)?;
+            rename_expr(value, names)?;
         }
         Stmt::Assign { target, value, .. } => {
-            rename_expr(target, names);
-            rename_expr(value, names);
+            rename_expr(target, names)?;
+            rename_expr(value, names)?;
         }
         Stmt::FuncDef {
             params,
@@ -523,20 +604,20 @@ fn rename_stmt(stmt: &mut Stmt, names: &HashMap<String, String>) {
             body,
             ..
         } => {
-            rename_parameters(params, names);
-            rename_type(return_ann, names);
-            rename_stmts(body, names);
+            rename_parameters(params, names)?;
+            rename_type(return_ann, names)?;
+            rename_stmts(body, names)?;
         }
         Stmt::ClassDef { name, parent, body } => {
-            if let Some(renamed) = names.get(name) {
+            if let Some(renamed) = names.get(name)? {
                 *name = renamed.clone();
             }
             if let Some(parent) = parent {
-                if let Some(renamed) = names.get(parent) {
+                if let Some(renamed) = names.get(parent)? {
                     *parent = renamed.clone();
                 }
             }
-            rename_stmts(body, names);
+            rename_stmts(body, names)?;
         }
         Stmt::If {
             cond,
@@ -544,14 +625,14 @@ fn rename_stmt(stmt: &mut Stmt, names: &HashMap<String, String>) {
             elseifs,
             else_body,
         } => {
-            rename_expr(cond, names);
-            rename_stmts(then_body, names);
+            rename_expr(cond, names)?;
+            rename_stmts(then_body, names)?;
             for (cond, body) in elseifs {
-                rename_expr(cond, names);
-                rename_stmts(body, names);
+                rename_expr(cond, names)?;
+                rename_stmts(body, names)?;
             }
             if let Some(body) = else_body {
-                rename_stmts(body, names);
+                rename_stmts(body, names)?;
             }
         }
         Stmt::Switch {
@@ -559,13 +640,13 @@ fn rename_stmt(stmt: &mut Stmt, names: &HashMap<String, String>) {
             cases,
             default,
         } => {
-            rename_expr(expr, names);
+            rename_expr(expr, names)?;
             for (value, body) in cases {
-                rename_expr(value, names);
-                rename_stmts(body, names);
+                rename_expr(value, names)?;
+                rename_stmts(body, names)?;
             }
             if let Some(body) = default {
-                rename_stmts(body, names);
+                rename_stmts(body, names)?;
             }
         }
         Stmt::For {
@@ -575,69 +656,72 @@ fn rename_stmt(stmt: &mut Stmt, names: &HashMap<String, String>) {
             body,
             ..
         } => {
-            rename_expr(start, names);
-            rename_expr(end, names);
+            rename_expr(start, names)?;
+            rename_expr(end, names)?;
             if let Some(step) = step {
-                rename_expr(step, names);
+                rename_expr(step, names)?;
             }
-            rename_stmts(body, names);
+            rename_stmts(body, names)?;
         }
         Stmt::ForEach { iterable, body, .. } => {
-            rename_expr(iterable, names);
-            rename_stmts(body, names);
+            rename_expr(iterable, names)?;
+            rename_stmts(body, names)?;
         }
         Stmt::While { cond, body } => {
-            rename_expr(cond, names);
-            rename_stmts(body, names);
+            rename_expr(cond, names)?;
+            rename_stmts(body, names)?;
         }
         Stmt::Return(value) => {
             if let Some(value) = value {
-                rename_expr(value, names);
+                rename_expr(value, names)?;
             }
         }
-        Stmt::Throw(value) | Stmt::Expr(value) => rename_expr(value, names),
+        Stmt::Throw(value) | Stmt::Expr(value) => rename_expr(value, names)?,
         Stmt::TryCatch {
             try_body,
             catch_body,
             finally_body,
             ..
         } => {
-            rename_stmts(try_body, names);
-            rename_stmts(catch_body, names);
-            rename_stmts(finally_body, names);
+            rename_stmts(try_body, names)?;
+            rename_stmts(catch_body, names)?;
+            rename_stmts(finally_body, names)?;
         }
-        Stmt::Block(body) => rename_stmts(body, names),
+        Stmt::Block(body) => rename_stmts(body, names)?,
         Stmt::Break
         | Stmt::Continue
         | Stmt::Import(_)
         | Stmt::Export(_)
         | Stmt::UseModule { .. }
         | Stmt::UseClass { .. } => {}
-        Stmt::Test { body, .. } | Stmt::Fixture { body, .. } => rename_stmts(body, names),
+        Stmt::Test { body, .. } | Stmt::Fixture { body, .. } => rename_stmts(body, names)?,
     }
+    Ok(())
 }
 
-fn rename_expr(expr: &mut Expr, names: &HashMap<String, String>) {
+fn rename_expr(expr: &mut Expr, names: &ClassBindings) -> Result<(), SoplangError> {
     match expr {
-        Expr::Located { expr, .. } => rename_expr(expr, names),
+        Expr::Located { span, expr } => {
+            rename_expr(expr, names).map_err(|error| span.attach(error))?
+        }
         Expr::Identifier(_) => {}
         Expr::Call { args, .. } => {
             for arg in args {
-                rename_expr(arg, names);
+                rename_expr(arg, names)?;
             }
         }
         Expr::BinaryOp { left, right, .. } => {
-            rename_expr(left, names);
-            rename_expr(right, names);
+            rename_expr(left, names)?;
+            rename_expr(right, names)?;
         }
-        Expr::UnaryOp { expr, .. } => rename_expr(expr, names),
+        Expr::UnaryOp { expr, .. } => rename_expr(expr, names)?,
         Expr::Invoke { callee, args }
         | Expr::MethodCall {
             obj: callee, args, ..
         } => {
-            rename_expr(callee, names);
+            rename_expr(callee, names)?;
             for arg in args {
-                rename_expr(arg, names);
+                rename_expr(arg, names)?;
             }
         }
         Expr::AnonymousFunc {
@@ -645,72 +729,78 @@ fn rename_expr(expr: &mut Expr, names: &HashMap<String, String>) {
             return_ann,
             body,
         } => {
-            rename_parameters(params, names);
-            rename_type(return_ann, names);
-            rename_stmts(body, names);
+            rename_parameters(params, names)?;
+            rename_type(return_ann, names)?;
+            rename_stmts(body, names)?;
         }
         Expr::Index { obj, idx } => {
-            rename_expr(obj, names);
-            rename_expr(idx, names);
+            rename_expr(obj, names)?;
+            rename_expr(idx, names)?;
         }
         Expr::Property { obj, .. } | Expr::NamedArgument { value: obj, .. } => {
-            rename_expr(obj, names)
+            rename_expr(obj, names)?
         }
         Expr::List(items) => {
             for item in items {
-                rename_expr(item, names);
+                rename_expr(item, names)?;
             }
         }
         Expr::Object(fields) => {
             for (_, value) in fields {
-                rename_expr(value, names);
+                rename_expr(value, names)?;
             }
         }
         Expr::New { class_name, args } => {
-            if let Some(renamed) = names.get(class_name) {
+            if let Some(renamed) = names.get(class_name)? {
                 *class_name = renamed.clone();
             }
             for arg in args {
-                rename_expr(arg, names);
+                rename_expr(arg, names)?;
             }
         }
         Expr::Interpolated { parts } => {
             for part in parts {
                 if let super::ast::InterpolationPart::Value { expression, .. } = part {
-                    rename_expr(expression, names);
+                    rename_expr(expression, names)?;
                 }
             }
         }
         Expr::Literal(_) => {}
     }
+    Ok(())
 }
 
-fn rename_parameters(params: &mut [super::ast::Param], names: &HashMap<String, String>) {
+fn rename_parameters(
+    params: &mut [super::ast::Param],
+    names: &ClassBindings,
+) -> Result<(), SoplangError> {
     for param in params {
-        rename_type(&mut param.type_ann, names);
+        rename_type(&mut param.type_ann, names)?;
         if let Some(default) = &mut param.default {
-            rename_expr(default, names);
+            rename_expr(default, names)?;
         }
     }
+    Ok(())
 }
 
-fn rename_type(ty: &mut TypeAnnotation, names: &HashMap<String, String>) {
+fn rename_type(ty: &mut TypeAnnotation, names: &ClassBindings) -> Result<(), SoplangError> {
     match ty {
         TypeAnnotation::Class(name) => {
-            if let Some(new) = names.get(name) {
+            if let Some(new) = names.get(name)? {
                 *name = new.clone();
             }
         }
         TypeAnnotation::SetOf(inner)
         | TypeAnnotation::ListOf(inner)
-        | TypeAnnotation::ObjectOf(inner) => rename_type(inner, names),
+        | TypeAnnotation::ObjectOf(inner) => rename_type(inner, names)?,
         TypeAnnotation::TupleOf(types) | TypeAnnotation::Union(types) => {
             for ty in types {
-                rename_type(ty, names);
+                rename_type(ty, names)?;
             }
         }
         _ => {}
     }
+    Ok(())
 }
 
 fn preserved_import_end(tokens: &[crate::frontend::token::Token], index: usize) -> Option<usize> {

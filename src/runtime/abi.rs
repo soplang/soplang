@@ -457,6 +457,7 @@ pub(super) struct ClassRegistryEntry {
 pub(super) struct InstanceClass {
     pub object: std::rc::Weak<RefCell<HashMap<String, Value>>>,
     name: String,
+    pub methods: HashMap<i64, SoplangValue>,
 }
 
 #[derive(Clone)]
@@ -1673,6 +1674,12 @@ fn global_fn_payload(name: &str) -> Option<i64> {
         g.borrow().get(name).and_then(|sv| {
             if sv.tag == TAG_FUNC {
                 Some(sv.payload)
+            } else if sv.tag == TAG_CLOSURE {
+                CLOSURE_HEAP.with(|heap| {
+                    heap.borrow()
+                        .get(sv.payload)
+                        .map(|closure| closure.fn_index)
+                })
             } else {
                 None
             }
@@ -1762,6 +1769,35 @@ pub(super) fn get_instance_class(o: &Rc<RefCell<HashMap<String, Value>>>) -> Opt
 }
 
 fn new_instance_value(class_name: &str) -> Value {
+    // A class declaration can execute more than once in a factory. Preserve
+    // the lexical methods for this instance before a later declaration binds
+    // the same compiled method to another environment.
+    let methods = CLASS_REGISTRY.with(|registry| {
+        let registry = registry.borrow();
+        let mut owner = Some(class_name.to_string());
+        let mut seen = std::collections::HashSet::new();
+        let mut methods = HashMap::new();
+        while let Some(name) = owner {
+            if !seen.insert(name.clone()) {
+                break;
+            }
+            let Some(class) = registry.get(&name) else {
+                break;
+            };
+            for (method, index) in &class.methods {
+                let name = crate::semantic::mangle_method(&name, method);
+                if let Some(value) =
+                    GLOBAL_VARS.with(|globals| globals.borrow().get(&name).copied())
+                {
+                    if value.tag == TAG_CLOSURE {
+                        methods.insert(*index, value);
+                    }
+                }
+            }
+            owner = class.parent.clone();
+        }
+        methods
+    });
     let fields = HashMap::from([(
         INSTANCE_CLASS_FIELD.to_string(),
         Value::Str(class_name.to_string()),
@@ -1773,6 +1809,7 @@ fn new_instance_value(class_name: &str) -> Value {
             InstanceClass {
                 object: Rc::downgrade(&object),
                 name: class_name.to_string(),
+                methods,
             },
         );
     });
@@ -1832,11 +1869,62 @@ pub fn merge_classes_from_sym(classes: &HashMap<String, crate::semantic::ClassMe
     }
 }
 
-fn call_compiled_fn_value(
-    entry: CompiledFnEntry,
-    args: &[SoplangValue],
-) -> Result<Value, SoplangError> {
-    let sv = call_compiled_fn(entry, args.as_ptr(), args.len() as i32);
+fn bind_method_callee(callee: SoplangValue, args: &[SoplangValue]) -> SoplangValue {
+    let Some(receiver) = args.first().filter(|value| value.tag == TAG_OBJECT) else {
+        return callee;
+    };
+    let index = if callee.tag == TAG_FUNC {
+        callee.payload
+    } else if callee.tag == TAG_CLOSURE {
+        let Some(index) = CLOSURE_HEAP.with(|heap| {
+            heap.borrow()
+                .get(callee.payload)
+                .map(|closure| closure.fn_index)
+        }) else {
+            return callee;
+        };
+        index
+    } else {
+        return callee;
+    };
+    let Ok(object) = obj_get(receiver.payload) else {
+        return callee;
+    };
+    STATE.with(|state| {
+        state
+            .instances
+            .borrow()
+            .get(&(Rc::as_ptr(&object) as usize))
+            .and_then(|instance| instance.methods.get(&index))
+            .copied()
+            .unwrap_or(callee)
+    })
+}
+
+fn method_callee(index: i64, receiver: SoplangValue) -> SoplangValue {
+    bind_method_callee(
+        SoplangValue {
+            tag: TAG_FUNC,
+            _pad: [0; 7],
+            payload: index,
+        },
+        &[receiver],
+    )
+}
+
+fn call_method_fn_value(index: i64, args: &[SoplangValue]) -> Result<Value, SoplangError> {
+    let sv = soplang_call(
+        SoplangValue {
+            tag: TAG_FUNC,
+            _pad: [0; 7],
+            payload: index,
+        },
+        args.as_ptr(),
+        args.len() as i32,
+    );
+    if let Some(error) = PENDING_ERROR.with(|pending| pending.borrow().clone()) {
+        return Err(error);
+    }
     soplang_to_value(sv)
 }
 
@@ -1863,10 +1951,12 @@ fn dispatch_instance_method(
     };
     let entry = compiled_fn_entry(fn_idx)
         .ok_or_else(|| runtime_error(format!("Hawl '{}' lama diyaarin", method), 0, 0))?;
+    let instance_sv = value_to_soplang(&Value::Object(Rc::clone(o)));
+    let implicit = 1 + usize::from(method_callee(fn_idx, instance_sv).tag == TAG_CLOSURE);
     let expected = entry
         .n_params
-        .saturating_sub(1 + usize::from(entry.keyword_rest));
-    if args.len() < entry.required_params.saturating_sub(1)
+        .saturating_sub(implicit + usize::from(entry.keyword_rest));
+    if args.len() < entry.required_params.saturating_sub(implicit)
         || (!entry.variadic && args.len() > expected)
     {
         return Err(type_error(
@@ -1874,7 +1964,7 @@ fn dispatch_instance_method(
                 "hawl '{}' waxay u baahan tahay {} dood, laakiin {} ayaa la bixiyay",
                 method,
                 crate::error::argument_count(
-                    entry.required_params.saturating_sub(1),
+                    entry.required_params.saturating_sub(implicit),
                     if entry.variadic { usize::MAX } else { expected }
                 ),
                 args.len()
@@ -1883,12 +1973,11 @@ fn dispatch_instance_method(
             0,
         ));
     }
-    let instance_sv = value_to_soplang(&Value::Object(Rc::clone(o)));
     let mut call_args = vec![instance_sv];
     for a in args {
         call_args.push(value_to_soplang(a));
     }
-    call_compiled_fn_value(entry, &call_args)
+    call_method_fn_value(fn_idx, &call_args)
 }
 
 #[no_mangle]
@@ -1923,29 +2012,30 @@ pub extern "C" fn soplang_new_instance(
 
     if let Some(fn_idx) = resolve_constructor_fn_index(&class_name) {
         if let Some(entry) = compiled_fn_entry(fn_idx) {
+            let instance_sv = value_to_soplang(&instance);
+            let implicit = 1 + usize::from(method_callee(fn_idx, instance_sv).tag == TAG_CLOSURE);
             let expected = entry
                 .n_params
-                .saturating_sub(1 + usize::from(entry.keyword_rest));
-            if user_args.len() < entry.required_params.saturating_sub(1)
+                .saturating_sub(implicit + usize::from(entry.keyword_rest));
+            if user_args.len() < entry.required_params.saturating_sub(implicit)
                 || (!entry.variadic && user_args.len() > expected)
             {
                 return handle_runtime_error(type_error(
                     format!(
                         "dhaw() ee qaabka '{}' wuxuu u baahan yahay {} dood, laakiin {} ayaa la bixiyay",
                         class_name,
-                        crate::error::argument_count(entry.required_params.saturating_sub(1), if entry.variadic { usize::MAX } else { expected }),
+                        crate::error::argument_count(entry.required_params.saturating_sub(implicit), if entry.variadic { usize::MAX } else { expected }),
                         user_args.len()
                     ),
                     0,
                     0,
                 ));
             }
-            let instance_sv = value_to_soplang(&instance);
             let mut call_args = vec![instance_sv];
             for a in &user_args {
                 call_args.push(value_to_soplang(a));
             }
-            match call_compiled_fn_value(entry, &call_args) {
+            match call_method_fn_value(fn_idx, &call_args) {
                 Ok(_) => {}
                 Err(e) => return handle_runtime_error(e),
             }
@@ -2948,6 +3038,7 @@ fn named_callable(
     labels: &[String],
 ) -> Result<SoplangValue, SoplangError> {
     validate_handle(callee)?;
+    let callee = bind_method_callee(callee, args);
     if callee.tag == TAG_CLOSURE {
         let data = CLOSURE_HEAP
             .with(|heap| heap.borrow().get(callee.payload).cloned())
@@ -2978,12 +3069,11 @@ fn named_instance_call(
     args: &[SoplangValue],
     labels: &[String],
 ) -> Result<SoplangValue, SoplangError> {
-    let entry = compiled_fn_entry(index).ok_or_else(invalid_handle)?;
     let mut full = vec![value_to_soplang(&instance)];
     full.extend_from_slice(args);
     let mut names = vec![String::new()];
     names.extend_from_slice(labels);
-    invoke_named_entry(entry, &full, &names)
+    named_callable(method_callee(index, full[0]), &full, &names)
 }
 
 /// Named call descriptor: empty labels denote positional arguments. Kinds are
@@ -3160,7 +3250,20 @@ pub extern "C" fn soplang_make_closure(
     if let Some(value) = short_circuit_if_pending() {
         return value;
     }
-    let callee = soplang_get_builtin(name, name_len);
+    let mut callee = soplang_get_builtin(name, name_len);
+    if callee.tag == TAG_CLOSURE {
+        if let Some(index) = CLOSURE_HEAP.with(|heap| {
+            heap.borrow()
+                .get(callee.payload)
+                .map(|closure| closure.fn_index)
+        }) {
+            callee = SoplangValue {
+                tag: TAG_FUNC,
+                _pad: [0; 7],
+                payload: index,
+            };
+        }
+    }
     if callee.tag != TAG_FUNC {
         let val = soplang_to_value(callee).unwrap_or(Value::Null);
         return handle_runtime_error(runtime_error(
@@ -3272,6 +3375,13 @@ pub extern "C" fn soplang_call(
             check_handles!(unsafe { *args.add(index) });
         }
     }
+    let callee = if !args.is_null() && n > 0 {
+        bind_method_callee(callee, unsafe {
+            std::slice::from_raw_parts(args, n as usize)
+        })
+    } else {
+        callee
+    };
     if callee.tag == TAG_CLOSURE {
         return call_closure(callee, args, n);
     }
