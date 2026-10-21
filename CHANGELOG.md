@@ -50,6 +50,8 @@ All notable changes to this project will be documented in this file.
 
 * `soplang.toml` records a package name, version, supported Soplang version, and optional source directory. Running or building a file beside an invalid manifest fails with `E057`.
 
+* `[ku-tiirsan]` declares a local path dependency. The path must contain a package whose `magac` matches the dependency name, and dependency cycles are rejected.
+
 
 * Numeric builtins add logarithms, radian trigonometry with optional inverse mode, `atan2`-style angles, named constants, clamping, and context-local seeded random streams. Integer-only extrema keep exact 64-bit results; invalid random calls do not advance the generator.
 

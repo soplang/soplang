@@ -8,11 +8,18 @@ use crate::error::{codes, file_read_error, runtime_error_ex, ErrorMeta, SoplangE
 pub const MANIFEST_FILE: &str = "soplang.toml";
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Dependency {
+    pub name: String,
+    pub path: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Manifest {
     pub name: String,
     pub version: String,
     pub soplang: String,
     pub source: String,
+    pub dependencies: Vec<Dependency>,
 }
 
 pub fn load_beside_source(source: &Path) -> Result<Option<Manifest>, SoplangError> {
@@ -24,7 +31,13 @@ pub fn load_beside_source(source: &Path) -> Result<Option<Manifest>, SoplangErro
         return Ok(None);
     }
     let text = fs::read_to_string(&path).map_err(|error| file_read_error(&path, &error))?;
-    parse_manifest(&text).map(Some)
+    load_manifest(dir, &text).map(Some)
+}
+
+pub fn load_manifest(dir: &Path, text: &str) -> Result<Manifest, SoplangError> {
+    let manifest = parse_manifest(text)?;
+    check_dependencies(dir, &manifest, &mut Vec::new())?;
+    Ok(manifest)
 }
 
 pub fn parse_manifest(text: &str) -> Result<Manifest, SoplangError> {
@@ -32,20 +45,36 @@ pub fn parse_manifest(text: &str) -> Result<Manifest, SoplangError> {
     let mut version = None;
     let mut soplang = None;
     let mut source = None;
+    let mut dependencies: Vec<Dependency> = Vec::new();
+    let mut section = None;
     for (number, raw) in text.lines().enumerate() {
         let line_no = number + 1;
         let line = raw.trim();
         if line.is_empty() || line.starts_with('#') {
             continue;
         }
-        if line.starts_with('[') {
-            return Err(manifest_error("Qaybaha xirmada weli lama taageero.", line_no));
+        if let Some(header) = line.strip_prefix('[').and_then(|line| line.strip_suffix(']')) {
+            let header = header.trim();
+            if header != "ku-tiirsan" {
+                return Err(manifest_error(format!("Qaybta '{header}' lama aqoonsan."), line_no));
+            }
+            section = Some(header.to_string());
+            continue;
         }
         let Some((key, value)) = line.split_once('=') else {
             return Err(manifest_error("Safka xirmada waa inuu noqdaa furaha = \"qiime\".", line_no));
         };
         let key = key.trim();
         let value = unquote(value.trim(), line_no)?;
+        if section.as_deref() == Some("ku-tiirsan") {
+            validate_name_at(&key, line_no)?;
+            validate_dependency_path(&value, line_no)?;
+            if dependencies.iter().any(|dependency| dependency.name == key) {
+                return Err(manifest_error(format!("Ku-tiirsiga '{key}' waa la soo celiyey."), line_no));
+            }
+            dependencies.push(Dependency { name: key.to_string(), path: value });
+            continue;
+        }
         let slot = match key {
             "magac" => &mut name,
             "nusxa" => &mut version,
@@ -66,7 +95,7 @@ pub fn parse_manifest(text: &str) -> Result<Manifest, SoplangError> {
     validate_language_requirement(&soplang)?;
     let source = source.unwrap_or_else(|| ".".to_string());
     validate_source(&source)?;
-    Ok(Manifest { name, version, soplang, source })
+    Ok(Manifest { name, version, soplang, source, dependencies })
 }
 
 pub fn manifest_path(dir: &Path) -> PathBuf {
@@ -74,9 +103,13 @@ pub fn manifest_path(dir: &Path) -> PathBuf {
 }
 
 fn validate_name(name: &str) -> Result<(), SoplangError> {
+    validate_name_at(name, 1)
+}
+
+fn validate_name_at(name: &str, line: usize) -> Result<(), SoplangError> {
     let mut chars = name.chars();
     let Some(first) = chars.next() else {
-        return Err(manifest_error("magac ma madhnaan karo.", 1));
+        return Err(manifest_error("magac ma madhnaan karo.", line));
     };
     if !first.is_ascii_lowercase()
         || !name.chars().all(|ch| ch.is_ascii_lowercase() || ch.is_ascii_digit() || ch == '-' || ch == '_')
@@ -84,7 +117,7 @@ fn validate_name(name: &str) -> Result<(), SoplangError> {
     {
         return Err(manifest_error(
             "magac waa inuu ka bilaabmaa xaraf yar oo ka kooban yahay xarfaha, lambarada, '-' ama '_'.",
-            1,
+            line,
         ));
     }
     Ok(())
@@ -115,6 +148,49 @@ fn validate_language_requirement(requirement: &str) -> Result<(), SoplangError> 
             1,
         ));
     }
+    Ok(())
+}
+
+fn validate_dependency_path(path: &str, line: usize) -> Result<(), SoplangError> {
+    let path_buf = Path::new(path);
+    if path.is_empty()
+        || path_buf.is_absolute()
+        || path_buf.components().all(|component| matches!(component, std::path::Component::CurDir))
+    {
+        return Err(manifest_error("Jidka ku-tiirsiga waa inuu noqdaa jid isku xiran.", line));
+    }
+    Ok(())
+}
+
+fn check_dependencies(dir: &Path, manifest: &Manifest, stack: &mut Vec<PathBuf>) -> Result<(), SoplangError> {
+    let canon = dir.canonicalize().unwrap_or_else(|_| dir.to_path_buf());
+    if stack.iter().any(|seen| seen == &canon) {
+        return Err(manifest_error("Ku-tiirsanayaasha xirmada waa wareeg.", 1));
+    }
+    stack.push(canon);
+    for dependency in &manifest.dependencies {
+        let child = dir.join(&dependency.path);
+        let manifest_path = child.join(MANIFEST_FILE);
+        if !manifest_path.is_file() {
+            return Err(manifest_error(
+                format!("Ku-tiirsiga '{}' lama helin.", dependency.name),
+                1,
+            ));
+        }
+        let text = fs::read_to_string(&manifest_path).map_err(|error| file_read_error(&manifest_path, &error))?;
+        let child_manifest = parse_manifest(&text)?;
+        if child_manifest.name != dependency.name {
+            return Err(manifest_error(
+                format!(
+                    "Xirmada '{}' waxay leedahay magaca '{}', laakiin waxaa loo yaqaan '{}'.",
+                    dependency.path, child_manifest.name, dependency.name
+                ),
+                1,
+            ));
+        }
+        check_dependencies(&child, &child_manifest, stack)?;
+    }
+    stack.pop();
     Ok(())
 }
 
@@ -194,12 +270,24 @@ gelid = "src"
         assert_eq!(manifest.version, "0.1.0-alpha");
         assert_eq!(manifest.soplang, "3.1");
         assert_eq!(manifest.source, "src");
+        assert!(manifest.dependencies.is_empty());
+    }
+
+    #[test]
+    fn parses_local_dependency_paths() {
+        let manifest = parse_manifest(
+            "magac = \"app\"\nnusxa = \"0.1.0\"\nsoplang = \"3\"\n\n[ku-tiirsan]\nxisaab = \"../xisaab\"\n",
+        )
+        .unwrap();
+        assert_eq!(manifest.dependencies.len(), 1);
+        assert_eq!(manifest.dependencies[0].name, "xisaab");
+        assert_eq!(manifest.dependencies[0].path, "../xisaab");
     }
 
     #[test]
     fn rejects_a_newer_language_requirement_and_unknown_keys() {
         assert!(parse_manifest("magac = \"x\"\nnusxa = \"1.0.0\"\nsoplang = \"9\"\n").is_err());
-        assert!(parse_manifest("magac = \"x\"\nnusxa = \"1.0.0\"\nsoplang = \"3\"\n[ku-tiirsan]\n").is_err());
+        assert!(parse_manifest("magac = \"x\"\nnusxa = \"1.0.0\"\nsoplang = \"3\"\n[kale]\n").is_err());
         assert!(parse_manifest("magac = \"X\"\nnusxa = \"1.0.0\"\nsoplang = \"3\"\n").is_err());
         assert!(parse_manifest("magac = \"x\"\nnusxa = \"1.0.0\"\nsoplang = \"3\"\ngelid = \"../out\"\n").is_err());
     }

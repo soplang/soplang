@@ -19,7 +19,20 @@ gelid = "src"
 | `gelid` | no | Source directory inside the package. The default is `.`. It cannot be absolute or contain `..`. |
 
 Blank lines and `#` comments are ignored. Keys cannot be repeated. Unknown keys
-and `[tables]` are rejected until dependency sections exist. Failures use error
-code `E057`.
+and unknown `[tables]` are rejected. Failures use error code `E057`.
 
-Dependency declarations, lockfiles, and package download remain later 3.4 work.
+## Local dependencies
+
+`[ku-tiirsan]` maps a package name to a relative path. The path is resolved from
+the directory that contains the manifest. It may use `..` to reach a sibling
+package. The directory must contain `soplang.toml`, and that file's `magac`
+must be the same name. Dependencies are checked recursively, and a cycle is an
+error.
+
+```toml
+[ku-tiirsan]
+xisaab = "../xisaab"
+```
+
+Lockfiles, download, and version constraints on dependencies remain later 3.4
+work.

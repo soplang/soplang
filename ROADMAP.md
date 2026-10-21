@@ -332,7 +332,7 @@ the concurrency and asynchronous I/O work in 3.6.
 
 1. Define a project and package manifest — implemented as `soplang.toml`; see [packages](docs/language/packages.md).
 2. Record package names, versions, and supported Soplang versions — `magac`, `nusxa`, and `soplang`.
-3. Add dependency declarations and local path dependencies.
+3. Add dependency declarations and local path dependencies — implemented as `[ku-tiirsan]` with a relative path to another `soplang.toml`. Version constraints and downloads remain later work.
 4. Create a deterministic lockfile.
 5. Add a package cache and integrity hashes.
 6. Add install, update, remove, and publish commands.
