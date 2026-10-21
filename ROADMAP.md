@@ -357,9 +357,9 @@ The minimal sequential JSON server alone does not complete this requirement.
 2. Path/query/header/cookie access, JSON and form parsing, validation, response status and JSON/HTML/redirect/file helpers — implemented. URL-encoded forms use `foom`. Multipart bodies use `qayb`.
 3. Static-file containment and CORS — implemented. `fayl_gudaha` rejects paths that leave the root. `habee` renders HTML templates. Ranged downloads remain later web work.
 4. Sessions with expiration, authentication hooks, logging, request limits and timeouts — implemented on the `Web` value. Limits and timeouts use the existing `waqti` and `cabbir` options.
-5. TLS and a test client — implemented. `server_fur(host, port, {shahaado, fure})` serves one TLS connection at a time, and the integration tests are the client. Graceful concurrent shutdown, streaming, and WebSocket servers remain 3.6.
+5. TLS and a test client — implemented. `server_fur(host, port, {shahaado, fure})` serves one TLS connection at a time, and `Web.tijaabi` is an in-memory client using the same HTTP codec and route pipeline. Graceful concurrent shutdown, streaming, and WebSocket servers remain 3.6.
 6. A Prisma-style ORM with required `schema.sop`, schema validation, typed query/editor support, migrations, pools and transactions — implemented. See [data](docs/language/data.md). `check` and the language server validate `schema.sop`.
-7. Real connector implementations and tests for SQLite, PostgreSQL, MySQL, MariaDB, MongoDB, SQL Server and CockroachDB, with a documented capability matrix — implemented. SQLite runs in the default suite. The other six run when `SOPLANG_POSTGRES`, `SOPLANG_COCKROACH`, `SOPLANG_MYSQL`, `SOPLANG_MARIADB`, `SOPLANG_SQLSERVER`, or `SOPLANG_MONGO` is set. SQL Server uses TDS without TLS.
+7. Real connector implementations and tests for SQLite, PostgreSQL, MySQL, MariaDB, MongoDB, SQL Server and CockroachDB, with a documented capability matrix — implemented. SQLite runs in the default suite. The other six run when `SOPLANG_POSTGRES`, `SOPLANG_COCKROACH`, `SOPLANG_MYSQL`, `SOPLANG_MARIADB`, `SOPLANG_SQLSERVER`, or `SOPLANG_MONGO` is set. SQL Server uses TDS with TLS.
 
 The ORM is required before the final release. These are implementation
 requirements; database selection and a decision about whether to include an ORM

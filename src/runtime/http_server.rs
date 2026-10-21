@@ -6,7 +6,7 @@ use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
 use std::sync::atomic::{AtomicI64, Ordering};
 use std::sync::Arc;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use rustls::ServerConfig;
 
@@ -27,6 +27,50 @@ pub(super) struct Listener {
 }
 
 static NEXT_ID: AtomicI64 = AtomicI64::new(1);
+
+/// An absolute exchange deadline also bounds TLS's internal read/write loops.
+struct DeadlineStream {
+    socket: TcpStream,
+    expires: Instant,
+}
+
+impl DeadlineStream {
+    fn remaining(&self) -> std::io::Result<Duration> {
+        self.expires
+            .checked_duration_since(Instant::now())
+            .filter(|time| !time.is_zero())
+            .ok_or_else(|| {
+                std::io::Error::new(
+                    std::io::ErrorKind::TimedOut,
+                    "Waqtigii codsiga wuu dhammaaday.",
+                )
+            })
+    }
+}
+
+impl Read for DeadlineStream {
+    fn read(&mut self, buffer: &mut [u8]) -> std::io::Result<usize> {
+        if buffer.is_empty() {
+            return Ok(0);
+        }
+        self.socket.set_read_timeout(Some(self.remaining()?))?;
+        self.socket.read(buffer)
+    }
+}
+
+impl Write for DeadlineStream {
+    fn write(&mut self, buffer: &[u8]) -> std::io::Result<usize> {
+        if buffer.is_empty() {
+            return Ok(0);
+        }
+        self.socket.set_write_timeout(Some(self.remaining()?))?;
+        self.socket.write(buffer)
+    }
+    fn flush(&mut self) -> std::io::Result<()> {
+        self.remaining()?;
+        self.socket.flush()
+    }
+}
 
 fn error(message: impl Into<String>) -> SoplangError {
     runtime_error_ex(
@@ -125,7 +169,7 @@ pub fn accept(
         let id = server_id(server)?;
         let routes = compile_routes(routes)?;
         let (timeout, limit) = limits(options)?;
-        let (mut stream, tls) = {
+        let (stream, tls) = {
             let listeners = state.http_listeners.borrow_mut();
             let listener = listeners
                 .as_ref()
@@ -143,8 +187,13 @@ pub fn accept(
                 .0;
             (stream, listener.tls.clone())
         };
-        let _ = stream.set_read_timeout(Some(timeout));
-        let _ = stream.set_write_timeout(Some(timeout));
+        let expires = Instant::now()
+            .checked_add(timeout)
+            .ok_or_else(|| error("Waqtiga serverka aad buu u dheer yahay."))?;
+        let mut stream = DeadlineStream {
+            socket: stream,
+            expires,
+        };
         if let Some(config) = tls {
             let connection = rustls::ServerConnection::new(config)
                 .map_err(|failure| error(format!("TLS-ka lama bilaabin. {failure}")))?;
@@ -154,6 +203,111 @@ pub fn accept(
             serve(&mut stream, &routes, limit)
         }
     })
+}
+
+/// Exercise the exact network parser, router, handler and response encoder,
+/// without opening a listening socket or requiring a second process.
+pub fn test(
+    routes: &Value,
+    method: &str,
+    target: &str,
+    options: Option<&Value>,
+    server_options: Option<&Value>,
+) -> Result<Value, SoplangError> {
+    let method = method.to_ascii_uppercase();
+    if method.is_empty()
+        || !method.bytes().all(|b| b.is_ascii_uppercase())
+        || !target.starts_with('/')
+        || target.bytes().any(|b| b <= b' ' || b == 0x7f)
+    {
+        return Err(error("Habka ama jidka codsiga tijaabadu ma saxna."));
+    }
+    let routes = compile_routes(routes)?;
+    let (_, limit) = limits(server_options)?;
+    let (headers, body, response_limit) = super::http::request_parts(options)?;
+    if body.len() > MAX_LIMIT {
+        return Err(error("Jidhka codsiga tijaabadu aad buu u weyn yahay."));
+    }
+    let mut request = format!("{method} {target} HTTP/1.1\r\n");
+    if !headers
+        .iter()
+        .any(|(name, _)| name.eq_ignore_ascii_case("host"))
+    {
+        request.push_str("Host: localhost\r\n");
+    }
+    for (name, value) in &headers {
+        if !valid_response_header(name, value) {
+            return Err(error("Cinwaanka codsiga tijaabadu ma saxna."));
+        }
+        request.push_str(&format!("{name}: {value}\r\n"));
+    }
+    request.push_str(&format!("Content-Length: {}\r\n\r\n", body.len()));
+    if request.len() > MAX_HEADERS {
+        return Err(error(
+            "Cinwaannada codsiga tijaabadu aad bay u weyn yihiin.",
+        ));
+    }
+    let mut request = request.into_bytes();
+    request.extend_from_slice(&body);
+    let mut stream = MemoryExchange {
+        input: std::io::Cursor::new(request),
+        output: Vec::new(),
+        response_limit,
+    };
+    serve(&mut stream, &routes, limit)?;
+    let mut headers = [httparse::EMPTY_HEADER; 80];
+    let mut response = httparse::Response::new(&mut headers);
+    let parsed = response
+        .parse(&stream.output)
+        .map_err(|_| error("Jawaabta tijaabadu ma saxna."))?;
+    let httparse::Status::Complete(offset) = parsed else {
+        return Err(error("Jawaabta tijaabadu ma dhammaystirna."));
+    };
+    let mut fields = HashMap::new();
+    for header in response.headers.iter() {
+        let text = std::str::from_utf8(header.value)
+            .map_err(|_| error("Cinwaanka jawaabtu ma aha UTF-8."))?;
+        fields.insert(header.name.to_ascii_lowercase(), text.to_owned());
+    }
+    let body = stream.output[offset..].to_vec();
+    if body.len() > response_limit {
+        return Err(error("Jawaabta tijaabadu way ka weyn tahay xadka."));
+    }
+    if fields
+        .get("content-length")
+        .is_some_and(|length| length.parse::<usize>().ok() != Some(body.len()))
+    {
+        return Err(error("Jidhka jawaabta tijaabadu ma dhammaystirna."));
+    }
+    super::http::decoded_response(i64::from(response.code.unwrap_or(500)), fields, body)
+}
+
+struct MemoryExchange {
+    input: std::io::Cursor<Vec<u8>>,
+    output: Vec<u8>,
+    response_limit: usize,
+}
+
+impl Read for MemoryExchange {
+    fn read(&mut self, buffer: &mut [u8]) -> std::io::Result<usize> {
+        self.input.read(buffer)
+    }
+}
+
+impl Write for MemoryExchange {
+    fn write(&mut self, buffer: &[u8]) -> std::io::Result<usize> {
+        if self.output.len().saturating_add(buffer.len()) > self.response_limit + MAX_HEADERS {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidData,
+                "Jawaabtu aad bay u weyn tahay.",
+            ));
+        }
+        self.output.extend_from_slice(buffer);
+        Ok(buffer.len())
+    }
+    fn flush(&mut self) -> std::io::Result<()> {
+        Ok(())
+    }
 }
 
 fn serve<S: Read + Write>(
@@ -257,9 +411,16 @@ fn dispatch<S: Write>(
             let _ = write_response(stream, response.0, &response.1, &response.2, &response.3);
         }
         Err(failure) => {
+            let status = failure
+                .code()
+                .and_then(|code| code.strip_prefix("HTTP"))
+                .filter(|code| code.len() == 3 && code.bytes().all(|b| b.is_ascii_digit()))
+                .and_then(|code| code.parse::<u16>().ok())
+                .filter(|status| (400..=599).contains(status))
+                .unwrap_or(500);
             let _ = write_response(
                 stream,
-                500,
+                status,
                 &[],
                 &error_body(failure.message()),
                 "application/json",
@@ -276,11 +437,14 @@ fn request_object(request: &RawRequest, params: HashMap<String, String>) -> Resu
         .get("content-type")
         .cloned()
         .unwrap_or_default();
-    let json = if content_type.to_ascii_lowercase().contains("json") {
+    let json = if super::http::is_json_type(&content_type) {
         match &text {
             Some(text) if !text.is_empty() => Some(
                 super::json::parse(text).map_err(|_| "JSON-ka codsiga ma saxna.".to_string())?,
             ),
+            None if !request.body.is_empty() => {
+                return Err("JSON-ka codsigu ma aha qoraal UTF-8 ah.".into())
+            }
             _ => None,
         }
     } else {
@@ -900,6 +1064,69 @@ mod protocol_tests {
             drop(stream);
             let message = client.join().unwrap().to_ascii_lowercase();
             assert!(!message.contains("content-length") && message.ends_with("\r\n\r\n"));
+        }
+    }
+
+    #[test]
+    fn a_trickled_plain_or_tls_header_cannot_extend_the_exchange_deadline() {
+        #[derive(Debug)]
+        struct NoCertificate;
+        impl rustls::server::ResolvesServerCert for NoCertificate {
+            fn resolve(
+                &self,
+                _: rustls::server::ClientHello<'_>,
+            ) -> Option<Arc<rustls::sign::CertifiedKey>> {
+                None
+            }
+        }
+        for tls in [false, true] {
+            let listener = TcpListener::bind(("127.0.0.1", 0)).unwrap();
+            let address = listener.local_addr().unwrap();
+            let client = std::thread::spawn(move || {
+                let mut stream = TcpStream::connect(address).unwrap();
+                if tls {
+                    stream.write_all(&[0x16, 0x03, 0x03, 0x10, 0x00]).unwrap();
+                }
+                for _ in 0..100 {
+                    if stream.write_all(if tls { b"\0" } else { b"G" }).is_err() {
+                        break;
+                    }
+                    std::thread::sleep(Duration::from_millis(25));
+                }
+            });
+            let (socket, _) = listener.accept().unwrap();
+            let started = Instant::now();
+            let deadline = DeadlineStream {
+                socket,
+                expires: started + Duration::from_millis(100),
+            };
+            if tls {
+                let config = ServerConfig::builder_with_provider(Arc::new(
+                    rustls::crypto::ring::default_provider(),
+                ))
+                .with_safe_default_protocol_versions()
+                .unwrap()
+                .with_no_client_auth()
+                .with_cert_resolver(Arc::new(NoCertificate));
+                let connection = rustls::ServerConnection::new(Arc::new(config)).unwrap();
+                let mut stream = rustls::StreamOwned::new(connection, deadline);
+                assert!(matches!(
+                    read_request(&mut stream, 32),
+                    Err(ResponseFault::Stop(_))
+                ));
+            } else {
+                let mut stream = deadline;
+                assert!(matches!(
+                    read_request(&mut stream, 32),
+                    Err(ResponseFault::Stop(_))
+                ));
+            }
+            let elapsed = started.elapsed();
+            assert!(
+                elapsed >= Duration::from_millis(70) && elapsed < Duration::from_secs(1),
+                "trickle extended deadline: {elapsed:?}"
+            );
+            client.join().unwrap();
         }
     }
 }

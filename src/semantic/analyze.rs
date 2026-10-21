@@ -443,6 +443,18 @@ fn analyze_block(
     current_class: Option<&str>,
     enclosing_fn: Option<&str>,
 ) -> Result<(), SoplangError> {
+    // Function signatures follow lexical function scopes. A private function
+    // inside a module initializer must not change builtin/caller signatures.
+    let mut local_sigs = fn_sigs.clone();
+    let class_body = sym
+        .method_contexts
+        .last()
+        .filter(|(class, parent)| {
+            current_class == Some(class.as_str()) && enclosing_fn == parent.as_deref()
+        })
+        .map(|(class, _)| class.as_str());
+    collect_function_sigs_rec(stmts, &mut local_sigs, class_body);
+    let fn_sigs = &local_sigs;
     for s in stmts {
         analyze_stmt(
             s,
@@ -1423,12 +1435,24 @@ fn analyze_expr(
                     .get("dhis")
                     .or_else(|| class.methods.get("dhaw"))
                 {
-                    constructor = fn_sigs.get(mangled);
+                    constructor = fn_sigs.get(mangled).cloned().or_else(|| {
+                        sym.functions
+                            .iter()
+                            .find(|function| function.name == *mangled)
+                            .map(|function| FunctionSig {
+                                params: function.param_types.clone(),
+                                names: function.param_names.clone(),
+                                required_params: function.required_params,
+                                variadic: function.variadic,
+                                keyword_rest: function.keyword_rest,
+                                ret: function.return_ann.clone(),
+                            })
+                    });
                     break;
                 }
                 owner = class.parent.as_deref();
             }
-            if let Some(sig) = constructor.filter(|_| has_named_arguments(args)) {
+            if let Some(sig) = constructor.as_ref().filter(|_| has_named_arguments(args)) {
                 validate_named_arguments(args, sig, sym, fn_sigs)?;
                 return Ok(());
             }
@@ -1905,62 +1929,6 @@ fn analyze_assign_target(
     Ok(())
 }
 
-fn collect_sigs_expr(
-    expr: &Expr,
-    out: &mut HashMap<String, FunctionSig>,
-    current_class: Option<&str>,
-) {
-    match expr.unlocated() {
-        Expr::AnonymousFunc { body, .. } => collect_function_sigs_rec(body, out, current_class),
-        Expr::Invoke { callee, args }
-        | Expr::MethodCall {
-            obj: callee, args, ..
-        } => {
-            collect_sigs_expr(callee, out, current_class);
-            for arg in args {
-                collect_sigs_expr(arg, out, current_class);
-            }
-        }
-        Expr::Call { args, .. } | Expr::New { args, .. } => {
-            for arg in args {
-                collect_sigs_expr(arg, out, current_class);
-            }
-        }
-        Expr::BinaryOp { left, right, .. } => {
-            collect_sigs_expr(left, out, current_class);
-            collect_sigs_expr(right, out, current_class);
-        }
-        Expr::UnaryOp { expr, .. }
-        | Expr::Property { obj: expr, .. }
-        | Expr::NamedArgument { value: expr, .. } => {
-            collect_sigs_expr(expr, out, current_class);
-        }
-        Expr::Index { obj, idx } => {
-            collect_sigs_expr(obj, out, current_class);
-            collect_sigs_expr(idx, out, current_class);
-        }
-        Expr::List(items) => {
-            for item in items {
-                collect_sigs_expr(item, out, current_class);
-            }
-        }
-        Expr::Object(fields) => {
-            for (_, value) in fields {
-                collect_sigs_expr(value, out, current_class);
-            }
-        }
-        Expr::Interpolated { parts } => {
-            for part in parts {
-                if let InterpolationPart::Value { expression, .. } = part {
-                    collect_sigs_expr(expression, out, current_class);
-                }
-            }
-        }
-        Expr::Literal(_) | Expr::Identifier(_) => {}
-        Expr::Located { expr, .. } => collect_sigs_expr(expr, out, current_class),
-    }
-}
-
 fn collect_function_sigs(stmts: &[Stmt]) -> HashMap<String, FunctionSig> {
     let mut out = HashMap::new();
     collect_function_sigs_rec(stmts, &mut out, None);
@@ -1981,7 +1949,7 @@ fn collect_function_sigs_rec(
                 name,
                 params,
                 return_ann,
-                body,
+                ..
             } => {
                 let key = if let Some(class) = current_class {
                     mangle_method(class, name)
@@ -1999,7 +1967,6 @@ fn collect_function_sigs_rec(
                         ret: return_ann.clone(),
                     },
                 );
-                collect_function_sigs_rec(body, out, None);
             }
             Stmt::ClassDef { name, body, .. } => {
                 collect_function_sigs_rec(body, out, Some(name));
@@ -2030,11 +1997,6 @@ fn collect_function_sigs_rec(
             Stmt::For { body, .. } | Stmt::ForEach { body, .. } | Stmt::While { body, .. } => {
                 collect_function_sigs_rec(body, out, current_class);
             }
-            Stmt::VarDecl { value, .. }
-            | Stmt::Assign { value, .. }
-            | Stmt::Return(Some(value))
-            | Stmt::Throw(value)
-            | Stmt::Expr(value) => collect_sigs_expr(value, out, current_class),
             Stmt::TryCatch {
                 try_body,
                 catch_body,

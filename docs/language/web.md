@@ -24,15 +24,27 @@ the prefix while the builder adds routes. `dhexdhexa(middleware)` applies that
 middleware to routes added afterwards. Middleware runs in registration order.
 Each one is `hawl(codsi, xiga)`. It calls `xiga(codsi)` to continue, or returns
 a response to stop. An uncaught error becomes status 500 and the listener stays
-open.
+open. `web.diid(status, message)` raises a structured `HTTP400` to `HTTP599`
+error that becomes the requested status and a JSON `khalad` message.
+`web.hubi` uses status 400 for missing fields. `app.khalad_qabta(callback)`
+installs an error handler receiving `(request, structured_error)` and returning
+a response. A failing error handler falls back to the normal error response.
+Route groups restore both the prefix and middleware after their builder returns
+or raises an error.
 
-`app.waqti` and `app.cabbir` are the accept timeout in seconds and the body
-limit. The defaults are 30 and 1048576.
+`app.waqti` and `app.cabbir` are the connection exchange deadline in seconds
+and the request-body limit. The defaults are 30 and 1048576. All reads and
+writes, including TLS handshakes, share that absolute deadline. Incoming bytes
+do not restart it. Waiting for the next connection has no deadline; synchronous
+handler code cannot be forcibly interrupted.
 
 ## Requests and responses
 
 The request object is the [HTTP server](http-server.md) request. `web.kuki(codsi, name)`
-reads one cookie. `web.foom(codsi)` parses a URL-encoded body into a `walax`.
+reads one raw cookie value without decoding percent escapes or discarding `=` characters.
+`web.foom(codsi)` parses a URL-encoded body into a `walax`: `+` becomes a space,
+percent escapes are decoded, the first `=` separates key from value, and the
+last occurrence wins for repeated keys. Missing `=` means an empty value.
 `web.hubi(xog, ["magac"])` rejects a missing or empty field.
 
 | Helper | Response |
@@ -47,20 +59,67 @@ reads one cookie. `web.foom(codsi)` parses a URL-encoded body into a `walax`.
 `app.shahaado(cert, key)` stores PEM paths. `app.fur(host, port)` then calls
 `server_fur` with those files. Without them, `fur` opens a plain listener.
 
+Multipart parsing accepts quoted boundary/name/filename parameters and escaped
+quotes. Only complete delimiter lines split an upload; similar byte sequences
+inside a file are preserved. A closing boundary is required. The parser caps
+bodies at 16 MiB, parts at 128, and each part's headers at 8 KiB/32 fields,
+in addition to `app.cabbir`. Duplicate header parameters and headers are errors.
+`filename*` and `Content-Transfer-Encoding` are explicitly unsupported; use a
+UTF-8 `filename`. File names are data, never paths written automatically.
+
 `fayl_gudaha(root, path)` is the containment check. It follows a final symlink
 only when the destination is still inside the root.
 
 ## Sessions and authentication
 
-`fur_kalfadhi(codsi)` returns `{id, xog, cusub_ah}`. A `kalfadhi` cookie reuses the
-same `xog` until `dherer_kalfadhi` seconds have passed. The default is 3600.
-`web.kuki_qoraal(id)` is the `Set-Cookie` value.
+`fur_kalfadhi(codsi)` returns `{id, xog, cusub_ah}`. IDs contain 32 bytes from
+the operating system's cryptographic random generator, encoded as unpadded
+URL-safe Base64. They do not depend on `xul` / `abuur` or the wall clock.
+A `kalfadhi` cookie reuses the same `xog` until `dherer_kalfadhi` seconds after
+creation (3600 by default). Expired entries are removed on session operations;
+a clock moving backwards invalidates affected sessions. `xad_kalfadhi` bounds
+the in-memory store (1024 by default, configurable from 1 to 65536). Creating a
+session at capacity evicts the oldest entry. Sessions belong to that `Web`
+instance and are not persistent or shared between processes.
+
+`beddel_kalfadhi(codsi)` rotates the ID, preserves data, and invalidates the old
+ID; use it after login or privilege changes. `xidh_kalfadhi(codsi)` invalidates
+the supplied cookie's session. `nadiifi_kalfadhi()` explicitly sweeps expiration.
+
+`web.kuki_qoraal(id, options?)` creates a `Set-Cookie` value with `Path=/`,
+`SameSite=Lax`, and `HttpOnly` by default. Options are `jid` (path), `sugan`
+(Secure), `http_keliya` (HttpOnly), `isla_goob` (`Lax`, `Strict`, `None`), and
+`cimri` (nonnegative Max-Age seconds). `None` requires `sugan: run`.
+Header injection and invalid options are rejected. Use `sugan: run` over HTTPS.
+For logout, send `web.kuki_qoraal("", {cimri: 0})` as well as invalidating the
+server-side session.
 
 `ilaali(check)` adds middleware. `check(codsi)` returns `maran` to stop with
 status 401. Any other value is stored on `codsi.isticmaale`.
 
 `diiwaan_gelin(codsi, response)` appends `"METHOD path"` to `diiwaan` and returns
-the response. Status 404 is produced before middleware, so it is not recorded.
+the response. It retains at most `xad_diiwaan` entries (1024 by default, 1 to 65536). Status 404 is produced before middleware, so it is not recorded.
+
+## Test client
+
+`app.tijaabi(method, path, options?)` calls the same request parser, routes,
+middleware, validation and response encoder as a network request, without
+opening a socket. It works in JIT and LLVM-built applications. The returned
+object has `heer`, `cinwaan`, `qoraal`, `baytyo`, and `json`, matching
+`http_codso`. Options accept `cinwaan` and one of `json`, `qoraal`, `baytyo`;
+`cabbir` bounds the response (1 MiB by default). `app.cabbir` still bounds the
+request. Network timeout and redirect options do not schedule network work in
+this client. Cookies can be supplied explicitly via `cinwaan.cookie`.
+
+```soplang
+door response = app.tijaabi("GET", "/ping")
+hubi(response.heer == 200)
+hubi(response.json.n == 1)
+```
+
+Malformed JSON returns 400, method mismatches 405, missing routes 404, oversized
+bodies 413, and unhandled failures 500. Header injection and invalid response
+objects pass through the same validation as real responses.
 
 ```sh
 cargo test --locked --test web_tests --test http_server_tests

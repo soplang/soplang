@@ -412,6 +412,29 @@ pub fn builtin_server_fur(args: Vec<Value>) -> Result<Value, SoplangError> {
     super::http_server::open(host, port)
 }
 
+pub fn builtin_server_tijaabi(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity_range(&args, "server_tijaabi", 3, 5)?;
+    let (Value::Str(method), Value::Str(target)) = (&args[1], &args[2]) else {
+        return Err(err_type(
+            "Habka iyo jidka server_tijaabi() waa inay noqdaan qoraal.",
+        ));
+    };
+    super::http_server::test(&args[0], method, target, args.get(3), args.get(4))
+}
+
+pub fn builtin_aqoonsi_sugan(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "aqoonsi_sugan", 0)?;
+    super::web_support::identifier()
+}
+
+pub fn builtin_kuki_habee(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity_range(&args, "kuki_habee", 1, 2)?;
+    let Value::Str(id) = &args[0] else {
+        return Err(err_type("Aqoonsiga kukigu waa inuu noqdaa qoraal."));
+    };
+    super::web_support::cookie(id, args.get(1))
+}
+
 fn object_string(value: &Value, field: &str) -> Result<String, SoplangError> {
     let Value::Object(object) = value else {
         return Err(err_type("Xulashada waa inay noqotaa walax."));
@@ -1399,6 +1422,17 @@ const BUILTINS: &[(&str, super::NativeFn, CallbackArity)] = &[
         CallbackArity::range(2, 2),
     ),
     ("qayb_foom", builtin_qayb_foom, CallbackArity::range(2, 2)),
+    (
+        "aqoonsi_sugan",
+        builtin_aqoonsi_sugan,
+        CallbackArity::range(0, 0),
+    ),
+    ("kuki_habee", builtin_kuki_habee, CallbackArity::range(1, 2)),
+    (
+        "server_tijaabi",
+        builtin_server_tijaabi,
+        CallbackArity::range(3, 5),
+    ),
     ("hubi", builtin_hubi, CallbackArity::range(1, 2)),
     (
         "#test_failure",

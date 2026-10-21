@@ -45,7 +45,9 @@ struct RequestOptions {
 pub fn request(method: &str, url: &str, options: Option<&Value>) -> Result<Value, SoplangError> {
     let method = normalize_method(method)?;
     if !(url.starts_with("http://") || url.starts_with("https://")) {
-        return Err(error("Cinwaanka HTTP waa inuu ka bilaabmaa http:// ama https://."));
+        return Err(error(
+            "Cinwaanka HTTP waa inuu ka bilaabmaa http:// ama https://.",
+        ));
     }
     let options = parse_options(options)?;
     let response = send(&method, url, &options)?;
@@ -55,7 +57,9 @@ pub fn request(method: &str, url: &str, options: Option<&Value>) -> Result<Value
 fn normalize_method(method: &str) -> Result<String, SoplangError> {
     let method = method.to_ascii_uppercase();
     if !matches!(method.as_str(), "GET" | "POST" | "PUT" | "PATCH" | "DELETE") {
-        return Err(error("Habka HTTP waa inuu noqdaa GET, POST, PUT, PATCH, ama DELETE."));
+        return Err(error(
+            "Habka HTTP waa inuu noqdaa GET, POST, PUT, PATCH, ama DELETE.",
+        ));
     }
     Ok(method)
 }
@@ -87,7 +91,9 @@ fn parse_options(options: Option<&Value>) -> Result<RequestOptions, SoplangError
     }
     if let Some(value) = object.get("baytyo") {
         if body_kind.is_some() {
-            return Err(error("Codsiga HTTP wuxuu qaadan karaa hal nooc oo jidh ah."));
+            return Err(error(
+                "Codsiga HTTP wuxuu qaadan karaa hal nooc oo jidh ah.",
+            ));
         }
         body_kind = Some("baytyo");
         let Value::Bytes(bytes) = value else {
@@ -97,12 +103,18 @@ fn parse_options(options: Option<&Value>) -> Result<RequestOptions, SoplangError
     }
     if let Some(value) = object.get("json") {
         if body_kind.is_some() {
-            return Err(error("Codsiga HTTP wuxuu qaadan karaa hal nooc oo jidh ah."));
+            return Err(error(
+                "Codsiga HTTP wuxuu qaadan karaa hal nooc oo jidh ah.",
+            ));
         }
         body = super::json::stringify(value)?.into_bytes();
     }
     let mut headers = headers(object.get("cinwaan"))?;
-    if object.contains_key("json") && !headers.iter().any(|(name, _)| name.eq_ignore_ascii_case("content-type")) {
+    if object.contains_key("json")
+        && !headers
+            .iter()
+            .any(|(name, _)| name.eq_ignore_ascii_case("content-type"))
+    {
         headers.push(("content-type".to_string(), "application/json".to_string()));
     }
     Ok(RequestOptions {
@@ -112,6 +124,13 @@ fn parse_options(options: Option<&Value>) -> Result<RequestOptions, SoplangError
         redirects: redirects(object.get("leexasho"))?,
         limit: limit(object.get("cabbir"))?,
     })
+}
+
+pub(super) fn request_parts(
+    options: Option<&Value>,
+) -> Result<(Vec<(String, String)>, Vec<u8>, usize), SoplangError> {
+    let options = parse_options(options)?;
+    Ok((options.headers, options.body, options.limit as usize))
 }
 
 fn headers(value: Option<&Value>) -> Result<Vec<(String, String)>, SoplangError> {
@@ -172,7 +191,11 @@ fn limit(value: Option<&Value>) -> Result<u64, SoplangError> {
         .ok_or_else(|| error("Cabbirka jawaabta waa inuu u dhaxeeyaa 1 iyo 16777216."))
 }
 
-fn send(method: &str, url: &str, options: &RequestOptions) -> Result<ureq::http::Response<ureq::Body>, SoplangError> {
+fn send(
+    method: &str,
+    url: &str,
+    options: &RequestOptions,
+) -> Result<ureq::http::Response<ureq::Body>, SoplangError> {
     let agent: Agent = Agent::config_builder()
         .timeout_global(Some(options.timeout))
         .timeout_connect(Some(options.timeout))
@@ -199,7 +222,10 @@ fn send(method: &str, url: &str, options: &RequestOptions) -> Result<ureq::http:
         .map_err(|error| error_with_details(explain(&error), &error))
 }
 
-fn response_value(mut response: ureq::http::Response<ureq::Body>, limit: u64) -> Result<Value, SoplangError> {
+fn response_value(
+    mut response: ureq::http::Response<ureq::Body>,
+    limit: u64,
+) -> Result<Value, SoplangError> {
     let status = i64::from(response.status().as_u16());
     let mut header_map = HashMap::new();
     for (name, value) in response.headers() {
@@ -212,17 +238,28 @@ fn response_value(mut response: ureq::http::Response<ureq::Body>, limit: u64) ->
             })
             .or_insert(text);
     }
-    let content_type = header_map.get("content-type").cloned().unwrap_or_default();
     let bytes = response
         .body_mut()
         .with_config()
         .limit(limit)
         .read_to_vec()
         .map_err(|error| error_with_details(explain(&error), &error))?;
+    decoded_response(status, header_map, bytes)
+}
+
+pub(super) fn decoded_response(
+    status: i64,
+    header_map: HashMap<String, String>,
+    bytes: Vec<u8>,
+) -> Result<Value, SoplangError> {
+    let content_type = header_map.get("content-type").cloned().unwrap_or_default();
     let text = std::str::from_utf8(&bytes).ok().map(str::to_owned);
-    let json = if content_type.to_ascii_lowercase().contains("json") {
+    let json = if is_json_type(&content_type) {
         match &text {
             Some(text) if !text.is_empty() => Some(super::json::parse(text)?),
+            None if !bytes.is_empty() => {
+                return Err(error("Jawaabta JSON ma aha qoraal UTF-8 ah."))
+            }
             _ => None,
         }
     } else {
@@ -245,7 +282,19 @@ fn response_value(mut response: ureq::http::Response<ureq::Body>, limit: u64) ->
     );
     fields.insert("baytyo".to_string(), super::bytes::from_raw_vec(bytes));
     fields.insert("json".to_string(), json.unwrap_or(Value::Null));
-    Ok(Value::Object(std::rc::Rc::new(std::cell::RefCell::new(fields))))
+    Ok(Value::Object(std::rc::Rc::new(std::cell::RefCell::new(
+        fields,
+    ))))
+}
+
+pub(super) fn is_json_type(content_type: &str) -> bool {
+    let media = content_type
+        .split(';')
+        .next()
+        .unwrap_or("")
+        .trim()
+        .to_ascii_lowercase();
+    media == "application/json" || media.ends_with("+json")
 }
 
 fn explain(error: &ureq::Error) -> &'static str {

@@ -35,6 +35,7 @@ mod tuples;
 mod unicode_case;
 mod url;
 pub mod value;
+mod web_support;
 mod websocket;
 
 #[cfg(all(target_os = "windows", target_arch = "x86_64"))]

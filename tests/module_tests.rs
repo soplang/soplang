@@ -89,6 +89,50 @@ fn namespaced_import_builds_with_llvm() {
 }
 
 #[test]
+fn private_and_nested_function_signatures_do_not_shadow_caller_builtins() {
+    let dir = temp_dir("module_signatures");
+    fs::write(
+        dir.join("private.sop"),
+        "soosaar value\nhawl hubi(a, b, c) {}\ndoor value = 42\n",
+    )
+    .unwrap();
+    let source = r#"
+keen "private.sop" sida m
+hawl same(abn n): abn { celi n }
+hawl outer() {
+    hawl same(qoraal a, qoraal b): qoraal { celi a + b }
+    celi same("a", "b")
+}
+door nested = hawl() { hawl hubi(a, b, c, d) {} celi 1 }
+hubi(run)
+hubi(same(7) == 7 && outer() == "ab" && nested() == 1)
+qor(m.value)
+"#;
+    let main = dir.join("main.sop");
+    fs::write(&main, source).unwrap();
+    let output = Command::new(env!("CARGO_BIN_EXE_soplang"))
+        .arg(&main)
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert_eq!(output.stdout, b"42\n");
+    let binary = dir.join(format!("signatures{}", std::env::consts::EXE_SUFFIX));
+    soplang::build_source(source, Some(&main), &binary, 2, false).unwrap();
+    let output = Command::new(binary).output().unwrap();
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert_eq!(output.stdout, b"42\n");
+    fs::remove_dir_all(dir).unwrap();
+}
+
+#[test]
 fn unknown_export_is_rejected() {
     let dir = temp_dir("module_export");
     fs::write(

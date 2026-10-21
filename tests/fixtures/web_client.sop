@@ -1,0 +1,91 @@
+keen "web" sida web
+
+door app = cusub web.Web()
+door order = []
+app.dhexdhexa(hawl(c, xiga) {
+    order.geli("before")
+    door response = xiga(c)
+    order.geli("after")
+    celi response
+})
+app.hel("GET", "/hello/:id", hawl(c) { celi web.json({ id: c.qayb.id, q: c.weydiimo.q }) })
+app.hel("POST", "/form", hawl(c) { celi web.json(web.foom(c)) })
+app.hel("POST", "/upload", hawl(c) { celi web.json(web.qayb(c)) })
+app.hel("POST", "/json", hawl(c) { celi web.json(c.json, 201) })
+app.hel("POST", "/validate", hawl(c) { celi web.json(web.hubi(c.json, ["name"])) })
+app.hel("GET", "/conflict", hawl(c) { web.diid(409, "Isku dhac") })
+app.hel("GET", "/failure", hawl(c) { qor(1 / 0) })
+app.hel("GET", "/bad-response", hawl(c) { celi { "qoraal": "no", cinwaan: { "X-Bad": e"x\r\ny" } } })
+door response = app.tijaabi("GET", "/hello/42?q=a+b")
+hubi(response.heer == 200 && response.json.id == "42" && response.json.q == "a b")
+hubi(order == ["before", "after"])
+hubi(response.cinwaan["content-type"] == "application/json")
+response = app.tijaabi("POST", "/form", { "qoraal": "name=Amina+Ali&encoded=a%2Bb&equals=a=b=c&empty&name=last+value", cinwaan: { "content-type": "application/x-www-form-urlencoded" } })
+hubi(response.json.name == "last value" && response.json.encoded == "a+b" && response.json.equals == "a=b=c" && response.json.empty == "")
+hubi(app.tijaabi("POST", "/form", { "qoraal": "name=%ZZ" }).heer == 400)
+hubi(app.tijaabi("POST", "/form", { baytyo: baytyo([255]) }).heer == 400)
+hubi(app.tijaabi("POST", "/upload", { "qoraal": "unfinished", cinwaan: { "content-type": "multipart/form-data; boundary=Aa" } }).heer == 400)
+response = app.tijaabi("POST", "/json", { json: { name: "Amina" } })
+hubi(response.heer == 201 && response.json.name == "Amina")
+hubi(app.tijaabi("GET", "/missing").heer == 404)
+hubi(app.tijaabi("POST", "/hello/42").heer == 405)
+hubi(app.tijaabi("GET", "/failure").heer == 500)
+hubi(app.tijaabi("GET", "/bad-response").heer == 500)
+hubi(app.tijaabi("POST", "/validate", { json: {} }).heer == 400)
+hubi(app.tijaabi("POST", "/json", { "qoraal": "bad json", cinwaan: { "content-type": "application/json" } }).heer == 400)
+hubi(app.tijaabi("POST", "/json", { baytyo: baytyo([255]), cinwaan: { "content-type": "application/json" } }).heer == 400)
+hubi(app.tijaabi("POST", "/json", { "qoraal": "not json", cinwaan: { "content-type": "text/notjson" } }).heer == 201)
+response = app.tijaabi("GET", "/conflict")
+hubi(response.heer == 409 && response.json.khalad == "Isku dhac")
+app.cabbir = 3
+hubi(app.tijaabi("POST", "/form", { "qoraal": "1234" }).heer == 413)
+app.cabbir = 1048576
+app.khalad_qabta(hawl(c, error) { celi web.json({ code: error.summad }, 418) })
+response = app.tijaabi("GET", "/failure")
+hubi(response.heer == 418 && response.json.code == "E030")
+
+door grouped = cusub web.Web()
+tijaabi {
+    grouped.koox("/group", hawl(a) {
+        a.dhexdhexa(hawl(c, next) { celi web.json("leaked") })
+        tuur "builder failed"
+    })
+} qabo (e) { hubi(e == "builder failed") }
+grouped.hel("GET", "/after", hawl(c) { celi web.json("correct") })
+response = grouped.tijaabi("GET", "/after")
+hubi(response.heer == 200 && response.json == "correct")
+hubi(grouped.tijaabi("GET", "/group/after").heer == 404)
+grouped.xad_diiwaan = 2
+kuceli (i ku taxane(4)) { grouped.diiwaan_gelin({ hab: "GET", jid: "/" }, {}) }
+hubi(dherer(grouped.diiwaan) == 2)
+
+door sessions = cusub web.Web()
+door anonymous = { cinwaan: {} }
+door first = sessions.fur_kalfadhi(anonymous)
+hubi(dherer(b64_akhris(first.id, "url")) == 32)
+first.xog.name = "Amina"
+door authenticated = { cinwaan: { cookie: "kalfadhi=" + first.id } }
+door again = sessions.fur_kalfadhi(authenticated)
+hubi(again.id == first.id && again.cusub_ah == been && again.xog.name == "Amina")
+door rotated = sessions.beddel_kalfadhi(authenticated)
+hubi(rotated.id != first.id && rotated.xog.name == "Amina" && sessions.kayd[first.id] == maran)
+door changed = { cinwaan: { cookie: "kalfadhi=" + rotated.id } }
+sessions.xidh_kalfadhi(changed)
+hubi(sessions.kayd[rotated.id] == maran)
+first = sessions.fur_kalfadhi(anonymous)
+sessions.kayd[first.id].waqti = 0
+sessions.nadiifi_kalfadhi()
+hubi(sessions.kayd[first.id] == maran)
+sessions.xad_kalfadhi = 2
+kuceli (i ku taxane(10)) { sessions.fur_kalfadhi(anonymous) }
+hubi(dherer(sessions.kayd) == 2)
+door fresh = sessions.fur_kalfadhi(anonymous)
+hubi(dherer(sessions.kayd) == 2 && fresh.id != first.id)
+
+door cookie = web.kuki_qoraal(fresh.id, { sugan: run, isla_goob: "Strict", cimri: 60 })
+hubi(cookie.leeyahay("Secure") && cookie.leeyahay("HttpOnly") && cookie.leeyahay("SameSite=Strict") && cookie.leeyahay("Max-Age=60"))
+hubi(web.kuki({ cinwaan: { cookie: "other=x; token=a=b=c" } }, "token") == "a=b=c")
+hubi(web.kuki({ cinwaan: { cookie: "token=%bad%" } }, "token") == "%bad%")
+tijaabi { web.kuki_qoraal(e"bad\r\ninjection") tuur "missing error" } qabo (e) { hubi(e != "missing error") }
+tijaabi { web.kuki_qoraal("fine", { isla_goob: "None" }) tuur "missing error" } qabo (e) { hubi(e != "missing error") }
+qor("web client ok")

@@ -431,3 +431,36 @@ fn tls_serves_one_request() {
     );
     let _ = fs::remove_dir_all(dir);
 }
+
+#[test]
+fn bundled_test_client_and_session_contracts_match_jit_and_llvm() {
+    let source = include_str!("fixtures/web_client.sop");
+    let output = Command::new(env!("CARGO_BIN_EXE_soplang"))
+        .arg("-c")
+        .arg(source)
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "{} {}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert_eq!(output.stdout, b"web client ok\n");
+    let dir = temp_dir("web_client");
+    let source_path = dir.join("main.sop");
+    fs::write(&source_path, source).unwrap();
+    let binary = dir.join(format!("web_client{}", std::env::consts::EXE_SUFFIX));
+    for opt in [0, 2] {
+        soplang::build_source(source, Some(&source_path), &binary, opt, false).unwrap();
+        let output = Command::new(&binary).output().unwrap();
+        assert!(
+            output.status.success(),
+            "opt {opt}: {} {}",
+            String::from_utf8_lossy(&output.stdout),
+            String::from_utf8_lossy(&output.stderr)
+        );
+        assert_eq!(output.stdout, b"web client ok\n");
+    }
+    fs::remove_dir_all(dir).unwrap();
+}
