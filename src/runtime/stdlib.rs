@@ -143,6 +143,90 @@ pub fn builtin_kudar_fayl(args: Vec<Value>) -> Result<Value, SoplangError> {
     Ok(Value::Null)
 }
 
+fn optional_truthy(args: &[Value], index: usize) -> bool {
+    args.get(index).is_some_and(|value| value.is_truthy())
+}
+
+pub fn builtin_fayl_jiraa(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "fayl_jiraa", 1)?;
+    let path = expect_text_path(&args[0], "fayl_jiraa")?;
+    Ok(Value::Bool(super::filesystem::path_exists(&path)))
+}
+
+pub fn builtin_fayl_xog(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "fayl_xog", 1)?;
+    let path = expect_text_path(&args[0], "fayl_xog")?;
+    super::filesystem::path_info(&path)
+}
+
+pub fn builtin_isku_xidh(args: Vec<Value>) -> Result<Value, SoplangError> {
+    if args.is_empty() {
+        return Err(err_type("isku_xidh() wuxuu u baahan yahay ugu yaraan hal qayb."));
+    }
+    let segments = args
+        .iter()
+        .enumerate()
+        .map(|(index, value)| {
+            expect_text_path(value, &format!("isku_xidh() qaybta {index}"))
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+    Ok(Value::Str(super::filesystem::join_paths(&segments)?))
+}
+
+pub fn builtin_baabi_jid(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "baabi_jid", 1)?;
+    let path = expect_text_path(&args[0], "baabi_jid")?;
+    Ok(Value::Str(super::filesystem::absolute_path(&path)?))
+}
+
+pub fn builtin_nuqul_fayl(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity_range(&args, "nuqul_fayl", 2, 3)?;
+    let from = expect_text_path(&args[0], "nuqul_fayl")?;
+    let to = expect_text_path(&args[1], "nuqul_fayl")?;
+    let overwrite = optional_truthy(&args, 2);
+    super::filesystem::copy_path(&from, &to, overwrite)?;
+    Ok(Value::Null)
+}
+
+pub fn builtin_wareeji_fayl(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "wareeji_fayl", 2)?;
+    let from = expect_text_path(&args[0], "wareeji_fayl")?;
+    let to = expect_text_path(&args[1], "wareeji_fayl")?;
+    super::filesystem::move_path(&from, &to)?;
+    Ok(Value::Null)
+}
+
+pub fn builtin_tirtir_fayl(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "tirtir_fayl", 1)?;
+    let path = expect_text_path(&args[0], "tirtir_fayl")?;
+    super::filesystem::delete_file(&path)?;
+    Ok(Value::Null)
+}
+
+pub fn builtin_abuur_gal(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "abuur_gal", 1)?;
+    let path = expect_text_path(&args[0], "abuur_gal")?;
+    super::filesystem::create_directory(&path)?;
+    Ok(Value::Null)
+}
+
+pub fn builtin_tir_gal(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "tir_gal", 1)?;
+    let path = expect_text_path(&args[0], "tir_gal")?;
+    let names = super::filesystem::list_directory(&path)?;
+    Ok(Value::List(Rc::new(RefCell::new(
+        names.into_iter().map(Value::Str).collect(),
+    ))))
+}
+
+pub fn builtin_tirtir_gal(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity_range(&args, "tirtir_gal", 1, 2)?;
+    let path = expect_text_path(&args[0], "tirtir_gal")?;
+    let recursive = optional_truthy(&args, 1);
+    super::filesystem::remove_directory(&path, recursive)?;
+    Ok(Value::Null)
+}
+
 /// Construct an immutable structured error without raising it.
 pub fn builtin_khalad(args: Vec<Value>) -> Result<Value, SoplangError> {
     expect_arity_range(&args, "khalad", 1, 3)?;
@@ -504,6 +588,16 @@ const BUILTINS: &[(&str, super::NativeFn, CallbackArity)] = &[
     ("akhrifayl", builtin_akhrifayl, CallbackArity::range(1, 1)),
     ("qor_fayl", builtin_qor_fayl, CallbackArity::range(2, 2)),
     ("kudar_fayl", builtin_kudar_fayl, CallbackArity::range(2, 2)),
+    ("fayl_jiraa", builtin_fayl_jiraa, CallbackArity::range(1, 1)),
+    ("fayl_xog", builtin_fayl_xog, CallbackArity::range(1, 1)),
+    ("isku_xidh", builtin_isku_xidh, CallbackArity::range(1, usize::MAX)),
+    ("baabi_jid", builtin_baabi_jid, CallbackArity::range(1, 1)),
+    ("nuqul_fayl", builtin_nuqul_fayl, CallbackArity::range(2, 3)),
+    ("wareeji_fayl", builtin_wareeji_fayl, CallbackArity::range(2, 2)),
+    ("tirtir_fayl", builtin_tirtir_fayl, CallbackArity::range(1, 1)),
+    ("abuur_gal", builtin_abuur_gal, CallbackArity::range(1, 1)),
+    ("tir_gal", builtin_tir_gal, CallbackArity::range(1, 1)),
+    ("tirtir_gal", builtin_tirtir_gal, CallbackArity::range(1, 2)),
     ("nooc", builtin_nooc, CallbackArity::range(1, 1)),
     ("khalad", builtin_khalad, CallbackArity::range(1, 3)),
     ("qaabee", builtin_qaabee, CallbackArity::range(1, 2)),

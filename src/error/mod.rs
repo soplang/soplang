@@ -5,7 +5,7 @@ mod external;
 mod format;
 pub use external::{
     external_error, file_read_error, file_write_error, input_error, io_error, io_reason,
-    tool_start_error,
+    path_io_error, tool_start_error,
 };
 
 use std::fmt;

@@ -248,6 +248,16 @@ these explanations do not establish a historical abbreviation or SLS approval.
 | `akhrifayl` | Read an entire UTF-8 text file          | (read file)          | `door text = akhrifayl("magac.txt")`      |
 | `qor_fayl` | Create or overwrite a text file           | (write file)         | `qor_fayl("magac.txt", "Salaan")`          |
 | `kudar_fayl` | Append text to a file                   | (append file)        | `kudar_fayl("magac.txt", "\n")`            |
+| `fayl_jiraa` | Test whether a path exists              | (path exists)        | `haddii (fayl_jiraa("magac.txt")) {...}`   |
+| `fayl_xog` | Query path metadata                     | (path stat)          | `door x = fayl_xog("magac.txt")`           |
+| `isku_xidh` | Join path segments                     | (path join)          | `isku_xidh("data", "magac.txt")`           |
+| `baabi_jid` | Resolve an absolute path                | (absolute path)      | `baabi_jid("magac.txt")`                   |
+| `nuqul_fayl` | Copy a file                            | (copy file)          | `nuqul_fayl("a.txt", "b.txt")`             |
+| `wareeji_fayl` | Move or rename a path                | (move file)          | `wareeji_fayl("a.txt", "b.txt")`           |
+| `tirtir_fayl` | Delete a file                         | (delete file)        | `tirtir_fayl("magac.txt")`                 |
+| `abuur_gal` | Create a directory tree                 | (mkdir)              | `abuur_gal("data/pkg")`                    |
+| `tir_gal` | List directory entry names                | (list dir)           | `door names = tir_gal("data")`             |
+| `tirtir_gal` | Remove a directory                     | (rmdir)              | `tirtir_gal("data", run)`                  |
 | `nooc`   | Get type of variable                         | `typeof`             | `qor(nooc(magac))`                        |
 | `abn`    | Convert value to an integer (also the `int` type keyword above) | `int` | `door n = abn("5")`                 |
 | `jajab`  | Convert a number or numeric string to floating point | `float` | `door n = jajab("3.5")`             |

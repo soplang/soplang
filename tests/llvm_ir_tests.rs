@@ -850,6 +850,43 @@ qor("llvm text ok")
     let _ = fs::remove_dir_all(&dir);
 }
 
+#[test]
+fn test_llvm_filesystem() {
+    let dir = std::env::temp_dir().join(format!(
+        "soplang_llvm_fs_{}_{}",
+        std::process::id(),
+        SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_nanos()
+    ));
+    let _ = fs::remove_dir_all(&dir);
+    fs::create_dir_all(&dir).expect("temp dir");
+    let nested = dir.join("pkg");
+    let file = nested.join("item.txt");
+    let nested_path = nested.display().to_string().replace('\\', "/");
+    let file_path = file.display().to_string().replace('\\', "/");
+    let source = format!(
+        r#"
+hawl hubi(v, name) {{ haddii (!v) {{ tuur name }} }}
+abuur_gal("{nested_path}")
+qor_fayl("{file_path}", "llvm-fs")
+hubi(fayl_jiraa("{file_path}"), "exists")
+door info = fayl_xog("{file_path}")
+hubi(info.nooc == "fayl", "kind")
+qor("llvm fs ok")
+"#
+    );
+    for opt in [0, 2] {
+        let _ = fs::remove_dir_all(&nested);
+        assert_eq!(
+            run_llvm_with_opt_in_dir(&format!("llvm_filesystem_{opt}"), &source, opt, &dir),
+            "llvm fs ok\n"
+        );
+    }
+    let _ = fs::remove_dir_all(&dir);
+}
+
 fn run_llvm_with_opt_in_dir(name: &str, source: &str, opt: u8, dir: &Path) -> String {
     let stmts = soplang::frontend::parse_source(source, None).expect("parse");
     let sym = analyze(&stmts).expect("analyze");

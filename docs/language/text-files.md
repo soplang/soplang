@@ -27,5 +27,6 @@ kudar_fayl("magac.txt", "\nNabadgelyo")
 qor(text)
 ```
 
-Binary files, streaming handles, directories, and JSON remain later 3.3 work.
-See [ROADMAP.md](../../ROADMAP.md).
+Path helpers, directory management, and file metadata are documented in
+[filesystem](filesystem.md). Binary files, streaming handles, and JSON remain
+later 3.3 work. See [ROADMAP.md](../../ROADMAP.md).

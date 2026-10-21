@@ -218,12 +218,16 @@ rule of resolving imports relative to the importing source file.
 
 ### File management, directories, and paths
 
-1. Query existence, file type, size, and modification time.
-2. Copy, move, rename, and delete files.
-3. Create directories, list their entries, and remove directories.
-4. Join paths and resolve relative paths across Linux, Windows, and macOS.
+Implemented locally; see [filesystem](docs/language/filesystem.md).
+
+1. Query existence, file type, size, and modification time — `fayl_jiraa`, `fayl_xog`.
+2. Copy, move, rename, and delete files — `nuqul_fayl`, `wareeji_fayl`, `tirtir_fayl`.
+3. Create directories, list their entries, and remove directories — `abuur_gal`, `tir_gal`, `tirtir_gal`.
+4. Join paths and resolve relative paths across Linux, Windows, and macOS — `isku_xidh`, `baabi_jid`.
 5. Specify overwrite behavior, recursive directory operations, symbolic-link
-   handling, and cross-filesystem moves before publishing the API.
+   handling, and cross-filesystem moves before publishing the API — optional
+   overwrite on copy and optional recursive directory removal are implemented;
+   symlink semantics and cross-volume moves remain design gates.
 
 Filesystem APIs should live in a dedicated standard-library module with short,
 consistent Somali names. Where operations match existing collection APIs,

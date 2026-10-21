@@ -58,6 +58,12 @@ pub fn file_read_error(path: &Path, error: &io::Error) -> SoplangError {
     external_error(message, error.to_string())
 }
 
+pub fn path_io_error(path: &Path, error: &io::Error, action: &str) -> SoplangError {
+    let path = path.display();
+    let message = format!("{action} '{path}' ma guuleysan. {}", io_reason(error));
+    external_error(with_os_code(message, error), error.to_string())
+}
+
 pub fn file_write_error(path: &Path, error: &io::Error) -> SoplangError {
     let path = path.display();
     let message = match error.kind() {

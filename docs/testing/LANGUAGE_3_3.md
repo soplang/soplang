@@ -17,3 +17,12 @@ missing-file errors, and invalid UTF-8 reads. LLVM runs the same operations at
 optimization levels 0 and 2 with paths relative to the binary working directory.
 
 Cross-platform executables and packaging remain distribution gates.
+
+## Paths and filesystem management
+
+```sh
+cargo test --locked --test filesystem_tests --test text_file_tests --test llvm_ir_tests
+```
+
+The filesystem suite covers metadata, join/absolute paths, directory lifecycle,
+copy/move/delete guards, and LLVM execution at optimization levels 0 and 2.
