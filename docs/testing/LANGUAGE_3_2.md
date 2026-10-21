@@ -348,3 +348,35 @@ Windows x64 and macOS ARM64 cross-target checks pass, as does Rust metadata
 compilation of the extracted LLVM linker wrapper against both target libraries.
 Native platform execution and packaging remain distribution gates. Object and
 numeric library work remains before the 3.2 milestone tag.
+
+## Expanded object-library stage
+
+The debug suite passes 262 tests, including all 39 LLVM tests. The diagnostic
+and example suites pass 14 tests covering 175 error programs and 43 public
+examples through JIT and LLVM. Optimized checks pass 93 tests:
+
+```sh
+cargo test --locked -- --skip test_aot
+cargo test --locked --test diagnostic_tests --test examples_tests
+cargo test --locked --release --test object_operation_tests --test interpreter_tests --test llvm_ir_tests
+cargo check --locked --offline --target x86_64-pc-windows-msvc
+cargo check --locked --offline --target aarch64-apple-darwin
+```
+
+The shared fixture runs LLVM at levels 0 and 2. It checks insert-if-absent,
+stored nulls, argument evaluation, right-biased in-place merges, shared aliases,
+atomic parent contracts, sorted snapshot callbacks, renamed pairs and duplicate
+keys, truthy filtering, signature checks, source mutation, callback failures,
+explicit mixed-container paths, defaults, negative positions, error fields,
+class dispatch, returned aliases, closures, and GC during mapping.
+
+Four host tests cover recoverable method and path borrows, no-write existing
+inserts, guarded mutation atomicity, weak parent lifetime, a 20,000-component
+cyclic path on a small stack, and typed callbacks across REPL collection.
+Snapshots verify outer locations for malformed callback results and duplicate
+keys, and inner carets and traces for callback failures.
+
+Windows x64 and macOS ARM64 cross-target checks pass. The extracted LLVM linker
+wrapper passes Rust metadata compilation against both target libraries.
+Native platform execution and packaging remain distribution gates. Numeric
+library work remains before the complete 3.2 milestone tag.

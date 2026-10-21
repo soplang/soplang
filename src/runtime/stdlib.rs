@@ -938,6 +938,9 @@ pub fn object_hel(
     args: &[Value],
 ) -> Result<Value, SoplangError> {
     expect_arity_range(args, "hel", 1, 2)?;
+    if matches!(&args[0], Value::List(_) | Value::Tuple(_)) {
+        return super::object_ops::lookup(&obj, args);
+    }
     let key = object_key(&args[0])?;
     Ok(obj
         .borrow()

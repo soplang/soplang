@@ -768,3 +768,10 @@ and compatibility with earlier spellings.
 optional `habee` key/reverse arguments extend the list library. The
 [list reference](list-methods.md) defines snapshots, atomic publication,
 structural equality, consistent sorting, and callback side effects.
+
+## Expanded object methods
+
+Object `geli`, `ballaadhi`, `aaddin`, `shaandhee`, and explicit paths in `hel`
+reuse collection vocabulary. The [object reference](object-methods.md) defines
+insert-if-absent, atomic merges, sorted snapshot callbacks, renamed entries,
+and path semantics without changing literal string keys.

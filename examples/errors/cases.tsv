@@ -165,3 +165,12 @@ runtime	list_sort_mutation.sop	2	5	hawsha furaha ayaa beddeshay
 runtime	list_sort_signature.sop	2	5	ma aqbasho 1 dood
 runtime	list_extend_contract.sop	2	7	Beddelkani ma waafaqsana
 runtime	list_sort_key_error.sop	2	12	eber
+runtime	object_insert_key.sop	2	7	Furaha geli()
+runtime	object_extend_contract.sop	2	7	Beddelkani ma waafaqsana
+runtime	object_map_pair.sop	2	5	laba xubnood leh
+runtime	object_map_duplicate.sop	2	5	laba jeer ayaa
+runtime	object_map_key.sop	2	5	furaha lammaanuhu
+runtime	object_map_signature.sop	2	5	ma aqbasho 2 dood
+runtime	object_path_segment.sop	2	7	Qaybaha jidku
+runtime	object_path_index.sop	2	7	Tusmada jidku
+runtime	object_map_callback_error.sop	2	12	eber

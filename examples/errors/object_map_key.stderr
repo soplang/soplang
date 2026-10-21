@@ -1,0 +1,4 @@
+Khalad nooc: aaddin() furaha lammaanuhu waa inuu noqdaa qoraal. [E043] safka 2, tiirka 5
+     --> examples/errors/object_map_key.sop:2:5
+   2 │   xog.aaddin(hawl(fure, qiime) { celi xirmo(1, qiime) }, "lamaane")
+     │       ^^^^^^

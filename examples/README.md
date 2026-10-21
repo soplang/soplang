@@ -63,6 +63,7 @@ You can also run an example by its position in the sorted file list:
 | `40_typed_sets.sop` | Typed set keys, alias validation, tuple rows, and intersection |
 | `41_text_methods.sop` | Unicode casing, classification, padding, partitioning, words, and lines |
 | `42_list_operations.sop` | Extension, uniqueness, sums, value removal, sorting, and enumeration |
+| `43_object_operations.sop` | Insert-if-absent, in-place merge, entry callbacks, and nested paths |
 
 `_math_lib.sop` is imported by `16_import.sop`; it is not a standalone demo.
 

@@ -1,0 +1,4 @@
+Khalad nooc: Qaybaha jidku waa inay noqdaan qoraal ama abn. [E043] safka 2, tiirka 7
+     --> examples/errors/object_path_segment.sop:2:7
+   2 │     xog.hel(["maqan", run], 9)
+     │         ^^^

@@ -1360,7 +1360,7 @@ pub extern "C" fn soplang_set_index(
     }
 }
 
-fn error_property(error: &SoplangError, key: &str) -> Value {
+pub(super) fn error_property(error: &SoplangError, key: &str) -> Value {
     let meta = error.meta();
     match key {
         "fariin" => Value::Str(error.message().into()),
@@ -1889,9 +1889,18 @@ pub extern "C" fn soplang_call_method(
             .and_then(|_| super::iterators::begin(&obj_val))
     } else {
         match &obj_val {
-            Value::Object(o) if get_instance_class(o).is_some() => {
-                dispatch_instance_method(o, method, &argv)
-            }
+            Value::Object(o) => match o.try_borrow() {
+                Err(_) => Err(super::object_ops::read_error()),
+                Ok(fields) => {
+                    let instance = matches!(fields.get(INSTANCE_CLASS_FIELD), Some(Value::Str(_)));
+                    drop(fields);
+                    if instance {
+                        dispatch_instance_method(o, method, &argv)
+                    } else {
+                        dispatch_object_method(o, method, &argv)
+                    }
+                }
+            },
             Value::Iterator(_) => {
                 super::stdlib::expect_arity(&argv, method, 0).and_then(|_| match method {
                     "wareeg" => super::iterators::begin(&obj_val),
@@ -1907,7 +1916,6 @@ pub extern "C" fn soplang_call_method(
             Value::Bytes(bytes) => super::bytes::dispatch(bytes, method, &argv),
             Value::Tuple(tuple) => super::tuples::dispatch(tuple, method, &argv),
             Value::Set(set) => super::sets::dispatch(set, method, &argv),
-            Value::Object(o) => dispatch_object_method(o, method, &argv),
             Value::Str(s) => dispatch_string_method(s, method, &argv),
             _ => Err(runtime_error(
                 format!(
@@ -2229,6 +2237,9 @@ fn dispatch_object_method(
         _ => {}
     }
     match method {
+        "geli" | "ballaadhi" | "aaddin" | "shaandhee" => {
+            super::object_ops::dispatch(o, method, args)
+        }
         "furayaal" | "fure" => super::stdlib::object_fure(Rc::clone(o), args),
         "dherer" => super::stdlib::object_dherer(Rc::clone(o), args),
         "saar" => super::stdlib::object_saar(Rc::clone(o), args),

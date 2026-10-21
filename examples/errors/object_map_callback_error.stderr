@@ -1,0 +1,6 @@
+Khalad fulin: Tiro looma qaybin karo eber. safka 2, tiirka 12
+     --> examples/errors/object_map_callback_error.sop:2:12
+   2 │       celi 1 / 0
+     │              ^
+Raadka wicitaannada:
+     aaddi (examples/errors/object_map_callback_error.sop:5:5)

@@ -1,0 +1,4 @@
+Khalad nooc: Furaha geli() waa inuu noqdaa qoraal. [E043] safka 2, tiirka 7
+     --> examples/errors/object_insert_key.sop:2:7
+   2 │     xog.geli(1, 2)
+     │         ^^^^

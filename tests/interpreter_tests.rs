@@ -773,3 +773,8 @@ fn test_text_methods() {
 fn test_list_operations() {
     assert_eq!(run_program(include_str!("fixtures/list_operations.sop")), "list operations ok\n");
 }
+
+#[test]
+fn test_object_operations() {
+    assert_eq!(run_program(include_str!("fixtures/object_operations.sop")), "object operations ok\n");
+}

@@ -29,6 +29,7 @@ are imported helpers, not separate entry points.
 | Typed collections | Element mismatches, aliased writes, nested writes, rest values, unsupported type arguments and key types |
 | Optional and union types | Invalid initializers, arguments, assignments, returns, missing types, and unknown class alternatives |
 | Byte arrays | Invalid values, UTF-8 decoding, index types, bounds, removal, annotations, and reserved class names |
+| Object operations | Insert keys, guarded merges, mapped pair shapes and keys, duplicate output keys, callback signatures and inner errors, and path components |
 | List operations | Invalid value-removal modes, sum operands, sorting flags, callback mutation, inner error locations, signatures, and guarded extension |
 | Text methods | Invalid classification kinds, casing modes, widths, fills, partition separators, and line flags |
 | Formatting | Unsupported value-format descriptors with exact call-site carets |

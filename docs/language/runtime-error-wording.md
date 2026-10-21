@@ -369,3 +369,28 @@ roles. See the [list reference](list-methods.md).
 New operation failures use `E043`. Existing read-borrow wording, method arities,
 callback errors, iteration failures, and collection-contract diagnostics remain
 in use with their established codes.
+
+## Expanded object vocabulary and diagnostics
+
+Object `geli` inserts only missing keys; `ballaadhi` merges in place.
+`aaddin` maps values or key/value pairs, `shaandhee` filters entries, and `hel`
+accepts explicit paths. Mapping modes are `qiime` and `lamaane`.
+See the [object reference](object-methods.md).
+
+| Somali wording | English meaning |
+| --- | --- |
+| `Furaha geli() waa inuu noqdaa qoraal.` | Insert-if-absent needs a string key. |
+| `ballaadhi() waxay u baahan tahay walax.` | In-place object merging needs an object. |
+| `Lammaanaha aaddin() hadda lama akhriyi karo.` | A conflicting native borrow prevents reading a returned pair. |
+| `aaddin() hawshu waa inay celisaa teed ama xirmo laba xubnood leh marka habku yahay 'lamaane'.` | Entry mapping needs an exact two-element list or tuple. |
+| `aaddin() furaha lammaanuhu waa inuu noqdaa qoraal.` | A renamed entry key must be text. |
+| `aaddin() habku waa inuu noqdaa 'qiime' ama 'lamaane'.` | Unsupported object mapping mode. |
+| `aaddin() furaha '{key}' laba jeer ayaa la soo celiyey.` | Two mapped entries returned the same key. |
+| `Tusmada jidku waa inay noqotaa abn.` | A sequence path component must be an integer. |
+| `Furaha jidku waa inuu noqdaa qoraal marka qiimuhu yahay walax ama khalad.` | An object/error path component must be text. |
+| `Jidka hadda lama akhriyi karo.` | A conflicting native borrow prevents reading the path. |
+| `Qaybaha jidku waa inay noqdaan qoraal ama abn.` | Path components must be text or integers. |
+
+New operation failures use `E043`, including the existing object/list read-borrow
+wording at these entry points. Shared contract writes retain `E039`, byte reads
+retain `E038`, and callback failures retain their existing codes and source spans.

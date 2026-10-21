@@ -185,7 +185,7 @@ step representation.
 | --- | --- |
 | String | Implemented: character classification, capitalization, title casing, padding, partitioning, lines, words, and formatting; see [text methods](docs/language/text-methods.md). |
 | List | Implemented: remove by value, extend in place, unique values, enumerate, zip, sum, and callback-based sorting; see [list methods](docs/language/list-methods.md). |
-| Object | insert when absent, merge in place, map entries, filter entries, and nested-path lookup |
+| Object | Implemented: insert when absent, merge in place, map entries, filter entries, and nested-path lookup; see [object methods](docs/language/object-methods.md). |
 | Number | logarithms, trigonometry, constants, clamping, and seeded random generation |
 
 ## Soplang 3.3 — files, structured data, and networking
@@ -251,7 +251,9 @@ wait for handles, streaming, or file watching.
 
 JSON conversion must define how Soplang values map to JSON, how malformed
 input is reported, and which values cannot be serialized. JSON parse and
-serialization failures must be catchable. Program arguments and environment
+serialization failures must be catchable. Parsed maps must preserve arbitrary
+string keys, including `__class__`, without acquiring class identity from input
+fields. Program arguments and environment
 variables provide configuration for file-based tools and server applications.
 
 ### Synchronous HTTP client

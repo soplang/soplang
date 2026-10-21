@@ -796,3 +796,10 @@ fn test_llvm_list_operations() {
         assert_eq!(run_llvm_with_opt(&format!("llvm_list_operations_{opt}"), include_str!("fixtures/list_operations.sop"), opt), "list operations ok\n");
     }
 }
+
+#[test]
+fn test_llvm_object_operations() {
+    for opt in [0, 2] {
+        assert_eq!(run_llvm_with_opt(&format!("llvm_object_operations_{opt}"), include_str!("fixtures/object_operations.sop"), opt), "object operations ok\n");
+    }
+}

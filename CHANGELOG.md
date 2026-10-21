@@ -8,6 +8,8 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+* Object methods add insert-if-absent, atomic in-place merging, sorted-snapshot value and entry mapping, entry filtering, and explicit nested paths. Mapping can rename keys through checked pair results; path lookup preserves mutable aliases and supports existing indexed value kinds.
+
 * List methods add explicit removal by value, atomic in-place iterable extension, stable generic uniqueness, numeric sums, enumerate/zip adapters, and stable callback-key sorting. Sorting preserves large-integer precision and rejects changed receiver slots without discarding callback writes.
 
 * Unicode text methods add classification, capitalization, title casing, scalar-width padding, tuple partitioning, Unicode line splitting, and default whitespace splitting. Unicode 17 titlecase mappings and word boundaries work through both compiler backends.
@@ -28,6 +30,8 @@ All notable changes to this project will be documented in this file.
 * Iterator state participates in context ownership and tracing collection, including cyclic snapshots and native roots held across callbacks. Invalid protocols, reentrant advances, excessive native nesting, and conflicting snapshot borrows produce recoverable Somali errors.
 
 ### Fixed
+
+* Object method dispatch reports conflicting native borrows as recoverable errors before probing class metadata.
 
 * List sorting uses consistent type ordering, preserves large integer precision, and hides opaque callable handles during comparisons. Collection validation after callbacks reports the outer call site while callback failures retain their inner locations and traces.
 

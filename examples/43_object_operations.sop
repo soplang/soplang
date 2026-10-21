@@ -1,0 +1,8 @@
+walax[abn] dhibco = {Ayaan: 90}
+dhibco.geli("Cali", 80).geli("Ayaan", 100)
+dhibco.ballaadhi({Cali: 85, Hodan: 95})
+qor(dhibco)
+qor(dhibco.aaddin(hawl(fure, qiime) { celi qiime * 2 }))
+qor(dhibco.shaandhee(hawl(fure, qiime) { celi qiime >= 90 }))
+door xog = {dad: [{magac: "Ayaan"}]}
+qor(xog.hel(["dad", 0, "magac"]))

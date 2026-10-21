@@ -14,6 +14,7 @@ mod text;
 mod unicode_case;
 mod sets;
 mod list_ops;
+mod object_ops;
 pub mod stdlib;
 pub mod value;
 
