@@ -1691,7 +1691,10 @@ fn is_type_compatible(sym: &SymbolTable, target: &TypeAnnotation, value: &TypeAn
     match (target, value) {
         (Dynamic, _) => true,
         (_, Union(found)) => found.iter().all(|ty| is_type_compatible(sym, target, ty)),
-        (Union(_) | Null | ListOf(_) | ObjectOf(_) | TupleOf(_) | Tuple | Set, Dynamic) => true,
+        (
+            Union(_) | Null | ListOf(_) | ObjectOf(_) | TupleOf(_) | Tuple | Set | SetOf(_),
+            Dynamic,
+        ) => true,
         (Union(types), found) => types.iter().any(|ty| is_type_compatible(sym, ty, found)),
         (Null, Null) => true,
         // A door value has no static class. The runtime check accepts a real instance.
@@ -1703,7 +1706,7 @@ fn is_type_compatible(sym: &SymbolTable, target: &TypeAnnotation, value: &TypeAn
         (Jajab, Abn | Jajab) => true,
         (Qoraal, Qoraal) => true,
         (Bool, Bool) => true,
-        (Set, Set) => true,
+        (Set, Set | SetOf(_)) | (SetOf(_), Set) => true,
         (Tuple, Tuple | TupleOf(_)) | (TupleOf(_), Tuple) => true,
         (TupleOf(expected), TupleOf(found)) => {
             expected.len() == found.len()
@@ -1714,9 +1717,9 @@ fn is_type_compatible(sym: &SymbolTable, target: &TypeAnnotation, value: &TypeAn
         (ListOf(_), Teed) | (ObjectOf(_), Walax) => true,
         // Mutable element contracts are invariant; a dynamic alias can request
         // another contract after validating the actual shared contents.
-        (ListOf(expected), ListOf(found)) | (ObjectOf(expected), ObjectOf(found)) => {
-            expected.same_contract(found)
-        }
+        (ListOf(expected), ListOf(found))
+        | (ObjectOf(expected), ObjectOf(found))
+        | (SetOf(expected), SetOf(found)) => expected.same_contract(found),
         (Bytes, Bytes) => true,
         (Walax, Walax) => true,
         _ => false,
@@ -1739,7 +1742,29 @@ fn is_same_or_subclass(sym: &SymbolTable, found: &str, expected: &str) -> bool {
     false
 }
 
+fn can_be_set_key(ann: &TypeAnnotation) -> bool {
+    use TypeAnnotation::*;
+    match ann {
+        Abn | Jajab | Qoraal | Bool | Null | Tuple => true,
+        TupleOf(types) => types.iter().all(can_be_set_key),
+        Union(types) => types.iter().any(can_be_set_key),
+        _ => false,
+    }
+}
+
 fn ensure_known_class(sym: &SymbolTable, ann: &TypeAnnotation) -> Result<(), SoplangError> {
+    if let TypeAnnotation::SetOf(inner) = ann {
+        ensure_known_class(sym, inner)?;
+        if !can_be_set_key(inner) {
+            return Err(type_error_ex(
+                format!("Nooca '{}' looma adeegsan karo xubin urur.", inner),
+                0,
+                0,
+                ErrorMeta::default().with_code(codes::E022_TYPE_MISMATCH),
+            ));
+        }
+        return Ok(());
+    }
     if let TypeAnnotation::ListOf(inner) | TypeAnnotation::ObjectOf(inner) = ann {
         return ensure_known_class(sym, inner);
     }

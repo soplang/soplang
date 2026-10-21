@@ -25,6 +25,7 @@ are imported helpers, not separate entry points.
 | Iteration | Invalid sources, zero steps, malformed protocol results, row lengths, duplicate/constant bindings, and callback failures |
 | Sets | Unsupported mutable keys, indexed access, invalid operands, annotations, and reserved class names |
 | Tuples | Immutable writes, index types, positional shapes, nested member writes, row lengths, and class-name conflicts |
+| Typed sets | Initializers, aliases, tuple-key shapes, arguments, returns, impossible key annotations, and unknown classes |
 | Typed collections | Element mismatches, aliased writes, nested writes, rest values, unsupported type arguments and key types |
 | Optional and union types | Invalid initializers, arguments, assignments, returns, missing types, and unknown class alternatives |
 | Byte arrays | Invalid values, UTF-8 decoding, index types, bounds, removal, annotations, and reserved class names |

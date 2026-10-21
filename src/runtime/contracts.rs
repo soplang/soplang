@@ -39,6 +39,7 @@ enum Contract {
     List,
     Tuple,
     Set,
+    SetOf(Box<Contract>),
     TupleOf(Vec<Contract>),
     Object,
     Bytes,
@@ -51,9 +52,9 @@ enum Contract {
 impl Contract {
     fn same(&self, other: &Self) -> bool {
         match (self, other) {
-            (Self::ListOf(a), Self::ListOf(b)) | (Self::ObjectOf(a), Self::ObjectOf(b)) => {
-                a.same(b)
-            }
+            (Self::ListOf(a), Self::ListOf(b))
+            | (Self::ObjectOf(a), Self::ObjectOf(b))
+            | (Self::SetOf(a), Self::SetOf(b)) => a.same(b),
             (Self::TupleOf(a), Self::TupleOf(b)) => {
                 a.len() == b.len() && a.iter().zip(b).all(|(a, b)| a.same(b))
             }
@@ -65,8 +66,16 @@ impl Contract {
     }
     fn has_elements(&self) -> bool {
         match self {
-            Self::ListOf(_) | Self::ObjectOf(_) | Self::TupleOf(_) => true,
+            Self::ListOf(_) | Self::ObjectOf(_) | Self::TupleOf(_) | Self::SetOf(_) => true,
             Self::Union(types) => types.iter().any(Self::has_elements),
+            _ => false,
+        }
+    }
+    fn can_be_set_key(&self) -> bool {
+        match self {
+            Self::Int | Self::Float | Self::Str | Self::Bool | Self::Null | Self::Tuple => true,
+            Self::TupleOf(types) => types.iter().all(Self::can_be_set_key),
+            Self::Union(types) => types.iter().any(Self::can_be_set_key),
             _ => false,
         }
     }
@@ -98,6 +107,7 @@ impl fmt::Display for Contract {
             Self::Bytes => f.write_str("baytyo"),
             Self::Null => f.write_str("maran"),
             Self::Class(name) => f.write_str(name),
+            Self::SetOf(inner) => write!(f, "urur[{inner}]"),
             Self::ListOf(inner) => write!(f, "teed[{inner}]"),
             Self::ObjectOf(inner) => write!(f, "walax[qoraal, {inner}]"),
             Self::Union(types) => {
@@ -187,22 +197,28 @@ impl Reader<'_> {
                     }
                     ty = Contract::TupleOf(values);
                 } else {
-                let inner = self.ty(depth + 1)?;
-                ty = match ty {
-                    Contract::List => Contract::ListOf(Box::new(inner)),
-                    Contract::Object => {
-                        let value = if self.take(',') {
-                            if inner != Contract::Str {
+                    let inner = self.ty(depth + 1)?;
+                    ty = match ty {
+                        Contract::List => Contract::ListOf(Box::new(inner)),
+                        Contract::Set => {
+                            if !inner.can_be_set_key() {
                                 return Err(invalid());
                             }
-                            self.ty(depth + 1)?
-                        } else {
-                            inner
-                        };
-                        Contract::ObjectOf(Box::new(value))
-                    }
-                    _ => return Err(invalid()),
-                };
+                            Contract::SetOf(Box::new(inner))
+                        }
+                        Contract::Object => {
+                            let value = if self.take(',') {
+                                if inner != Contract::Str {
+                                    return Err(invalid());
+                                }
+                                self.ty(depth + 1)?
+                            } else {
+                                inner
+                            };
+                            Contract::ObjectOf(Box::new(value))
+                        }
+                        _ => return Err(invalid()),
+                    };
                 }
                 if !self.take(']') {
                     return Err(invalid());
@@ -225,6 +241,7 @@ impl Reader<'_> {
 enum WeakRoot {
     List(Weak<RefCell<Vec<Value>>>),
     Tuple(Weak<super::TupleData>),
+    Set(Weak<super::SetData>),
     Object(Weak<RefCell<HashMap<String, Value>>>),
 }
 impl WeakRoot {
@@ -233,6 +250,10 @@ impl WeakRoot {
             Value::List(value) => Some((
                 (5, Rc::as_ptr(value) as usize),
                 Self::List(Rc::downgrade(value)),
+            )),
+            Value::Set(value) => Some((
+                (14, Rc::as_ptr(value) as usize),
+                Self::Set(Rc::downgrade(value)),
             )),
             Value::Tuple(value) => Some((
                 (13, Rc::as_ptr(value) as usize),
@@ -249,6 +270,7 @@ impl WeakRoot {
         match self {
             Self::List(value) => value.upgrade().map(Value::List),
             Self::Tuple(value) => value.upgrade().map(Value::Tuple),
+            Self::Set(value) => value.upgrade().map(Value::Set),
             Self::Object(value) => value.upgrade().map(Value::Object),
         }
     }
@@ -321,6 +343,7 @@ impl ContractStore {
 }
 
 enum Candidate {
+    Set(Key, super::sets::State),
     List(Key, Vec<Value>),
     Object(Key, HashMap<String, Value>),
 }
@@ -336,6 +359,7 @@ impl Validator<'_> {
         let key = match value {
             Value::List(value) => Some((5, Rc::as_ptr(value) as usize)),
             Value::Tuple(value) => Some((13, Rc::as_ptr(value) as usize)),
+            Value::Set(value) => Some((14, Rc::as_ptr(value) as usize)),
             Value::Object(value) => Some((6, Rc::as_ptr(value) as usize)),
             _ => None,
         };
@@ -371,6 +395,29 @@ impl Validator<'_> {
             }
             (Value::Tuple(_), Contract::Tuple) => true,
             (Value::Set(_), Contract::Set) => true,
+            (Value::Set(set), Contract::SetOf(inner)) => {
+                let key = key.unwrap();
+                self.dependencies.insert(key);
+                let borrowed;
+                let values = match self.candidate {
+                    Some(Candidate::Set(target, values)) if *target == key => values,
+                    _ => {
+                        borrowed = set
+                            .state
+                            .try_borrow()
+                            .map_err(|_| error("Ururka hadda lama akhriyi karo.", self.mutation))?;
+                        &*borrowed
+                    }
+                };
+                let mut valid = true;
+                for value in values.values() {
+                    if !self.matches(value, inner)? {
+                        valid = false;
+                        break;
+                    }
+                }
+                valid
+            }
             (Value::List(list), Contract::ListOf(inner)) => {
                 let key = key.unwrap();
                 self.dependencies.insert(key);
@@ -622,6 +669,39 @@ pub(super) fn mutate_object<R>(
     *object
         .try_borrow_mut()
         .map_err(|_| error("Walaxda hadda lama beddeli karo.", true))? = values;
+    commit(updates);
+    Ok(result)
+}
+
+/// Apply set mutations only after all shared contracts accept the candidate.
+pub(super) fn mutate_set<R>(
+    set: &Rc<super::SetData>,
+    operation: impl FnOnce(&mut super::sets::State) -> Result<R, SoplangError>,
+) -> Result<R, SoplangError> {
+    let key = (14, Rc::as_ptr(set) as usize);
+    let guards = affected(key);
+    if guards.is_empty() {
+        return operation(
+            &mut *set
+                .state
+                .try_borrow_mut()
+                .map_err(|_| error("Ururka hadda lama beddeli karo.", true))?,
+        );
+    }
+    let mut values = set
+        .state
+        .try_borrow()
+        .map_err(|_| error("Ururka hadda lama akhriyi karo.", true))?
+        .clone();
+    let result = operation(&mut values)?;
+    let candidate = Candidate::Set(key, values);
+    let updates = validate(&candidate, guards)?;
+    let Candidate::Set(_, values) = candidate else {
+        unreachable!()
+    };
+    *set.state
+        .try_borrow_mut()
+        .map_err(|_| error("Ururka hadda lama beddeli karo.", true))? = values;
     commit(updates);
     Ok(result)
 }

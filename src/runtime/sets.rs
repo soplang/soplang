@@ -49,7 +49,7 @@ impl Key {
 }
 
 #[derive(Clone, Default)]
-struct State {
+pub(super) struct State {
     slots: Vec<Option<(Rc<Key>, Value)>>,
     index: HashMap<Rc<Key>, usize>,
 }
@@ -76,7 +76,7 @@ impl State {
         }
         Some(value)
     }
-    fn values(&self) -> impl Iterator<Item = &Value> {
+    pub(super) fn values(&self) -> impl Iterator<Item = &Value> {
         self.slots.iter().flatten().map(|(_, value)| value)
     }
 }
@@ -84,7 +84,7 @@ impl State {
 /// Set contents can only be changed through checked runtime methods.
 #[derive(Default)]
 pub struct SetData {
-    state: RefCell<State>,
+    pub(super) state: RefCell<State>,
 }
 impl SetData {
     pub fn new(values: Vec<Value>) -> Result<Rc<Self>, SoplangError> {
@@ -156,13 +156,16 @@ pub(super) fn dispatch(
         "geli" => {
             expect_arity(args, method, 1)?;
             let key = Key::of(&args[0], 0)?;
-            set.state.borrow_mut().insert(key, args[0].clone());
+            super::contracts::mutate_set(set, |state| {
+                state.insert(key, args[0].clone());
+                Ok(())
+            })?;
             Ok(Value::Set(Rc::clone(set)))
         }
         "saar" => {
             expect_arity(args, method, 1)?;
             let key = Key::of(&args[0], 0)?;
-            Ok(set.state.borrow_mut().remove(&key).unwrap_or(Value::Null))
+            super::contracts::mutate_set(set, |state| Ok(state.remove(&key).unwrap_or(Value::Null)))
         }
         "leeyahay" => {
             expect_arity(args, method, 1)?;
@@ -179,7 +182,10 @@ pub(super) fn dispatch(
         }
         "nadiifi" => {
             expect_arity(args, method, 0)?;
-            set.clear();
+            super::contracts::mutate_set(set, |state| {
+                *state = State::default();
+                Ok(())
+            })?;
             Ok(Value::Set(Rc::clone(set)))
         }
         "nuqul" | "urur" => {
@@ -274,5 +280,41 @@ mod tests {
         }
         assert!(state.index.is_empty());
         assert!(state.slots.len() <= 32);
+    }
+}
+
+#[cfg(test)]
+mod contract_tests {
+    use super::*;
+
+    #[test]
+    fn borrowed_set_state_rejects_writes_without_blocking_unrelated_sets() {
+        let context = super::super::RuntimeContext::new();
+        context.with(|| {
+            let data = SetData::new(vec![Value::Int(1)]).unwrap();
+            super::super::contracts::check(Value::Set(Rc::clone(&data)), "urur[abn]", "x").unwrap();
+            let borrowed = data.state.borrow();
+            assert_eq!(
+                dispatch(&data, "geli", &[Value::Int(2)])
+                    .unwrap_err()
+                    .code(),
+                Some("E039")
+            );
+            assert_eq!(
+                borrowed.values().cloned().collect::<Vec<_>>(),
+                [Value::Int(1)]
+            );
+            drop(borrowed);
+            let borrowed = data.state.borrow_mut();
+            assert_eq!(
+                dispatch(&data, "nadiifi", &[]).unwrap_err().code(),
+                Some("E039")
+            );
+            let other = SetData::new(vec![]).unwrap();
+            dispatch(&other, "geli", &[Value::Int(2)]).unwrap();
+            assert_eq!(other.values(), [Value::Int(2)]);
+            drop(borrowed);
+            dispatch(&data, "geli", &[Value::Int(2)]).unwrap();
+        });
     }
 }

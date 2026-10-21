@@ -308,3 +308,18 @@ symmetric difference, and `hoosaad` subset membership.
 
 Set operation failures use `E041`; invalid annotations retain `E022`, class
 name conflicts use `E020`, and stale or foreign handles retain `E035`.
+
+## Typed set vocabulary and diagnostics
+
+`urur[T]` annotates set keys. Initial checks use the existing collection
+contract message and `E022`; rejected mutations use `E039`. Mutable or otherwise
+unsupported key values still use the set diagnostic `E041`.
+
+| Somali wording | English meaning |
+| --- | --- |
+| `Nooca '{type}' looma adeegsan karo xubin urur.` | This annotation admits no valid set key. |
+| `Ururka hadda lama akhriyi karo.` | Conflicting native borrow prevents reading a set for validation. |
+| `Ururka hadda lama beddeli karo.` | Conflicting native borrow prevents publishing a set mutation. |
+
+Unknown classes retain `E021`. The existing annotation-depth, union-count,
+and syntax diagnostics apply to set element annotations too.

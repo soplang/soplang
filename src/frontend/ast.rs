@@ -12,6 +12,7 @@ pub enum TypeAnnotation {
     Teed,
     Tuple,
     Set,
+    SetOf(Box<TypeAnnotation>),
     TupleOf(Vec<TypeAnnotation>),
     ListOf(Box<TypeAnnotation>),
     ObjectOf(Box<TypeAnnotation>),
@@ -27,9 +28,9 @@ pub enum TypeAnnotation {
 impl TypeAnnotation {
     pub(crate) fn same_contract(&self, other: &Self) -> bool {
         match (self, other) {
-            (Self::ListOf(a), Self::ListOf(b)) | (Self::ObjectOf(a), Self::ObjectOf(b)) => {
-                a.same_contract(b)
-            }
+            (Self::ListOf(a), Self::ListOf(b))
+            | (Self::ObjectOf(a), Self::ObjectOf(b))
+            | (Self::SetOf(a), Self::SetOf(b)) => a.same_contract(b),
             (Self::TupleOf(a), Self::TupleOf(b)) => {
                 a.len() == b.len() && a.iter().zip(b).all(|(a, b)| a.same_contract(b))
             }
@@ -78,6 +79,7 @@ impl TypeAnnotation {
                     .collect::<Vec<_>>()
                     .join(",")
             ),
+            Self::SetOf(inner) => format!("urur[{}]", inner.runtime_contract()),
             Self::ListOf(inner) => format!("teed[{}]", inner.runtime_contract()),
             Self::ObjectOf(inner) => format!("walax[qoraal,{}]", inner.runtime_contract()),
             Self::Union(types) => types
@@ -353,6 +355,7 @@ impl fmt::Display for TypeAnnotation {
                 }
                 f.write_str("]")
             }
+            Self::SetOf(inner) => write!(f, "urur[{inner}]"),
             Self::ListOf(inner) => write!(f, "teed[{inner}]"),
             Self::ObjectOf(inner) => write!(f, "walax[qoraal, {inner}]"),
             Self::Walax => f.write_str("walax"),

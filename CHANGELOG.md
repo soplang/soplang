@@ -8,6 +8,8 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+* Typed sets (`urur[T]`) enforce immutable element contracts through aliases, nested collections, parameters, defaults, returns, and typed rest collectors. Every mutation validates all affected parent contracts before changing membership or insertion order.
+
 * Insertion-ordered `urur` hash sets support unique immutable keys, set algebra, conversion, snapshot iteration, and bare type annotations through both compiler backends. Tuple keys participate in context ownership and collection.
 
 * Immutable `xirmo` tuples support indexing, slicing, conversion, shared collection methods, iteration, row bindings, and positional annotations. Nested mutable members retain shared contracts. Tuple handles participate in ownership checks and tracing collection.

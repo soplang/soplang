@@ -143,8 +143,9 @@ are implemented too. [Typed lists and string-keyed objects](docs/language/typed-
 now enforce shared element contracts through aliases and nested mutations.
 [Immutable tuples](docs/language/tuples.md) and positional annotations are also
 implemented. [Sets](docs/language/sets.md) support immutable keys, hashing,
-ordered iteration, and set algebra. Typed sets and remaining library operations
-are still planned.
+ordered iteration, and set algebra. [Typed sets](docs/language/typed-sets.md)
+now enforce shared element contracts through aliases and nested collections.
+The remaining library operations are still planned.
 The 3.2 milestone is not yet complete or tagged.
 
 ### Iteration
@@ -176,7 +177,7 @@ step representation.
 4. Explicit structured error values.
 5. Optional and union types: implemented for variables, parameters, and returns.
 6. Typed lists, objects, and positional tuples: implemented with shared nested
-   contracts. Typed sets follow their value type.
+   contracts. Typed sets are also implemented as `urur[T]`.
 
 ### Collection methods
 

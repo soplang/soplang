@@ -251,3 +251,34 @@ Windows x64 and macOS ARM64 cross-target checks pass. The extracted LLVM linker
 wrapper passes Rust metadata compilation against both target libraries.
 Native execution and packaging remain distribution gates. Typed sets and the
 remaining library operations are still required before the 3.2 milestone tag.
+
+## Shared typed sets stage
+
+The debug suite passes 243 tests, including all 36 LLVM tests. The diagnostic
+and example suites pass 14 tests covering 153 error programs and 40 public
+examples through JIT and LLVM. Optimized checks pass 88 tests:
+
+```sh
+cargo test --locked -- --skip test_aot
+cargo test --locked --test diagnostic_tests --test examples_tests
+cargo test --locked --release --test typed_set_tests --test interpreter_tests --test llvm_ir_tests
+cargo check --locked --offline --target x86_64-pc-windows-msvc
+cargo check --locked --offline --target aarch64-apple-darwin
+```
+
+The shared fixture runs LLVM at levels 0 and 2. It covers exact element kinds,
+tuple shapes, null keys, equivalent unions, optional sets, shared aliases,
+constraints from multiple parents, dependency replacement, correlated whole-root
+unions, atomic failures, independent copies and algebra results, named calls,
+defaults, returns, closures, constructors, typed rest collectors, constant
+bindings, snapshot cursors, and guards across collection safepoints.
+
+Five host tests cover annotation limits, impossible key types, invariance,
+contextual identifiers, invalid native descriptors, failed registration,
+handle ownership, weak guard lifetime, REPL persistence, and cyclic cleanup.
+A unit test checks conflicting set-state borrows and the unrelated fast path.
+
+Windows x64 and macOS ARM64 cross-target checks pass. The extracted LLVM linker
+wrapper passes Rust metadata compilation against both target libraries.
+Native platform execution and packaging remain distribution gates. Expanded
+string, list, object, and numeric library operations remain before the 3.2 tag.

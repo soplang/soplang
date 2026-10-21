@@ -157,7 +157,9 @@ impl Parser {
     }
 
     fn contextual_generic_declaration(&self) -> bool {
-        if self.peek().lexeme != "xirmo" || self.peek_nth(1).kind != TokenType::LBracket {
+        if !matches!(self.peek().lexeme.as_str(), "xirmo" | "urur")
+            || self.peek_nth(1).kind != TokenType::LBracket
+        {
             return false;
         }
         let mut depth = 0;
@@ -210,7 +212,7 @@ impl Parser {
                 TokenType::Identifier | TokenType::Optional | TokenType::Union
             ))
             || (self.peek().kind == TokenType::Identifier
-                && self.peek().lexeme == "xirmo"
+                && matches!(self.peek().lexeme.as_str(), "xirmo" | "urur")
                 && self.peek_nth(1).kind == TokenType::LBracket)
     }
 
@@ -281,34 +283,35 @@ impl Parser {
                     }
                     ty = TypeAnnotation::TupleOf(types);
                 } else {
-                let inner_token = self.peek().clone();
-                let inner = self.parse_type_annotation_depth(depth + 1, nodes)?;
-                ty = match ty {
-                    TypeAnnotation::Teed => TypeAnnotation::ListOf(Box::new(inner)),
-                    TypeAnnotation::Walax => {
-                        let value = if self.check(TokenType::Comma) {
-                            if inner != TypeAnnotation::Qoraal {
-                                return Err(parser_error(
-                                    "Furaha walaxda noocaysan waa inuu noqdaa qoraal.",
-                                    inner_token.line,
-                                    inner_token.col,
-                                ));
-                            }
-                            self.advance();
-                            self.parse_type_annotation_depth(depth + 1, nodes)?
-                        } else {
-                            inner
-                        };
-                        TypeAnnotation::ObjectOf(Box::new(value))
-                    }
-                    _ => {
-                        return Err(parser_error(
-                            "Noocan ma qaato noocyo xubno ah.",
-                            token.line,
-                            token.col,
-                        ))
-                    }
-                };
+                    let inner_token = self.peek().clone();
+                    let inner = self.parse_type_annotation_depth(depth + 1, nodes)?;
+                    ty = match ty {
+                        TypeAnnotation::Teed => TypeAnnotation::ListOf(Box::new(inner)),
+                        TypeAnnotation::Set => TypeAnnotation::SetOf(Box::new(inner)),
+                        TypeAnnotation::Walax => {
+                            let value = if self.check(TokenType::Comma) {
+                                if inner != TypeAnnotation::Qoraal {
+                                    return Err(parser_error(
+                                        "Furaha walaxda noocaysan waa inuu noqdaa qoraal.",
+                                        inner_token.line,
+                                        inner_token.col,
+                                    ));
+                                }
+                                self.advance();
+                                self.parse_type_annotation_depth(depth + 1, nodes)?
+                            } else {
+                                inner
+                            };
+                            TypeAnnotation::ObjectOf(Box::new(value))
+                        }
+                        _ => {
+                            return Err(parser_error(
+                                "Noocan ma qaato noocyo xubno ah.",
+                                token.line,
+                                token.col,
+                            ))
+                        }
+                    };
                 }
                 self.expect(TokenType::RBracket)?;
             }

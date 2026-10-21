@@ -90,8 +90,8 @@ bindings. Cursors remain valid after the source set is cleared or collected.
 Bare `urur`, `urur?`, and unions constrain variables, parameters, returns, and
 nested collection members. The constructor remains shadowable as an ordinary
 identifier; type positions recognize the builtin name. A class cannot be named
-`urur`. Typed element annotations `urur[T]` are a subsequent stage and are not
-implemented yet.
+`urur`. [Typed element annotations](typed-sets.md), `urur[T]`, enforce shared
+contracts through aliases and nested collections.
 
 Aliases share mutations. Copies have independent membership. Handles belong to
 their runtime context; stale and foreign handles raise `E035`. The collector

@@ -775,3 +775,10 @@ fn test_llvm_sets() {
         );
     }
 }
+
+#[test]
+fn test_llvm_typed_sets() {
+    for opt in [0, 2] {
+        assert_eq!(run_llvm_with_opt(&format!("llvm_typed_sets_{opt}"), include_str!("fixtures/typed_sets.sop"), opt), "typed sets ok\n");
+    }
+}

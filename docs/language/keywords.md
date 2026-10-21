@@ -751,3 +751,6 @@ iteration, nested mutation contracts, conversions, and lifetime.
 `urur(...)` constructs a mutable set of unique immutable keys.
 The [set reference](sets.md) defines numeric key equality, insertion order,
 conversion, snapshot iteration, and set algebra.
+
+`urur[T]` constrains set elements. See the [typed set reference](typed-sets.md)
+for immutable key types, shared contracts, nested aliases, and diagnostics.

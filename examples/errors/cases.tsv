@@ -145,3 +145,10 @@ runtime	set_index.sop	2	6	Ururku ma laha tusmo
 runtime	set_operand.sop	2	7	waxay u baahan tahay urur
 compile	set_outer_type.sop	1	1	
 compile	set_class.sop	1	1	nooc hore u jiray
+runtime	typed_set_initial.sop	1	1	wuxuu u baahan yahay nooca
+runtime	typed_set_alias.sop	3	8	Beddelkani ma waafaqsana
+compile	typed_set_key_type.sop	1	1	looma adeegsan karo xubin urur
+compile	typed_set_unknown_class.sop	1	1	lama aqoonsan
+runtime	typed_set_argument.sop	3	1	wuxuu u baahan yahay nooca
+runtime	typed_set_tuple.sop	2	7	Beddelkani ma waafaqsana
+runtime	typed_set_return.sop	2	27	wuxuu u baahan yahay nooca

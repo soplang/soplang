@@ -1,0 +1,6 @@
+Khalad nooc: 'dood' wuxuu u baahan yahay nooca urur[abn], laakiin waxaa la helay urur. [E022] safka 3, tiirka 1
+     --> examples/errors/typed_set_argument.sop:3:1
+   3 │   hawsha(urur("x"))
+     │   ^^^^^^
+Raadka wicitaannada:
+     aqbal (examples/errors/typed_set_argument.sop:3:1)
