@@ -17,6 +17,7 @@ mod list_ops;
 mod object_ops;
 mod numeric;
 mod text_files;
+mod binary_files;
 mod filesystem;
 pub mod stdlib;
 pub mod value;

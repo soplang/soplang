@@ -238,7 +238,7 @@ names remain design decisions until the terminology review is complete.
 
 After the initial text API and byte-array type are available, add:
 
-1. Whole-file byte reads and writes.
+1. Whole-file byte reads and writes — implemented as `akhrif_baytyo`, `qor_baytyo`, and `kudar_baytyo`; see [binary files](docs/language/binary-files.md).
 2. Explicit open handles, access modes, flush, and close operations.
 3. Line-by-line reading, bounded chunks, and streaming large files.
 4. File positions and seeking.

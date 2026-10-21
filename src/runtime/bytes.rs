@@ -65,6 +65,10 @@ fn from_vec(bytes: Vec<u8>) -> Value {
     Value::Bytes(Rc::new(RefCell::new(bytes)))
 }
 
+pub(super) fn from_raw_vec(bytes: Vec<u8>) -> Value {
+    from_vec(bytes)
+}
+
 pub(super) fn construct(args: Vec<Value>) -> Result<Value, SoplangError> {
     expect_arity_range(&args, "baytyo", 0, 1)?;
     let bytes = match args.first() {

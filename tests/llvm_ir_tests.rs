@@ -887,6 +887,39 @@ qor("llvm fs ok")
     let _ = fs::remove_dir_all(&dir);
 }
 
+#[test]
+fn test_llvm_binary_files() {
+    let dir = std::env::temp_dir().join(format!(
+        "soplang_llvm_bin_{}_{}",
+        std::process::id(),
+        SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_nanos()
+    ));
+    let _ = fs::remove_dir_all(&dir);
+    fs::create_dir_all(&dir).expect("temp dir");
+    let file = dir.join("payload.bin");
+    let path = file.display().to_string().replace('\\', "/");
+    let source = format!(
+        r#"
+hawl hubi(v, name) {{ haddii (!v) {{ tuur name }} }}
+door data = baytyo([9, 8, 7])
+qor_baytyo("{path}", data)
+hubi(dherer(akhrif_baytyo("{path}")) == 3, "size")
+qor("llvm binary ok")
+"#
+    );
+    for opt in [0, 2] {
+        let _ = fs::remove_file(&file);
+        assert_eq!(
+            run_llvm_with_opt_in_dir(&format!("llvm_binary_{opt}"), &source, opt, &dir),
+            "llvm binary ok\n"
+        );
+    }
+    let _ = fs::remove_dir_all(&dir);
+}
+
 fn run_llvm_with_opt_in_dir(name: &str, source: &str, opt: u8, dir: &Path) -> String {
     let stmts = soplang::frontend::parse_source(source, None).expect("parse");
     let sym = analyze(&stmts).expect("analyze");

@@ -26,3 +26,12 @@ cargo test --locked --test filesystem_tests --test text_file_tests --test llvm_i
 
 The filesystem suite covers metadata, join/absolute paths, directory lifecycle,
 copy/move/delete guards, and LLVM execution at optimization levels 0 and 2.
+
+## Whole-file binary access
+
+```sh
+cargo test --locked --test binary_file_tests --test llvm_ir_tests
+```
+
+The binary suite covers byte round trips, append, strict `baytyo` arguments, and
+LLVM execution at optimization levels 0 and 2.

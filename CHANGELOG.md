@@ -14,6 +14,8 @@ All notable changes to this project will be documented in this file.
 
 * Filesystem builtins add `fayl_jiraa`, `fayl_xog`, `isku_xidh`, `baabi_jid`, `nuqul_fayl`, `wareeji_fayl`, `tirtir_fayl`, `abuur_gal`, `tir_gal`, and `tirtir_gal` for metadata, paths, files, and directories.
 
+* Binary file builtins `akhrif_baytyo`, `qor_baytyo`, and `kudar_baytyo` read and write whole files as `baytyo` values without UTF-8 conversion.
+
 
 * Numeric builtins add logarithms, radian trigonometry with optional inverse mode, `atan2`-style angles, named constants, clamping, and context-local seeded random streams. Integer-only extrema keep exact 64-bit results; invalid random calls do not advance the generator.
 

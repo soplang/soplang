@@ -117,6 +117,15 @@ fn expect_text_contents(value: &Value) -> Result<String, SoplangError> {
     Ok(value_to_string(value))
 }
 
+fn expect_bytes_contents(value: &Value, name: &str) -> Result<Vec<u8>, SoplangError> {
+    match value {
+        Value::Bytes(bytes) => super::bytes::read(bytes)
+            .map(|data| data.clone())
+            .map_err(|_| err_type(format!("{name} waa inuu helaa baytyo aan la isticmaali karin."))),
+        _ => Err(err_type(format!("{name} waa inuu helaa baytyo."))),
+    }
+}
+
 /// Read an entire UTF-8 text file relative to the process working directory.
 pub fn builtin_akhrifayl(args: Vec<Value>) -> Result<Value, SoplangError> {
     expect_arity(&args, "akhrifayl", 1)?;
@@ -140,6 +149,28 @@ pub fn builtin_kudar_fayl(args: Vec<Value>) -> Result<Value, SoplangError> {
     let path = expect_text_path(&args[0], "kudar_fayl")?;
     let contents = expect_text_contents(&args[1])?;
     super::text_files::write_utf8(&path, &contents, true)?;
+    Ok(Value::Null)
+}
+
+pub fn builtin_akhrif_baytyo(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "akhrif_baytyo", 1)?;
+    let path = expect_text_path(&args[0], "akhrif_baytyo")?;
+    super::binary_files::read_file(&path)
+}
+
+pub fn builtin_qor_baytyo(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "qor_baytyo", 2)?;
+    let path = expect_text_path(&args[0], "qor_baytyo")?;
+    let contents = expect_bytes_contents(&args[1], "qor_baytyo")?;
+    super::binary_files::write_file(&path, &contents, false)?;
+    Ok(Value::Null)
+}
+
+pub fn builtin_kudar_baytyo(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "kudar_baytyo", 2)?;
+    let path = expect_text_path(&args[0], "kudar_baytyo")?;
+    let contents = expect_bytes_contents(&args[1], "kudar_baytyo")?;
+    super::binary_files::write_file(&path, &contents, true)?;
     Ok(Value::Null)
 }
 
@@ -588,6 +619,9 @@ const BUILTINS: &[(&str, super::NativeFn, CallbackArity)] = &[
     ("akhrifayl", builtin_akhrifayl, CallbackArity::range(1, 1)),
     ("qor_fayl", builtin_qor_fayl, CallbackArity::range(2, 2)),
     ("kudar_fayl", builtin_kudar_fayl, CallbackArity::range(2, 2)),
+    ("akhrif_baytyo", builtin_akhrif_baytyo, CallbackArity::range(1, 1)),
+    ("qor_baytyo", builtin_qor_baytyo, CallbackArity::range(2, 2)),
+    ("kudar_baytyo", builtin_kudar_baytyo, CallbackArity::range(2, 2)),
     ("fayl_jiraa", builtin_fayl_jiraa, CallbackArity::range(1, 1)),
     ("fayl_xog", builtin_fayl_xog, CallbackArity::range(1, 1)),
     ("isku_xidh", builtin_isku_xidh, CallbackArity::range(1, usize::MAX)),

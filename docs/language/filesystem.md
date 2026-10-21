@@ -46,5 +46,6 @@ includes:
 | `tir_gal(path)` | List entry names in a directory as a `teed`. |
 | `tirtir_gal(path, qoto_dheer?)` | Remove a directory. Pass `run` as the second argument to remove recursively. |
 
+Whole-file [binary reads and writes](binary-files.md) are available separately.
 Cross-filesystem moves, symbolic-link policies, and streaming handles remain
 later 3.3 work. See [ROADMAP.md](../../ROADMAP.md).
