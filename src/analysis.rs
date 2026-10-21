@@ -4,7 +4,7 @@ use crate::{
     frontend::{self, Stmt},
     semantic::{analyze_with_options, AnalyzeOptions, SymbolTable},
 };
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::path::{Component, Path, PathBuf};
 
 pub mod index;
@@ -14,6 +14,7 @@ pub struct SourceFile {
     pub path: PathBuf,
     pub text: String,
     pub statements: Vec<Stmt>,
+    pub imports: Vec<(frontend::ast::ImportSpec, PathBuf)>,
 }
 pub struct Analysis {
     pub files: Vec<SourceFile>,
@@ -65,150 +66,172 @@ pub fn check_source(
     load: &dyn Fn(&Path) -> Result<String, String>,
     cancelled: &dyn Fn() -> bool,
 ) -> Analysis {
-    struct Loader<'a> {
-        files: Vec<SourceFile>,
-        seen: HashSet<PathBuf>,
-        bytes: usize,
-        limits: Limits,
-        load: &'a dyn Fn(&Path) -> Result<String, String>,
-        cancelled: &'a dyn Fn() -> bool,
-    }
-    impl Loader<'_> {
-        fn one(
-            &mut self,
-            source: &str,
-            path: &Path,
-            depth: usize,
-        ) -> Result<Vec<Stmt>, SoplangError> {
-            let path = source_identity(path);
-            if !self.seen.insert(path.clone()) {
-                return Ok(vec![]);
-            }
-            self.bytes += source.len();
-            if (self.cancelled)()
-                || source.len() > self.limits.max_file_bytes
-                || self.bytes > self.limits.max_total_bytes
-                || self.seen.len() > self.limits.max_files
-                || depth > self.limits.max_depth
-            {
-                return Err(import_error_ex(
-                    "Analysis limit reached or request cancelled",
-                    1,
-                    1,
-                    ErrorMeta::default()
-                        .with_code("EDITOR_LIMIT")
-                        .with_file(path),
-                ));
-            }
-            let tokens = frontend::Lexer::new(source).tokenize();
-            if let Ok(tokens) = &tokens {
-                let mut nesting = 0usize;
-                let mut operators = 0usize;
-                for token in tokens {
-                    match token.kind {
-                        frontend::TokenType::LBrace
-                        | frontend::TokenType::LBracket
-                        | frontend::TokenType::LParen => nesting += 1,
-                        frontend::TokenType::RBrace
-                        | frontend::TokenType::RBracket
-                        | frontend::TokenType::RParen => {
-                            nesting = nesting.saturating_sub(1);
-                            operators = 0;
-                        }
-                        frontend::TokenType::Plus
-                        | frontend::TokenType::Minus
-                        | frontend::TokenType::Not
-                        | frontend::TokenType::Star
-                        | frontend::TokenType::Slash
-                        | frontend::TokenType::And
-                        | frontend::TokenType::Or => operators += 1,
-                        frontend::TokenType::Assign
-                        | frontend::TokenType::Comma
-                        | frontend::TokenType::Semicolon => operators = 0,
-                        _ => (),
-                    }
-                    if nesting > 128 || operators > 512 || tokens.len() > 100_000 {
-                        return Err(import_error_ex(
-                            "Source exceeds editor syntax complexity limit",
-                            1,
-                            1,
-                            ErrorMeta::default()
-                                .with_code("EDITOR_LIMIT")
-                                .with_file(path),
-                        ));
-                    }
-                }
-            }
-            let parsed = frontend::parse_source(source, Some(&path));
-            let partial = match &parsed {
-                Ok(stmts) => stmts.clone(),
-                Err(_) => frontend::parse_partial(source, Some(&path)),
-            };
-            self.files.push(SourceFile {
-                path: path.clone(),
-                text: source.to_owned(),
-                statements: partial,
-            });
-            let mut flattened = vec![];
-            for stmt in parsed? {
-                if let Stmt::Import(import) = stmt.unlocated() {
-                    let import_path = import.path.clone();
-                    let alias = import.alias.clone();
-                    let selected = !import.selected.is_empty();
-                    let target =
-                        source_identity(&path.parent().unwrap_or(Path::new(".")).join(import_path));
-                    let result = (self.load)(&target).map_err(|message| {
-                        import_error_ex(message, 0, 0, ErrorMeta::default().with_code("E021"))
-                    });
-                    let result = result.and_then(|text| self.one(&text, &target, depth + 1));
-                    let loaded = result.map_err(|e| {
-                        if let Stmt::Located { span, .. } = &stmt {
-                            span.attach(e)
-                        } else {
-                            e
-                        }
-                    })?;
-                    if alias.is_some() || selected {
-                        flattened.push(stmt);
-                    } else {
-                        flattened.extend(loaded);
-                    }
-                } else {
-                    flattened.push(stmt);
-                }
-            }
-            Ok(flattened)
-        }
-    }
-    let mut loader = Loader {
-        files: vec![],
-        seen: HashSet::new(),
+    let path = source_identity(path);
+    let mut sources = EditorSources {
+        files: Vec::new(),
+        cached: HashMap::new(),
         bytes: 0,
         limits,
         load,
         cancelled,
     };
-    let parsed = loader.one(source, path, 0);
-    let (statements, symbols, error) = match parsed {
-        Ok(stmts) => match analyze_with_options(
-            &stmts,
+    let result = frontend::imports::ImportSources::observe(&mut sources, &path, source, 0)
+        .and_then(|_| frontend::parse_source(source, Some(&path)))
+        .and_then(|statements| {
+            frontend::imports::ImportResolver::default().resolve_using(
+                statements,
+                Some(&path),
+                &mut sources,
+            )
+        });
+    let (statements, symbols, error) = match result {
+        Ok(statements) => match analyze_with_options(
+            &statements,
             AnalyzeOptions {
                 strict,
                 repl: false,
             },
         ) {
-            Ok(sym) => (stmts, Some(sym), None),
-            Err(error) => (stmts, None, Some(error)),
+            Ok(symbols) => (statements, Some(symbols), None),
+            Err(error) => (statements, None, Some(error)),
         },
-        Err(error) => (vec![], None, Some(error)),
+        Err(error) => (Vec::new(), None, Some(error)),
     };
     Analysis {
-        files: loader.files,
+        files: sources.files,
         statements,
         symbols,
         error,
     }
 }
+
+struct EditorSources<'a> {
+    files: Vec<SourceFile>,
+    cached: HashMap<PathBuf, Result<String, String>>,
+    bytes: usize,
+    limits: Limits,
+    load: &'a dyn Fn(&Path) -> Result<String, String>,
+    cancelled: &'a dyn Fn() -> bool,
+}
+
+impl EditorSources<'_> {
+    fn contents(&mut self, path: &Path) -> Result<String, String> {
+        self.cached
+            .entry(source_identity(path))
+            .or_insert_with(|| (self.load)(path))
+            .clone()
+    }
+
+    fn limited(&self, path: &Path) -> SoplangError {
+        import_error_ex(
+            "Falanqayntu waxay gaadhay xadka ama waa la joojiyey.",
+            1,
+            1,
+            ErrorMeta::default()
+                .with_code("EDITOR_LIMIT")
+                .with_file(path.to_path_buf()),
+        )
+    }
+}
+
+impl frontend::imports::ImportSources for EditorSources<'_> {
+    fn read_only(&self) -> bool {
+        true
+    }
+
+    fn read(&mut self, path: &Path) -> Result<String, SoplangError> {
+        if (self.cancelled)() {
+            return Err(self.limited(path));
+        }
+        self.contents(path).map_err(|message| {
+            import_error_ex(
+                format!("Faylka '{}' lama akhriyi karo.", path.display()),
+                0,
+                0,
+                ErrorMeta::default().with_code("E021").with_details(message),
+            )
+        })
+    }
+
+    fn exists(&mut self, path: &Path) -> bool {
+        if (self.cancelled)() {
+            return false;
+        }
+        path.is_file() || self.contents(path).is_ok()
+    }
+
+    fn observe(&mut self, path: &Path, source: &str, depth: usize) -> Result<(), SoplangError> {
+        if (self.cancelled)() {
+            return Err(self.limited(path));
+        }
+        let path = source_identity(path);
+        if self.files.iter().any(|file| file.path == path) {
+            return Ok(());
+        }
+        self.bytes = self.bytes.saturating_add(source.len());
+        if source.len() > self.limits.max_file_bytes
+            || self.bytes > self.limits.max_total_bytes
+            || self.files.len() >= self.limits.max_files
+            || depth > self.limits.max_depth
+        {
+            return Err(self.limited(&path));
+        }
+        if let Ok(tokens) = frontend::Lexer::new(source).tokenize() {
+            fn bounded(tokens: &[frontend::Token], total: &mut usize) -> bool {
+                use frontend::TokenType as K;
+                let (mut nesting, mut operators) = (0usize, 0usize);
+                for token in tokens {
+                    *total += 1;
+                    match token.kind {
+                        K::LBrace | K::LBracket | K::LParen => nesting += 1,
+                        K::RBrace | K::RBracket | K::RParen => {
+                            nesting = nesting.saturating_sub(1);
+                            operators = 0;
+                        }
+                        K::Plus | K::Minus | K::Not | K::Star | K::Slash | K::And | K::Or => {
+                            operators += 1
+                        }
+                        K::Assign | K::Comma | K::Semicolon => operators = 0,
+                        _ => {}
+                    }
+                    if nesting > 128 || operators > 512 || *total > 100_000 {
+                        return false;
+                    }
+                    for part in &token.format_parts {
+                        if let frontend::token::FormatPart::Field { tokens, .. } = part {
+                            if !bounded(tokens, total) {
+                                return false;
+                            }
+                        }
+                    }
+                }
+                true
+            }
+            if !bounded(&tokens, &mut 0) {
+                return Err(self.limited(&path));
+            }
+        }
+        let statements = frontend::parse_source(source, Some(&path))
+            .unwrap_or_else(|_| frontend::parse_partial(source, Some(&path)));
+        self.files.push(SourceFile {
+            path,
+            text: source.to_string(),
+            statements,
+            imports: Vec::new(),
+        });
+        Ok(())
+    }
+
+    fn imported(&mut self, from: Option<&Path>, target: &Path, spec: &frontend::ast::ImportSpec) {
+        if let Some(from) = from {
+            let from = source_identity(from);
+            if let Some(file) = self.files.iter_mut().find(|file| file.path == from) {
+                file.imports.push((spec.clone(), source_identity(target)));
+            }
+        }
+    }
+}
+
 /// Read-only filesystem provider with unsaved entry/import overlays.
 pub fn overlay_loader(overlays: &HashMap<PathBuf, String>, path: &Path) -> Result<String, String> {
     let path = source_identity(path);

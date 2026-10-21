@@ -94,7 +94,7 @@ fn check_file(args: &[String]) -> Result<i32, SoplangError> {
         let text = fs::read_to_string(&schema).map_err(|error| tool_error(error.to_string()))?;
         parse_schema(&text).map_err(tool_error)?;
     }
-    let stmts = resolve_imports(parse_source(&text, Some(&path))?, Some(&path))?;
+    let stmts = analysis.statements;
     let (prelude, setups, cleanups, tests) = split_tests(&stmts);
     for (index, _) in tests.iter().enumerate() {
         let program = materialize(&prelude, &setups, &cleanups, &tests, index);

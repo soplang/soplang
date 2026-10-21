@@ -256,6 +256,14 @@ fn transitive_imports_share_one_root_lock_and_reject_conflicting_commits() {
         declaration("base", &base, "v1")
     ));
     assert_eq!(tree.run(&app), "11\n");
+    success(
+        tree.command(&app)
+            .env("PATH", tree.root.join("no-git"))
+            .arg("check")
+            .arg(app.join("main.sop"))
+            .output()
+            .unwrap(),
+    );
     let lock = entries(&app);
     assert_eq!(lock.len(), 2);
     let base_lock = lock
@@ -297,6 +305,70 @@ fn changed_lock_sources_are_rejected_before_trying_another_remote() {
         error.contains("soplang.lock") && !error.contains("Git lama bilaabin"),
         "{error}"
     );
+}
+
+#[test]
+fn check_uses_verified_snapshots_without_fetching_writing_or_executing() {
+    let tree = Tree::new("readonly_check");
+    let origin = repo(&tree.root, "xisaab", 1, "");
+    fs::write(
+        origin.join("lib.sop"),
+        "qor(\"must not execute\")\nhawl value() { celi 1 }\n",
+    )
+    .unwrap();
+    commit(&origin);
+    let app = tree.app(&declaration("xisaab", &origin, "main"));
+    let cold = tree
+        .command(&app)
+        .env("PATH", tree.root.join("no-git"))
+        .arg("check")
+        .arg(app.join("main.sop"))
+        .output()
+        .unwrap();
+    assert!(!cold.status.success());
+    assert!(!app.join("soplang.lock").exists());
+    assert!(!tree.root.join("cache").exists());
+    success(tree.command(&app).arg("--cusbooneysii").output().unwrap());
+    let lock = fs::read(app.join("soplang.lock")).unwrap();
+    let modified = fs::metadata(app.join("soplang.lock"))
+        .unwrap()
+        .modified()
+        .unwrap();
+    fs::rename(&origin, tree.root.join("hidden-origin")).unwrap();
+    let checked = success(
+        tree.command(&app)
+            .env("PATH", tree.root.join("no-git"))
+            .arg("check")
+            .arg(app.join("main.sop"))
+            .output()
+            .unwrap(),
+    );
+    assert!(checked.contains("waa sax"));
+    assert!(!checked.contains("must not execute"));
+    assert_eq!(fs::read(app.join("soplang.lock")).unwrap(), lock);
+    assert_eq!(
+        fs::metadata(app.join("soplang.lock"))
+            .unwrap()
+            .modified()
+            .unwrap(),
+        modified
+    );
+    let cached = tree
+        .root
+        .join("cache")
+        .join(entries(&app)[0]["sumad"].as_str().unwrap())
+        .join("lib.sop");
+    fs::write(&cached, "qor(\"unverified\")").unwrap();
+    let corrupt = tree
+        .command(&app)
+        .env("PATH", tree.root.join("no-git"))
+        .arg("check")
+        .arg(app.join("main.sop"))
+        .output()
+        .unwrap();
+    assert!(!corrupt.status.success());
+    assert!(String::from_utf8_lossy(&corrupt.stderr).contains("E057"));
+    assert_eq!(fs::read_to_string(cached).unwrap(), "qor(\"unverified\")");
 }
 
 #[test]

@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Share import expansion between compilation and source analysis. Support bundled modules, class namespaces and package imports in `check` and editor diagnostics while preserving unsaved overlays, cancellation and read-only verified caches.
+
 - Format source without reconstructing tokens or losing comments, closures, branches, keys or literal contents. Validate output before atomic replacement, preserve file permissions and symbolic links, and refuse to overwrite invalid or read-only source.
 
 - Resolve imported class types in their lexical module, support class reexports, and retain each instance's captured method environment across inheritance, named calls, garbage collection and REPL commands.

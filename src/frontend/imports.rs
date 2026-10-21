@@ -169,25 +169,67 @@ pub(crate) struct ImportResolver {
     class_bindings: ClassBindings,
 }
 
+/// Source access is supplied by the caller. Runtime compilation uses disk;
+/// editor analysis supplies overlays, budgets, cancellation and verified caches.
+pub(crate) trait ImportSources {
+    fn read(&mut self, path: &Path) -> Result<String, SoplangError>;
+    fn observe(&mut self, _path: &Path, _source: &str, _depth: usize) -> Result<(), SoplangError> {
+        Ok(())
+    }
+    fn imported(&mut self, _from: Option<&Path>, _target: &Path, _spec: &super::ast::ImportSpec) {}
+    fn exists(&mut self, path: &Path) -> bool {
+        path.is_file()
+    }
+    fn read_only(&self) -> bool {
+        false
+    }
+    fn project(&self, path: &Path) -> Result<Option<crate::package::Project>, SoplangError> {
+        if self.read_only() {
+            crate::package::resolve_source_readonly(path)
+        } else {
+            crate::package::resolve_source(path)
+        }
+    }
+    fn identity(&self, path: &Path) -> PathBuf {
+        crate::analysis::source_identity(path)
+    }
+}
+
+struct DiskSources;
+impl ImportSources for DiskSources {
+    fn read(&mut self, path: &Path) -> Result<String, SoplangError> {
+        fs::read_to_string(path).map_err(|error| import_read_error(path, &error))
+    }
+}
+
 impl ImportResolver {
     pub(crate) fn resolve(
         &mut self,
         stmts: Vec<Stmt>,
         source_path: Option<&Path>,
     ) -> Result<Vec<Stmt>, SoplangError> {
+        self.resolve_using(stmts, source_path, &mut DiskSources)
+    }
+
+    pub(crate) fn resolve_using(
+        &mut self,
+        stmts: Vec<Stmt>,
+        source_path: Option<&Path>,
+        sources: &mut dyn ImportSources,
+    ) -> Result<Vec<Stmt>, SoplangError> {
         self.flat_seen.clear();
         self.active.clear();
         if let Some(path) = source_path {
             let root = crate::package::find_manifest_dir(path);
             if self.project.as_ref().map(|project| &project.root) != root.as_ref() {
-                self.project = crate::package::resolve_source(path)?;
+                self.project = sources.project(path)?;
             }
         }
-        if let Some(path) = source_path.and_then(|path| path.canonicalize().ok()) {
+        if let Some(path) = source_path.map(|path| sources.identity(path)) {
             self.flat_seen.insert(path.clone());
             self.active.insert(path);
         }
-        let mut body = self.flatten(stmts, source_path)?;
+        let mut body = self.flatten(stmts, source_path, sources)?;
         bind_class_imports(&mut body, &mut self.class_bindings)?;
         self.active.clear();
         let mut result = std::mem::take(&mut self.caches);
@@ -200,6 +242,7 @@ impl ImportResolver {
         &mut self,
         stmts: Vec<Stmt>,
         source_path: Option<&Path>,
+        sources: &mut dyn ImportSources,
     ) -> Result<Vec<Stmt>, SoplangError> {
         let base = source_path
             .and_then(Path::parent)
@@ -209,56 +252,70 @@ impl ImportResolver {
             match stmt {
                 Stmt::Located { span, stmt } if matches!(stmt.unlocated(), Stmt::Import(_)) => {
                     out.extend(
-                        self.flatten(vec![*stmt], source_path)
+                        self.flatten(vec![*stmt], source_path, sources)
                             .map_err(|error| span.attach(error))?,
                     );
                 }
                 Stmt::Import(import) => {
-                    if let Some((key, source)) = standard_import(base, &import.path) {
+                    let standard = standard_import(base, &import.path).filter(|_| {
+                        !sources.exists(&base.join(&import.path))
+                            && !sources.exists(
+                                &base.join(format!("{}.sop", import.path.trim_end_matches(".sop"))),
+                            )
+                    });
+                    if let Some((key, source)) = standard {
+                        sources.imported(source_path, &key, &import);
+
                         if import.alias.is_none() && import.selected.is_empty() {
                             if !self.flat_seen.insert(key.clone()) {
                                 continue;
                             }
-                            let parsed = super::parse_source(source, Some(&key))?;
                             let inserted = self.active.insert(key.clone());
-                            out.extend(self.flatten(parsed, Some(&key))?);
+                            sources.observe(&key, source, self.active.len().saturating_sub(1))?;
+                            let parsed = super::parse_source(source, Some(&key))?;
+                            out.extend(self.flatten(parsed, Some(&key), sources)?);
                             if inserted {
                                 self.active.remove(&key);
                             }
                             continue;
                         }
-                        let module = self.module_from_source(&key, &key, source)?;
+                        let module = self.module_from_source(&key, &key, source, sources)?;
                         self.bind_import(import, &module, &mut out)?;
                         continue;
                     }
                     let path = resolve_import_path_from_root(
                         base,
                         &import.path,
-                        source_path.is_some() || self.project.is_some(),
+                        (source_path.is_some() || self.project.is_some())
+                            && (!sources.read_only() || self.project.is_some()),
                         self.project.as_ref(),
                     )?;
-                    let canon = path
-                        .canonicalize()
-                        .map_err(|error| import_read_error(Path::new(&import.path), &error))?;
+                    let canon = if sources.read_only() {
+                        sources.identity(&path)
+                    } else {
+                        path.canonicalize()
+                            .map_err(|error| import_read_error(Path::new(&import.path), &error))?
+                    };
+                    sources.imported(source_path, &canon, &import);
                     if self.project.is_none() {
-                        self.project = crate::package::resolve_source(&path)?;
+                        self.project = sources.project(&path)?;
                     }
                     if import.alias.is_none() && import.selected.is_empty() {
                         if !self.flat_seen.insert(canon.clone()) {
                             continue;
                         }
-                        let source = fs::read_to_string(&canon)
-                            .map_err(|error| import_read_error(Path::new(&import.path), &error))?;
-                        let parsed = super::parse_source(&source, Some(&path))?;
+                        let source = sources.read(&canon)?;
                         // Preserve flat imports' existing once-per-program behavior.
                         let inserted = self.active.insert(canon.clone());
-                        out.extend(self.flatten(parsed, Some(&path))?);
+                        sources.observe(&canon, &source, self.active.len().saturating_sub(1))?;
+                        let parsed = super::parse_source(&source, Some(&path))?;
+                        out.extend(self.flatten(parsed, Some(&path), sources)?);
                         if inserted {
                             self.active.remove(&canon);
                         }
                         continue;
                     }
-                    let module = self.module(&canon, &path)?;
+                    let module = self.module(&canon, &path, sources)?;
                     self.bind_import(import, &module, &mut out)?;
                 }
                 stmt => out.push(stmt),
@@ -320,9 +377,14 @@ impl ImportResolver {
         Ok(())
     }
 
-    fn module(&mut self, path: &Path, source_path: &Path) -> Result<Module, SoplangError> {
-        let source = fs::read_to_string(path).map_err(|error| import_read_error(path, &error))?;
-        self.module_from_source(path, source_path, &source)
+    fn module(
+        &mut self,
+        path: &Path,
+        source_path: &Path,
+        sources: &mut dyn ImportSources,
+    ) -> Result<Module, SoplangError> {
+        let source = sources.read(path)?;
+        self.module_from_source(path, source_path, &source, sources)
     }
 
     fn module_from_source(
@@ -330,6 +392,7 @@ impl ImportResolver {
         path: &Path,
         source_path: &Path,
         source: &str,
+        sources: &mut dyn ImportSources,
     ) -> Result<Module, SoplangError> {
         if self.active.contains(path) {
             return Err(import_error_ex(
@@ -345,8 +408,9 @@ impl ImportResolver {
         let id = self.next_id;
         self.next_id += 1;
         self.active.insert(path.to_path_buf());
+        sources.observe(path, source, self.active.len().saturating_sub(1))?;
         let parsed = super::parse_source(source, Some(source_path))?;
-        let mut body = self.flatten(parsed, Some(source_path))?;
+        let mut body = self.flatten(parsed, Some(source_path), sources)?;
         bind_class_imports(&mut body, &mut ClassBindings::default())?;
         let public = export_names(&body)?;
         let classes: HashMap<String, String> = body

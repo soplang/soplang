@@ -50,6 +50,13 @@ ran.
 
 ## Editor
 
+`check` and the language server use the same import expansion as run/build,
+including bundled modules, class exports and package namespaces. Analysis reads
+unsaved source overlays, enforces file/depth/size limits, and honors cancellation.
+It does not execute imported statements, download dependencies or rewrite a
+lockfile. Remote dependencies must already have a valid lock and verified cache;
+local path dependencies are analyzed directly.
+
 `editors/vscode` provides TextMate syntax for `.sop`. `soplang lsp` answers
 `initialize`, document open and change, diagnostics, completion, hover,
 definition, references, rename, formatting, semantic tokens, and the code

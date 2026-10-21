@@ -145,12 +145,25 @@ impl Project {
 }
 
 pub(crate) fn resolve_source(source: &Path) -> Result<Option<Project>, SoplangError> {
+    resolve_source_with_mode(source, false)
+}
+
+/// Editor and check commands may inspect verified caches, never acquire code or
+/// rewrite a lockfile as a side effect of reporting diagnostics.
+pub(crate) fn resolve_source_readonly(source: &Path) -> Result<Option<Project>, SoplangError> {
+    resolve_source_with_mode(source, true)
+}
+
+fn resolve_source_with_mode(
+    source: &Path,
+    read_only: bool,
+) -> Result<Option<Project>, SoplangError> {
     let Some(dir) = find_manifest_dir(source) else {
         return Ok(None);
     };
     let path = dir.join(MANIFEST_FILE);
     let text = fs::read_to_string(&path).map_err(|failure| file_read_error(&path, &failure))?;
-    resolve_project(&dir, &text)
+    resolve_project_with_mode(&dir, &text, read_only)
         .map(Some)
         .map_err(|error| attach_document_error(error, &text, &path))
 }
@@ -165,6 +178,14 @@ pub fn load_manifest(dir: &Path, text: &str) -> Result<Manifest, SoplangError> {
 }
 
 fn resolve_project(dir: &Path, text: &str) -> Result<Project, SoplangError> {
+    resolve_project_with_mode(dir, text, false)
+}
+
+fn resolve_project_with_mode(
+    dir: &Path,
+    text: &str,
+    read_only: bool,
+) -> Result<Project, SoplangError> {
     let manifest = parse_manifest(text)?;
     let hints = read_lock_hints(dir)?;
     let root = dir
@@ -181,10 +202,14 @@ fn resolve_project(dir: &Path, text: &str) -> Result<Project, SoplangError> {
         &hints,
         false,
         dir.join(LOCK_FILE).exists(),
+        read_only,
         &mut packages,
     )?;
     verify_lock(dir, &locked)?;
-    if !dir.join(LOCK_FILE).exists() && locked.iter().any(|entry| entry.commit.is_some()) {
+    if !read_only
+        && !dir.join(LOCK_FILE).exists()
+        && locked.iter().any(|entry| entry.commit.is_some())
+    {
         if !cache::create_lock(dir, render_lock(&locked).as_bytes())? {
             verify_lock(dir, &locked)?;
         }
@@ -316,6 +341,7 @@ fn resolve_and_lock(
         hints,
         false,
         false,
+        false,
         &mut HashMap::new(),
     )?;
     Ok(locked)
@@ -330,6 +356,7 @@ fn resolve_dependencies(
     hints: &[LockEntry],
     from_cache: bool,
     locked_mode: bool,
+    read_only: bool,
     graph: &mut HashMap<PathBuf, ResolvedPackage>,
 ) -> Result<(), SoplangError> {
     let canon = dir
@@ -390,6 +417,10 @@ fn resolve_dependencies(
                 }
                 (dir.join(path), None, false, identity.clone())
             }
+            spec if read_only => {
+                let (pin, path) = resolve_cached(&dependency.name, &spec, &identity, hints)?;
+                (path, Some(pin), true, String::new())
+            }
             Spec::Registry(constraint) => {
                 let (pin, path) = resolve_registry(&dependency.name, &constraint, hints)?;
                 (path, Some(pin), true, String::new())
@@ -445,11 +476,63 @@ fn resolve_dependencies(
             hints,
             next_cached,
             locked_mode,
+            read_only,
             graph,
         )?;
     }
     stack.pop();
     Ok(())
+}
+
+fn resolve_cached(
+    name: &str,
+    spec: &Spec,
+    identity: &str,
+    hints: &[LockEntry],
+) -> Result<(LockEntry, PathBuf), SoplangError> {
+    let hint = hints
+        .iter()
+        .find(|hint| hint.name == name && hint.path == identity)
+        .ok_or_else(|| {
+            manifest_error(
+                "Falanqayntu waxay u baahan tahay ku-tiirsanayaal qufulan oo hore loo soo dejiyey.",
+                1,
+            )
+        })?;
+    let mut pin = hint.clone();
+    match spec {
+        Spec::Registry(constraint) => {
+            let (bound, version) = parse_constraint(constraint)?;
+            let actual = parse_package_version(&pin.version)
+                .ok_or_else(|| manifest_error("Nusxada qufulku ma saxna.", 1))?;
+            if !allows(bound, &version, &actual) {
+                return Err(manifest_error(
+                    "Qufulku ma waafaqsana nusxada ku-tiirsiga.",
+                    1,
+                ));
+            }
+        }
+        Spec::Git(source) => {
+            if pin.commit.is_none() || !pin.selectors.contains(&source.revision) {
+                return Err(manifest_error("Qufulku ma waafaqsana tixraaca Git.", 1));
+            }
+            pin.selectors = vec![source.revision.clone()];
+        }
+        Spec::Archive(_) => {}
+        Spec::Path(_) => unreachable!("local dependencies do not use the remote cache"),
+    }
+    let sum = pin
+        .sumad
+        .as_ref()
+        .ok_or_else(|| manifest_error("Qufulka waxaa ka maqan summadda xaqiijinta.", 1))?;
+    let path = cache_root()?.join(sum);
+    if hash_dir(&path).ok().as_ref() != Some(sum) {
+        return Err(manifest_error(
+            "Kaydka ku-tiirsiga lama xaqiijin; soo deji ku-tiirsanayaasha ka hor falanqaynta.",
+            1,
+        ));
+    }
+    Ok((pin, path))
 }
 
 fn remember(locked: &mut Vec<LockEntry>, entry: LockEntry) -> Result<(), SoplangError> {
