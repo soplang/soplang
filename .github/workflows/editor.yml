@@ -1,0 +1,67 @@
+name: Editor extension
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'editors/vscode/**'
+      - 'src/analysis/**'
+      - 'src/analysis.rs'
+      - 'src/cli/lsp/**'
+      - 'src/cli/lsp.rs'
+      - '.github/workflows/editor.yml'
+  pull_request:
+    paths:
+      - 'editors/vscode/**'
+      - 'src/analysis/**'
+      - 'src/analysis.rs'
+      - 'src/cli/lsp/**'
+      - 'src/cli/lsp.rs'
+      - '.github/workflows/editor.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: editors/vscode
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: editors/vscode/package-lock.json
+      - run: npm ci --ignore-scripts
+      - run: npm run check
+      - run: npm run package
+      - uses: actions/upload-artifact@v4
+        with:
+          name: soplang-editor-${{ matrix.os }}
+          path: editors/vscode/soplang.vsix
+
+  integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.94.0
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo build --locked --bin soplang
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: editors/vscode/package-lock.json
+      - run: npm ci --ignore-scripts
+        working-directory: editors/vscode
+      - run: npm run test:integration
+        working-directory: editors/vscode

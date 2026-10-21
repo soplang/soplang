@@ -1,0 +1,5 @@
+test/**
+package-lock.json
+.gitignore
+*.vsix
+.vscode-test/**

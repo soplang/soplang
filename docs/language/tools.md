@@ -76,7 +76,15 @@ It does not execute imported statements, download dependencies or rewrite a
 lockfile. Remote dependencies must already have a valid lock and verified cache;
 local path dependencies are analyzed directly.
 
-`editors/vscode` provides TextMate syntax for `.sop`. `soplang lsp` answers
+`editors/vscode` contains a VS Code extension that launches the configured
+`soplang lsp` executable over stdio, supports untitled buffers, restarts on
+configuration changes, and stops on deactivation. Untrusted workspaces retain
+syntax highlighting and snippets; starting the executable requires trust.
+Its grammar follows the compiler's comments, literal prefixes, triple strings
+and interpolation. See the [extension README](../../editors/vscode/README.md)
+for executable settings, packaging and integration tests.
+
+`soplang lsp` answers
 `initialize`, document open and change, diagnostics, completion, hover,
 definition, references, rename, formatting, semantic tokens, and the code
 action `Hagaaji qaabka`.

@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Connect the VS Code extension to the native language server with executable settings, restart/shutdown handling and workspace trust. Correct comments and string highlighting, add compiler-checked snippets, and verify the real extension host and VSIX packaging.
+
 - Secure and bound web sessions, add rotation/logout and cookie options, preserve form/upload contents, and enforce absolute TCP/TLS exchange deadlines. Add the bundled web test client and structured HTTP error handlers. Keep private function signatures from changing caller builtin contracts.
 
 - Require expected test errors to originate in the test body and optionally match an error code. Discover test suites, bound parallel workers, preserve structured failure diagnostics, and report per-file executable coverage. Own coverage and profiles per runtime, keep loop hit storage bounded, and separate compilation from per-function execution timing.

@@ -1,0 +1,90 @@
+{
+  "Function": {
+    "prefix": "hawl",
+    "body": [
+      "hawl ${1:magac}(${2}) {",
+      "    ${0}",
+      "}"
+    ],
+    "description": "Define a function"
+  },
+  "Typed function": {
+    "prefix": "hawlnooc",
+    "body": [
+      "hawl ${1:magac}(${2:abn n}): ${3:abn} {",
+      "    celi ${0:n}",
+      "}"
+    ],
+    "description": "Define a function with argument and return types"
+  },
+  "Class": {
+    "prefix": "qaab",
+    "body": [
+      "qaab ${1:Qof} {",
+      "    hawl dhis(${2:magac}) {",
+      "        nafta.${2:magac} = ${2:magac}",
+      "    }",
+      "    ${0}",
+      "}"
+    ],
+    "description": "Define a class with a constructor"
+  },
+  "Conditional": {
+    "prefix": "haddii",
+    "body": [
+      "haddii (${1:run}) {",
+      "    ${2}",
+      "} kale {",
+      "    ${0}",
+      "}"
+    ],
+    "description": "Conditional branches"
+  },
+  "Loop": {
+    "prefix": "kuceli",
+    "body": [
+      "kuceli (${1:shay} ku ${2:ururin}) {",
+      "    ${0}",
+      "}"
+    ],
+    "description": "Iterate a collection"
+  },
+  "Error cleanup": {
+    "prefix": "tijaabi",
+    "body": [
+      "tijaabi {",
+      "    ${1}",
+      "} qabo (${2:fariin}, ${3:xog}) {",
+      "    ${4}",
+      "} dhammee {",
+      "    ${0}",
+      "}"
+    ],
+    "description": "Catch structured errors and guarantee cleanup"
+  },
+  "Test": {
+    "prefix": "tijaabo",
+    "body": [
+      "tijaabo \"${1:magac}\" {",
+      "    hubi(${0:run})",
+      "}"
+    ],
+    "description": "Define a native test"
+  },
+  "Expected error test": {
+    "prefix": "tijaaboqalad",
+    "body": [
+      "tijaabo \"${1:magac}\" qalad(\"${2:E030}\") {",
+      "    ${0}",
+      "}"
+    ],
+    "description": "Test a specific runtime error"
+  },
+  "Module import": {
+    "prefix": "keen",
+    "body": [
+      "keen \"${1:module.sop}\" sida ${0:m}"
+    ],
+    "description": "Import a module namespace"
+  }
+}
