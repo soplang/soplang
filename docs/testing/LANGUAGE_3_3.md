@@ -45,3 +45,12 @@ cargo test --locked --test json_tests --test llvm_ir_tests
 The JSON suite covers value mapping, sorted object keys, a preserved `__class__`
 field that stays a plain object, catchable parse and serialization failures, and
 LLVM execution at optimization levels 0 and 2.
+
+## CSV
+
+```sh
+cargo test --locked --test csv_tests --test llvm_ir_tests
+```
+
+The CSV suite covers quoted fields, numeric cells, a trailing newline, catchable
+parse and type failures, and LLVM execution at optimization levels 0 and 2.

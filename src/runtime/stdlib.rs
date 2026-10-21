@@ -187,6 +187,19 @@ pub fn builtin_json_qor(args: Vec<Value>) -> Result<Value, SoplangError> {
     Ok(Value::Str(super::json::stringify(&args[0])?))
 }
 
+pub fn builtin_csv_akhris(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "csv_akhris", 1)?;
+    let Value::Str(text) = &args[0] else {
+        return Err(err_type("csv_akhris() waa inuu helaa qoraal."));
+    };
+    super::csv::parse(text)
+}
+
+pub fn builtin_csv_qor(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "csv_qor", 1)?;
+    Ok(Value::Str(super::csv::generate(&args[0])?))
+}
+
 fn optional_truthy(args: &[Value], index: usize) -> bool {
     args.get(index).is_some_and(|value| value.is_truthy())
 }
@@ -637,6 +650,8 @@ const BUILTINS: &[(&str, super::NativeFn, CallbackArity)] = &[
     ("kudar_baytyo", builtin_kudar_baytyo, CallbackArity::range(2, 2)),
     ("json_akhris", builtin_json_akhris, CallbackArity::range(1, 1)),
     ("json_qor", builtin_json_qor, CallbackArity::range(1, 1)),
+    ("csv_akhris", builtin_csv_akhris, CallbackArity::range(1, 1)),
+    ("csv_qor", builtin_csv_qor, CallbackArity::range(1, 1)),
     ("fayl_jiraa", builtin_fayl_jiraa, CallbackArity::range(1, 1)),
     ("fayl_xog", builtin_fayl_xog, CallbackArity::range(1, 1)),
     ("isku_xidh", builtin_isku_xidh, CallbackArity::range(1, usize::MAX)),

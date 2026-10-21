@@ -20,6 +20,7 @@ mod text_files;
 mod binary_files;
 mod filesystem;
 mod json;
+mod csv;
 pub mod stdlib;
 pub mod value;
 

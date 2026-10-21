@@ -251,7 +251,7 @@ wait for handles, streaming, or file watching.
 ### Structured data and utilities
 
 1. JSON parsing and generation, available before JSON HTTP handlers — implemented as `json_akhris` and `json_qor`; see [JSON](docs/language/json.md).
-2. CSV reading and writing.
+2. CSV reading and writing — implemented as `csv_akhris` and `csv_qor`; see [CSV](docs/language/csv.md).
 3. URL encoding and decoding.
 4. Base64 encoding and decoding.
 5. Regular expressions.

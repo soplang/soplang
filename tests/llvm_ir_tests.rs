@@ -936,6 +936,22 @@ qor("llvm json ok")
     }
 }
 
+#[test]
+fn test_llvm_csv() {
+    let source = r#"
+hawl hubi(v, name) { haddii (!v) { tuur name } }
+door rows = csv_akhris("a,b")
+hubi(rows[0][0] == "a" && csv_qor(rows) == "a,b", "csv")
+qor("llvm csv ok")
+"#;
+    for opt in [0, 2] {
+        assert_eq!(
+            run_llvm_with_opt(&format!("llvm_csv_{opt}"), source, opt),
+            "llvm csv ok\n"
+        );
+    }
+}
+
 fn run_llvm_with_opt_in_dir(name: &str, source: &str, opt: u8, dir: &Path) -> String {
     let stmts = soplang::frontend::parse_source(source, None).expect("parse");
     let sym = analyze(&stmts).expect("analyze");

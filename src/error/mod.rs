@@ -45,6 +45,7 @@ pub mod codes {
     pub const E043_COLLECTION_OPERATION: &str = "E043";
     pub const E044_NUMERIC: &str = "E044";
     pub const E045_JSON: &str = "E045";
+    pub const E046_CSV: &str = "E046";
 }
 
 /// A compiled function and its caller's source location.

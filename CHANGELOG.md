@@ -18,6 +18,8 @@ All notable changes to this project will be documented in this file.
 
 * JSON builtins `json_akhris` and `json_qor` parse and generate JSON. Object keys, including `__class__`, stay plain fields, and conversion failures use `E045`.
 
+* CSV builtins `csv_akhris` and `csv_qor` read and write rows of text fields, including quoted commas and line breaks. Conversion failures use `E046`.
+
 
 * Numeric builtins add logarithms, radian trigonometry with optional inverse mode, `atan2`-style angles, named constants, clamping, and context-local seeded random streams. Integer-only extrema keep exact 64-bit results; invalid random calls do not advance the generator.
 
