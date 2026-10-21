@@ -125,3 +125,13 @@ The HTTP suite uses a local server. It covers GET headers, a JSON POST, a
 redirect that is not followed, the response-size limit, a short timeout,
 connection failure, a rejected method, an `https` URL that fails before a
 public network request, and LLVM execution.
+
+## HTTP server
+
+```sh
+cargo test --locked --test http_server_tests
+```
+
+The server suite drives the same program through JIT and LLVM. It checks path
+parameters, query values, a JSON post, a 404, a handler failure returned as
+status 500, a redirect header, and shutdown of the listener.

@@ -34,6 +34,8 @@ All notable changes to this project will be documented in this file.
 
 * `http_codso` sends GET, POST, PUT, PATCH, and DELETE requests and returns status, headers, text, bytes, and JSON. `https` uses the operating system's trusted certificates. Network and protocol failures use `E053`.
 
+* `server_fur`, `server_aqbal`, and `server_xidh` serve one HTTP request at a time, including path parameters, JSON bodies, 404 responses, and handler failures as status 500. Bind and shutdown failures use `E054`.
+
 
 * Numeric builtins add logarithms, radian trigonometry with optional inverse mode, `atan2`-style angles, named constants, clamping, and context-local seeded random streams. Integer-only extrema keep exact 64-bit results; invalid random calls do not advance the generator.
 

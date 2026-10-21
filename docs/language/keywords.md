@@ -274,6 +274,9 @@ these explanations do not establish a historical abbreviation or SLS approval.
 | `deegaan_tirtir` | Remove an environment variable   | `unsetenv`           | `deegaan_tirtir("MODE")`                   |
 | `fuli` | Run a program and capture its result   | `subprocess`         | `fuli("/bin/echo", ["Salaan"])`            |
 | `http_codso` | Send an HTTP request                | `fetch`              | `http_codso("GET", url)`                   |
+| `server_fur` | Bind an HTTP server                 | (listen)             | `server_fur("127.0.0.1", 8080)`            |
+| `server_aqbal` | Handle one HTTP request           | (accept)             | `server_aqbal(server, routes)`             |
+| `server_xidh` | Close an HTTP server               | (close)              | `server_xidh(server)`                      |
 | `fayl_jiraa` | Test whether a path exists              | (path exists)        | `haddii (fayl_jiraa("magac.txt")) {...}`   |
 | `fayl_xog` | Query path metadata                     | (path stat)          | `door x = fayl_xog("magac.txt")`           |
 | `isku_xidh` | Join path segments                     | (path join)          | `isku_xidh("data", "magac.txt")`           |

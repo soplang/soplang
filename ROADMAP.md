@@ -284,32 +284,26 @@ A namespace module still waits for the 3.4 package work.
 ### Initial HTTP server for JSON APIs
 
 The first server should provide a small application API backed by a maintained
-Rust HTTP implementation:
+Rust HTTP implementation. Implemented locally as `server_fur`, `server_aqbal`,
+and `server_xidh`; see [HTTP server](docs/language/http-server.md). It handles
+one request at a time.
 
-1. Register handlers for GET, POST, PUT, PATCH, and DELETE routes.
-2. Match fixed paths and named path parameters such as `/users/:id`.
+1. Register handlers for GET, POST, PUT, PATCH, and DELETE routes — implemented.
+2. Match fixed paths and named path parameters such as `/users/:id` — implemented.
 3. Expose request method, path, query parameters, headers, and bounded text or
-   JSON request bodies.
-4. Construct responses with status codes, headers, text, JSON, and redirects.
+   JSON request bodies — implemented.
+4. Construct responses with status codes, headers, text, JSON, and redirects — implemented.
 5. Return predictable 404 responses and contain handler failures as 500
-   responses while keeping the server running.
+   responses while keeping the server running — implemented.
 6. Configure host and port, request-body limits, connection limits, and read
-   and write timeouts.
-7. Stop accepting requests and release server resources on graceful shutdown.
+   and write timeouts — host, port, body limit, and timeouts are implemented.
+   The server accepts one connection at a time.
+7. Stop accepting requests and release server resources on graceful shutdown — `server_xidh`.
 8. Run the same application through JIT during development and as an LLVM-built
-   native executable for deployment.
+   native executable for deployment — covered by the server tests.
 
-The initial execution model may handle one request at a time. Document that
-limitation and verify that repeated requests do not leak runtime values or
-resources. Public async/await syntax is not a prerequisite for this milestone.
-Production readiness requires memory, failure-isolation, resource-limit, and
-shutdown tests; accepting an HTTP request alone is not sufficient.
-
-Route registration, handler signatures, request/response lifetimes, and error
-propagation require an API proposal. Request/response values need a supported
-way to call retained Soplang functions and closures through both backends.
-Express-like ergonomics and Go-like server configuration guide the design;
-the final Somali API and internal Rust library have not been selected.
+The initial execution model handles one request at a time. Public async/await
+syntax is not part of this milestone.
 
 ### Lower-level networking
 

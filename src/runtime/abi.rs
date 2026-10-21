@@ -2091,6 +2091,14 @@ pub(super) fn collection_callback(
     Ok(callee)
 }
 
+pub(super) fn invoke(callee: &Value, args: &[Value]) -> Result<Value, SoplangError> {
+    let result = call_value(callee, args);
+    if result.is_err() {
+        let _ = take_pending_error();
+    }
+    result
+}
+
 pub(super) fn call_collection_callback(
     callee: SoplangValue,
     args: &[SoplangValue],

@@ -384,6 +384,27 @@ pub fn builtin_http_codso(args: Vec<Value>) -> Result<Value, SoplangError> {
     super::http::request(method, url, args.get(2))
 }
 
+pub fn builtin_server_fur(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "server_fur", 2)?;
+    let Value::Str(host) = &args[0] else {
+        return Err(err_type("Martigeliyaha server_fur() waa inuu noqdaa qoraal."));
+    };
+    let Value::Int(port) = args[1] else {
+        return Err(err_type("Dekedda server_fur() waa inay noqotaa abn."));
+    };
+    super::http_server::open(host, port)
+}
+
+pub fn builtin_server_aqbal(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity_range(&args, "server_aqbal", 2, 3)?;
+    super::http_server::accept(&args[0], &args[1], args.get(2))
+}
+
+pub fn builtin_server_xidh(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "server_xidh", 1)?;
+    super::http_server::close(&args[0])
+}
+
 fn optional_truthy(args: &[Value], index: usize) -> bool {
     args.get(index).is_some_and(|value| value.is_truthy())
 }
@@ -855,6 +876,9 @@ const BUILTINS: &[(&str, super::NativeFn, CallbackArity)] = &[
     ("deegaan_tirtir", builtin_deegaan_tirtir, CallbackArity::range(1, 1)),
     ("fuli", builtin_fuli, CallbackArity::range(1, 2)),
     ("http_codso", builtin_http_codso, CallbackArity::range(2, 3)),
+    ("server_fur", builtin_server_fur, CallbackArity::range(2, 2)),
+    ("server_aqbal", builtin_server_aqbal, CallbackArity::range(2, 3)),
+    ("server_xidh", builtin_server_xidh, CallbackArity::range(1, 1)),
     ("fayl_jiraa", builtin_fayl_jiraa, CallbackArity::range(1, 1)),
     ("fayl_xog", builtin_fayl_xog, CallbackArity::range(1, 1)),
     ("isku_xidh", builtin_isku_xidh, CallbackArity::range(1, usize::MAX)),

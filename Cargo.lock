@@ -1259,6 +1259,7 @@ dependencies = [
  "cranelift-module",
  "cranelift-native",
  "criterion",
+ "httparse",
  "regex",
  "rustyline",
  "thiserror 1.0.69",

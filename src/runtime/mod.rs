@@ -27,6 +27,7 @@ mod patterns;
 mod time;
 mod process;
 mod http;
+mod http_server;
 pub mod stdlib;
 pub mod value;
 
