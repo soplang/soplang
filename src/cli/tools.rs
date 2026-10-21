@@ -3,23 +3,22 @@
 use std::fs;
 use std::io::Write;
 use std::path::{Path, PathBuf};
-use std::process::{Command, Stdio};
-use std::time::Instant;
 
+use super::testing::{materialize, split_tests};
 use crate::data::parse_schema;
 use crate::error::{runtime_error_ex, ErrorMeta, SoplangError};
 use crate::frontend::ast::Stmt;
 use crate::frontend::imports::resolve_imports;
 use crate::frontend::parse_source;
 use crate::package::{parse_manifest, MANIFEST_FILE};
-use crate::{run_source, run_statements};
+use crate::run_source;
 
 pub fn dispatch(command: &str) -> Result<i32, SoplangError> {
     let args: Vec<String> = std::env::args().skip(2).collect();
     match command {
         "fmt" => format_file(&args),
         "check" => check_file(&args),
-        "test" => test_file(&args),
+        "test" => super::testing::run(&args),
         "doc" => document_file(&args),
         "debug" => {
             let path = required_file(&args, "soplang debug FAYLKA")?;
@@ -110,151 +109,6 @@ fn check_file(args: &[String]) -> Result<i32, SoplangError> {
     Ok(0)
 }
 
-fn test_file(args: &[String]) -> Result<i32, SoplangError> {
-    let filter = option(args, "--shaandhe");
-    let index = option(args, "--lambarka").and_then(|value| value.parse::<usize>().ok());
-    let parallel = flag(args, "--wada");
-    let cover = flag(args, "--dabool");
-    let path = positional_skip(args, &["--shaandhe", "--lambarka"]).ok_or_else(|| {
-        tool_error("Adeegsiga: soplang test FAYLKA [--shaandhe MAGAC] [--wada] [--dabool]")
-    })?;
-    let path = PathBuf::from(path);
-    let text = fs::read_to_string(&path).map_err(|error| tool_error(error.to_string()))?;
-    let stmts = resolve_imports(parse_source(&text, Some(&path))?, Some(&path))?;
-    let (prelude, setups, cleanups, tests) = split_tests(&stmts);
-    let mut selected: Vec<usize> = tests
-        .iter()
-        .enumerate()
-        .filter(|(_, test)| {
-            filter
-                .as_ref()
-                .is_none_or(|filter| test.name.contains(filter))
-        })
-        .map(|(index, _)| index)
-        .collect();
-    if let Some(index) = index {
-        if index >= tests.len() {
-            return Err(tool_error("Lambarka tijaabada ma jiro."));
-        }
-        selected = vec![index];
-    }
-    if selected.is_empty() {
-        println!("Tijaabo lama helin.");
-        return Ok(0);
-    }
-    if parallel && selected.len() > 1 && index.is_none() {
-        return run_parallel(&path, &selected, cover);
-    }
-    if cover {
-        std::env::set_var("SOPLANG_DABOOL", "1");
-    }
-    let total = selected.len();
-    let mut failed = 0usize;
-    let mut covered = Vec::new();
-    for offset in selected {
-        let program = materialize(&prelude, &setups, &cleanups, &tests, offset);
-        if cover {
-            crate::runtime::clear_coverage();
-        }
-        let result = run_statements(&program, false);
-        if cover {
-            covered.extend(crate::runtime::coverage_lines());
-        }
-        let test = &tests[offset];
-        let passed = match (&result, test.expect_error) {
-            (Ok(()), false) | (Err(_), true) => true,
-            (Ok(()), true) => false,
-            (Err(_), false) => false,
-        };
-        if passed {
-            println!("waa: {}", test.name);
-        } else {
-            failed += 1;
-            let detail = match result {
-                Err(error) => error.message().to_string(),
-                Ok(()) => "khalad ayaa la filayay.".into(),
-            };
-            println!("fashil: {}: {detail}", test.name);
-        }
-    }
-    if cover {
-        covered.sort_unstable();
-        covered.dedup();
-        for line in &covered {
-            eprintln!("dabool {line}");
-        }
-        println!(
-            "dabool: {}",
-            covered
-                .iter()
-                .map(|line| line.to_string())
-                .collect::<Vec<_>>()
-                .join(", ")
-        );
-    }
-    println!("{} waa, {} fashil.", total - failed, failed);
-    Ok(i32::from(failed > 0))
-}
-
-fn run_parallel(path: &Path, selected: &[usize], cover: bool) -> Result<i32, SoplangError> {
-    let exe = std::env::current_exe().map_err(|error| tool_error(error.to_string()))?;
-    let mut children = Vec::new();
-    for index in selected {
-        let mut command = Command::new(&exe);
-        command
-            .arg("test")
-            .arg(path)
-            .arg("--lambarka")
-            .arg(index.to_string())
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped());
-        if cover {
-            command.arg("--dabool").env("SOPLANG_DABOOL", "1");
-        }
-        children.push(
-            command
-                .spawn()
-                .map_err(|error| tool_error(error.to_string()))?,
-        );
-    }
-    let total = children.len();
-    let mut failed = 0;
-    let mut covered = Vec::new();
-    for child in children {
-        let output = child
-            .wait_with_output()
-            .map_err(|error| tool_error(error.to_string()))?;
-        print!("{}", String::from_utf8_lossy(&output.stdout));
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        for line in stderr.lines() {
-            if let Some(number) = line.strip_prefix("dabool ") {
-                if let Ok(number) = number.parse::<usize>() {
-                    covered.push(number);
-                }
-            } else if !line.is_empty() {
-                eprint!("{line}\n");
-            }
-        }
-        if !output.status.success() {
-            failed += 1;
-        }
-    }
-    if cover {
-        covered.sort_unstable();
-        covered.dedup();
-        println!(
-            "dabool: {}",
-            covered
-                .iter()
-                .map(|line| line.to_string())
-                .collect::<Vec<_>>()
-                .join(", ")
-        );
-    }
-    println!("{} waa, {} fashil.", total - failed, failed);
-    Ok(i32::from(failed > 0))
-}
-
 fn document_file(args: &[String]) -> Result<i32, SoplangError> {
     let write = option(args, "--qor");
     let path = positional_skip(args, &["--qor"])
@@ -309,17 +163,35 @@ fn document_stmt(stmt: &Stmt, out: &mut String, level: usize) {
 }
 
 fn profile_file(args: &[String]) -> Result<i32, SoplangError> {
-    let path = required_file(args, "soplang profile FAYLKA")?;
-    crate::runtime::set_profile(true);
-    let started = Instant::now();
-    let result = run_path(&path, false);
-    let elapsed = started.elapsed().as_secs_f64();
-    for (name, count) in crate::runtime::profile_counts() {
-        println!("{count}\t{name}");
+    if args.len() != 1 || args[0].starts_with('-') {
+        return Err(tool_error("Adeegsiga: soplang profile FAYLKA"));
     }
-    println!("waqti\t{elapsed}");
-    result?;
-    Ok(0)
+    let path = PathBuf::from(&args[0]);
+    crate::package::load_beside_source(&path)?;
+    let text =
+        fs::read_to_string(&path).map_err(|error| crate::error::file_read_error(&path, &error))?;
+    let stmts = resolve_imports(parse_source(&text, Some(&path))?, Some(&path))?;
+    let outcome = crate::run_statements_report(
+        &stmts,
+        false,
+        crate::ExecutionOptions {
+            profile: true,
+            coverage: false,
+        },
+    )?;
+    println!("wicitaanno\tguud_ilbiriqsi\tgaar_ilbiriqsi\thawl");
+    for (name, row) in &outcome.report.profile {
+        println!(
+            "{}\t{:.9}\t{:.9}\t{}",
+            row.calls,
+            row.inclusive.as_secs_f64(),
+            row.exclusive.as_secs_f64(),
+            name
+        );
+    }
+    println!("ururin\t{:.9}", outcome.report.compile_time.as_secs_f64());
+    println!("waqti\t{:.9}", outcome.report.execution_time.as_secs_f64());
+    outcome.error.map_or(Ok(0), Err)
 }
 
 fn run_project(args: &[String]) -> Result<i32, SoplangError> {
@@ -390,72 +262,6 @@ fn project_root(start: &Path) -> Result<PathBuf, SoplangError> {
         }
     }
     Err(tool_error("soplang.toml lama helin."))
-}
-
-#[derive(Clone)]
-struct TestCase {
-    name: String,
-    expect_error: bool,
-    body: Vec<Stmt>,
-}
-
-fn split_tests(stmts: &[Stmt]) -> (Vec<Stmt>, Vec<Vec<Stmt>>, Vec<Vec<Stmt>>, Vec<TestCase>) {
-    let mut prelude = Vec::new();
-    let mut setups = Vec::new();
-    let mut cleanups = Vec::new();
-    let mut tests = Vec::new();
-    for stmt in stmts {
-        match stmt.unlocated() {
-            Stmt::Test {
-                name,
-                expect_error,
-                body,
-            } => tests.push(TestCase {
-                name: name.clone(),
-                expect_error: *expect_error,
-                body: body.clone(),
-            }),
-            Stmt::Fixture { setup, body } => {
-                if *setup {
-                    setups.push(body.clone());
-                } else {
-                    cleanups.push(body.clone());
-                }
-            }
-            _ => prelude.push(stmt.clone()),
-        }
-    }
-    (prelude, setups, cleanups, tests)
-}
-
-fn materialize(
-    prelude: &[Stmt],
-    setups: &[Vec<Stmt>],
-    cleanups: &[Vec<Stmt>],
-    tests: &[TestCase],
-    index: usize,
-) -> Vec<Stmt> {
-    let mut program = prelude.to_vec();
-    let mut body = Vec::new();
-    for setup in setups {
-        body.extend(setup.clone());
-    }
-    body.extend(tests[index].body.clone());
-    let cleanup: Vec<Stmt> = cleanups.iter().flatten().cloned().collect();
-    if cleanup.is_empty() {
-        program.extend(body);
-    } else {
-        program.push(Stmt::TryCatch {
-            try_body: body,
-            err_var: Some("_khalad_tijaabo".into()),
-            err_details: None,
-            catch_body: vec![Stmt::Throw(crate::frontend::Expr::Identifier(
-                "_khalad_tijaabo".into(),
-            ))],
-            finally_body: cleanup,
-        });
-    }
-    program
 }
 
 fn flag(args: &[String], name: &str) -> bool {

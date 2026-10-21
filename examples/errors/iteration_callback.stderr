@@ -1,4 +1,4 @@
-Khalad fulin: Tiro looma qaybin karo eber. safka 1, tiirka 38
+Khalad fulin: Tiro looma qaybin karo eber. [E030] safka 1, tiirka 38
      --> examples/errors/iteration_callback.sop:1:38
    1 │   door socod = { xiga: hawl() { celi 1 / 0 } }
      │                                        ^

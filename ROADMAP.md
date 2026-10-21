@@ -379,11 +379,11 @@ are already settled. Document each connector's supported operations explicitly.
 ### Testing
 
 1. Test declaration conventions or syntax — implemented as top-level `tijaabo "name" { }` and `tijaabo "name" qalad { }`. Ordinary execution skips them.
-2. Assertions and expected-error assertions — implemented. `hubi(value)` requires `run`, and `hubi(left, right)` requires equality. `qalad` passes only when the body fails.
-3. Test discovery and filtering — implemented. `--shaandhe` keeps names that contain the text. `--lambarka` selects one test.
+2. Assertions and expected-error assertions — implemented. `hubi(value)` requires `run`, and `hubi(left, right)` requires equality. `qalad` passes only for a runtime failure in the body; `qalad("CODE")` additionally checks the error code. Compiler and fixture errors fail the test.
+3. Test discovery and filtering — implemented. `--shaandhe` keeps names that contain the text. `--lambarka` selects one test. Directory discovery recognizes `*_test.sop`, `*.test.sop`, and `.sop` under `tests`.
 4. Setup and cleanup support — implemented as top-level `diyaar { }` and `nadiifi { }`. Cleanup runs after the test body, including when the body fails.
-5. Parallel execution — implemented as `--wada`. Each test runs in its own process.
-6. Coverage reporting — implemented as `--dabool`. It lists source lines reached inside the executed statements.
+5. Parallel execution — implemented as `--wada`. Each test owns a runtime; parallel runs use a bounded pool of isolated child processes (`--shaqaale` selects the limit).
+6. Coverage reporting — implemented as `--dabool`. It reports reached/executable counts, percentages, and missed lines separately for each file, including uncalled functions, with bounded hit storage and equivalent parallel aggregation.
 
 ### Editor and debugging support
 
@@ -394,7 +394,7 @@ are already settled. Document each connector's supported operations explicitly.
 5. Formatting and code actions — implemented. The code action is `Hagaaji qaabka`.
 6. Source-level debugger information and breakpoints — implemented. `soplang debug file.sop` runs the file, and `jebi()` pauses.
 7. Stack inspection — implemented. `jebi()` prints each frame's function, line, and column. `soco` continues and `jooji` stops. Local values stay in the compiled frame and are not listed.
-8. Profiler integration — implemented as `soplang profile file.sop`. It prints call counts and elapsed seconds.
+8. Profiler integration — implemented as `soplang profile file.sop`. It reports per-function calls and inclusive/exclusive time, with compilation timed separately from execution.
 
 ## Soplang 3.6 — concurrency, asynchronous I/O, and servers
 

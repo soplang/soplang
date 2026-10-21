@@ -494,7 +494,28 @@ pub fn builtin_dabool_saf(args: Vec<Value>) -> Result<Value, SoplangError> {
     expect_arity(&args, "dabool_saf", 1)?;
     if let Value::Int(line) = args[0] {
         if line > 0 {
-            super::abi::record_coverage(line as usize);
+            super::record_coverage(line as usize);
+        }
+    }
+    Ok(Value::Null)
+}
+
+// These names cannot be written as Soplang identifiers. Only compiler-generated
+// AST/HIR can invoke the instrumentation, so user bindings cannot shadow it.
+fn record_test_failure(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "#test_failure", 1)?;
+    let Value::Error(error) = &args[0] else {
+        return Err(err_type("Xogta khaladka tijaabadu ma saxna."));
+    };
+    super::report::record_test_error((**error).clone());
+    Ok(Value::Null)
+}
+
+fn coverage_hit(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "#coverage_hit", 2)?;
+    if let (Value::Str(file), Value::Int(line)) = (&args[0], &args[1]) {
+        if *line > 0 {
+            super::report::record_hit(file.into(), *line as usize);
         }
     }
     Ok(Value::Null)
@@ -1379,6 +1400,12 @@ const BUILTINS: &[(&str, super::NativeFn, CallbackArity)] = &[
     ),
     ("qayb_foom", builtin_qayb_foom, CallbackArity::range(2, 2)),
     ("hubi", builtin_hubi, CallbackArity::range(1, 2)),
+    (
+        "#test_failure",
+        record_test_failure,
+        CallbackArity::range(1, 1),
+    ),
+    ("#coverage_hit", coverage_hit, CallbackArity::range(2, 2)),
     ("jebi", builtin_jebi, CallbackArity::range(0, 0)),
     ("dabool_saf", builtin_dabool_saf, CallbackArity::range(1, 1)),
     ("xog_fur", builtin_xog_fur, CallbackArity::range(2, 3)),

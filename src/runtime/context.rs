@@ -13,6 +13,7 @@ pub(super) struct RuntimeState {
     pub current_source: RefCell<Option<crate::error::SourceSpan>>,
     pub try_depth: Cell<u32>,
     pub random: Cell<Option<u64>>,
+    pub reporting: RefCell<super::report::Reporting>,
     pub databases: RefCell<HashMap<i64, crate::data::Database>>,
     pub files: RefCell<Option<HashMap<i64, super::file_handles::OpenFile>>>,
     pub tcp_connections: RefCell<Option<HashMap<i64, std::net::TcpStream>>>,
@@ -97,6 +98,7 @@ impl RuntimeContext {
                 call_stack: self.state.call_stack.replace(Vec::new()),
                 source: self.state.current_source.replace(None),
                 root_depth: self.state.roots.borrow().len(),
+                profile_frames: std::mem::take(&mut self.state.reporting.borrow_mut().frames),
             };
             let result = operation();
             let error = self.state.pending_error.borrow_mut().take();
@@ -105,6 +107,25 @@ impl RuntimeContext {
                 None => Ok(result),
             }
         })
+    }
+
+    /// Reset instrumentation for the next run in this execution environment.
+    pub fn configure_reporting(&self, coverage: super::CoverageMap, profile: bool) {
+        *self.state.reporting.borrow_mut() = super::report::Reporting {
+            report: super::ExecutionReport {
+                coverage: super::CoverageReport {
+                    executable: coverage,
+                    hit: Default::default(),
+                },
+                ..Default::default()
+            },
+            profiling: profile,
+            frames: Vec::new(),
+        };
+    }
+
+    pub fn execution_report(&self) -> super::ExecutionReport {
+        self.state.reporting.borrow().report.clone()
     }
 
     /// Reclaim unreachable tagged allocations and collection cycles.
@@ -150,6 +171,7 @@ struct ExecutionBoundary {
     call_stack: Vec<crate::error::StackFrame>,
     source: Option<crate::error::SourceSpan>,
     root_depth: usize,
+    profile_frames: Vec<super::report::ProfileFrame>,
 }
 
 impl Drop for ExecutionBoundary {
@@ -160,6 +182,7 @@ impl Drop for ExecutionBoundary {
         *self.state.call_stack.borrow_mut() = std::mem::take(&mut self.call_stack);
         *self.state.current_source.borrow_mut() = self.source.take();
         self.state.roots.borrow_mut().truncate(self.root_depth);
+        self.state.reporting.borrow_mut().frames = std::mem::take(&mut self.profile_frames);
     }
 }
 

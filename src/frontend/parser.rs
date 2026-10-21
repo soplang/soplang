@@ -1801,12 +1801,29 @@ impl Parser {
         if expect_error {
             self.advance();
         }
+        let expected_code = if expect_error && self.peek().kind == TokenType::LParen {
+            self.advance();
+            if self.peek().kind != TokenType::String || self.peek().lexeme.is_empty() {
+                return Err(parser_error(
+                    "Summadda khaladku waa inay noqotaa qoraal aan madhnayn.",
+                    self.peek().line,
+                    self.peek().col,
+                ));
+            }
+            let code = self.peek().lexeme.clone();
+            self.advance();
+            self.expect(TokenType::RParen)?;
+            Some(code)
+        } else {
+            None
+        };
         self.expect(TokenType::LBrace)?;
         let body = self.parse_block_stmts()?;
         self.expect(TokenType::RBrace)?;
         Ok(Stmt::Test {
             name,
             expect_error,
+            expected_code,
             body,
         })
     }

@@ -382,6 +382,14 @@ impl CraneliftBackend {
         self.runtime.execute(|| main_fn())
     }
 
+    pub fn configure_reporting(&self, coverage: runtime::CoverageMap, profile: bool) {
+        self.runtime.configure_reporting(coverage, profile);
+    }
+
+    pub fn execution_report(&self) -> runtime::ExecutionReport {
+        self.runtime.execution_report()
+    }
+
     /// Inspect a global in this backend's execution environment.
     pub fn get_global(&self, name: &str) -> Option<runtime::Value> {
         self.runtime.get_global(name)

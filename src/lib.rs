@@ -78,6 +78,31 @@ pub fn run_source(
 
 /// Run statements that were already parsed and import-resolved.
 pub fn run_statements(stmts: &[frontend::ast::Stmt], strict: bool) -> Result<(), SoplangError> {
+    let outcome = run_statements_report(stmts, strict, ExecutionOptions::default())?;
+    outcome.error.map_or(Ok(()), Err)
+}
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct ExecutionOptions {
+    pub coverage: bool,
+    pub profile: bool,
+}
+
+#[derive(Debug)]
+pub struct ExecutionOutcome {
+    /// An uncaught execution error. Compilation errors are returned separately.
+    pub error: Option<SoplangError>,
+    pub report: runtime::ExecutionReport,
+}
+
+/// Compile and execute with context-owned instrumentation. The report remains
+/// valid after the JIT and all runtime allocations have been released.
+pub fn run_statements_report(
+    stmts: &[frontend::ast::Stmt],
+    strict: bool,
+    options: ExecutionOptions,
+) -> Result<ExecutionOutcome, SoplangError> {
+    let started = std::time::Instant::now();
     let sym = semantic::analyze_with_options(
         stmts,
         semantic::AnalyzeOptions {
@@ -85,10 +110,18 @@ pub fn run_statements(stmts: &[frontend::ast::Stmt], strict: bool) -> Result<(),
             repl: false,
         },
     )?;
-    let hir = HirLowering::lower(&sym, stmts);
+    let hir = HirLowering::lower_with_coverage(&sym, stmts, options.coverage);
     let mut backend = backend::cranelift::CraneliftBackend::new()?;
     backend.compile_module(&hir, &sym)?;
-    backend.run_main()
+    backend.configure_reporting(hir.coverage, options.profile);
+    let compile_time = started.elapsed();
+    let started = std::time::Instant::now();
+    let error = backend.run_main().err();
+    let execution_time = started.elapsed();
+    let mut report = backend.execution_report();
+    report.compile_time = compile_time;
+    report.execution_time = execution_time;
+    Ok(ExecutionOutcome { error, report })
 }
 
 /// For REPL and -c: if source is a single expression (not already qor(...)), wrap in qor(...) so the value is printed.

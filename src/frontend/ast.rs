@@ -501,6 +501,7 @@ pub enum Stmt {
     Test {
         name: String,
         expect_error: bool,
+        expected_code: Option<String>,
         body: Vec<Stmt>,
     },
     /// Top-level `diyaar { }` or `nadiifi { }`.
@@ -732,10 +733,15 @@ impl Stmt {
             Stmt::Test {
                 name,
                 expect_error,
+                expected_code,
                 body,
             } => {
                 if *expect_error {
-                    writeln!(f, "{pad}tijaabo {name:?} qalad {{")?;
+                    if let Some(code) = expected_code {
+                        writeln!(f, "{pad}tijaabo {name:?} qalad({code:?}) {{")?;
+                    } else {
+                        writeln!(f, "{pad}tijaabo {name:?} qalad {{")?;
+                    }
                 } else {
                     writeln!(f, "{pad}tijaabo {name:?} {{")?;
                 }

@@ -6,11 +6,11 @@ These commands are separate from `soplang file.sop`. Their help text is Somali.
 | --- | --- |
 | `soplang fmt FILE [--qor]` | Print the canonical form. `--qor` replaces the file. Formatting the result again does not change it. |
 | `soplang check FILE [--adag]` | Analyze without running. `--adag` requires strict types. A `schema.sop` in the same directory is validated. |
-| `soplang test FILE [--shaandhe TEXT] [--wada] [--dabool]` | Run top-level tests. |
+| `soplang test [FILE or DIR] [--shaandhe TEXT] [--wada] [--dabool]` | Run top-level tests. |
 | `soplang doc FILE [--qor OUT]` | Write Markdown for functions, classes, exports, and tests. |
 | `soplang lsp` | Speak Language Server Protocol on standard input. |
 | `soplang debug FILE` | Run a file. `jebi()` prints the stack and waits. |
-| `soplang profile FILE` | Print function call counts and elapsed seconds. |
+| `soplang profile FILE` | Print function call counts, inclusive/exclusive time, and separate compilation/execution time. |
 | `soplang run [DIR]` | Run the package entry, `main.sop` or `lib.sop` inside `gelid`. |
 | `soplang dhis [DIR]` | Build that entry to `dhis/<magac>`. |
 
@@ -35,15 +35,34 @@ diyaar { n = n + 1 }
 nadiifi { n = 0 }
 tijaabo "kordhi" { hubi(n > 1) }
 tijaabo "khalad" qalad { hubi(been) }
+tijaabo "eber" qalad("E030") { qor(1 / 0) }
 ```
 
 `hubi(run)` passes. `hubi(left, right)` passes when the values are equal.
-`qalad` passes when the body fails. `diyaar` runs before each test, and
-`nadiifi` runs afterwards even when the body fails.
+`qalad` passes only when the test body raises a runtime error. An optional
+error code, such as `qalad("E030")`, must match the structured error's code.
+Compilation, top-level initialization, setup, and cleanup failures always fail
+the test. `diyaar` runs before each test. `nadiifi` runs after setup begins,
+including when setup or the body fails. Body errors retain their diagnostic
+metadata, source location, and stack trace.
 
-`--shaandhe` keeps tests whose names contain the text. `--wada` runs each
-selected test in a separate process. `--dabool` prints the source lines that
-ran.
+With no path, the runner searches the current directory. Directory discovery
+selects `*_test.sop`, `*.test.sop`, and `.sop` files inside `tests` directories.
+It skips hidden/build/dependency directories and symbolic links, with explicit
+limits on traversal. An explicit file may have any `.sop` name.
+
+`--shaandhe` keeps tests whose names contain the text. `--lambarka N` selects
+one zero-based test in one file. Invalid options and indexes are errors.
+Each test has its own runtime, including when execution is serial. `--wada`
+uses up to eight worker processes, bounded by available CPUs;
+`--shaqaale N` explicitly selects 1 to 32 workers. Results are printed in
+discovery order. Workers are joined and their pipes drained before returning.
+
+`--dabool` reports each source file separately: reached/executable lines,
+a percentage, and missed line numbers. Executable statements in uncalled
+functions contribute to the denominator. Repeated loop hits consume no extra
+report storage. Parallel workers merge their reports by source identity;
+application output is never parsed as coverage data.
 
 `hubi` is also the field validator inside `keen "web" sida web`, available as
 `web.hubi`. A flat `keen "web"` defines its own `hubi` and hides the assertion.
@@ -75,5 +94,12 @@ message sizes are bounded.
 
 `jebi()` prints each stack frame as `name line:column` and reads one line.
 `soco` continues. `jooji` stops the program. The frame does not include local
-values. `soplang profile` counts entries made while the file runs and prints
-`waqti` in seconds.
+values.
+
+`soplang profile` reports calls and inclusive/exclusive execution seconds per
+compiled function. Inclusive time includes compiled callees; exclusive time
+subtracts them. `ururin` is semantic analysis, lowering and JIT compilation;
+`waqti` measures execution alone. Imports are resolved before these timers.
+Profiles and coverage belong to one runtime context and do not leak between
+independent executions. Native builtins contribute to their compiled caller's
+time rather than receiving separate rows.

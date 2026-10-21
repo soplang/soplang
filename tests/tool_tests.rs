@@ -217,3 +217,121 @@ fn schema_check_rejects_two_keys() {
     let output = soplang(&["check", file.to_str().unwrap()]);
     assert!(!output.status.success());
 }
+
+#[test]
+fn expected_errors_require_a_runtime_failure_in_the_test_body() {
+    let dir = temp_dir("test_boundaries");
+    let file = dir.join("main.sop");
+    for source in [
+        "tijaabo \"compile\" qalad { abn n = \"text\" }",
+        "hubi(been)\ntijaabo \"prelude\" qalad { hubi(been) }",
+        "diyaar { hubi(been) }\ntijaabo \"setup\" qalad { hubi(been) }",
+        "nadiifi { hubi(been) }\ntijaabo \"cleanup\" qalad { hubi(been) }",
+        "tijaabo \"missing\" qalad { hubi(run) }",
+        "tijaabo \"wrong code\" qalad(\"E031\") { qor(1 / 0) }",
+    ] {
+        fs::write(&file, source).unwrap();
+        let output = soplang(&["test", file.to_str().unwrap()]);
+        assert!(
+            !output.status.success(),
+            "{source}: {}",
+            String::from_utf8_lossy(&output.stdout)
+        );
+        assert!(!String::from_utf8_lossy(&output.stdout).contains("waa:"));
+    }
+    fs::write(
+        &file,
+        r#"
+nadiifi { qor("cleaned") }
+tijaabo "division" qalad("E030") { qor(1 / 0) }
+tijaabo "custom" qalad("DOMAIN") { tuur khalad("bad", "DOMAIN") }
+"#,
+    )
+    .unwrap();
+    let output = soplang(&["test", file.to_str().unwrap()]);
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(
+        output.status.success(),
+        "{stdout} {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert_eq!(stdout.matches("cleaned").count(), 2);
+    assert!(stdout.contains("2 waa, 0 fashil"));
+    fs::remove_dir_all(dir).unwrap();
+}
+
+#[test]
+fn discovery_and_parallel_coverage_preserve_file_identity() {
+    let dir = temp_dir("test_discovery");
+    fs::create_dir(dir.join("tests")).unwrap();
+    fs::create_dir(dir.join("target")).unwrap();
+    fs::write(dir.join("target/broken_test.sop"), "@ invalid").unwrap();
+    fs::write(
+        dir.join("ignored.sop"),
+        "tijaabo \"ignored\" { hubi(been) }",
+    )
+    .unwrap();
+    let helper = dir.join("helper.sop");
+    fs::write(
+        &helper,
+        "hawl twice(n) {\n celi n * 2\n}\nhawl unused() {\n celi 99\n}\n",
+    )
+    .unwrap();
+    fs::write(
+        dir.join("a_test.sop"),
+        "keen \"helper.sop\"\ntijaabo \"first\" {\n hubi(twice(2), 4)\n}\n",
+    )
+    .unwrap();
+    fs::write(
+        dir.join("tests/b.sop"),
+        "tijaabo \"second\" {\n hubi(run)\n}\n",
+    )
+    .unwrap();
+    let serial = soplang(&["test", dir.to_str().unwrap(), "--dabool"]);
+    let parallel = soplang(&["test", dir.to_str().unwrap(), "--shaqaale", "2", "--dabool"]);
+    let serial_text = String::from_utf8_lossy(&serial.stdout);
+    let parallel_text = String::from_utf8_lossy(&parallel.stdout);
+    assert!(
+        serial.status.success(),
+        "{serial_text} {}",
+        String::from_utf8_lossy(&serial.stderr)
+    );
+    assert!(
+        parallel.status.success(),
+        "{parallel_text} {}",
+        String::from_utf8_lossy(&parallel.stderr)
+    );
+    assert_eq!(serial.stdout, parallel.stdout);
+    assert!(serial_text.contains("2 waa, 0 fashil"));
+    assert!(
+        serial_text.contains(&format!("{}: 1/2 (50.0%) maqan: 5", helper.display())),
+        "{serial_text}"
+    );
+    assert!(serial_text.contains("a_test.sop:"));
+    assert!(serial_text.contains("tests/b.sop:"));
+    let filtered = soplang(&["test", dir.to_str().unwrap(), "--shaandhe", "second"]);
+    assert!(filtered.status.success());
+    assert!(String::from_utf8_lossy(&filtered.stdout).contains("1 waa, 0 fashil"));
+    fs::remove_dir_all(dir).unwrap();
+}
+
+#[test]
+fn test_options_reject_invalid_or_ignored_values() {
+    let dir = temp_dir("test_options");
+    let file = dir.join("main.sop");
+    fs::write(&file, "tijaabo \"fine\" { hubi(run) }").unwrap();
+    for args in [
+        vec!["--unknown"],
+        vec!["--shaandhe"],
+        vec!["--lambarka", "no"],
+        vec!["--lambarka", "-1"],
+        vec!["--lambarka", "1"],
+        vec!["--shaqaale", "0"],
+        vec!["--shaqaale", "33"],
+    ] {
+        let mut command = vec!["test", file.to_str().unwrap()];
+        command.extend(args);
+        assert!(!soplang(&command).status.success(), "{command:?}");
+    }
+    fs::remove_dir_all(dir).unwrap();
+}

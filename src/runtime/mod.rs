@@ -23,6 +23,7 @@ mod numeric;
 mod object_ops;
 mod patterns;
 mod process;
+mod report;
 mod roots;
 mod sets;
 pub mod stdlib;
@@ -40,13 +41,17 @@ mod websocket;
 pub mod windows_abi;
 
 pub use abi::*;
-pub use context::RuntimeContext;
 pub(crate) use context::with_databases;
+pub use context::RuntimeContext;
 pub(crate) use filesystem::replace_bytes as replace_file_bytes;
 pub(crate) use filesystem::replace_bytes_with_permissions as replace_file_with_permissions;
 pub use gc::{CollectionReport, MemoryStats};
 pub use iterators::IteratorData;
 pub use process::set_program_arguments;
+pub use report::{
+    clear_coverage, coverage_lines, profile_counts, record_coverage, set_profile, CoverageMap,
+    CoverageReport, ExecutionReport, FunctionProfile,
+};
 pub use roots::RootedValue;
 pub use sets::SetData;
 pub use tuples::TupleData;

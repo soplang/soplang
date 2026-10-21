@@ -281,76 +281,20 @@ pub extern "C" fn soplang_enter_function(name: *const u8, len: usize) {
             col: source.as_ref().map(|source| source.col).unwrap_or(0),
         }
     });
-    if PROFILE.load(std::sync::atomic::Ordering::Relaxed) {
-        let mut counts = PROFILE_COUNTS
-            .lock()
-            .unwrap_or_else(|poison| poison.into_inner());
-        if let Some(counts) = counts.as_mut() {
-            *counts.entry(frame.function.clone()).or_insert(0) += 1;
-        }
-    }
+    super::report::enter(&frame.function);
     CALL_STACK.with(|stack| stack.borrow_mut().push(frame));
 }
 
 #[no_mangle]
 pub extern "C" fn soplang_leave_function() {
+    super::report::leave();
     CALL_STACK.with(|stack| {
         stack.borrow_mut().pop();
     });
 }
 
-static PROFILE: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
-static PROFILE_COUNTS: std::sync::Mutex<Option<std::collections::HashMap<String, u64>>> =
-    std::sync::Mutex::new(None);
-static COVERAGE: std::sync::Mutex<Option<Vec<usize>>> = std::sync::Mutex::new(None);
-
-pub fn set_profile(enabled: bool) {
-    PROFILE.store(enabled, std::sync::atomic::Ordering::Relaxed);
-    if enabled {
-        let mut counts = PROFILE_COUNTS
-            .lock()
-            .unwrap_or_else(|poison| poison.into_inner());
-        *counts = Some(std::collections::HashMap::new());
-    }
-}
-
-pub fn profile_counts() -> Vec<(String, u64)> {
-    let counts = PROFILE_COUNTS
-        .lock()
-        .unwrap_or_else(|poison| poison.into_inner());
-    let mut rows: Vec<(String, u64)> = counts
-        .as_ref()
-        .map(|counts| {
-            counts
-                .iter()
-                .map(|(name, count)| (name.clone(), *count))
-                .collect()
-        })
-        .unwrap_or_default();
-    rows.sort_by(|left, right| right.1.cmp(&left.1).then_with(|| left.0.cmp(&right.0)));
-    rows
-}
-
 pub fn call_stack() -> Vec<crate::error::StackFrame> {
     CALL_STACK.with(|stack| stack.borrow().clone())
-}
-
-pub fn record_coverage(line: usize) {
-    let mut lines = COVERAGE.lock().unwrap_or_else(|poison| poison.into_inner());
-    lines.get_or_insert_with(Vec::new).push(line);
-}
-
-pub fn coverage_lines() -> Vec<usize> {
-    let lines = COVERAGE.lock().unwrap_or_else(|poison| poison.into_inner());
-    let mut lines = lines.clone().unwrap_or_default();
-    lines.sort_unstable();
-    lines.dedup();
-    lines
-}
-
-pub fn clear_coverage() {
-    let mut lines = COVERAGE.lock().unwrap_or_else(|poison| poison.into_inner());
-    *lines = Some(Vec::new());
 }
 
 /// Take an uncaught error at an execution boundary, preserving its metadata.
@@ -971,32 +915,41 @@ pub extern "C" fn soplang_mul(a: SoplangValue, b: SoplangValue) -> SoplangValue 
     binop(a, b, mul_impl)
 }
 
+fn division_by_zero(message: &str) -> SoplangError {
+    crate::error::runtime_error_ex(
+        message,
+        0,
+        0,
+        crate::error::ErrorMeta::default().with_code(crate::error::codes::E030_DIVISION_BY_ZERO),
+    )
+}
+
 fn div_impl(a: Value, b: Value) -> Result<Value, SoplangError> {
     match (&a, &b) {
         (Value::Int(n), Value::Int(m)) => {
             if *m == 0 {
-                Err(runtime_error("Tiro looma qaybin karo eber.", 0, 0))
+                Err(division_by_zero("Tiro looma qaybin karo eber."))
             } else {
                 Ok(Value::Float(*n as f64 / *m as f64))
             }
         }
         (Value::Float(x), Value::Float(y)) => {
             if *y == 0.0 {
-                Err(runtime_error("Tiro looma qaybin karo eber.", 0, 0))
+                Err(division_by_zero("Tiro looma qaybin karo eber."))
             } else {
                 Ok(Value::Float(x / y))
             }
         }
         (Value::Int(n), Value::Float(y)) => {
             if *y == 0.0 {
-                Err(runtime_error("Tiro looma qaybin karo eber.", 0, 0))
+                Err(division_by_zero("Tiro looma qaybin karo eber."))
             } else {
                 Ok(Value::Float(*n as f64 / y))
             }
         }
         (Value::Float(x), Value::Int(m)) => {
             if *m == 0 {
-                Err(runtime_error("Tiro looma qaybin karo eber.", 0, 0))
+                Err(division_by_zero("Tiro looma qaybin karo eber."))
             } else {
                 Ok(Value::Float(x / *m as f64))
             }
@@ -1019,44 +972,28 @@ fn mod_impl(a: Value, b: Value) -> Result<Value, SoplangError> {
     match (&a, &b) {
         (Value::Int(n), Value::Int(m)) => {
             if *m == 0 {
-                Err(runtime_error(
-                    "Hawlgalka (%) ma aqbalo qaybiye eber ah.",
-                    0,
-                    0,
-                ))
+                Err(division_by_zero("Hawlgalka (%) ma aqbalo qaybiye eber ah."))
             } else {
                 Ok(Value::Int(n.wrapping_rem(*m)))
             }
         }
         (Value::Float(x), Value::Float(y)) => {
             if *y == 0.0 {
-                Err(runtime_error(
-                    "Hawlgalka (%) ma aqbalo qaybiye eber ah.",
-                    0,
-                    0,
-                ))
+                Err(division_by_zero("Hawlgalka (%) ma aqbalo qaybiye eber ah."))
             } else {
                 Ok(Value::Float(x % y))
             }
         }
         (Value::Int(n), Value::Float(y)) => {
             if *y == 0.0 {
-                Err(runtime_error(
-                    "Hawlgalka (%) ma aqbalo qaybiye eber ah.",
-                    0,
-                    0,
-                ))
+                Err(division_by_zero("Hawlgalka (%) ma aqbalo qaybiye eber ah."))
             } else {
                 Ok(Value::Float(*n as f64 % y))
             }
         }
         (Value::Float(x), Value::Int(m)) => {
             if *m == 0 {
-                Err(runtime_error(
-                    "Hawlgalka (%) ma aqbalo qaybiye eber ah.",
-                    0,
-                    0,
-                ))
+                Err(division_by_zero("Hawlgalka (%) ma aqbalo qaybiye eber ah."))
             } else {
                 Ok(Value::Float(x % *m as f64))
             }

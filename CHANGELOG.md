@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Require expected test errors to originate in the test body and optionally match an error code. Discover test suites, bound parallel workers, preserve structured failure diagnostics, and report per-file executable coverage. Own coverage and profiles per runtime, keep loop hit storage bounded, and separate compilation from per-function execution timing.
+
 - Use each file's unsaved text and UTF-16 coordinates for language-server edits. Group renames by URI, preserve untitled buffers, handle incremental updates and closed documents, include comments in semantic tokens, and bound stdio messages.
 
 - Share import expansion between compilation and source analysis. Support bundled modules, class namespaces and package imports in `check` and editor diagnostics while preserving unsaved overlays, cancellation and read-only verified caches.

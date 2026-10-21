@@ -1,4 +1,4 @@
-Khalad fulin: Tiro looma qaybin karo eber. safka 2, tiirka 20
+Khalad fulin: Tiro looma qaybin karo eber. [E030] safka 2, tiirka 20
      --> examples/errors/interpolation_expression.sop:2:20
    2 │   qor(f"{magac}: {10 / 0}")
      │                      ^

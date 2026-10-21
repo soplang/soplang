@@ -313,6 +313,8 @@ pub struct HirModule {
     pub top_level: Vec<HirInstr>,
     /// Numeric kind of top-level variable slots, indexed by slot.
     pub top_nums: Vec<SlotNum>,
+    /// Executable source lines when coverage instrumentation is requested.
+    pub coverage: crate::runtime::CoverageMap,
 }
 
 impl fmt::Display for HirInstr {
@@ -557,10 +559,15 @@ pub struct HirLowering<'a> {
     fixed: Vec<bool>,
     current_span: Option<crate::error::SourceSpan>,
     cover: bool,
+    coverage: crate::runtime::CoverageMap,
 }
 
 impl<'a> HirLowering<'a> {
     pub fn lower(sym: &'a SymbolTable, stmts: &'a [Stmt]) -> HirModule {
+        Self::lower_with_coverage(sym, stmts, false)
+    }
+
+    pub fn lower_with_coverage(sym: &'a SymbolTable, stmts: &'a [Stmt], cover: bool) -> HirModule {
         let mut lower = HirLowering {
             sym,
             body: Vec::new(),
@@ -577,7 +584,8 @@ impl<'a> HirLowering<'a> {
             nums: Vec::new(),
             fixed: Vec::new(),
             current_span: None,
-            cover: std::env::var_os("SOPLANG_DABOOL").is_some(),
+            cover,
+            coverage: Default::default(),
         };
         if let Some(scope) = sym.scopes.first() {
             lower.prepare_vars(&scope.vars);
@@ -619,6 +627,7 @@ impl<'a> HirLowering<'a> {
                     fixed: Vec::new(),
                     current_span: None,
                     cover: lower.cover,
+                    coverage: Default::default(),
                 };
                 inner.prepare_vars(&fm.scope_vars);
                 let local_nums = inner.nums.clone();
@@ -665,6 +674,9 @@ impl<'a> HirLowering<'a> {
                     inner.emit_type_check(result, &fm.return_ann, "celi");
                     inner.emit(HirInstr::Return { val: result });
                 }
+                for (file, lines) in inner.coverage {
+                    lower.coverage.entry(file).or_default().extend(lines);
+                }
                 HirFunction {
                     name: fm.name.clone(),
                     params: fm.param_slots.clone(),
@@ -687,6 +699,7 @@ impl<'a> HirLowering<'a> {
             functions,
             top_level,
             top_nums,
+            coverage: lower.coverage,
         }
     }
 
@@ -985,27 +998,50 @@ impl<'a> HirLowering<'a> {
         }
     }
 
-    fn cover_line(&mut self, line: usize) {
-        if line == 0 {
+    fn cover_line(&mut self, span: &crate::error::SourceSpan) {
+        if span.line == 0 {
             return;
         }
+        let file = span.file.clone().unwrap_or_else(|| "<snippet>".into());
+        self.coverage
+            .entry(file.clone())
+            .or_default()
+            .insert(span.line);
+        let file_slot = self.alloc_slot();
+        self.emit_const(
+            file_slot,
+            HirConst::Str(file.to_string_lossy().into_owned()),
+        );
         let line_slot = self.alloc_slot();
-        self.emit_const(line_slot, HirConst::Int(line as i64));
+        self.emit_const(line_slot, HirConst::Int(span.line as i64));
         let callee = self.alloc_slot();
-        self.load_name(callee, "dabool_saf");
+        self.load_name(callee, "#coverage_hit");
         let dst = self.alloc_slot();
         self.emit(HirInstr::Call {
             dst,
             callee,
-            args: vec![line_slot],
+            args: vec![file_slot, line_slot],
         });
     }
 
     fn lower_stmt(&mut self, stmt: &'a Stmt) {
         match stmt {
             Stmt::Located { span, stmt } => {
-                if self.cover {
-                    self.cover_line(span.line);
+                if self.cover
+                    && !matches!(
+                        stmt.unlocated(),
+                        Stmt::Import(_)
+                            | Stmt::Export(_)
+                            | Stmt::UseModule { .. }
+                            | Stmt::UseClass { .. }
+                            | Stmt::Test { .. }
+                            | Stmt::Fixture { .. }
+                            | Stmt::FuncDef { .. }
+                            | Stmt::ClassDef { .. }
+                            | Stmt::Block(_)
+                    )
+                {
+                    self.cover_line(span);
                 }
                 let previous = self.current_span.replace(span.clone());
                 self.lower_stmt(stmt);
