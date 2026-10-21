@@ -556,6 +556,7 @@ pub struct HirLowering<'a> {
     /// Variable slots keep the kind from their type annotation.
     fixed: Vec<bool>,
     current_span: Option<crate::error::SourceSpan>,
+    cover: bool,
 }
 
 impl<'a> HirLowering<'a> {
@@ -576,6 +577,7 @@ impl<'a> HirLowering<'a> {
             nums: Vec::new(),
             fixed: Vec::new(),
             current_span: None,
+            cover: std::env::var_os("SOPLANG_DABOOL").is_some(),
         };
         if let Some(scope) = sym.scopes.first() {
             lower.prepare_vars(&scope.vars);
@@ -616,6 +618,7 @@ impl<'a> HirLowering<'a> {
                     nums: Vec::new(),
                     fixed: Vec::new(),
                     current_span: None,
+                    cover: lower.cover,
                 };
                 inner.prepare_vars(&fm.scope_vars);
                 let local_nums = inner.nums.clone();
@@ -982,9 +985,28 @@ impl<'a> HirLowering<'a> {
         }
     }
 
+    fn cover_line(&mut self, line: usize) {
+        if line == 0 {
+            return;
+        }
+        let line_slot = self.alloc_slot();
+        self.emit_const(line_slot, HirConst::Int(line as i64));
+        let callee = self.alloc_slot();
+        self.load_name(callee, "dabool_saf");
+        let dst = self.alloc_slot();
+        self.emit(HirInstr::Call {
+            dst,
+            callee,
+            args: vec![line_slot],
+        });
+    }
+
     fn lower_stmt(&mut self, stmt: &'a Stmt) {
         match stmt {
             Stmt::Located { span, stmt } => {
+                if self.cover {
+                    self.cover_line(span.line);
+                }
                 let previous = self.current_span.replace(span.clone());
                 self.lower_stmt(stmt);
                 self.current_span = previous;
@@ -1397,7 +1419,12 @@ impl<'a> HirLowering<'a> {
                     finally_body,
                 );
             }
-            Stmt::Import(_) | Stmt::Export(_) | Stmt::UseModule { .. } | Stmt::UseClass { .. } => {}
+            Stmt::Import(_)
+            | Stmt::Export(_)
+            | Stmt::UseModule { .. }
+            | Stmt::UseClass { .. }
+            | Stmt::Test { .. }
+            | Stmt::Fixture { .. } => {}
             Stmt::Block(stmts) => {
                 for s in stmts {
                     self.lower_stmt(s);
@@ -1933,7 +1960,9 @@ fn collect_funcs_stmt<'a>(stmt: &'a Stmt, out: &mut Vec<(&'a [Param], &'a [Stmt]
         | Stmt::Import(_)
         | Stmt::Export(_)
         | Stmt::UseModule { .. }
-        | Stmt::UseClass { .. } => {}
+        | Stmt::UseClass { .. }
+        | Stmt::Test { .. }
+        | Stmt::Fixture { .. } => {}
     }
 }
 

@@ -344,9 +344,9 @@ are preserved. See [packages](docs/language/packages.md#create-a-project).
 7. Add, remove and explicitly update dependencies: implemented through the package flags. Git publication uses the repository's own commit/tag workflow; no central package host is required.
 
 The directory-registry and `.sopkg` providers remain compatibility sources.
-Standard command forms continue in 3.5. Public class exports are implemented.
-The sequential web framework is implemented; TLS, multipart uploads, a template
-engine, and the ORM below still prevent marking all of 3.4 complete.
+Standard command forms are implemented in 3.5. Public class exports, the
+sequential web framework, TLS, multipart uploads, templates, and the ORM are
+implemented. Concurrent serving remains 3.6.
 
 ### Web application facilities
 
@@ -354,12 +354,12 @@ Build a bundled, importable web framework on the server and module foundations.
 The minimal sequential JSON server alone does not complete this requirement.
 
 1. Routers, method/path matching, route groups, middleware order and error propagation — implemented by `keen "web"`; see [web](docs/language/web.md). An uncaught handler or middleware error is still status 500.
-2. Path/query/header/cookie access, JSON and form parsing, validation, response status and JSON/HTML/redirect/file helpers — implemented. Form parsing covers `application/x-www-form-urlencoded`.
-3. Static-file containment and CORS — implemented. `fayl_gudaha` rejects paths that leave the root. A template engine, multipart uploads, and ranged downloads remain later web work.
+2. Path/query/header/cookie access, JSON and form parsing, validation, response status and JSON/HTML/redirect/file helpers — implemented. URL-encoded forms use `foom`. Multipart bodies use `qayb`.
+3. Static-file containment and CORS — implemented. `fayl_gudaha` rejects paths that leave the root. `habee` renders HTML templates. Ranged downloads remain later web work.
 4. Sessions with expiration, authentication hooks, logging, request limits and timeouts — implemented on the `Web` value. Limits and timeouts use the existing `waqti` and `cabbir` options.
-5. TLS, a test client, graceful shutdown, and integration with concurrent handlers, streaming/backpressure and WebSocket servers from 3.6. The integration tests are the client for this sequential server. TLS serving remains later web work.
-6. A Prisma-style ORM with required `schema.sop`, schema validation, typed query/editor support, migrations, pools and transactions.
-7. Real connector implementations and tests for SQLite, PostgreSQL, MySQL, MariaDB, MongoDB, SQL Server and CockroachDB, with a documented capability matrix.
+5. TLS and a test client — implemented. `server_fur(host, port, {shahaado, fure})` serves one TLS connection at a time, and the integration tests are the client. Graceful concurrent shutdown, streaming, and WebSocket servers remain 3.6.
+6. A Prisma-style ORM with required `schema.sop`, schema validation, typed query/editor support, migrations, pools and transactions — implemented. See [data](docs/language/data.md). `check` and the language server validate `schema.sop`.
+7. Real connector implementations and tests for SQLite, PostgreSQL, MySQL, MariaDB, MongoDB, SQL Server and CockroachDB, with a documented capability matrix — implemented. SQLite runs in the default suite. The other six run when `SOPLANG_POSTGRES`, `SOPLANG_COCKROACH`, `SOPLANG_MYSQL`, `SOPLANG_MARIADB`, `SOPLANG_SQLSERVER`, or `SOPLANG_MONGO` is set. SQL Server uses TDS without TLS.
 
 The ORM is required before the final release. These are implementation
 requirements; database selection and a decision about whether to include an ORM
@@ -369,32 +369,32 @@ are already settled. Document each connector's supported operations explicitly.
 
 ### Command-line tools
 
-1. `soplang fmt` for deterministic formatting.
-2. `soplang check` for analysis without execution.
-3. `soplang test` for native test discovery and execution.
-4. `soplang doc` for API documentation generation.
-5. Package add, remove, and update commands.
-6. Consistent run and build commands for package projects.
+1. `soplang fmt` for deterministic formatting — implemented. `--qor` writes the file. A second format leaves the text unchanged.
+2. `soplang check` for analysis without execution — implemented. `--adag` is strict mode, and a sibling `schema.sop` is validated.
+3. `soplang test` for native test discovery and execution — implemented.
+4. `soplang doc` for API documentation generation — implemented. `--qor` writes Markdown.
+5. Package add, remove, and update commands — implemented as `--ku-dar`, `--ka-saar`, and `--cusbooneysii`.
+6. Consistent run and build commands for package projects — implemented as `soplang run` and `soplang dhis`. `run` executes `gelid/main.sop` or `main.sop`. `dhis` writes `dhis/<magac>`.
 
 ### Testing
 
-1. Test declaration conventions or syntax.
-2. Assertions and expected-error assertions.
-3. Test discovery and filtering.
-4. Setup and cleanup support.
-5. Parallel execution.
-6. Coverage reporting.
+1. Test declaration conventions or syntax — implemented as top-level `tijaabo "name" { }` and `tijaabo "name" qalad { }`. Ordinary execution skips them.
+2. Assertions and expected-error assertions — implemented. `hubi(value)` requires `run`, and `hubi(left, right)` requires equality. `qalad` passes only when the body fails.
+3. Test discovery and filtering — implemented. `--shaandhe` keeps names that contain the text. `--lambarka` selects one test.
+4. Setup and cleanup support — implemented as top-level `diyaar { }` and `nadiifi { }`. Cleanup runs after the test body, including when the body fails.
+5. Parallel execution — implemented as `--wada`. Each test runs in its own process.
+6. Coverage reporting — implemented as `--dabool`. It lists source lines reached inside the executed statements.
 
 ### Editor and debugging support
 
-1. Editor syntax packages.
-2. A Language Server Protocol implementation.
-3. Live diagnostics, completion, hover help, and semantic highlighting.
-4. Go to definition, find references, and rename.
-5. Formatting and code actions.
-6. Source-level debugger information and breakpoints.
-7. Stack and local-variable inspection.
-8. Profiler integration.
+1. Editor syntax packages — implemented in `editors/vscode` for `.sop` files.
+2. A Language Server Protocol implementation — implemented as `soplang lsp` over stdio.
+3. Live diagnostics, completion, hover help, and semantic highlighting — implemented.
+4. Go to definition, find references, and rename — implemented.
+5. Formatting and code actions — implemented. The code action is `Hagaaji qaabka`.
+6. Source-level debugger information and breakpoints — implemented. `soplang debug file.sop` runs the file, and `jebi()` pauses.
+7. Stack inspection — implemented. `jebi()` prints each frame's function, line, and column. `soco` continues and `jooji` stops. Local values stay in the compiled frame and are not listed.
+8. Profiler integration — implemented as `soplang profile file.sop`. It prints call counts and elapsed seconds.
 
 ## Soplang 3.6 — concurrency, asynchronous I/O, and servers
 

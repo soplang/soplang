@@ -1,5 +1,15 @@
 # Local verification for the 3.4 module stage
 
+Web, data, and 3.5 tooling checks:
+
+```sh
+cargo test --locked --test web_tests --test data_tests --test tool_tests
+```
+
+SQLite, TLS, multipart, templates, formatting, tests, and the language server
+run in that command. The other database servers stay ignored until their
+`SOPLANG_*` variable is set.
+
 These checks cover namespaced imports and the package registry.
 
 ## Namespaced imports

@@ -448,6 +448,18 @@ impl Parser {
         {
             return self.parse_try_catch(line, col);
         }
+        if t.kind == TokenType::Identifier
+            && t.lexeme == "tijaabo"
+            && self.peek_nth(1).kind == TokenType::String
+        {
+            return self.parse_test();
+        }
+        if t.kind == TokenType::Identifier
+            && matches!(t.lexeme.as_str(), "diyaar" | "nadiifi")
+            && self.peek_nth(1).kind == TokenType::LBrace
+        {
+            return self.parse_fixture(t.lexeme == "diyaar");
+        }
 
         // Calls, assignments and property access on an identifier named tuur
         // retain their meaning. Raising requires an adjacent same-line value.
@@ -1769,6 +1781,42 @@ impl Parser {
         }
         self.expect(TokenType::RBrace)?;
         Ok(Expr::Object(pairs))
+    }
+
+    fn parse_test(&mut self) -> Result<Stmt, SoplangError> {
+        self.advance();
+        let name = if self.peek().kind == TokenType::String {
+            let name = self.peek().lexeme.clone();
+            self.advance();
+            name
+        } else {
+            return Err(parser_error(
+                "tijaabo waxay u baahan tahay magac qoraal ah.",
+                self.peek().line,
+                self.peek().col,
+            ));
+        };
+        let expect_error =
+            self.peek().kind == TokenType::Identifier && self.peek().lexeme == "qalad";
+        if expect_error {
+            self.advance();
+        }
+        self.expect(TokenType::LBrace)?;
+        let body = self.parse_block_stmts()?;
+        self.expect(TokenType::RBrace)?;
+        Ok(Stmt::Test {
+            name,
+            expect_error,
+            body,
+        })
+    }
+
+    fn parse_fixture(&mut self, setup: bool) -> Result<Stmt, SoplangError> {
+        self.advance();
+        self.expect(TokenType::LBrace)?;
+        let body = self.parse_block_stmts()?;
+        self.expect(TokenType::RBrace)?;
+        Ok(Stmt::Fixture { setup, body })
     }
 }
 

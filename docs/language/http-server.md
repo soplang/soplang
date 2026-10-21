@@ -1,11 +1,14 @@
 # HTTP server
 
 `server_fur`, `server_aqbal`, and `server_xidh` serve HTTP requests one at a
-time. The server speaks HTTP and answers JSON APIs. It does not use TLS.
-Bind, route, and shutdown failures are catchable and use error code `E054`.
+time. The server speaks HTTP and answers JSON APIs. TLS is optional and
+serves one connection at a time. Bind, route, and shutdown failures are
+catchable and use error code `E054`.
 
-`server_fur(host, port)` binds a listener. Port `0` chooses an open port. The
-result contains `aqoonsi`, `martigeliye`, and `deked`.
+`server_fur(host, port)` binds a listener. A third argument `{shahaado, fure}`
+loads a PEM certificate and private key and serves that listener with TLS.
+Port `0` chooses an open port. The result contains `aqoonsi`, `martigeliye`,
+and `deked`.
 
 `server_aqbal(server, routes, options?)` waits for one connection, calls the
 matching handler, and returns `maran` after the response is sent. A handler

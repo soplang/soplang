@@ -310,7 +310,9 @@ fn validate_control_flow(
                 validate_control_flow(catch_body, in_function, loop_depth)?;
                 validate_control_flow(finally_body, in_function, loop_depth)?;
             }
-            Stmt::Block(body) => validate_control_flow(body, in_function, loop_depth)?,
+            Stmt::Block(body) | Stmt::Test { body, .. } | Stmt::Fixture { body, .. } => {
+                validate_control_flow(body, in_function, loop_depth)?
+            }
             Stmt::VarDecl { value, .. } | Stmt::Expr(value) | Stmt::Throw(value) => {
                 validate_control_expr(value)?
             }
@@ -1096,7 +1098,7 @@ fn analyze_stmt(
                 enclosing_fn,
             )?;
         }
-        Stmt::Import(_) | Stmt::Export(_) => {}
+        Stmt::Import(_) | Stmt::Export(_) | Stmt::Test { .. } | Stmt::Fixture { .. } => {}
         Stmt::UseModule { alias, classes } => {
             sym.module_classes
                 .insert(alias.clone(), classes.iter().cloned().collect());
@@ -2198,6 +2200,8 @@ fn note_free_stmt(stmt: &Stmt, sym: &SymbolTable, caps: &mut Vec<String>) {
         | Stmt::Export(_)
         | Stmt::UseModule { .. }
         | Stmt::UseClass { .. }
+        | Stmt::Test { .. }
+        | Stmt::Fixture { .. }
         | Stmt::Return(None) => {}
         Stmt::If {
             cond,

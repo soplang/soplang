@@ -2,9 +2,13 @@
 
 use std::collections::HashMap;
 use std::io::{Read, Write};
+#[cfg_attr(not(test), allow(unused_imports))]
 use std::net::{TcpListener, TcpStream};
 use std::sync::atomic::{AtomicI64, Ordering};
+use std::sync::Arc;
 use std::time::Duration;
+
+use rustls::ServerConfig;
 
 use super::context::{RuntimeLocal, RuntimeState};
 use super::value::Value;
@@ -19,6 +23,7 @@ const MAX_HEADERS: usize = 8 * 1024;
 
 pub(super) struct Listener {
     socket: TcpListener,
+    tls: Option<Arc<ServerConfig>>,
 }
 
 static NEXT_ID: AtomicI64 = AtomicI64::new(1);
@@ -52,6 +57,14 @@ struct RawRequest {
 }
 
 pub fn open(host: &str, port: i64) -> Result<Value, SoplangError> {
+    open_with(host, port, None)
+}
+
+pub fn open_tls(host: &str, port: i64, cert: &str, key: &str) -> Result<Value, SoplangError> {
+    open_with(host, port, Some((cert, key)))
+}
+
+fn open_with(host: &str, port: i64, tls: Option<(&str, &str)>) -> Result<Value, SoplangError> {
     STATE.with(|state| {
         if host.is_empty() {
             return Err(error("Martigeliyaha serverka ma madhnaan karo."));
@@ -69,11 +82,19 @@ pub fn open(host: &str, port: i64) -> Result<Value, SoplangError> {
                 crate::error::io_reason(&failure)
             ))
         })?;
+        let tls = match tls {
+            Some((cert, key)) => Some(load_tls(cert, key)?),
+            None => None,
+        };
         let id = NEXT_ID.fetch_add(1, Ordering::Relaxed);
         let mut listeners = state.http_listeners.borrow_mut();
-        listeners
-            .get_or_insert_with(HashMap::new)
-            .insert(id, Listener { socket: listener });
+        listeners.get_or_insert_with(HashMap::new).insert(
+            id,
+            Listener {
+                socket: listener,
+                tls,
+            },
+        );
         Ok(object(&[
             ("aqoonsi", Value::Int(id)),
             ("martigeliye", Value::Str(host.to_string())),
@@ -104,13 +125,13 @@ pub fn accept(
         let id = server_id(server)?;
         let routes = compile_routes(routes)?;
         let (timeout, limit) = limits(options)?;
-        let mut stream = {
+        let (mut stream, tls) = {
             let listeners = state.http_listeners.borrow_mut();
             let listener = listeners
                 .as_ref()
                 .and_then(|listeners| listeners.get(&id))
                 .ok_or_else(|| error("Serverka waa la xidhay."))?;
-            listener
+            let stream = listener
                 .socket
                 .accept()
                 .map_err(|failure| {
@@ -119,29 +140,72 @@ pub fn accept(
                         crate::error::io_reason(&failure)
                     ))
                 })?
-                .0
+                .0;
+            (stream, listener.tls.clone())
         };
         let _ = stream.set_read_timeout(Some(timeout));
         let _ = stream.set_write_timeout(Some(timeout));
-        match read_request(&mut stream, limit) {
-            Ok(request) => dispatch(&mut stream, &routes, request),
-            Err(ResponseFault::Reply(status, message)) => {
-                let _ = write_response(
-                    &mut stream,
-                    status,
-                    &[],
-                    &error_body(&message),
-                    "application/json",
-                );
-                Ok(Value::Null)
-            }
-            Err(ResponseFault::Stop(message)) => Err(error(message)),
+        if let Some(config) = tls {
+            let connection = rustls::ServerConnection::new(config)
+                .map_err(|failure| error(format!("TLS-ka lama bilaabin. {failure}")))?;
+            let mut stream = rustls::StreamOwned::new(connection, stream);
+            serve(&mut stream, &routes, limit)
+        } else {
+            serve(&mut stream, &routes, limit)
         }
     })
 }
 
-fn dispatch(
-    stream: &mut TcpStream,
+fn serve<S: Read + Write>(
+    stream: &mut S,
+    routes: &[Route],
+    limit: usize,
+) -> Result<Value, SoplangError> {
+    match read_request(stream, limit) {
+        Ok(request) => dispatch(stream, routes, request),
+        Err(ResponseFault::Reply(status, message)) => {
+            let _ = write_response(
+                stream,
+                status,
+                &[],
+                &error_body(&message),
+                "application/json",
+            );
+            Ok(Value::Null)
+        }
+        Err(ResponseFault::Stop(message)) => Err(error(message)),
+    }
+}
+
+fn load_tls(cert: &str, key: &str) -> Result<Arc<ServerConfig>, SoplangError> {
+    let _ = rustls::crypto::ring::default_provider().install_default();
+    let cert_file = std::fs::File::open(cert).map_err(|failure| {
+        error(format!(
+            "Shahaadada lama furin. {}",
+            crate::error::io_reason(&failure)
+        ))
+    })?;
+    let key_file = std::fs::File::open(key).map_err(|failure| {
+        error(format!(
+            "Furaha lama furin. {}",
+            crate::error::io_reason(&failure)
+        ))
+    })?;
+    let certs = rustls_pemfile::certs(&mut std::io::BufReader::new(cert_file))
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(|failure| error(format!("Shahaadada ma saxna. {failure}")))?;
+    let key = rustls_pemfile::private_key(&mut std::io::BufReader::new(key_file))
+        .map_err(|failure| error(format!("Furaha ma saxna. {failure}")))?
+        .ok_or_else(|| error("Furaha shahaadada lama helin."))?;
+    let config = ServerConfig::builder()
+        .with_no_client_auth()
+        .with_single_cert(certs, key)
+        .map_err(|failure| error(format!("TLS-ka lama diyaarin. {failure}")))?;
+    Ok(Arc::new(config))
+}
+
+fn dispatch<S: Write>(
+    stream: &mut S,
     routes: &[Route],
     request: RawRequest,
 ) -> Result<Value, SoplangError> {
@@ -239,7 +303,7 @@ enum ResponseFault {
     Stop(String),
 }
 
-fn read_request(stream: &mut TcpStream, limit: usize) -> Result<RawRequest, ResponseFault> {
+fn read_request<S: Read>(stream: &mut S, limit: usize) -> Result<RawRequest, ResponseFault> {
     let mut buffer = Vec::new();
     let mut chunk = [0u8; 2048];
     let header_end;
@@ -619,8 +683,8 @@ fn valid_response_header(name: &str, value: &str) -> bool {
             .all(|byte| byte == b'\t' || (byte >= 0x20 && byte != 0x7f))
 }
 
-fn write_response(
-    stream: &mut TcpStream,
+fn write_response<S: Write>(
+    stream: &mut S,
     status: u16,
     headers: &[(String, String)],
     body: &[u8],

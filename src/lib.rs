@@ -3,12 +3,13 @@
 pub mod analysis;
 pub mod backend;
 pub mod cli;
+pub mod data;
 pub mod error;
 pub mod frontend;
 pub mod hir;
+pub mod package;
 pub mod runtime;
 pub mod semantic;
-pub mod package;
 
 pub use cli::ReplSession;
 pub use error::{format_error_with_source, SoplangError};
@@ -17,8 +18,8 @@ pub use frontend::{
     TypeAnnotation,
 };
 pub use hir::{BinOpKind, HirFunction, HirInstr, HirLowering, HirModule, UnOpKind};
-pub use runtime::Value;
 pub use runtime::set_program_arguments;
+pub use runtime::Value;
 pub use semantic::{
     analyze, analyze_with_options, AnalyzeOptions, ClassMeta, FunctionMeta, Scope, SymbolTable,
     VarInfo,
@@ -70,6 +71,21 @@ pub fn run_source(
         }
         return Ok(());
     }
+    let mut backend = backend::cranelift::CraneliftBackend::new()?;
+    backend.compile_module(&hir, &sym)?;
+    backend.run_main()
+}
+
+/// Run statements that were already parsed and import-resolved.
+pub fn run_statements(stmts: &[frontend::ast::Stmt], strict: bool) -> Result<(), SoplangError> {
+    let sym = semantic::analyze_with_options(
+        stmts,
+        semantic::AnalyzeOptions {
+            strict,
+            repl: false,
+        },
+    )?;
+    let hir = HirLowering::lower(&sym, stmts);
     let mut backend = backend::cranelift::CraneliftBackend::new()?;
     backend.compile_module(&hir, &sym)?;
     backend.run_main()

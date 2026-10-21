@@ -2,7 +2,8 @@
 
 `keen "web" sida web` loads the bundled sequential web framework. It builds on
 `server_fur`, `server_aqbal`, and `server_xidh`. The listener still handles one
-request at a time. TLS, multipart uploads, and a template engine are later work.
+request at a time. Concurrent handlers, streaming, and WebSocket servers remain
+3.6 work.
 
 ```soplang
 keen "web" sida web
@@ -40,6 +41,11 @@ reads one cookie. `web.foom(codsi)` parses a URL-encoded body into a `walax`.
 | `web.html(text, status?)` | HTML text. |
 | `web.leex(path, status?)` | Redirect. Status defaults to 302. |
 | `web.fayl(root, path)` | Bytes from a file inside `root`, 404 when it is missing, or 400 when the path escapes. |
+| `web.habee(template, data)` | HTML from `{{name}}` slots. `{{!name}}` is not escaped. |
+| `web.qayb(codsi)` | Multipart parts as `{magac, fayl, qoraal, baytyo}`. The body stays inside `cabbir`. |
+
+`app.shahaado(cert, key)` stores PEM paths. `app.fur(host, port)` then calls
+`server_fur` with those files. Without them, `fur` opens a plain listener.
 
 `fayl_gudaha(root, path)` is the containment check. It follows a final symlink
 only when the destination is still inside the root.

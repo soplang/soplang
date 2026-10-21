@@ -496,6 +496,18 @@ pub enum Stmt {
     Import(ImportSpec),
     /// Names listed by `soosaar` in a namespaced file.
     Export(Vec<String>),
+    /// Top-level `tijaabo "name" { }` or `tijaabo "name" qalad { }`.
+    /// Ordinary execution skips it. `soplang test` runs the body.
+    Test {
+        name: String,
+        expect_error: bool,
+        body: Vec<Stmt>,
+    },
+    /// Top-level `diyaar { }` or `nadiifi { }`.
+    Fixture {
+        setup: bool,
+        body: Vec<Stmt>,
+    },
     Block(Vec<Stmt>),
     Expr(Expr),
 }
@@ -717,6 +729,28 @@ impl Stmt {
                 writeln!(f, ";")
             }
             Stmt::Export(names) => writeln!(f, "{}soosaar {};", pad, names.join(", ")),
+            Stmt::Test {
+                name,
+                expect_error,
+                body,
+            } => {
+                if *expect_error {
+                    writeln!(f, "{pad}tijaabo {name:?} qalad {{")?;
+                } else {
+                    writeln!(f, "{pad}tijaabo {name:?} {{")?;
+                }
+                for stmt in body {
+                    stmt.fmt_with_depth(f, depth + 1)?;
+                }
+                writeln!(f, "{pad}}}")
+            }
+            Stmt::Fixture { setup, body } => {
+                writeln!(f, "{pad}{} {{", if *setup { "diyaar" } else { "nadiifi" })?;
+                for stmt in body {
+                    stmt.fmt_with_depth(f, depth + 1)?;
+                }
+                writeln!(f, "{pad}}}")
+            }
             Stmt::UseModule { alias, .. } => writeln!(f, "{pad}keen qaab {alias};"),
             Stmt::UseClass { name, class_name } => writeln!(f, "{pad}qaab {name} = {class_name};"),
             Stmt::Block(stmts) => {

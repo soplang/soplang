@@ -1,0 +1,28 @@
+{
+  "name": "Soplang",
+  "scopeName": "source.soplang",
+  "patterns": [
+    { "include": "#comment" },
+    { "include": "#string" },
+    { "include": "#number" },
+    { "include": "#keyword" }
+  ],
+  "repository": {
+    "comment": {
+      "match": "#.*$",
+      "name": "comment.line.number-sign.soplang"
+    },
+    "string": {
+      "match": "\"(?:\\\\.|[^\"\\\\])*\"",
+      "name": "string.quoted.double.soplang"
+    },
+    "number": {
+      "match": "\\b\\d+(?:\\.\\d+)?\\b",
+      "name": "constant.numeric.soplang"
+    },
+    "keyword": {
+      "match": "\\b(door|madoor|hawl|celi|qor|gelin|haddii|kale|ugudambeyn|dooro|xaalad|kuceli|ilaa|intay|jooji|soco|tijaabi|qabo|dhammee|tuur|keen|soosaar|qaab|dhaxal|cusub|nafta|waalid|abn|jajab|qoraal|bool|teed|walax|baytyo|run|been|maran|tijaabo|diyaar|nadiifi|qalad)\\b",
+      "name": "keyword.control.soplang"
+    }
+  }
+}

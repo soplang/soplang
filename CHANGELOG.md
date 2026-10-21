@@ -20,7 +20,11 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-* `keen "web"` provides a sequential web framework: route groups, middleware order, JSON, HTML, redirects, cookies, forms, sessions, authentication hooks, CORS, request logs, and static files that cannot escape their root. TLS, multipart uploads, and a template engine remain later web work.
+* `keen "web"` provides a sequential web framework: route groups, middleware order, JSON, HTML, redirects, cookies, forms, sessions, authentication hooks, CORS, request logs, and static files that cannot escape their root. `server_fur` accepts `{shahaado, fure}` for one TLS connection at a time. `qayb_foom` parses a bounded multipart body, and `habee_qoraal` renders `{{name}}` with HTML escaping.
+
+* `schema.sop` and `keen "xog"` validate tables, migrate missing columns, and run queries through a pool of at most eight connections. SQLite is covered by the default tests. PostgreSQL and CockroachDB use the Postgres client, MySQL and MariaDB use the MySQL client, MongoDB uses its official client, and SQL Server uses the TDS client without TLS. Database failures use `E059`. See [data](docs/language/data.md).
+
+* `soplang fmt`, `check`, `test`, `doc`, `lsp`, `debug`, `profile`, `run`, and `dhis` cover formatting, analysis, tests, documentation, the editor, breakpoints, profiling, and package entry points. See [tools](docs/language/tools.md).
 
 * Namespaced modules export public classes. `cusub m.Qof(...)`, `m.Qof q = ...`, and `qaab Arday dhaxal m.Qof` use that class, and `ka Qof sida Student` binds the same identity. A class left out of `soosaar` stays private.
 

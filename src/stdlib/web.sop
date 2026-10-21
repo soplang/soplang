@@ -1,4 +1,4 @@
-soosaar Web, json, html, leex, kuki, foom, hubi, cors, fayl, kuki_qoraal
+soosaar Web, json, html, leex, kuki, foom, hubi, cors, fayl, kuki_qoraal, habee, qayb
 
 hawl json(xog, heer=200) {
     celi { heer: heer, json: xog }
@@ -67,6 +67,16 @@ hawl fayl(xidid, jid) {
     }
 }
 
+hawl habee(naqshad, xog) {
+    celi html(habee_qoraal(naqshad, xog))
+}
+
+hawl qayb(codsi) {
+    door nooc = ""
+    haddii (codsi.cinwaan["content-type"] != maran) { nooc = codsi.cinwaan["content-type"] }
+    celi qayb_foom(nooc, codsi.baytyo)
+}
+
 hawl cors(asal) {
     hawl dhex(codsi, xiga) {
         haddii (codsi.hab == "OPTIONS") {
@@ -98,6 +108,18 @@ qaab Web {
         nafta.waqti = 30
         nafta.cabbir = 1048576
         nafta.dherer_kalfadhi = 3600
+        nafta.fayl_shahaado = maran
+        nafta.fayl_fure = maran
+    }
+
+    hawl shahaado(fayl, fure) {
+        nafta.fayl_shahaado = fayl
+        nafta.fayl_fure = fure
+    }
+
+    hawl fur(host, deked) {
+        haddii (nafta.fayl_shahaado == maran) { celi server_fur(host, deked) }
+        celi server_fur(host, deked, { shahaado: nafta.fayl_shahaado, fure: nafta.fayl_fure })
     }
 
     hawl dhexdhexa(shaqo) {

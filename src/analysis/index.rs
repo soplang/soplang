@@ -847,7 +847,9 @@ impl Index {
                     self.expression(cond, file, scope, start, class);
                     self.statements(body, file, scope, start, class);
                 }
-                Stmt::Block(body) => self.statements(body, file, scope, start, class),
+                Stmt::Block(body) | Stmt::Test { body, .. } | Stmt::Fixture { body, .. } => {
+                    self.statements(body, file, scope, start, class)
+                }
                 Stmt::Expr(expr) | Stmt::Return(Some(expr)) | Stmt::Throw(expr) => {
                     self.expression(expr, file, scope, start, class)
                 }

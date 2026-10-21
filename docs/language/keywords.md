@@ -274,7 +274,7 @@ these explanations do not establish a historical abbreviation or SLS approval.
 | `deegaan_tirtir` | Remove an environment variable   | `unsetenv`           | `deegaan_tirtir("MODE")`                   |
 | `fuli` | Run a program and capture its result   | `subprocess`         | `fuli("/bin/echo", ["Salaan"])`            |
 | `http_codso` | Send an HTTP request                | `fetch`              | `http_codso("GET", url)`                   |
-| `server_fur` | Bind an HTTP server                 | (listen)             | `server_fur("127.0.0.1", 8080)`            |
+| `server_fur` | Bind an HTTP server, optionally with TLS | (listen)        | `server_fur("127.0.0.1", 8080, { shahaado: "cert.pem", fure: "key.pem" })` |
 | `server_aqbal` | Handle one HTTP request           | (accept)             | `server_aqbal(server, routes)`             |
 | `server_xidh` | Close an HTTP server               | (close)              | `server_xidh(server)`                      |
 | `dns_raadi` | Look up IP addresses                | `getaddrinfo`        | `dns_raadi("localhost")`                   |
@@ -312,6 +312,12 @@ these explanations do not establish a historical abbreviation or SLS approval.
 | `fayl_meel` | Return the file position              | (tell)               | `fayl_meel(fayl)`                          |
 | `fayl_beddel` | Atomically replace a file           | (replace)            | `fayl_beddel("magac.txt", "cusub")`        |
 | `fayl_gudaha` | Read a file that stays inside a root | (safe file)        | `fayl_gudaha("public", "note.txt")`       |
+| `habee_qoraal` | Render an HTML template            | (template)           | `habee_qoraal("<p>{{ magac }}</p>", xog)`  |
+| `qayb_foom` | Parse multipart form data            | (multipart)          | `qayb_foom(nooca, baytyo)`                 |
+| `hubi` | Assert a boolean or two equal values | `assert`             | `hubi(n, 1)`                               |
+| `jebi` | Print the call stack and wait        | (breakpoint)         | `jebi()`                                   |
+| `xog_fur` | Open a database pool                 | (connect)            | `xog_fur("sqlite", "app.db", { wadarta: 2 })` |
+| `xog_awood` | Report connector capabilities        | (capabilities)       | `xog_awood("postgres")`                    |
 | `nooc`   | Get type of variable                         | `typeof`             | `qor(nooc(magac))`                        |
 | `abn`    | Convert value to an integer (also the `int` type keyword above) | `int` | `door n = abn("5")`                 |
 | `jajab`  | Convert a number or numeric string to floating point | `float` | `door n = jajab("3.5")`             |

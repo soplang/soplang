@@ -395,7 +395,7 @@ pub fn builtin_http_codso(args: Vec<Value>) -> Result<Value, SoplangError> {
 }
 
 pub fn builtin_server_fur(args: Vec<Value>) -> Result<Value, SoplangError> {
-    expect_arity(&args, "server_fur", 2)?;
+    expect_arity_range(&args, "server_fur", 2, 3)?;
     let Value::Str(host) = &args[0] else {
         return Err(err_type(
             "Martigeliyaha server_fur() waa inuu noqdaa qoraal.",
@@ -404,7 +404,206 @@ pub fn builtin_server_fur(args: Vec<Value>) -> Result<Value, SoplangError> {
     let Value::Int(port) = args[1] else {
         return Err(err_type("Dekedda server_fur() waa inay noqotaa abn."));
     };
+    if let Some(options) = args.get(2) {
+        let cert = object_string(options, "shahaado")?;
+        let key = object_string(options, "fure")?;
+        return super::http_server::open_tls(host, port, &cert, &key);
+    }
     super::http_server::open(host, port)
+}
+
+fn object_string(value: &Value, field: &str) -> Result<String, SoplangError> {
+    let Value::Object(object) = value else {
+        return Err(err_type("Xulashada waa inay noqotaa walax."));
+    };
+    let object = object
+        .try_borrow()
+        .map_err(|_| err_runtime("Walaxda lama akhriyi karo."))?;
+    match object.get(field) {
+        Some(Value::Str(text)) if !text.is_empty() => Ok(text.clone()),
+        _ => Err(err_type(format!("'{field}' waa inuu noqdaa qoraal."))),
+    }
+}
+
+pub fn builtin_habee_qoraal(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "habee_qoraal", 2)?;
+    let Value::Str(template) = &args[0] else {
+        return Err(err_type("Qaabka habee_qoraal() waa inuu noqdaa qoraal."));
+    };
+    super::template::render(template, &args[1])
+        .map(Value::Str)
+        .map_err(err_runtime)
+}
+
+pub fn builtin_qayb_foom(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "qayb_foom", 2)?;
+    let Value::Str(content_type) = &args[0] else {
+        return Err(err_type("Nooca qayb_foom() waa inuu noqdaa qoraal."));
+    };
+    let bytes = match &args[1] {
+        Value::Bytes(bytes) => super::bytes::read(bytes)?.clone(),
+        Value::Str(text) => text.as_bytes().to_vec(),
+        _ => {
+            return Err(err_type(
+                "Jidhka qayb_foom() waa inuu noqdaa baytyo ama qoraal.",
+            ))
+        }
+    };
+    super::multipart::parse(content_type, &bytes).map_err(err_runtime)
+}
+
+pub fn builtin_hubi(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity_range(&args, "hubi", 1, 2)?;
+    let passed = if args.len() == 1 {
+        matches!(args[0], Value::Bool(true))
+    } else {
+        args[0] == args[1]
+    };
+    if passed {
+        Ok(Value::Null)
+    } else if args.len() == 1 {
+        Err(err_runtime(format!(
+            "Hubintu way fashilantay: {}.",
+            value_to_string(&args[0])
+        )))
+    } else {
+        Err(err_runtime(format!(
+            "Hubintu way fashilantay: {} != {}.",
+            value_to_string(&args[0]),
+            value_to_string(&args[1])
+        )))
+    }
+}
+
+pub fn builtin_jebi(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "jebi", 0)?;
+    for frame in super::abi::call_stack() {
+        println!("{} {}:{}", frame.function, frame.line, frame.col);
+    }
+    let mut line = String::new();
+    std::io::stdin()
+        .read_line(&mut line)
+        .map_err(|failure| err_runtime(failure.to_string()))?;
+    if line.trim() == "jooji" {
+        return Err(err_runtime("Joojinta waa la dalbaday."));
+    }
+    Ok(Value::Null)
+}
+
+pub fn builtin_dabool_saf(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "dabool_saf", 1)?;
+    if let Value::Int(line) = args[0] {
+        if line > 0 {
+            super::abi::record_coverage(line as usize);
+        }
+    }
+    Ok(Value::Null)
+}
+
+pub fn builtin_xog_fur(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity_range(&args, "xog_fur", 2, 3)?;
+    let Value::Str(kind) = &args[0] else {
+        return Err(err_type("Nooca xog_fur() waa inuu noqdaa qoraal."));
+    };
+    let Value::Str(target) = &args[1] else {
+        return Err(err_type("Jidka xog_fur() waa inuu noqdaa qoraal."));
+    };
+    let pool = match args.get(2) {
+        None => 1,
+        Some(value) => object_int(value, "wadarta")?,
+    };
+    crate::data::open(kind, target, pool)
+}
+
+fn object_int(value: &Value, field: &str) -> Result<usize, SoplangError> {
+    let Value::Object(object) = value else {
+        return Err(err_type("Xulashada waa inay noqotaa walax."));
+    };
+    let object = object
+        .try_borrow()
+        .map_err(|_| err_runtime("Walaxda lama akhriyi karo."))?;
+    match object.get(field) {
+        None => Ok(1),
+        Some(Value::Int(value)) if *value > 0 => usize::try_from(*value)
+            .map_err(|_| err_type(format!("'{field}' aad buu u weyn yahay."))),
+        _ => Err(err_type(format!(
+            "'{field}' waa inuu noqdaa abn ka weyn eber."
+        ))),
+    }
+}
+
+fn database_id(value: &Value) -> Result<i64, SoplangError> {
+    let Value::Object(object) = value else {
+        return Err(err_type("Xogtu waa inay noqotaa walax."));
+    };
+    let object = object
+        .try_borrow()
+        .map_err(|_| err_runtime("Walaxda lama akhriyi karo."))?;
+    match object.get("aqoonsi") {
+        Some(Value::Int(id)) => Ok(*id),
+        _ => Err(err_type("Aqoonsiga xogta ma saxna.")),
+    }
+}
+
+pub fn builtin_xog_schema(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "xog_schema", 2)?;
+    let Value::Str(text) = &args[1] else {
+        return Err(err_type("Schema-da xog_schema() waa inay noqotaa qoraal."));
+    };
+    crate::data::load_schema(database_id(&args[0])?, text)
+}
+
+pub fn builtin_xog_guuri(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "xog_guuri", 1)?;
+    crate::data::migrate(database_id(&args[0])?)
+}
+
+pub fn builtin_xog_geli(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "xog_geli", 3)?;
+    let Value::Str(table) = &args[1] else {
+        return Err(err_type("Jadwalka xog_geli() waa inuu noqdaa qoraal."));
+    };
+    crate::data::insert(database_id(&args[0])?, table, &args[2])
+}
+
+pub fn builtin_xog_raadi(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity_range(&args, "xog_raadi", 2, 3)?;
+    let Value::Str(table) = &args[1] else {
+        return Err(err_type("Jadwalka xog_raadi() waa inuu noqdaa qoraal."));
+    };
+    crate::data::find(database_id(&args[0])?, table, args.get(2))
+}
+
+pub fn builtin_xog_beddel(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "xog_beddel", 4)?;
+    let Value::Str(table) = &args[1] else {
+        return Err(err_type("Jadwalka xog_beddel() waa inuu noqdaa qoraal."));
+    };
+    crate::data::update(database_id(&args[0])?, table, &args[2], &args[3])
+}
+
+pub fn builtin_xog_tirtir(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "xog_tirtir", 3)?;
+    let Value::Str(table) = &args[1] else {
+        return Err(err_type("Jadwalka xog_tirtir() waa inuu noqdaa qoraal."));
+    };
+    crate::data::delete(database_id(&args[0])?, table, &args[2])
+}
+
+pub fn builtin_xog_macaamil(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "xog_macaamil", 2)?;
+    let id = database_id(&args[0])?;
+    let callback = args[1].clone();
+    crate::data::transaction(id, || super::abi::invoke(&callback, &[]))?;
+    Ok(Value::Null)
+}
+
+pub fn builtin_xog_awood(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "xog_awood", 1)?;
+    let Value::Str(kind) = &args[0] else {
+        return Err(err_type("Nooca xog_awood() waa inuu noqdaa qoraal."));
+    };
+    crate::data::capabilities(kind)
 }
 
 pub fn builtin_server_aqbal(args: Vec<Value>) -> Result<Value, SoplangError> {
@@ -1167,7 +1366,29 @@ const BUILTINS: &[(&str, super::NativeFn, CallbackArity)] = &[
     ),
     ("fuli", builtin_fuli, CallbackArity::range(1, 2)),
     ("http_codso", builtin_http_codso, CallbackArity::range(2, 3)),
-    ("server_fur", builtin_server_fur, CallbackArity::range(2, 2)),
+    ("server_fur", builtin_server_fur, CallbackArity::range(2, 3)),
+    (
+        "habee_qoraal",
+        builtin_habee_qoraal,
+        CallbackArity::range(2, 2),
+    ),
+    ("qayb_foom", builtin_qayb_foom, CallbackArity::range(2, 2)),
+    ("hubi", builtin_hubi, CallbackArity::range(1, 2)),
+    ("jebi", builtin_jebi, CallbackArity::range(0, 0)),
+    ("dabool_saf", builtin_dabool_saf, CallbackArity::range(1, 1)),
+    ("xog_fur", builtin_xog_fur, CallbackArity::range(2, 3)),
+    ("xog_schema", builtin_xog_schema, CallbackArity::range(2, 2)),
+    ("xog_guuri", builtin_xog_guuri, CallbackArity::range(1, 1)),
+    ("xog_geli", builtin_xog_geli, CallbackArity::range(3, 3)),
+    ("xog_raadi", builtin_xog_raadi, CallbackArity::range(2, 3)),
+    ("xog_beddel", builtin_xog_beddel, CallbackArity::range(4, 4)),
+    ("xog_tirtir", builtin_xog_tirtir, CallbackArity::range(3, 3)),
+    (
+        "xog_macaamil",
+        builtin_xog_macaamil,
+        CallbackArity::range(2, 2),
+    ),
+    ("xog_awood", builtin_xog_awood, CallbackArity::range(1, 1)),
     (
         "server_aqbal",
         builtin_server_aqbal,

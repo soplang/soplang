@@ -309,3 +309,125 @@ fn the_web_framework_builds_with_llvm() {
     let _ = child.wait();
     let _ = fs::remove_dir_all(dir);
 }
+
+#[test]
+fn templates_escape_html_and_multipart_uploads_stay_bounded() {
+    let dir = temp_dir("web_more");
+    let source = r#"
+keen "web" sida web
+door app = cusub web.Web()
+app.hel("GET", "/habee", hawl(codsi) { celi web.habee("<p>{{ magac }}</p>{{!html}}", { magac: "<Amina>", html: "<b>ok</b>" }) })
+app.hel("POST", "/qayb", hawl(codsi) {
+    door qaybaha = web.qayb(codsi)
+    celi web.json({ magac: qaybaha[0].qoraal })
+})
+door server = server_fur("127.0.0.1", 0)
+qor(server.deked)
+kuceli (i ku taxane(2)) { app.aqbal(server) }
+server_xidh(server)
+"#;
+    let (child, port, mut stdout) = serve(&dir, source);
+    let (status, body) = exchange(
+        &port,
+        "GET /habee HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n",
+    );
+    assert_eq!(status, 200, "{body}");
+    assert!(body.contains("&lt;Amina&gt;"), "{body}");
+    assert!(body.contains("<b>ok</b>"), "{body}");
+    let form = "\
+--Aa\r\n\
+Content-Disposition: form-data; name=\"magac\"\r\n\
+\r\n\
+Amina\r\n\
+--Aa--\r\n";
+    let request = format!(
+        "POST /qayb HTTP/1.1\r\nHost: localhost\r\nContent-Type: multipart/form-data; boundary=Aa\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{form}",
+        form.len()
+    );
+    let (status, body) = exchange(&port, &request);
+    assert_eq!(status, 200, "{body}");
+    assert!(body.contains("Amina"), "{body}");
+    let mut rest = String::new();
+    stdout.read_to_string(&mut rest).unwrap();
+    let output = child.wait_with_output().unwrap();
+    assert!(
+        output.status.success(),
+        "{}\n{rest}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let _ = fs::remove_dir_all(dir);
+}
+
+#[test]
+fn tls_serves_one_request() {
+    let dir = temp_dir("web_tls");
+    let cert = dir.join("cert.pem");
+    let key = dir.join("key.pem");
+    let made = Command::new("openssl")
+        .args([
+            "req",
+            "-x509",
+            "-newkey",
+            "rsa:2048",
+            "-keyout",
+            key.to_str().unwrap(),
+            "-out",
+            cert.to_str().unwrap(),
+            "-days",
+            "1",
+            "-nodes",
+            "-subj",
+            "/CN=localhost",
+        ])
+        .output()
+        .unwrap();
+    assert!(
+        made.status.success(),
+        "{}",
+        String::from_utf8_lossy(&made.stderr)
+    );
+    let source = format!(
+        "keen \"web\" sida web\ndoor app = cusub web.Web()\napp.shahaado(\"{}\", \"{}\")\napp.hel(\"GET\", \"/ping\", hawl(codsi) {{ celi web.json({{ n: 1 }}) }})\ndoor server = app.fur(\"127.0.0.1\", 0)\nqor(server.deked)\napp.aqbal(server)\nserver_xidh(server)\n",
+        cert.display().to_string().replace('\\', "/"),
+        key.display().to_string().replace('\\', "/")
+    );
+    let (child, port, mut stdout) = serve(&dir, &source);
+    let mut client = Command::new("openssl")
+        .args([
+            "s_client",
+            "-connect",
+            &format!("127.0.0.1:{port}"),
+            "-servername",
+            "localhost",
+            "-quiet",
+            "-CAfile",
+            cert.to_str().unwrap(),
+        ])
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .unwrap();
+    client
+        .stdin
+        .as_mut()
+        .unwrap()
+        .write_all(b"GET /ping HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n")
+        .unwrap();
+    let output = client.wait_with_output().unwrap();
+    let body = String::from_utf8_lossy(&output.stdout);
+    assert!(
+        body.contains("\"n\":1"),
+        "{body}\n{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let mut rest = String::new();
+    stdout.read_to_string(&mut rest).unwrap();
+    let server = child.wait_with_output().unwrap();
+    assert!(
+        server.status.success(),
+        "{}\n{rest}",
+        String::from_utf8_lossy(&server.stderr)
+    );
+    let _ = fs::remove_dir_all(dir);
+}

@@ -1,0 +1,28 @@
+{
+  "name": "soplang",
+  "displayName": "Soplang",
+  "description": "Midabka qoraalka Soplang iyo fariimaha LSP.",
+  "version": "3.1.0",
+  "publisher": "soplang",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["Programming Languages"],
+  "contributes": {
+    "languages": [
+      {
+        "id": "soplang",
+        "aliases": ["Soplang", "soplang"],
+        "extensions": [".sop"],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "soplang",
+        "scopeName": "source.soplang",
+        "path": "./syntaxes/soplang.tmLanguage.json"
+      }
+    ]
+  }
+}

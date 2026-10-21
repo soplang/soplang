@@ -613,6 +613,7 @@ fn rename_stmt(stmt: &mut Stmt, names: &HashMap<String, String>) {
         | Stmt::Export(_)
         | Stmt::UseModule { .. }
         | Stmt::UseClass { .. } => {}
+        Stmt::Test { body, .. } | Stmt::Fixture { body, .. } => rename_stmts(body, names),
     }
 }
 
@@ -745,8 +746,9 @@ fn preserved_import_end(tokens: &[crate::frontend::token::Token], index: usize) 
 }
 
 fn standard_import(base: &Path, spec: &str) -> Option<(PathBuf, &'static str)> {
-    let source = match spec {
-        "web" | "web.sop" => include_str!("../stdlib/web.sop"),
+    let (name, source) = match spec {
+        "web" | "web.sop" => ("web.sop", include_str!("../stdlib/web.sop")),
+        "xog" | "xog.sop" => ("xog.sop", include_str!("../stdlib/xog.sop")),
         _ => return None,
     };
     let direct = base.join(spec);
@@ -758,7 +760,7 @@ fn standard_import(base: &Path, spec: &str) -> Option<(PathBuf, &'static str)> {
     if direct.is_file() || with_extension.is_file() {
         return None;
     }
-    Some((PathBuf::from("<soplang>/web.sop"), source))
+    Some((PathBuf::from(format!("<soplang>/{name}")), source))
 }
 
 fn resolve_import_path_from_root(

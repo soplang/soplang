@@ -22,7 +22,7 @@ use soplang::{
     override_usage = arguments::USAGE,
     help_template = "{about}\n\nAdeegsiga: {usage}\n\nFaylka:\n{positionals}\n\nXulashooyinka:\n{options}{after-help}\n",
     version,
-    after_help = "Abuur xirmo: soplang init [GALKA] [--lib] [--name MAGAC].\nHaddii aan waxba la raacin, waxaa furmaya REPL.\nAdeegso -i si aad REPL ugu sii shaqayso marka faylka ama tusaalaha la fuliyo."
+    after_help = "Abuur xirmo: soplang init [GALKA] [--lib] [--name MAGAC].\nQalab: soplang fmt|check|test|doc|lsp|debug|profile|run|dhis.\nHaddii aan waxba la raacin, waxaa furmaya REPL.\nAdeegso -i si aad REPL ugu sii shaqayso marka faylka ama tusaalaha la fuliyo."
 )]
 struct Cli {
     #[arg(short = 'h', long, action = clap::ArgAction::Help, help = "Muuji caawimada.")]
@@ -80,7 +80,10 @@ struct Cli {
     #[arg(long, value_name = "MAGAC", help = "Ka saar ku-tiirsan xirmada.")]
     ka_saar: Option<String>,
 
-    #[arg(long, help = "Adeegso kaydka xirmooyinka oo la hubiyey adigoon kuwo kale soo dejin.")]
+    #[arg(
+        long,
+        help = "Adeegso kaydka xirmooyinka oo la hubiyey adigoon kuwo kale soo dejin."
+    )]
     offline: bool,
 
     #[arg(long, help = "Daabac xirmadan kaydka Soplang.")]
@@ -129,24 +132,44 @@ struct Cli {
 }
 
 fn main() {
-    if std::env::args_os().nth(1).as_deref() == Some(std::ffi::OsStr::new("init")) {
-        let options = match soplang::cli::project::InitOptions::try_parse_from(
-            std::env::args_os().skip(1),
+    if let Some(command) = std::env::args().nth(1) {
+        if matches!(
+            command.as_str(),
+            "fmt" | "check" | "test" | "doc" | "lsp" | "debug" | "profile" | "run" | "dhis"
         ) {
-            Ok(options) => options,
-            Err(error) => {
-                if error.use_stderr() {
-                    eprint!(
-                        "{}",
-                        arguments::format_argument_error(&error)
-                            .replace(arguments::USAGE, soplang::cli::project::INIT_USAGE)
-                    );
-                } else {
-                    let _ = error.print();
+            if command == "lsp" {
+                if let Err(error) = soplang::cli::lsp::serve() {
+                    eprintln!("{}", format_error_with_source(&error, None));
+                    process::exit(1);
                 }
-                process::exit(error.exit_code());
+                return;
             }
-        };
+            match soplang::cli::tools::dispatch(&command) {
+                Ok(code) => process::exit(code),
+                Err(error) => {
+                    eprintln!("{}", format_error_with_source(&error, None));
+                    process::exit(1);
+                }
+            }
+        }
+    }
+    if std::env::args_os().nth(1).as_deref() == Some(std::ffi::OsStr::new("init")) {
+        let options =
+            match soplang::cli::project::InitOptions::try_parse_from(std::env::args_os().skip(1)) {
+                Ok(options) => options,
+                Err(error) => {
+                    if error.use_stderr() {
+                        eprint!(
+                            "{}",
+                            arguments::format_argument_error(&error)
+                                .replace(arguments::USAGE, soplang::cli::project::INIT_USAGE)
+                        );
+                    } else {
+                        let _ = error.print();
+                    }
+                    process::exit(error.exit_code());
+                }
+            };
         match soplang::cli::project::initialize(&options) {
             Ok(message) => {
                 println!("{message}");
