@@ -75,3 +75,10 @@ the troubleshooting details do not become part of the value supplied to
 `NO_COLOR=1` or `--no-color` disables diagnostic color. Neither setting
 translates text printed by the Soplang program itself. Third-party panics and
 failures before Soplang starts are outside normal diagnostic handling.
+
+## Create a project
+
+`soplang init [directory] [--lib] [--name name]` creates a manifest and a starter.
+Applications start in `main.sop`, libraries in `lib.sop`. See
+[packages](packages.md#create-a-project). `soplang init --help` explains the
+options in Somali. Existing manifests and starters are preserved.

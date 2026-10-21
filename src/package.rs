@@ -290,7 +290,12 @@ pub fn import_file(base_dir: &Path, spec: &str) -> Result<Option<PathBuf>, Sopla
     let root = materialize(&manifest_dir, dependency, &hints)?;
     let child = read_manifest_dir(&root)?;
     let relative = entry_path(&child.source, name, rest)?;
-    let file = root.join(relative);
+    let library = root.join(&child.source).join("lib.sop");
+    let file = if rest.is_none() && library.is_file() {
+        library
+    } else {
+        root.join(relative)
+    };
     if !file.is_file() {
         return Err(manifest_error(
             format!("Faylka xirmada '{name}' lama helin."),
@@ -752,7 +757,7 @@ fn entry_path(source: &str, name: &str, rest: Option<&str>) -> Result<String, So
     }
 }
 
-fn is_package_name(name: &str) -> bool {
+pub(crate) fn is_package_name(name: &str) -> bool {
     let mut chars = name.chars();
     matches!(chars.next(), Some(first) if first.is_ascii_lowercase())
         && name

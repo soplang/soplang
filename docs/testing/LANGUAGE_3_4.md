@@ -42,3 +42,12 @@ Existing import diagnostic snapshots retain their relative file names and carets
 Windows and macOS checks currently stop in the `ring` C dependency because this
 Linux host has no Windows SDK or macOS SDK headers. Native platform CI remains
 required; these checks do not establish cross-platform release readiness.
+
+## Project initialization
+
+The full locked debug suite passes 362 tests, including 52 LLVM tests.
+`project_init_tests` checks application execution and library imports through
+JIT and LLVM at optimization levels 0 and 2, default/current directories,
+package naming, Somali help and errors, preservation of existing files, and
+refusal to overwrite dangling starter symlinks. Library entry resolution retains
+the older package-named source layout as a fallback.

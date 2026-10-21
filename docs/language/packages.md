@@ -23,6 +23,28 @@ gelid = "src"
 Blank lines and `#` comments are ignored. Keys cannot be repeated. Unknown keys
 and unknown `[tables]` are rejected. Failures use error code `E057`.
 
+## Create a project
+
+```sh
+soplang init my-app
+cd my-app
+soplang main.sop
+soplang --build main.sop -o my-app
+```
+
+`init` creates `soplang.toml` and a root-level `main.sop`. Run `soplang init`
+without a directory to initialize the current directory. `--name` sets the
+package name; otherwise it is derived from the directory name using lowercase
+ASCII letters, digits, `-`, and `_`. A new package starts at `0.1.0` and records
+the installed compiler version as its minimum Soplang version.
+
+`soplang init my-library --lib --name xisaab` creates `lib.sop` with an exported
+`salaan` greeting function. A bare dependency import
+loads `lib.sop` when present, or the older `<package-name>.sop` layout otherwise.
+Explicit subpaths keep their existing meaning. Neither command replaces an
+existing manifest or starter, including dangling symlinks. File creation failures
+remove the files created by that attempt.
+
 ## Local dependencies
 
 `[ku-tiirsan]` maps a package name to a relative path. The path is resolved from
@@ -107,6 +129,6 @@ canonical field order. They also write `soplang.lock`.
 | `soplang --ka-saar <magac>` | Remove one dependency and rewrite the lock. |
 | `soplang --daabac` | Copy this package into the registry. An existing version is rejected. |
 
-`keen "xisaab"` loads `<gelid>/xisaab.sop` from that dependency. `keen
+`keen "xisaab"` loads `<gelid>/lib.sop` when present, or `<gelid>/xisaab.sop` from that dependency. `keen
 "xisaab/util.sop"` loads `<gelid>/util.sop`. A relative file that already
 exists is still a file import.

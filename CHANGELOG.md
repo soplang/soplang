@@ -16,6 +16,8 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+* `soplang init [directory] [--lib] [--name name]` creates a root application or library starter and `soplang.toml` without overwriting existing files. Bare package imports prefer `lib.sop` while retaining the older package-named layout.
+
 * [3.2.0 implementation milestone notes](docs/releases/3.2.0.md) record completed language foundations. A version tag and distribution builds remain pending.
 
 * Text file builtins `akhrifayl`, `qor_fayl`, and `kudar_fayl` read, overwrite, and append UTF-8 text using paths relative to the working directory. I/O failures remain catchable with Somali messages.

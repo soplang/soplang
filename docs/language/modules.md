@@ -57,6 +57,6 @@ does not reserve a new module or discard the initializer needed by a later
 successful import. A failed runtime initializer remains eligible for retry.
 
 `keen "xisaab"` loads a package named in the nearest `soplang.toml`. The file is
-`<gelid>/xisaab.sop`. `keen "xisaab/util.sop"` loads `<gelid>/util.sop`. A
+`<gelid>/lib.sop`, or `<gelid>/xisaab.sop` for older packages. `keen "xisaab/util.sop"` loads `<gelid>/util.sop`. A
 relative path that already names a file stays a file import. See
 [packages](packages.md).

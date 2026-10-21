@@ -10,6 +10,17 @@ The source branch includes the [3.1 runtime foundation milestone](docs/releases/
 
 The implementation is in Rust. Files and the REPL use Cranelift JIT; `--build` produces standalone LLVM executables. See [COMPILER_PLAN.md](COMPILER_PLAN.md).
 
+## Create a project
+
+```sh
+soplang init my-app
+cd my-app
+soplang main.sop
+```
+
+Use `soplang init my-library --lib` for a library with a root `lib.sop`.
+See the [package reference](docs/language/packages.md) for manifests and imports.
+
 ## Project structure
 
 | Path | Description |

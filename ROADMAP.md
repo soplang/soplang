@@ -331,6 +331,10 @@ the concurrency and asynchronous I/O work in 3.6.
 
 ### Package system
 
+Project creation is implemented as `soplang init [directory] [--lib] [--name name]`,
+with `soplang.toml` and a root `main.sop` or `lib.sop` starter. Existing files
+are preserved. See [packages](docs/language/packages.md#create-a-project).
+
 1. Define a project and package manifest — implemented as `soplang.toml`; see [packages](docs/language/packages.md).
 2. Record package names, versions, and supported Soplang versions — `magac`, `nusxa`, and `soplang`.
 3. Add dependency declarations and local path dependencies — implemented as `[ku-tiirsan]` with a relative path, a `kayd:` constraint, or an `http`/`https` `.sopkg` URL.

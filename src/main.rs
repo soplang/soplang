@@ -22,7 +22,7 @@ use soplang::{
     override_usage = arguments::USAGE,
     help_template = "{about}\n\nAdeegsiga: {usage}\n\nFaylka:\n{positionals}\n\nXulashooyinka:\n{options}{after-help}\n",
     version,
-    after_help = "Haddii aan waxba la raacin, waxaa furmaya REPL.\nAdeegso -i si aad REPL ugu sii shaqayso marka faylka ama tusaalaha la fuliyo."
+    after_help = "Abuur xirmo: soplang init [GALKA] [--lib] [--name MAGAC].\nHaddii aan waxba la raacin, waxaa furmaya REPL.\nAdeegso -i si aad REPL ugu sii shaqayso marka faylka ama tusaalaha la fuliyo."
 )]
 struct Cli {
     #[arg(short = 'h', long, action = clap::ArgAction::Help, help = "Muuji caawimada.")]
@@ -126,6 +126,35 @@ struct Cli {
 }
 
 fn main() {
+    if std::env::args_os().nth(1).as_deref() == Some(std::ffi::OsStr::new("init")) {
+        let options = match soplang::cli::project::InitOptions::try_parse_from(
+            std::env::args_os().skip(1),
+        ) {
+            Ok(options) => options,
+            Err(error) => {
+                if error.use_stderr() {
+                    eprint!(
+                        "{}",
+                        arguments::format_argument_error(&error)
+                            .replace(arguments::USAGE, soplang::cli::project::INIT_USAGE)
+                    );
+                } else {
+                    let _ = error.print();
+                }
+                process::exit(error.exit_code());
+            }
+        };
+        match soplang::cli::project::initialize(&options) {
+            Ok(message) => {
+                println!("{message}");
+                return;
+            }
+            Err(error) => {
+                eprintln!("{}", format_error_with_source(&error, None));
+                process::exit(1);
+            }
+        }
+    }
     let cli = match Cli::try_parse() {
         Ok(cli) => cli,
         Err(error) => {
