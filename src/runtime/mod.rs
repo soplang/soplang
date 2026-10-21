@@ -19,6 +19,7 @@ mod numeric;
 mod text_files;
 mod binary_files;
 mod filesystem;
+mod json;
 pub mod stdlib;
 pub mod value;
 

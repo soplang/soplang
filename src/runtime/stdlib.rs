@@ -174,6 +174,19 @@ pub fn builtin_kudar_baytyo(args: Vec<Value>) -> Result<Value, SoplangError> {
     Ok(Value::Null)
 }
 
+pub fn builtin_json_akhris(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "json_akhris", 1)?;
+    let Value::Str(text) = &args[0] else {
+        return Err(err_type("json_akhris() waa inuu helaa qoraal."));
+    };
+    super::json::parse(text)
+}
+
+pub fn builtin_json_qor(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "json_qor", 1)?;
+    Ok(Value::Str(super::json::stringify(&args[0])?))
+}
+
 fn optional_truthy(args: &[Value], index: usize) -> bool {
     args.get(index).is_some_and(|value| value.is_truthy())
 }
@@ -622,6 +635,8 @@ const BUILTINS: &[(&str, super::NativeFn, CallbackArity)] = &[
     ("akhrif_baytyo", builtin_akhrif_baytyo, CallbackArity::range(1, 1)),
     ("qor_baytyo", builtin_qor_baytyo, CallbackArity::range(2, 2)),
     ("kudar_baytyo", builtin_kudar_baytyo, CallbackArity::range(2, 2)),
+    ("json_akhris", builtin_json_akhris, CallbackArity::range(1, 1)),
+    ("json_qor", builtin_json_qor, CallbackArity::range(1, 1)),
     ("fayl_jiraa", builtin_fayl_jiraa, CallbackArity::range(1, 1)),
     ("fayl_xog", builtin_fayl_xog, CallbackArity::range(1, 1)),
     ("isku_xidh", builtin_isku_xidh, CallbackArity::range(1, usize::MAX)),

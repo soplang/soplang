@@ -16,6 +16,8 @@ All notable changes to this project will be documented in this file.
 
 * Binary file builtins `akhrif_baytyo`, `qor_baytyo`, and `kudar_baytyo` read and write whole files as `baytyo` values without UTF-8 conversion.
 
+* JSON builtins `json_akhris` and `json_qor` parse and generate JSON. Object keys, including `__class__`, stay plain fields, and conversion failures use `E045`.
+
 
 * Numeric builtins add logarithms, radian trigonometry with optional inverse mode, `atan2`-style angles, named constants, clamping, and context-local seeded random streams. Integer-only extrema keep exact 64-bit results; invalid random calls do not advance the generator.
 

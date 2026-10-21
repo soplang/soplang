@@ -35,3 +35,13 @@ cargo test --locked --test binary_file_tests --test llvm_ir_tests
 
 The binary suite covers byte round trips, append, strict `baytyo` arguments, and
 LLVM execution at optimization levels 0 and 2.
+
+## JSON
+
+```sh
+cargo test --locked --test json_tests --test llvm_ir_tests
+```
+
+The JSON suite covers value mapping, sorted object keys, a preserved `__class__`
+field that stays a plain object, catchable parse and serialization failures, and
+LLVM execution at optimization levels 0 and 2.

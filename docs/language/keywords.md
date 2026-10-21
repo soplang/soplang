@@ -251,6 +251,8 @@ these explanations do not establish a historical abbreviation or SLS approval.
 | `akhrif_baytyo` | Read an entire file as `baytyo`        | (read bytes)         | `door data = akhrif_baytyo("raw.bin")`     |
 | `qor_baytyo` | Overwrite a file with `baytyo`           | (write bytes)        | `qor_baytyo("raw.bin", data)`              |
 | `kudar_baytyo` | Append `baytyo` to a file              | (append bytes)       | `kudar_baytyo("raw.bin", chunk)`           |
+| `json_akhris` | Parse JSON text into a value           | `JSON.parse`         | `json_akhris("{\"a\":1}")`                 |
+| `json_qor` | Generate JSON text                      | `JSON.stringify`     | `json_qor({a: 1})`                         |
 | `fayl_jiraa` | Test whether a path exists              | (path exists)        | `haddii (fayl_jiraa("magac.txt")) {...}`   |
 | `fayl_xog` | Query path metadata                     | (path stat)          | `door x = fayl_xog("magac.txt")`           |
 | `isku_xidh` | Join path segments                     | (path join)          | `isku_xidh("data", "magac.txt")`           |

@@ -920,6 +920,22 @@ qor("llvm binary ok")
     let _ = fs::remove_dir_all(&dir);
 }
 
+#[test]
+fn test_llvm_json() {
+    let source = r#"
+hawl hubi(v, name) { haddii (!v) { tuur name } }
+door value = json_akhris(e"{\"a\":1}")
+hubi(value.a == 1 && json_qor(value) == e"{\"a\":1}", "json")
+qor("llvm json ok")
+"#;
+    for opt in [0, 2] {
+        assert_eq!(
+            run_llvm_with_opt(&format!("llvm_json_{opt}"), source, opt),
+            "llvm json ok\n"
+        );
+    }
+}
+
 fn run_llvm_with_opt_in_dir(name: &str, source: &str, opt: u8, dir: &Path) -> String {
     let stmts = soplang::frontend::parse_source(source, None).expect("parse");
     let sym = analyze(&stmts).expect("analyze");
