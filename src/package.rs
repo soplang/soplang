@@ -12,6 +12,8 @@ use ureq::Agent;
 
 use crate::error::{codes, file_read_error, io_reason, runtime_error_ex, ErrorMeta, SoplangError};
 
+mod document;
+
 pub const MANIFEST_FILE: &str = "soplang.toml";
 pub const LOCK_FILE: &str = "soplang.lock";
 
@@ -32,7 +34,7 @@ pub struct Manifest {
     pub dependencies: Vec<Dependency>,
 }
 
-#[derive(Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 struct LockEntry {
     name: String,
     version: String,
@@ -68,12 +70,14 @@ pub fn load_beside_source(source: &Path) -> Result<Option<Manifest>, SoplangErro
     };
     let path = dir.join(MANIFEST_FILE);
     let text = fs::read_to_string(&path).map_err(|error| file_read_error(&path, &error))?;
-    load_manifest(&dir, &text).map(Some)
+    load_manifest(&dir, &text)
+        .map(Some)
+        .map_err(|error| attach_document_error(error, &text, &path))
 }
 
 pub fn load_manifest(dir: &Path, text: &str) -> Result<Manifest, SoplangError> {
     let manifest = parse_manifest(text)?;
-    let hints = read_lock_hints(dir);
+    let hints = read_lock_hints(dir)?;
     let mut locked = Vec::new();
     resolve_dependencies(
         dir,
@@ -89,91 +93,7 @@ pub fn load_manifest(dir: &Path, text: &str) -> Result<Manifest, SoplangError> {
 }
 
 pub fn parse_manifest(text: &str) -> Result<Manifest, SoplangError> {
-    let mut name = None;
-    let mut version = None;
-    let mut soplang = None;
-    let mut source = None;
-    let mut dependencies: Vec<Dependency> = Vec::new();
-    let mut section = None;
-    for (number, raw) in text.lines().enumerate() {
-        let line_no = number + 1;
-        let line = raw.trim();
-        if line.is_empty() || line.starts_with('#') {
-            continue;
-        }
-        if let Some(header) = line
-            .strip_prefix('[')
-            .and_then(|line| line.strip_suffix(']'))
-        {
-            let header = header.trim();
-            if header != "ku-tiirsan" {
-                return Err(manifest_error(
-                    format!("Qaybta '{header}' lama aqoonsan."),
-                    line_no,
-                ));
-            }
-            section = Some(header.to_string());
-            continue;
-        }
-        let Some((key, value)) = line.split_once('=') else {
-            return Err(manifest_error(
-                "Safka xirmada waa inuu noqdaa furaha = \"qiime\".",
-                line_no,
-            ));
-        };
-        let key = key.trim();
-        let value = unquote(value.trim(), line_no)?;
-        if section.as_deref() == Some("ku-tiirsan") {
-            validate_name_at(&key, line_no)?;
-            classify_at(&value, line_no)?;
-            if dependencies.iter().any(|dependency| dependency.name == key) {
-                return Err(manifest_error(
-                    format!("Ku-tiirsiga '{key}' waa la soo celiyey."),
-                    line_no,
-                ));
-            }
-            dependencies.push(Dependency {
-                name: key.to_string(),
-                spec: value,
-            });
-            continue;
-        }
-        let slot = match key {
-            "magac" => &mut name,
-            "nusxa" => &mut version,
-            "soplang" => &mut soplang,
-            "gelid" => &mut source,
-            _ => {
-                return Err(manifest_error(
-                    format!("Furaha '{key}' lama aqoonsan."),
-                    line_no,
-                ))
-            }
-        };
-        if slot.is_some() {
-            return Err(manifest_error(
-                format!("Furaha '{key}' waa la soo celiyey."),
-                line_no,
-            ));
-        }
-        *slot = Some(value);
-    }
-    let name = name.ok_or_else(|| manifest_error("magac waa ka maqan yahay xirmada.", 1))?;
-    let version = version.ok_or_else(|| manifest_error("nusxa waa ka maqan yahay xirmada.", 1))?;
-    let soplang =
-        soplang.ok_or_else(|| manifest_error("soplang waa ka maqan yahay xirmada.", 1))?;
-    validate_name(&name)?;
-    validate_package_version(&version)?;
-    validate_language_requirement(&soplang)?;
-    let source = source.unwrap_or_else(|| ".".to_string());
-    validate_source(&source)?;
-    Ok(Manifest {
-        name,
-        version,
-        soplang,
-        source,
-        dependencies,
-    })
+    document::manifest(text)
 }
 
 pub fn manifest_path(dir: &Path) -> PathBuf {
@@ -200,7 +120,7 @@ pub fn add_dependency(dir: &Path, name: &str, spec: &str) -> Result<String, Sopl
         name: name.to_string(),
         spec: spec.to_string(),
     });
-    let hints = read_lock_hints(dir);
+    let hints = read_lock_hints(dir)?;
     let locked = resolve_and_lock(dir, &manifest, &hints)?;
     write_text(&path, &render_manifest(&manifest))?;
     write_text(&dir.join(LOCK_FILE), &render_lock(&locked))?;
@@ -224,7 +144,7 @@ pub fn remove_dependency(dir: &Path, name: &str) -> Result<String, SoplangError>
     manifest
         .dependencies
         .retain(|dependency| dependency.name != name);
-    let hints = read_lock_hints(dir);
+    let hints = read_lock_hints(dir)?;
     let locked = resolve_and_lock(dir, &manifest, &hints)?;
     write_text(&path, &render_manifest(&manifest))?;
     write_text(&dir.join(LOCK_FILE), &render_lock(&locked))?;
@@ -286,7 +206,7 @@ pub fn import_file(base_dir: &Path, spec: &str) -> Result<Option<PathBuf>, Sopla
     else {
         return Ok(None);
     };
-    let hints = read_lock_hints(&manifest_dir);
+    let hints = read_lock_hints(&manifest_dir)?;
     let root = materialize(&manifest_dir, dependency, &hints)?;
     let child = read_manifest_dir(&root)?;
     let relative = entry_path(&child.source, name, rest)?;
@@ -586,12 +506,13 @@ fn highest_version(
 }
 
 fn verify_lock(dir: &Path, locked: &[LockEntry]) -> Result<(), SoplangError> {
-    let path = dir.join(LOCK_FILE);
-    if !path.is_file() {
+    if !dir.join(LOCK_FILE).exists() {
         return Ok(());
     }
-    let text = fs::read_to_string(&path).map_err(|error| file_read_error(&path, &error))?;
-    if text.trim_end() != render_lock(locked).trim_end() {
+    let actual = read_lock_hints(dir)?;
+    let mut expected = locked.to_vec();
+    expected.sort_by(|left, right| left.name.cmp(&right.name));
+    if actual != expected {
         return Err(manifest_error("soplang.lock ma waafaqsana xirmada.", 1));
     }
     Ok(())
@@ -604,9 +525,9 @@ fn render_lock(locked: &[LockEntry]) -> String {
     for entry in entries {
         out.push('\n');
         out.push_str("[[xirmo]]\n");
-        out.push_str(&format!("magac = \"{}\"\n", entry.name));
-        out.push_str(&format!("nusxa = \"{}\"\n", entry.version));
-        out.push_str(&format!("jid = \"{}\"\n", entry.path));
+        out.push_str(&format!("magac = {}\n", document::quote(&entry.name)));
+        out.push_str(&format!("nusxa = {}\n", document::quote(&entry.version)));
+        out.push_str(&format!("jid = {}\n", document::quote(&entry.path)));
         if let Some(sumad) = &entry.sumad {
             out.push_str(&format!("sumad = \"{sumad}\"\n"));
         }
@@ -615,76 +536,33 @@ fn render_lock(locked: &[LockEntry]) -> String {
 }
 
 fn render_manifest(manifest: &Manifest) -> String {
-    let mut out = format!(
-        "magac = \"{}\"\nnusxa = \"{}\"\nsoplang = \"{}\"\n",
-        manifest.name, manifest.version, manifest.soplang
-    );
-    if manifest.source != "." {
-        out.push_str(&format!("gelid = \"{}\"\n", manifest.source));
-    }
-    if !manifest.dependencies.is_empty() {
-        out.push_str("\n[ku-tiirsan]\n");
-        for dependency in &manifest.dependencies {
-            out.push_str(&format!("{} = \"{}\"\n", dependency.name, dependency.spec));
-        }
-    }
-    out
+    document::render_manifest(manifest)
 }
 
-fn read_lock_hints(dir: &Path) -> Vec<LockEntry> {
-    let Ok(text) = fs::read_to_string(dir.join(LOCK_FILE)) else {
-        return Vec::new();
-    };
-    parse_lock(&text).unwrap_or_default()
-}
-
-fn parse_lock(text: &str) -> Result<Vec<LockEntry>, ()> {
-    let mut entries = Vec::new();
-    let mut current = None;
-    for raw in text.lines() {
-        let line = raw.trim().trim_end_matches('\r');
-        if line.is_empty() || line.starts_with('#') {
-            continue;
-        }
-        if line == "[[xirmo]]" {
-            if let Some(entry) = current.take() {
-                entries.push(entry);
+fn read_lock_hints(dir: &Path) -> Result<Vec<LockEntry>, SoplangError> {
+    let path = dir.join(LOCK_FILE);
+    let text = match fs::read_to_string(&path) {
+        Ok(text) => text,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+            if fs::symlink_metadata(&path).is_ok() {
+                return Err(manifest_error(
+                    "soplang.lock lama akhrin karo; jidku wuxuu ku xidhan yahay fayl maqan.",
+                    1,
+                ));
             }
-            current = Some(LockEntry {
-                name: String::new(),
-                version: String::new(),
-                path: String::new(),
-                sumad: None,
-            });
-            continue;
+            return Ok(Vec::new());
         }
-        let Some(entry) = current.as_mut() else {
-            return Err(());
-        };
-        let Some((key, value)) = line.split_once('=') else {
-            return Err(());
-        };
-        let Some(value) = unquote(value.trim(), 1).ok() else {
-            return Err(());
-        };
-        match key.trim() {
-            "magac" => entry.name = value,
-            "nusxa" => entry.version = value,
-            "jid" => entry.path = value,
-            "sumad" => entry.sumad = Some(value),
-            _ => return Err(()),
-        }
-    }
-    if let Some(entry) = current {
-        entries.push(entry);
-    }
-    if entries
-        .iter()
-        .any(|entry| entry.name.is_empty() || entry.version.is_empty() || entry.path.is_empty())
-    {
-        return Err(());
-    }
-    Ok(entries)
+        Err(error) => return Err(file_read_error(&path, &error)),
+    };
+    parse_lock(&text).map_err(|error| attach_document_error(error, &text, &path))
+}
+
+fn parse_lock(text: &str) -> Result<Vec<LockEntry>, SoplangError> {
+    document::lock(text)
+}
+
+fn attach_document_error(error: SoplangError, text: &str, path: &Path) -> SoplangError {
+    crate::frontend::source_error(error, text, Some(path))
 }
 
 fn find_manifest_dir(start: &Path) -> Option<PathBuf> {
@@ -712,7 +590,7 @@ fn find_manifest_dir(start: &Path) -> Option<PathBuf> {
 fn read_manifest_dir(dir: &Path) -> Result<Manifest, SoplangError> {
     let path = dir.join(MANIFEST_FILE);
     let text = fs::read_to_string(&path).map_err(|error| file_read_error(&path, &error))?;
-    parse_manifest(&text)
+    parse_manifest(&text).map_err(|error| attach_document_error(error, &text, &path))
 }
 
 fn manifest_from_files(files: &[(String, Vec<u8>)]) -> Result<Manifest, SoplangError> {
@@ -1352,22 +1230,6 @@ fn parse_version(text: &str, require_three: bool) -> Option<Version> {
         minor,
         patch,
     })
-}
-
-fn unquote(value: &str, line: usize) -> Result<String, SoplangError> {
-    let Some(text) = value
-        .strip_prefix('"')
-        .and_then(|text| text.strip_suffix('"'))
-    else {
-        return Err(manifest_error(
-            "Qiimaha xirmada waa inuu noqdaa qoraal.",
-            line,
-        ));
-    };
-    if text.contains(['\\', '"', '\n']) {
-        return Err(manifest_error("Qoraalka xirmada ma aqbalo ka baxis.", line));
-    }
-    Ok(text.to_string())
 }
 
 fn manifest_error(message: impl Into<String>, line: usize) -> SoplangError {

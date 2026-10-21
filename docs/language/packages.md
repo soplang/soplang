@@ -20,8 +20,12 @@ gelid = "src"
 | `soplang` | yes | Minimum Soplang version: `3`, `3.1`, or `3.1.0`. The compiler's major version must match, and it must be at least the requested minor and patch. |
 | `gelid` | no | Source directory inside the package. The default is `.`. It cannot be absolute or contain `..`. |
 
-Blank lines and `#` comments are ignored. Keys cannot be repeated. Unknown keys
-and unknown `[tables]` are rejected. Failures use error code `E057`.
+The file uses TOML syntax, including quoted keys, literal/basic strings,
+escapes, multiline strings, dotted tables, and inline comments. Its schema still
+requires string identity fields and a dependency table. Duplicate keys/tables,
+unknown fields and incorrectly typed values are rejected. Failures use `E057`.
+TOML syntax errors retain their source file, line and column; the parser's
+original diagnostic is available only in technical details.
 
 ## Create a project
 
@@ -58,6 +62,10 @@ error.
 xisaab = "../xisaab"
 ```
 
+A local dependency may also be written as `xisaab = { jid = "../xisaab" }` or
+as a `[ku-tiirsan.xisaab]` table with a `jid` string. Package commands rewrite
+these forms into canonical TOML and preserve the actual string values.
+
 A `soplang.lock` file, when present, must list the same packages. Its
 entries are sorted by name:
 
@@ -72,7 +80,10 @@ jid = "../xisaab"
 
 `nusxa` is the version from that package's manifest. `jid` is the path from the
 root package. A missing lockfile is allowed. A lockfile that does not match the
-resolved dependencies is an error.
+resolved dependencies is an error. Valid TOML formatting, comments, and entry
+ordering do not change the lock's meaning. Duplicate package entries, unknown
+fields, malformed versions and invalid SHA-256 strings are errors. A malformed
+or dangling lockfile is rejected before dependency resolution.
 
 ## Registry and archives
 

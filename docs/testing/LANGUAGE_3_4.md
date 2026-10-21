@@ -51,3 +51,12 @@ JIT and LLVM at optimization levels 0 and 2, default/current directories,
 package naming, Somali help and errors, preservation of existing files, and
 refusal to overwrite dangling starter symlinks. Library entry resolution retains
 the older package-named source layout as a fallback.
+
+## TOML manifest and lock schemas
+
+The locked debug suite passes 370 tests, including 52 LLVM tests. The document
+checks cover quoted/escaped keys, literal and multiline strings, comments,
+structured local paths, duplicate tables, unknown fields, wrong value types,
+escaped path round trips, duplicate lock entries, versions and SHA-256 syntax.
+Package integration checks accept harmless TOML formatting and reject malformed
+or dangling locks before a missing dependency can mask the metadata failure.

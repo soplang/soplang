@@ -367,3 +367,73 @@ fn an_http_archive_installs_into_the_cache() {
     );
     let _ = fs::remove_dir_all(root);
 }
+
+#[test]
+fn lockfiles_accept_toml_formatting_and_reject_malformed_input_before_resolution() {
+    let root = temp_dir("lock_toml");
+    let app = root.join("app");
+    let lib = root.join("xisaab");
+    fs::create_dir_all(&app).unwrap();
+    fs::create_dir_all(&lib).unwrap();
+    fs::write(app.join("soplang.toml"), "magac='app' # identity\nnusxa='0.1.0'\nsoplang='3'\n[ku-tiirsan.xisaab]\njid='../xisaab'\n").unwrap();
+    fs::write(
+        lib.join("soplang.toml"),
+        "magac='xisaab'\nnusxa='1.0.0'\nsoplang='3'\n",
+    )
+    .unwrap();
+    fs::write(app.join("main.sop"), "qor(1)\n").unwrap();
+    fs::write(
+        app.join("soplang.lock"),
+        "[[xirmo]] # comment\njid = '../xisaab'\nmagac = 'xisaab'\nnusxa = '1.0.0'\n",
+    )
+    .unwrap();
+    assert_eq!(
+        assert_success(
+            Command::new(env!("CARGO_BIN_EXE_soplang"))
+                .arg(app.join("main.sop"))
+                .output()
+                .unwrap()
+        ),
+        "1\n"
+    );
+    // A missing dependency must not mask the malformed lockfile or cause a fetch.
+    fs::remove_dir_all(&lib).unwrap();
+    fs::write(
+        app.join("soplang.lock"),
+        "[[xirmo]]\nmagac = \"unterminated\n",
+    )
+    .unwrap();
+    let output = Command::new(env!("CARGO_BIN_EXE_soplang"))
+        .arg(app.join("main.sop"))
+        .output()
+        .unwrap();
+    let error = String::from_utf8_lossy(&output.stderr);
+    assert!(!output.status.success());
+    assert!(
+        error.contains("soplang.lock:2:") && error.contains("[E057]"),
+        "{error}"
+    );
+    assert!(output.stdout.is_empty());
+    fs::remove_dir_all(root).unwrap();
+}
+
+#[cfg(unix)]
+#[test]
+fn a_dangling_lockfile_is_not_treated_as_an_unlocked_project() {
+    let dir = temp_dir("dangling_lock");
+    fs::write(
+        dir.join("soplang.toml"),
+        "magac='app'\nnusxa='0.1.0'\nsoplang='3'\n",
+    )
+    .unwrap();
+    fs::write(dir.join("main.sop"), "qor(1)").unwrap();
+    std::os::unix::fs::symlink(dir.join("missing"), dir.join("soplang.lock")).unwrap();
+    let output = Command::new(env!("CARGO_BIN_EXE_soplang"))
+        .arg(dir.join("main.sop"))
+        .output()
+        .unwrap();
+    assert!(!output.status.success());
+    assert!(String::from_utf8_lossy(&output.stderr).contains("soplang.lock"));
+    assert!(output.stdout.is_empty());
+    fs::remove_dir_all(dir).unwrap();
+}
