@@ -60,16 +60,14 @@ fn bundle_one(
         }
 
         let start = tokens[i].start;
-        if tokens.get(i + 2).is_some_and(|token| token.kind == TokenType::Identifier && token.lexeme == "sida")
-            && tokens.get(i + 3).is_some_and(|token| token.kind == TokenType::Identifier)
-        {
-            let end = tokens.get(i + 4).map(|token| token.start).unwrap_or(source.len());
+        if let Some(end_token) = preserved_import_end(&tokens, i) {
+            let end = tokens.get(end_token).map(|token| token.start).unwrap_or(source.len());
             if start > cursor {
                 out.push_str(&source[cursor..start]);
             }
             out.push_str(&source[start..end]);
             cursor = end;
-            i += 4;
+            i = end_token;
             continue;
         }
         if start > cursor {
@@ -169,7 +167,7 @@ fn flatten_imports(
                     )
                 })?;
                 if !seen.insert(canon) {
-                    if import.alias.is_some() {
+                    if import.alias.is_some() || !import.selected.is_empty() {
                         return Err(import_error_ex(
                             "Keen-ku waa wareeg, ama faylkan horay ayaa loo keenay.",
                             0,
@@ -193,36 +191,58 @@ fn flatten_imports(
                     )
                 })?;
                 let imported = super::parse_source(&source, Some(&import_path))?;
-                if let Some(alias) = import.alias {
+                if import.alias.is_some() || !import.selected.is_empty() {
                     let mut body = Vec::new();
                     flatten_imports(imported, Some(&import_path), &mut body, seen)?;
                     let public = export_names(&body)?;
-                    let renamed = mangled_bindings(&alias, &body);
+                    let label = import
+                        .alias
+                        .clone()
+                        .unwrap_or_else(|| format!("keen{}", seen.len()));
+                    let renamed = mangled_bindings(&label, &body);
                     rename_stmts(&mut body, &renamed);
-                    body.push(Stmt::Return(Some(Expr::Object(
-                        public
-                            .into_iter()
-                            .map(|name| {
-                                let value = renamed.get(&name).cloned().unwrap_or_else(|| name.clone());
-                                (name, Expr::Identifier(value))
-                            })
-                            .collect(),
-                    ))));
-                    out.push(Stmt::VarDecl {
-                        name: alias,
-                        type_ann: TypeAnnotation::Dynamic,
-                        is_const: true,
-                        value: Expr::Invoke {
-                            callee: Box::new(Expr::AnonymousFunc {
-                                params: Vec::new(),
-                                return_ann: TypeAnnotation::Dynamic,
-                                body,
-                            }),
-                            args: Vec::new(),
-                        },
-                        line: 0,
-                        col: 0,
-                    });
+                    let fields = public
+                        .iter()
+                        .map(|name| {
+                            let value = renamed.get(name).cloned().unwrap_or_else(|| name.clone());
+                            (name.clone(), Expr::Identifier(value))
+                        })
+                        .collect();
+                    body.push(Stmt::Return(Some(Expr::Object(fields))));
+                    let namespace = Expr::Invoke {
+                        callee: Box::new(Expr::AnonymousFunc {
+                            params: Vec::new(),
+                            return_ann: TypeAnnotation::Dynamic,
+                            body,
+                        }),
+                        args: Vec::new(),
+                    };
+                    if let Some(alias) = import.alias {
+                        out.push(const_binding(alias, namespace));
+                    } else {
+                        for item in &import.selected {
+                            if !public.iter().any(|name| name == &item.name) {
+                                return Err(import_error_ex(
+                                    format!("'{}' lama soo saarin.", item.name),
+                                    0,
+                                    0,
+                                    ErrorMeta::default().with_code(codes::E021_UNDECLARED),
+                                ));
+                            }
+                        }
+                        let hidden = format!("__soplang_{label}");
+                        out.push(const_binding(hidden.clone(), namespace));
+                        for item in import.selected {
+                            let local = item.alias.unwrap_or(item.name.clone());
+                            out.push(const_binding(
+                                local,
+                                Expr::Property {
+                                    obj: Box::new(Expr::Identifier(hidden.clone())),
+                                    prop: item.name,
+                                },
+                            ));
+                        }
+                    }
                 } else {
                     flatten_imports(imported, Some(&import_path), out, seen)?;
                 }
@@ -231,6 +251,17 @@ fn flatten_imports(
         }
     }
     Ok(())
+}
+
+fn const_binding(name: String, value: Expr) -> Stmt {
+    Stmt::VarDecl {
+        name,
+        type_ann: TypeAnnotation::Dynamic,
+        is_const: true,
+        value,
+        line: 0,
+        col: 0,
+    }
 }
 
 fn export_names(stmts: &[Stmt]) -> Result<Vec<String>, SoplangError> {
@@ -413,6 +444,35 @@ fn rename_expr(expr: &mut Expr, names: &HashMap<String, String>) {
             }
         }
         Expr::Literal(_) | Expr::Interpolated { .. } => {}
+    }
+}
+
+fn preserved_import_end(tokens: &[crate::frontend::token::Token], index: usize) -> Option<usize> {
+    let ident = |at: usize, word: Option<&str>| {
+        tokens.get(at).is_some_and(|token| {
+            token.kind == TokenType::Identifier && word.is_none_or(|word| token.lexeme == word)
+        })
+    };
+    if ident(index + 2, Some("sida")) && ident(index + 3, None) {
+        return Some(index + 4);
+    }
+    if !ident(index + 2, Some("ka")) {
+        return None;
+    }
+    let mut cursor = index + 3;
+    loop {
+        if !ident(cursor, None) {
+            return None;
+        }
+        cursor += 1;
+        if ident(cursor, Some("sida")) && ident(cursor + 1, None) {
+            cursor += 2;
+        }
+        if tokens.get(cursor).is_some_and(|token| token.kind == TokenType::Comma) {
+            cursor += 1;
+            continue;
+        }
+        return Some(cursor);
     }
 }
 

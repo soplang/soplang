@@ -46,6 +46,8 @@ All notable changes to this project will be documented in this file.
 
 * `soosaar` lists the public names of a namespaced file. An unknown export name is an import error. Files without `soosaar` still export every top-level name that does not start with `_`.
 
+* `keen "file.sop" ka name` binds selected public names in the caller. `name sida local` renames one of them. A name that was not exported is an import error.
+
 
 * Numeric builtins add logarithms, radian trigonometry with optional inverse mode, `atan2`-style angles, named constants, clamping, and context-local seeded random streams. Integer-only extrema keep exact 64-bit results; invalid random calls do not advance the generator.
 

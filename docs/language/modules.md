@@ -29,8 +29,18 @@ hawl kale() { celi 1 }
 export list only when the next word is a name. Elsewhere it can still be an
 ordinary name.
 
+`keen "file.sop" ka name` binds that public name in the caller. `name sida local`
+binds it under another name. A name that was not exported is an import error.
+`ka` is contextual after an import path. It cannot be combined with a namespace
+`sida` on the same import.
+
+```soplang
+keen "math.sop" ka wad sida add, base
+qor(add(base, 2))
+```
+
 A file can be imported this way once. Importing it again, or a cycle back to a
 file already loaded, is an import error. Flat `keen` imports keep their
 existing cycle behavior.
 
-Selective imports and package imports remain later 3.4 work.
+Package imports remain later 3.4 work.

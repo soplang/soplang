@@ -94,3 +94,38 @@ fn unknown_export_is_rejected() {
     assert!(stderr.contains("maqan"), "{stderr}");
     let _ = fs::remove_dir_all(dir);
 }
+
+#[test]
+fn selective_import_binds_only_requested_names() {
+    let dir = temp_dir("module_select");
+    fs::write(
+        dir.join("math.sop"),
+        "soosaar wad, base\ndoor base = 10\nhawl wad(a, b) { celi a + b }\nhawl kale() { celi 9 }\n",
+    )
+    .unwrap();
+    fs::write(
+        dir.join("main.sop"),
+        r#"
+keen "math.sop" ka wad sida add, base
+hawl hubi(v, name) { haddii (!v) { tuur name } }
+hubi(add(base, 2) == 12, "selected")
+door failed = been
+tijaabi { wad(1, 1) } qabo (e) { failed = run }
+hubi(failed, "original name")
+failed = been
+tijaabi { kale() } qabo (e) { failed = run }
+hubi(failed, "unimported")
+qor("select ok")
+"#,
+    )
+    .unwrap();
+    let output = Command::new(env!("CARGO_BIN_EXE_soplang"))
+        .arg(dir.join("main.sop"))
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(output.status.success(), "{stderr}\n{stdout}");
+    assert_eq!(stdout, "select ok\n");
+    let _ = fs::remove_dir_all(dir);
+}

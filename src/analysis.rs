@@ -154,6 +154,7 @@ pub fn check_source(
                 if let Stmt::Import(import) = stmt.unlocated() {
                     let import_path = import.path.clone();
                     let alias = import.alias.clone();
+                    let selected = !import.selected.is_empty();
                     let target =
                         source_identity(&path.parent().unwrap_or(Path::new(".")).join(import_path));
                     let result = (self.load)(&target).map_err(|message| {
@@ -167,7 +168,7 @@ pub fn check_source(
                             e
                         }
                     })?;
-                    if alias.is_some() {
+                    if alias.is_some() || selected {
                         flattened.push(stmt);
                     } else {
                         flattened.extend(loaded);

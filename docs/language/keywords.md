@@ -632,7 +632,7 @@ Notes:
 
 | Keyword | Meaning | English | Example |
 | --------- | ---------- | ---------- | ---------- |
-| `keen`  | Import another `.sop` file       | `import` | `keen "lib.sop"` or `keen "lib.sop" sida xisaab` |
+| `keen`  | Import another `.sop` file       | `import` | `keen "lib.sop" ka wad sida add` |
 | `soosaar` | List public names of a namespaced file | `export` | `soosaar wad, base` |
 | `tijaabi` | Start a protected try block      | `try`    | `tijaabi { ... } qabo (e) { ... }`          |
 | `qabo`  | Catch block with error variable  | `catch`  | `qabo (khalad) { qor(khalad) }`           |

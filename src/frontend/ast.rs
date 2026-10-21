@@ -395,11 +395,20 @@ pub struct Param {
     pub keyword_rest: bool,
 }
 
+/// One name brought into the caller from a namespaced file.
+#[derive(Debug, Clone)]
+pub struct SelectedImport {
+    pub name: String,
+    pub alias: Option<String>,
+}
+
 /// A file import. `alias` keeps the file's public names on one value.
+/// `selected` binds individual public names in the caller.
 #[derive(Debug, Clone)]
 pub struct ImportSpec {
     pub path: String,
     pub alias: Option<String>,
+    pub selected: Vec<SelectedImport>,
 }
 #[derive(Debug, Clone)]
 pub enum Stmt {
@@ -679,11 +688,23 @@ impl Stmt {
                 Ok(())
             }
             Stmt::Import(import) => {
+                write!(f, "{pad}keen {:?}", import.path)?;
                 if let Some(alias) = &import.alias {
-                    writeln!(f, "{}keen {:?} sida {};", pad, import.path, alias)
-                } else {
-                    writeln!(f, "{}keen {:?};", pad, import.path)
+                    write!(f, " sida {alias}")?;
                 }
+                if !import.selected.is_empty() {
+                    write!(f, " ka ")?;
+                    for (index, item) in import.selected.iter().enumerate() {
+                        if index > 0 {
+                            write!(f, ", ")?;
+                        }
+                        write!(f, "{}", item.name)?;
+                        if let Some(alias) = &item.alias {
+                            write!(f, " sida {alias}")?;
+                        }
+                    }
+                }
+                writeln!(f, ";")
             }
             Stmt::Export(names) => writeln!(f, "{}soosaar {};", pad, names.join(", ")),
             Stmt::Block(stmts) => {

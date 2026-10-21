@@ -1158,7 +1158,43 @@ impl Parser {
         } else {
             None
         };
-        Ok(Stmt::Import(crate::frontend::ast::ImportSpec { path, alias }))
+        if alias.is_some() && self.peek().kind == TokenType::Identifier && self.peek().lexeme == "ka" {
+            return Err(parser_error(
+                "Ha isku darin sida iyo ka isla hal keen.",
+                self.peek().line,
+                self.peek().col,
+            ));
+        }
+        let selected = if alias.is_none()
+            && self.peek().kind == TokenType::Identifier
+            && self.peek().lexeme == "ka"
+        {
+            self.advance();
+            self.parse_selected_imports()?
+        } else {
+            Vec::new()
+        };
+        Ok(Stmt::Import(crate::frontend::ast::ImportSpec { path, alias, selected }))
+    }
+
+    fn parse_selected_imports(&mut self) -> Result<Vec<crate::frontend::ast::SelectedImport>, SoplangError> {
+        let mut items = Vec::new();
+        loop {
+            let name = self.expect_identifier()?;
+            let alias = if self.peek().kind == TokenType::Identifier && self.peek().lexeme == "sida" {
+                self.advance();
+                Some(self.expect_identifier()?)
+            } else {
+                None
+            };
+            items.push(crate::frontend::ast::SelectedImport { name, alias });
+            if self.check(TokenType::Comma) {
+                self.advance();
+                continue;
+            }
+            break;
+        }
+        Ok(items)
     }
 
     fn parse_export(&mut self) -> Result<Stmt, SoplangError> {
