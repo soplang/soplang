@@ -30,6 +30,8 @@ All notable changes to this project will be documented in this file.
 
 * Process builtins `amarro`, `deegaan`, `deegaan_qor`, and `deegaan_tirtir` expose program arguments and environment variables. Arguments exclude the Soplang executable and source filename. Invalid environment names use `E051`.
 
+* `fuli` runs a child program without a shell and returns its exit code, standard output, and standard error. Startup and non-UTF-8 output failures use `E052`.
+
 
 * Numeric builtins add logarithms, radian trigonometry with optional inverse mode, `atan2`-style angles, named constants, clamping, and context-local seeded random streams. Integer-only extrema keep exact 64-bit results; invalid random calls do not advance the generator.
 

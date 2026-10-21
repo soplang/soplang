@@ -51,6 +51,7 @@ pub mod codes {
     pub const E049_REGEX: &str = "E049";
     pub const E050_TIME: &str = "E050";
     pub const E051_PROCESS: &str = "E051";
+    pub const E052_COMMAND: &str = "E052";
 }
 
 /// A compiled function and its caller's source location.

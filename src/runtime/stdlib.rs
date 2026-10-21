@@ -349,6 +349,30 @@ pub fn builtin_deegaan_tirtir(args: Vec<Value>) -> Result<Value, SoplangError> {
     Ok(Value::Null)
 }
 
+pub fn builtin_fuli(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity_range(&args, "fuli", 1, 2)?;
+    let Value::Str(program) = &args[0] else {
+        return Err(err_type("fuli() waa inuu helaa magac barnaamij oo qoraal ah."));
+    };
+    let command_args = match args.get(1) {
+        None => Vec::new(),
+        Some(Value::List(items)) => {
+            let items = items
+                .try_borrow()
+                .map_err(|_| err_runtime("Teedka hadda lama akhriyi karo."))?;
+            items
+                .iter()
+                .map(|item| match item {
+                    Value::Str(text) => Ok(text.clone()),
+                    _ => Err(err_type("Doodaha fuli() waa inay noqdaan qoraal.")),
+                })
+                .collect::<Result<Vec<_>, _>>()?
+        }
+        Some(_) => return Err(err_type("Doodaha fuli() waa inay noqdaan teed.")),
+    };
+    super::process::run_command(program, &command_args)
+}
+
 fn optional_truthy(args: &[Value], index: usize) -> bool {
     args.get(index).is_some_and(|value| value.is_truthy())
 }
@@ -818,6 +842,7 @@ const BUILTINS: &[(&str, super::NativeFn, CallbackArity)] = &[
     ("deegaan", builtin_deegaan, CallbackArity::range(1, 1)),
     ("deegaan_qor", builtin_deegaan_qor, CallbackArity::range(2, 2)),
     ("deegaan_tirtir", builtin_deegaan_tirtir, CallbackArity::range(1, 1)),
+    ("fuli", builtin_fuli, CallbackArity::range(1, 2)),
     ("fayl_jiraa", builtin_fayl_jiraa, CallbackArity::range(1, 1)),
     ("fayl_xog", builtin_fayl_xog, CallbackArity::range(1, 1)),
     ("isku_xidh", builtin_isku_xidh, CallbackArity::range(1, usize::MAX)),

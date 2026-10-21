@@ -77,3 +77,19 @@ qor("process errors ok")
 "#;
     assert_eq!(run(&["-c", source], &[]), "process errors ok\n");
 }
+
+#[test]
+fn child_process_captures_output_and_exit_code() {
+    let source = r#"
+hawl hubi(v, name) { haddii (!v) { tuur name } }
+door ok = fuli("/bin/echo", ["Salaan"])
+hubi(ok.guul && ok.koodh == 0 && ok.soosaar == e"Salaan\n" && ok.qalad == "", "echo")
+door failed = fuli("/bin/false")
+hubi(!failed.guul && failed.koodh == 1 && failed.soosaar == "", "false")
+door missing = been
+tijaabi { fuli("/bin/soplang-missing-command") } qabo (e) { missing = run }
+hubi(missing, "missing")
+qor("child ok")
+"#;
+    assert_eq!(run(&["-c", source], &[]), "child ok\n");
+}

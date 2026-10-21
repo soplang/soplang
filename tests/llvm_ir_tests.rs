@@ -1037,6 +1037,28 @@ qor("llvm args ok")
     assert_eq!(stdout, "llvm args ok\n");
 }
 
+#[test]
+fn test_llvm_child_process() {
+    let source = r#"
+hawl hubi(v, name) { haddii (!v) { tuur name } }
+door ok = fuli("/bin/echo", ["LLVM"])
+hubi(ok.koodh == 0 && ok.soosaar == e"LLVM\n", "child")
+qor("llvm child ok")
+"#;
+    let stmts = soplang::frontend::parse_source(source, None).expect("parse");
+    let sym = analyze(&stmts).expect("analyze");
+    let hir = HirLowering::lower(&sym, &stmts);
+    let ir = emit_llvm_ir(&hir, &sym).unwrap_or_else(|e| panic!("{e}"));
+    let bin = temp_bin("llvm_child_process");
+    link_llvm_binary_with_opt(&ir, &bin, 2).unwrap_or_else(|e| panic!("{e:?}"));
+    let out = Command::new(&bin).output().expect("run llvm binary");
+    let stdout = String::from_utf8(out.stdout).expect("utf8");
+    let stderr = String::from_utf8_lossy(&out.stderr);
+    let _ = fs::remove_file(&bin);
+    assert!(out.status.success(), "failed: {stderr}\nstdout: {stdout}");
+    assert_eq!(stdout, "llvm child ok\n");
+}
+
 fn run_llvm_with_opt_in_dir(name: &str, source: &str, opt: u8, dir: &Path) -> String {
     let stmts = soplang::frontend::parse_source(source, None).expect("parse");
     let sym = analyze(&stmts).expect("analyze");

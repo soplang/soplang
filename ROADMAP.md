@@ -257,7 +257,7 @@ wait for handles, streaming, or file watching.
 5. Regular expressions — implemented as `regex_raadi`, `regex_dhammaan`, and `regex_beddel`; see [regular expressions](docs/language/regular-expressions.md).
 6. Date, time, duration, parsing, and formatting APIs — implemented for UTC seconds as `waqti`, `waqti_akhris`, `waqti_qor`, `waqti_qayb`, `waqti_ka_qayb`, and `waqti_kudar`; see [date and time](docs/language/time.md). Time zones other than `Z` remain later work.
 7. Program arguments and environment variables — implemented as `amarro`, `deegaan`, `deegaan_qor`, and `deegaan_tirtir`; see [program arguments](docs/language/process.md).
-8. Child processes, exit codes, and captured command output.
+8. Child processes, exit codes, and captured command output — implemented as `fuli`; see [program arguments](docs/language/process.md#child-processes). The command is not passed through a shell.
 
 JSON conversion must define how Soplang values map to JSON, how malformed
 input is reported, and which values cannot be serialized. JSON parse and

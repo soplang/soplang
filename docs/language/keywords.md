@@ -272,6 +272,7 @@ these explanations do not establish a historical abbreviation or SLS approval.
 | `deegaan` | Read an environment variable          | `getenv`             | `deegaan("HOME")`                          |
 | `deegaan_qor` | Set an environment variable        | `setenv`             | `deegaan_qor("MODE", "test")`              |
 | `deegaan_tirtir` | Remove an environment variable   | `unsetenv`           | `deegaan_tirtir("MODE")`                   |
+| `fuli` | Run a program and capture its result   | `subprocess`         | `fuli("/bin/echo", ["Salaan"])`            |
 | `fayl_jiraa` | Test whether a path exists              | (path exists)        | `haddii (fayl_jiraa("magac.txt")) {...}`   |
 | `fayl_xog` | Query path metadata                     | (path stat)          | `door x = fayl_xog("magac.txt")`           |
 | `isku_xidh` | Join path segments                     | (path join)          | `isku_xidh("data", "magac.txt")`           |

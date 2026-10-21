@@ -28,3 +28,24 @@ Names must be non-empty and cannot contain `=` or a zero byte.
 door args = amarro()
 door mode = deegaan("SOPLANG_MODE")
 ```
+
+## Child processes
+
+`fuli(program, arguments?)` runs a program directly, without a shell, and waits
+until it exits. A non-zero exit code is a result, not an error. Failure to
+start the program, and output that is not UTF-8, are catchable and use error
+code `E052`.
+
+The result is a `walax`:
+
+| Field | Meaning |
+| --- | --- |
+| `koodh` | Exit code as `abn`, or `maran` when the process ends without one. |
+| `soosaar` | Captured standard output. |
+| `qalad` | Captured standard error. |
+| `guul` | `run` when the exit code is zero. |
+
+```soplang
+door result = fuli("/bin/echo", ["Salaan"])
+qor(result.koodh, result.soosaar)
+```

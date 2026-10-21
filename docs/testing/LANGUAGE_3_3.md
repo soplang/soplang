@@ -104,3 +104,13 @@ cargo test --locked --test process_tests --test llvm_ir_tests
 The process suite covers arguments after `-c` and after a source file, hyphen
 arguments, environment reads, writes, removals, invalid names, and LLVM
 execution with an argument after the built program name.
+
+## Child processes
+
+```sh
+cargo test --locked --test process_tests --test llvm_ir_tests
+```
+
+The child-process checks cover captured output, a non-zero exit code, a missing
+program, and LLVM execution. The command arguments are passed directly and are
+not interpreted by a shell.
