@@ -6,6 +6,7 @@
 //! client; none of them return canned rows.
 
 mod schema;
+mod generate;
 mod sql;
 
 use crate::runtime::with_databases;
@@ -22,6 +23,7 @@ use tokio::net::TcpStream;
 use tokio_util::compat::TokioAsyncWriteCompatExt;
 
 pub use schema::{ident, parse_schema, ColumnType, Schema};
+pub use generate::{generate_client, GENERATED_HEADER};
 
 use crate::error::{codes, runtime_error_ex, ErrorMeta, SoplangError};
 use crate::runtime::value::Value;

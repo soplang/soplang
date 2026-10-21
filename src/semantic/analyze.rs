@@ -975,8 +975,25 @@ fn analyze_stmt(
             body,
         } => {
             analyze_expr(iterable, sym, opts, fn_sigs, current_class, enclosing_fn)?;
+            let item_type = match infer_expr_type(iterable, sym, fn_sigs) {
+                Some(TypeAnnotation::ListOf(inner) | TypeAnnotation::SetOf(inner)) => *inner,
+                Some(TypeAnnotation::Bytes) => TypeAnnotation::Abn,
+                Some(TypeAnnotation::Qoraal) => TypeAnnotation::Qoraal,
+                Some(TypeAnnotation::TupleOf(types)) if !types.is_empty() => {
+                    TypeAnnotation::union(types)
+                }
+                _ => TypeAnnotation::Dynamic,
+            };
+            let item_types = if vars.len() == 1 {
+                vec![item_type]
+            } else {
+                match item_type {
+                    TypeAnnotation::TupleOf(types) if types.len() == vars.len() => types,
+                    _ => vec![TypeAnnotation::Dynamic; vars.len()],
+                }
+            };
             let scope = sym.scopes.last_mut().unwrap();
-            for name in vars {
+            for (name, type_ann) in vars.iter().zip(item_types) {
                 if let Some(info) = scope.vars.get(name) {
                     if info.is_const {
                         return Err(type_error_ex(
@@ -992,7 +1009,7 @@ fn analyze_stmt(
                         name.clone(),
                         VarInfo {
                             slot,
-                            type_ann: TypeAnnotation::Dynamic,
+                            type_ann,
                             is_const: false,
                             is_captured: false,
                         },

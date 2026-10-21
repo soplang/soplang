@@ -360,7 +360,7 @@ impl Server {
             .map(|symbol| {
                 json!({
                     "label": symbol.name, "kind": completion_kind(symbol),
-                    "detail": analysis.index.display_type(&symbol.ty)
+                    "detail": analysis.index.symbol_label(symbol)
                 })
             })
             .collect();
@@ -371,7 +371,7 @@ impl Server {
         let Some((symbol, analysis)) = self.symbol_at(message) else {
             return Value::Null;
         };
-        json!({"contents": {"kind": "plaintext", "value": format!("{}: {}", symbol.name, analysis.index.display_type(&symbol.ty))}})
+        json!({"contents": {"kind": "plaintext", "value": analysis.index.symbol_label(&symbol)}})
     }
 
     fn definition(&self, message: &Value) -> Value {

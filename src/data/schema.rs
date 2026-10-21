@@ -73,8 +73,8 @@ pub fn parse_schema(text: &str) -> Result<Schema, String> {
     let mut tables = Vec::new();
     let mut lines = text
         .lines()
-        .map(str::trim)
-        .filter(|line| !line.is_empty() && !line.starts_with('#'));
+        .map(|line| line.split('#').next().unwrap_or("").trim())
+        .filter(|line| !line.is_empty());
     while let Some(line) = lines.next() {
         let Some(name) = line.strip_prefix("jadwal ") else {
             return Err(format!("Safka schema.sop ma saxna: {line}"));

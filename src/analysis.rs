@@ -76,13 +76,31 @@ pub fn check_source(
         cancelled,
     };
     let result = frontend::imports::ImportSources::observe(&mut sources, &path, source, 0)
-        .and_then(|_| frontend::parse_source(source, Some(&path)))
-        .and_then(|statements| {
-            frontend::imports::ImportResolver::default().resolve_using(
-                statements,
-                Some(&path),
-                &mut sources,
-            )
+        .and_then(|_| {
+            match frontend::parse_source(source, Some(&path)) {
+                Ok(statements) => frontend::imports::ImportResolver::default().resolve_using(
+                    statements,
+                    Some(&path),
+                    &mut sources,
+                ),
+                Err(error) => {
+                    // An unfinished expression must not hide earlier imports
+                    // from completion. Retain the original syntax diagnostic;
+                    // only resolve the already recovered, complete statements.
+                    let partial = sources
+                        .files
+                        .iter()
+                        .find(|file| file.path == path)
+                        .map(|file| file.statements.clone())
+                        .unwrap_or_default();
+                    let _ = frontend::imports::ImportResolver::default().resolve_using(
+                        partial,
+                        Some(&path),
+                        &mut sources,
+                    );
+                    Err(error)
+                }
+            }
         });
     let (statements, symbols, error) = match result {
         Ok(statements) => match analyze_with_options(

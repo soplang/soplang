@@ -8,6 +8,7 @@ These commands are separate from `soplang file.sop`. Their help text is Somali.
 | `soplang check FILE [--adag]` | Analyze without running. `--adag` requires strict types. A `schema.sop` in the same directory is validated. |
 | `soplang test [FILE or DIR] [--shaandhe TEXT] [--wada] [--dabool]` | Run top-level tests. |
 | `soplang doc FILE [--qor OUT]` | Write Markdown for functions, classes, exports, and tests. |
+| `soplang xog abuur [SCHEMA] [--qor CLIENT or --hubi CLIENT]` | Generate or verify a typed database client without connecting. |
 | `soplang lsp` | Speak Language Server Protocol on standard input. |
 | `soplang debug FILE` | Run a file. `jebi()` prints the stack and waits. |
 | `soplang profile FILE` | Print function call counts, inclusive/exclusive time, and separate compilation/execution time. |

@@ -138,6 +138,23 @@ impl Index {
             Expr::New { class_name, .. } => {
                 self.canonical_type(class_name, scope, path, at, depth + 1)
             }
+            Expr::Identifier(name) if matches!(name.as_str(), "nafta" | "waalid") => {
+                let mut cursor = Some(scope);
+                while let Some(current) = cursor {
+                    if let Some(class) = &self.scopes[current].class {
+                        return if name == "waalid" {
+                            self.parents
+                                .get(class)
+                                .cloned()
+                                .unwrap_or_else(|| "door".into())
+                        } else {
+                            class.clone()
+                        };
+                    }
+                    cursor = self.scopes[current].parent;
+                }
+                "door".into()
+            }
             Expr::Identifier(name) => self
                 .resolve(name, scope, at, path)
                 .map(|symbol| symbol.ty.clone())

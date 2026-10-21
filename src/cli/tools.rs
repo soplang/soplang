@@ -14,9 +14,16 @@ use crate::package::{parse_manifest, MANIFEST_FILE};
 use crate::run_source;
 
 pub fn dispatch(command: &str) -> Result<i32, SoplangError> {
-    let args: Vec<String> = std::env::args().skip(2).collect();
+    let args: Vec<String> = std::env::args_os()
+        .skip(2)
+        .map(|arg| {
+            arg.into_string()
+                .map_err(|_| tool_error("Doodaha qalabku waa inay noqdaan qoraal UTF-8 ah."))
+        })
+        .collect::<Result<_, _>>()?;
     match command {
         "fmt" => format_file(&args),
+        "xog" => super::data::dispatch(&args),
         "check" => check_file(&args),
         "test" => super::testing::run(&args),
         "doc" => document_file(&args),

@@ -417,6 +417,26 @@ impl Index {
         })
     }
 
+    pub fn symbol_label(&self, symbol: &Symbol) -> String {
+        if let Some(parameters) = &symbol.parameters {
+            let suffix = if symbol.returns == "door" {
+                String::new()
+            } else {
+                format!(": {}", self.display_type(&symbol.returns))
+            };
+            format!("hawl {}({}){suffix}", symbol.name, parameters.join(", "))
+        } else if symbol.kind == 5 {
+            let constructor = self.method(&symbol.ty, "dhis");
+            let parameters = constructor
+                .and_then(|method| method.parameters.as_ref())
+                .map(|parameters| parameters.join(", "))
+                .unwrap_or_default();
+            format!("qaab {}({parameters})", symbol.name)
+        } else {
+            format!("{}: {}", symbol.name, self.display_type(&symbol.ty))
+        }
+    }
+
     pub fn display_type(&self, ty: &str) -> String {
         if self.module_aliases.contains_key(ty) {
             return "keen".into();

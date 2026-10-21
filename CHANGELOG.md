@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Generate strict typed database clients from `schema.sop`, with record getters, input/filter/update classes, safe bulk mutations, transactions and editor signatures. Add atomic `xog abuur --qor` and read-only stale-client checks with `--hubi`. Preserve imported types during unfinished editor expressions.
+
 - Add `hawl` annotations for callable variables, parameters, returns and collection elements, including nullable callables and strict callback APIs. Preserve named/native functions and captured closures while enforcing callable contracts in JIT and LLVM execution.
 
 - Give editor symbols separate file scopes, resolve namespace/export aliases and class member identities, and include closed workspace importers in references and rename. Refuse incomplete or unsafe edits, bound source reads, and open bundled definitions as read-only source documents.

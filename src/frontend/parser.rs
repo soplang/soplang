@@ -168,8 +168,11 @@ impl Parser {
             offset += 2;
         }
         offset > 0
-            && self.peek_nth(offset + 1).kind == TokenType::Identifier
-            && self.peek_nth(offset + 2).kind == TokenType::Assign
+            && (matches!(
+                self.peek_nth(offset + 1).kind,
+                TokenType::Optional | TokenType::Union
+            ) || (self.peek_nth(offset + 1).kind == TokenType::Identifier
+                && self.peek_nth(offset + 2).kind == TokenType::Assign))
     }
 
     fn contextual_generic_declaration(&self) -> bool {
@@ -227,7 +230,7 @@ impl Parser {
         ) || (self.peek().kind == TokenType::Identifier
             && matches!(
                 self.peek_nth(1).kind,
-                TokenType::Identifier | TokenType::Optional | TokenType::Union
+                TokenType::Identifier | TokenType::Optional | TokenType::Union | TokenType::Dot
             ))
             || (self.peek().kind == TokenType::Identifier
                 && matches!(self.peek().lexeme.as_str(), "xirmo" | "urur")

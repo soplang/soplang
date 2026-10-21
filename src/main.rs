@@ -22,7 +22,7 @@ use soplang::{
     override_usage = arguments::USAGE,
     help_template = "{about}\n\nAdeegsiga: {usage}\n\nFaylka:\n{positionals}\n\nXulashooyinka:\n{options}{after-help}\n",
     version,
-    after_help = "Abuur xirmo: soplang init [GALKA] [--lib] [--name MAGAC].\nQalab: soplang fmt|check|test|doc|lsp|debug|profile|run|dhis.\nHaddii aan waxba la raacin, waxaa furmaya REPL.\nAdeegso -i si aad REPL ugu sii shaqayso marka faylka ama tusaalaha la fuliyo."
+    after_help = "Abuur xirmo: soplang init [GALKA] [--lib] [--name MAGAC].\nQalab: soplang fmt|check|test|doc|lsp|debug|profile|run|dhis|xog.\nHaddii aan waxba la raacin, waxaa furmaya REPL.\nAdeegso -i si aad REPL ugu sii shaqayso marka faylka ama tusaalaha la fuliyo."
 )]
 struct Cli {
     #[arg(short = 'h', long, action = clap::ArgAction::Help, help = "Muuji caawimada.")]
@@ -132,10 +132,10 @@ struct Cli {
 }
 
 fn main() {
-    if let Some(command) = std::env::args().nth(1) {
+    if let Some(command) = std::env::args_os().nth(1).and_then(|arg| arg.into_string().ok()) {
         if matches!(
             command.as_str(),
-            "fmt" | "check" | "test" | "doc" | "lsp" | "debug" | "profile" | "run" | "dhis"
+            "fmt" | "check" | "test" | "doc" | "lsp" | "debug" | "profile" | "run" | "dhis" | "xog"
         ) {
             if command == "lsp" {
                 if let Err(error) = soplang::cli::lsp::serve() {

@@ -86,3 +86,70 @@ diagnostic data.
 
 `soplang check` validates `schema.sop` beside a program, and `soplang lsp`
 diagnoses a `schema.sop` document directly.
+
+## Generated typed clients
+
+Generate a source module from the schema before compiling the application:
+
+```sh
+soplang xog abuur schema.sop --qor client.sop
+soplang xog abuur schema.sop --hubi client.sop
+```
+
+Without an output option, the command prints the client to standard output.
+Generation does not connect to a database or run application code. `--qor`
+atomically replaces only files carrying the generated-client header and
+preserves existing permissions and symbolic links. `--hubi` checks exact source
+equality without writing; use it in CI to catch a stale client. Commit the
+schema and generated source together. A client embeds its schema and hash;
+changing `schema.sop` alone does not change an already compiled application.
+
+For the `qof` schema above:
+
+```soplang
+keen "client.sop" sida c
+c.MacmiilXog db = cusub c.MacmiilXog("sqlite", "app.db", 2)
+tijaabi {
+    db.guuri()
+    db.qof.geli(cusub c.QofGelin(magac: "Amina", da: 22))
+    c.QofShaandhe shuruud = cusub c.QofShaandhe().halkaMagac("Amina")
+    teed[c.Qof] safaf = db.qof.raadi(shuruud)
+    kuceli (qof ku safaf) { qor(qof.helMagac(), qof.helDa()) }
+    db.qof.beddel(shuruud, cusub c.QofBeddel().dhigDa(23))
+} dhammee { db.xidh() }
+```
+
+A table produces five public classes:
+
+| Class for `qof` | Contract |
+| --- | --- |
+| `Qof` | Typed record getters such as `helId()` and `helMagac()`; `xog()` returns a copy for JSON conversion. |
+| `QofGelin` | Required fields first, followed by nullable fields and an optional integer key. Named arguments are supported. |
+| `QofShaandhe` | Typed equality filters such as `halkaMagac(value)` and `halkaDa(maran)`. Multiple fields are combined with AND. |
+| `QofBeddel` | Typed setters such as `dhigMagac(value)`. Primary keys cannot be patched. |
+| `QofJadwal` | `geli`, `raadi`, `mid`, `beddel`, `tirtir`, `beddelDhammaan`, and `tirtirDhammaan`. |
+
+`raadi()` returns at most 1000 typed records; ordering is not guaranteed.
+`mid(filter)` returns a record or `maran`. Mutations return affected counts,
+not generated keys. `beddel` and `tirtir` reject an empty filter; intentional
+bulk changes use the explicitly named `Dhammaan` methods.
+
+`MacmiilXog` exposes each model through `jadwalQof()` and, when its name is a
+valid non-conflicting Soplang identifier, `.qof`. A table named `qor` uses
+`jadwalQor()`. Reserved column names receive safe constructor parameter names,
+such as `qiimeHawl`. Class and method suffixes capitalize the first character
+of the schema name; underscores are retained.
+
+`db.macaamil(hawl(): maran { ... })` uses the same pinned transaction as the
+native data API. `db.xidh()` is idempotent; closing during a transaction fails.
+`db.xidhiidh()` exposes the native pool handle, and `db.sha256()` returns the
+schema fingerprint. The generator validates its output in strict mode; JIT
+and LLVM enforce the same argument and record contracts. Editor completion
+shows model methods, input types and field argument types even after an
+unfinished member access.
+
+Generation is limited to 128 tables, 2048 columns and one MiB of source per
+client. Split larger schemas into separate clients. The current query API
+supports typed equality filters and scalar fields, without joins, relations,
+aggregate expressions or arbitrary SQL. A typed client does not add operations
+that its connector cannot perform.
