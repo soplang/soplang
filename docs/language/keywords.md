@@ -288,6 +288,10 @@ these explanations do not establish a historical abbreviation or SLS approval.
 | `udp_qor` | Send one UDP datagram                | `sendto`             | `udp_qor(sock, "127.0.0.1", 9000, "salaan")` |
 | `udp_akhris` | Receive one UDP datagram          | `recvfrom`           | `udp_akhris(sock, 1024)`                   |
 | `udp_xidh` | Close a UDP socket                  | (UDP close)          | `udp_xidh(sock)`                           |
+| `ws_fur` | Connect a WebSocket client           | `WebSocket`          | `ws_fur("ws://127.0.0.1:9000")`            |
+| `ws_qor` | Send a WebSocket frame               | `send`               | `ws_qor(socket, "salaan")`                 |
+| `ws_akhris` | Read the next WebSocket frame     | `recv`               | `ws_akhris(socket)`                        |
+| `ws_xidh` | Close a WebSocket                   | `close`              | `ws_xidh(socket)`                          |
 | `fayl_jiraa` | Test whether a path exists              | (path exists)        | `haddii (fayl_jiraa("magac.txt")) {...}`   |
 | `fayl_xog` | Query path metadata                     | (path stat)          | `door x = fayl_xog("magac.txt")`           |
 | `isku_xidh` | Join path segments                     | (path join)          | `isku_xidh("data", "magac.txt")`           |

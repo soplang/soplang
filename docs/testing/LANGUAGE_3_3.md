@@ -145,4 +145,5 @@ cargo test --locked --test network_tests
 The networking suite checks literal and local DNS names, a TCP echo between a
 listener and a connected peer, closing a socket, and the same TCP exchange
 through LLVM. It also exchanges one UDP datagram through JIT and LLVM.
-WebSocket remains later work.
+The WebSocket checks exchange text and binary frames with a local server
+through JIT and LLVM. A WebSocket server remains later work.

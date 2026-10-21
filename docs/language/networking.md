@@ -1,8 +1,9 @@
 # DNS and TCP
 
-`dns_raadi` looks up a host name. TCP and UDP sockets exchange bytes on this
-machine. Failures are catchable and use error code `E055`. WebSocket remains
-later work.
+`dns_raadi` looks up a host name. TCP sockets, UDP datagrams, and a WebSocket
+client exchange data on this machine. Failures are catchable and use error
+code `E055` for DNS, TCP, and UDP, and `E056` for WebSocket. A WebSocket server
+remains later work.
 
 ## DNS
 
@@ -55,4 +56,21 @@ door inbox = udp_fur("127.0.0.1", 0)
 udp_qor(outbox, "127.0.0.1", inbox.deked, "salaan")
 door packet = udp_akhris(inbox, 1024)
 qor(packet.baytyo.qoraal())
+```
+
+## WebSocket
+
+`ws_fur(url, options?)` connects to a `ws://` or `wss://` server. `wss` checks
+the certificate with the operating system's trusted certificates. `options`
+may contain `waqti` for the read and write timeout. The default is 30 seconds.
+
+`ws_qor(socket, data)` sends a text frame for a `qoraal` and a binary frame for
+a `baytyo`. `ws_akhris(socket)` returns the next data frame as `qoraal` or
+`baytyo`. Ping frames are answered automatically. `ws_xidh` closes the socket.
+
+```soplang
+door socket = ws_fur("ws://127.0.0.1:9000/chat")
+ws_qor(socket, "salaan")
+qor(ws_akhris(socket))
+ws_xidh(socket)
 ```

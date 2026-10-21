@@ -29,6 +29,7 @@ mod process;
 mod http;
 mod http_server;
 mod net;
+mod websocket;
 pub mod stdlib;
 pub mod value;
 

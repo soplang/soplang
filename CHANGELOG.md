@@ -40,6 +40,8 @@ All notable changes to this project will be documented in this file.
 
 * UDP sockets `udp_fur`, `udp_qor`, `udp_akhris`, and `udp_xidh` bind, send, and receive one datagram at a time. Closed sockets and timeouts use `E055`.
 
+* WebSocket builtins `ws_fur`, `ws_qor`, `ws_akhris`, and `ws_xidh` connect to `ws://` and `wss://`, send text or binary frames, and read the next data frame. Connection and protocol failures use `E056`.
+
 
 * Numeric builtins add logarithms, radian trigonometry with optional inverse mode, `atan2`-style angles, named constants, clamping, and context-local seeded random streams. Integer-only extrema keep exact 64-bit results; invalid random calls do not advance the generator.
 

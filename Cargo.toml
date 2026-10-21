@@ -18,9 +18,11 @@ unicode-segmentation = "1.13.3"
 regex = "1.13.1"
 ureq = { version = "3.4.2", default-features = false, features = ["rustls", "platform-verifier"] }
 httparse = "1.10.1"
+tungstenite = { version = "0.30.0", default-features = false, features = ["handshake", "rustls-tls-native-roots"] }
 
 [dev-dependencies]
 criterion = { version = "0.5", features = ["html_reports"] }
+tungstenite = { version = "0.30.0", default-features = false, features = ["handshake"] }
 
 [[bench]]
 name = "soplang_bench"

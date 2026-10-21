@@ -508,6 +508,37 @@ pub fn builtin_udp_xidh(args: Vec<Value>) -> Result<Value, SoplangError> {
     super::net::close(&args[0])
 }
 
+pub fn builtin_ws_fur(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity_range(&args, "ws_fur", 1, 2)?;
+    let Value::Str(url) = &args[0] else {
+        return Err(err_type("Cinwaanka ws_fur() waa inuu noqdaa qoraal."));
+    };
+    let timeout = super::net::timeout(args.get(1))?;
+    super::websocket::connect(url, timeout)
+}
+
+pub fn builtin_ws_qor(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "ws_qor", 2)?;
+    match &args[1] {
+        Value::Str(text) => super::websocket::send(&args[0], text.as_bytes(), true),
+        Value::Bytes(bytes) => {
+            let data = super::bytes::read(bytes)?;
+            super::websocket::send(&args[0], &data, false)
+        }
+        _ => Err(err_type("ws_qor() wuxuu u baahan yahay qoraal ama baytyo.")),
+    }
+}
+
+pub fn builtin_ws_akhris(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "ws_akhris", 1)?;
+    super::websocket::receive(&args[0])
+}
+
+pub fn builtin_ws_xidh(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "ws_xidh", 1)?;
+    super::websocket::close(&args[0])
+}
+
 fn optional_truthy(args: &[Value], index: usize) -> bool {
     args.get(index).is_some_and(|value| value.is_truthy())
 }
@@ -993,6 +1024,10 @@ const BUILTINS: &[(&str, super::NativeFn, CallbackArity)] = &[
     ("udp_qor", builtin_udp_qor, CallbackArity::range(4, 4)),
     ("udp_akhris", builtin_udp_akhris, CallbackArity::range(2, 2)),
     ("udp_xidh", builtin_udp_xidh, CallbackArity::range(1, 1)),
+    ("ws_fur", builtin_ws_fur, CallbackArity::range(1, 2)),
+    ("ws_qor", builtin_ws_qor, CallbackArity::range(2, 2)),
+    ("ws_akhris", builtin_ws_akhris, CallbackArity::range(1, 1)),
+    ("ws_xidh", builtin_ws_xidh, CallbackArity::range(1, 1)),
     ("fayl_jiraa", builtin_fayl_jiraa, CallbackArity::range(1, 1)),
     ("fayl_xog", builtin_fayl_xog, CallbackArity::range(1, 1)),
     ("isku_xidh", builtin_isku_xidh, CallbackArity::range(1, usize::MAX)),
