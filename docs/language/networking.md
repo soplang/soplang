@@ -62,7 +62,12 @@ qor(packet.baytyo.qoraal())
 
 `ws_fur(url, options?)` connects to a `ws://` or `wss://` server. `wss` checks
 the certificate with the operating system's trusted certificates. `options`
-may contain `waqti` for the read and write timeout. The default is 30 seconds.
+may contain `waqti` for the connection attempt and read/write timeout. The
+transport is configured before TLS and the HTTP upgrade, so stalled handshakes
+and encrypted reads/writes also honor it. The default is 30 seconds. DNS lookup
+uses the operating system resolver; `waqti` is not an overall DNS or multi-I/O
+deadline. Up to three redirects are followed. A secure `wss` connection cannot
+redirect to an unencrypted `ws` connection.
 
 `ws_qor(socket, data)` sends a text frame for a `qoraal` and a binary frame for
 a `baytyo`. `ws_akhris(socket)` returns the next data frame as `qoraal` or

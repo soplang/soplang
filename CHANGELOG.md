@@ -14,6 +14,8 @@ All notable changes to this project will be documented in this file.
 
 - Validate HTTP message framing and response headers, reject ambiguous request lengths and header injection, and enforce header limits and body-free response statuses.
 
+- Apply WebSocket transport timeouts before TCP/TLS upgrade handshakes and encrypted I/O, preserve bounded redirects, and reject redirects that drop encryption.
+
 ### Added
 
 * `soplang init [directory] [--lib] [--name name]` creates a root application or library starter and `soplang.toml` without overwriting existing files. Bare package imports prefer `lib.sop` while retaining the older package-named layout.

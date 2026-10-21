@@ -177,3 +177,15 @@ unsigned decimal lengths, header/body size limits, CRLF and control-character
 injection, reserved response headers, body types, and 204/304 framing.
 The JIT and LLVM server tests verify that rejected requests and invalid handler
 headers do not stop subsequent requests.
+
+## WebSocket timeout audit
+
+The full locked debug suite passes 364 tests, including all 52 dedicated LLVM
+tests. The optimized selection passes 115 tests across the library, JSON,
+module, project-init, file-handle, HTTP-server and LLVM suites. The complete
+diagnostic/example suites pass all 14 tests through JIT and AOT.
+
+Local stall tests cover both plain and TLS handshakes. Redirect tests cover a
+successful upgrade after a redirect and rejection after three redirect hops.
+The timeout remains a socket-operation limit; DNS and multi-operation deadlines
+are not implied.

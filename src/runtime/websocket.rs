@@ -1,12 +1,12 @@
 //! WebSocket client.
 
 use std::collections::HashMap;
-use std::net::TcpStream;
+use std::net::{TcpStream, ToSocketAddrs};
 use std::sync::atomic::{AtomicI64, Ordering};
 use std::time::Duration;
 
 use tungstenite::stream::MaybeTlsStream;
-use tungstenite::{Message, WebSocket};
+use tungstenite::{client::IntoClientRequest, HandshakeError, Message, WebSocket};
 
 use super::context::{RuntimeLocal, RuntimeState};
 use super::value::Value;
@@ -45,12 +45,7 @@ pub fn connect(url: &str, timeout: Duration) -> Result<Value, SoplangError> {
                 "Cinwaanka WebSocket waa inuu ka bilaabmaa ws:// ama wss://.",
             ));
         }
-        let (mut socket, _) = tungstenite::connect(url)
-            .map_err(|failure| error_with_details(explain(&failure), failure))?;
-        if let MaybeTlsStream::Plain(stream) = socket.get_mut() {
-            let _ = stream.set_read_timeout(Some(timeout));
-            let _ = stream.set_write_timeout(Some(timeout));
-        }
+        let socket = connect_with_timeout(url, timeout)?;
         let id = NEXT_ID.fetch_add(1, Ordering::Relaxed);
         state
             .websockets
@@ -64,6 +59,84 @@ pub fn connect(url: &str, timeout: Duration) -> Result<Value, SoplangError> {
             fields,
         ))))
     })
+}
+
+fn connect_with_timeout(url: &str, timeout: Duration) -> Result<Socket, SoplangError> {
+    let mut current = url.to_string();
+    for attempt in 0..=3 {
+        let request = current
+            .as_str()
+            .into_client_request()
+            .map_err(|failure| error_with_details(explain(&failure), failure))?;
+        let uri = request.uri();
+        let secure = match uri.scheme_str() {
+            Some("ws") => false,
+            Some("wss") => true,
+            _ => {
+                return Err(error(
+                    "Cinwaanka WebSocket waa inuu ka bilaabmaa ws:// ama wss://.",
+                ))
+            }
+        };
+        let host = uri
+            .host()
+            .ok_or_else(|| error("Martigeliyaha WebSocket lama helin."))?
+            .trim_start_matches('[')
+            .trim_end_matches(']');
+        let port = uri.port_u16().unwrap_or(if secure { 443 } else { 80 });
+        let addresses = (host, port).to_socket_addrs().map_err(|failure| {
+            error_with_details("Magaca martigeliyaha WebSocket lama helin.", failure)
+        })?;
+        let mut connected = None;
+        let mut last = None;
+        for address in addresses {
+            match TcpStream::connect_timeout(&address, timeout) {
+                Ok(stream) => {
+                    connected = Some(stream);
+                    break;
+                }
+                Err(failure) => last = Some(failure),
+            }
+        }
+        let stream = connected.ok_or_else(|| match last {
+            Some(failure) => error_with_details("Xidhiidhka WebSocket lama furin.", failure),
+            None => error("Magaca martigeliyaha WebSocket lama helin."),
+        })?;
+        // Configure the transport before either TLS or the HTTP upgrade. The
+        // timeouts stay on the underlying TCP socket for encrypted I/O too.
+        stream
+            .set_read_timeout(Some(timeout))
+            .and_then(|_| stream.set_write_timeout(Some(timeout)))
+            .and_then(|_| stream.set_nodelay(true))
+            .map_err(|failure| {
+                error_with_details("Xidhiidhka WebSocket lama diyaarin.", failure)
+            })?;
+        match tungstenite::client_tls(request, stream) {
+            Ok((socket, _)) => return Ok(socket),
+            Err(HandshakeError::Failure(tungstenite::Error::Http(response)))
+                if response.status().is_redirection() && attempt < 3 =>
+            {
+                let next = response
+                    .headers()
+                    .get("Location")
+                    .and_then(|value| value.to_str().ok())
+                    .ok_or_else(|| error("Leexinta WebSocket ma laha cinwaan sax ah."))?;
+                if secure && !next.starts_with("wss://") {
+                    return Err(error(
+                        "Leexinta WebSocket ma joojin karto sirgelinta xidhiidhka.",
+                    ));
+                }
+                current = next.to_string();
+            }
+            Err(HandshakeError::Failure(failure)) => {
+                return Err(error_with_details(explain(&failure), failure))
+            }
+            Err(HandshakeError::Interrupted(_)) => {
+                return Err(error("Waqtigii WebSocket wuu dhammaaday."))
+            }
+        }
+    }
+    Err(error("Leexinta WebSocket way ka badatay xadka."))
 }
 
 pub fn send(socket: &Value, data: &[u8], text: bool) -> Result<Value, SoplangError> {
@@ -126,7 +199,9 @@ fn socket_id(value: &Value) -> Result<i64, SoplangError> {
     let Value::Object(object) = value else {
         return Err(error("Xidhiidhka WebSocket waa inuu noqdaa walax."));
     };
-    let object = object.try_borrow().map_err(|_| error("Walaxda hadda lama akhriyi karo."))?;
+    let object = object
+        .try_borrow()
+        .map_err(|_| error("Walaxda hadda lama akhriyi karo."))?;
     match object.get("nooc") {
         Some(Value::Str(kind)) if kind == "websocket" => {}
         _ => return Err(error("Nooca WebSocket ma saxna.")),
@@ -155,5 +230,98 @@ fn explain(error: &tungstenite::Error) -> &'static str {
             "Fariinta WebSocket ma saxna."
         }
         _ => "Codsiga WebSocket wuu fashilmay.",
+    }
+}
+
+#[cfg(test)]
+mod timeout_tests {
+    use super::*;
+    use std::io::Read;
+    use std::net::TcpListener;
+    use std::time::Instant;
+
+    #[test]
+    fn redirects_keep_timeout_handling_and_a_three_hop_limit() {
+        let target = TcpListener::bind(("127.0.0.1", 0)).unwrap();
+        let target_port = target.local_addr().unwrap().port();
+        let echo = std::thread::spawn(move || {
+            let (stream, _) = target.accept().unwrap();
+            let mut socket = tungstenite::accept(stream).unwrap();
+            socket.send(Message::text("redirected")).unwrap();
+        });
+        let redirect = TcpListener::bind(("127.0.0.1", 0)).unwrap();
+        let port = redirect.local_addr().unwrap().port();
+        let first = std::thread::spawn(move || {
+            let (mut stream, _) = redirect.accept().unwrap();
+            stream
+                .set_read_timeout(Some(Duration::from_secs(2)))
+                .unwrap();
+            let mut request = Vec::new();
+            let mut byte = [0u8; 1];
+            while !request.ends_with(b"\r\n\r\n") {
+                std::io::Read::read_exact(&mut stream, &mut byte).unwrap();
+                request.push(byte[0]);
+            }
+            std::io::Write::write_all(&mut stream,format!("HTTP/1.1 302 Found\r\nLocation: ws://127.0.0.1:{target_port}/\r\nContent-Length: 0\r\n\r\n").as_bytes()).unwrap();
+        });
+        let mut socket =
+            connect_with_timeout(&format!("ws://127.0.0.1:{port}/"), Duration::from_secs(2))
+                .unwrap();
+        assert_eq!(socket.read().unwrap(), Message::text("redirected"));
+        first.join().unwrap();
+        echo.join().unwrap();
+
+        let redirect = TcpListener::bind(("127.0.0.1", 0)).unwrap();
+        let port = redirect.local_addr().unwrap().port();
+        let loop_server = std::thread::spawn(move || {
+            for _ in 0..4 {
+                let (mut stream, _) = redirect.accept().unwrap();
+                stream
+                    .set_read_timeout(Some(Duration::from_secs(2)))
+                    .unwrap();
+                let mut request = Vec::new();
+                let mut byte = [0u8; 1];
+                while !request.ends_with(b"\r\n\r\n") {
+                    std::io::Read::read_exact(&mut stream, &mut byte).unwrap();
+                    request.push(byte[0]);
+                }
+                std::io::Write::write_all(&mut stream,format!("HTTP/1.1 302 Found\r\nLocation: ws://127.0.0.1:{port}/\r\nContent-Length: 0\r\n\r\n").as_bytes()).unwrap();
+            }
+        });
+        assert_eq!(
+            connect_with_timeout(&format!("ws://127.0.0.1:{port}/"), Duration::from_secs(2))
+                .unwrap_err()
+                .code(),
+            Some("E056")
+        );
+        loop_server.join().unwrap();
+    }
+
+    #[test]
+    fn plain_and_tls_handshakes_honor_transport_timeouts() {
+        for scheme in ["ws", "wss"] {
+            let listener = TcpListener::bind(("127.0.0.1", 0)).unwrap();
+            let port = listener.local_addr().unwrap().port();
+            let server = std::thread::spawn(move || {
+                let (mut stream, _) = listener.accept().unwrap();
+                stream
+                    .set_read_timeout(Some(Duration::from_secs(3)))
+                    .unwrap();
+                let mut data = [0u8; 4096];
+                while matches!(stream.read(&mut data), Ok(n) if n > 0) {}
+            });
+            let started = Instant::now();
+            let error = connect_with_timeout(
+                &format!("{scheme}://127.0.0.1:{port}/"),
+                Duration::from_millis(100),
+            )
+            .unwrap_err();
+            assert_eq!(error.code(), Some("E056"));
+            assert!(
+                started.elapsed() < Duration::from_secs(2),
+                "{scheme}: {error}"
+            );
+            server.join().unwrap();
+        }
     }
 }
