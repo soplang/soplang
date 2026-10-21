@@ -58,6 +58,17 @@ pub fn file_read_error(path: &Path, error: &io::Error) -> SoplangError {
     external_error(message, error.to_string())
 }
 
+pub fn file_write_error(path: &Path, error: &io::Error) -> SoplangError {
+    let path = path.display();
+    let message = match error.kind() {
+        io::ErrorKind::NotFound => format!("Faylka '{path}' lama qori karin. {}", io_reason(error)),
+        io::ErrorKind::PermissionDenied => format!("Lama oggola in la qoro faylka '{path}'."),
+        io::ErrorKind::IsADirectory => format!("'{path}' waa gal; waxaa loo baahan yahay fayl."),
+        _ => format!("Faylka '{path}' lama qori karin. {}", io_reason(error)),
+    };
+    external_error(with_os_code(message, error), error.to_string())
+}
+
 pub fn input_error(error: &io::Error) -> SoplangError {
     if error.kind() == io::ErrorKind::InvalidData {
         external_error(

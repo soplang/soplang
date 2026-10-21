@@ -10,6 +10,8 @@ All notable changes to this project will be documented in this file.
 
 * [3.2.0 implementation milestone notes](docs/releases/3.2.0.md) record completed language foundations. A version tag and distribution builds remain pending.
 
+* Text file builtins `akhrifayl`, `qor_fayl`, and `kudar_fayl` read, overwrite, and append UTF-8 text using paths relative to the working directory. I/O failures remain catchable with Somali messages.
+
 
 * Numeric builtins add logarithms, radian trigonometry with optional inverse mode, `atan2`-style angles, named constants, clamping, and context-local seeded random streams. Integer-only extrema keep exact 64-bit results; invalid random calls do not advance the generator.
 

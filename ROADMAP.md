@@ -200,13 +200,16 @@ next depends on it.
 
 ### Initial text file access
 
-1. Read an entire UTF-8 text file into a string.
-2. Create or overwrite a text file with an explicit write operation.
-3. Append text with a separate operation that preserves existing content.
+Implemented locally as `akhrifayl`, `qor_fayl`, and `kudar_fayl`; see
+[text files](docs/language/text-files.md).
+
+1. Read an entire UTF-8 text file into a string — implemented.
+2. Create or overwrite a text file with an explicit write operation — implemented.
+3. Append text with a separate operation that preserves existing content — implemented.
 4. Open and close resources automatically for these convenience operations,
-   including when an operation fails.
+   including when an operation fails — implemented for these convenience calls.
 5. Report missing files, permission failures, invalid UTF-8, and other I/O
-   failures as catchable Somali errors with source locations.
+   failures as catchable Somali errors with source locations — implemented.
 
 Writing replaces existing content; appending is a distinct operation. Text
 operations must not silently replace invalid UTF-8. Relative filesystem paths

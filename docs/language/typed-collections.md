@@ -2,8 +2,8 @@
 
 Typed lists and string-keyed objects are implemented in the 3.2 work.
 [Positional tuples](tuples.md) and [typed sets](typed-sets.md) are implemented
-separately and use the shared contract machinery. The complete milestone
-is not yet ready for a tag.
+separately and use the shared contract machinery. A 3.2 version tag and
+distribution builds remain pending.
 
 ## Syntax and validation
 

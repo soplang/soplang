@@ -2,7 +2,7 @@
 
 Optional and union annotations are implemented as part of the 3.2 work. They
 constrain variables, constants, parameters, and return values in both JIT and
-LLVM execution. The full 3.2 milestone remains in progress.
+LLVM execution. Distribution packaging for Soplang 3.2 remains pending.
 
 ## Syntax
 

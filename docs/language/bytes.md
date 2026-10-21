@@ -1,8 +1,8 @@
 # Byte arrays
 
 `baytyo` is a mutable, compact sequence of unsigned bytes. Each element is an
-`abn` from 0 through 255. This is an implemented part of the 3.2 work; the
-complete milestone and its distribution remain pending.
+`abn` from 0 through 255. This is part of the implemented 3.2 language scope;
+distribution packaging remains pending.
 
 Byte arrays prepare the value model for binary files and network bodies.
 Filesystem and networking APIs remain separate roadmap stages.

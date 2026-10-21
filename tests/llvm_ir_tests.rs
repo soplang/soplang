@@ -1,7 +1,7 @@
 //! LLVM IR linked to the runtime. The binary does not call `run_source`.
 
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -809,4 +809,58 @@ fn test_llvm_numeric_library() {
     for opt in [0, 2] {
         assert_eq!(run_llvm_with_opt(&format!("llvm_numeric_library_{opt}"), include_str!("fixtures/numeric_library.sop"), opt), "numeric library ok\n");
     }
+}
+
+#[test]
+fn test_llvm_text_files() {
+    let dir = std::env::temp_dir().join(format!(
+        "soplang_llvm_text_{}_{}",
+        std::process::id(),
+        SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_nanos()
+    ));
+    let _ = fs::remove_dir_all(&dir);
+    fs::create_dir_all(&dir).expect("temp dir");
+    let file = dir.join("llvm-note.txt");
+    let path = file.display().to_string().replace('\\', "/");
+    let source = format!(
+        r#"
+hawl hubi(v, name) {{ haddii (!v) {{ tuur name }} }}
+qor_fayl("{path}", "jit")
+hubi(akhrifayl("{path}") == "jit", "read")
+kudar_fayl("{path}", "-llvm")
+hubi(akhrifayl("{path}") == "jit-llvm", "append")
+qor("llvm text ok")
+"#
+    );
+    for opt in [0, 2] {
+        let _ = fs::remove_file(&file);
+        assert_eq!(
+            run_llvm_with_opt_in_dir(
+                &format!("llvm_text_files_{opt}"),
+                &source,
+                opt,
+                &dir,
+            ),
+            "llvm text ok\n"
+        );
+    }
+    let _ = fs::remove_dir_all(&dir);
+}
+
+fn run_llvm_with_opt_in_dir(name: &str, source: &str, opt: u8, dir: &Path) -> String {
+    let stmts = soplang::frontend::parse_source(source, None).expect("parse");
+    let sym = analyze(&stmts).expect("analyze");
+    let hir = HirLowering::lower(&sym, &stmts);
+    let ir = emit_llvm_ir(&hir, &sym).unwrap_or_else(|e| panic!("{e}"));
+    let bin = temp_bin(name);
+    link_llvm_binary_with_opt(&ir, &bin, opt).unwrap_or_else(|e| panic!("{e}"));
+    let out = Command::new(&bin).current_dir(dir).output().expect("run");
+    let stdout = String::from_utf8(out.stdout).expect("utf8");
+    let stderr = String::from_utf8_lossy(&out.stderr);
+    let _ = fs::remove_file(&bin);
+    assert!(out.status.success(), "binary failed: {stderr}\nstdout: {stdout}");
+    stdout
 }

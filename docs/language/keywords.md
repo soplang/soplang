@@ -245,6 +245,9 @@ these explanations do not establish a historical abbreviation or SLS approval.
 | -------- | -------------------------------------------- | -------------------- | ------------------------------------------ |
 | `qor`    | Print zero or more values separated by spaces | `print`              | `qor("Salaan", "Adduunka!", 3)`          |
 | `gelin`  | Read input from user                         | `input`              | `door magac = gelin("Magacaaga geli: ")`  |
+| `akhrifayl` | Read an entire UTF-8 text file          | (read file)          | `door text = akhrifayl("magac.txt")`      |
+| `qor_fayl` | Create or overwrite a text file           | (write file)         | `qor_fayl("magac.txt", "Salaan")`          |
+| `kudar_fayl` | Append text to a file                   | (append file)        | `kudar_fayl("magac.txt", "\n")`            |
 | `nooc`   | Get type of variable                         | `typeof`             | `qor(nooc(magac))`                        |
 | `abn`    | Convert value to an integer (also the `int` type keyword above) | `int` | `door n = abn("5")`                 |
 | `jajab`  | Convert a number or numeric string to floating point | `float` | `door n = jajab("3.5")`             |

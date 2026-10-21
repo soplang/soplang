@@ -106,6 +106,43 @@ pub fn builtin_gelin(args: Vec<Value>) -> Result<Value, SoplangError> {
     Ok(Value::Str(line))
 }
 
+fn expect_text_path(value: &Value, name: &str) -> Result<String, SoplangError> {
+    match value {
+        Value::Str(path) => Ok(path.clone()),
+        _ => Err(err_type(format!("{name} waa inuu helaa jid qoraal ah."))),
+    }
+}
+
+fn expect_text_contents(value: &Value) -> Result<String, SoplangError> {
+    Ok(value_to_string(value))
+}
+
+/// Read an entire UTF-8 text file relative to the process working directory.
+pub fn builtin_akhrifayl(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "akhrifayl", 1)?;
+    let path = expect_text_path(&args[0], "akhrifayl")?;
+    let contents = super::text_files::read_utf8(&path)?;
+    Ok(Value::Str(contents))
+}
+
+/// Create or overwrite a UTF-8 text file.
+pub fn builtin_qor_fayl(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "qor_fayl", 2)?;
+    let path = expect_text_path(&args[0], "qor_fayl")?;
+    let contents = expect_text_contents(&args[1])?;
+    super::text_files::write_utf8(&path, &contents, false)?;
+    Ok(Value::Null)
+}
+
+/// Append UTF-8 text to a file, creating it when absent.
+pub fn builtin_kudar_fayl(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "kudar_fayl", 2)?;
+    let path = expect_text_path(&args[0], "kudar_fayl")?;
+    let contents = expect_text_contents(&args[1])?;
+    super::text_files::write_utf8(&path, &contents, true)?;
+    Ok(Value::Null)
+}
+
 /// Construct an immutable structured error without raising it.
 pub fn builtin_khalad(args: Vec<Value>) -> Result<Value, SoplangError> {
     expect_arity_range(&args, "khalad", 1, 3)?;
@@ -464,6 +501,9 @@ const BUILTINS: &[(&str, super::NativeFn, CallbackArity)] = &[
     ),
     ("qor", builtin_qor, CallbackArity::range(0, usize::MAX)),
     ("gelin", builtin_gelin, CallbackArity::range(0, 1)),
+    ("akhrifayl", builtin_akhrifayl, CallbackArity::range(1, 1)),
+    ("qor_fayl", builtin_qor_fayl, CallbackArity::range(2, 2)),
+    ("kudar_fayl", builtin_kudar_fayl, CallbackArity::range(2, 2)),
     ("nooc", builtin_nooc, CallbackArity::range(1, 1)),
     ("khalad", builtin_khalad, CallbackArity::range(1, 3)),
     ("qaabee", builtin_qaabee, CallbackArity::range(1, 2)),
