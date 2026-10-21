@@ -132,3 +132,11 @@ runtime	typed_rest_values.sop	2	1	teed[abn]
 compile	typed_object_key.sop	1	7	qoraal
 compile	typed_scalar_arguments.sop	1	1	noocyo xubno
 compile	typed_unknown_class.sop	1	1	Maqan
+runtime	tuple_write.sop	2	1	lama beddeli karo
+runtime	tuple_index.sop	2	4	Tusmada xirmadu
+runtime	tuple_shape.sop	1	1	xirmo[abn, qoraal]
+runtime	tuple_child.sop	2	8	xirmo[teed[abn]]
+runtime	tuple_row.sop	1	1	teed ama xirmo
+compile	tuple_outer_type.sop	1	1	xirmo
+compile	tuple_unknown_class.sop	1	1	Maqan
+compile	tuple_class.sop	1	1	nooc hore

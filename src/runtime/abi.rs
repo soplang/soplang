@@ -291,6 +291,7 @@ pub const TAG_CLOSURE: u8 = 9;
 pub const TAG_ERROR: u8 = 10;
 pub const TAG_ITERATOR: u8 = 11;
 pub const TAG_BYTES: u8 = 12;
+pub const TAG_TUPLE: u8 = 13;
 /// Internal argument slot marker; never a language value.
 pub(crate) const TAG_MISSING: u8 = 255;
 
@@ -396,6 +397,7 @@ fn validate_handle(value: SoplangValue) -> Result<(), SoplangError> {
         TAG_STR => STR_HEAP.with(|heap| heap.borrow().contains(value.payload)),
         TAG_LIST => LIST_HEAP.with(|heap| heap.borrow().contains(value.payload)),
         TAG_BYTES => STATE.with(|state| state.bytes.borrow().contains(value.payload)),
+        TAG_TUPLE => STATE.with(|state| state.tuples.borrow().contains(value.payload)),
         TAG_OBJECT => OBJ_HEAP.with(|heap| heap.borrow().contains(value.payload)),
         TAG_FUNC => native_fn_get(value.payload).is_some() || compiled_fn_entry(value.payload).is_some(),
         TAG_CLOSURE => CLOSURE_HEAP.with(|heap| heap.borrow().contains(value.payload)),
@@ -463,6 +465,23 @@ fn bytes_alloc(value: Rc<RefCell<Vec<u8>>>) -> i64 {
     })
 }
 
+fn tuple_alloc(value: Rc<super::TupleData>) -> i64 {
+    STATE.with(|state| {
+        let key = Rc::as_ptr(&value) as usize;
+        if let Some(id) = state.tuple_ids.borrow().get(&key).copied() {
+            if state.tuples.borrow().contains(id) {
+                return id;
+            }
+        }
+        state
+            .collector
+            .allocated(value.len().saturating_mul(std::mem::size_of::<Value>()));
+        let id = state.tuples.borrow_mut().insert(value);
+        state.tuple_ids.borrow_mut().insert(key, id);
+        id
+    })
+}
+
 fn obj_alloc(value: Rc<RefCell<HashMap<String, Value>>>) -> i64 {
     let key = Rc::as_ptr(&value) as usize;
     if let Some(id) = OBJECT_IDS.with(|ids| ids.borrow().get(&key).copied()) {
@@ -506,6 +525,11 @@ pub fn value_to_soplang(v: &Value) -> SoplangValue {
             tag: TAG_BYTES,
             _pad: [0; 7],
             payload: bytes_alloc(Rc::clone(bytes)),
+        },
+        Value::Tuple(tuple) => SoplangValue {
+            tag: TAG_TUPLE,
+            _pad: [0; 7],
+            payload: tuple_alloc(Rc::clone(tuple)),
         },
         Value::List(l) => SoplangValue {
             tag: TAG_LIST,
@@ -583,6 +607,10 @@ pub fn soplang_to_value(sv: SoplangValue) -> Result<Value, SoplangError> {
             .map(Value::Error).ok_or_else(invalid_handle),
         TAG_STR => str_get(sv.payload).map(Value::Str),
         TAG_LIST => list_get(sv.payload).map(Value::List),
+        TAG_TUPLE => STATE
+            .with(|state| state.tuples.borrow().get(sv.payload).cloned())
+            .map(Value::Tuple)
+            .ok_or_else(invalid_handle),
         TAG_BYTES => STATE
             .with(|state| state.bytes.borrow().get(sv.payload).cloned())
             .map(Value::Bytes)
@@ -1200,6 +1228,10 @@ pub extern "C" fn soplang_get_index(obj: SoplangValue, idx: SoplangValue) -> Sop
             Ok(value) => value_to_soplang(&value),
             Err(error) => handle_runtime_error(error),
         },
+        (Ok(Value::Tuple(tuple)), Ok(index)) => match super::tuples::get(&tuple, &index) {
+            Ok(value) => value_to_soplang(&value),
+            Err(error) => handle_runtime_error(error),
+        },
         (Ok(Value::List(l)), Ok(Value::Int(i))) => {
             let v = l.borrow();
             let position = if i < 0 { v.len() as i64 + i } else { i };
@@ -1258,6 +1290,7 @@ pub extern "C" fn soplang_set_index(
                 Err(error) => handle_runtime_error(error),
             }
         }
+        (Ok(Value::Tuple(_)), _, _) => handle_runtime_error(super::tuples::immutable()),
         (Ok(Value::List(l)), Ok(Value::Int(i)), Ok(v)) => {
             match super::contracts::mutate_list(&l, |items| {
                 let len = items.len() as i64;
@@ -1404,7 +1437,10 @@ pub extern "C" fn soplang_set_prop(
                 Err(error) => handle_runtime_error(error),
             }
         }
-        (Ok(Value::Error(_)), _) => handle_runtime_error(type_error("Xogta khaladka lama beddeli karo.", 0, 0)),
+        (Ok(Value::Tuple(_)), _) => handle_runtime_error(super::tuples::immutable()),
+        (Ok(Value::Error(_)), _) => {
+            handle_runtime_error(type_error("Xogta khaladka lama beddeli karo.", 0, 0))
+        }
         _ => SoplangValue::null(),
     }
 }
@@ -1831,6 +1867,7 @@ pub extern "C" fn soplang_call_method(
             }
             Value::List(l) => dispatch_list_method(l, method, &argv),
             Value::Bytes(bytes) => super::bytes::dispatch(bytes, method, &argv),
+            Value::Tuple(tuple) => super::tuples::dispatch(tuple, method, &argv),
             Value::Object(o) => dispatch_object_method(o, method, &argv),
             Value::Str(s) => dispatch_string_method(s, method, &argv),
             _ => Err(runtime_error(
@@ -2092,6 +2129,10 @@ fn dispatch_list_method(
                 }
             }
             Ok(Value::Bool(want_every))
+        }
+        "xirmo" => {
+            super::stdlib::expect_arity(args, method, 0)?;
+            super::tuples::from_list(l)
         }
         "kasaar" => super::stdlib::list_kasaar(Rc::clone(l), args),
         "dherer" => super::stdlib::list_dherer(Rc::clone(l), args),

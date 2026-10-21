@@ -54,6 +54,10 @@ pub struct IteratorData {
 enum Cursor {
     Items(VecDeque<Value>),
     Bytes(VecDeque<u8>),
+    Tuple {
+        data: Rc<super::TupleData>,
+        index: usize,
+    },
     Text {
         text: String,
         offset: usize,
@@ -86,7 +90,8 @@ impl IteratorData {
                 .filter(|value| {
                     matches!(
                         value,
-                        Value::List(_)
+                        Value::Tuple(_)
+                            | Value::List(_)
                             | Value::Bytes(_)
                             | Value::Object(_)
                             | Value::Closure(_)
@@ -97,6 +102,7 @@ impl IteratorData {
                 .collect(),
             Cursor::Enumerate { source, .. } | Cursor::Protocol(source) => vec![source.clone()],
             Cursor::Zip(sources) => sources.clone(),
+            Cursor::Tuple { data, .. } => vec![Value::Tuple(Rc::clone(data))],
             _ => Vec::new(),
         })
     }
@@ -161,6 +167,10 @@ pub(super) fn begin(value: &Value) -> Result<Value, SoplangError> {
         Value::Bytes(bytes) => Ok(create(Cursor::Bytes(
             super::bytes::read(bytes)?.iter().copied().collect(),
         ))),
+        Value::Tuple(data) => Ok(create(Cursor::Tuple {
+            data: Rc::clone(data),
+            index: 0,
+        })),
         Value::Str(text) => Ok(create(Cursor::Text {
             text: text.clone(),
             offset: 0,
@@ -234,6 +244,13 @@ pub(super) fn advance(data: &Rc<IteratorData>) -> Result<Option<Value>, SoplangE
     // moved into this Rust frame retain their own references through nested GC.
     let result = (|| match &mut cursor {
         Cursor::Items(items) => Ok(items.pop_front()),
+        Cursor::Tuple { data, index } => {
+            let value = data.values().get(*index).cloned();
+            if value.is_some() {
+                *index += 1;
+            }
+            Ok(value)
+        }
         Cursor::Bytes(bytes) => Ok(bytes.pop_front().map(|byte| Value::Int(byte as i64))),
         Cursor::Text { text, offset } => {
             let next = text[*offset..].chars().next();
@@ -302,13 +319,14 @@ pub(super) fn next_step(iterator: &Value, bindings: usize) -> Result<Value, Sopl
     if bindings > 1 {
         if let Some(value) = &value {
             let valid = match value {
+                Value::Tuple(tuple) => tuple.len() == bindings,
                 Value::List(items) => {
                     items.try_borrow().map_err(|_| borrowed_error())?.len() == bindings
                 }
                 _ => false,
             };
             if !valid {
-                return Err(error(format!("Wareeggu wuxuu u baahan yahay teed ka kooban {} qiime si loo qaybiyo magacyada.", bindings)));
+                return Err(error(format!("Wareeggu wuxuu u baahan yahay teed ama xirmo ka kooban {} qiime si loo qaybiyo magacyada.", bindings)));
             }
         }
     }

@@ -19,7 +19,7 @@ When a header beginning with a variable or call named `ku` also forms a complete
 numeric header, the numeric form takes precedence. Parenthesize the foreach
 source to disambiguate: `kuceli (item ku (ilaa(3)))`.
 
-One binding receives each value unchanged. Multiple bindings require a list
+One binding receives each value unchanged. Multiple bindings require a list or tuple
 with exactly that many elements. `tirso` and `lamaane` produce such rows:
 
 ```soplang
@@ -49,6 +49,7 @@ and retain their existing lookup behavior.
 | List | Elements from a shallow snapshot made when iteration begins |
 | String | Unicode scalar characters, each returned as a string |
 | Byte array | Integer byte values from a compact snapshot |
+| Tuple | Ordered elements from a retained immutable sequence |
 | Plain object | Keys sorted lexicographically at iterator creation |
 | Native iterator | Its remaining values, using the same cursor |
 | Class or object with the protocol below | Values produced by its `xiga()` method |

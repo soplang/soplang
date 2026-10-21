@@ -895,7 +895,9 @@ impl<'a> HirLowering<'a> {
             TypeAnnotation::Union(_)
             | TypeAnnotation::Null
             | TypeAnnotation::ListOf(_)
-            | TypeAnnotation::ObjectOf(_) => {
+            | TypeAnnotation::ObjectOf(_)
+            | TypeAnnotation::Tuple
+            | TypeAnnotation::TupleOf(_) => {
                 self.emit(HirInstr::CheckContract {
                     src,
                     contract: ann.runtime_contract(),
@@ -1818,7 +1820,9 @@ fn type_ann_to_tag(ann: &TypeAnnotation) -> u8 {
         | TypeAnnotation::Null
         | TypeAnnotation::Union(_)
         | TypeAnnotation::ListOf(_)
-        | TypeAnnotation::ObjectOf(_) => 0,
+        | TypeAnnotation::ObjectOf(_)
+        | TypeAnnotation::Tuple
+        | TypeAnnotation::TupleOf(_) => 0,
     }
 }
 

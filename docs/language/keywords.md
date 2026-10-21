@@ -739,3 +739,9 @@ requirements, conversions, class alternatives, and return validation.
 `teed[T]` constrains list elements; `walax[qoraal, T]` constrains string-keyed
 object values. See the [shared collection contracts](typed-collections.md) for
 aliases, nesting, numeric kinds, mutation, rest collectors, and lifetime.
+
+## Tuples
+
+`xirmo(...)` constructs an immutable sequence. `xirmo[T1, T2, ...]` annotates
+its positions. The [tuple reference](tuples.md) defines indexing, slicing,
+iteration, nested mutation contracts, conversions, and lifetime.

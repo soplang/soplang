@@ -19,7 +19,7 @@ hawl identity(abn | qoraal value): abn | qoraal { celi value }
 
 `T?` means `T | maran`. A union accepts any listed type. `maran` can also be
 used alone as a concrete null-only annotation. Supported members are `abn`,
-`jajab`, `qoraal`, `bool`, `teed`, `walax`, `baytyo`, `maran`, and known class
+`jajab`, `qoraal`, `bool`, `teed`, `walax`, `baytyo`, `xirmo`, `maran`, and known class
 names. Classes follow the existing rule requiring their declaration before
 use as an annotation.
 
@@ -32,7 +32,8 @@ accepted per annotation.
 `door` retains its meaning as an untyped declaration. It is not a union member.
 This syntax does not introduce bitwise `|`, ternary expressions, grouping of
 type expressions, flow narrowing, or type aliases. [Typed list and object
-elements](typed-collections.md) use the separate `teed[T]` and `walax[qoraal, T]` forms.
+elements](typed-collections.md) use `teed[T]` and `walax[qoraal, T]`.
+[Positional tuples](tuples.md) use `xirmo[T1, T2, ...]`.
 Logical `||` retains its existing meaning.
 
 ## Required arguments and defaults

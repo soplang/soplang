@@ -191,3 +191,32 @@ Windows x64 and macOS ARM64 cross-target checks pass. The extracted LLVM linker
 wrapper passes Rust metadata compilation against both target libraries. Native
 platform execution and packaging remain distribution gates. Sets, tuples, their
 typed forms, and the remaining library operations are still required for 3.2.
+
+## Immutable tuples and positional contracts stage
+
+The debug suite passes 228 tests, including all 34 LLVM tests. The dedicated
+diagnostic and example suites pass 14 tests covering 141 error programs and
+38 public examples through JIT and LLVM. Optimized checks pass 84 tests:
+
+```sh
+cargo test --locked -- --skip test_aot
+cargo test --locked --test diagnostic_tests --test examples_tests
+cargo test --locked --release --test tuple_tests --test interpreter_tests --test llvm_ir_tests
+cargo check --locked --offline --target x86_64-pc-windows-msvc
+cargo check --locked --offline --target aarch64-apple-darwin
+```
+
+The shared tuple fixture runs LLVM at optimization levels 0 and 2. It covers
+construction, immutable writes, indexing, slicing, conversions, snapshot
+iteration, row bindings, positional annotations, optional and union contracts,
+defaults, named calls, closures, class members, nested mutable aliases, cycles,
+and managed roots across collection.
+
+Five host tests cover contextual syntax, invariant shapes, handle ownership,
+stale handles, weak contract lifetime, REPL persistence, and cyclic cleanup.
+A small-stack test compares, displays, and collects 12,000-level tuple chains.
+
+Windows x64 and macOS ARM64 cross-target checks pass. The extracted LLVM linker
+wrapper also passes Rust metadata compilation against both target libraries.
+Native platform execution and packaging remain distribution gates. Sets,
+typed sets, and the remaining library operations are still required for 3.2.

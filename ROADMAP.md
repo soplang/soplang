@@ -140,8 +140,9 @@ keyword collectors are implemented too. Compact [byte arrays](docs/language/byte
 are implemented with checked mutation, strict UTF-8 conversion, type annotations,
 and snapshot iteration. [Optional and union annotations](docs/language/optional-union-types.md)
 are implemented too. [Typed lists and string-keyed objects](docs/language/typed-collections.md)
-now enforce shared element contracts through aliases and nested mutations. Sets,
-tuples, their annotations, and the remaining library operations are still planned.
+now enforce shared element contracts through aliases and nested mutations.
+[Immutable tuples](docs/language/tuples.md) and positional annotations are also
+implemented. Sets, typed sets, and remaining library operations are still planned.
 The 3.2 milestone is not yet complete or tagged.
 
 ### Iteration
@@ -168,12 +169,12 @@ step representation.
 ### Data types
 
 1. Sets for unique values.
-2. Immutable tuples.
+2. Immutable tuples: implemented as `xirmo`, including positional annotations.
 3. Byte arrays: implemented as `baytyo`, with shared collection vocabulary.
 4. Explicit structured error values.
 5. Optional and union types: implemented for variables, parameters, and returns.
-6. Typed lists and objects: implemented with shared nested contracts. Typed sets
-   and tuples follow their value types.
+6. Typed lists, objects, and positional tuples: implemented with shared nested
+   contracts. Typed sets follow their value type.
 
 ### Collection methods
 

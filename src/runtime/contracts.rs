@@ -37,6 +37,8 @@ enum Contract {
     Str,
     Bool,
     List,
+    Tuple,
+    TupleOf(Vec<Contract>),
     Object,
     Bytes,
     Null,
@@ -51,6 +53,9 @@ impl Contract {
             (Self::ListOf(a), Self::ListOf(b)) | (Self::ObjectOf(a), Self::ObjectOf(b)) => {
                 a.same(b)
             }
+            (Self::TupleOf(a), Self::TupleOf(b)) => {
+                a.len() == b.len() && a.iter().zip(b).all(|(a, b)| a.same(b))
+            }
             (Self::Union(a), Self::Union(b)) => {
                 a.len() == b.len() && a.iter().all(|ty| b.iter().any(|other| ty.same(other)))
             }
@@ -59,7 +64,7 @@ impl Contract {
     }
     fn has_elements(&self) -> bool {
         match self {
-            Self::ListOf(_) | Self::ObjectOf(_) => true,
+            Self::ListOf(_) | Self::ObjectOf(_) | Self::TupleOf(_) => true,
             Self::Union(types) => types.iter().any(Self::has_elements),
             _ => false,
         }
@@ -76,6 +81,17 @@ impl fmt::Display for Contract {
             Self::Str => f.write_str("qoraal"),
             Self::Bool => f.write_str("bool"),
             Self::List => f.write_str("teed"),
+            Self::Tuple => f.write_str("xirmo"),
+            Self::TupleOf(types) => {
+                f.write_str("xirmo[")?;
+                for (i, ty) in types.iter().enumerate() {
+                    if i > 0 {
+                        f.write_str(", ")?;
+                    }
+                    write!(f, "{ty}")?;
+                }
+                f.write_str("]")
+            }
             Self::Object => f.write_str("walax"),
             Self::Bytes => f.write_str("baytyo"),
             Self::Null => f.write_str("maran"),
@@ -147,6 +163,7 @@ impl Reader<'_> {
                     "qoraal" => Contract::Str,
                     "bool" => Contract::Bool,
                     "teed" => Contract::List,
+                    "xirmo" => Contract::Tuple,
                     "walax" => Contract::Object,
                     "baytyo" => Contract::Bytes,
                     "maran" => Contract::Null,
@@ -154,6 +171,19 @@ impl Reader<'_> {
                 }
             };
             if self.take('[') {
+                if ty == Contract::Tuple {
+                    let mut values = Vec::new();
+                    self.skip();
+                    if !self.text[self.pos..].starts_with(']') {
+                        loop {
+                            values.push(self.ty(depth + 1)?);
+                            if !self.take(',') {
+                                break;
+                            }
+                        }
+                    }
+                    ty = Contract::TupleOf(values);
+                } else {
                 let inner = self.ty(depth + 1)?;
                 ty = match ty {
                     Contract::List => Contract::ListOf(Box::new(inner)),
@@ -170,6 +200,7 @@ impl Reader<'_> {
                     }
                     _ => return Err(invalid()),
                 };
+                }
                 if !self.take(']') {
                     return Err(invalid());
                 }
@@ -190,6 +221,7 @@ impl Reader<'_> {
 #[derive(Clone)]
 enum WeakRoot {
     List(Weak<RefCell<Vec<Value>>>),
+    Tuple(Weak<super::TupleData>),
     Object(Weak<RefCell<HashMap<String, Value>>>),
 }
 impl WeakRoot {
@@ -198,6 +230,10 @@ impl WeakRoot {
             Value::List(value) => Some((
                 (5, Rc::as_ptr(value) as usize),
                 Self::List(Rc::downgrade(value)),
+            )),
+            Value::Tuple(value) => Some((
+                (13, Rc::as_ptr(value) as usize),
+                Self::Tuple(Rc::downgrade(value)),
             )),
             Value::Object(value) => Some((
                 (6, Rc::as_ptr(value) as usize),
@@ -209,6 +245,7 @@ impl WeakRoot {
     fn upgrade(&self) -> Option<Value> {
         match self {
             Self::List(value) => value.upgrade().map(Value::List),
+            Self::Tuple(value) => value.upgrade().map(Value::Tuple),
             Self::Object(value) => value.upgrade().map(Value::Object),
         }
     }
@@ -295,6 +332,7 @@ impl Validator<'_> {
     fn matches(&mut self, value: &Value, ty: &Contract) -> Result<bool, SoplangError> {
         let key = match value {
             Value::List(value) => Some((5, Rc::as_ptr(value) as usize)),
+            Value::Tuple(value) => Some((13, Rc::as_ptr(value) as usize)),
             Value::Object(value) => Some((6, Rc::as_ptr(value) as usize)),
             _ => None,
         };
@@ -313,6 +351,22 @@ impl Validator<'_> {
                 }
                 found
             }
+            (Value::Tuple(tuple), Contract::TupleOf(types)) => {
+                let values = tuple.values();
+                if values.len() != types.len() {
+                    false
+                } else {
+                    let mut valid = true;
+                    for (value, ty) in values.iter().zip(types) {
+                        if !self.matches(value, ty)? {
+                            valid = false;
+                            break;
+                        }
+                    }
+                    valid
+                }
+            }
+            (Value::Tuple(_), Contract::Tuple) => true,
             (Value::List(list), Contract::ListOf(inner)) => {
                 let key = key.unwrap();
                 self.dependencies.insert(key);

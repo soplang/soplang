@@ -129,7 +129,7 @@ reuse existing parser, semantic, and standard-library diagnostics.
 | `Tusmada bilowga ee tirso() waa inay noqotaa abn.` | The starting index must be an integer. |
 | `Doodaha taxane() waa inay noqdaan abn.` | Range arguments must be integers. |
 | `Tallaabada taxane() eber ma noqon karto.` | A range step cannot be zero. |
-| `Wareeggu wuxuu u baahan yahay teed ka kooban {count} qiime si loo qaybiyo magacyada.` | A row must contain exactly as many values as there are binding names. |
+| `Wareeggu wuxuu u baahan yahay teed ama xirmo ka kooban {count} qiime si loo qaybiyo magacyada.` | A row must contain exactly as many values as there are binding names. |
 | `Wareeggu wuxuu u baahan yahay walax.` | An internal protocol method receiver must be an object. |
 | `Wareeggu ma laha hawl la yiraahdo '{method}'.` | This iterator has no such method; uses the ordinary runtime error category. |
 
@@ -229,7 +229,7 @@ existing collection vocabulary. New byte-operation failures use `E038`.
 | `Magaca 'baytyo' waxaa loo adeegsadaa nooc hore u jiray.` | A class name conflicts with the built-in byte type; `E020`. |
 
 Length conversion errors now include bytes among the accepted types:
-`Qiimaha ma ahan teed, qoraal, walax, ama baytyo`.
+`Qiimaha ma ahan teed, qoraal, walax, baytyo, ama xirmo`.
 Arity, slicing, stale-handle, and annotation errors reuse their existing forms.
 
 ## Optional and union types
@@ -270,3 +270,21 @@ message. Rejected mutations use `E039`; missing classes retain `E021`.
 `Walaxda hadda lama akhriyi karo.` and malformed-descriptor diagnostics retain
 their existing wording. The [typed-collections reference](typed-collections.md)
 defines shared alias, mutation, and ownership behavior.
+
+## Tuples
+
+`xirmo` names a fixed sequence whose positions cannot be changed. Tuple
+operation errors use `E040`; annotation failures retain `E022`, nested guarded
+writes retain `E039`, and ownership failures retain `E035`.
+
+| Somali diagnostic | Meaning |
+| --- | --- |
+| `Xirmada lama beddeli karo.` | Tuple positions cannot be changed. |
+| `Tusmada xirmadu waa inay noqotaa abn.` | A tuple index must be an integer. |
+| `midee() waxay u baahan tahay xirmo.` | Tuple concatenation requires another tuple. |
+| `Xirmadu ma laha hawl la yiraahdo '{method}'.` | The tuple has no such method. |
+| `Magaca 'xirmo' waxaa loo adeegsadaa nooc hore u jiray.` | A class name conflicts with the tuple type; `E020`. |
+
+List conversion reuses `Teedka hadda lama akhriyi karo.` for a conflicting
+host borrow. Row-binding messages now say `teed ama xirmo` because both list
+and tuple rows are accepted. See the [tuple reference](tuples.md).

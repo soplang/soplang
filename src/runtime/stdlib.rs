@@ -228,6 +228,7 @@ pub fn builtin_bool(args: Vec<Value>) -> Result<Value, SoplangError> {
         Value::Float(x) => *x != 0.0,
         Value::Str(s) => !s.is_empty() && s != "false" && s != "False",
         Value::List(l) => !l.borrow().is_empty(),
+        Value::Tuple(tuple) => !tuple.is_empty(),
         Value::Bytes(bytes) => !super::bytes::read(bytes)?.is_empty(),
         Value::Object(o) => !o.borrow().is_empty(),
         _ => true,
@@ -273,16 +274,21 @@ pub fn builtin_kor(args: Vec<Value>) -> Result<Value, SoplangError> {
     Ok(Value::Int(n.ceil() as i64))
 }
 
-/// Built-in dherer: length of list, string, or object.
+/// Built-in dherer: collection, byte, or Unicode scalar length.
 pub fn builtin_dherer(args: Vec<Value>) -> Result<Value, SoplangError> {
     expect_arity(&args, "dherer", 1)?;
     let v = args.into_iter().next().unwrap();
     let len = match &v {
         Value::List(l) => l.borrow().len(),
+        Value::Tuple(tuple) => tuple.len(),
         Value::Bytes(bytes) => super::bytes::read(bytes)?.len(),
         Value::Str(s) => s.chars().count(),
         Value::Object(o) => o.borrow().len(),
-        _ => return Err(err_type("Qiimaha ma ahan teed, qoraal, walax, ama baytyo")),
+        _ => {
+            return Err(err_type(
+                "Qiimaha ma ahan teed, qoraal, walax, baytyo, ama xirmo",
+            ))
+        }
     };
     Ok(Value::Int(len as i64))
 }
@@ -479,6 +485,11 @@ impl CallbackArity {
 
 // Registration and callback metadata use the same list, including aliases.
 const BUILTINS: &[(&str, super::NativeFn, CallbackArity)] = &[
+    (
+        "xirmo",
+        super::tuples::construct,
+        CallbackArity::range(0, usize::MAX),
+    ),
     (
         "baytyo",
         super::bytes::construct,

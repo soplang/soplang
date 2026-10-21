@@ -747,3 +747,17 @@ fn test_llvm_typed_collections() {
         );
     }
 }
+
+#[test]
+fn test_llvm_tuples() {
+    for opt in [0, 2] {
+        assert_eq!(
+            run_llvm_with_opt(
+                &format!("llvm_tuples_{opt}"),
+                include_str!("fixtures/tuples.sop"),
+                opt
+            ),
+            "tuples ok\n"
+        );
+    }
+}

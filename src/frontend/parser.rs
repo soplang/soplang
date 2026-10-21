@@ -152,7 +152,46 @@ impl Parser {
                 self.peek_nth(1).kind,
                 TokenType::Optional | TokenType::Union
             ) || (self.peek_nth(1).kind == TokenType::Identifier
-                && self.peek_nth(2).kind == TokenType::Assign))
+                && self.peek_nth(2).kind == TokenType::Assign)
+                || self.contextual_generic_declaration())
+    }
+
+    fn contextual_generic_declaration(&self) -> bool {
+        if self.peek().lexeme != "xirmo" || self.peek_nth(1).kind != TokenType::LBracket {
+            return false;
+        }
+        let mut depth = 0;
+        let mut offset = 1;
+        loop {
+            match self.peek_nth(offset).kind {
+                TokenType::LBracket => depth += 1,
+                TokenType::RBracket => {
+                    depth -= 1;
+                    if depth == 0 {
+                        offset += 1;
+                        break;
+                    }
+                }
+                TokenType::Identifier
+                | TokenType::Abn
+                | TokenType::Jajab
+                | TokenType::Qoraal
+                | TokenType::Bool
+                | TokenType::Teed
+                | TokenType::Walax
+                | TokenType::Null
+                | TokenType::Comma
+                | TokenType::Optional
+                | TokenType::Union => {}
+                _ => return false,
+            }
+            offset += 1;
+        }
+        matches!(
+            self.peek_nth(offset).kind,
+            TokenType::Optional | TokenType::Union
+        ) || (self.peek_nth(offset).kind == TokenType::Identifier
+            && self.peek_nth(offset + 1).kind == TokenType::Assign)
     }
 
     fn starts_type_annotation(&self) -> bool {
@@ -170,6 +209,9 @@ impl Parser {
                 self.peek_nth(1).kind,
                 TokenType::Identifier | TokenType::Optional | TokenType::Union
             ))
+            || (self.peek().kind == TokenType::Identifier
+                && self.peek().lexeme == "xirmo"
+                && self.peek_nth(1).kind == TokenType::LBracket)
     }
 
     fn parse_type_annotation(&mut self) -> Result<TypeAnnotation, SoplangError> {
@@ -226,6 +268,19 @@ impl Parser {
             self.advance();
             if self.check(TokenType::LBracket) {
                 self.advance();
+                if ty == TypeAnnotation::Tuple {
+                    let mut types = Vec::new();
+                    if !self.check(TokenType::RBracket) {
+                        loop {
+                            types.push(self.parse_type_annotation_depth(depth + 1, nodes)?);
+                            if !self.check(TokenType::Comma) {
+                                break;
+                            }
+                            self.advance();
+                        }
+                    }
+                    ty = TypeAnnotation::TupleOf(types);
+                } else {
                 let inner_token = self.peek().clone();
                 let inner = self.parse_type_annotation_depth(depth + 1, nodes)?;
                 ty = match ty {
@@ -254,6 +309,7 @@ impl Parser {
                         ))
                     }
                 };
+                }
                 self.expect(TokenType::RBracket)?;
             }
             if self.check(TokenType::Optional) {

@@ -1,7 +1,8 @@
 # Typed lists and objects
 
-Typed lists and string-keyed objects are implemented in the 3.2 work. Sets,
-tuples, and their annotations remain separate stages. The complete milestone
+Typed lists and string-keyed objects are implemented in the 3.2 work.
+[Positional tuples](tuples.md) are implemented separately; sets and their
+annotations remain planned. The complete milestone
 is not yet ready for a tag.
 
 ## Syntax and validation

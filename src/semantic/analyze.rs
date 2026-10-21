@@ -764,6 +764,14 @@ fn analyze_stmt(
             }
         }
         Stmt::ClassDef { name, parent, body } => {
+            if name == "xirmo" {
+                return Err(type_error_ex(
+                    "Magaca 'xirmo' waxaa loo adeegsadaa nooc hore u jiray.",
+                    0,
+                    0,
+                    ErrorMeta::default().with_code(codes::E020_REDECLARED),
+                ));
+            }
             if name == "baytyo" {
                 return Err(type_error_ex(
                     "Magaca 'baytyo' waxaa loo adeegsadaa nooc hore u jiray.",
@@ -1683,7 +1691,7 @@ fn is_type_compatible(sym: &SymbolTable, target: &TypeAnnotation, value: &TypeAn
     match (target, value) {
         (Dynamic, _) => true,
         (_, Union(found)) => found.iter().all(|ty| is_type_compatible(sym, target, ty)),
-        (Union(_) | Null | ListOf(_) | ObjectOf(_), Dynamic) => true,
+        (Union(_) | Null | ListOf(_) | ObjectOf(_) | TupleOf(_) | Tuple, Dynamic) => true,
         (Union(types), found) => types.iter().any(|ty| is_type_compatible(sym, ty, found)),
         (Null, Null) => true,
         // A door value has no static class. The runtime check accepts a real instance.
@@ -1695,6 +1703,11 @@ fn is_type_compatible(sym: &SymbolTable, target: &TypeAnnotation, value: &TypeAn
         (Jajab, Abn | Jajab) => true,
         (Qoraal, Qoraal) => true,
         (Bool, Bool) => true,
+        (Tuple, Tuple | TupleOf(_)) | (TupleOf(_), Tuple) => true,
+        (TupleOf(expected), TupleOf(found)) => {
+            expected.len() == found.len()
+                && expected.iter().zip(found).all(|(a, b)| a.same_contract(b))
+        }
         (Teed, Teed | ListOf(_)) => true,
         (Walax, ObjectOf(_)) => true,
         (ListOf(_), Teed) | (ObjectOf(_), Walax) => true,
@@ -1729,7 +1742,7 @@ fn ensure_known_class(sym: &SymbolTable, ann: &TypeAnnotation) -> Result<(), Sop
     if let TypeAnnotation::ListOf(inner) | TypeAnnotation::ObjectOf(inner) = ann {
         return ensure_known_class(sym, inner);
     }
-    if let TypeAnnotation::Union(types) = ann {
+    if let TypeAnnotation::Union(types) | TypeAnnotation::TupleOf(types) = ann {
         for ty in types {
             ensure_known_class(sym, ty)?;
         }

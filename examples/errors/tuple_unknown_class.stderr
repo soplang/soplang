@@ -1,0 +1,5 @@
+Khalad nooc: Qaab 'Maqan' lama aqoonsan [E021] safka 1, tiirka 1
+     --> examples/errors/tuple_unknown_class.sop:1:1
+   1 │   xirmo[Maqan] xog = xirmo()
+     │   ^^^^^
+     └─ Qeex qaabka ka hor intaadan u isticmaalin nooc ahaan.

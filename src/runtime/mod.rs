@@ -9,6 +9,7 @@ mod gc;
 mod formatting;
 mod iterators;
 mod roots;
+mod tuples;
 pub mod stdlib;
 pub mod value;
 
@@ -20,4 +21,5 @@ pub use context::RuntimeContext;
 pub use roots::RootedValue;
 pub use gc::{CollectionReport, MemoryStats};
 pub use iterators::IteratorData;
+pub use tuples::TupleData;
 pub use value::{value_to_string, NativeFn, Value};

@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+* Immutable `xirmo` tuples support indexing, slicing, conversion, shared collection methods, iteration, row bindings, and positional annotations. Nested mutable members retain shared contracts. Tuple handles participate in ownership checks and tracing collection.
 * Typed lists (`teed[T]`) and string-keyed objects (`walax[qoraal, T]`) enforce shared element contracts through aliases, nested containers, parameters, returns, and typed rest collectors. Mutation validates all affected parents before publishing data. Weak guards participate in context collection and use a dependency index.
 * Optional (`T?`), union (`A | B`), and null-only (`maran`) annotations constrain variables, constants, parameters, and returns. Both backends preserve exact numeric alternatives, apply existing numeric conversions when needed, and report recoverable Somali contract errors.
 * Compact `baytyo` byte arrays support checked mutation, byte indexing and slicing, snapshot iteration, strict UTF-8 encoding/decoding, shared collection methods, and concrete type annotations. Both backends retain byte storage through tracing roots; stale handles and conflicting host borrows produce recoverable errors.
@@ -20,6 +21,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+* Structural collection equality uses an iterative graph walk, and display bounds active nesting to 64 containers. Unreachable tuple edges are cleared during collection so deep immutable chains and mixed cycles can be reclaimed without recursive destruction.
 * Functions that fall through validate their implicit null return against their annotation, closing a gap for primitive and class return types.
 * Callable parameters and variables shadow global function signatures during static call validation and return-type inference. Windows LLVM wrappers retain the argument-signature registration bridges.
 * Native Rust callbacks receive reusable context-owned handles when converted to Soplang values.

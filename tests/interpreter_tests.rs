@@ -745,3 +745,11 @@ fn test_typed_collections() {
         "typed collections ok\n"
     );
 }
+
+#[test]
+fn test_tuples() {
+    assert_eq!(
+        run_program(include_str!("fixtures/tuples.sop")),
+        "tuples ok\n"
+    );
+}

@@ -21,6 +21,7 @@ pub enum Value {
     Str(String),
     Bool(bool),
     List(Rc<RefCell<Vec<Value>>>),
+    Tuple(Rc<super::TupleData>),
     Bytes(Rc<RefCell<Vec<u8>>>),
     Object(Rc<RefCell<HashMap<String, Value>>>),
     Function(FunctionId),
@@ -49,6 +50,7 @@ impl Value {
             Value::Str(s) => ValueDebug::Str(s.as_str()),
             Value::Bool(b) => ValueDebug::Bool(*b),
             Value::List(l) => ValueDebug::List(l.borrow().len()),
+            Value::Tuple(tuple) => ValueDebug::Tuple(tuple.len()),
             Value::Bytes(bytes) => ValueDebug::Bytes(bytes.try_borrow().map(|b| b.len()).ok()),
             Value::Object(o) => ValueDebug::Object(o.borrow().len()),
             Value::Function(id) => ValueDebug::Function(*id),
@@ -69,6 +71,7 @@ enum ValueDebug<'a> {
     Str(&'a str),
     Bool(bool),
     List(usize),
+    Tuple(usize),
     Bytes(Option<usize>),
     Object(usize),
     Function(FunctionId),
@@ -86,55 +89,84 @@ impl PartialEq for Value {
 }
 
 fn value_eq(a: &Value, b: &Value, seen: &mut HashSet<(u8, usize, usize)>) -> bool {
-    match (a, b) {
-        (Value::Int(a), Value::Int(b)) => a == b,
-        (Value::Float(a), Value::Float(b)) => a == b,
-        (Value::Str(a), Value::Str(b)) => a == b,
-        (Value::Bool(a), Value::Bool(b)) => a == b,
-        (Value::Null, Value::Null) => true,
-        (Value::Bytes(a), Value::Bytes(b)) => {
-            Rc::ptr_eq(a, b)
-                || match (a.try_borrow(), b.try_borrow()) {
-                    (Ok(a), Ok(b)) => *a == *b,
-                    _ => false,
+    let mut pending = vec![(a.clone(), b.clone())];
+    while let Some((a, b)) = pending.pop() {
+        let equal = match (&a, &b) {
+            (Value::Int(a), Value::Int(b)) => a == b,
+            (Value::Float(a), Value::Float(b)) => a == b,
+            (Value::Str(a), Value::Str(b)) => a == b,
+            (Value::Bool(a), Value::Bool(b)) => a == b,
+            (Value::Null, Value::Null) => true,
+            (Value::List(a), Value::List(b)) => {
+                if Rc::ptr_eq(a, b)
+                    || !seen.insert((0, Rc::as_ptr(a) as usize, Rc::as_ptr(b) as usize))
+                {
+                    continue;
                 }
-        }
-        (Value::List(a), Value::List(b)) => {
-            if Rc::ptr_eq(a, b) {
-                return true;
+                let (Ok(a), Ok(b)) = (a.try_borrow(), b.try_borrow()) else {
+                    return false;
+                };
+                if a.len() != b.len() {
+                    return false;
+                }
+                pending.extend(a.iter().cloned().zip(b.iter().cloned()));
+                true
             }
-            let pair = (0, Rc::as_ptr(a) as usize, Rc::as_ptr(b) as usize);
-            if !seen.insert(pair) {
-                return true;
+            (Value::Object(a), Value::Object(b)) => {
+                if Rc::ptr_eq(a, b)
+                    || !seen.insert((1, Rc::as_ptr(a) as usize, Rc::as_ptr(b) as usize))
+                {
+                    continue;
+                }
+                let (Ok(a), Ok(b)) = (a.try_borrow(), b.try_borrow()) else {
+                    return false;
+                };
+                if a.len() != b.len() {
+                    return false;
+                }
+                for (key, value) in a.iter() {
+                    let Some(other) = b.get(key) else {
+                        return false;
+                    };
+                    pending.push((value.clone(), other.clone()));
+                }
+                true
             }
-            let a = a.borrow();
-            let b = b.borrow();
-            a.len() == b.len() && a.iter().zip(b.iter()).all(|(a, b)| value_eq(a, b, seen))
-        }
-        (Value::Object(a), Value::Object(b)) => {
-            if Rc::ptr_eq(a, b) {
-                return true;
+            (Value::Tuple(a), Value::Tuple(b)) => {
+                if Rc::ptr_eq(a, b)
+                    || !seen.insert((2, Rc::as_ptr(a) as usize, Rc::as_ptr(b) as usize))
+                {
+                    continue;
+                }
+                let a = a.values();
+                let b = b.values();
+                if a.len() != b.len() {
+                    return false;
+                }
+                pending.extend(a.iter().cloned().zip(b.iter().cloned()));
+                true
             }
-            let pair = (1, Rc::as_ptr(a) as usize, Rc::as_ptr(b) as usize);
-            if !seen.insert(pair) {
-                return true;
+            (Value::Bytes(a), Value::Bytes(b)) => {
+                Rc::ptr_eq(a, b)
+                    || match (a.try_borrow(), b.try_borrow()) {
+                        (Ok(a), Ok(b)) => *a == *b,
+                        _ => false,
+                    }
             }
-            let a = a.borrow();
-            let b = b.borrow();
-            a.len() == b.len()
-                && a.iter().all(|(key, value)| {
-                    b.get(key).is_some_and(|other| value_eq(value, other, seen))
-                })
+            (Value::Iterator(a), Value::Iterator(b)) => Rc::ptr_eq(a, b),
+            (Value::Error(a), Value::Error(b)) => Rc::ptr_eq(a, b),
+            (Value::Function(a), Value::Function(b)) => a == b,
+            (Value::Closure(a), Value::Closure(b)) => Rc::ptr_eq(a, b),
+            (Value::NativeFunction(a), Value::NativeFunction(b)) => {
+                std::ptr::eq(*a as *const (), *b as *const ())
+            }
+            _ => false,
+        };
+        if !equal {
+            return false;
         }
-        (Value::Iterator(a), Value::Iterator(b)) => Rc::ptr_eq(a, b),
-        (Value::Error(a), Value::Error(b)) => Rc::ptr_eq(a, b),
-        (Value::Function(a), Value::Function(b)) => a == b,
-        (Value::Closure(a), Value::Closure(b)) => Rc::ptr_eq(a, b),
-        (Value::NativeFunction(a), Value::NativeFunction(b)) => {
-            std::ptr::eq(*a as *const (), *b as *const ())
-        }
-        _ => false,
     }
+    true
 }
 
 impl Value {
@@ -147,6 +179,7 @@ impl Value {
             Value::Str(_) => "qoraal",
             Value::Bool(_) => "bool",
             Value::List(_) => "teed",
+            Value::Tuple(_) => "xirmo",
             Value::Bytes(_) => "baytyo",
             Value::Object(_) => "walax",
             Value::Function(_) | Value::NativeFunction(_) | Value::Closure(_) => "hawl",
@@ -165,6 +198,7 @@ impl Value {
             Value::Float(x) => *x != 0.0,
             Value::Str(s) => !s.is_empty(),
             Value::List(l) => !l.borrow().is_empty(),
+            Value::Tuple(tuple) => !tuple.is_empty(),
             Value::Bytes(bytes) => bytes.try_borrow().map(|b| !b.is_empty()).unwrap_or(true),
             Value::Object(o) => !o.borrow().is_empty(),
             Value::Function(_)
@@ -194,6 +228,11 @@ pub fn value_to_string(v: &Value) -> String {
 }
 
 fn format_value(v: &Value, seen: &mut HashSet<(u8, usize)>) -> String {
+    // Display is bounded independently of graph depth; equality and GC walk
+    // complete graphs iteratively, including immutable tuple chains.
+    if seen.len() >= 64 && matches!(v, Value::List(_) | Value::Object(_) | Value::Tuple(_)) {
+        return "...".into();
+    }
     match v {
         Value::Bool(true) => "run".to_string(),
         Value::Bool(false) => "been".to_string(),
@@ -207,6 +246,19 @@ fn format_value(v: &Value, seen: &mut HashSet<(u8, usize)>) -> String {
             Ok(bytes) => format!("baytyo({:?})", &*bytes),
             Err(_) => "<baytyo>".into(),
         },
+        Value::Tuple(tuple) => {
+            let id = (2, Rc::as_ptr(tuple) as usize);
+            if !seen.insert(id) {
+                return "xirmo(...)".into();
+            }
+            let parts: Vec<_> = tuple
+                .values()
+                .iter()
+                .map(|value| format_value(value, seen))
+                .collect();
+            seen.remove(&id);
+            format!("xirmo({})", parts.join(", "))
+        }
         Value::List(lst) => {
             let id = (0, Rc::as_ptr(lst) as usize);
             if !seen.insert(id) {

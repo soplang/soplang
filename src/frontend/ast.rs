@@ -10,6 +10,8 @@ pub enum TypeAnnotation {
     Qoraal,
     Bool,
     Teed,
+    Tuple,
+    TupleOf(Vec<TypeAnnotation>),
     ListOf(Box<TypeAnnotation>),
     ObjectOf(Box<TypeAnnotation>),
     Bytes,
@@ -26,6 +28,9 @@ impl TypeAnnotation {
         match (self, other) {
             (Self::ListOf(a), Self::ListOf(b)) | (Self::ObjectOf(a), Self::ObjectOf(b)) => {
                 a.same_contract(b)
+            }
+            (Self::TupleOf(a), Self::TupleOf(b)) => {
+                a.len() == b.len() && a.iter().zip(b).all(|(a, b)| a.same_contract(b))
             }
             (Self::Union(a), Self::Union(b)) => {
                 a.len() == b.len()
@@ -64,6 +69,14 @@ impl TypeAnnotation {
     pub(crate) fn runtime_contract(&self) -> String {
         match self {
             Self::Class(name) => format!("@{name}"),
+            Self::TupleOf(types) => format!(
+                "xirmo[{}]",
+                types
+                    .iter()
+                    .map(Self::runtime_contract)
+                    .collect::<Vec<_>>()
+                    .join(",")
+            ),
             Self::ListOf(inner) => format!("teed[{}]", inner.runtime_contract()),
             Self::ObjectOf(inner) => format!("walax[qoraal,{}]", inner.runtime_contract()),
             Self::Union(types) => types
@@ -76,7 +89,9 @@ impl TypeAnnotation {
     }
 
     pub(crate) fn named(name: String) -> Self {
-        if name == "baytyo" {
+        if name == "xirmo" {
+            Self::Tuple
+        } else if name == "baytyo" {
             Self::Bytes
         } else {
             Self::Class(name)
@@ -323,6 +338,17 @@ impl fmt::Display for TypeAnnotation {
             Self::Qoraal => f.write_str("qoraal"),
             Self::Bool => f.write_str("bool"),
             Self::Teed => f.write_str("teed"),
+            Self::Tuple => f.write_str("xirmo"),
+            Self::TupleOf(types) => {
+                f.write_str("xirmo[")?;
+                for (i, ty) in types.iter().enumerate() {
+                    if i > 0 {
+                        f.write_str(", ")?;
+                    }
+                    write!(f, "{ty}")?;
+                }
+                f.write_str("]")
+            }
             Self::ListOf(inner) => write!(f, "teed[{inner}]"),
             Self::ObjectOf(inner) => write!(f, "walax[qoraal, {inner}]"),
             Self::Walax => f.write_str("walax"),
