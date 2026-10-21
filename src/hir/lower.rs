@@ -910,7 +910,8 @@ impl<'a> HirLowering<'a> {
     fn emit_type_check(&mut self, src: Slot, ann: &TypeAnnotation, name: &str) {
         match ann {
             TypeAnnotation::Dynamic => {}
-            TypeAnnotation::Union(_)
+            TypeAnnotation::Function
+            | TypeAnnotation::Union(_)
             | TypeAnnotation::Null
             | TypeAnnotation::ListOf(_)
             | TypeAnnotation::ObjectOf(_)
@@ -1921,6 +1922,7 @@ fn type_ann_to_tag(ann: &TypeAnnotation) -> u8 {
         TypeAnnotation::Bytes => 7,
         TypeAnnotation::Walax => 6,
         TypeAnnotation::Dynamic
+        | TypeAnnotation::Function
         | TypeAnnotation::Class(_)
         | TypeAnnotation::Null
         | TypeAnnotation::Union(_)

@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Add `hawl` annotations for callable variables, parameters, returns and collection elements, including nullable callables and strict callback APIs. Preserve named/native functions and captured closures while enforcing callable contracts in JIT and LLVM execution.
+
 - Give editor symbols separate file scopes, resolve namespace/export aliases and class member identities, and include closed workspace importers in references and rename. Refuse incomplete or unsafe edits, bound source reads, and open bundled definitions as read-only source documents.
 
 - Connect the VS Code extension to the native language server with executable settings, restart/shutdown handling and workspace trust. Correct comments and string highlighting, add compiler-checked snippets, and verify the real extension host and VSIX packaging.

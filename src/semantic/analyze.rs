@@ -1741,8 +1741,8 @@ fn infer_expr_type(
                 }
             }),
         Expr::New { class_name, .. } => Some(TypeAnnotation::Class(class_name.clone())),
-        Expr::AnonymousFunc { .. }
-        | Expr::Invoke { .. }
+        Expr::AnonymousFunc { .. } => Some(TypeAnnotation::Function),
+        Expr::Invoke { .. }
         | Expr::MethodCall { .. }
         | Expr::Index { .. }
         | Expr::Property { .. } => None,
@@ -1762,6 +1762,7 @@ fn is_type_compatible(sym: &SymbolTable, target: &TypeAnnotation, value: &TypeAn
         (Null, Null) => true,
         // A door value has no static class. The runtime check accepts a real instance.
         (Class(_), Dynamic) => true,
+        (Function, Function | Dynamic) => true,
         (Class(expected), Class(found)) => is_same_or_subclass(sym, found, expected),
         (Class(_), _) => false,
         // Integral decimals may be stored in abn. Keep that check permissive.

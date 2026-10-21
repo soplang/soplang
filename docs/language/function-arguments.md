@@ -151,6 +151,29 @@ collection callbacks. Both Cranelift JIT and LLVM executables use the same
 argument binding rules. A callback may have optional trailing parameters when
 the collection supplies its required arguments.
 
+## Callable values
+
+`hawl` is a callable type annotation for variables, parameters, returns and
+collection elements. It accepts named functions, native builtins and closures,
+and works in strict mode. `hawl?` additionally permits `maran`.
+
+```soplang
+hawl apply(hawl callback, abn value): abn {
+    celi callback(value)
+}
+hawl increment(abn value): abn { celi value + 1 }
+hawl callback = increment
+teed[hawl] callbacks = [callback]
+qor(apply(callbacks[0], 4))
+```
+
+Function declarations still use `hawl name(...) { ... }`; assigning a callable
+uses `hawl name = value`. An anonymous expression still starts `hawl(...)`.
+`hawl` describes callability rather than a parameter/return signature. Each
+call continues to enforce the callee's argument count and declared contracts.
+A non-callable value fails with `E022`; inserting one into a guarded callable
+collection fails with `E039`. Callables cannot be set keys.
+
 ## Collection callback signatures
 
 List methods validate a callback before iterating, including when the list is

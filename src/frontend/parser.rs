@@ -197,6 +197,7 @@ impl Parser {
                 | TokenType::Bool
                 | TokenType::Teed
                 | TokenType::Walax
+                | TokenType::Hawl
                 | TokenType::Null
                 | TokenType::Comma
                 | TokenType::Optional
@@ -221,6 +222,7 @@ impl Parser {
                 | TokenType::Bool
                 | TokenType::Teed
                 | TokenType::Walax
+                | TokenType::Hawl
                 | TokenType::Null
         ) || (self.peek().kind == TokenType::Identifier
             && matches!(
@@ -273,6 +275,7 @@ impl Parser {
                 | TokenType::Bool
                 | TokenType::Teed
                 | TokenType::Walax
+                | TokenType::Hawl
                 | TokenType::Null => token_to_type_ann(&token.kind),
                 TokenType::Identifier => TypeAnnotation::named(token.lexeme.clone()),
                 _ => {
@@ -489,6 +492,15 @@ impl Parser {
         if t.kind == TokenType::Null && self.looks_like_class_decl() {
             let ann = self.parse_type_annotation()?;
             return self.parse_var_decl_rest(ann, false, line, col);
+        }
+        if t.kind == TokenType::Hawl
+            && (matches!(
+                self.peek_nth(1).kind,
+                TokenType::Optional | TokenType::Union
+            ) || (self.peek_nth(1).kind == TokenType::Identifier
+                && self.peek_nth(2).kind == TokenType::Assign))
+        {
+            return self.parse_var_decl_static(line, col);
         }
         match &t.kind {
             TokenType::Haddii => return self.parse_if(line, col),
@@ -1840,6 +1852,7 @@ impl Parser {
 fn token_to_type_ann(k: &TokenType) -> TypeAnnotation {
     match k {
         TokenType::Null => TypeAnnotation::Null,
+        TokenType::Hawl => TypeAnnotation::Function,
         TokenType::Abn => TypeAnnotation::Abn,
         TokenType::Jajab => TypeAnnotation::Jajab,
         TokenType::Qoraal => TypeAnnotation::Qoraal,

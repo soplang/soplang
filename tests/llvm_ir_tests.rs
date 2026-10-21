@@ -102,6 +102,20 @@ fn test_llvm_qor_multiple_arguments() {
 }
 
 #[test]
+fn llvm_callable_annotations_preserve_values_and_validate_callbacks() {
+    for opt in [0, 2] {
+        assert_eq!(
+            run_llvm_with_opt(
+                "callable_types",
+                include_str!("fixtures/callable_types.sop"),
+                opt
+            ),
+            "callable types ok\n"
+        );
+    }
+}
+
+#[test]
 fn test_llvm_shared_collection_contracts() {
     assert_eq!(
         run_llvm(

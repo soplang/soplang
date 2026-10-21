@@ -43,6 +43,7 @@ enum Contract {
     TupleOf(Vec<Contract>),
     Object,
     Bytes,
+    Function,
     Null,
     Class(String),
     ListOf(Box<Contract>),
@@ -105,6 +106,7 @@ impl fmt::Display for Contract {
             }
             Self::Object => f.write_str("walax"),
             Self::Bytes => f.write_str("baytyo"),
+            Self::Function => f.write_str("hawl"),
             Self::Null => f.write_str("maran"),
             Self::Class(name) => f.write_str(name),
             Self::SetOf(inner) => write!(f, "urur[{inner}]"),
@@ -179,6 +181,7 @@ impl Reader<'_> {
                     "urur" => Contract::Set,
                     "walax" => Contract::Object,
                     "baytyo" => Contract::Bytes,
+                    "hawl" => Contract::Function,
                     "maran" => Contract::Null,
                     _ => return Err(invalid()),
                 }
@@ -475,13 +478,20 @@ impl Validator<'_> {
                         &*borrowed
                     }
                 };
-                match (super::abi::get_instance_class(object), values.get("__class__")) {
+                match (
+                    super::abi::get_instance_class(object),
+                    values.get("__class__"),
+                ) {
                     (Some(class), Some(Value::Str(found))) if class == *found => {
                         super::abi::class_name_matches(&class, expected)
                     }
                     _ => false,
                 }
             }
+            (
+                Value::Function(_) | Value::NativeFunction(_) | Value::Closure(_),
+                Contract::Function,
+            ) => true,
             (Value::Int(_), Contract::Int)
             | (Value::Float(_), Contract::Float)
             | (Value::Str(_), Contract::Str)
