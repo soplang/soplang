@@ -24,6 +24,8 @@ All notable changes to this project will be documented in this file.
 
 * Base64 builtins `b64_qor` and `b64_akhris` encode `qoraal` or `baytyo` and decode to `baytyo`. The `"url"` mode uses the URL-safe alphabet without padding. Invalid input uses `E048`.
 
+* Regular-expression builtins `regex_raadi`, `regex_dhammaan`, and `regex_beddel` search and replace text with the Rust `regex` dialect. Invalid patterns use `E049`.
+
 
 * Numeric builtins add logarithms, radian trigonometry with optional inverse mode, `atan2`-style angles, named constants, clamping, and context-local seeded random streams. Integer-only extrema keep exact 64-bit results; invalid random calls do not advance the generator.
 

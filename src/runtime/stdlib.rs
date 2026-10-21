@@ -242,6 +242,35 @@ pub fn builtin_b64_akhris(args: Vec<Value>) -> Result<Value, SoplangError> {
     Ok(super::bytes::from_raw_vec(super::base64::decode(text, url)?))
 }
 
+fn expect_pattern_text<'a>(value: &'a Value, name: &str) -> Result<&'a str, SoplangError> {
+    match value {
+        Value::Str(text) => Ok(text),
+        _ => Err(err_type(format!("{name}() waa inuu helaa qoraal."))),
+    }
+}
+
+pub fn builtin_regex_raadi(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "regex_raadi", 2)?;
+    let pattern = expect_pattern_text(&args[0], "regex_raadi")?;
+    let text = expect_pattern_text(&args[1], "regex_raadi")?;
+    super::patterns::find(pattern, text)
+}
+
+pub fn builtin_regex_dhammaan(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "regex_dhammaan", 2)?;
+    let pattern = expect_pattern_text(&args[0], "regex_dhammaan")?;
+    let text = expect_pattern_text(&args[1], "regex_dhammaan")?;
+    super::patterns::find_all(pattern, text)
+}
+
+pub fn builtin_regex_beddel(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "regex_beddel", 3)?;
+    let pattern = expect_pattern_text(&args[0], "regex_beddel")?;
+    let text = expect_pattern_text(&args[1], "regex_beddel")?;
+    let replacement = expect_pattern_text(&args[2], "regex_beddel")?;
+    super::patterns::replace(pattern, text, replacement)
+}
+
 fn optional_truthy(args: &[Value], index: usize) -> bool {
     args.get(index).is_some_and(|value| value.is_truthy())
 }
@@ -698,6 +727,9 @@ const BUILTINS: &[(&str, super::NativeFn, CallbackArity)] = &[
     ("url_akhris", builtin_url_akhris, CallbackArity::range(1, 2)),
     ("b64_qor", builtin_b64_qor, CallbackArity::range(1, 2)),
     ("b64_akhris", builtin_b64_akhris, CallbackArity::range(1, 2)),
+    ("regex_raadi", builtin_regex_raadi, CallbackArity::range(2, 2)),
+    ("regex_dhammaan", builtin_regex_dhammaan, CallbackArity::range(2, 2)),
+    ("regex_beddel", builtin_regex_beddel, CallbackArity::range(3, 3)),
     ("fayl_jiraa", builtin_fayl_jiraa, CallbackArity::range(1, 1)),
     ("fayl_xog", builtin_fayl_xog, CallbackArity::range(1, 1)),
     ("isku_xidh", builtin_isku_xidh, CallbackArity::range(1, usize::MAX)),

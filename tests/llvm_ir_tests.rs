@@ -982,6 +982,21 @@ qor("llvm base64 ok")
     }
 }
 
+#[test]
+fn test_llvm_regex() {
+    let source = r#"
+hawl hubi(v, name) { haddii (!v) { tuur name } }
+hubi(regex_raadi("a+", "baa") == "aa", "regex")
+qor("llvm regex ok")
+"#;
+    for opt in [0, 2] {
+        assert_eq!(
+            run_llvm_with_opt(&format!("llvm_regex_{opt}"), source, opt),
+            "llvm regex ok\n"
+        );
+    }
+}
+
 fn run_llvm_with_opt_in_dir(name: &str, source: &str, opt: u8, dir: &Path) -> String {
     let stmts = soplang::frontend::parse_source(source, None).expect("parse");
     let sym = analyze(&stmts).expect("analyze");

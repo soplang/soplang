@@ -254,7 +254,7 @@ wait for handles, streaming, or file watching.
 2. CSV reading and writing — implemented as `csv_akhris` and `csv_qor`; see [CSV](docs/language/csv.md).
 3. URL encoding and decoding — implemented as `url_qor` and `url_akhris`; see [URL encoding](docs/language/url.md).
 4. Base64 encoding and decoding — implemented as `b64_qor` and `b64_akhris`; see [Base64](docs/language/base64.md).
-5. Regular expressions.
+5. Regular expressions — implemented as `regex_raadi`, `regex_dhammaan`, and `regex_beddel`; see [regular expressions](docs/language/regular-expressions.md).
 6. Date, time, duration, parsing, and formatting APIs.
 7. Program arguments and environment variables.
 8. Child processes, exit codes, and captured command output.

@@ -259,6 +259,9 @@ these explanations do not establish a historical abbreviation or SLS approval.
 | `url_akhris` | Percent-decode text                  | `decodeURIComponent` | `url_akhris("Ayaan%20Cali")`               |
 | `b64_qor` | Encode text or bytes as Base64          | `btoa`               | `b64_qor("Man")`                           |
 | `b64_akhris` | Decode Base64 into `baytyo`          | `atob`               | `b64_akhris("TWFu")`                       |
+| `regex_raadi` | First regular-expression match       | `search`             | `regex_raadi("a+", "baa")`                 |
+| `regex_dhammaan` | Every non-overlapping match       | `findall`            | `regex_dhammaan(e"\\d+", "a1")`            |
+| `regex_beddel` | Replace every match                 | `replace`            | `regex_beddel("(a)", "a", "$1!")`          |
 | `fayl_jiraa` | Test whether a path exists              | (path exists)        | `haddii (fayl_jiraa("magac.txt")) {...}`   |
 | `fayl_xog` | Query path metadata                     | (path stat)          | `door x = fayl_xog("magac.txt")`           |
 | `isku_xidh` | Join path segments                     | (path join)          | `isku_xidh("data", "magac.txt")`           |

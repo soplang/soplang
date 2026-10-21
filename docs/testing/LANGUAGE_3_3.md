@@ -74,3 +74,13 @@ cargo test --locked --test base64_tests --test llvm_ir_tests
 The Base64 suite covers padding lengths, binary `+` and `/` characters, URL-safe
 mode without padding, catchable alphabet and mode failures, and LLVM execution
 at optimization levels 0 and 2.
+
+## Regular expressions
+
+```sh
+cargo test --locked --test regex_tests --test llvm_ir_tests
+```
+
+The regular-expression suite covers the first match, a missing match, every
+match, numbered replacements, catchable invalid patterns, and LLVM execution at
+optimization levels 0 and 2.
