@@ -22,6 +22,7 @@ pub enum Value {
     Bool(bool),
     List(Rc<RefCell<Vec<Value>>>),
     Tuple(Rc<super::TupleData>),
+    Set(Rc<super::SetData>),
     Bytes(Rc<RefCell<Vec<u8>>>),
     Object(Rc<RefCell<HashMap<String, Value>>>),
     Function(FunctionId),
@@ -51,6 +52,7 @@ impl Value {
             Value::Bool(b) => ValueDebug::Bool(*b),
             Value::List(l) => ValueDebug::List(l.borrow().len()),
             Value::Tuple(tuple) => ValueDebug::Tuple(tuple.len()),
+            Value::Set(set) => ValueDebug::Set(set.len()),
             Value::Bytes(bytes) => ValueDebug::Bytes(bytes.try_borrow().map(|b| b.len()).ok()),
             Value::Object(o) => ValueDebug::Object(o.borrow().len()),
             Value::Function(id) => ValueDebug::Function(*id),
@@ -72,6 +74,7 @@ enum ValueDebug<'a> {
     Bool(bool),
     List(usize),
     Tuple(usize),
+    Set(usize),
     Bytes(Option<usize>),
     Object(usize),
     Function(FunctionId),
@@ -146,6 +149,7 @@ fn value_eq(a: &Value, b: &Value, seen: &mut HashSet<(u8, usize, usize)>) -> boo
                 pending.extend(a.iter().cloned().zip(b.iter().cloned()));
                 true
             }
+            (Value::Set(a), Value::Set(b)) => Rc::ptr_eq(a, b) || a.equals(b),
             (Value::Bytes(a), Value::Bytes(b)) => {
                 Rc::ptr_eq(a, b)
                     || match (a.try_borrow(), b.try_borrow()) {
@@ -180,6 +184,7 @@ impl Value {
             Value::Bool(_) => "bool",
             Value::List(_) => "teed",
             Value::Tuple(_) => "xirmo",
+            Value::Set(_) => "urur",
             Value::Bytes(_) => "baytyo",
             Value::Object(_) => "walax",
             Value::Function(_) | Value::NativeFunction(_) | Value::Closure(_) => "hawl",
@@ -199,6 +204,7 @@ impl Value {
             Value::Str(s) => !s.is_empty(),
             Value::List(l) => !l.borrow().is_empty(),
             Value::Tuple(tuple) => !tuple.is_empty(),
+            Value::Set(set) => !set.is_empty(),
             Value::Bytes(bytes) => bytes.try_borrow().map(|b| !b.is_empty()).unwrap_or(true),
             Value::Object(o) => !o.borrow().is_empty(),
             Value::Function(_)
@@ -230,7 +236,12 @@ pub fn value_to_string(v: &Value) -> String {
 fn format_value(v: &Value, seen: &mut HashSet<(u8, usize)>) -> String {
     // Display is bounded independently of graph depth; equality and GC walk
     // complete graphs iteratively, including immutable tuple chains.
-    if seen.len() >= 64 && matches!(v, Value::List(_) | Value::Object(_) | Value::Tuple(_)) {
+    if seen.len() >= 64
+        && matches!(
+            v,
+            Value::List(_) | Value::Object(_) | Value::Tuple(_) | Value::Set(_)
+        )
+    {
         return "...".into();
     }
     match v {
@@ -246,6 +257,14 @@ fn format_value(v: &Value, seen: &mut HashSet<(u8, usize)>) -> String {
             Ok(bytes) => format!("baytyo({:?})", &*bytes),
             Err(_) => "<baytyo>".into(),
         },
+        Value::Set(set) => {
+            let parts: Vec<_> = set
+                .values()
+                .iter()
+                .map(|value| format_value(value, seen))
+                .collect();
+            format!("urur({})", parts.join(", "))
+        }
         Value::Tuple(tuple) => {
             let id = (2, Rc::as_ptr(tuple) as usize);
             if !seen.insert(id) {

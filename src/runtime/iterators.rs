@@ -90,7 +90,8 @@ impl IteratorData {
                 .filter(|value| {
                     matches!(
                         value,
-                        Value::Tuple(_)
+                        Value::Set(_)
+                            | Value::Tuple(_)
                             | Value::List(_)
                             | Value::Bytes(_)
                             | Value::Object(_)
@@ -167,6 +168,7 @@ pub(super) fn begin(value: &Value) -> Result<Value, SoplangError> {
         Value::Bytes(bytes) => Ok(create(Cursor::Bytes(
             super::bytes::read(bytes)?.iter().copied().collect(),
         ))),
+        Value::Set(data) => Ok(create(Cursor::Items(data.values().into()))),
         Value::Tuple(data) => Ok(create(Cursor::Tuple {
             data: Rc::clone(data),
             index: 0,
@@ -303,7 +305,7 @@ pub(super) fn advance(data: &Rc<IteratorData>) -> Result<Option<Value>, SoplangE
     result
 }
 
-fn next_value(iterator: &Value) -> Result<Option<Value>, SoplangError> {
+pub(super) fn next_value(iterator: &Value) -> Result<Option<Value>, SoplangError> {
     match iterator {
         Value::Iterator(data) => advance(data),
         _ => Err(error("xiga() wuxuu u baahan yahay wareeg.")),

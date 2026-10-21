@@ -764,9 +764,9 @@ fn analyze_stmt(
             }
         }
         Stmt::ClassDef { name, parent, body } => {
-            if name == "xirmo" {
+            if name == "xirmo" || name == "urur" {
                 return Err(type_error_ex(
-                    "Magaca 'xirmo' waxaa loo adeegsadaa nooc hore u jiray.",
+                    format!("Magaca '{}' waxaa loo adeegsadaa nooc hore u jiray.", name),
                     0,
                     0,
                     ErrorMeta::default().with_code(codes::E020_REDECLARED),
@@ -1691,7 +1691,7 @@ fn is_type_compatible(sym: &SymbolTable, target: &TypeAnnotation, value: &TypeAn
     match (target, value) {
         (Dynamic, _) => true,
         (_, Union(found)) => found.iter().all(|ty| is_type_compatible(sym, target, ty)),
-        (Union(_) | Null | ListOf(_) | ObjectOf(_) | TupleOf(_) | Tuple, Dynamic) => true,
+        (Union(_) | Null | ListOf(_) | ObjectOf(_) | TupleOf(_) | Tuple | Set, Dynamic) => true,
         (Union(types), found) => types.iter().any(|ty| is_type_compatible(sym, ty, found)),
         (Null, Null) => true,
         // A door value has no static class. The runtime check accepts a real instance.
@@ -1703,6 +1703,7 @@ fn is_type_compatible(sym: &SymbolTable, target: &TypeAnnotation, value: &TypeAn
         (Jajab, Abn | Jajab) => true,
         (Qoraal, Qoraal) => true,
         (Bool, Bool) => true,
+        (Set, Set) => true,
         (Tuple, Tuple | TupleOf(_)) | (TupleOf(_), Tuple) => true,
         (TupleOf(expected), TupleOf(found)) => {
             expected.len() == found.len()

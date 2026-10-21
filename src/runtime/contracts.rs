@@ -38,6 +38,7 @@ enum Contract {
     Bool,
     List,
     Tuple,
+    Set,
     TupleOf(Vec<Contract>),
     Object,
     Bytes,
@@ -82,6 +83,7 @@ impl fmt::Display for Contract {
             Self::Bool => f.write_str("bool"),
             Self::List => f.write_str("teed"),
             Self::Tuple => f.write_str("xirmo"),
+            Self::Set => f.write_str("urur"),
             Self::TupleOf(types) => {
                 f.write_str("xirmo[")?;
                 for (i, ty) in types.iter().enumerate() {
@@ -164,6 +166,7 @@ impl Reader<'_> {
                     "bool" => Contract::Bool,
                     "teed" => Contract::List,
                     "xirmo" => Contract::Tuple,
+                    "urur" => Contract::Set,
                     "walax" => Contract::Object,
                     "baytyo" => Contract::Bytes,
                     "maran" => Contract::Null,
@@ -367,6 +370,7 @@ impl Validator<'_> {
                 }
             }
             (Value::Tuple(_), Contract::Tuple) => true,
+            (Value::Set(_), Contract::Set) => true,
             (Value::List(list), Contract::ListOf(inner)) => {
                 let key = key.unwrap();
                 self.dependencies.insert(key);

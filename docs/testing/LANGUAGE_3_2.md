@@ -220,3 +220,34 @@ Windows x64 and macOS ARM64 cross-target checks pass. The extracted LLVM linker
 wrapper also passes Rust metadata compilation against both target libraries.
 Native platform execution and packaging remain distribution gates. Sets,
 typed sets, and the remaining library operations are still required for 3.2.
+
+## Ordered hash sets stage
+
+The debug suite passes 235 tests, including all 35 LLVM tests. The diagnostic
+and example suites pass 14 tests covering 146 error programs and 39 public
+examples through JIT and LLVM. Optimized checks pass 85 tests:
+
+```sh
+cargo test --locked -- --skip test_aot
+cargo test --locked --test diagnostic_tests --test examples_tests
+cargo test --locked --release --test set_tests --test interpreter_tests --test llvm_ir_tests
+cargo check --locked --offline --target x86_64-pc-windows-msvc
+cargo check --locked --offline --target aarch64-apple-darwin
+```
+
+The shared set fixture runs LLVM at levels 0 and 2. It checks insertion order,
+duplicates, shared mutation, independent copies, set algebra, strict numeric
+keys, tuple keys, signed zero, invalid mutable keys, failed writes, conversion,
+cursor consumption, snapshot iteration, row bindings, defaults, named calls,
+bare and optional annotations, nested contracts, and live roots across GC.
+
+Four host tests cover handle deduplication and ownership, stale handles,
+snapshot retention of tuple keys, immutable key validation, NaN and infinity,
+contextual names, and rejection of overly deep tuple keys on a small stack.
+A unit test compares 20,000 mixed insert/remove operations with an ordered
+reference model and verifies bounded tombstones and indexed membership.
+
+Windows x64 and macOS ARM64 cross-target checks pass. The extracted LLVM linker
+wrapper passes Rust metadata compilation against both target libraries.
+Native execution and packaging remain distribution gates. Typed sets and the
+remaining library operations are still required before the 3.2 milestone tag.

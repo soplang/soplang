@@ -11,6 +11,7 @@ pub enum TypeAnnotation {
     Bool,
     Teed,
     Tuple,
+    Set,
     TupleOf(Vec<TypeAnnotation>),
     ListOf(Box<TypeAnnotation>),
     ObjectOf(Box<TypeAnnotation>),
@@ -89,7 +90,9 @@ impl TypeAnnotation {
     }
 
     pub(crate) fn named(name: String) -> Self {
-        if name == "xirmo" {
+        if name == "urur" {
+            Self::Set
+        } else if name == "xirmo" {
             Self::Tuple
         } else if name == "baytyo" {
             Self::Bytes
@@ -339,6 +342,7 @@ impl fmt::Display for TypeAnnotation {
             Self::Bool => f.write_str("bool"),
             Self::Teed => f.write_str("teed"),
             Self::Tuple => f.write_str("xirmo"),
+            Self::Set => f.write_str("urur"),
             Self::TupleOf(types) => {
                 f.write_str("xirmo[")?;
                 for (i, ty) in types.iter().enumerate() {

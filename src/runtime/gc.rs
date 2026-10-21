@@ -6,7 +6,7 @@ use std::rc::Rc;
 
 use super::abi::{
     ClosureData, SoplangValue, TAG_BYTES, TAG_CLOSURE, TAG_ERROR, TAG_ITERATOR, TAG_LIST,
-    TAG_OBJECT, TAG_STR, TAG_TUPLE,
+    TAG_OBJECT, TAG_STR, TAG_TUPLE, TAG_SET,
 };
 use super::context::RuntimeState;
 use super::value::Value;
@@ -55,6 +55,7 @@ pub struct MemoryStats {
     pub lists: usize,
     pub bytes: usize,
     pub tuples: usize,
+    pub sets: usize,
     pub objects: usize,
     pub closures: usize,
     pub errors: usize,
@@ -73,6 +74,7 @@ impl MemoryStats {
             + self.lists
             + self.bytes
             + self.tuples
+            + self.sets
             + self.objects
             + self.closures
             + self.errors
@@ -95,6 +97,7 @@ pub(super) fn stats(state: &RuntimeState) -> MemoryStats {
         lists: state.lists.borrow().len(),
         bytes: state.bytes.borrow().len(),
         tuples: state.tuples.borrow().len(),
+        sets: state.sets.borrow().len(),
         objects: state.objects.borrow().len(),
         closures: state.closures.borrow().len(),
         errors: state.errors.borrow().len(),
@@ -112,6 +115,7 @@ enum Node {
     List(Rc<std::cell::RefCell<Vec<Value>>>),
     Bytes(Rc<std::cell::RefCell<Vec<u8>>>),
     Tuple(Rc<super::TupleData>),
+    Set(Rc<super::SetData>),
     Object(Rc<std::cell::RefCell<HashMap<String, Value>>>),
     Closure(Rc<ClosureData>),
     Iterator(Rc<super::IteratorData>),
@@ -125,6 +129,7 @@ impl Node {
             Self::List(value) => (TAG_LIST, Rc::as_ptr(value) as usize),
             Self::Bytes(value) => (TAG_BYTES, Rc::as_ptr(value) as usize),
             Self::Tuple(value) => (TAG_TUPLE, Rc::as_ptr(value) as usize),
+            Self::Set(value) => (TAG_SET, Rc::as_ptr(value) as usize),
             Self::Object(value) => (TAG_OBJECT, Rc::as_ptr(value) as usize),
             Self::Closure(value) => (TAG_CLOSURE, Rc::as_ptr(value) as usize),
             Self::Iterator(value) => (TAG_ITERATOR, Rc::as_ptr(value) as usize),
@@ -136,6 +141,7 @@ impl Node {
             Self::List(value) => Rc::strong_count(value),
             Self::Bytes(value) => Rc::strong_count(value),
             Self::Tuple(value) => Rc::strong_count(value),
+            Self::Set(value) => Rc::strong_count(value),
             Self::Object(value) => Rc::strong_count(value),
             Self::Closure(value) => Rc::strong_count(value),
             Self::Iterator(value) => Rc::strong_count(value),
@@ -147,6 +153,7 @@ impl Node {
             Value::List(value) => Some(Self::List(Rc::clone(value))),
             Value::Bytes(value) => Some(Self::Bytes(Rc::clone(value))),
             Value::Tuple(value) => Some(Self::Tuple(Rc::clone(value))),
+            Value::Set(value) => Some(Self::Set(Rc::clone(value))),
             Value::Object(value) => Some(Self::Object(Rc::clone(value))),
             Value::Closure(value) => Some(Self::Closure(Rc::clone(value))),
             Value::Iterator(value) => Some(Self::Iterator(Rc::clone(value))),
@@ -157,6 +164,14 @@ impl Node {
     fn children(&self, teardown: bool) -> (Vec<Self>, Vec<SoplangValue>, bool) {
         match self {
             Self::Tuple(value) => match value.children() {
+                Some(values) => (
+                    values.iter().filter_map(Self::from_value).collect(),
+                    Vec::new(),
+                    false,
+                ),
+                None => (Vec::new(), Vec::new(), true),
+            },
+            Self::Set(value) => match value.children() {
                 Some(values) => (
                     values.iter().filter_map(Self::from_value).collect(),
                     Vec::new(),
@@ -210,6 +225,7 @@ impl Node {
             }
             Self::Bytes(_) | Self::Closure(_) => (),
             Self::Tuple(value) => value.clear(),
+            Self::Set(value) => value.clear(),
             Self::Iterator(value) => value.clear(),
         }
     }
@@ -267,6 +283,9 @@ impl Graph {
         let mut graph = Self::default();
         for (id, value) in state.tuples.borrow().iter() {
             graph.arena(id, Node::Tuple(Rc::clone(value)));
+        }
+        for (id, value) in state.sets.borrow().iter() {
+            graph.arena(id, Node::Set(Rc::clone(value)));
         }
         for (id, value) in state.bytes.borrow().iter() {
             graph.arena(id, Node::Bytes(Rc::clone(value)));
@@ -394,6 +413,11 @@ pub(super) fn collect(state: &RuntimeState, teardown: bool) -> CollectionReport 
         .tuple_ids
         .borrow_mut()
         .retain(|_, id| state.tuples.borrow().contains(*id));
+    state.sets.borrow_mut().retain(|id, _| keep(TAG_SET, id));
+    state
+        .set_ids
+        .borrow_mut()
+        .retain(|_, id| state.sets.borrow().contains(*id));
     state
         .objects
         .borrow_mut()
@@ -432,6 +456,13 @@ pub(super) fn collect(state: &RuntimeState, teardown: bool) -> CollectionReport 
                     let id = state.tuples.borrow_mut().insert(Rc::clone(value));
                     state
                         .tuple_ids
+                        .borrow_mut()
+                        .insert(Rc::as_ptr(value) as usize, id);
+                }
+                Node::Set(value) => {
+                    let id = state.sets.borrow_mut().insert(Rc::clone(value));
+                    state
+                        .set_ids
                         .borrow_mut()
                         .insert(Rc::as_ptr(value) as usize, id);
                 }
@@ -501,6 +532,14 @@ pub(super) fn collect(state: &RuntimeState, teardown: bool) -> CollectionReport 
         .saturating_add(
             state
                 .tuples
+                .borrow()
+                .iter()
+                .map(|(_, value)| value.len().saturating_mul(std::mem::size_of::<Value>()))
+                .sum::<usize>(),
+        )
+        .saturating_add(
+            state
+                .sets
                 .borrow()
                 .iter()
                 .map(|(_, value)| value.len().saturating_mul(std::mem::size_of::<Value>()))

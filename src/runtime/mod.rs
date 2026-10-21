@@ -10,6 +10,7 @@ mod formatting;
 mod iterators;
 mod roots;
 mod tuples;
+mod sets;
 pub mod stdlib;
 pub mod value;
 
@@ -22,4 +23,5 @@ pub use roots::RootedValue;
 pub use gc::{CollectionReport, MemoryStats};
 pub use iterators::IteratorData;
 pub use tuples::TupleData;
+pub use sets::SetData;
 pub use value::{value_to_string, NativeFn, Value};

@@ -140,3 +140,8 @@ runtime	tuple_row.sop	1	1	teed ama xirmo
 compile	tuple_outer_type.sop	1	1	xirmo
 compile	tuple_unknown_class.sop	1	1	Maqan
 compile	tuple_class.sop	1	1	nooc hore
+runtime	set_key.sop	2	7	Xubinta ururku
+runtime	set_index.sop	2	6	Ururku ma laha tusmo
+runtime	set_operand.sop	2	7	waxay u baahan tahay urur
+compile	set_outer_type.sop	1	1	
+compile	set_class.sop	1	1	nooc hore u jiray

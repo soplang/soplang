@@ -229,6 +229,7 @@ pub fn builtin_bool(args: Vec<Value>) -> Result<Value, SoplangError> {
         Value::Str(s) => !s.is_empty() && s != "false" && s != "False",
         Value::List(l) => !l.borrow().is_empty(),
         Value::Tuple(tuple) => !tuple.is_empty(),
+        Value::Set(set) => !set.is_empty(),
         Value::Bytes(bytes) => !super::bytes::read(bytes)?.is_empty(),
         Value::Object(o) => !o.borrow().is_empty(),
         _ => true,
@@ -281,12 +282,13 @@ pub fn builtin_dherer(args: Vec<Value>) -> Result<Value, SoplangError> {
     let len = match &v {
         Value::List(l) => l.borrow().len(),
         Value::Tuple(tuple) => tuple.len(),
+        Value::Set(set) => set.len(),
         Value::Bytes(bytes) => super::bytes::read(bytes)?.len(),
         Value::Str(s) => s.chars().count(),
         Value::Object(o) => o.borrow().len(),
         _ => {
             return Err(err_type(
-                "Qiimaha ma ahan teed, qoraal, walax, baytyo, ama xirmo",
+                "Qiimaha ma ahan teed, qoraal, walax, baytyo, xirmo, ama urur",
             ))
         }
     };
@@ -485,6 +487,11 @@ impl CallbackArity {
 
 // Registration and callback metadata use the same list, including aliases.
 const BUILTINS: &[(&str, super::NativeFn, CallbackArity)] = &[
+    (
+        "urur",
+        super::sets::construct,
+        CallbackArity::range(0, usize::MAX),
+    ),
     (
         "xirmo",
         super::tuples::construct,

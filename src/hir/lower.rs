@@ -897,6 +897,7 @@ impl<'a> HirLowering<'a> {
             | TypeAnnotation::ListOf(_)
             | TypeAnnotation::ObjectOf(_)
             | TypeAnnotation::Tuple
+            | TypeAnnotation::Set
             | TypeAnnotation::TupleOf(_) => {
                 self.emit(HirInstr::CheckContract {
                     src,
@@ -1822,6 +1823,7 @@ fn type_ann_to_tag(ann: &TypeAnnotation) -> u8 {
         | TypeAnnotation::ListOf(_)
         | TypeAnnotation::ObjectOf(_)
         | TypeAnnotation::Tuple
+        | TypeAnnotation::Set
         | TypeAnnotation::TupleOf(_) => 0,
     }
 }

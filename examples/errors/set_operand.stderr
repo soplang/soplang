@@ -1,0 +1,4 @@
+Khalad fulin: midee() waxay u baahan tahay urur. [E041] safka 2, tiirka 7
+     --> examples/errors/set_operand.sop:2:7
+   2 │     xog.midee([2])
+     │         ^^^^^

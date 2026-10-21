@@ -142,7 +142,9 @@ and snapshot iteration. [Optional and union annotations](docs/language/optional-
 are implemented too. [Typed lists and string-keyed objects](docs/language/typed-collections.md)
 now enforce shared element contracts through aliases and nested mutations.
 [Immutable tuples](docs/language/tuples.md) and positional annotations are also
-implemented. Sets, typed sets, and remaining library operations are still planned.
+implemented. [Sets](docs/language/sets.md) support immutable keys, hashing,
+ordered iteration, and set algebra. Typed sets and remaining library operations
+are still planned.
 The 3.2 milestone is not yet complete or tagged.
 
 ### Iteration
@@ -168,7 +170,7 @@ step representation.
 
 ### Data types
 
-1. Sets for unique values.
+1. Sets for unique immutable values: implemented as `urur`.
 2. Immutable tuples: implemented as `xirmo`, including positional annotations.
 3. Byte arrays: implemented as `baytyo`, with shared collection vocabulary.
 4. Explicit structured error values.

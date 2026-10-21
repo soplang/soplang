@@ -761,3 +761,17 @@ fn test_llvm_tuples() {
         );
     }
 }
+
+#[test]
+fn test_llvm_sets() {
+    for opt in [0, 2] {
+        assert_eq!(
+            run_llvm_with_opt(
+                &format!("llvm_sets_{opt}"),
+                include_str!("fixtures/sets.sop"),
+                opt
+            ),
+            "sets ok\n"
+        );
+    }
+}

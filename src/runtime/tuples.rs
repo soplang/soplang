@@ -105,6 +105,10 @@ pub(super) fn dispatch(
             expect_arity(args, method, 0)?;
             Ok(value(tuple.values().clone()))
         }
+        "urur" => {
+            expect_arity(args, method, 0)?;
+            super::sets::construct(tuple.values().clone())
+        }
         "teed" => {
             expect_arity(args, method, 0)?;
             Ok(Value::List(Rc::new(RefCell::new(tuple.values().clone()))))

@@ -753,3 +753,8 @@ fn test_tuples() {
         "tuples ok\n"
     );
 }
+
+#[test]
+fn test_sets() {
+    assert_eq!(run_program(include_str!("fixtures/sets.sop")), "sets ok\n");
+}

@@ -229,7 +229,7 @@ existing collection vocabulary. New byte-operation failures use `E038`.
 | `Magaca 'baytyo' waxaa loo adeegsadaa nooc hore u jiray.` | A class name conflicts with the built-in byte type; `E020`. |
 
 Length conversion errors now include bytes among the accepted types:
-`Qiimaha ma ahan teed, qoraal, walax, baytyo, ama xirmo`.
+`Qiimaha ma ahan teed, qoraal, walax, baytyo, xirmo, ama urur`.
 Arity, slicing, stale-handle, and annotation errors reuse their existing forms.
 
 ## Optional and union types
@@ -288,3 +288,23 @@ writes retain `E039`, and ownership failures retain `E035`.
 List conversion reuses `Teedka hadda lama akhriyi karo.` for a conflicting
 host borrow. Row-binding messages now say `teed ama xirmo` because both list
 and tuple rows are accepted. See the [tuple reference](tuples.md).
+
+## Set vocabulary and diagnostics
+
+`urur` names the set type and constructor. `geli`, `saar`, `leeyahay`, `dherer`,
+`nadiifi`, `nuqul`, `teed`, `xirmo`, and `wareeg` reuse collection vocabulary.
+`midee` is union, `wadaag` intersection, `reeb` difference, `kaladuwan`
+symmetric difference, and `hoosaad` subset membership.
+
+| Somali wording | English meaning |
+| --- | --- |
+| `Xubinta ururku waa inay noqotaa qiime aan la beddeli karin; waxaa la helay '{type}'.` | A set key must be immutable; the given type is unsupported. |
+| `Qiimaha NaN looma adeegsan karo xubin urur.` | NaN is not a valid set key. |
+| `Xirmada ururka lagu darayo waxay leedahay lakabyo aad u badan.` | A tuple key exceeds the 64-level bound. |
+| `Ururku ma laha tusmo; isticmaal leeyahay(), geli(), ama saar().` | Sets have no positional index. |
+| `{method}() waxay u baahan tahay urur.` | This set operation requires another set. |
+| `Ururku ma laha hawl la yiraahdo '{method}'.` | This method is not defined on a set. |
+| `Magaca 'urur' waxaa loo adeegsadaa nooc hore u jiray.` | A class cannot reuse the builtin set type name. |
+
+Set operation failures use `E041`; invalid annotations retain `E022`, class
+name conflicts use `E020`, and stale or foreign handles retain `E035`.

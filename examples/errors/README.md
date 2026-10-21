@@ -23,6 +23,7 @@ are imported helpers, not separate entry points.
 | Calls | Unknown names/methods, non-callable values, closure/native arity, typed arguments and returns |
 | Collections | Invalid index types/writes, empty removal, invalid slice bounds, repeat/count/direction arguments |
 | Iteration | Invalid sources, zero steps, malformed protocol results, row lengths, duplicate/constant bindings, and callback failures |
+| Sets | Unsupported mutable keys, indexed access, invalid operands, annotations, and reserved class names |
 | Tuples | Immutable writes, index types, positional shapes, nested member writes, row lengths, and class-name conflicts |
 | Typed collections | Element mismatches, aliased writes, nested writes, rest values, unsupported type arguments and key types |
 | Optional and union types | Invalid initializers, arguments, assignments, returns, missing types, and unknown class alternatives |

@@ -59,6 +59,7 @@ You can also run an example by its position in the sorted file list:
 | `36_optional_union_types.sop` | Nullable values, union annotations, defaults, and return contracts |
 | `37_typed_collections.sop` | Shared list/object element types, nested aliases, and typed rest parameters |
 | `38_tuples.sop` | Immutable tuples, positional types, row iteration, and nested guards |
+| `39_sets.sop` | Unique immutable keys, ordered iteration, membership, and union |
 
 `_math_lib.sop` is imported by `16_import.sop`; it is not a standalone demo.
 

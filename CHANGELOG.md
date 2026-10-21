@@ -8,6 +8,8 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+* Insertion-ordered `urur` hash sets support unique immutable keys, set algebra, conversion, snapshot iteration, and bare type annotations through both compiler backends. Tuple keys participate in context ownership and collection.
+
 * Immutable `xirmo` tuples support indexing, slicing, conversion, shared collection methods, iteration, row bindings, and positional annotations. Nested mutable members retain shared contracts. Tuple handles participate in ownership checks and tracing collection.
 * Typed lists (`teed[T]`) and string-keyed objects (`walax[qoraal, T]`) enforce shared element contracts through aliases, nested containers, parameters, returns, and typed rest collectors. Mutation validates all affected parents before publishing data. Weak guards participate in context collection and use a dependency index.
 * Optional (`T?`), union (`A | B`), and null-only (`maran`) annotations constrain variables, constants, parameters, and returns. Both backends preserve exact numeric alternatives, apply existing numeric conversions when needed, and report recoverable Somali contract errors.

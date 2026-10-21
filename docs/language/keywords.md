@@ -745,3 +745,9 @@ aliases, nesting, numeric kinds, mutation, rest collectors, and lifetime.
 `xirmo(...)` constructs an immutable sequence. `xirmo[T1, T2, ...]` annotates
 its positions. The [tuple reference](tuples.md) defines indexing, slicing,
 iteration, nested mutation contracts, conversions, and lifetime.
+
+## Sets
+
+`urur(...)` constructs a mutable set of unique immutable keys.
+The [set reference](sets.md) defines numeric key equality, insertion order,
+conversion, snapshot iteration, and set algebra.

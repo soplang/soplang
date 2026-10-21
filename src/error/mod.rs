@@ -39,6 +39,7 @@ pub mod codes {
     pub const E038_INVALID_BYTES: &str = "E038";
     pub const E039_COLLECTION_CONTRACT: &str = "E039";
     pub const E040_TUPLE: &str = "E040";
+    pub const E041_SET: &str = "E041";
 }
 
 /// A compiled function and its caller's source location.

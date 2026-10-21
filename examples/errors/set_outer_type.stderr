@@ -1,0 +1,5 @@
+Khalad nooc: 'xog' waa urur laakin qiimaheeda 'teed' ma ahan urur [E022] safka 1, tiirka 1
+     --> examples/errors/set_outer_type.sop:1:1
+   1 │   urur xog = [1]
+     │   ^^^^
+     └─ Hubi in nooca qiimaha uu la mid yahay nooca lagu qeexay doorsamaha.
