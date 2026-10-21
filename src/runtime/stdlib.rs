@@ -218,6 +218,30 @@ pub fn builtin_url_akhris(args: Vec<Value>) -> Result<Value, SoplangError> {
     Ok(Value::Str(super::url::decode(text, form)?))
 }
 
+fn bytes_argument(value: &Value, name: &str) -> Result<Vec<u8>, SoplangError> {
+    match value {
+        Value::Str(text) => Ok(text.as_bytes().to_vec()),
+        Value::Bytes(bytes) => super::bytes::read(bytes).map(|data| data.clone()),
+        _ => Err(err_type(format!("{name}() wuxuu u baahan yahay qoraal ama baytyo."))),
+    }
+}
+
+pub fn builtin_b64_qor(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity_range(&args, "b64_qor", 1, 2)?;
+    let data = bytes_argument(&args[0], "b64_qor")?;
+    let url = super::base64::url_mode(args.get(1), "b64_qor")?;
+    Ok(Value::Str(super::base64::encode(&data, url)))
+}
+
+pub fn builtin_b64_akhris(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity_range(&args, "b64_akhris", 1, 2)?;
+    let Value::Str(text) = &args[0] else {
+        return Err(err_type("b64_akhris() waa inuu helaa qoraal."));
+    };
+    let url = super::base64::url_mode(args.get(1), "b64_akhris")?;
+    Ok(super::bytes::from_raw_vec(super::base64::decode(text, url)?))
+}
+
 fn optional_truthy(args: &[Value], index: usize) -> bool {
     args.get(index).is_some_and(|value| value.is_truthy())
 }
@@ -672,6 +696,8 @@ const BUILTINS: &[(&str, super::NativeFn, CallbackArity)] = &[
     ("csv_qor", builtin_csv_qor, CallbackArity::range(1, 1)),
     ("url_qor", builtin_url_qor, CallbackArity::range(1, 2)),
     ("url_akhris", builtin_url_akhris, CallbackArity::range(1, 2)),
+    ("b64_qor", builtin_b64_qor, CallbackArity::range(1, 2)),
+    ("b64_akhris", builtin_b64_akhris, CallbackArity::range(1, 2)),
     ("fayl_jiraa", builtin_fayl_jiraa, CallbackArity::range(1, 1)),
     ("fayl_xog", builtin_fayl_xog, CallbackArity::range(1, 1)),
     ("isku_xidh", builtin_isku_xidh, CallbackArity::range(1, usize::MAX)),

@@ -22,6 +22,7 @@ mod filesystem;
 mod json;
 mod csv;
 mod url;
+mod base64;
 pub mod stdlib;
 pub mod value;
 

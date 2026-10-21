@@ -253,7 +253,7 @@ wait for handles, streaming, or file watching.
 1. JSON parsing and generation, available before JSON HTTP handlers — implemented as `json_akhris` and `json_qor`; see [JSON](docs/language/json.md).
 2. CSV reading and writing — implemented as `csv_akhris` and `csv_qor`; see [CSV](docs/language/csv.md).
 3. URL encoding and decoding — implemented as `url_qor` and `url_akhris`; see [URL encoding](docs/language/url.md).
-4. Base64 encoding and decoding.
+4. Base64 encoding and decoding — implemented as `b64_qor` and `b64_akhris`; see [Base64](docs/language/base64.md).
 5. Regular expressions.
 6. Date, time, duration, parsing, and formatting APIs.
 7. Program arguments and environment variables.

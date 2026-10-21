@@ -64,3 +64,13 @@ cargo test --locked --test url_tests --test llvm_ir_tests
 The URL suite covers component percent-encoding, form `+` spaces, preserved
 plus signs, invalid hex and modes, and LLVM execution at optimization levels
 0 and 2.
+
+## Base64
+
+```sh
+cargo test --locked --test base64_tests --test llvm_ir_tests
+```
+
+The Base64 suite covers padding lengths, binary `+` and `/` characters, URL-safe
+mode without padding, catchable alphabet and mode failures, and LLVM execution
+at optimization levels 0 and 2.

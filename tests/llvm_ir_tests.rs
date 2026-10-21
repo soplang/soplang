@@ -967,6 +967,21 @@ qor("llvm url ok")
     }
 }
 
+#[test]
+fn test_llvm_base64() {
+    let source = r#"
+hawl hubi(v, name) { haddii (!v) { tuur name } }
+hubi(b64_qor("Man") == "TWFu" && qoraal(b64_akhris("TWFu")) == "Man", "base64")
+qor("llvm base64 ok")
+"#;
+    for opt in [0, 2] {
+        assert_eq!(
+            run_llvm_with_opt(&format!("llvm_base64_{opt}"), source, opt),
+            "llvm base64 ok\n"
+        );
+    }
+}
+
 fn run_llvm_with_opt_in_dir(name: &str, source: &str, opt: u8, dir: &Path) -> String {
     let stmts = soplang::frontend::parse_source(source, None).expect("parse");
     let sym = analyze(&stmts).expect("analyze");

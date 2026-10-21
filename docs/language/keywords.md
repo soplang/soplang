@@ -257,6 +257,8 @@ these explanations do not establish a historical abbreviation or SLS approval.
 | `csv_qor` | Generate CSV text from rows             | (CSV write)          | `csv_qor([["a", 1]])`                      |
 | `url_qor` | Percent-encode text                     | `encodeURIComponent` | `url_qor("Ayaan Cali", "foom")`            |
 | `url_akhris` | Percent-decode text                  | `decodeURIComponent` | `url_akhris("Ayaan%20Cali")`               |
+| `b64_qor` | Encode text or bytes as Base64          | `btoa`               | `b64_qor("Man")`                           |
+| `b64_akhris` | Decode Base64 into `baytyo`          | `atob`               | `b64_akhris("TWFu")`                       |
 | `fayl_jiraa` | Test whether a path exists              | (path exists)        | `haddii (fayl_jiraa("magac.txt")) {...}`   |
 | `fayl_xog` | Query path metadata                     | (path stat)          | `door x = fayl_xog("magac.txt")`           |
 | `isku_xidh` | Join path segments                     | (path join)          | `isku_xidh("data", "magac.txt")`           |
