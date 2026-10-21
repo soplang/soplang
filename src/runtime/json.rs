@@ -48,7 +48,7 @@ struct Parser<'a> {
 impl<'a> Parser<'a> {
     fn skip(&mut self) {
         while let Some(byte) = self.bytes.get(self.index) {
-            if byte.is_ascii_whitespace() {
+            if matches!(byte, b' ' | b'\t' | b'\n' | b'\r') {
                 self.index += 1;
             } else {
                 break;
@@ -94,7 +94,9 @@ impl<'a> Parser<'a> {
             match byte {
                 b'"' => return Ok(out),
                 b'\\' => out.push(self.escape()?),
-                0x00..=0x1F => return Err(error("Qoraalka JSON wuxuu leeyahay xaraf aan la oggolayn.")),
+                0x00..=0x1F => {
+                    return Err(error("Qoraalka JSON wuxuu leeyahay xaraf aan la oggolayn."))
+                }
                 _ => {
                     let start = self.index - 1;
                     let width = utf8_width(byte);
@@ -112,7 +114,11 @@ impl<'a> Parser<'a> {
     }
 
     fn escape(&mut self) -> Result<char, SoplangError> {
-        let byte = self.bytes.get(self.index).copied().ok_or_else(|| error("JSON-ku ma saxna."))?;
+        let byte = self
+            .bytes
+            .get(self.index)
+            .copied()
+            .ok_or_else(|| error("JSON-ku ma saxna."))?;
         self.index += 1;
         Ok(match byte {
             b'"' => '"',
@@ -197,7 +203,9 @@ impl<'a> Parser<'a> {
         let text = std::str::from_utf8(&self.bytes[start..self.index])
             .map_err(|_| error("Lambarka JSON ma saxna."))?;
         if floating {
-            let value = text.parse::<f64>().map_err(|_| error("Lambarka JSON ma saxna."))?;
+            let value = text
+                .parse::<f64>()
+                .map_err(|_| error("Lambarka JSON ma saxna."))?;
             if !value.is_finite() {
                 return Err(error("Lambarka JSON ma saxna."));
             }

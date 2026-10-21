@@ -363,6 +363,11 @@ pub(super) struct ClassRegistryEntry {
     methods: HashMap<String, i64>,
 }
 
+pub(super) struct InstanceClass {
+    pub object: std::rc::Weak<RefCell<HashMap<String, Value>>>,
+    name: String,
+}
+
 #[derive(Clone)]
 pub(super) struct CompiledFnEntry {
     ptr: *const u8,
@@ -1564,8 +1569,8 @@ pub(super) fn iteration_has_method(value: &Value, method: &str) -> bool {
     let Ok(fields) = object.try_borrow() else {
         return false;
     };
-    if let Some(Value::Str(class)) = fields.get(INSTANCE_CLASS_FIELD) {
-        if resolve_method_fn_index(class, method).is_some() {
+    if let Some(class) = get_instance_class(object) {
+        if resolve_method_fn_index(&class, method).is_some() {
             return true;
         }
     }
@@ -1619,14 +1624,30 @@ pub extern "C" fn soplang_iter_next(value: SoplangValue, bindings: usize) -> Sop
     }
 }
 
-fn get_instance_class(o: &Rc<RefCell<HashMap<String, Value>>>) -> Option<String> {
-    o.borrow().get(INSTANCE_CLASS_FIELD).and_then(|v| {
-        if let Value::Str(s) = v {
-            Some(s.clone())
-        } else {
-            None
-        }
+// Class identity belongs to the constructor, never to user-controlled fields.
+// Weak entries neither keep an instance alive nor survive allocator reuse.
+pub(super) fn get_instance_class(o: &Rc<RefCell<HashMap<String, Value>>>) -> Option<String> {
+    STATE.with(|state| {
+        let instances = state.instances.borrow();
+        let entry = instances.get(&(Rc::as_ptr(o) as usize))?;
+        let owner = entry.object.upgrade()?;
+        Rc::ptr_eq(&owner, o).then(|| entry.name.clone())
     })
+}
+
+fn new_instance_value(class_name: &str) -> Value {
+    let fields = HashMap::from([(
+        INSTANCE_CLASS_FIELD.to_string(),
+        Value::Str(class_name.to_string()),
+    )]);
+    let object = Rc::new(RefCell::new(fields));
+    STATE.with(|state| {
+        state.instances.borrow_mut().insert(
+            Rc::as_ptr(&object) as usize,
+            InstanceClass { object: Rc::downgrade(&object), name: class_name.to_string() },
+        );
+    });
+    Value::Object(object)
 }
 
 fn resolve_method_fn_index(class_name: &str, method: &str) -> Option<i64> {
@@ -1750,12 +1771,7 @@ pub extern "C" fn soplang_new_instance(
     let class_name = unsafe {
         String::from_utf8_lossy(std::slice::from_raw_parts(class_ptr, class_len)).into_owned()
     };
-    let mut fields = HashMap::new();
-    fields.insert(
-        INSTANCE_CLASS_FIELD.to_string(),
-        Value::Str(class_name.clone()),
-    );
-    let instance = Value::Object(Rc::new(RefCell::new(fields)));
+    let instance = new_instance_value(&class_name);
     let instance_rc = match &instance {
         Value::Object(o) => Rc::clone(o),
         _ => return SoplangValue::null(),
@@ -1902,7 +1918,7 @@ pub extern "C" fn soplang_call_method(
             Value::Object(o) => match o.try_borrow() {
                 Err(_) => Err(super::object_ops::read_error()),
                 Ok(fields) => {
-                    let instance = matches!(fields.get(INSTANCE_CLASS_FIELD), Some(Value::Str(_)));
+                    let instance = get_instance_class(o).is_some();
                     drop(fields);
                     if instance {
                         dispatch_instance_method(o, method, &argv)
@@ -2893,10 +2909,7 @@ pub extern "C" fn soplang_call_named(
                     let fields = object
                         .try_borrow()
                         .map_err(|_| named_argument_error("Walaxda hadda lama akhriyi karo."))?;
-                    let class = match fields.get(INSTANCE_CLASS_FIELD) {
-                        Some(Value::Str(name)) => Some(name.clone()),
-                        _ => None,
-                    };
+                    let class = get_instance_class(&object);
                     (class, fields.get(name).cloned())
                 };
                 if let Some(class) = &class {
@@ -2933,12 +2946,7 @@ pub extern "C" fn soplang_call_named(
                 named_callable(value_to_soplang(&field), args, &labels)
             }
             2 => {
-                let mut fields = HashMap::new();
-                fields.insert(
-                    INSTANCE_CLASS_FIELD.to_string(),
-                    Value::Str(name.to_string()),
-                );
-                let instance = Value::Object(Rc::new(RefCell::new(fields)));
+                let instance = new_instance_value(name);
                 if let Some(index) = resolve_constructor_fn_index(name) {
                     let result = named_instance_call(index, instance.clone(), args, &labels)?;
                     if has_pending_error() {

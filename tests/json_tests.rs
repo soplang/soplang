@@ -47,3 +47,34 @@ qor("json errors ok")
 "#;
     assert_eq!(run_program(source), "json errors ok\n");
 }
+
+#[test]
+fn json_fields_cannot_forge_class_identity() {
+    assert_eq!(
+        run_program(include_str!("fixtures/json_class_identity.sop")),
+        "json identity ok\n"
+    );
+}
+
+#[test]
+fn json_accepts_only_json_whitespace() {
+    let context = soplang::runtime::RuntimeContext::new();
+    context.with(|| {
+        let functions = soplang::runtime::stdlib::get_builtin_functions();
+        let soplang::Value::NativeFunction(parse) = &functions["json_akhris"] else {
+            panic!("builtin")
+        };
+        for input in ["\u{b}null", "[1,\u{c}2]", "true\u{c}"] {
+            assert_eq!(
+                parse(vec![soplang::Value::Str(input.into())])
+                    .unwrap_err()
+                    .code(),
+                Some("E045")
+            );
+        }
+        assert_eq!(
+            parse(vec![soplang::Value::Str(" \t\r\ntrue\t".into())]).unwrap(),
+            soplang::Value::Bool(true)
+        );
+    });
+}

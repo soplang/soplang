@@ -475,8 +475,10 @@ impl Validator<'_> {
                         &*borrowed
                     }
                 };
-                match values.get("__class__") {
-                    Some(Value::Str(found)) => super::abi::class_name_matches(found, expected),
+                match (super::abi::get_instance_class(object), values.get("__class__")) {
+                    (Some(class), Some(Value::Str(found))) if class == *found => {
+                        super::abi::class_name_matches(&class, expected)
+                    }
                     _ => false,
                 }
             }

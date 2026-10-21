@@ -16,7 +16,9 @@ Parse and serialization failures are catchable and use error code `E045`.
 | object | `walax` |
 
 Object keys stay ordinary strings. A key named `__class__` does not turn the
-value into a class instance.
+value into a class instance. Class dispatch and class type checks use constructor-owned
+identity in the active runtime context. Copying fields or parsing serialized
+instance data cannot create that identity.
 
 `json_qor` writes object keys in sorted order. It accepts `maran`, `bool`,
 `abn`, finite `jajab`, `qoraal`, `teed`, and `walax`. Functions, bytes, tuples,
@@ -30,3 +32,7 @@ qor(json_qor({magac: "Ayaan", da: 7}))
 
 Whole-number floats are written with a decimal point so a later parse keeps
 `jajab`.
+
+JSON whitespace is limited to space, tab, carriage return, and line feed, as
+defined by [RFC 8259, section 2](https://www.rfc-editor.org/rfc/rfc8259#section-2).
+Other control characters outside strings are rejected.

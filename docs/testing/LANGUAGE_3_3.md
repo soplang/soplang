@@ -149,3 +149,13 @@ listener and a connected peer, closing a socket, and the same TCP exchange
 through LLVM. It also exchanges one UDP datagram through JIT and LLVM.
 The WebSocket checks exchange text and binary frames with a local server
 through JIT and LLVM. A WebSocket server remains later work.
+
+## JSON class-identity regression checks
+
+The locked debug suite passes 341 tests after the class-identity fix, including
+52 LLVM tests. `json_class_identity.sop` runs through JIT and LLVM at levels 0
+and 2. It checks positional and named method dispatch, scalar and nested class
+contracts, ordinary object iteration, field copies, round trips, inheritance,
+constructors, and retained identity across automatic collection. A host test
+checks context isolation and weak metadata cleanup. JSON parser tests reject
+vertical tab and form feed outside strings.

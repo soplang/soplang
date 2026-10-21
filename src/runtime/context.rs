@@ -4,7 +4,7 @@ use std::cell::{Cell, RefCell};
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
 
-use super::abi::{ClassRegistryEntry, ClosureData, CompiledFnEntry, SoplangValue};
+use super::abi::{ClassRegistryEntry, ClosureData, CompiledFnEntry, InstanceClass, SoplangValue};
 use super::handles::HandleArena;
 use super::value::{NativeFn, Value};
 
@@ -38,6 +38,7 @@ pub(super) struct RuntimeState {
     pub compiled_functions: RefCell<HandleArena<CompiledFnEntry>>,
     pub constants: RefCell<HashSet<String>>,
     pub classes: RefCell<HashMap<String, ClassRegistryEntry>>,
+    pub instances: RefCell<HashMap<usize, InstanceClass>>,
     pub closures: RefCell<HandleArena<Rc<ClosureData>>>,
     pub iterators: RefCell<HandleArena<Rc<super::iterators::IteratorData>>>,
 }
@@ -208,5 +209,41 @@ mod tests {
         drop(context);
         assert!(weak.upgrade().is_none());
         assert!(soplang_to_value(closure).is_err());
+    }
+}
+
+#[cfg(test)]
+mod instance_tests {
+    use super::*;
+
+    #[test]
+    fn class_identity_is_context_local_and_weak() {
+        let owner = RuntimeContext::new();
+        let other = RuntimeContext::new();
+        let value = owner.with(|| {
+            let value = super::super::abi::soplang_new_instance(
+                b"Example".as_ptr(),
+                7,
+                std::ptr::null(),
+                0,
+            );
+            super::super::abi::soplang_to_value(value).unwrap()
+        });
+        let Value::Object(object) = &value else {
+            panic!("instance")
+        };
+        owner.collect();
+        owner.with(|| {
+            assert_eq!(
+                super::super::abi::get_instance_class(object).as_deref(),
+                Some("Example")
+            )
+        });
+        other.with(|| assert_eq!(super::super::abi::get_instance_class(object), None));
+        assert_eq!(owner.state.instances.borrow().len(), 1);
+        drop(value);
+        owner.collect();
+        assert!(owner.state.instances.borrow().is_empty());
+        assert_eq!(owner.memory_stats().values(), 0);
     }
 }

@@ -1073,3 +1073,17 @@ fn run_llvm_with_opt_in_dir(name: &str, source: &str, opt: u8, dir: &Path) -> St
     assert!(out.status.success(), "binary failed: {stderr}\nstdout: {stdout}");
     stdout
 }
+
+#[test]
+fn test_llvm_json_class_identity() {
+    for opt in [0, 2] {
+        assert_eq!(
+            run_llvm_with_opt(
+                &format!("json_identity_{opt}"),
+                include_str!("fixtures/json_class_identity.sop"),
+                opt,
+            ),
+            "json identity ok\n"
+        );
+    }
+}

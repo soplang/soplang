@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Keep class identity separate from object fields so JSON input cannot invoke class methods or satisfy class contracts. Reject non-JSON whitespace.
+
 ### Added
 
 * [3.2.0 implementation milestone notes](docs/releases/3.2.0.md) record completed language foundations. A version tag and distribution builds remain pending.

@@ -6,7 +6,7 @@ use std::rc::Rc;
 
 use super::abi::{
     ClosureData, SoplangValue, TAG_BYTES, TAG_CLOSURE, TAG_ERROR, TAG_ITERATOR, TAG_LIST,
-    TAG_OBJECT, TAG_STR, TAG_TUPLE, TAG_SET,
+    TAG_OBJECT, TAG_SET, TAG_STR, TAG_TUPLE,
 };
 use super::context::RuntimeState;
 use super::value::Value;
@@ -494,6 +494,10 @@ pub(super) fn collect(state: &RuntimeState, teardown: bool) -> CollectionReport 
     let deferred = graph.nodes.iter().filter(|entry| entry.borrowed).count();
     drop(graph);
     state.contracts.borrow_mut().prune();
+    state
+        .instances
+        .borrow_mut()
+        .retain(|_, entry| entry.object.strong_count() > 0);
     state
         .collector
         .collections
