@@ -311,7 +311,7 @@ After the HTTP client is stable, 3.3 may add:
 
 - DNS lookup — implemented as `dns_raadi`; see [DNS and TCP](docs/language/networking.md).
 - TCP client and server sockets — implemented as `tcp_fur`, `tcp_dhegeysi`, `tcp_aqbal`, `tcp_qor`, `tcp_akhris`, and `tcp_xidh`. One connection is accepted at a time.
-- UDP sockets.
+- UDP sockets — implemented as `udp_fur`, `udp_qor`, `udp_akhris`, and `udp_xidh`.
 - A WebSocket client.
 
 Advanced concurrent servers, streaming bodies, and WebSocket servers follow

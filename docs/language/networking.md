@@ -1,8 +1,8 @@
 # DNS and TCP
 
-`dns_raadi` looks up a host name. `tcp_fur`, `tcp_dhegeysi`, `tcp_aqbal`,
-`tcp_qor`, `tcp_akhris`, and `tcp_xidh` open TCP connections. Failures are
-catchable and use error code `E055`. UDP and WebSocket remain later work.
+`dns_raadi` looks up a host name. TCP and UDP sockets exchange bytes on this
+machine. Failures are catchable and use error code `E055`. WebSocket remains
+later work.
 
 ## DNS
 
@@ -39,3 +39,20 @@ tcp_xidh(listener)
 ```
 
 The listener accepts one connection at a time.
+
+## UDP
+
+`udp_fur(host, port, options?)` binds a datagram socket. Port `0` chooses an
+open port. The result has `nooc` `"udp"`, `martigeliye`, and `deked`.
+
+`udp_qor(socket, host, port, data)` sends one datagram. `data` is a `qoraal`
+or `baytyo`. `udp_akhris(socket, limit)` waits for one datagram and returns
+`baytyo`, `martigeliye`, and `deked` for the sender. `udp_xidh` closes the
+socket. `options` may contain `waqti`, with the same default of 30 seconds.
+
+```soplang
+door inbox = udp_fur("127.0.0.1", 0)
+udp_qor(outbox, "127.0.0.1", inbox.deked, "salaan")
+door packet = udp_akhris(inbox, 1024)
+qor(packet.baytyo.qoraal())
+```

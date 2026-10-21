@@ -284,6 +284,10 @@ these explanations do not establish a historical abbreviation or SLS approval.
 | `tcp_qor` | Write bytes to a TCP connection      | `send`               | `tcp_qor(conn, "nabad")`                   |
 | `tcp_akhris` | Read the next TCP bytes           | `recv`               | `tcp_akhris(conn, 1024)`                   |
 | `tcp_xidh` | Close a TCP connection or listener   | `close`              | `tcp_xidh(conn)`                           |
+| `udp_fur` | Bind a UDP socket                    | (UDP bind)           | `udp_fur("127.0.0.1", 0)`                  |
+| `udp_qor` | Send one UDP datagram                | `sendto`             | `udp_qor(sock, "127.0.0.1", 9000, "salaan")` |
+| `udp_akhris` | Receive one UDP datagram          | `recvfrom`           | `udp_akhris(sock, 1024)`                   |
+| `udp_xidh` | Close a UDP socket                  | (UDP close)          | `udp_xidh(sock)`                           |
 | `fayl_jiraa` | Test whether a path exists              | (path exists)        | `haddii (fayl_jiraa("magac.txt")) {...}`   |
 | `fayl_xog` | Query path metadata                     | (path stat)          | `door x = fayl_xog("magac.txt")`           |
 | `isku_xidh` | Join path segments                     | (path join)          | `isku_xidh("data", "magac.txt")`           |

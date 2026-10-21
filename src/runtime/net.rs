@@ -1,8 +1,8 @@
-//! DNS lookup and one-connection TCP sockets.
+//! DNS lookup, TCP sockets, and UDP datagrams.
 
 use std::collections::HashMap;
 use std::io::{Read, Write};
-use std::net::{SocketAddr, TcpListener, TcpStream, ToSocketAddrs};
+use std::net::{SocketAddr, TcpListener, TcpStream, ToSocketAddrs, UdpSocket};
 use std::sync::atomic::{AtomicI64, Ordering};
 use std::sync::Mutex;
 use std::time::{Duration, Instant};
@@ -15,6 +15,7 @@ const DEFAULT_TIMEOUT: Duration = Duration::from_secs(30);
 static NEXT_ID: AtomicI64 = AtomicI64::new(1);
 static CONNECTIONS: Mutex<Option<HashMap<i64, TcpStream>>> = Mutex::new(None);
 static LISTENERS: Mutex<Option<HashMap<i64, TcpListener>>> = Mutex::new(None);
+static DATAGRAMS: Mutex<Option<HashMap<i64, UdpSocket>>> = Mutex::new(None);
 
 fn error(message: impl Into<String>) -> SoplangError {
     runtime_error_ex(
@@ -176,7 +177,14 @@ pub fn close(endpoint: &Value) -> Result<Value, SoplangError> {
                 .get_or_insert_with(HashMap::new)
                 .remove(&id);
         }
-        _ => return Err(error("Nooca TCP ma saxna.")),
+        Some("udp") => {
+            DATAGRAMS
+                .lock()
+                .unwrap_or_else(|poison| poison.into_inner())
+                .get_or_insert_with(HashMap::new)
+                .remove(&id);
+        }
+        _ => return Err(error("Nooca soketka ma saxna.")),
     }
     Ok(Value::Null)
 }
@@ -227,11 +235,70 @@ fn store_connection(stream: TcpStream) -> Value {
     endpoint(id, "xidhiidh", "", 0)
 }
 
+pub fn bind_udp(host: &str, port: i64, timeout: Duration) -> Result<Value, SoplangError> {
+    if host.is_empty() {
+        return Err(error("Martigeliyaha UDP ma madhnaan karo."));
+    }
+    let port = check_port(port)?;
+    let socket = UdpSocket::bind(format!("{host}:{port}")).map_err(|failure| {
+        error(format!("Soketka UDP lama furin. {}", crate::error::io_reason(&failure)))
+    })?;
+    let bound = socket.local_addr().map_err(|failure| {
+        error(format!("Dekedda UDP lama aqoonin. {}", crate::error::io_reason(&failure)))
+    })?;
+    let _ = socket.set_read_timeout(Some(timeout));
+    let _ = socket.set_write_timeout(Some(timeout));
+    let id = NEXT_ID.fetch_add(1, Ordering::Relaxed);
+    DATAGRAMS
+        .lock()
+        .unwrap_or_else(|poison| poison.into_inner())
+        .get_or_insert_with(HashMap::new)
+        .insert(id, socket);
+    Ok(endpoint(id, "udp", host, bound.port()))
+}
+
+pub fn send_udp(socket: &Value, host: &str, port: i64, bytes: &[u8]) -> Result<Value, SoplangError> {
+    let id = endpoint_id(socket, "udp")?;
+    let port = check_port(port)?;
+    let address = resolve(host, port)?.into_iter().next().unwrap();
+    let sockets = DATAGRAMS.lock().unwrap_or_else(|poison| poison.into_inner());
+    let socket = sockets
+        .as_ref()
+        .and_then(|sockets| sockets.get(&id))
+        .ok_or_else(|| error("Soketka UDP waa la xidhay."))?;
+    socket.send_to(bytes, address).map_err(|failure| {
+        error(format!("Dirista UDP way fashilantay. {}", crate::error::io_reason(&failure)))
+    })?;
+    Ok(Value::Null)
+}
+
+pub fn receive_udp(socket: &Value, limit: usize) -> Result<Value, SoplangError> {
+    if limit == 0 || limit > 16 * 1024 * 1024 {
+        return Err(error("Cabbirka akhriska UDP waa inuu u dhaxeeyaa 1 iyo 16777216."));
+    }
+    let id = endpoint_id(socket, "udp")?;
+    let sockets = DATAGRAMS.lock().unwrap_or_else(|poison| poison.into_inner());
+    let socket = sockets
+        .as_ref()
+        .and_then(|sockets| sockets.get(&id))
+        .ok_or_else(|| error("Soketka UDP waa la xidhay."))?;
+    let mut buffer = vec![0u8; limit];
+    let (read, source) = socket.recv_from(&mut buffer).map_err(|failure| {
+        error(format!("Akhriska UDP wuu fashilmay. {}", crate::error::io_reason(&failure)))
+    })?;
+    buffer.truncate(read);
+    let mut fields = HashMap::new();
+    fields.insert("baytyo".to_string(), super::bytes::from_raw_vec(buffer));
+    fields.insert("martigeliye".to_string(), Value::Str(source.ip().to_string()));
+    fields.insert("deked".to_string(), Value::Int(i64::from(source.port())));
+    Ok(Value::Object(std::rc::Rc::new(std::cell::RefCell::new(fields))))
+}
+
 fn endpoint(id: i64, kind: &str, host: &str, port: u16) -> Value {
     let mut fields = HashMap::new();
     fields.insert("aqoonsi".to_string(), Value::Int(id));
     fields.insert("nooc".to_string(), Value::Str(kind.to_string()));
-    if kind == "dhegeysi" {
+    if kind == "dhegeysi" || kind == "udp" {
         fields.insert("martigeliye".to_string(), Value::Str(host.to_string()));
         fields.insert("deked".to_string(), Value::Int(i64::from(port)));
     }
@@ -245,7 +312,7 @@ fn endpoint_id(value: &Value, expected: &str) -> Result<i64, SoplangError> {
     let object = object.try_borrow().map_err(|_| error("Walaxda hadda lama akhriyi karo."))?;
     match object.get("nooc") {
         Some(Value::Str(kind)) if kind == expected => {}
-        _ => return Err(error("Nooca TCP ma saxna.")),
+        _ => return Err(error("Nooca soketka ma saxna.")),
     }
     match object.get("aqoonsi") {
         Some(Value::Int(id)) => Ok(*id),

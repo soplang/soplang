@@ -38,6 +38,8 @@ All notable changes to this project will be documented in this file.
 
 * `dns_raadi` returns sorted IP addresses. `tcp_fur`, `tcp_dhegeysi`, `tcp_aqbal`, `tcp_qor`, `tcp_akhris`, and `tcp_xidh` connect, listen, and exchange bytes. Network failures use `E055`.
 
+* UDP sockets `udp_fur`, `udp_qor`, `udp_akhris`, and `udp_xidh` bind, send, and receive one datagram at a time. Closed sockets and timeouts use `E055`.
+
 
 * Numeric builtins add logarithms, radian trigonometry with optional inverse mode, `atan2`-style angles, named constants, clamping, and context-local seeded random streams. Integer-only extrema keep exact 64-bit results; invalid random calls do not advance the generator.
 

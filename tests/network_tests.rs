@@ -73,6 +73,44 @@ fn drive(command: &mut Command) {
     assert!(rest.contains("salaan"), "{rest}");
 }
 
+const UDP_PROGRAM: &str = r#"
+hawl hubi(v, name) { haddii (!v) { tuur name } }
+door a = udp_fur("127.0.0.1", 0, {waqti: 2})
+door b = udp_fur("127.0.0.1", 0, {waqti: 2})
+udp_qor(a, "127.0.0.1", b.deked, "salaan")
+door packet = udp_akhris(b, 32)
+hubi(packet.baytyo.qoraal() == "salaan", "payload")
+hubi(packet.martigeliye == "127.0.0.1" && packet.deked == a.deked, "source")
+udp_xidh(a)
+udp_xidh(b)
+door failed = been
+tijaabi { udp_akhris(b, 8) } qabo (e) { failed = run }
+hubi(failed, "closed")
+qor("udp ok")
+"#;
+
+#[test]
+fn udp_sockets_exchange_one_datagram() {
+    assert_eq!(run(UDP_PROGRAM), "udp ok\n");
+}
+
+#[test]
+fn udp_exchange_runs_through_llvm() {
+    let stmts = soplang::frontend::parse_source(UDP_PROGRAM, None).unwrap();
+    let symbols = soplang::analyze(&stmts).unwrap();
+    let hir = soplang::HirLowering::lower(&symbols, &stmts);
+    let ir = soplang::backend::llvm_ir::emit_llvm_ir(&hir, &symbols).unwrap();
+    let mut path = std::env::temp_dir();
+    path.push(format!("soplang_udp_{}", std::process::id()));
+    soplang::backend::llvm_ir::link_llvm_binary(&ir, &path).unwrap();
+    let out = Command::new(&path).output().unwrap();
+    let stdout = String::from_utf8(out.stdout).unwrap();
+    let stderr = String::from_utf8_lossy(&out.stderr);
+    let _ = std::fs::remove_file(path);
+    assert!(out.status.success(), "{stderr}\n{stdout}");
+    assert_eq!(stdout, "udp ok\n");
+}
+
 #[test]
 fn tcp_listener_and_client_exchange_bytes() {
     let mut command = Command::new(env!("CARGO_BIN_EXE_soplang"));

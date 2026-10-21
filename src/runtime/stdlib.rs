@@ -470,6 +470,44 @@ pub fn builtin_tcp_xidh(args: Vec<Value>) -> Result<Value, SoplangError> {
     super::net::close(&args[0])
 }
 
+pub fn builtin_udp_fur(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity_range(&args, "udp_fur", 2, 3)?;
+    let Value::Str(host) = &args[0] else {
+        return Err(err_type("Martigeliyaha udp_fur() waa inuu noqdaa qoraal."));
+    };
+    let Value::Int(port) = args[1] else {
+        return Err(err_type("Dekedda udp_fur() waa inay noqotaa abn."));
+    };
+    let timeout = super::net::timeout(args.get(2))?;
+    super::net::bind_udp(host, port, timeout)
+}
+
+pub fn builtin_udp_qor(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "udp_qor", 4)?;
+    let Value::Str(host) = &args[1] else {
+        return Err(err_type("Martigeliyaha udp_qor() waa inuu noqdaa qoraal."));
+    };
+    let Value::Int(port) = args[2] else {
+        return Err(err_type("Dekedda udp_qor() waa inay noqotaa abn."));
+    };
+    let bytes = network_bytes(&args[3], "udp_qor")?;
+    super::net::send_udp(&args[0], host, port, &bytes)
+}
+
+pub fn builtin_udp_akhris(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "udp_akhris", 2)?;
+    let Value::Int(limit) = args[1] else {
+        return Err(err_type("Cabbirka udp_akhris() waa inuu noqdaa abn."));
+    };
+    let limit = usize::try_from(limit).map_err(|_| err_type("Cabbirka udp_akhris() ma saxna."))?;
+    super::net::receive_udp(&args[0], limit)
+}
+
+pub fn builtin_udp_xidh(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "udp_xidh", 1)?;
+    super::net::close(&args[0])
+}
+
 fn optional_truthy(args: &[Value], index: usize) -> bool {
     args.get(index).is_some_and(|value| value.is_truthy())
 }
@@ -951,6 +989,10 @@ const BUILTINS: &[(&str, super::NativeFn, CallbackArity)] = &[
     ("tcp_qor", builtin_tcp_qor, CallbackArity::range(2, 2)),
     ("tcp_akhris", builtin_tcp_akhris, CallbackArity::range(2, 2)),
     ("tcp_xidh", builtin_tcp_xidh, CallbackArity::range(1, 1)),
+    ("udp_fur", builtin_udp_fur, CallbackArity::range(2, 3)),
+    ("udp_qor", builtin_udp_qor, CallbackArity::range(4, 4)),
+    ("udp_akhris", builtin_udp_akhris, CallbackArity::range(2, 2)),
+    ("udp_xidh", builtin_udp_xidh, CallbackArity::range(1, 1)),
     ("fayl_jiraa", builtin_fayl_jiraa, CallbackArity::range(1, 1)),
     ("fayl_xog", builtin_fayl_xog, CallbackArity::range(1, 1)),
     ("isku_xidh", builtin_isku_xidh, CallbackArity::range(1, usize::MAX)),
