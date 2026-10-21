@@ -94,3 +94,13 @@ cargo test --locked --lib time --test time_tests --test llvm_ir_tests
 The time suite covers the Unix epoch, a known UTC instant, leap-day rejection,
 offsets other than `Z`, calendar parts, one-day durations, the current clock
 round trip, and LLVM execution at optimization levels 0 and 2.
+
+## Program arguments and environment
+
+```sh
+cargo test --locked --test process_tests --test llvm_ir_tests
+```
+
+The process suite covers arguments after `-c` and after a source file, hyphen
+arguments, environment reads, writes, removals, invalid names, and LLVM
+execution with an argument after the built program name.

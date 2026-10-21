@@ -9,7 +9,7 @@ use std::time::{Duration, Instant};
 
 use clap::Parser as ClapParser;
 
-use soplang::{build_source, cli::Shell, format_error_with_source, run_source};
+use soplang::{build_source, cli::Shell, format_error_with_source, run_source, set_program_arguments};
 
 #[derive(ClapParser)]
 #[command(
@@ -85,11 +85,11 @@ struct Cli {
     #[arg(long, help = "Daar hubinta adag ee noocyada xogta.")]
     strict: bool,
 
-    #[arg(
-        long,
-        help = "Ha isticmaalin midab marka khalad la soo bandhigayo; waxay la mid tahay NO_COLOR=1."
-    )]
+    #[arg(long, help = "Ha isticmaalin midab marka khalad la soo bandhigayo; waxay la mid tahay NO_COLOR=1.")]
     no_color: bool,
+
+    #[arg(trailing_var_arg = true, allow_hyphen_values = true, hide = true)]
+    arguments: Vec<String>,
 }
 
 fn main() {
@@ -109,6 +109,7 @@ fn main() {
     if cli.no_color {
         std::env::set_var("NO_COLOR", "1");
     }
+    set_program_arguments(user_arguments(&cli));
 
     if cli.build {
         let path = match &cli.filename {
@@ -299,6 +300,21 @@ fn run_shell(strict: bool) {
             process::exit(1);
         }
     }
+}
+
+fn user_arguments(cli: &Cli) -> Vec<String> {
+    let positional_is_program = cli.command.is_none()
+        && cli.file.is_none()
+        && cli.example.is_none()
+        && !cli.build;
+    let mut args = Vec::new();
+    if !positional_is_program {
+        if let Some(name) = &cli.filename {
+            args.push(name.display().to_string());
+        }
+    }
+    args.extend(cli.arguments.iter().cloned());
+    args
 }
 
 /// Resolve example N (1-based) to PathBuf. Sorts .sop files in examples/ by name.

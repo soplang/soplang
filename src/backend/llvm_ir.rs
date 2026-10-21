@@ -16,6 +16,7 @@ use crate::semantic::SymbolTable;
 const DECLS: &str = r#"%SoplangValue = type { i8, i64 }
 
 declare void @soplang_gc_safepoint()
+declare void @soplang_set_program_args(i32, ptr)
 declare void @soplang_enter_roots(ptr, ptr, i64, i64)
 declare void @soplang_leave_roots()
 declare void @soplang_set_location(ptr, i64, i64, i64, i64, ptr, i64)
@@ -323,10 +324,11 @@ struct Keep(*const ());
 unsafe impl Sync for Keep {}
 
 #[used]
-static KEEP: [Keep; 67] = [
+static KEEP: [Keep; 68] = [
     Keep(runtime::soplang_set_location as *const ()),
     Keep(runtime::soplang_enter_roots as *const ()),
     Keep(runtime::soplang_gc_safepoint as *const ()),
+    Keep(runtime::soplang_set_program_args as *const ()),
     Keep(runtime::soplang_leave_roots as *const ()),
     Keep(runtime::soplang_int as *const ()),
     Keep(runtime::soplang_float as *const ()),
@@ -678,7 +680,7 @@ fn emit_main(
     sym: &SymbolTable,
 ) -> Result<(), SoplangError> {
     let nslots = slots_needed(&hir.top_level, 0);
-    m.body.push_str("define i32 @main() {\nentry:\n");
+    m.body.push_str("define i32 @main(i32 %argc, ptr %argv) {\nentry:\n");
     let allocation_point = m.body.len();
     let mut emit = FnEmit {
         m,
@@ -695,6 +697,7 @@ fn emit_main(
         entry_allocas: String::new(),
     };
     emit.alloc_slots();
+    emit.line("call void @soplang_set_program_args(i32 %argc, ptr %argv)");
     emit.register_runtime(&hir.functions, sym);
     emit.enter_roots();
     emit.body(&hir.top_level)?;

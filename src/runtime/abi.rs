@@ -90,6 +90,16 @@ pub extern "C" fn soplang_gc_safepoint() {
     }
 }
 
+/// Record the program arguments from a hosted or standalone C main.
+///
+/// # Safety
+/// `argv` must contain `argc` C strings for the duration of the call. The
+/// function is a C entry point, so the check stays inside the body.
+#[no_mangle]
+pub extern "C" fn soplang_set_program_args(argc: i32, argv: *const *const i8) {
+    unsafe { super::process::install_c_arguments(argc, argv) };
+}
+
 /// Register generated slot storage until the matching leave operation.
 #[no_mangle]
 pub extern "C" fn soplang_enter_roots(tags: *const i64, payloads: *const i64, len: usize, stride: usize) {

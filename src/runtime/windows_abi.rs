@@ -28,6 +28,7 @@ bridge!(
     )
 );
 bridge!(soplang_gc_safepoint());
+bridge!(soplang_set_program_args(argc: i32, argv: *const *const i8));
 bridge!(soplang_enter_roots(tags: *const i64, payloads: *const i64, len: usize, stride: usize));
 bridge!(soplang_leave_roots());
 bridge!(soplang_try_begin() -> c_int);

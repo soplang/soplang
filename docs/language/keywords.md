@@ -268,6 +268,10 @@ these explanations do not establish a historical abbreviation or SLS approval.
 | `waqti_qayb` | Split seconds into calendar fields  | (time parts)         | `waqti_qayb(0).sanad`                      |
 | `waqti_ka_qayb` | Build seconds from calendar fields | (from parts)       | `waqti_ka_qayb(qayb)`                      |
 | `waqti_kudar` | Add a duration in seconds           | (add duration)       | `waqti_kudar(0, 86400)`                    |
+| `amarro` | Program arguments after the source      | `argv`               | `door args = amarro()`                     |
+| `deegaan` | Read an environment variable          | `getenv`             | `deegaan("HOME")`                          |
+| `deegaan_qor` | Set an environment variable        | `setenv`             | `deegaan_qor("MODE", "test")`              |
+| `deegaan_tirtir` | Remove an environment variable   | `unsetenv`           | `deegaan_tirtir("MODE")`                   |
 | `fayl_jiraa` | Test whether a path exists              | (path exists)        | `haddii (fayl_jiraa("magac.txt")) {...}`   |
 | `fayl_xog` | Query path metadata                     | (path stat)          | `door x = fayl_xog("magac.txt")`           |
 | `isku_xidh` | Join path segments                     | (path join)          | `isku_xidh("data", "magac.txt")`           |

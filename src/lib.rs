@@ -17,6 +17,7 @@ pub use frontend::{
 };
 pub use hir::{BinOpKind, HirFunction, HirInstr, HirLowering, HirModule, UnOpKind};
 pub use runtime::Value;
+pub use runtime::set_program_arguments;
 pub use semantic::{
     analyze, analyze_with_options, AnalyzeOptions, ClassMeta, FunctionMeta, Scope, SymbolTable,
     VarInfo,

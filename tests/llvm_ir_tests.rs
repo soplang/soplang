@@ -47,7 +47,7 @@ fn test_llvm_ir_prints_without_run_source() {
     let sym = analyze(&stmts).expect("analyze");
     let hir = HirLowering::lower(&sym, &stmts);
     let ir = emit_llvm_ir(&hir, &sym).unwrap_or_else(|e| panic!("{e}"));
-    assert!(ir.contains("define i32 @main()"), "IR has no LLVM main");
+    assert!(ir.contains("define i32 @main(i32 %argc, ptr %argv)"), "IR has no LLVM main");
     assert!(
         ir.contains(runtime_add_call()),
         "arithmetic does not call the runtime"
@@ -1010,6 +1010,31 @@ qor("llvm time ok")
             "llvm time ok\n"
         );
     }
+}
+
+#[test]
+fn test_llvm_program_arguments() {
+    let source = r#"
+hawl hubi(v, name) { haddii (!v) { tuur name } }
+door args = amarro()
+hubi(dherer(args) == 1 && args[0] == "llvm-arg", "args")
+qor("llvm args ok")
+"#;
+    let stmts = soplang::frontend::parse_source(source, None).expect("parse");
+    let sym = analyze(&stmts).expect("analyze");
+    let hir = HirLowering::lower(&sym, &stmts);
+    let ir = emit_llvm_ir(&hir, &sym).unwrap_or_else(|e| panic!("{e}"));
+    let bin = temp_bin("llvm_program_arguments");
+    link_llvm_binary_with_opt(&ir, &bin, 2).unwrap_or_else(|e| panic!("{e:?}"));
+    let out = Command::new(&bin)
+        .arg("llvm-arg")
+        .output()
+        .expect("run llvm binary");
+    let stdout = String::from_utf8(out.stdout).expect("utf8");
+    let stderr = String::from_utf8_lossy(&out.stderr);
+    let _ = fs::remove_file(&bin);
+    assert!(out.status.success(), "failed: {stderr}\nstdout: {stdout}");
+    assert_eq!(stdout, "llvm args ok\n");
 }
 
 fn run_llvm_with_opt_in_dir(name: &str, source: &str, opt: u8, dir: &Path) -> String {

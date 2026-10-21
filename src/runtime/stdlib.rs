@@ -315,6 +315,40 @@ pub fn builtin_waqti_kudar(args: Vec<Value>) -> Result<Value, SoplangError> {
     Ok(Value::Int(super::time::add(seconds, delta)?))
 }
 
+pub fn builtin_amarro(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "amarro", 0)?;
+    Ok(super::process::arguments_list())
+}
+
+pub fn builtin_deegaan(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "deegaan", 1)?;
+    let Value::Str(name) = &args[0] else {
+        return Err(err_type("deegaan() waa inuu helaa qoraal."));
+    };
+    super::process::environment(name)
+}
+
+pub fn builtin_deegaan_qor(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "deegaan_qor", 2)?;
+    let Value::Str(name) = &args[0] else {
+        return Err(err_type("deegaan_qor() waa inuu helaa magac qoraal ah."));
+    };
+    let Value::Str(value) = &args[1] else {
+        return Err(err_type("deegaan_qor() waa inuu helaa qiime qoraal ah."));
+    };
+    super::process::set_environment(name, value)?;
+    Ok(Value::Null)
+}
+
+pub fn builtin_deegaan_tirtir(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "deegaan_tirtir", 1)?;
+    let Value::Str(name) = &args[0] else {
+        return Err(err_type("deegaan_tirtir() waa inuu helaa qoraal."));
+    };
+    super::process::remove_environment(name)?;
+    Ok(Value::Null)
+}
+
 fn optional_truthy(args: &[Value], index: usize) -> bool {
     args.get(index).is_some_and(|value| value.is_truthy())
 }
@@ -780,6 +814,10 @@ const BUILTINS: &[(&str, super::NativeFn, CallbackArity)] = &[
     ("waqti_qayb", builtin_waqti_qayb, CallbackArity::range(1, 1)),
     ("waqti_ka_qayb", builtin_waqti_ka_qayb, CallbackArity::range(1, 1)),
     ("waqti_kudar", builtin_waqti_kudar, CallbackArity::range(2, 2)),
+    ("amarro", builtin_amarro, CallbackArity::range(0, 0)),
+    ("deegaan", builtin_deegaan, CallbackArity::range(1, 1)),
+    ("deegaan_qor", builtin_deegaan_qor, CallbackArity::range(2, 2)),
+    ("deegaan_tirtir", builtin_deegaan_tirtir, CallbackArity::range(1, 1)),
     ("fayl_jiraa", builtin_fayl_jiraa, CallbackArity::range(1, 1)),
     ("fayl_xog", builtin_fayl_xog, CallbackArity::range(1, 1)),
     ("isku_xidh", builtin_isku_xidh, CallbackArity::range(1, usize::MAX)),

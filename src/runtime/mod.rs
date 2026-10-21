@@ -25,6 +25,7 @@ mod url;
 mod base64;
 mod patterns;
 mod time;
+mod process;
 pub mod stdlib;
 pub mod value;
 
@@ -39,3 +40,4 @@ pub use iterators::IteratorData;
 pub use tuples::TupleData;
 pub use sets::SetData;
 pub use value::{value_to_string, NativeFn, Value};
+pub use process::set_program_arguments;
