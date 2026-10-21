@@ -20,6 +20,8 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+* Git dependencies accept repository URLs, hosting-service short forms, and explicit revisions. Root locks pin commits and content hashes, transitive imports share one resolved graph, and `--offline` verifies cached snapshots without fetching. Cache publication supports concurrent installers.
+
 * `soplang init [directory] [--lib] [--name name]` creates a root application or library starter and `soplang.toml` without overwriting existing files. Bare package imports prefer `lib.sop` while retaining the older package-named layout.
 
 * [3.2.0 implementation milestone notes](docs/releases/3.2.0.md) record completed language foundations. A version tag and distribution builds remain pending.

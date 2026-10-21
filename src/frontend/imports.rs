@@ -20,13 +20,18 @@ pub fn bundle_source(source: &str, source_path: Option<&Path>) -> Result<String,
             seen.insert(canon);
         }
     }
-    bundle_one(source, source_path, &mut seen)
+    let mut project = source_path
+        .map(crate::package::resolve_source)
+        .transpose()?
+        .flatten();
+    bundle_one(source, source_path, &mut seen, &mut project)
 }
 
 fn bundle_one(
     source: &str,
     source_path: Option<&Path>,
     seen: &mut HashSet<PathBuf>,
+    project: &mut Option<crate::package::Project>,
 ) -> Result<String, SoplangError> {
     let tokens = Lexer::new(source).tokenize()?;
     let base_dir = source_path
@@ -80,7 +85,12 @@ fn bundle_one(
         cursor = import_end;
         i += 2;
 
-        let import_path = resolve_import_path(&base_dir, &path_tok.lexeme, source_path.is_some())?;
+        let import_path = resolve_import_path_from_root(
+            &base_dir,
+            &path_tok.lexeme,
+            source_path.is_some(),
+            project.as_ref(),
+        )?;
         let canon = import_path.canonicalize().map_err(|e| {
             let error = file_read_error(Path::new(&path_tok.lexeme), &e);
             import_error_ex(
@@ -110,7 +120,10 @@ fn bundle_one(
                     .with_hint("Hubi in faylka uu jiro oo akhriska loo oggol yahay."),
             )
         })?;
-        let bundled = bundle_one(&imported, Some(&import_path), seen)?;
+        if project.is_none() {
+            *project = crate::package::resolve_source(&import_path)?;
+        }
+        let bundled = bundle_one(&imported, Some(&import_path), seen, project)?;
         out.push_str(&bundled);
         if !bundled.ends_with('\n') {
             out.push('\n');
@@ -144,6 +157,7 @@ pub(crate) struct ImportResolver {
     caches: Vec<Stmt>,
     loaders: Vec<Stmt>,
     next_id: usize,
+    project: Option<crate::package::Project>,
 }
 
 impl ImportResolver {
@@ -154,6 +168,12 @@ impl ImportResolver {
     ) -> Result<Vec<Stmt>, SoplangError> {
         self.flat_seen.clear();
         self.active.clear();
+        if let Some(path) = source_path {
+            let root = crate::package::find_manifest_dir(path);
+            if self.project.as_ref().map(|project| &project.root) != root.as_ref() {
+                self.project = crate::package::resolve_source(path)?;
+            }
+        }
         if let Some(path) = source_path.and_then(|path| path.canonicalize().ok()) {
             self.flat_seen.insert(path.clone());
             self.active.insert(path);
@@ -184,10 +204,18 @@ impl ImportResolver {
                     );
                 }
                 Stmt::Import(import) => {
-                    let path = resolve_import_path(base, &import.path, source_path.is_some())?;
+                    let path = resolve_import_path_from_root(
+                        base,
+                        &import.path,
+                        source_path.is_some() || self.project.is_some(),
+                        self.project.as_ref(),
+                    )?;
                     let canon = path
                         .canonicalize()
                         .map_err(|error| import_read_error(Path::new(&import.path), &error))?;
+                    if self.project.is_none() {
+                        self.project = crate::package::resolve_source(&path)?;
+                    }
                     if import.alias.is_none() && import.selected.is_empty() {
                         if !self.flat_seen.insert(canon.clone()) {
                             continue;
@@ -641,10 +669,11 @@ fn preserved_import_end(tokens: &[crate::frontend::token::Token], index: usize) 
     }
 }
 
-fn resolve_import_path(
+fn resolve_import_path_from_root(
     base_dir: &Path,
     path: &str,
     packages: bool,
+    project: Option<&crate::package::Project>,
 ) -> Result<PathBuf, SoplangError> {
     let candidate = if Path::new(path).is_absolute() {
         PathBuf::from(path)
@@ -652,10 +681,17 @@ fn resolve_import_path(
         base_dir.join(path)
     };
     if candidate.is_file() {
+        if let Some(project) = project {
+            project.validate_file_import(base_dir, &candidate)?;
+        }
         return Ok(candidate);
     }
     if packages {
-        if let Some(file) = crate::package::import_file(base_dir, path)? {
+        let file = match project {
+            Some(project) => project.import_file(base_dir, path)?,
+            None => crate::package::import_file(base_dir, path)?,
+        };
+        if let Some(file) = file {
             return Ok(file);
         }
     }

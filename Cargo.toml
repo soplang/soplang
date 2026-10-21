@@ -21,6 +21,7 @@ httparse = "1.10.1"
 tungstenite = { version = "0.30.0", default-features = false, features = ["handshake", "rustls-tls-native-roots"] }
 sha2 = "0.11.1"
 toml = { version = "0.8.23", features = ["preserve_order"] }
+url = "2.5.8"
 
 [dev-dependencies]
 criterion = { version = "0.5", features = ["html_reports"] }

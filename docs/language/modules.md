@@ -60,3 +60,9 @@ successful import. A failed runtime initializer remains eligible for retry.
 `<gelid>/lib.sop`, or `<gelid>/xisaab.sop` for older packages. `keen "xisaab/util.sop"` loads `<gelid>/util.sop`. A
 relative path that already names a file stays a file import. See
 [packages](packages.md).
+
+Package imports share the consuming project's validated dependency graph and
+root lock. A cached dependency's own manifest identifies its direct dependencies;
+its own lock cannot select different transitive versions. Git snapshot-relative
+imports must stay inside that snapshot. REPL dependency selections remain stable
+until the session restarts. See [packages](packages.md).

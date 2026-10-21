@@ -335,35 +335,34 @@ Project creation is implemented as `soplang init [directory] [--lib] [--name nam
 with `soplang.toml` and a root `main.sop` or `lib.sop` starter. Existing files
 are preserved. See [packages](docs/language/packages.md#create-a-project).
 
-1. Define a project and package manifest — implemented as `soplang.toml`; see [packages](docs/language/packages.md).
-2. Record package names, versions, and supported Soplang versions — `magac`, `nusxa`, and `soplang`.
-3. Add dependency declarations and local path dependencies — implemented as `[ku-tiirsan]` with a relative path, a `kayd:` constraint, or an `http`/`https` `.sopkg` URL.
-4. Create a deterministic lockfile — implemented as optional `soplang.lock`. When present, it must match the resolved name, version, and source of every dependency, sorted by name. Registry and archive entries also pin `sumad`.
-5. Add a package cache and integrity hashes — implemented. `SOPLANG_CACHE` stores the unpacked tree. `sumad` is the SHA-256 of the sorted paths and bytes.
-6. Add install, update, remove, and publish commands — implemented as `--ku-dar`, `--cusbooneysii`, `--ka-saar`, and `--daabac`.
-7. Make dependency resolution and builds reproducible — a present lock pins the version and hash. `--cusbooneysii` selects the highest match and rewrites the lock.
+1. Define a project and package manifest: implemented with TOML syntax and schema validation; see [packages](docs/language/packages.md).
+2. Record names, versions, and supported Soplang versions: `magac`, `nusxa`, and `soplang`.
+3. Resolve Git repository URLs, hosting-service short forms, and local paths: implemented. Revisions accept branches, tags, and full commits.
+4. Keep one version per package: implemented as one repository/commit selection for each name, with conflicts rejected across the full graph.
+5. Pin exact commits and content hashes in a deterministic root lock: implemented. Dependency-owned locks cannot override the root selection.
+6. Verify a package cache and support offline builds: implemented as immutable staged trees, checksum verification, concurrent publication, and `--offline`.
+7. Add, remove and explicitly update dependencies: implemented through the package flags. Git publication uses the repository's own commit/tag workflow; no central package host is required.
 
-The first package source is a directory registry (`SOPLANG_KAYD`) plus HTTP
-`.sopkg` archives. Git sources remain later work.
+The directory-registry and `.sopkg` providers remain compatibility sources.
+Standard command forms continue in 3.5. Public class exports and the remaining
+web/ORM facilities below still prevent marking all of 3.4 complete.
 
 ### Web application facilities
 
-After the initial JSON server and module interfaces are stable, develop these
-as standard-library or package additions across 3.4 and later 3.x releases:
+Build a bundled, importable web framework on the server and module foundations.
+The minimal sequential JSON server alone does not complete this requirement.
 
-1. Composable routers and middleware with a defined execution order and error
-   propagation contract.
-2. Static file responses with a configured document root and path containment.
-3. HTML responses, template rendering, and form parsing.
-4. Bounded multipart uploads and downloads, with streaming dependent on 3.6.
-5. Cookies and sessions, with documented storage and expiration behavior.
-6. Database drivers, beginning with a separately selected database and covering
-   parameterized queries, transactions, connection lifetimes, and cleanup.
+1. Routers, method/path matching, route groups, middleware order and error propagation.
+2. Path/query/header/cookie access, JSON and form parsing, validation, response status and JSON/HTML/redirect/file helpers.
+3. Static-file containment, templates, bounded multipart uploads, downloads and CORS.
+4. Sessions with expiration, authentication hooks, logging, request limits and timeouts.
+5. TLS, a test client, graceful shutdown, and integration with concurrent handlers, streaming/backpressure and WebSocket servers from 3.6.
+6. A Prisma-style ORM with required `schema.sop`, schema validation, typed query/editor support, migrations, pools and transactions.
+7. Real connector implementations and tests for SQLite, PostgreSQL, MySQL, MariaDB, MongoDB, SQL Server and CockroachDB, with a documented capability matrix.
 
-Database support is a separate deliverable from serving JSON APIs. Database
-selection, session storage, and template engines need their own proposals;
-the initial server does not commit the language to a particular framework or
-database abstraction.
+The ORM is required before the final release. These are implementation
+requirements; database selection and a decision about whether to include an ORM
+are already settled. Document each connector's supported operations explicitly.
 
 ## Soplang 3.5 — developer tooling
 
@@ -463,7 +462,7 @@ their implementation release begins:
 4. Modules: namespace, export, selective import, and alias syntax.
 5. Networking: the HTTP module API and lower-level socket abstractions.
 6. Concurrency: tasks and channels, async/await, or another model.
-7. Packages: decided for this stage as a directory registry plus HTTP `.sopkg` archives. Git sources remain later work.
+7. Packages: Git repositories and local paths, one version per package, an exact commit/content lock, verified caching, offline builds, and explicit updates. A central registry is not required.
 8. Filesystem: decided for this stage. See [filesystem](docs/language/filesystem.md) and [file handles](docs/language/file-handles.md) for symlink, cross-filesystem, and atomic-replace behavior.
 9. Web APIs: route registration, handler callbacks, request/response types,
    middleware, error containment, and the Rust HTTP implementation.

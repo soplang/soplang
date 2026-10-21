@@ -19,6 +19,8 @@ soplang main.sop
 ```
 
 Use `soplang init my-library --lib` for a library with a root `lib.sop`.
+Git repositories and local paths provide packages. A root lock pins Git commits
+and content hashes, and `--offline` builds from a verified cache.
 See the [package reference](docs/language/packages.md) for manifests and imports.
 
 ## Project structure

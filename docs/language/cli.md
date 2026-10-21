@@ -82,3 +82,11 @@ failures before Soplang starts are outside normal diagnostic handling.
 Applications start in `main.sop`, libraries in `lib.sop`. See
 [packages](packages.md#create-a-project). `soplang init --help` explains the
 options in Somali. Existing manifests and starters are preserved.
+
+## Git packages and offline builds
+
+Add a repository dependency with `soplang --ku-dar name --qeexid source`.
+`source` may be `github.com/team/project@tag`, a `git+URL#revision`, or a local
+path. `--cusbooneysii` updates the lock explicitly; `--ka-saar name` removes a
+dependency. `--offline` uses an existing lock and verified cache without a fetch.
+See [packages](packages.md) for selectors, graph constraints and cache behavior.

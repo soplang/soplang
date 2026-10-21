@@ -144,7 +144,7 @@ pub fn remove_directory(path: &str, recursive: bool) -> Result<(), SoplangError>
     }
 }
 
-pub(super) fn replace_bytes(path: &Path, bytes: &[u8]) -> Result<(), SoplangError> {
+pub(crate) fn replace_bytes(path: &Path, bytes: &[u8]) -> Result<(), SoplangError> {
     let (temp, mut file) = create_temp_beside(path, |temp| {
         OpenOptions::new().write(true).create_new(true).open(temp)
     })

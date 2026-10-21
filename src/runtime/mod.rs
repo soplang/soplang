@@ -39,6 +39,7 @@ pub mod windows_abi;
 
 pub use abi::*;
 pub use context::RuntimeContext;
+pub(crate) use filesystem::replace_bytes as replace_file_bytes;
 pub use gc::{CollectionReport, MemoryStats};
 pub use iterators::IteratorData;
 pub use process::set_program_arguments;

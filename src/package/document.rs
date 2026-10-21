@@ -79,15 +79,26 @@ pub(super) fn manifest(text: &str) -> Result<Manifest, SoplangError> {
             let spec = match value {
                 Value::String(spec) => spec.clone(),
                 Value::Table(table) => {
-                    keys(table, &["jid"])?;
-                    let path = string(table, "jid")?;
-                    if !matches!(classify_at(&path, 1)?, super::Spec::Path(_)) {
-                        return Err(manifest_error(
-                            "jid waa inuu noqdaa jid ku-tiirsan oo maxalli ah.",
-                            1,
-                        ));
+                    if table.contains_key("git") {
+                        keys(table, &["git", "rev"])?;
+                        let url = string(table, "git")?;
+                        let rev = if table.contains_key("rev") {
+                            string(table, "rev")?
+                        } else {
+                            "HEAD".into()
+                        };
+                        super::git::GitSource::new(&url, &rev)?.spec()
+                    } else {
+                        keys(table, &["jid"])?;
+                        let path = string(table, "jid")?;
+                        if !matches!(classify_at(&path, 1)?, super::Spec::Path(_)) {
+                            return Err(manifest_error(
+                                "jid waa inuu noqdaa jid ku-tiirsan oo maxalli ah.",
+                                1,
+                            ));
+                        }
+                        path
                     }
-                    path
                 }
                 _ => {
                     return Err(manifest_error(
@@ -96,7 +107,10 @@ pub(super) fn manifest(text: &str) -> Result<Manifest, SoplangError> {
                     ))
                 }
             };
-            classify_at(&spec, 1)?;
+            let spec = match classify_at(&spec, 1)? {
+                super::Spec::Git(source) => source.spec(),
+                _ => spec,
+            };
             dependencies.push(Dependency {
                 name: name.clone(),
                 spec,
@@ -126,7 +140,10 @@ pub(super) fn lock(text: &str) -> Result<Vec<LockEntry>, SoplangError> {
         let table = entry
             .as_table()
             .ok_or_else(|| manifest_error("Qaybta soplang.lock ma saxna.", 1))?;
-        keys(table, &["magac", "nusxa", "jid", "sumad"])?;
+        keys(
+            table,
+            &["magac", "nusxa", "jid", "sumad", "commit", "codsiyo"],
+        )?;
         let name = string(table, "magac")?;
         let version = string(table, "nusxa")?;
         let path = string(table, "jid")?;
@@ -154,11 +171,55 @@ pub(super) fn lock(text: &str) -> Result<Vec<LockEntry>, SoplangError> {
         } else {
             None
         };
+        let commit = if table.contains_key("commit") {
+            Some(string(table, "commit")?)
+        } else {
+            None
+        };
+        let mut selectors = Vec::new();
+        if let Some(value) = table.get("codsiyo") {
+            let values = value
+                .as_array()
+                .ok_or_else(|| manifest_error("codsiyo waa inay noqotaa liis qoraallo ah.", 1))?;
+            for value in values {
+                let value = value
+                    .as_str()
+                    .ok_or_else(|| manifest_error("Tixraaca Git waa inuu noqdaa qoraal.", 1))?;
+                if selectors.iter().any(|item| item == value) {
+                    return Err(manifest_error(
+                        "Tixraac Git ayaa lagu celiyey soplang.lock.",
+                        1,
+                    ));
+                }
+                selectors.push(value.to_string());
+            }
+        }
+        if path.starts_with("git+") {
+            if sumad.is_none()
+                || commit
+                    .as_deref()
+                    .is_none_or(|value| !super::git::valid_oid(value))
+                || selectors.is_empty()
+            {
+                return Err(manifest_error(
+                    "soplang.lock wuxuu u baahan yahay kaydinta Git, summad iyo tixraacyo sax ah.",
+                    1,
+                ));
+            }
+            for selector in &selectors {
+                super::git::GitSource::new(&path[4..], selector)?;
+            }
+        } else if commit.is_some() || !selectors.is_empty() {
+            return Err(manifest_error("Qaybtani ma aha xirmo Git ah.", 1));
+        }
+        selectors.sort();
         result.push(LockEntry {
             name,
             version,
             path,
             sumad,
+            commit,
+            selectors,
         });
     }
     result.sort_by(|left, right| left.name.cmp(&right.name));
@@ -263,6 +324,8 @@ jid = '../xisaab'
             version: "1.0.0".into(),
             path: "../folder\\with\"quotes".into(),
             sumad: None,
+            commit: None,
+            selectors: Vec::new(),
         };
         let text = super::super::render_lock(&[entry.clone()]);
         assert_eq!(lock(&text).unwrap()[0], entry);

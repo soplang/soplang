@@ -67,7 +67,7 @@ struct Cli {
         long,
         value_name = "QEEXID",
         requires = "ku_dar",
-        help = "Jidka ama nusxada ku-tiirsiga, sida ../xisaab ama kayd:^0.1.0."
+        help = "Jidka ama kaydka Git ee ku-tiirsiga, sida ../xisaab ama github.com/koox/xisaab@v1.0.0."
     )]
     qeexid: Option<String>,
 
@@ -79,6 +79,9 @@ struct Cli {
 
     #[arg(long, value_name = "MAGAC", help = "Ka saar ku-tiirsan xirmada.")]
     ka_saar: Option<String>,
+
+    #[arg(long, help = "Adeegso kaydka xirmooyinka oo la hubiyey adigoon kuwo kale soo dejin.")]
+    offline: bool,
 
     #[arg(long, help = "Daabac xirmadan kaydka Soplang.")]
     daabac: bool,
@@ -168,6 +171,9 @@ fn main() {
         }
     };
 
+    if cli.offline {
+        std::env::set_var("SOPLANG_OFFLINE", "1");
+    }
     if cli.no_color {
         std::env::set_var("NO_COLOR", "1");
     }

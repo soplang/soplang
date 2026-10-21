@@ -1,6 +1,7 @@
 //! Project manifest (`soplang.toml`), lockfile, and package registry.
 
 use std::cmp::Ordering;
+use std::collections::HashMap;
 use std::fs;
 use std::io::Write;
 use std::path::{Component, Path, PathBuf};
@@ -12,7 +13,9 @@ use ureq::Agent;
 
 use crate::error::{codes, file_read_error, io_reason, runtime_error_ex, ErrorMeta, SoplangError};
 
+mod cache;
 mod document;
+mod git;
 
 pub const MANIFEST_FILE: &str = "soplang.toml";
 pub const LOCK_FILE: &str = "soplang.lock";
@@ -40,12 +43,15 @@ struct LockEntry {
     version: String,
     path: String,
     sumad: Option<String>,
+    commit: Option<String>,
+    selectors: Vec<String>,
 }
 
 enum Spec {
     Path(String),
     Registry(String),
     Archive(String),
+    Git(git::GitSource),
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -64,20 +70,107 @@ struct PackageVersion {
     text: String,
 }
 
-pub fn load_beside_source(source: &Path) -> Result<Option<Manifest>, SoplangError> {
+#[derive(Clone)]
+pub(crate) struct Project {
+    pub root: PathBuf,
+    packages: HashMap<PathBuf, ResolvedPackage>,
+}
+
+#[derive(Clone)]
+struct ResolvedPackage {
+    manifest: Manifest,
+    remote: bool,
+    dependencies: HashMap<String, PathBuf>,
+}
+
+impl Project {
+    pub(crate) fn validate_file_import(
+        &self,
+        base: &Path,
+        file: &Path,
+    ) -> Result<(), SoplangError> {
+        let base = base
+            .canonicalize()
+            .map_err(|failure| file_read_error(base, &failure))?;
+        if let Some((root, package)) = base
+            .ancestors()
+            .find_map(|path| self.packages.get(path).map(|package| (path, package)))
+        {
+            if package.remote {
+                let target = file
+                    .canonicalize()
+                    .map_err(|failure| file_read_error(file, &failure))?;
+                if !target.starts_with(root) {
+                    return Err(manifest_error(
+                        "Faylka la keenayo wuxuu ka baxsan yahay xirmada la soo dejiyey.",
+                        1,
+                    ));
+                }
+            }
+        }
+        Ok(())
+    }
+    pub(crate) fn import_file(
+        &self,
+        base: &Path,
+        spec: &str,
+    ) -> Result<Option<PathBuf>, SoplangError> {
+        let Some((name, rest)) = package_spec(spec) else {
+            return Ok(None);
+        };
+        let base = base
+            .canonicalize()
+            .map_err(|failure| file_read_error(base, &failure))?;
+        let owner = base.ancestors().find_map(|path| self.packages.get(path));
+        let owner = owner.unwrap_or(&self.packages[&self.root]);
+        let Some(root) = owner.dependencies.get(name) else {
+            return Ok(None);
+        };
+        let child = &self.packages[root].manifest;
+        let relative = entry_path(&child.source, name, rest)?;
+        let library = root.join(&child.source).join("lib.sop");
+        let file = if rest.is_none() && library.is_file() {
+            library
+        } else {
+            root.join(relative)
+        };
+        if !file.is_file() {
+            return Err(manifest_error(
+                format!("Faylka xirmada '{name}' lama helin."),
+                1,
+            ));
+        }
+        Ok(Some(file))
+    }
+}
+
+pub(crate) fn resolve_source(source: &Path) -> Result<Option<Project>, SoplangError> {
     let Some(dir) = find_manifest_dir(source) else {
         return Ok(None);
     };
     let path = dir.join(MANIFEST_FILE);
-    let text = fs::read_to_string(&path).map_err(|error| file_read_error(&path, &error))?;
-    load_manifest(&dir, &text)
+    let text = fs::read_to_string(&path).map_err(|failure| file_read_error(&path, &failure))?;
+    resolve_project(&dir, &text)
         .map(Some)
         .map_err(|error| attach_document_error(error, &text, &path))
 }
 
+pub fn load_beside_source(source: &Path) -> Result<Option<Manifest>, SoplangError> {
+    Ok(resolve_source(source)?.map(|project| project.packages[&project.root].manifest.clone()))
+}
+
 pub fn load_manifest(dir: &Path, text: &str) -> Result<Manifest, SoplangError> {
+    let project = resolve_project(dir, text)?;
+    Ok(project.packages[&project.root].manifest.clone())
+}
+
+fn resolve_project(dir: &Path, text: &str) -> Result<Project, SoplangError> {
     let manifest = parse_manifest(text)?;
     let hints = read_lock_hints(dir)?;
+    let root = dir
+        .canonicalize()
+        .map_err(|failure| file_read_error(dir, &failure))?;
+    let mut packages = HashMap::new();
     let mut locked = Vec::new();
     resolve_dependencies(
         dir,
@@ -87,9 +180,16 @@ pub fn load_manifest(dir: &Path, text: &str) -> Result<Manifest, SoplangError> {
         &mut locked,
         &hints,
         false,
+        dir.join(LOCK_FILE).exists(),
+        &mut packages,
     )?;
     verify_lock(dir, &locked)?;
-    Ok(manifest)
+    if !dir.join(LOCK_FILE).exists() && locked.iter().any(|entry| entry.commit.is_some()) {
+        if !cache::create_lock(dir, render_lock(&locked).as_bytes())? {
+            verify_lock(dir, &locked)?;
+        }
+    }
+    Ok(Project { root, packages })
 }
 
 pub fn parse_manifest(text: &str) -> Result<Manifest, SoplangError> {
@@ -192,37 +292,13 @@ pub fn publish_package(dir: &Path) -> Result<String, SoplangError> {
 }
 
 pub fn import_file(base_dir: &Path, spec: &str) -> Result<Option<PathBuf>, SoplangError> {
-    let Some((name, rest)) = package_spec(spec) else {
+    if package_spec(spec).is_none() {
         return Ok(None);
-    };
-    let Some(manifest_dir) = find_manifest_dir(base_dir) else {
-        return Ok(None);
-    };
-    let manifest = read_manifest_dir(&manifest_dir)?;
-    let Some(dependency) = manifest
-        .dependencies
-        .iter()
-        .find(|dependency| dependency.name == name)
-    else {
-        return Ok(None);
-    };
-    let hints = read_lock_hints(&manifest_dir)?;
-    let root = materialize(&manifest_dir, dependency, &hints)?;
-    let child = read_manifest_dir(&root)?;
-    let relative = entry_path(&child.source, name, rest)?;
-    let library = root.join(&child.source).join("lib.sop");
-    let file = if rest.is_none() && library.is_file() {
-        library
-    } else {
-        root.join(relative)
-    };
-    if !file.is_file() {
-        return Err(manifest_error(
-            format!("Faylka xirmada '{name}' lama helin."),
-            1,
-        ));
     }
-    Ok(Some(file))
+    match resolve_source(base_dir)? {
+        Some(project) => project.import_file(base_dir, spec),
+        None => Ok(None),
+    }
 }
 
 fn resolve_and_lock(
@@ -239,6 +315,8 @@ fn resolve_and_lock(
         &mut locked,
         hints,
         false,
+        false,
+        &mut HashMap::new(),
     )?;
     Ok(locked)
 }
@@ -251,14 +329,58 @@ fn resolve_dependencies(
     locked: &mut Vec<LockEntry>,
     hints: &[LockEntry],
     from_cache: bool,
+    locked_mode: bool,
+    graph: &mut HashMap<PathBuf, ResolvedPackage>,
 ) -> Result<(), SoplangError> {
-    let canon = dir.canonicalize().unwrap_or_else(|_| dir.to_path_buf());
-    if stack.iter().any(|seen| seen == &canon) {
+    let canon = dir
+        .canonicalize()
+        .map_err(|failure| file_read_error(dir, &failure))?;
+    if stack.contains(&canon) {
         return Err(manifest_error("Ku-tiirsanayaasha xirmada waa wareeg.", 1));
     }
-    stack.push(canon);
+    if let Some(existing) = graph.get(&canon) {
+        if existing.manifest != *manifest {
+            return Err(manifest_error(
+                "Xirmadu way isbeddeshay intii la xallinayey.",
+                1,
+            ));
+        }
+        return Ok(());
+    }
+    if stack.len() >= 64 || graph.len() >= 1024 {
+        return Err(manifest_error(
+            "Ku-tiirsanayaasha xirmadu way ka badan yihiin xadka.",
+            1,
+        ));
+    }
+    graph.insert(
+        canon.clone(),
+        ResolvedPackage {
+            manifest: manifest.clone(),
+            remote: from_cache,
+            dependencies: HashMap::new(),
+        },
+    );
+    stack.push(canon.clone());
     for dependency in &manifest.dependencies {
-        match classify_at(&dependency.spec, 1)? {
+        let spec = classify_at(&dependency.spec, 1)?;
+        let identity = match &spec {
+            Spec::Path(path) => join_relative(prefix, path),
+            Spec::Registry(_) => "kayd".into(),
+            Spec::Archive(url) => url.clone(),
+            Spec::Git(source) => source.identity(),
+        };
+        if locked_mode
+            && !hints
+                .iter()
+                .any(|entry| entry.name == dependency.name && entry.path == identity)
+        {
+            return Err(manifest_error(
+                "soplang.lock ma waafaqsana ilaha ku-tiirsanayaasha; adeegso --cusbooneysii.",
+                1,
+            ));
+        }
+        let (child, pin, next_cached, next_prefix) = match spec {
             Spec::Path(path) => {
                 if from_cache {
                     return Err(manifest_error(
@@ -266,97 +388,92 @@ fn resolve_dependencies(
                         1,
                     ));
                 }
-                let child = dir.join(&path);
-                if !child.join(MANIFEST_FILE).is_file() {
-                    return Err(manifest_error(
-                        format!("Ku-tiirsiga '{}' lama helin.", dependency.name),
-                        1,
-                    ));
-                }
-                let child_manifest = read_manifest_dir(&child)?;
-                if child_manifest.name != dependency.name {
-                    return Err(manifest_error(
-                        format!(
-                            "Xirmada '{}' waxay leedahay magaca '{}', laakiin waxaa loo yaqaan '{}'.",
-                            path, child_manifest.name, dependency.name
-                        ),
-                        1,
-                    ));
-                }
-                let lock_path = join_relative(prefix, &path);
-                remember(
-                    locked,
-                    LockEntry {
-                        name: dependency.name.clone(),
-                        version: child_manifest.version.clone(),
-                        path: lock_path.clone(),
-                        sumad: None,
-                    },
-                )?;
-                resolve_dependencies(
-                    &child,
-                    &child_manifest,
-                    stack,
-                    &lock_path,
-                    locked,
-                    hints,
-                    false,
-                )?;
+                (dir.join(path), None, false, identity.clone())
             }
             Spec::Registry(constraint) => {
-                let (entry, cached) = resolve_registry(&dependency.name, &constraint, hints)?;
-                remember(locked, entry)?;
-                let child_manifest = read_manifest_dir(&cached)?;
-                resolve_dependencies(&cached, &child_manifest, stack, "", locked, hints, true)?;
+                let (pin, path) = resolve_registry(&dependency.name, &constraint, hints)?;
+                (path, Some(pin), true, String::new())
             }
             Spec::Archive(url) => {
-                let (entry, cached) = resolve_archive(&dependency.name, &url, hints)?;
-                remember(locked, entry)?;
-                let child_manifest = read_manifest_dir(&cached)?;
-                resolve_dependencies(&cached, &child_manifest, stack, "", locked, hints, true)?;
+                let (pin, path) = resolve_archive(&dependency.name, &url, hints)?;
+                (path, Some(pin), true, String::new())
             }
+            Spec::Git(source) => {
+                let (pin, path) = git::resolve(&dependency.name, &source, hints)?;
+                (path, Some(pin), true, String::new())
+            }
+        };
+        let child_manifest = read_manifest_dir(&child)?;
+        if child_manifest.name != dependency.name {
+            return Err(manifest_error(
+                format!(
+                    "Xirmadu waxay leedahay magaca '{}', laakiin waxaa loo yaqaan '{}'.",
+                    child_manifest.name, dependency.name
+                ),
+                1,
+            ));
         }
+        let pin = pin.unwrap_or_else(|| LockEntry {
+            name: dependency.name.clone(),
+            version: child_manifest.version.clone(),
+            path: identity,
+            sumad: None,
+            commit: None,
+            selectors: Vec::new(),
+        });
+        if pin.version != child_manifest.version {
+            return Err(manifest_error(
+                "Nusxada xirmadu ma waafaqsana soplang.lock.",
+                1,
+            ));
+        }
+        remember(locked, pin)?;
+        let child_root = child
+            .canonicalize()
+            .map_err(|failure| file_read_error(&child, &failure))?;
+        graph
+            .get_mut(&canon)
+            .unwrap()
+            .dependencies
+            .insert(dependency.name.clone(), child_root);
+        resolve_dependencies(
+            &child,
+            &child_manifest,
+            stack,
+            &next_prefix,
+            locked,
+            hints,
+            next_cached,
+            locked_mode,
+            graph,
+        )?;
     }
     stack.pop();
     Ok(())
 }
 
 fn remember(locked: &mut Vec<LockEntry>, entry: LockEntry) -> Result<(), SoplangError> {
-    if let Some(previous) = locked.iter().find(|item| item.name == entry.name) {
+    if let Some(previous) = locked.iter_mut().find(|item| item.name == entry.name) {
         if previous.version != entry.version
             || previous.path != entry.path
             || previous.sumad != entry.sumad
+            || previous.commit != entry.commit
         {
             return Err(manifest_error(
                 format!("Ku-tiirsiga '{}' waa la soo celiyey jid kale.", entry.name),
                 1,
             ));
         }
+        for selector in entry.selectors {
+            if !previous.selectors.contains(&selector) {
+                previous.selectors.push(selector);
+            }
+        }
+        previous.selectors.sort();
         return Ok(());
     }
     locked.push(entry);
     Ok(())
-}
-
-fn materialize(
-    base: &Path,
-    dependency: &Dependency,
-    hints: &[LockEntry],
-) -> Result<PathBuf, SoplangError> {
-    match classify_at(&dependency.spec, 1)? {
-        Spec::Path(path) => {
-            let dir = base.join(path);
-            if !dir.join(MANIFEST_FILE).is_file() {
-                return Err(manifest_error(
-                    format!("Ku-tiirsiga '{}' lama helin.", dependency.name),
-                    1,
-                ));
-            }
-            Ok(dir)
-        }
-        Spec::Registry(constraint) => Ok(resolve_registry(&dependency.name, &constraint, hints)?.1),
-        Spec::Archive(url) => Ok(resolve_archive(&dependency.name, &url, hints)?.1),
-    }
 }
 
 fn resolve_registry(
@@ -377,6 +494,16 @@ fn resolve_registry(
         if !allows(bound, &required, &version) {
             return Err(manifest_error("soplang.lock ma waafaqsana xirmada.", 1));
         }
+        let cached = cache_root()?.join(&sumad);
+        if git::offline() && cached.is_dir() && hash_dir(&cached).ok().as_deref() == Some(&sumad) {
+            return Ok((hint.clone(), cached));
+        }
+        if git::offline() {
+            return Err(manifest_error(
+                "Xirmadu kama jirto kayd la hubiyey oo offline ah.",
+                1,
+            ));
+        }
         let source = registry_root()?.join(name).join(&hint.version);
         let files = read_package_tree(&source)?;
         if hash_files(&files) != sumad {
@@ -384,6 +511,12 @@ fn resolve_registry(
         }
         let cached = store_tree(&sumad, &files)?;
         return Ok((hint.clone(), cached));
+    }
+    if git::offline() {
+        return Err(manifest_error(
+            "Habka offline wuxuu u baahan yahay soplang.lock iyo kayd la hubiyey.",
+            1,
+        ));
     }
     let chosen = highest_version(name, bound, &required)?;
     let files = read_package_tree(&chosen)?;
@@ -405,6 +538,8 @@ fn resolve_registry(
             version: manifest.version,
             path: "kayd".to_string(),
             sumad: Some(sumad),
+            commit: None,
+            selectors: Vec::new(),
         },
         cached,
     ))
@@ -448,6 +583,8 @@ fn resolve_archive(
             version: manifest.version,
             path: url.to_string(),
             sumad: Some(sumad),
+            commit: None,
+            selectors: Vec::new(),
         },
         cached,
     ))
@@ -531,6 +668,16 @@ fn render_lock(locked: &[LockEntry]) -> String {
         if let Some(sumad) = &entry.sumad {
             out.push_str(&format!("sumad = \"{sumad}\"\n"));
         }
+        if let Some(commit) = &entry.commit {
+            out.push_str(&format!("commit = {}\n", document::quote(commit)));
+            let mut selectors = entry.selectors.clone();
+            selectors.sort();
+            selectors.dedup();
+            out.push_str(&format!(
+                "codsiyo = {}\n",
+                toml::Value::Array(selectors.into_iter().map(toml::Value::String).collect())
+            ));
+        }
     }
     out
 }
@@ -565,7 +712,7 @@ fn attach_document_error(error: SoplangError, text: &str, path: &Path) -> Soplan
     crate::frontend::source_error(error, text, Some(path))
 }
 
-fn find_manifest_dir(start: &Path) -> Option<PathBuf> {
+pub(crate) fn find_manifest_dir(start: &Path) -> Option<PathBuf> {
     let mut dir = start.canonicalize().ok()?;
     if !dir.is_dir() {
         dir.pop();
@@ -645,6 +792,9 @@ pub(crate) fn is_package_name(name: &str) -> bool {
 }
 
 fn classify_at(spec: &str, line: usize) -> Result<Spec, SoplangError> {
+    if let Some(source) = git::parse(spec)? {
+        return Ok(Spec::Git(source));
+    }
     if let Some(constraint) = spec.strip_prefix("kayd:") {
         parse_constraint(constraint)?;
         return Ok(Spec::Registry(constraint.to_string()));
@@ -774,7 +924,7 @@ fn collect_package(
     let mut files = Vec::new();
     let mut total = 0usize;
     if manifest.source == "." {
-        read_tree(dir, "", &mut files, &mut total)?;
+        read_tree(dir, "", &mut files, &mut total, false)?;
     } else {
         let manifest_path = dir.join(MANIFEST_FILE);
         let bytes =
@@ -785,7 +935,7 @@ fn collect_package(
         if !source.is_dir() {
             return Err(manifest_error("gelid lama helin.", 1));
         }
-        read_tree(&source, &manifest.source, &mut files, &mut total)?;
+        read_tree(&source, &manifest.source, &mut files, &mut total, false)?;
     }
     if !files.iter().any(|(path, _)| path == "soplang.toml") {
         return Err(manifest_error(
@@ -799,7 +949,7 @@ fn collect_package(
 fn read_package_tree(dir: &Path) -> Result<Vec<(String, Vec<u8>)>, SoplangError> {
     let mut files = Vec::new();
     let mut total = 0usize;
-    read_tree(dir, "", &mut files, &mut total)?;
+    read_tree(dir, "", &mut files, &mut total, true)?;
     Ok(files)
 }
 
@@ -808,6 +958,7 @@ fn read_tree(
     prefix: &str,
     files: &mut Vec<(String, Vec<u8>)>,
     total: &mut usize,
+    include_hidden: bool,
 ) -> Result<(), SoplangError> {
     let entries = fs::read_dir(dir).map_err(|error| {
         manifest_error(
@@ -827,7 +978,16 @@ fn read_tree(
         let Some(name) = name.to_str() else {
             return Err(manifest_error("Magaca faylka xirmada ma aha UTF-8.", 1));
         };
-        if name.starts_with('.') || name == "soplang.lock" {
+        if name.eq_ignore_ascii_case(".git") {
+            if include_hidden {
+                return Err(manifest_error(
+                    "Kaydka xirmadu ma qaadan karo xogta gaarka ah ee Git.",
+                    1,
+                ));
+            }
+            continue;
+        }
+        if !include_hidden && (name.starts_with('.') || name == "soplang.lock") {
             continue;
         }
         let path = entry.path();
@@ -845,8 +1005,9 @@ fn read_tree(
         } else {
             format!("{prefix}/{name}")
         };
+        validate_archive_path(&relative)?;
         if metadata.is_dir() {
-            read_tree(&path, &relative, files, total)?;
+            read_tree(&path, &relative, files, total, include_hidden)?;
             continue;
         }
         if !metadata.is_file() {
@@ -859,6 +1020,12 @@ fn read_tree(
         if *total > MAX_PACKAGE {
             return Err(manifest_error("Xirmada aad ayay u weyn tahay.", 1));
         }
+        if files.len() >= 16384 {
+            return Err(manifest_error(
+                "Xirmadu waxay leedahay faylal aad u badan.",
+                1,
+            ));
+        }
         files.push((relative, bytes));
     }
     Ok(())
@@ -867,35 +1034,38 @@ fn read_tree(
 fn store_tree(sumad: &str, files: &[(String, Vec<u8>)]) -> Result<PathBuf, SoplangError> {
     let cache = cache_root()?;
     let dest = cache.join(sumad);
+    let _publication = cache::PublicationLock::acquire(&cache, sumad)?;
     if dest.is_dir() && hash_dir(&dest).ok().as_deref() == Some(sumad) {
         return Ok(dest);
     }
-    fs::create_dir_all(&cache)
-        .map_err(|error| manifest_error(format!("Kaydka lama furin. {}", io_reason(&error)), 1))?;
-    let temp = cache.join(format!(".{sumad}.sopliin"));
-    write_tree(&temp, files)?;
-    if hash_dir(&temp)? != sumad {
-        let _ = fs::remove_dir_all(&temp);
+    let temp = cache::TempDirectory::new(&cache, "tree")?;
+    write_tree_contents(&temp.path, files)?;
+    if hash_dir(&temp.path)? != sumad {
         return Err(manifest_error(
             "Summadda xirmada way isbeddeshay inta lagu kaydinayey.",
             1,
         ));
     }
+    // Recheck after staging: another installer may have published this tree.
+    if dest.is_dir() && hash_dir(&dest).ok().as_deref() == Some(sumad) {
+        return Ok(dest);
+    }
     if dest.exists() {
-        fs::remove_dir_all(&dest).map_err(|error| {
+        fs::remove_dir_all(&dest).map_err(|failure| {
             manifest_error(
-                format!("Kaydka lama beddeli karo. {}", io_reason(&error)),
+                format!("Kaydka lama beddeli karo. {}", io_reason(&failure)),
                 1,
             )
         })?;
     }
-    fs::rename(&temp, &dest).map_err(|error| {
-        manifest_error(
-            format!("Kaydka lama beddeli karo. {}", io_reason(&error)),
+    match fs::rename(&temp.path, &dest) {
+        Ok(()) => Ok(dest),
+        Err(_) if hash_dir(&dest).ok().as_deref() == Some(sumad) => Ok(dest),
+        Err(failure) => Err(manifest_error(
+            format!("Kaydka lama beddeli karo. {}", io_reason(&failure)),
             1,
-        )
-    })?;
-    Ok(dest)
+        )),
+    }
 }
 
 fn hash_dir(dir: &Path) -> Result<String, SoplangError> {
@@ -920,21 +1090,38 @@ fn hash_files(files: &[(String, Vec<u8>)]) -> String {
 }
 
 fn write_tree(dir: &Path, files: &[(String, Vec<u8>)]) -> Result<(), SoplangError> {
-    let _ = fs::remove_dir_all(dir);
-    fs::create_dir_all(dir).map_err(|error| {
-        manifest_error(format!("Xirmada lama qori karin. {}", io_reason(&error)), 1)
+    if let Some(parent) = dir.parent() {
+        fs::create_dir_all(parent).map_err(|failure| manifest_error(io_reason(&failure), 1))?;
+    }
+    fs::create_dir(dir).map_err(|failure| {
+        manifest_error(
+            format!("Xirmada lama qori karin. {}", io_reason(&failure)),
+            1,
+        )
     })?;
+    write_tree_contents(dir, files)
+}
+
+fn write_tree_contents(dir: &Path, files: &[(String, Vec<u8>)]) -> Result<(), SoplangError> {
     for (relative, bytes) in files {
         validate_archive_path(relative)?;
         let path = dir.join(relative);
         if let Some(parent) = path.parent() {
-            if !parent.as_os_str().is_empty() {
-                fs::create_dir_all(parent).map_err(|error| {
-                    manifest_error(format!("Xirmada lama qori karin. {}", io_reason(&error)), 1)
-                })?;
-            }
+            fs::create_dir_all(parent).map_err(|failure| manifest_error(io_reason(&failure), 1))?;
         }
-        write_bytes(&path, bytes)?;
+        let mut file = fs::OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(&path)
+            .map_err(|failure| {
+                manifest_error(
+                    format!("Faylka xirmada lama qori karin. {}", io_reason(&failure)),
+                    1,
+                )
+            })?;
+        file.write_all(bytes)
+            .and_then(|_| file.sync_all())
+            .map_err(|failure| manifest_error(io_reason(&failure), 1))?;
     }
     Ok(())
 }
@@ -1000,6 +1187,12 @@ fn unpack(bytes: &[u8]) -> Result<Vec<(String, Vec<u8>)>, SoplangError> {
 }
 
 fn download(url: &str) -> Result<Vec<u8>, SoplangError> {
+    if git::offline() {
+        return Err(manifest_error(
+            "Soo dejin lama samayn karo marka offline la yahay.",
+            1,
+        ));
+    }
     let agent: Agent = Agent::config_builder()
         .timeout_global(Some(Duration::from_secs(60)))
         .timeout_connect(Some(Duration::from_secs(30)))
@@ -1042,6 +1235,11 @@ fn download(url: &str) -> Result<Vec<u8>, SoplangError> {
 fn validate_archive_path(path: &str) -> Result<(), SoplangError> {
     let check = Path::new(path);
     if path.is_empty()
+        || path.len() > 4096
+        || path.split('/').count() > 64
+        || path.split('/').any(|part| {
+            part.is_empty() || matches!(part, "." | "..") || part.eq_ignore_ascii_case(".git")
+        })
         || path.starts_with('/')
         || path.contains(['\\', ':'])
         || check.is_absolute()
@@ -1055,7 +1253,14 @@ fn validate_archive_path(path: &str) -> Result<(), SoplangError> {
 }
 
 fn write_text(path: &Path, text: &str) -> Result<(), SoplangError> {
-    write_bytes(path, text.as_bytes())
+    crate::runtime::replace_file_bytes(path, text.as_bytes()).map_err(|error| {
+        runtime_error_ex(
+            error.message(),
+            1,
+            1,
+            error.meta().clone().with_code(codes::E057_PACKAGE),
+        )
+    })
 }
 
 fn write_bytes(path: &Path, bytes: &[u8]) -> Result<(), SoplangError> {
