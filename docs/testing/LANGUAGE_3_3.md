@@ -54,3 +54,13 @@ cargo test --locked --test csv_tests --test llvm_ir_tests
 
 The CSV suite covers quoted fields, numeric cells, a trailing newline, catchable
 parse and type failures, and LLVM execution at optimization levels 0 and 2.
+
+## URL encoding
+
+```sh
+cargo test --locked --test url_tests --test llvm_ir_tests
+```
+
+The URL suite covers component percent-encoding, form `+` spaces, preserved
+plus signs, invalid hex and modes, and LLVM execution at optimization levels
+0 and 2.

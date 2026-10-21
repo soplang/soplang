@@ -21,6 +21,7 @@ mod binary_files;
 mod filesystem;
 mod json;
 mod csv;
+mod url;
 pub mod stdlib;
 pub mod value;
 

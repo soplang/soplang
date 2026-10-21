@@ -952,6 +952,21 @@ qor("llvm csv ok")
     }
 }
 
+#[test]
+fn test_llvm_url() {
+    let source = r#"
+hawl hubi(v, name) { haddii (!v) { tuur name } }
+hubi(url_qor("a b") == "a%20b" && url_akhris("a%20b") == "a b", "url")
+qor("llvm url ok")
+"#;
+    for opt in [0, 2] {
+        assert_eq!(
+            run_llvm_with_opt(&format!("llvm_url_{opt}"), source, opt),
+            "llvm url ok\n"
+        );
+    }
+}
+
 fn run_llvm_with_opt_in_dir(name: &str, source: &str, opt: u8, dir: &Path) -> String {
     let stmts = soplang::frontend::parse_source(source, None).expect("parse");
     let sym = analyze(&stmts).expect("analyze");

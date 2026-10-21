@@ -200,6 +200,24 @@ pub fn builtin_csv_qor(args: Vec<Value>) -> Result<Value, SoplangError> {
     Ok(Value::Str(super::csv::generate(&args[0])?))
 }
 
+pub fn builtin_url_qor(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity_range(&args, "url_qor", 1, 2)?;
+    let Value::Str(text) = &args[0] else {
+        return Err(err_type("url_qor() waa inuu helaa qoraal."));
+    };
+    let form = super::url::form_mode(args.get(1), "url_qor")?;
+    Ok(Value::Str(super::url::encode(text, form)))
+}
+
+pub fn builtin_url_akhris(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity_range(&args, "url_akhris", 1, 2)?;
+    let Value::Str(text) = &args[0] else {
+        return Err(err_type("url_akhris() waa inuu helaa qoraal."));
+    };
+    let form = super::url::form_mode(args.get(1), "url_akhris")?;
+    Ok(Value::Str(super::url::decode(text, form)?))
+}
+
 fn optional_truthy(args: &[Value], index: usize) -> bool {
     args.get(index).is_some_and(|value| value.is_truthy())
 }
@@ -652,6 +670,8 @@ const BUILTINS: &[(&str, super::NativeFn, CallbackArity)] = &[
     ("json_qor", builtin_json_qor, CallbackArity::range(1, 1)),
     ("csv_akhris", builtin_csv_akhris, CallbackArity::range(1, 1)),
     ("csv_qor", builtin_csv_qor, CallbackArity::range(1, 1)),
+    ("url_qor", builtin_url_qor, CallbackArity::range(1, 2)),
+    ("url_akhris", builtin_url_akhris, CallbackArity::range(1, 2)),
     ("fayl_jiraa", builtin_fayl_jiraa, CallbackArity::range(1, 1)),
     ("fayl_xog", builtin_fayl_xog, CallbackArity::range(1, 1)),
     ("isku_xidh", builtin_isku_xidh, CallbackArity::range(1, usize::MAX)),

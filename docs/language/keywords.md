@@ -255,6 +255,8 @@ these explanations do not establish a historical abbreviation or SLS approval.
 | `json_qor` | Generate JSON text                      | `JSON.stringify`     | `json_qor({a: 1})`                         |
 | `csv_akhris` | Parse CSV text into rows of fields    | (CSV parse)          | `csv_akhris("a,b")`                        |
 | `csv_qor` | Generate CSV text from rows             | (CSV write)          | `csv_qor([["a", 1]])`                      |
+| `url_qor` | Percent-encode text                     | `encodeURIComponent` | `url_qor("Ayaan Cali", "foom")`            |
+| `url_akhris` | Percent-decode text                  | `decodeURIComponent` | `url_akhris("Ayaan%20Cali")`               |
 | `fayl_jiraa` | Test whether a path exists              | (path exists)        | `haddii (fayl_jiraa("magac.txt")) {...}`   |
 | `fayl_xog` | Query path metadata                     | (path stat)          | `door x = fayl_xog("magac.txt")`           |
 | `isku_xidh` | Join path segments                     | (path join)          | `isku_xidh("data", "magac.txt")`           |
