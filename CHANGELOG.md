@@ -8,6 +8,8 @@ All notable changes to this project will be documented in this file.
 
 - Keep class identity separate from object fields so JSON input cannot invoke class methods or satisfy class contracts. Reject non-JSON whitespace.
 
+- Own file and socket resources per runtime context and close them on context teardown. Reserve unique temporary files for atomic replacement, preserving unrelated neighbors and symlink targets. Report dangling symlinks accurately.
+
 ### Added
 
 * [3.2.0 implementation milestone notes](docs/releases/3.2.0.md) record completed language foundations. A version tag and distribution builds remain pending.

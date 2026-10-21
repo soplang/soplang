@@ -159,3 +159,12 @@ contracts, ordinary object iteration, field copies, round trips, inheritance,
 constructors, and retained identity across automatic collection. A host test
 checks context isolation and weak metadata cleanup. JSON parser tests reject
 vertical tab and form feed outside strings.
+
+## Resource ownership and replacement regression checks
+
+The locked debug suite passes 347 tests, including 52 LLVM tests. New host
+checks cover foreign-context file and socket operations, listener ports released
+on context teardown, and TCP/WebSocket peers observing transport closure.
+Filesystem tests cover concurrent atomic replacements, existing scratch-looking
+neighbors, failed replacement cleanup, symlink targets, and dangling metadata.
+The existing file and network integration suites exercise both JIT and LLVM.

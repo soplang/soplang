@@ -59,3 +59,8 @@ is a 301 or 302 response with a `Location` header.
 
 The listener serves one request at a time. Other connections wait in the
 operating-system queue until the next `server_aqbal`.
+
+Open listeners and connections belong to the current runtime context. Another
+session cannot use or close them. Destroying the context closes its remaining
+TCP, UDP, HTTP, and WebSocket resources. Close them explicitly when finished
+to release resources during a long-running session.

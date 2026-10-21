@@ -56,3 +56,6 @@ place. `tirtir_gal` does not follow a directory symlink.
 `wareeji_fayl` renames on the same filesystem. Across filesystems, a file or
 symlink is copied and then the source is removed. A directory move across
 filesystems fails, so a partial tree is not left behind.
+
+`fayl_xog` describes a dangling symlink as an existing `"xidhiidh"`, even when
+its target is missing. `fayl_jiraa` tests whether the target can be reached.

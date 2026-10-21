@@ -2,7 +2,9 @@
 
 These calls open one file and keep a position in it. Paths resolve from the
 process working directory. Close a handle with `fayl_xidh`. A handle that was
-not closed stays open until the process exits. Failures use `E058` and are
+not closed stays open until its runtime context is destroyed. Handles belong
+to the context that opened them; another session cannot read or close them.
+Use `dhammee` to close handles promptly, including after errors. Failures use `E058` and are
 catchable.
 
 | Function | Meaning |
@@ -25,9 +27,14 @@ The handle is a `walax` with `nooc` `"fayl"`, `aqoonsi`, and `hab`.
 
 ## Atomic replacement
 
-`fayl_beddel` writes `.<name>.sopliin` in the destination directory, flushes it,
+`fayl_beddel` creates a unique temporary file in the destination directory, flushes it,
 then renames it onto the destination. On POSIX, that rename replaces an existing
 file in the same directory atomically. On Windows, the replacement uses
 `MoveFileExW` with replace-existing and write-through. A crash before the rename
 leaves the temporary file and the previous destination. The rename replaces a
 symlink itself and does not overwrite the symlink's target.
+
+Temporary files are created exclusively. Existing neighboring files and symlinks
+are never used as scratch space. Concurrent replacements use separate temporary
+files; each successful rename installs one complete value. Failure removes only
+the temporary file created by that operation.

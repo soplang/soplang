@@ -4,23 +4,24 @@ use std::collections::HashMap;
 use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
 use std::sync::atomic::{AtomicI64, Ordering};
-use std::sync::Mutex;
 use std::time::Duration;
 
+use super::context::{RuntimeLocal, RuntimeState};
 use super::value::Value;
 use crate::error::{codes, runtime_error_ex, ErrorMeta, SoplangError};
+
+const STATE: RuntimeLocal<RuntimeState> = RuntimeLocal::new(|state| state);
 
 const DEFAULT_TIMEOUT: Duration = Duration::from_secs(30);
 const DEFAULT_LIMIT: usize = 1024 * 1024;
 const MAX_LIMIT: usize = 16 * 1024 * 1024;
 const MAX_HEADERS: usize = 8 * 1024;
 
-struct Listener {
+pub(super) struct Listener {
     socket: TcpListener,
 }
 
 static NEXT_ID: AtomicI64 = AtomicI64::new(1);
-static LISTENERS: Mutex<Option<HashMap<i64, Listener>>> = Mutex::new(None);
 
 fn error(message: impl Into<String>) -> SoplangError {
     runtime_error_ex(
@@ -51,67 +52,99 @@ struct RawRequest {
 }
 
 pub fn open(host: &str, port: i64) -> Result<Value, SoplangError> {
-    if host.is_empty() {
-        return Err(error("Martigeliyaha serverka ma madhnaan karo."));
-    }
-    let port = u16::try_from(port).map_err(|_| error("Dekedda serverka ma saxna."))?;
-    let listener = TcpListener::bind(format!("{host}:{port}"))
-        .map_err(|failure| error(format!("Serverka lama furi karo. {}", crate::error::io_reason(&failure))))?;
-    let bound = listener
-        .local_addr()
-        .map_err(|failure| error(format!("Dekedda serverka lama aqoonin. {}", crate::error::io_reason(&failure))))?;
-    let id = NEXT_ID.fetch_add(1, Ordering::Relaxed);
-    let mut listeners = LISTENERS.lock().unwrap_or_else(|poison| poison.into_inner());
-    listeners.get_or_insert_with(HashMap::new).insert(
-        id,
-        Listener { socket: listener },
-    );
-    Ok(object(&[
-        ("aqoonsi", Value::Int(id)),
-        ("martigeliye", Value::Str(host.to_string())),
-        ("deked", Value::Int(i64::from(bound.port()))),
-    ]))
+    STATE.with(|state| {
+        if host.is_empty() {
+            return Err(error("Martigeliyaha serverka ma madhnaan karo."));
+        }
+        let port = u16::try_from(port).map_err(|_| error("Dekedda serverka ma saxna."))?;
+        let listener = TcpListener::bind(format!("{host}:{port}")).map_err(|failure| {
+            error(format!(
+                "Serverka lama furi karo. {}",
+                crate::error::io_reason(&failure)
+            ))
+        })?;
+        let bound = listener.local_addr().map_err(|failure| {
+            error(format!(
+                "Dekedda serverka lama aqoonin. {}",
+                crate::error::io_reason(&failure)
+            ))
+        })?;
+        let id = NEXT_ID.fetch_add(1, Ordering::Relaxed);
+        let mut listeners = state.http_listeners.borrow_mut();
+        listeners
+            .get_or_insert_with(HashMap::new)
+            .insert(id, Listener { socket: listener });
+        Ok(object(&[
+            ("aqoonsi", Value::Int(id)),
+            ("martigeliye", Value::Str(host.to_string())),
+            ("deked", Value::Int(i64::from(bound.port()))),
+        ]))
+    })
 }
 
 pub fn close(server: &Value) -> Result<Value, SoplangError> {
-    let id = server_id(server)?;
-    LISTENERS
-        .lock()
-        .unwrap_or_else(|poison| poison.into_inner())
-        .get_or_insert_with(HashMap::new)
-        .remove(&id);
-    Ok(Value::Null)
+    STATE.with(|state| {
+        let id = server_id(server)?;
+        state
+            .http_listeners
+            .borrow_mut()
+            .get_or_insert_with(HashMap::new)
+            .remove(&id);
+        Ok(Value::Null)
+    })
 }
 
-pub fn accept(server: &Value, routes: &Value, options: Option<&Value>) -> Result<Value, SoplangError> {
-    let _ = std::io::stdout().flush();
-    let id = server_id(server)?;
-    let routes = compile_routes(routes)?;
-    let (timeout, limit) = limits(options)?;
-    let mut stream = {
-        let listeners = LISTENERS.lock().unwrap_or_else(|poison| poison.into_inner());
-        let listener = listeners
-            .as_ref()
-            .and_then(|listeners| listeners.get(&id))
-            .ok_or_else(|| error("Serverka waa la xidhay."))?;
-        listener.socket.accept().map_err(|failure| {
-            error(format!("Codsiga lama aqbalin. {}", crate::error::io_reason(&failure)))
-        })?
-        .0
-    };
-    let _ = stream.set_read_timeout(Some(timeout));
-    let _ = stream.set_write_timeout(Some(timeout));
-    match read_request(&mut stream, limit) {
-        Ok(request) => dispatch(&mut stream, &routes, request),
-        Err(ResponseFault::Reply(status, message)) => {
-            let _ = write_response(&mut stream, status, &[], &error_body(&message), "application/json");
-            Ok(Value::Null)
+pub fn accept(
+    server: &Value,
+    routes: &Value,
+    options: Option<&Value>,
+) -> Result<Value, SoplangError> {
+    STATE.with(|state| {
+        let _ = std::io::stdout().flush();
+        let id = server_id(server)?;
+        let routes = compile_routes(routes)?;
+        let (timeout, limit) = limits(options)?;
+        let mut stream = {
+            let listeners = state.http_listeners.borrow_mut();
+            let listener = listeners
+                .as_ref()
+                .and_then(|listeners| listeners.get(&id))
+                .ok_or_else(|| error("Serverka waa la xidhay."))?;
+            listener
+                .socket
+                .accept()
+                .map_err(|failure| {
+                    error(format!(
+                        "Codsiga lama aqbalin. {}",
+                        crate::error::io_reason(&failure)
+                    ))
+                })?
+                .0
+        };
+        let _ = stream.set_read_timeout(Some(timeout));
+        let _ = stream.set_write_timeout(Some(timeout));
+        match read_request(&mut stream, limit) {
+            Ok(request) => dispatch(&mut stream, &routes, request),
+            Err(ResponseFault::Reply(status, message)) => {
+                let _ = write_response(
+                    &mut stream,
+                    status,
+                    &[],
+                    &error_body(&message),
+                    "application/json",
+                );
+                Ok(Value::Null)
+            }
+            Err(ResponseFault::Stop(message)) => Err(error(message)),
         }
-        Err(ResponseFault::Stop(message)) => Err(error(message)),
-    }
+    })
 }
 
-fn dispatch(stream: &mut TcpStream, routes: &[Route], request: RawRequest) -> Result<Value, SoplangError> {
+fn dispatch(
+    stream: &mut TcpStream,
+    routes: &[Route],
+    request: RawRequest,
+) -> Result<Value, SoplangError> {
     let mut path_match = None;
     let mut method_mismatch = false;
     for route in routes {
@@ -125,8 +158,18 @@ fn dispatch(stream: &mut TcpStream, routes: &[Route], request: RawRequest) -> Re
     }
     let Some((route, params)) = path_match else {
         let status = if method_mismatch { 405 } else { 404 };
-        let message = if method_mismatch { "Habka lama oggola." } else { "Lama helin." };
-        let _ = write_response(stream, status, &[], &error_body(message), "application/json");
+        let message = if method_mismatch {
+            "Habka lama oggola."
+        } else {
+            "Lama helin."
+        };
+        let _ = write_response(
+            stream,
+            status,
+            &[],
+            &error_body(message),
+            "application/json",
+        );
         return Ok(Value::Null);
     };
     let request_value = match request_object(&request, params) {
@@ -140,12 +183,23 @@ fn dispatch(stream: &mut TcpStream, routes: &[Route], request: RawRequest) -> Re
         Ok(value) => {
             let response = match response_from(&value) {
                 Ok(response) => response,
-                Err(message) => (500, Vec::new(), error_body(&message), "application/json".to_string()),
+                Err(message) => (
+                    500,
+                    Vec::new(),
+                    error_body(&message),
+                    "application/json".to_string(),
+                ),
             };
             let _ = write_response(stream, response.0, &response.1, &response.2, &response.3);
         }
         Err(failure) => {
-            let _ = write_response(stream, 500, &[], &error_body(failure.message()), "application/json");
+            let _ = write_response(
+                stream,
+                500,
+                &[],
+                &error_body(failure.message()),
+                "application/json",
+            );
         }
     }
     Ok(Value::Null)
@@ -153,10 +207,16 @@ fn dispatch(stream: &mut TcpStream, routes: &[Route], request: RawRequest) -> Re
 
 fn request_object(request: &RawRequest, params: HashMap<String, String>) -> Result<Value, String> {
     let text = std::str::from_utf8(&request.body).ok().map(str::to_owned);
-    let content_type = request.headers.get("content-type").cloned().unwrap_or_default();
+    let content_type = request
+        .headers
+        .get("content-type")
+        .cloned()
+        .unwrap_or_default();
     let json = if content_type.to_ascii_lowercase().contains("json") {
         match &text {
-            Some(text) if !text.is_empty() => Some(super::json::parse(text).map_err(|_| "JSON-ka codsiga ma saxna.".to_string())?),
+            Some(text) if !text.is_empty() => Some(
+                super::json::parse(text).map_err(|_| "JSON-ka codsiga ma saxna.".to_string())?,
+            ),
             _ => None,
         }
     } else {
@@ -185,11 +245,18 @@ fn read_request(stream: &mut TcpStream, limit: usize) -> Result<RawRequest, Resp
     let header_end;
     loop {
         if buffer.len() > MAX_HEADERS {
-            return Err(ResponseFault::Reply(431, "Cinwaannada HTTP way ka weyn yihiin.".into()));
+            return Err(ResponseFault::Reply(
+                431,
+                "Cinwaannada HTTP way ka weyn yihiin.".into(),
+            ));
         }
-        let read = stream.read(&mut chunk).map_err(|_| ResponseFault::Stop("Akhriska codsiga wuu fashilmay.".into()))?;
+        let read = stream
+            .read(&mut chunk)
+            .map_err(|_| ResponseFault::Stop("Akhriska codsiga wuu fashilmay.".into()))?;
         if read == 0 {
-            return Err(ResponseFault::Stop("Xidhiidhkii codsiga wuu xirmay.".into()));
+            return Err(ResponseFault::Stop(
+                "Xidhiidhkii codsiga wuu xirmay.".into(),
+            ));
         }
         buffer.extend_from_slice(&chunk[..read]);
         if let Some(position) = buffer.windows(4).position(|mark| mark == b"\r\n\r\n") {
@@ -199,9 +266,14 @@ fn read_request(stream: &mut TcpStream, limit: usize) -> Result<RawRequest, Resp
     }
     let mut headers = [httparse::EMPTY_HEADER; 64];
     let mut parsed = httparse::Request::new(&mut headers);
-    let status = parsed.parse(&buffer[..header_end]).map_err(|_| ResponseFault::Reply(400, "Codsiga HTTP ma saxna.".into()))?;
+    let status = parsed
+        .parse(&buffer[..header_end])
+        .map_err(|_| ResponseFault::Reply(400, "Codsiga HTTP ma saxna.".into()))?;
     if status.is_partial() {
-        return Err(ResponseFault::Reply(400, "Codsiga HTTP ma dhammaystirna.".into()));
+        return Err(ResponseFault::Reply(
+            400,
+            "Codsiga HTTP ma dhammaystirna.".into(),
+        ));
     }
     let method = parsed.method.unwrap_or("").to_ascii_uppercase();
     if !matches!(method.as_str(), "GET" | "POST" | "PUT" | "PATCH" | "DELETE") {
@@ -212,29 +284,49 @@ fn read_request(stream: &mut TcpStream, limit: usize) -> Result<RawRequest, Resp
     let mut header_map = HashMap::new();
     for header in parsed.headers {
         let name = header.name.to_ascii_lowercase();
-        let value = std::str::from_utf8(header.value).map_err(|_| ResponseFault::Reply(400, "Cinwaanka HTTP ma aha UTF-8.".into()))?;
+        let value = std::str::from_utf8(header.value)
+            .map_err(|_| ResponseFault::Reply(400, "Cinwaanka HTTP ma aha UTF-8.".into()))?;
         header_map.insert(name, value.to_string());
     }
     let length = match header_map.get("content-length") {
-        Some(value) => value.parse::<usize>().map_err(|_| ResponseFault::Reply(400, "Dhererka jidhka ma saxna.".into()))?,
+        Some(value) => value
+            .parse::<usize>()
+            .map_err(|_| ResponseFault::Reply(400, "Dhererka jidhka ma saxna.".into()))?,
         None if header_map.contains_key("transfer-encoding") => {
-            return Err(ResponseFault::Reply(411, "Jidhka chunked lama taageero.".into()));
+            return Err(ResponseFault::Reply(
+                411,
+                "Jidhka chunked lama taageero.".into(),
+            ));
         }
         None => 0,
     };
     if length > limit {
-        return Err(ResponseFault::Reply(413, "Jidhka codsiga wuu ka weyn yahay xadka.".into()));
+        return Err(ResponseFault::Reply(
+            413,
+            "Jidhka codsiga wuu ka weyn yahay xadka.".into(),
+        ));
     }
     let mut body = buffer[header_end..].to_vec();
     while body.len() < length {
-        let read = stream.read(&mut chunk).map_err(|_| ResponseFault::Stop("Akhriska jidhka wuu fashilmay.".into()))?;
+        let read = stream
+            .read(&mut chunk)
+            .map_err(|_| ResponseFault::Stop("Akhriska jidhka wuu fashilmay.".into()))?;
         if read == 0 {
-            return Err(ResponseFault::Reply(400, "Jidhka codsiga ma dhammaystirna.".into()));
+            return Err(ResponseFault::Reply(
+                400,
+                "Jidhka codsiga ma dhammaystirna.".into(),
+            ));
         }
         body.extend_from_slice(&chunk[..read]);
     }
     body.truncate(length);
-    Ok(RawRequest { method, path, query, headers: header_map, body })
+    Ok(RawRequest {
+        method,
+        path,
+        query,
+        headers: header_map,
+        body,
+    })
 }
 
 fn split_target(target: &str) -> Result<(String, HashMap<String, String>), ResponseFault> {
@@ -270,7 +362,9 @@ fn compile_route(value: &Value) -> Result<Route, SoplangError> {
     let Value::List(route) = value else {
         return Err(error("Waddo kasta waa inay noqotaa teed saddex qayb ah."));
     };
-    let route = route.try_borrow().map_err(|_| error("Teedka hadda lama akhriyi karo."))?;
+    let route = route
+        .try_borrow()
+        .map_err(|_| error("Teedka hadda lama akhriyi karo."))?;
     if route.len() != 3 {
         return Err(error("Waddo kasta waa inay noqotaa teed saddex qayb ah."));
     }
@@ -279,7 +373,9 @@ fn compile_route(value: &Value) -> Result<Route, SoplangError> {
     };
     let method = method.to_ascii_uppercase();
     if !matches!(method.as_str(), "GET" | "POST" | "PUT" | "PATCH" | "DELETE") {
-        return Err(error("Habka waddada waa inuu noqdaa GET, POST, PUT, PATCH, ama DELETE."));
+        return Err(error(
+            "Habka waddada waa inuu noqdaa GET, POST, PUT, PATCH, ama DELETE.",
+        ));
     }
     let Value::Str(path) = &route[1] else {
         return Err(error("Jidka waddada waa inuu noqdaa qoraal."));
@@ -288,10 +384,16 @@ fn compile_route(value: &Value) -> Result<Route, SoplangError> {
         return Err(error("Jidka waddada waa inuu ka bilaabmaa /."));
     }
     let handler = match &route[2] {
-        handler @ (Value::Function(_) | Value::NativeFunction(_) | Value::Closure(_)) => handler.clone(),
+        handler @ (Value::Function(_) | Value::NativeFunction(_) | Value::Closure(_)) => {
+            handler.clone()
+        }
         _ => return Err(error("Qabta-hawsha waddada waa inuu noqdaa hawl.")),
     };
-    Ok(Route { method, parts: parse_pattern(path)?, handler })
+    Ok(Route {
+        method,
+        parts: parse_pattern(path)?,
+        handler,
+    })
 }
 
 fn parse_pattern(path: &str) -> Result<Vec<Part>, SoplangError> {
@@ -407,9 +509,23 @@ fn limits(options: Option<&Value>) -> Result<(Duration, usize), SoplangError> {
     Ok((timeout, limit))
 }
 
-fn write_response(stream: &mut TcpStream, status: u16, headers: &[(String, String)], body: &[u8], content_type: &str) -> std::io::Result<()> {
-    let mut message = format!("HTTP/1.1 {status} {}\r\nContent-Length: {}\r\nConnection: close\r\n", reason(status), body.len());
-    if !content_type.is_empty() && !headers.iter().any(|(name, _)| name.eq_ignore_ascii_case("content-type")) {
+fn write_response(
+    stream: &mut TcpStream,
+    status: u16,
+    headers: &[(String, String)],
+    body: &[u8],
+    content_type: &str,
+) -> std::io::Result<()> {
+    let mut message = format!(
+        "HTTP/1.1 {status} {}\r\nContent-Length: {}\r\nConnection: close\r\n",
+        reason(status),
+        body.len()
+    );
+    if !content_type.is_empty()
+        && !headers
+            .iter()
+            .any(|(name, _)| name.eq_ignore_ascii_case("content-type"))
+    {
         message.push_str(&format!("Content-Type: {content_type}\r\n"));
     }
     for (name, value) in headers {
@@ -445,9 +561,11 @@ fn reason(status: u16) -> &'static str {
 fn error_body(message: &str) -> Vec<u8> {
     let mut fields = HashMap::new();
     fields.insert("khalad".to_string(), Value::Str(message.to_string()));
-    super::json::stringify(&Value::Object(std::rc::Rc::new(std::cell::RefCell::new(fields))))
-        .unwrap_or_else(|_| "{\"khalad\":\"Khalad\"}".to_string())
-        .into_bytes()
+    super::json::stringify(&Value::Object(std::rc::Rc::new(std::cell::RefCell::new(
+        fields,
+    ))))
+    .unwrap_or_else(|_| "{\"khalad\":\"Khalad\"}".to_string())
+    .into_bytes()
 }
 
 fn server_id(value: &Value) -> Result<i64, SoplangError> {

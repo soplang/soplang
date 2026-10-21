@@ -5,6 +5,7 @@ use std::fs::{self, OpenOptions};
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::UNIX_EPOCH;
 
 use super::value::Value;
@@ -16,11 +17,13 @@ pub fn path_exists(path: &str) -> bool {
 
 pub fn path_info(path: &str) -> Result<Value, SoplangError> {
     let path = Path::new(path);
-    if !path.exists() {
-        return Ok(simple_object(&[("jir", Value::Bool(false))]));
-    }
-    let metadata = fs::symlink_metadata(path)
-        .map_err(|error| path_io_error(path, &error, "Akhriska xogta jidka"))?;
+    let metadata = match fs::symlink_metadata(path) {
+        Ok(metadata) => metadata,
+        Err(error) if error.kind() == io::ErrorKind::NotFound => {
+            return Ok(simple_object(&[("jir", Value::Bool(false))]));
+        }
+        Err(error) => return Err(path_io_error(path, &error, "Akhriska xogta jidka")),
+    };
     let kind = if metadata.file_type().is_symlink() {
         "xidhiidh"
     } else if metadata.is_dir() {
@@ -142,22 +145,13 @@ pub fn remove_directory(path: &str, recursive: bool) -> Result<(), SoplangError>
 }
 
 pub(super) fn replace_bytes(path: &Path, bytes: &[u8]) -> Result<(), SoplangError> {
-    let temp = temp_beside(path);
-    let write_temp = (|| {
-        let mut file = OpenOptions::new()
-            .write(true)
-            .create(true)
-            .truncate(true)
-            .open(&temp)?;
-        file.write_all(bytes)?;
-        file.sync_all()?;
-        Ok(())
-    })();
-    if let Err(error) = write_temp {
-        let _ = fs::remove_file(&temp);
-        return Err(path_io_error(path, &error, "Beddelka faylka"));
-    }
-    if let Err(error) = atomic_rename(&temp, path) {
+    let (temp, mut file) = create_temp_beside(path, |temp| {
+        OpenOptions::new().write(true).create_new(true).open(temp)
+    })
+    .map_err(|error| path_io_error(path, &error, "Beddelka faylka"))?;
+    let write_result = file.write_all(bytes).and_then(|_| file.sync_all());
+    drop(file); // Windows also requires the temporary handle to be closed.
+    if let Err(error) = write_result.and_then(|_| atomic_rename(&temp, path)) {
         let _ = fs::remove_file(&temp);
         return Err(path_io_error(path, &error, "Beddelka faylka"));
     }
@@ -168,16 +162,32 @@ fn destination_present(path: &Path) -> bool {
     fs::symlink_metadata(path).is_ok()
 }
 
-fn temp_beside(path: &Path) -> PathBuf {
-    let name = path
-        .file_name()
-        .and_then(|name| name.to_str())
-        .unwrap_or("fayl");
-    let file_name = format!(".{name}.sopliin");
-    match path.parent() {
-        Some(parent) if !parent.as_os_str().is_empty() => parent.join(file_name),
-        _ => PathBuf::from(file_name),
+// Creation reserves the name atomically. Never truncate or remove a path
+// belonging to an earlier operation or another process.
+fn create_temp_beside<T>(
+    path: &Path,
+    mut create: impl FnMut(&Path) -> io::Result<T>,
+) -> io::Result<(PathBuf, T)> {
+    static NEXT_TEMP: AtomicU64 = AtomicU64::new(0);
+    for _ in 0..128 {
+        let mut name = std::ffi::OsString::from(".");
+        name.push(
+            path.file_name()
+                .unwrap_or_else(|| std::ffi::OsStr::new("fayl")),
+        );
+        name.push(format!(
+            ".{}.{}.sopliin",
+            std::process::id(),
+            NEXT_TEMP.fetch_add(1, Ordering::Relaxed)
+        ));
+        let temp = path.with_file_name(name);
+        match create(&temp) {
+            Ok(value) => return Ok((temp, value)),
+            Err(error) if error.kind() == io::ErrorKind::AlreadyExists => continue,
+            Err(error) => return Err(error),
+        }
     }
+    Err(io::Error::from(io::ErrorKind::AlreadyExists))
 }
 
 fn move_across(from: &Path, to: &Path) -> Result<(), SoplangError> {
@@ -195,11 +205,8 @@ fn move_across(from: &Path, to: &Path) -> Result<(), SoplangError> {
     if metadata.file_type().is_symlink() {
         let target = fs::read_link(from)
             .map_err(|error| path_io_error(from, &error, "Wareejinta xidhiidhka"))?;
-        let temp = temp_beside(to);
-        if let Err(error) = place_symlink(&target, &temp) {
-            let _ = fs::remove_file(&temp);
-            return Err(path_io_error(to, &error, "Wareejinta xidhiidhka"));
-        }
+        let (temp, ()) = create_temp_beside(to, |temp| place_symlink(&target, temp))
+            .map_err(|error| path_io_error(to, &error, "Wareejinta xidhiidhka"))?;
         if let Err(error) = atomic_rename(&temp, to) {
             let _ = fs::remove_file(&temp);
             return Err(path_io_error(to, &error, "Wareejinta xidhiidhka"));
@@ -281,6 +288,73 @@ mod tests {
         let _ = fs::remove_dir_all(&dir);
         fs::create_dir_all(&dir).unwrap();
         dir
+    }
+
+    #[test]
+    fn replacement_preserves_neighbors_and_cleans_failed_writes() {
+        let dir = temp_dir();
+        let dest = dir.join("note.txt");
+        let neighbor = dir.join(".note.txt.sopliin");
+        fs::write(&dest, "old").unwrap();
+        fs::write(&neighbor, "unrelated").unwrap();
+        replace_bytes(&dest, b"new").unwrap();
+        assert_eq!(fs::read(&dest).unwrap(), b"new");
+        assert_eq!(fs::read(&neighbor).unwrap(), b"unrelated");
+        let folder = dir.join("folder");
+        fs::create_dir(&folder).unwrap();
+        assert!(replace_bytes(&folder, b"must fail").is_err());
+        assert_eq!(fs::read_dir(&dir).unwrap().count(), 3);
+        fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[test]
+    fn replacement_reserves_independent_temporaries_for_concurrent_writers() {
+        let dir = temp_dir();
+        let dest = dir.join("shared.txt");
+        let mut threads = Vec::new();
+        for byte in 1..=8 {
+            let dest = dest.clone();
+            threads.push(std::thread::spawn(move || {
+                for _ in 0..8 {
+                    replace_bytes(&dest, &vec![byte; 8192]).unwrap();
+                }
+            }));
+        }
+        for thread in threads {
+            thread.join().unwrap();
+        }
+        let bytes = fs::read(dest).unwrap();
+        assert_eq!(bytes.len(), 8192);
+        assert!(bytes.iter().all(|byte| *byte == bytes[0]));
+        assert_eq!(fs::read_dir(&dir).unwrap().count(), 1);
+        fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn replacement_never_follows_a_neighbor_or_destination_symlink() {
+        let dir = temp_dir();
+        let target = dir.join("target.txt");
+        let dest = dir.join("note.txt");
+        let neighbor = dir.join(".note.txt.sopliin");
+        fs::write(&target, "protected").unwrap();
+        std::os::unix::fs::symlink(&target, &neighbor).unwrap();
+        std::os::unix::fs::symlink(&target, &dest).unwrap();
+        replace_bytes(&dest, b"new").unwrap();
+        assert_eq!(fs::read(&target).unwrap(), b"protected");
+        assert_eq!(fs::read(&dest).unwrap(), b"new");
+        assert!(fs::symlink_metadata(neighbor)
+            .unwrap()
+            .file_type()
+            .is_symlink());
+        let dangling = dir.join("dangling");
+        std::os::unix::fs::symlink(dir.join("missing"), &dangling).unwrap();
+        let Value::Object(info) = path_info(dangling.to_str().unwrap()).unwrap() else {
+            panic!("metadata")
+        };
+        assert_eq!(info.borrow()["jir"], Value::Bool(true));
+        assert_eq!(info.borrow()["nooc"], Value::Str("xidhiidh".into()));
+        fs::remove_dir_all(dir).unwrap();
     }
 
     #[test]

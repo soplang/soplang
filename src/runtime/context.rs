@@ -13,6 +13,12 @@ pub(super) struct RuntimeState {
     pub current_source: RefCell<Option<crate::error::SourceSpan>>,
     pub try_depth: Cell<u32>,
     pub random: Cell<Option<u64>>,
+    pub files: RefCell<Option<HashMap<i64, super::file_handles::OpenFile>>>,
+    pub tcp_connections: RefCell<Option<HashMap<i64, std::net::TcpStream>>>,
+    pub tcp_listeners: RefCell<Option<HashMap<i64, std::net::TcpListener>>>,
+    pub udp_sockets: RefCell<Option<HashMap<i64, std::net::UdpSocket>>>,
+    pub http_listeners: RefCell<Option<HashMap<i64, super::http_server::Listener>>>,
+    pub websockets: RefCell<Option<HashMap<i64, super::websocket::Socket>>>,
     pub pending_error: RefCell<Option<crate::error::SoplangError>>,
     pub call_stack: RefCell<Vec<crate::error::StackFrame>>,
     pub errors: RefCell<HandleArena<Rc<crate::error::SoplangError>>>,
@@ -245,5 +251,130 @@ mod instance_tests {
         owner.collect();
         assert!(owner.state.instances.borrow().is_empty());
         assert_eq!(owner.memory_stats().values(), 0);
+    }
+}
+
+#[cfg(test)]
+mod resource_tests {
+    use super::super::{file_handles, http_server, net, websocket};
+    use super::*;
+    use std::time::Duration;
+
+    fn port(value: &Value) -> u16 {
+        let Value::Object(fields) = value else {
+            panic!("endpoint")
+        };
+        let Value::Int(port) = fields.borrow()["deked"] else {
+            panic!("port")
+        };
+        port as u16
+    }
+
+    #[test]
+    fn files_are_owned_by_the_opening_context() {
+        let owner = RuntimeContext::new();
+        let foreign = RuntimeContext::new();
+        let path = std::env::temp_dir().join(format!(
+            "soplang_owned_file_{}_{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
+        ));
+        let handle = owner.with(|| {
+            let handle = file_handles::open(path.to_str().unwrap(), "qor").unwrap();
+            file_handles::write(&handle, b"abc").unwrap();
+            file_handles::seek(&handle, 0, "bilow").unwrap();
+            handle
+        });
+        foreign.with(|| {
+            assert_eq!(
+                file_handles::read_bytes(&handle, 3).unwrap_err().code(),
+                Some("E058")
+            );
+            assert!(file_handles::close(&handle).is_err());
+        });
+        owner.with(|| assert_eq!(file_handles::position(&handle).unwrap(), Value::Int(0)));
+        let state = Rc::downgrade(&owner.state);
+        drop(owner);
+        assert!(state.upgrade().is_none());
+        std::fs::remove_file(path).unwrap();
+    }
+
+    #[test]
+    fn dropping_a_context_releases_listener_ports() {
+        let owner = RuntimeContext::new();
+        let foreign = RuntimeContext::new();
+        let (tcp, http, udp) = owner.with(|| {
+            (
+                net::listen("127.0.0.1", 0).unwrap(),
+                http_server::open("127.0.0.1", 0).unwrap(),
+                net::bind_udp("127.0.0.1", 0, Duration::from_millis(10)).unwrap(),
+            )
+        });
+        foreign.with(|| {
+            assert_eq!(
+                net::accept(&tcp, Duration::from_millis(1))
+                    .unwrap_err()
+                    .code(),
+                Some("E055")
+            );
+            assert_eq!(net::receive_udp(&udp, 1).unwrap_err().code(), Some("E055"));
+            net::close(&tcp).unwrap();
+            http_server::close(&http).unwrap();
+            net::close(&udp).unwrap();
+        });
+        for p in [port(&tcp), port(&http)] {
+            assert!(std::net::TcpListener::bind(("127.0.0.1", p)).is_err());
+        }
+        assert!(std::net::UdpSocket::bind(("127.0.0.1", port(&udp))).is_err());
+        drop(owner);
+        for p in [port(&tcp), port(&http)] {
+            std::net::TcpListener::bind(("127.0.0.1", p)).unwrap();
+        }
+        std::net::UdpSocket::bind(("127.0.0.1", port(&udp))).unwrap();
+    }
+
+    #[test]
+    fn tcp_and_websocket_connections_close_on_context_drop() {
+        let listener = std::net::TcpListener::bind(("127.0.0.1", 0)).unwrap();
+        let owner = RuntimeContext::new();
+        let foreign = RuntimeContext::new();
+        let socket = owner.with(|| {
+            net::connect(
+                "127.0.0.1",
+                i64::from(listener.local_addr().unwrap().port()),
+                Duration::from_secs(2),
+            )
+            .unwrap()
+        });
+        let (mut peer, _) = listener.accept().unwrap();
+        peer.set_read_timeout(Some(Duration::from_secs(2))).unwrap();
+        foreign.with(|| assert!(net::write(&socket, b"foreign").is_err()));
+        drop(owner);
+        assert_eq!(std::io::Read::read(&mut peer, &mut [0u8; 1]).unwrap(), 0);
+
+        let port = listener.local_addr().unwrap().port();
+        let server = std::thread::spawn(move || {
+            let (peer, _) = listener.accept().unwrap();
+            peer.set_read_timeout(Some(Duration::from_secs(2))).unwrap();
+            let mut socket = tungstenite::accept(peer).unwrap();
+            assert!(socket.read().is_err()); // Context destruction closes the transport.
+        });
+        let owner = RuntimeContext::new();
+        let socket = owner.with(|| {
+            websocket::connect(&format!("ws://127.0.0.1:{port}"), Duration::from_secs(2)).unwrap()
+        });
+        foreign.with(|| {
+            assert_eq!(
+                websocket::send(&socket, b"foreign", true)
+                    .unwrap_err()
+                    .code(),
+                Some("E056")
+            )
+        });
+        drop(owner);
+        server.join().unwrap();
     }
 }
