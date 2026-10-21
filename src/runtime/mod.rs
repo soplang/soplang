@@ -26,6 +26,7 @@ mod base64;
 mod patterns;
 mod time;
 mod process;
+mod http;
 pub mod stdlib;
 pub mod value;
 

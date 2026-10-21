@@ -32,6 +32,8 @@ All notable changes to this project will be documented in this file.
 
 * `fuli` runs a child program without a shell and returns its exit code, standard output, and standard error. Startup and non-UTF-8 output failures use `E052`.
 
+* `http_codso` sends GET, POST, PUT, PATCH, and DELETE requests and returns status, headers, text, bytes, and JSON. `https` uses the operating system's trusted certificates. Network and protocol failures use `E053`.
+
 
 * Numeric builtins add logarithms, radian trigonometry with optional inverse mode, `atan2`-style angles, named constants, clamping, and context-local seeded random streams. Integer-only extrema keep exact 64-bit results; invalid random calls do not advance the generator.
 

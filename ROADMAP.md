@@ -268,22 +268,18 @@ variables provide configuration for file-based tools and server applications.
 
 ### Synchronous HTTP client
 
-The first network API should provide:
+Implemented locally as `http_codso`; see [HTTP client](docs/language/http.md).
+A namespace module still waits for the 3.4 package work.
 
-1. GET, POST, PUT, PATCH, and DELETE requests.
-2. Request headers and text, byte, and JSON bodies.
-3. Response status, headers, text, bytes, and JSON.
-4. Configurable connection and total timeouts.
-5. Bounded redirects and response sizes.
-6. TLS using trusted system certificates.
-7. Clear DNS, connection, TLS, timeout, and protocol errors.
+1. GET, POST, PUT, PATCH, and DELETE requests — implemented.
+2. Request headers and text, byte, and JSON bodies — implemented.
+3. Response status, headers, text, bytes, and JSON — implemented.
+4. Configurable connection and total timeouts — implemented as `waqti`.
+5. Bounded redirects and response sizes — implemented as `leexasho` and `cabbir`.
+6. TLS using trusted system certificates — implemented for `https`.
+7. Clear DNS, connection, TLS, timeout, and protocol errors — catchable as `E053`.
 8. Test support through local servers so the suite does not depend on public
-   network availability.
-
-The HTTP API should use a dedicated module. Its Somali module and method names
-must be decided before becoming public. This milestone must supply the minimum
-standard-library module access needed by file, JSON, and HTTP APIs; the complete
-user-defined namespace and package system remains planned for 3.4.
+   network availability — covered by the local HTTP tests.
 
 ### Initial HTTP server for JSON APIs
 

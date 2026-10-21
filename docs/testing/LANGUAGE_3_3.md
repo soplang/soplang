@@ -114,3 +114,14 @@ cargo test --locked --test process_tests --test llvm_ir_tests
 The child-process checks cover captured output, a non-zero exit code, a missing
 program, and LLVM execution. The command arguments are passed directly and are
 not interpreted by a shell.
+
+## HTTP client
+
+```sh
+cargo test --locked --test http_tests
+```
+
+The HTTP suite uses a local server. It covers GET headers, a JSON POST, a
+redirect that is not followed, the response-size limit, a short timeout,
+connection failure, a rejected method, an `https` URL that fails before a
+public network request, and LLVM execution.
