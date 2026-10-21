@@ -54,6 +54,7 @@ pub mod codes {
     pub const E052_COMMAND: &str = "E052";
     pub const E053_HTTP: &str = "E053";
     pub const E054_HTTP_SERVER: &str = "E054";
+    pub const E055_NETWORK: &str = "E055";
 }
 
 /// A compiled function and its caller's source location.

@@ -36,6 +36,8 @@ All notable changes to this project will be documented in this file.
 
 * `server_fur`, `server_aqbal`, and `server_xidh` serve one HTTP request at a time, including path parameters, JSON bodies, 404 responses, and handler failures as status 500. Bind and shutdown failures use `E054`.
 
+* `dns_raadi` returns sorted IP addresses. `tcp_fur`, `tcp_dhegeysi`, `tcp_aqbal`, `tcp_qor`, `tcp_akhris`, and `tcp_xidh` connect, listen, and exchange bytes. Network failures use `E055`.
+
 
 * Numeric builtins add logarithms, radian trigonometry with optional inverse mode, `atan2`-style angles, named constants, clamping, and context-local seeded random streams. Integer-only extrema keep exact 64-bit results; invalid random calls do not advance the generator.
 

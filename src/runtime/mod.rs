@@ -28,6 +28,7 @@ mod time;
 mod process;
 mod http;
 mod http_server;
+mod net;
 pub mod stdlib;
 pub mod value;
 

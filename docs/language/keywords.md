@@ -277,6 +277,13 @@ these explanations do not establish a historical abbreviation or SLS approval.
 | `server_fur` | Bind an HTTP server                 | (listen)             | `server_fur("127.0.0.1", 8080)`            |
 | `server_aqbal` | Handle one HTTP request           | (accept)             | `server_aqbal(server, routes)`             |
 | `server_xidh` | Close an HTTP server               | (close)              | `server_xidh(server)`                      |
+| `dns_raadi` | Look up IP addresses                | `getaddrinfo`        | `dns_raadi("localhost")`                   |
+| `tcp_fur` | Connect a TCP socket                 | `connect`            | `tcp_fur("127.0.0.1", 8080)`               |
+| `tcp_dhegeysi` | Bind a TCP listener              | `listen`             | `tcp_dhegeysi("127.0.0.1", 0)`             |
+| `tcp_aqbal` | Accept one TCP connection          | `accept`             | `tcp_aqbal(listener)`                      |
+| `tcp_qor` | Write bytes to a TCP connection      | `send`               | `tcp_qor(conn, "nabad")`                   |
+| `tcp_akhris` | Read the next TCP bytes           | `recv`               | `tcp_akhris(conn, 1024)`                   |
+| `tcp_xidh` | Close a TCP connection or listener   | `close`              | `tcp_xidh(conn)`                           |
 | `fayl_jiraa` | Test whether a path exists              | (path exists)        | `haddii (fayl_jiraa("magac.txt")) {...}`   |
 | `fayl_xog` | Query path metadata                     | (path stat)          | `door x = fayl_xog("magac.txt")`           |
 | `isku_xidh` | Join path segments                     | (path join)          | `isku_xidh("data", "magac.txt")`           |

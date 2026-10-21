@@ -405,6 +405,71 @@ pub fn builtin_server_xidh(args: Vec<Value>) -> Result<Value, SoplangError> {
     super::http_server::close(&args[0])
 }
 
+fn network_bytes(value: &Value, name: &str) -> Result<Vec<u8>, SoplangError> {
+    match value {
+        Value::Str(text) => Ok(text.as_bytes().to_vec()),
+        Value::Bytes(bytes) => super::bytes::read(bytes).map(|data| data.clone()),
+        _ => Err(err_type(format!("{name}() wuxuu u baahan yahay qoraal ama baytyo."))),
+    }
+}
+
+pub fn builtin_dns_raadi(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "dns_raadi", 1)?;
+    let Value::Str(name) = &args[0] else {
+        return Err(err_type("dns_raadi() waa inuu helaa qoraal."));
+    };
+    super::net::lookup(name)
+}
+
+pub fn builtin_tcp_fur(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity_range(&args, "tcp_fur", 2, 3)?;
+    let Value::Str(host) = &args[0] else {
+        return Err(err_type("Martigeliyaha tcp_fur() waa inuu noqdaa qoraal."));
+    };
+    let Value::Int(port) = args[1] else {
+        return Err(err_type("Dekedda tcp_fur() waa inay noqotaa abn."));
+    };
+    let timeout = super::net::timeout(args.get(2))?;
+    super::net::connect(host, port, timeout)
+}
+
+pub fn builtin_tcp_dhegeysi(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "tcp_dhegeysi", 2)?;
+    let Value::Str(host) = &args[0] else {
+        return Err(err_type("Martigeliyaha tcp_dhegeysi() waa inuu noqdaa qoraal."));
+    };
+    let Value::Int(port) = args[1] else {
+        return Err(err_type("Dekedda tcp_dhegeysi() waa inay noqotaa abn."));
+    };
+    super::net::listen(host, port)
+}
+
+pub fn builtin_tcp_aqbal(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity_range(&args, "tcp_aqbal", 1, 2)?;
+    let timeout = super::net::timeout(args.get(1))?;
+    super::net::accept(&args[0], timeout)
+}
+
+pub fn builtin_tcp_qor(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "tcp_qor", 2)?;
+    let bytes = network_bytes(&args[1], "tcp_qor")?;
+    super::net::write(&args[0], &bytes)
+}
+
+pub fn builtin_tcp_akhris(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "tcp_akhris", 2)?;
+    let Value::Int(limit) = args[1] else {
+        return Err(err_type("Cabbirka tcp_akhris() waa inuu noqdaa abn."));
+    };
+    let limit = usize::try_from(limit).map_err(|_| err_type("Cabbirka tcp_akhris() ma saxna."))?;
+    super::net::read(&args[0], limit)
+}
+
+pub fn builtin_tcp_xidh(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "tcp_xidh", 1)?;
+    super::net::close(&args[0])
+}
+
 fn optional_truthy(args: &[Value], index: usize) -> bool {
     args.get(index).is_some_and(|value| value.is_truthy())
 }
@@ -879,6 +944,13 @@ const BUILTINS: &[(&str, super::NativeFn, CallbackArity)] = &[
     ("server_fur", builtin_server_fur, CallbackArity::range(2, 2)),
     ("server_aqbal", builtin_server_aqbal, CallbackArity::range(2, 3)),
     ("server_xidh", builtin_server_xidh, CallbackArity::range(1, 1)),
+    ("dns_raadi", builtin_dns_raadi, CallbackArity::range(1, 1)),
+    ("tcp_fur", builtin_tcp_fur, CallbackArity::range(2, 3)),
+    ("tcp_dhegeysi", builtin_tcp_dhegeysi, CallbackArity::range(2, 2)),
+    ("tcp_aqbal", builtin_tcp_aqbal, CallbackArity::range(1, 2)),
+    ("tcp_qor", builtin_tcp_qor, CallbackArity::range(2, 2)),
+    ("tcp_akhris", builtin_tcp_akhris, CallbackArity::range(2, 2)),
+    ("tcp_xidh", builtin_tcp_xidh, CallbackArity::range(1, 1)),
     ("fayl_jiraa", builtin_fayl_jiraa, CallbackArity::range(1, 1)),
     ("fayl_xog", builtin_fayl_xog, CallbackArity::range(1, 1)),
     ("isku_xidh", builtin_isku_xidh, CallbackArity::range(1, usize::MAX)),

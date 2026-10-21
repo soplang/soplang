@@ -135,3 +135,13 @@ cargo test --locked --test http_server_tests
 The server suite drives the same program through JIT and LLVM. It checks path
 parameters, query values, a JSON post, a 404, a handler failure returned as
 status 500, a redirect header, and shutdown of the listener.
+
+## DNS and TCP
+
+```sh
+cargo test --locked --test network_tests
+```
+
+The networking suite checks literal and local DNS names, a TCP echo between a
+listener and a connected peer, closing a socket, and the same TCP exchange
+through LLVM. UDP and WebSocket remain later work.
