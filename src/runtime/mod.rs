@@ -10,6 +10,8 @@ mod formatting;
 mod iterators;
 mod roots;
 mod tuples;
+mod text;
+mod unicode_case;
 mod sets;
 pub mod stdlib;
 pub mod value;

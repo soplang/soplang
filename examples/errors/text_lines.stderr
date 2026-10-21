@@ -1,0 +1,4 @@
+Khalad nooc: sadarro() ilaalinta dhammaadka safku waa inay noqotaa bool. [E042] safka 2, tiirka 7
+     --> examples/errors/text_lines.sop:2:7
+   2 │     xog.sadarro(1)
+     │         ^^^^^^^

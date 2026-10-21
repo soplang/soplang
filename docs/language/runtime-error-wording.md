@@ -323,3 +323,29 @@ unsupported key values still use the set diagnostic `E041`.
 
 Unknown classes retain `E021`. The existing annotation-depth, union-count,
 and syntax diagnostics apply to set element annotations too.
+
+## Text-library vocabulary and diagnostics
+
+`hubi` means check, `buuxi` means fill or pad, `kalaqaad` separates text around
+a match, and `sadarro` names lines. Existing `weynee` accepts `hore` for first-scalar
+capitalization and `eray` for word title casing. `qeybi()` defaults to whitespace
+word splitting. Explanations and exact contracts are in the [text reference](text-methods.md).
+
+| Somali wording | English meaning |
+| --- | --- |
+| `weynee() habku waa inuu noqdaa 'hore' ama 'eray'.` | Unsupported capitalization mode. |
+| `hubi() nooca baaristu waa inuu noqdaa qoraal.` | The classification kind must be text. |
+| `hubi() ma aqoonsana nooca baarista '{kind}'.` | Unknown classification kind. |
+| `buuxi() ballacu waa inuu noqdaa abn.` | Padding width must be an integer. |
+| `buuxi() ballacu waa inuu u dhexeeyaa 0 iyo 1000000.` | Padding width is outside its bound. |
+| `buuxi() buuxiyuhu waa inuu noqdaa hal xaraf.` | Fill must be one Unicode scalar. |
+| `buuxi() jihadu waa inay noqotaa 'hore', 'dambe', ama 'dhexe'.` | Invalid padding direction. |
+| `Qoraalka la buuxinayo aad buu u weyn yahay.` | Padding capacity cannot be represented or allocated. |
+| `kalaqaad() kalaqaybiyuhu waa inuu noqdaa qoraal.` | The partition separator must be text. |
+| `kalaqaad() kalaqaybiyuhu madhan ma noqon karo.` | The partition separator cannot be empty. |
+| `kalaqaad() jihadu waa inay noqotaa 'hore' ama 'dambe'.` | Invalid partition direction. |
+| `sadarro() ilaalinta dhammaadka safku waa inay noqotaa bool.` | The line-ending flag must be boolean. |
+
+These text operation errors use `E042`. Wrong argument counts retain the shared
+method diagnostics. Classification kinds are `xarfo`, `tiro`, `xarfo iyo tiro`,
+`bannaan`, `waaweyn`, `yaryar`, `cinwaan`, and `ascii`.

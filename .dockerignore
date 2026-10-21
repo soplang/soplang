@@ -4,6 +4,8 @@
 !rust-toolchain.toml
 !README.md
 !LICENSE
+!licenses/
+!licenses/**
 !src/
 !src/**
 !benches/

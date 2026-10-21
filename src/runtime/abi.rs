@@ -2248,7 +2248,7 @@ fn dispatch_object_method(
 fn dispatch_string_method(s: &str, method: &str, args: &[Value]) -> Result<Value, SoplangError> {
     // Report the spelling used at the call site when validating aliases.
     match method {
-        "weynee" | "yaree" | "masax_dhammaad" => super::stdlib::expect_arity(args, method, 0)?,
+        "yaree" | "masax_dhammaad" => super::stdlib::expect_arity(args, method, 0)?,
         "xiriiri" | "dhammaad" => super::stdlib::expect_arity(args, method, 1)?,
         _ => {}
     }
@@ -2262,7 +2262,9 @@ fn dispatch_string_method(s: &str, method: &str, args: &[Value]) -> Result<Value
         "beddel_dhammaan" => super::stdlib::string_beddel_dhammaan(s.to_string(), args),
         "xiriiri" | "kudar" => super::stdlib::string_kudar(s.to_string(), args),
         "jar" => super::stdlib::string_jar(s.to_string(), args),
-        "weynee" | "xarfaha_waaweyn" | "xarafaha_weyn" => {
+        "weynee" => super::text::uppercase(s, args),
+        "hubi" | "buuxi" | "kalaqaad" | "sadarro" => super::text::dispatch(s, method, args),
+        "xarfaha_waaweyn" | "xarafaha_weyn" => {
             super::stdlib::string_xarfaha_waaweyn(s.to_string(), args)
         }
         "yaree" | "xarfaha_yaryar" => super::stdlib::string_xarfaha_yaryar(s.to_string(), args),

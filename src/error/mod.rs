@@ -40,6 +40,7 @@ pub mod codes {
     pub const E039_COLLECTION_CONTRACT: &str = "E039";
     pub const E040_TUPLE: &str = "E040";
     pub const E041_SET: &str = "E041";
+    pub const E042_TEXT: &str = "E042";
 }
 
 /// A compiled function and its caller's source location.

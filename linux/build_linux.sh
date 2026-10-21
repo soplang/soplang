@@ -25,6 +25,7 @@ if command -v dpkg-deb >/dev/null 2>&1; then
     cp dist/soplang/soplang "$DEB_DIR/usr/bin/"
     cp -R dist/soplang/lib/soplang "$DEB_DIR/usr/lib/"
     cp dist/soplang/LICENSE dist/soplang/INSTALLING.md "$DEB_DIR/usr/share/doc/soplang/"
+    cp -R dist/soplang/licenses "$DEB_DIR/usr/share/doc/soplang/"
     # Record the binary's actual glibc floor rather than accepting installation
     # on distributions too old to start it.
     GLIBC_VERSION="$(LC_ALL=C readelf --version-info dist/soplang/soplang | \

@@ -152,3 +152,9 @@ compile	typed_set_unknown_class.sop	1	1	lama aqoonsan
 runtime	typed_set_argument.sop	3	1	wuxuu u baahan yahay nooca
 runtime	typed_set_tuple.sop	2	7	Beddelkani ma waafaqsana
 runtime	typed_set_return.sop	2	27	wuxuu u baahan yahay nooca
+runtime	text_classification.sop	2	7	nooca baarista
+runtime	text_casing.sop	2	7	habku waa inuu
+runtime	text_width.sop	2	7	ballacu waa inuu noqdaa abn
+runtime	text_fill.sop	2	7	hal xaraf
+runtime	text_partition.sop	2	7	madhan ma noqon karo
+runtime	text_lines.sop	2	7	waa inay noqotaa bool

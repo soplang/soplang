@@ -1,0 +1,4 @@
+Khalad nooc: kalaqaad() kalaqaybiyuhu madhan ma noqon karo. [E042] safka 2, tiirka 7
+     --> examples/errors/text_partition.sop:2:7
+   2 │     xog.kalaqaad("")
+     │         ^^^^^^^^

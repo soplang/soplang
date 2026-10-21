@@ -754,3 +754,10 @@ conversion, snapshot iteration, and set algebra.
 
 `urur[T]` constrains set elements. See the [typed set reference](typed-sets.md)
 for immutable key types, shared contracts, nested aliases, and diagnostics.
+
+## Unicode text methods
+
+`hubi`, optional `weynee` modes, `buuxi`, `kalaqaad`, `sadarro`, and
+zero-argument `qeybi()` extend the string library. The [text reference](text-methods.md)
+defines classification, word boundaries, scalar widths, Unicode line endings,
+and compatibility with earlier spellings.

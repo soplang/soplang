@@ -1,0 +1,4 @@
+Khalad nooc: hubi() ma aqoonsana nooca baarista 'khaldan'. [E042] safka 2, tiirka 7
+     --> examples/errors/text_classification.sop:2:7
+   2 │     xog.hubi("khaldan")
+     │         ^^^^

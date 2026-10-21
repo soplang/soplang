@@ -763,3 +763,8 @@ fn test_sets() {
 fn test_typed_sets() {
     assert_eq!(run_program(include_str!("fixtures/typed_sets.sop")), "typed sets ok\n");
 }
+
+#[test]
+fn test_text_methods() {
+    assert_eq!(run_program(include_str!("fixtures/text_methods.sop")), "text methods ok\n");
+}

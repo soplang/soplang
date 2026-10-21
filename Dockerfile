@@ -11,6 +11,7 @@ COPY src ./src
 COPY benches ./benches
 COPY scripts/package.py ./scripts/package.py
 COPY README.md LICENSE ./
+COPY licenses ./licenses
 COPY docs/INSTALLING_PACKAGES.md ./docs/INSTALLING_PACKAGES.md
 RUN python3 scripts/package.py --output /package
 
@@ -21,6 +22,7 @@ ARG VCS_REF=unknown
 COPY --from=builder /package/soplang /usr/local/bin/soplang
 COPY --from=builder /package/lib/soplang /usr/local/lib/soplang
 COPY --from=builder /package/LICENSE /package/INSTALLING.md /usr/local/share/doc/soplang/
+COPY --from=builder /package/licenses /usr/local/share/doc/soplang/licenses
 RUN groupadd -r soplang && useradd -r -g soplang -d /home/soplang -m soplang
 VOLUME /scripts
 WORKDIR /scripts

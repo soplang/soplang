@@ -782,3 +782,10 @@ fn test_llvm_typed_sets() {
         assert_eq!(run_llvm_with_opt(&format!("llvm_typed_sets_{opt}"), include_str!("fixtures/typed_sets.sop"), opt), "typed sets ok\n");
     }
 }
+
+#[test]
+fn test_llvm_text_methods() {
+    for opt in [0, 2] {
+        assert_eq!(run_llvm_with_opt(&format!("llvm_text_methods_{opt}"), include_str!("fixtures/text_methods.sop"), opt), "text methods ok\n");
+    }
+}

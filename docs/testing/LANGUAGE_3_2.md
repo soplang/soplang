@@ -282,3 +282,35 @@ Windows x64 and macOS ARM64 cross-target checks pass. The extracted LLVM linker
 wrapper passes Rust metadata compilation against both target libraries.
 Native platform execution and packaging remain distribution gates. Expanded
 string, list, object, and numeric library operations remain before the 3.2 tag.
+
+## Unicode text-library stage
+
+The debug suite passes 248 tests, including all 37 LLVM tests. The diagnostic
+and example suites pass 14 tests covering 159 error programs and 41 public
+examples through JIT and LLVM. Optimized checks pass 99 tests:
+
+```sh
+cargo test --locked -- --skip test_aot
+cargo test --locked --test diagnostic_tests --test examples_tests
+cargo test --locked --release --lib --test interpreter_tests --test llvm_ir_tests
+cargo check --locked --offline --target x86_64-pc-windows-msvc
+cargo check --locked --offline --target aarch64-apple-darwin
+```
+
+The shared fixture runs LLVM at levels 0 and 2. It covers Unicode classification,
+capitalization, titlecase expansion and digraphs, contextual final sigma,
+apostrophe word boundaries, scalar-width padding, partitioning, whitespace
+tokenization, Unicode line endings, invalid arguments, typed results, and roots
+across collection. Three unit tests cover casing byte boundaries for every
+cased Unicode scalar, selected titlecase conformance cases, padding limits and
+multibyte fills, and exact line-ending reconstruction.
+
+The generated Unicode table reproduces byte-for-byte from the official Unicode
+17 input files. Python scripts and the Linux packaging shell script pass syntax
+checks. A portable release package contains the Unicode notice and executes the
+new public example through JIT and a standalone LLVM-built binary.
+
+Windows x64 and macOS ARM64 cross-target checks pass. The extracted LLVM linker
+wrapper passes Rust metadata compilation against both target libraries.
+Native platform execution, installer builds, and the Docker build remain
+distribution gates. List, object, and numeric library work remains before 3.2.

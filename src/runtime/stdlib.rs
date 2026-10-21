@@ -1005,7 +1005,11 @@ fn object_remove(
 // ---------- String methods ----------
 
 pub fn string_qeybi(s: String, args: &[Value]) -> Result<Value, SoplangError> {
-    expect_arity(args, "qeybi", 1)?;
+    expect_arity_range(args, "qeybi", 0, 1)?;
+    if args.is_empty() {
+        let words = s.split_whitespace().map(|word| Value::Str(word.into())).collect();
+        return Ok(Value::List(Rc::new(RefCell::new(words))));
+    }
     let delim = value_to_string(&args[0]);
     let parts: Vec<Value> = s.split(&delim).map(|p| Value::Str(p.to_string())).collect();
     Ok(Value::List(Rc::new(RefCell::new(parts))))
