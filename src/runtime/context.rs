@@ -13,6 +13,7 @@ pub(super) struct RuntimeState {
     pub current_source: RefCell<Option<crate::error::SourceSpan>>,
     pub try_depth: Cell<u32>,
     pub random: Cell<Option<u64>>,
+    pub databases: RefCell<HashMap<i64, crate::data::Database>>,
     pub files: RefCell<Option<HashMap<i64, super::file_handles::OpenFile>>>,
     pub tcp_connections: RefCell<Option<HashMap<i64, std::net::TcpStream>>>,
     pub tcp_listeners: RefCell<Option<HashMap<i64, std::net::TcpListener>>>,
@@ -188,6 +189,13 @@ impl<T> RuntimeLocal<T> {
         let state = ACTIVE.with(|active| Rc::clone(&active.borrow()));
         operation((self.select)(&state))
     }
+}
+
+/// Select database ownership without exposing the rest of the runtime state.
+pub(crate) fn with_databases<R>(
+    operation: impl FnOnce(&RefCell<HashMap<i64, crate::data::Database>>) -> R,
+) -> R {
+    RuntimeLocal::new(|state| &state.databases).with(operation)
 }
 
 #[cfg(test)]

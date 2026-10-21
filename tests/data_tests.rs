@@ -9,7 +9,8 @@ use std::rc::Rc;
 use soplang::data::{self, capabilities};
 use soplang::Value;
 
-const SCHEMA: &str = "jadwal qof {\n  id abn furaha\n  magac qoraal\n  da abn?\n}\n";
+const SCHEMA: &str =
+    "jadwal qof {\n  id abn furaha\n  magac qoraal\n  da abn?\n  diyaar bool?\n  qiime jajab?\n}\n";
 
 fn temp_db(name: &str) -> std::path::PathBuf {
     let path = std::env::temp_dir().join(format!(
@@ -118,6 +119,86 @@ fn every_connector_reports_a_capability() {
 }
 
 #[test]
+fn schemas_enforce_types_nullability_and_unique_columns() {
+    assert!(
+        data::parse_schema("jadwal t {\n id abn furaha\n name qoraal\n name abn\n}\n").is_err()
+    );
+    assert!(data::parse_schema("jadwal soplang_guuri {\n id abn furaha\n}\n").is_err());
+    let context = soplang::runtime::RuntimeContext::new();
+    context.with(|| {
+        let id = id_of(&data::open("sqlite", ":memory:", 2).unwrap());
+        data::load_schema(id, SCHEMA).unwrap();
+        data::migrate(id).unwrap();
+        for fields in [
+            obj(&[]),
+            obj(&[("magac", Value::Int(42))]),
+            obj(&[("magac", Value::Null)]),
+            obj(&[
+                ("magac", Value::Str("ok".into())),
+                ("da", Value::Str("bad".into())),
+            ]),
+        ] {
+            assert!(data::insert(id, "qof", &fields).is_err());
+        }
+        let hostile = "x\\' OR 1=1 -- ";
+        data::insert(id, "qof", &obj(&[("magac", Value::Str(hostile.into()))])).unwrap();
+        let filter = obj(&[("da", Value::Null)]);
+        assert_eq!(
+            names(&data::find(id, "qof", Some(&filter)).unwrap()),
+            [hostile]
+        );
+        assert!(names(
+            &data::find(
+                id,
+                "qof",
+                Some(&obj(&[("magac", Value::Str("other".into()))]))
+            )
+            .unwrap()
+        )
+        .is_empty());
+        data::migrate(id).unwrap();
+        assert_eq!(names(&data::find(id, "qof", None).unwrap()), [hostile]);
+        data::close(id).unwrap();
+        assert!(data::find(id, "qof", None).is_err());
+    });
+}
+
+#[test]
+fn database_handles_belong_to_their_execution_context() {
+    let first = soplang::runtime::RuntimeContext::new();
+    let second = soplang::runtime::RuntimeContext::new();
+    let id = first.with(|| {
+        let id = id_of(&data::open("sqlite", ":memory:", 2).unwrap());
+        data::load_schema(id, SCHEMA).unwrap();
+        data::migrate(id).unwrap();
+        id
+    });
+    second.with(|| {
+        assert!(data::find(id, "qof", None).is_err());
+        assert!(data::close(id).is_err());
+    });
+    first.with(|| {
+        let result = std::panic::catch_unwind(|| {
+            data::transaction::<()>(id, || {
+                data::insert(id, "qof", &obj(&[("magac", Value::Str("rollback".into()))]))?;
+                panic!("exercise rollback after Rust panic");
+            })
+            .unwrap();
+        });
+        assert!(result.is_err());
+        assert!(names(&data::find(id, "qof", None).unwrap()).is_empty());
+        data::transaction(id, || {
+            assert!(data::close(id).is_err());
+            assert!(data::migrate(id).is_err());
+            Ok(())
+        })
+        .unwrap();
+    });
+    drop(first);
+    second.with(|| assert!(data::find(id, "qof", None).is_err()));
+}
+
+#[test]
 fn bundled_xog_reads_sqlite() {
     let path = temp_db("xog");
     let file = path.with_extension("sop");
@@ -133,12 +214,38 @@ fn bundled_xog_reads_sqlite() {
 }
 
 fn live(kind: &str, target: &str) {
-    let handle = data::open(kind, target, 1).unwrap();
+    let context = soplang::runtime::RuntimeContext::new();
+    context.with(|| live_in_context(kind, target));
+}
+
+fn live_in_context(kind: &str, target: &str) {
+    let handle = data::open(kind, target, 2).unwrap();
     let id = id_of(&handle);
     data::load_schema(id, SCHEMA).unwrap();
     data::migrate(id).unwrap();
-    let marker = format!("live-{kind}-{}", std::process::id());
-    data::insert(id, "qof", &obj(&[("magac", Value::Str(marker.clone()))])).unwrap();
+    let marker = format!("live-{kind}-{}-Cali\\' OR 1=1 -- 🇸🇴", std::process::id());
+    let failed = data::transaction::<()>(id, || {
+        data::insert(id, "qof", &obj(&[("magac", Value::Str(marker.clone()))]))?;
+        Err(soplang::error::runtime_error("rollback", 0, 0))
+    });
+    assert!(failed.is_err());
+    let filter = obj(&[("magac", Value::Str(marker.clone()))]);
+    assert!(names(&data::find(id, "qof", Some(&filter)).unwrap()).is_empty());
+    data::transaction(id, || {
+        data::insert(
+            id,
+            "qof",
+            &obj(&[
+                ("magac", Value::Str(marker.clone())),
+                ("diyaar", Value::Bool(true)),
+                ("qiime", Value::Float(2.5)),
+            ]),
+        )
+    })
+    .unwrap();
+    // Migration must preserve the pre-existing row, including on MongoDB.
+    data::migrate(id).unwrap();
+    data::migrate(id).unwrap();
     let found = data::find(
         id,
         "qof",
@@ -146,7 +253,35 @@ fn live(kind: &str, target: &str) {
     )
     .unwrap();
     assert_eq!(names(&found), [marker.clone()]);
+    let Value::List(rows) = &found else {
+        panic!("rows")
+    };
+    let Value::Object(row) = &rows.borrow()[0] else {
+        panic!("row")
+    };
+    let row = row.borrow();
+    assert!(matches!(row.get("id"), Some(Value::Int(_))));
+    assert_eq!(row.get("diyaar"), Some(&Value::Bool(true)));
+    assert_eq!(row.get("qiime"), Some(&Value::Float(2.5)));
+    drop(row);
+    data::update(id, "qof", &filter, &obj(&[("diyaar", Value::Bool(false))])).unwrap();
+    assert_eq!(
+        names(
+            &data::find(
+                id,
+                "qof",
+                Some(&obj(&[
+                    ("magac", Value::Str(marker.clone())),
+                    ("da", Value::Null)
+                ]))
+            )
+            .unwrap()
+        ),
+        [marker.clone()]
+    );
     data::delete(id, "qof", &obj(&[("magac", Value::Str(marker))])).unwrap();
+    assert!(names(&data::find(id, "qof", Some(&filter)).unwrap()).is_empty());
+    data::close(id).unwrap();
 }
 
 #[test]

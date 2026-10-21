@@ -1,4 +1,6 @@
-soosaar fur, schema, guuri, ku_geli, raadi, beddel, tirtir, macaamil, awood
+soosaar fur, xidh, schema, guuri, ku_geli, raadi, beddel, tirtir, macaamil, awood
+
+hawl xidh(db) { celi xog_xidh(db) }
 
 hawl fur(nooc, jid, wadar = maran) {
     haddii (wadar == maran) { celi xog_fur(nooc, jid) }

@@ -14,6 +14,8 @@ jadwal qof {
 A table has one `abn furaha` column. Other columns are `abn`, `qoraal`,
 `jajab`, or `bool`, and `?` marks an optional column. Names are lowercase
 identifiers. `#` starts a comment.
+Column names must be unique. Names starting with `soplang_` are reserved for
+database metadata.
 
 ```soplang
 keen "xog" sida xog
@@ -22,19 +24,31 @@ xog.schema(db, akhrifayl("schema.sop"))
 xog.guuri(db)
 xog.ku_geli(db, "qof", { magac: "Amina" })
 door rows = xog.raadi(db, "qof", { magac: "Amina" })
+xog.xidh(db)
 ```
 
 `fur(kind, target, wadarta?)` opens one to eight connections. The default is
 one. `guuri` creates missing tables and adds missing columns. It does not drop
 columns. The schema hash is stored in `soplang_guuri`.
+Connections belong to the execution context and close when it is destroyed.
+`xidh(db)` closes a pool explicitly. A pool cannot be used from another context
+or closed during a transaction. SQLite `:memory:` pools share one private
+in-memory database across their connections.
 
 `ku_geli`, `raadi`, `beddel`, and `tirtir` accept objects whose fields are
-columns. `raadi` returns at most 1000 rows. String values are escaped, and a
-name that is not in the schema is rejected.
+columns. `raadi` returns at most 1000 rows. SQL drivers bind values as parameters;
+quotes and backslashes in application data cannot become SQL syntax. Unknown
+columns, missing required fields, nulls in required fields, and incorrect value
+types are rejected. An `abn` value may be widened to a `jajab` column. Optional
+fields omitted on insertion become null, and null filters use `IS NULL`.
 
 `macaamil(db, hawl() { ... })` runs the callback on one pinned connection and
 commits when it returns. A failure rolls the transaction back. The callback
-must not start another transaction.
+must not start another transaction, run a migration, or close the pool.
+SQLite, PostgreSQL, CockroachDB and SQL Server migrations run in a transaction.
+MySQL and MariaDB DDL uses the server's implicit commit behavior. MongoDB
+migrations create or update collection validators and unique key indexes while
+preserving existing documents. MongoDB integer keys use an atomic counter.
 
 `xog.awood(kind)` reports the operations that kind supports.
 
@@ -47,21 +61,28 @@ must not start another transaction.
 | `cockroach` | the same Postgres client | `postgres://...` |
 | `mysql` | MySQL wire protocol | `mysql://...` |
 | `mariadb` | the same MySQL client | `mysql://...` |
-| `sqlserver` | TDS, without TLS | `server=tcp:host,1433;User Id=...;Password=...;Database=...` |
+| `sqlserver` | TDS with rustls TLS | `server=tcp:host,1433;User Id=...;Password=...;Database=...;Encrypt=true` |
 | `mongo` | official MongoDB client | `mongodb://host/database` |
 
 SQLite is tested by the default suite, including rollback and a pool of two.
-The other connectors are the same client code paths. Their live tests are
-ignored until the matching variable is set: `SOPLANG_POSTGRES`,
+Live tests cover parameter binding, Unicode text, nulls, typed reads, pooled
+connections, rollback, commit, updates, deletes and repeated migrations that
+preserve existing records. Their tests are ignored by default. Set the matching
+connection variable and explicitly select the test: `SOPLANG_POSTGRES`,
 `SOPLANG_COCKROACH`, `SOPLANG_MYSQL`, `SOPLANG_MARIADB`,
 `SOPLANG_SQLSERVER`, or `SOPLANG_MONGO`.
 
 ```sh
-cargo test --locked --test data_tests -- --ignored --nocapture
+cargo test --locked --test data_tests live_postgres -- --ignored --exact --nocapture
 ```
 
 MongoDB multi-document transactions call `start_transaction`. A standalone
-server rejects that call, and the error is returned as `E059`.
+server cannot execute these transactions; the error is returned as `E059`.
+Use a replica set or sharded cluster when testing transactions.
+
+Database-driver details are attached as technical details to Somali `E059`
+diagnostics. They can contain server information and should be handled as
+diagnostic data.
 
 `soplang check` validates `schema.sop` beside a program, and `soplang lsp`
 diagnoses a `schema.sop` document directly.

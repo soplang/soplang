@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Bind SQL values as driver parameters, validate schema contracts, preserve MongoDB records during migrations, and own database connections per execution context. Add explicit pool cleanup, shared SQLite memory pools, SQL Server TLS, and live connector regressions for migrations and transactions.
+
 - Keep class identity separate from object fields so JSON input cannot invoke class methods or satisfy class contracts. Reject non-JSON whitespace.
 
 - Own file and socket resources per runtime context and close them on context teardown. Reserve unique temporary files for atomic replacement, preserving unrelated neighbors and symlink targets. Report dangling symlinks accurately.
@@ -22,7 +24,7 @@ All notable changes to this project will be documented in this file.
 
 * `keen "web"` provides a sequential web framework: route groups, middleware order, JSON, HTML, redirects, cookies, forms, sessions, authentication hooks, CORS, request logs, and static files that cannot escape their root. `server_fur` accepts `{shahaado, fure}` for one TLS connection at a time. `qayb_foom` parses a bounded multipart body, and `habee_qoraal` renders `{{name}}` with HTML escaping.
 
-* `schema.sop` and `keen "xog"` validate tables, migrate missing columns, and run queries through a pool of at most eight connections. SQLite is covered by the default tests. PostgreSQL and CockroachDB use the Postgres client, MySQL and MariaDB use the MySQL client, MongoDB uses its official client, and SQL Server uses the TDS client without TLS. Database failures use `E059`. See [data](docs/language/data.md).
+* `schema.sop` and `keen "xog"` validate tables, migrate missing columns, and run queries through a pool of at most eight connections. SQLite is covered by the default tests. PostgreSQL and CockroachDB use the Postgres client, MySQL and MariaDB use the MySQL client, MongoDB uses its official client, and SQL Server uses the TDS client with TLS. Database failures use `E059`. See [data](docs/language/data.md).
 
 * `soplang fmt`, `check`, `test`, `doc`, `lsp`, `debug`, `profile`, `run`, and `dhis` cover formatting, analysis, tests, documentation, the editor, breakpoints, profiling, and package entry points. See [tools](docs/language/tools.md).
 

@@ -6,10 +6,12 @@
 //! client; none of them return canned rows.
 
 mod schema;
+mod sql;
 
+use crate::runtime::with_databases;
+use sql::{Param, Statement};
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicI64, Ordering};
-use std::sync::Mutex;
 
 use mongodb::bson::{doc, Bson, Document};
 use mongodb::sync::Client as MongoClient;
@@ -25,9 +27,8 @@ use crate::error::{codes, runtime_error_ex, ErrorMeta, SoplangError};
 use crate::runtime::value::Value;
 
 static NEXT_ID: AtomicI64 = AtomicI64::new(1);
-static DATABASES: Mutex<Option<HashMap<i64, Database>>> = Mutex::new(None);
 
-struct Database {
+pub(crate) struct Database {
     kind: DriverKind,
     schema: Option<Schema>,
     conns: Vec<Conn>,
@@ -37,13 +38,7 @@ struct Database {
 
 impl Database {
     fn current(&mut self) -> &mut Conn {
-        let index = if let Some(index) = self.pinned {
-            index
-        } else {
-            let index = self.cursor % self.conns.len().max(1);
-            self.cursor = self.cursor.wrapping_add(1);
-            index
-        };
+        let index = self.pinned.unwrap_or(self.cursor);
         &mut self.conns[index]
     }
 }
@@ -89,26 +84,57 @@ enum SqlValue {
 
 pub fn open(kind: &str, target: &str, pool: usize) -> Result<Value, SoplangError> {
     let kind = DriverKind::parse(kind)?;
-    let pool = pool.clamp(1, 8);
+    if !(1..=8).contains(&pool) {
+        return Err(data_error(
+            "Tirada xiriirradu waa inay u dhexaysaa 1 iyo 8.",
+        ));
+    }
+    let id = NEXT_ID.fetch_add(1, Ordering::Relaxed);
+    let shared_memory = format!(
+        "file:soplang-memory-{}-{id}?mode=memory&cache=shared",
+        std::process::id()
+    );
+    let target = if matches!(kind, DriverKind::Sqlite) && target == ":memory:" {
+        shared_memory.as_str()
+    } else {
+        target
+    };
     let mut conns = Vec::with_capacity(pool);
     for _ in 0..pool {
         conns.push(connect(kind, target)?);
     }
-    let id = NEXT_ID.fetch_add(1, Ordering::Relaxed);
-    let mut databases = DATABASES
-        .lock()
-        .unwrap_or_else(|poison| poison.into_inner());
-    databases.get_or_insert_with(HashMap::new).insert(
-        id,
-        Database {
-            kind,
-            schema: None,
-            conns,
-            cursor: 0,
-            pinned: None,
-        },
-    );
+    with_databases(|databases| {
+        databases.borrow_mut().insert(
+            id,
+            Database {
+                kind,
+                schema: None,
+                conns,
+                cursor: 0,
+                pinned: None,
+            },
+        );
+    });
     Ok(handle(id, kind.name()))
+}
+
+/// Close a database owned by the currently active execution context.
+pub fn close(id: i64) -> Result<Value, SoplangError> {
+    with_databases(|databases| {
+        let mut databases = databases
+            .try_borrow_mut()
+            .map_err(|_| data_error("Xogta hadda waa la isticmaalayaa."))?;
+        let db = databases
+            .get(&id)
+            .ok_or_else(|| data_error("Xogta waa la xidhay."))?;
+        if db.pinned.is_some() {
+            return Err(data_error(
+                "Xogta lama xidhi karo inta macaamil furan yahay.",
+            ));
+        }
+        databases.remove(&id);
+        Ok(Value::Null)
+    })
 }
 
 pub fn load_schema(id: i64, text: &str) -> Result<Value, SoplangError> {
@@ -125,8 +151,31 @@ pub fn migrate(id: i64) -> Result<Value, SoplangError> {
             .schema
             .clone()
             .ok_or_else(|| data_error("Schema lama akhriyin."))?;
+        if db.pinned.is_some() {
+            return Err(data_error(
+                "Guurinta lama samayn karo inta macaamil furan yahay.",
+            ));
+        }
+        let atomic = !matches!(
+            db.kind,
+            DriverKind::Mysql | DriverKind::Mariadb | DriverKind::Mongo
+        );
+        if atomic {
+            begin(db)?;
+        }
         let result = apply_migration(db, &schema);
-        db.pinned = None;
+        if atomic {
+            let finish = if result.is_ok() {
+                commit(db)
+            } else {
+                rollback(db)
+            };
+            if finish.is_err() && result.is_ok() {
+                let _ = rollback(db);
+            }
+            db.pinned = None;
+            finish?;
+        }
         result?;
         Ok(Value::Null)
     })
@@ -135,13 +184,13 @@ pub fn migrate(id: i64) -> Result<Value, SoplangError> {
 pub fn insert(id: i64, table: &str, value: &Value) -> Result<Value, SoplangError> {
     with_db(id, |db| {
         let table = require_table(db, table)?;
-        let fields = object_fields(value)?;
-        reject_unknown(&table, &fields)?;
+        let mut fields = object_fields(value)?;
+        validate_fields(&table, &mut fields, true)?;
         match db.current() {
-            Conn::Mongo(mongo) => mongo_insert(mongo, &table.name, &fields),
+            Conn::Mongo(mongo) => mongo_insert(mongo, &table, &fields),
             _ => {
-                let sql = insert_sql(db.kind, &table, &fields);
-                let count = exec(db, &sql)?;
+                let sql = sql::insert(db.kind, &table, &fields);
+                let count = exec_statement(db, &sql)?;
                 Ok(Value::Int(count as i64))
             }
         }
@@ -151,16 +200,39 @@ pub fn insert(id: i64, table: &str, value: &Value) -> Result<Value, SoplangError
 pub fn find(id: i64, table: &str, filter: Option<&Value>) -> Result<Value, SoplangError> {
     with_db(id, |db| {
         let table = require_table(db, table)?;
-        let filter = match filter {
+        let mut filter = match filter {
             Some(value) => object_fields(value)?,
             None => HashMap::new(),
         };
-        reject_unknown(&table, &filter)?;
+        validate_fields(&table, &mut filter, false)?;
         match db.current() {
             Conn::Mongo(mongo) => mongo_find(mongo, &table.name, &filter),
             _ => {
-                let sql = select_sql(db.kind, &table.name, &filter);
-                Ok(rows_to_value(&query(db, &sql)?))
+                let sql = sql::select(db.kind, &table, &filter);
+                let mut rows = query_statement(db, &sql)?;
+                for row in &mut rows {
+                    for (name, value) in &mut row.values {
+                        let column = table
+                            .columns
+                            .iter()
+                            .find(|column| &column.name == name)
+                            .ok_or_else(|| data_error("Jadwalku ma waafaqsana schema."))?;
+                        match (&*value, column.ty) {
+                            (SqlValue::Int(0), ColumnType::Bool) => *value = SqlValue::Bool(false),
+                            (SqlValue::Int(1), ColumnType::Bool) => *value = SqlValue::Bool(true),
+                            (SqlValue::Int(number), ColumnType::Float) => {
+                                *value = SqlValue::Float(*number as f64)
+                            }
+                            _ => {}
+                        }
+                        validate_fields(
+                            &table,
+                            &mut HashMap::from([(name.clone(), value.clone())]),
+                            false,
+                        )?;
+                    }
+                }
+                Ok(rows_to_value(&rows))
             }
         }
     })
@@ -174,14 +246,19 @@ pub fn update(
 ) -> Result<Value, SoplangError> {
     with_db(id, |db| {
         let table = require_table(db, table)?;
-        let filter = object_fields(filter)?;
-        let changes = object_fields(changes)?;
-        reject_unknown(&table, &filter)?;
-        reject_unknown(&table, &changes)?;
+        let mut filter = object_fields(filter)?;
+        let mut changes = object_fields(changes)?;
+        validate_fields(&table, &mut filter, false)?;
+        validate_fields(&table, &mut changes, false)?;
+        if changes.is_empty() {
+            return Err(data_error(
+                "Beddelku waa inuu lahaadaa ugu yaraan hal tiir.",
+            ));
+        }
         match db.current() {
             Conn::Mongo(mongo) => mongo_update(mongo, &table.name, &filter, &changes),
             _ => Ok(Value::Int(
-                exec(db, &update_sql(db.kind, &table.name, &filter, &changes))? as i64,
+                exec_statement(db, &sql::update(db.kind, &table, &filter, &changes))? as i64,
             )),
         }
     })
@@ -190,12 +267,12 @@ pub fn update(
 pub fn delete(id: i64, table: &str, filter: &Value) -> Result<Value, SoplangError> {
     with_db(id, |db| {
         let table = require_table(db, table)?;
-        let filter = object_fields(filter)?;
-        reject_unknown(&table, &filter)?;
+        let mut filter = object_fields(filter)?;
+        validate_fields(&table, &mut filter, false)?;
         match db.current() {
             Conn::Mongo(mongo) => mongo_delete(mongo, &table.name, &filter),
             _ => Ok(Value::Int(
-                exec(db, &delete_sql(db.kind, &table.name, &filter))? as i64,
+                exec_statement(db, &sql::delete(db.kind, &table, &filter))? as i64,
             )),
         }
     })
@@ -211,17 +288,28 @@ pub fn transaction<T>(
         }
         begin(db)
     })?;
-    let result = body();
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(body));
     let finished = with_db(id, |db| {
         let outcome = match &result {
-            Ok(_) => commit(db),
-            Err(_) => rollback(db),
+            Ok(Ok(_)) => {
+                let result = commit(db);
+                if result.is_err() {
+                    let _ = rollback(db);
+                }
+                result
+            }
+            Ok(Err(_)) | Err(_) => rollback(db),
         };
         db.pinned = None;
         outcome
     });
-    finished?;
-    result
+    match result {
+        Ok(result) => {
+            finished?;
+            result
+        }
+        Err(panic) => std::panic::resume_unwind(panic),
+    }
 }
 
 pub fn capabilities(kind: &str) -> Result<Value, SoplangError> {
@@ -271,26 +359,24 @@ impl DriverKind {
 fn connect(kind: DriverKind, target: &str) -> Result<Conn, SoplangError> {
     match kind {
         DriverKind::Sqlite => {
-            let conn = rusqlite::Connection::open(target)
-                .map_err(|error| data_error(error.to_string()))?;
+            let conn = rusqlite::Connection::open(target).map_err(|error| driver_error(error))?;
             conn.busy_timeout(Duration::from_secs(5))
-                .map_err(|error| data_error(error.to_string()))?;
+                .map_err(|error| driver_error(error))?;
             conn.execute_batch("PRAGMA foreign_keys = ON;")
-                .map_err(|error| data_error(error.to_string()))?;
+                .map_err(|error| driver_error(error))?;
             Ok(Conn::Sqlite(conn))
         }
         DriverKind::Postgres | DriverKind::Cockroach => {
-            let client = postgres::Client::connect(target, NoTls)
-                .map_err(|error| data_error(error.to_string()))?;
+            let client =
+                postgres::Client::connect(target, NoTls).map_err(|error| driver_error(error))?;
             Ok(Conn::Postgres(client))
         }
         DriverKind::Mysql | DriverKind::Mariadb => {
-            let conn = mysql::Conn::new(target).map_err(|error| data_error(error.to_string()))?;
+            let conn = mysql::Conn::new(target).map_err(|error| driver_error(error))?;
             Ok(Conn::Mysql(conn))
         }
         DriverKind::Mongo => {
-            let client =
-                MongoClient::with_uri_str(target).map_err(|error| data_error(error.to_string()))?;
+            let client = MongoClient::with_uri_str(target).map_err(|error| driver_error(error))?;
             let name = mongodb_database(target)?;
             Ok(Conn::Mongo(MongoHandle {
                 database: client.database(&name),
@@ -306,18 +392,17 @@ fn sql_server(target: &str) -> Result<SqlServer, SoplangError> {
     let runtime = tokio::runtime::Builder::new_current_thread()
         .enable_all()
         .build()
-        .map_err(|error| data_error(error.to_string()))?;
+        .map_err(|error| driver_error(error))?;
     let client = runtime.block_on(async {
-        let config = tiberius::Config::from_ado_string(target)
-            .map_err(|error| data_error(error.to_string()))?;
+        let config =
+            tiberius::Config::from_ado_string(target).map_err(|error| driver_error(error))?;
         let tcp = TcpStream::connect(config.get_addr())
             .await
-            .map_err(|error| data_error(error.to_string()))?;
-        tcp.set_nodelay(true)
-            .map_err(|error| data_error(error.to_string()))?;
+            .map_err(|error| driver_error(error))?;
+        tcp.set_nodelay(true).map_err(|error| driver_error(error))?;
         tiberius::Client::connect(config, tcp.compat_write())
             .await
-            .map_err(|error| data_error(error.to_string()))
+            .map_err(|error| driver_error(error))
     })?;
     Ok(SqlServer { runtime, client })
 }
@@ -333,30 +418,77 @@ fn mongodb_database(target: &str) -> Result<String, SoplangError> {
     Ok(name.to_string())
 }
 
-fn apply_migration(db: &mut Database, schema: &Schema) -> Result<(), SoplangError> {
-    db.pinned = Some(0);
-    if matches!(db.current(), Conn::Mongo(_)) {
-        let Conn::Mongo(mongo) = db.current() else {
-            return Err(data_error("Xiriirka MongoDB lama helin."));
+fn mongo_validator(table: &schema::Table) -> Document {
+    let mut properties = doc! { "_id": {} };
+    let mut required = Vec::new();
+    for column in &table.columns {
+        let ty = match column.ty {
+            ColumnType::Int => "long",
+            ColumnType::Text => "string",
+            ColumnType::Float => "double",
+            ColumnType::Bool => "bool",
         };
+        let types = if column.optional {
+            vec![ty, "null"]
+        } else {
+            vec![ty]
+        };
+        properties.insert(&column.name, doc! { "bsonType": types });
+        if !column.optional {
+            required.push(column.name.clone());
+        }
+    }
+    doc! { "$jsonSchema": { "bsonType": "object", "required": required, "properties": properties, "additionalProperties": false } }
+}
+
+fn apply_migration(db: &mut Database, schema: &Schema) -> Result<(), SoplangError> {
+    if matches!(db.kind, DriverKind::Mongo) {
+        let Conn::Mongo(mongo) = db.current() else {
+            unreachable!()
+        };
+        let existing = mongo
+            .database
+            .list_collection_names()
+            .run()
+            .map_err(|error| driver_error(error))?;
         for table in &schema.tables {
+            let validator = mongo_validator(table);
+            let command = if existing.iter().any(|name| name == &table.name) {
+                doc! { "collMod": &table.name, "validator": validator, "validationLevel": "strict" }
+            } else {
+                doc! { "create": &table.name, "validator": validator, "validationLevel": "strict" }
+            };
+            mongo
+                .database
+                .run_command(command)
+                .run()
+                .map_err(|error| driver_error(error))?;
+            let key = table.columns.iter().find(|column| column.key).unwrap();
+            let index = mongodb::IndexModel::builder()
+                .keys(doc! { &key.name: 1 })
+                .options(
+                    mongodb::options::IndexOptions::builder()
+                        .unique(true)
+                        .build(),
+                )
+                .build();
             mongo
                 .database
                 .collection::<Document>(&table.name)
-                .insert_one(doc! {})
+                .create_index(index)
                 .run()
-                .ok();
-            let _ = mongo
-                .database
-                .collection::<Document>(&table.name)
-                .delete_one(doc! {})
-                .run();
+                .map_err(|error| driver_error(error))?;
         }
-        let meta = mongo.database.collection::<Document>("soplang_guuri");
-        let _ = meta.delete_many(doc! {}).run();
-        meta.insert_one(doc! { "sha256": schema.fingerprint() })
+        mongo
+            .database
+            .collection::<Document>("soplang_guuri")
+            .update_one(
+                doc! { "_id": "schema" },
+                doc! { "$set": { "sha256": schema.fingerprint() } },
+            )
+            .upsert(true)
             .run()
-            .map_err(|error| data_error(error.to_string()))?;
+            .map_err(|error| driver_error(error))?;
         return Ok(());
     }
     exec(db, &migration_table(db.kind))?;
@@ -370,7 +502,7 @@ fn apply_migration(db: &mut Database, schema: &Schema) -> Result<(), SoplangErro
         }
     }
     let hash = schema.fingerprint();
-    let _ = exec(db, "DELETE FROM soplang_guuri");
+    exec(db, "DELETE FROM soplang_guuri")?;
     exec(
         db,
         &format!("INSERT INTO soplang_guuri (sha256) VALUES ('{hash}')"),
@@ -395,24 +527,29 @@ fn create_table(kind: DriverKind, table: &schema::Table) -> String {
     match kind {
         DriverKind::SqlServer => format!(
             "IF OBJECT_ID(N'{}', N'U') IS NULL CREATE TABLE {} ({columns});",
-            table.name, table.name
+            table.name,
+            sql::identifier(kind, &table.name)
         ),
-        _ => format!("CREATE TABLE IF NOT EXISTS {} ({columns});", table.name),
+        _ => format!(
+            "CREATE TABLE IF NOT EXISTS {} ({columns});",
+            sql::identifier(kind, &table.name)
+        ),
     }
 }
 
 fn column_sql(kind: DriverKind, column: &schema::Column) -> String {
+    let name = sql::identifier(kind, &column.name);
     if column.key {
         return match kind {
-            DriverKind::Sqlite => format!("{} INTEGER PRIMARY KEY AUTOINCREMENT", column.name),
+            DriverKind::Sqlite => format!("{name} INTEGER PRIMARY KEY AUTOINCREMENT"),
             DriverKind::Postgres | DriverKind::Cockroach => format!(
                 "{} BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY",
-                column.name
+                name
             ),
             DriverKind::Mysql | DriverKind::Mariadb => {
-                format!("{} BIGINT PRIMARY KEY AUTO_INCREMENT", column.name)
+                format!("{name} BIGINT PRIMARY KEY AUTO_INCREMENT")
             }
-            DriverKind::SqlServer => format!("{} BIGINT IDENTITY(1,1) PRIMARY KEY", column.name),
+            DriverKind::SqlServer => format!("{name} BIGINT IDENTITY(1,1) PRIMARY KEY"),
             DriverKind::Mongo => column.name.clone(),
         };
     }
@@ -432,10 +569,14 @@ fn column_sql(kind: DriverKind, column: &schema::Column) -> String {
     } else {
         ty
     };
-    format!("{} {ty}", column.name)
+    format!(
+        "{name} {ty}{}",
+        if column.optional { "" } else { " NOT NULL" }
+    )
 }
 
 fn add_column(kind: DriverKind, table: &str, column: &schema::Column) -> String {
+    let table = sql::identifier(kind, table);
     format!(
         "ALTER TABLE {table} ADD {} {}",
         if matches!(kind, DriverKind::Postgres | DriverKind::Cockroach) {
@@ -450,12 +591,15 @@ fn add_column(kind: DriverKind, table: &str, column: &schema::Column) -> String 
 
 fn existing_columns(db: &mut Database, table: &str) -> Result<Vec<String>, SoplangError> {
     let sql = match db.kind {
-        DriverKind::Sqlite => format!("PRAGMA table_info({table})"),
+        DriverKind::Sqlite => format!("PRAGMA table_info({})", sql::identifier(db.kind, table)),
         DriverKind::SqlServer => format!(
             "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '{table}'"
         ),
+        DriverKind::Mysql | DriverKind::Mariadb => format!(
+            "SELECT column_name FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = '{table}'"
+        ),
         _ => format!(
-            "SELECT column_name FROM information_schema.columns WHERE table_name = '{table}'"
+            "SELECT column_name FROM information_schema.columns WHERE table_schema = current_schema() AND table_name = '{table}'"
         ),
     };
     let rows = query(db, &sql)?;
@@ -473,98 +617,6 @@ fn existing_columns(db: &mut Database, table: &str) -> Result<Vec<String>, Sopla
             })
         })
         .collect())
-}
-
-fn insert_sql(
-    kind: DriverKind,
-    table: &schema::Table,
-    fields: &HashMap<String, SqlValue>,
-) -> String {
-    let mut names = Vec::new();
-    let mut values = Vec::new();
-    for column in &table.columns {
-        if column.key && !fields.contains_key(&column.name) {
-            continue;
-        }
-        if let Some(value) = fields.get(&column.name) {
-            names.push(column.name.as_str());
-            values.push(literal(kind, value));
-        }
-    }
-    format!(
-        "INSERT INTO {} ({}) VALUES ({})",
-        table.name,
-        names.join(", "),
-        values.join(", ")
-    )
-}
-
-fn select_sql(kind: DriverKind, table: &str, filter: &HashMap<String, SqlValue>) -> String {
-    let where_sql = where_clause(kind, filter);
-    if matches!(kind, DriverKind::SqlServer) {
-        format!("SELECT TOP 1000 * FROM {table}{where_sql}")
-    } else {
-        format!("SELECT * FROM {table}{where_sql} LIMIT 1000")
-    }
-}
-
-fn update_sql(
-    kind: DriverKind,
-    table: &str,
-    filter: &HashMap<String, SqlValue>,
-    changes: &HashMap<String, SqlValue>,
-) -> String {
-    let set = changes
-        .iter()
-        .map(|(name, value)| format!("{name} = {}", literal(kind, value)))
-        .collect::<Vec<_>>()
-        .join(", ");
-    format!("UPDATE {table} SET {set}{}", where_clause(kind, filter))
-}
-
-fn delete_sql(kind: DriverKind, table: &str, filter: &HashMap<String, SqlValue>) -> String {
-    format!("DELETE FROM {table}{}", where_clause(kind, filter))
-}
-
-fn where_clause(kind: DriverKind, filter: &HashMap<String, SqlValue>) -> String {
-    if filter.is_empty() {
-        return String::new();
-    }
-    let parts = filter
-        .iter()
-        .map(|(name, value)| format!("{name} = {}", literal(kind, value)))
-        .collect::<Vec<_>>()
-        .join(" AND ");
-    format!(" WHERE {parts}")
-}
-
-fn literal(kind: DriverKind, value: &SqlValue) -> String {
-    match value {
-        SqlValue::Null => "NULL".into(),
-        SqlValue::Int(value) => value.to_string(),
-        SqlValue::Float(value) => {
-            if value.is_finite() {
-                value.to_string()
-            } else {
-                "NULL".into()
-            }
-        }
-        SqlValue::Bool(true) => match kind {
-            DriverKind::Mysql
-            | DriverKind::Mariadb
-            | DriverKind::SqlServer
-            | DriverKind::Sqlite => "1".into(),
-            _ => "TRUE".into(),
-        },
-        SqlValue::Bool(false) => match kind {
-            DriverKind::Mysql
-            | DriverKind::Mariadb
-            | DriverKind::SqlServer
-            | DriverKind::Sqlite => "0".into(),
-            _ => "FALSE".into(),
-        },
-        SqlValue::Text(text) => format!("'{}'", text.replace('\'', "''")),
-    }
 }
 
 fn begin(db: &mut Database) -> Result<(), SoplangError> {
@@ -598,7 +650,7 @@ fn rollback(db: &mut Database) -> Result<(), SoplangError> {
     if matches!(db.kind, DriverKind::Mongo) {
         return mongo_finish(db, false);
     }
-    let _ = exec(db, "ROLLBACK");
+    exec(db, "ROLLBACK")?;
     Ok(())
 }
 
@@ -610,11 +662,11 @@ fn mongo_begin(db: &mut Database) -> Result<(), SoplangError> {
         .client
         .start_session()
         .run()
-        .map_err(|error| data_error(error.to_string()))?;
+        .map_err(|error| driver_error(error))?;
     session
         .start_transaction()
         .run()
-        .map_err(|error| data_error(error.to_string()))?;
+        .map_err(|error| driver_error(error))?;
     mongo.session = Some(session);
     Ok(())
 }
@@ -632,30 +684,83 @@ fn mongo_finish(db: &mut Database, commit: bool) -> Result<(), SoplangError> {
         session.abort_transaction().run()
     };
     mongo.session = None;
-    result.map_err(|error| data_error(error.to_string()))
+    result.map_err(|error| driver_error(error))
 }
 
 fn exec(db: &mut Database, sql: &str) -> Result<u64, SoplangError> {
+    // Transaction controls and DDL use the driver's batch protocol. MySQL
+    // cannot prepare every control command, and a SQL Server RPC must not
+    // change the surrounding session's transaction count.
+    match db.current() {
+        Conn::Mysql(conn) => {
+            conn.query_drop(sql).map_err(driver_error)?;
+            return Ok(conn.affected_rows());
+        }
+        Conn::SqlServer(server) => {
+            return server.runtime.block_on(async {
+                server
+                    .client
+                    .simple_query(sql)
+                    .await
+                    .map_err(driver_error)?
+                    .into_results()
+                    .await
+                    .map_err(driver_error)?;
+                Ok(0)
+            })
+        }
+        _ => {}
+    }
+    exec_statement(
+        db,
+        &Statement {
+            text: sql.into(),
+            params: Vec::new(),
+        },
+    )
+}
+
+fn exec_statement(db: &mut Database, statement: &Statement) -> Result<u64, SoplangError> {
+    let sql = &statement.text;
+    let params = &statement.params;
     match db.current() {
         Conn::Sqlite(conn) => conn
-            .execute(sql, [])
+            .execute(
+                sql,
+                rusqlite::params_from_iter(params.iter().map(Param::sqlite)),
+            )
             .map(|count| count as u64)
-            .map_err(|error| data_error(error.to_string())),
-        Conn::Postgres(client) => client
-            .execute(sql, &[])
-            .map_err(|error| data_error(error.to_string())),
+            .map_err(|error| driver_error(error)),
+        Conn::Postgres(client) => {
+            let values = params.iter().map(Param::postgres).collect::<Vec<_>>();
+            let refs = values
+                .iter()
+                .map(|v| v.as_ref() as &(dyn postgres::types::ToSql + Sync))
+                .collect::<Vec<_>>();
+            client
+                .execute(sql.as_str(), &refs)
+                .map_err(|error| driver_error(error))
+        }
         Conn::Mysql(conn) => {
-            conn.query_drop(sql)
-                .map_err(|error| data_error(error.to_string()))?;
+            conn.exec_drop(
+                sql,
+                mysql::Params::Positional(params.iter().map(Param::mysql).collect()),
+            )
+            .map_err(|error| driver_error(error))?;
             Ok(conn.affected_rows())
         }
         Conn::SqlServer(server) => server.runtime.block_on(async {
+            let values = params.iter().map(Param::sqlserver).collect::<Vec<_>>();
+            let refs = values
+                .iter()
+                .map(|v| v.as_ref() as &dyn tiberius::ToSql)
+                .collect::<Vec<_>>();
             server
                 .client
-                .execute(sql, &[])
+                .execute(sql, &refs)
                 .await
                 .map(|result| result.total())
-                .map_err(|error| data_error(error.to_string()))
+                .map_err(|error| driver_error(error))
         }),
         Conn::Mongo(_) => Err(data_error("SQL lama isticmaalo MongoDB.")),
     }
@@ -672,21 +777,31 @@ impl SqlRow {
 }
 
 fn query(db: &mut Database, sql: &str) -> Result<Vec<SqlRow>, SoplangError> {
+    query_statement(
+        db,
+        &Statement {
+            text: sql.into(),
+            params: Vec::new(),
+        },
+    )
+}
+
+fn query_statement(db: &mut Database, statement: &Statement) -> Result<Vec<SqlRow>, SoplangError> {
+    let sql = &statement.text;
+    let params = &statement.params;
     match db.current() {
         Conn::Sqlite(conn) => {
-            let mut statement = conn
-                .prepare(sql)
-                .map_err(|error| data_error(error.to_string()))?;
+            let mut statement = conn.prepare(sql).map_err(|error| driver_error(error))?;
             let columns: Vec<String> = statement
                 .column_names()
                 .iter()
                 .map(|name| (*name).to_string())
                 .collect();
             let mut rows = statement
-                .query([])
-                .map_err(|error| data_error(error.to_string()))?;
+                .query(rusqlite::params_from_iter(params.iter().map(Param::sqlite)))
+                .map_err(|error| driver_error(error))?;
             let mut out = Vec::new();
-            while let Some(row) = rows.next().map_err(|error| data_error(error.to_string()))? {
+            while let Some(row) = rows.next().map_err(|error| driver_error(error))? {
                 let mut values = Vec::new();
                 for (index, name) in columns.iter().enumerate() {
                     values.push((name.clone(), sqlite_value(row, index)?));
@@ -696,9 +811,14 @@ fn query(db: &mut Database, sql: &str) -> Result<Vec<SqlRow>, SoplangError> {
             Ok(out)
         }
         Conn::Postgres(client) => {
+            let values = params.iter().map(Param::postgres).collect::<Vec<_>>();
+            let refs = values
+                .iter()
+                .map(|v| v.as_ref() as &(dyn postgres::types::ToSql + Sync))
+                .collect::<Vec<_>>();
             let rows = client
-                .query(sql, &[])
-                .map_err(|error| data_error(error.to_string()))?;
+                .query(sql.as_str(), &refs)
+                .map_err(|error| driver_error(error))?;
             let mut out = Vec::new();
             for row in rows {
                 let mut values = Vec::new();
@@ -711,8 +831,11 @@ fn query(db: &mut Database, sql: &str) -> Result<Vec<SqlRow>, SoplangError> {
         }
         Conn::Mysql(conn) => {
             let result = conn
-                .query_iter(sql)
-                .map_err(|error| data_error(error.to_string()))?;
+                .exec_iter(
+                    sql,
+                    mysql::Params::Positional(params.iter().map(Param::mysql).collect()),
+                )
+                .map_err(|error| driver_error(error))?;
             let columns = result
                 .columns()
                 .as_ref()
@@ -721,7 +844,7 @@ fn query(db: &mut Database, sql: &str) -> Result<Vec<SqlRow>, SoplangError> {
                 .collect::<Vec<_>>();
             let mut out = Vec::new();
             for row in result {
-                let row = row.map_err(|error| data_error(error.to_string()))?;
+                let row = row.map_err(|error| driver_error(error))?;
                 let mut values = Vec::new();
                 for (index, name) in columns.iter().enumerate() {
                     values.push((name.clone(), mysql_value(row.as_ref(index).cloned())));
@@ -731,14 +854,19 @@ fn query(db: &mut Database, sql: &str) -> Result<Vec<SqlRow>, SoplangError> {
             Ok(out)
         }
         Conn::SqlServer(server) => server.runtime.block_on(async {
+            let values = params.iter().map(Param::sqlserver).collect::<Vec<_>>();
+            let refs = values
+                .iter()
+                .map(|v| v.as_ref() as &dyn tiberius::ToSql)
+                .collect::<Vec<_>>();
             let rows = server
                 .client
-                .simple_query(sql)
+                .query(sql, &refs)
                 .await
-                .map_err(|error| data_error(error.to_string()))?
+                .map_err(|error| driver_error(error))?
                 .into_first_result()
                 .await
-                .map_err(|error| data_error(error.to_string()))?;
+                .map_err(|error| driver_error(error))?;
             let mut out = Vec::new();
             for row in rows {
                 let mut values = Vec::new();
@@ -754,9 +882,7 @@ fn query(db: &mut Database, sql: &str) -> Result<Vec<SqlRow>, SoplangError> {
 }
 
 fn sqlite_value(row: &rusqlite::Row<'_>, index: usize) -> Result<SqlValue, SoplangError> {
-    let value: rusqlite::types::Value = row
-        .get(index)
-        .map_err(|error| data_error(error.to_string()))?;
+    let value: rusqlite::types::Value = row.get(index).map_err(|error| driver_error(error))?;
     Ok(match value {
         rusqlite::types::Value::Null => SqlValue::Null,
         rusqlite::types::Value::Integer(value) => SqlValue::Int(value),
@@ -809,17 +935,52 @@ fn mssql_value(value: &tiberius::ColumnData<'_>) -> SqlValue {
 
 fn mongo_insert(
     mongo: &mut MongoHandle,
-    table: &str,
+    table: &schema::Table,
     fields: &HashMap<String, SqlValue>,
 ) -> Result<Value, SoplangError> {
-    let collection = mongo.database.clone().collection::<Document>(table);
-    let document = document(fields);
+    let collection = mongo.database.clone().collection::<Document>(&table.name);
+    let mut document = document(fields);
+    let key = table.columns.iter().find(|column| column.key).unwrap();
+    let counters = mongo.database.collection::<Document>("soplang_counters");
+    if !fields.contains_key(&key.name) {
+        let action = counters
+            .find_one_and_update(
+                doc! { "_id": &table.name },
+                doc! { "$inc": { "value": 1_i64 } },
+            )
+            .upsert(true)
+            .return_document(mongodb::options::ReturnDocument::After);
+        let counter = if let Some(session) = mongo.session.as_mut() {
+            action.session(session).run()
+        } else {
+            action.run()
+        }
+        .map_err(|error| driver_error(error))?
+        .ok_or_else(|| data_error("Furaha cusub lama abuurin."))?;
+        let id = counter
+            .get_i64("value")
+            .map_err(|error| driver_error(error))?;
+        document.insert(&key.name, id);
+    } else if let Some(SqlValue::Int(id)) = fields.get(&key.name) {
+        let action = counters
+            .update_one(
+                doc! { "_id": &table.name },
+                doc! { "$max": { "value": *id } },
+            )
+            .upsert(true);
+        if let Some(session) = mongo.session.as_mut() {
+            action.session(session).run()
+        } else {
+            action.run()
+        }
+        .map_err(|error| driver_error(error))?;
+    }
     let result = if let Some(session) = mongo.session.as_mut() {
         collection.insert_one(document).session(session).run()
     } else {
         collection.insert_one(document).run()
     };
-    result.map_err(|error| data_error(error.to_string()))?;
+    result.map_err(|error| driver_error(error))?;
     Ok(Value::Int(1))
 }
 
@@ -838,22 +999,22 @@ fn mongo_find(
                 .find(filter)
                 .session(session)
                 .run()
-                .map_err(|error| data_error(error.to_string()))?
+                .map_err(|error| driver_error(error))?
         };
         let session = mongo.session.as_mut().unwrap();
         for document in cursor.iter(session).take(1000) {
             rows.push(document_to_value(
-                document.map_err(|error| data_error(error.to_string()))?,
+                document.map_err(|error| driver_error(error))?,
             ));
         }
     } else {
         let cursor = collection
             .find(filter)
             .run()
-            .map_err(|error| data_error(error.to_string()))?;
+            .map_err(|error| driver_error(error))?;
         for document in cursor.take(1000) {
             rows.push(document_to_value(
-                document.map_err(|error| data_error(error.to_string()))?,
+                document.map_err(|error| driver_error(error))?,
             ));
         }
     }
@@ -877,7 +1038,7 @@ fn mongo_update(
     } else {
         collection.update_many(filter, changes).run()
     }
-    .map_err(|error| data_error(error.to_string()))?;
+    .map_err(|error| driver_error(error))?;
     Ok(Value::Int(result.modified_count as i64))
 }
 
@@ -893,7 +1054,7 @@ fn mongo_delete(
     } else {
         collection.delete_many(filter).run()
     }
-    .map_err(|error| data_error(error.to_string()))?;
+    .map_err(|error| driver_error(error))?;
     Ok(Value::Int(result.deleted_count as i64))
 }
 
@@ -946,16 +1107,52 @@ fn require_table(db: &Database, name: &str) -> Result<schema::Table, SoplangErro
         .ok_or_else(|| data_error(format!("Jadwalka '{name}' kuma jiro schema.")))
 }
 
-fn reject_unknown(
+fn validate_fields(
     table: &schema::Table,
-    fields: &HashMap<String, SqlValue>,
+    fields: &mut HashMap<String, SqlValue>,
+    insert: bool,
 ) -> Result<(), SoplangError> {
-    for name in fields.keys() {
-        if !table.columns.iter().any(|column| &column.name == name) {
+    for (name, value) in fields.iter_mut() {
+        let column = table
+            .columns
+            .iter()
+            .find(|column| &column.name == name)
+            .ok_or_else(|| {
+                data_error(format!(
+                    "Tiirka '{name}' kuma jiro jadwalka '{}'.",
+                    table.name
+                ))
+            })?;
+        let valid = match (&*value, column.ty) {
+            (SqlValue::Null, _) => column.optional,
+            (SqlValue::Int(_), ColumnType::Int)
+            | (SqlValue::Float(_), ColumnType::Float)
+            | (SqlValue::Text(_), ColumnType::Text)
+            | (SqlValue::Bool(_), ColumnType::Bool) => true,
+            (SqlValue::Int(number), ColumnType::Float) => {
+                *value = SqlValue::Float(*number as f64);
+                true
+            }
+            _ => false,
+        };
+        if !valid {
             return Err(data_error(format!(
-                "Tiirka '{name}' kuma jiro jadwalka '{}'.",
-                table.name
+                "Qiimaha tiirka '{name}' ma waafaqsana noociisa."
             )));
+        }
+    }
+    if insert {
+        for column in &table.columns {
+            if !fields.contains_key(&column.name) && !column.key {
+                if column.optional {
+                    fields.insert(column.name.clone(), SqlValue::Null);
+                } else {
+                    return Err(data_error(format!(
+                        "Tiirka '{}' waa loo baahan yahay.",
+                        column.name
+                    )));
+                }
+            }
         }
     }
     Ok(())
@@ -1018,14 +1215,19 @@ fn with_db<T>(
     id: i64,
     body: impl FnOnce(&mut Database) -> Result<T, SoplangError>,
 ) -> Result<T, SoplangError> {
-    let mut databases = DATABASES
-        .lock()
-        .unwrap_or_else(|poison| poison.into_inner());
-    let db = databases
-        .get_or_insert_with(HashMap::new)
-        .get_mut(&id)
-        .ok_or_else(|| data_error("Xogta waa la xidhay."))?;
-    body(db)
+    with_databases(|databases| {
+        let mut databases = databases
+            .try_borrow_mut()
+            .map_err(|_| data_error("Xogta hadda waa la isticmaalayaa."))?;
+        let db = databases
+            .get_mut(&id)
+            .ok_or_else(|| data_error("Xogta waa la xidhay."))?;
+        let result = body(db);
+        if db.pinned.is_none() {
+            db.cursor = (db.cursor + 1) % db.conns.len();
+        }
+        result
+    })
 }
 
 fn handle(id: i64, kind: &str) -> Value {
@@ -1046,6 +1248,17 @@ fn object(fields: &[(&str, Value)]) -> Value {
 
 fn object_from(fields: HashMap<String, Value>) -> Value {
     Value::Object(std::rc::Rc::new(std::cell::RefCell::new(fields)))
+}
+
+fn driver_error(error: impl std::fmt::Display) -> SoplangError {
+    runtime_error_ex(
+        "Hawlgalka kaydka xogtu ma hirgelin.",
+        0,
+        0,
+        ErrorMeta::default()
+            .with_code(codes::E059_DATA)
+            .with_details(error.to_string()),
+    )
 }
 
 fn data_error(message: impl Into<String>) -> SoplangError {
@@ -1081,9 +1294,5 @@ mod tests {
         assert!(mysql.contains("AUTO_INCREMENT"));
         assert_eq!(mysql, create_table(DriverKind::Mariadb, &table));
         assert!(server.contains("IDENTITY(1,1)"));
-        assert_eq!(
-            literal(DriverKind::Sqlite, &SqlValue::Text("a'b".into())),
-            "'a''b'"
-        );
     }
 }

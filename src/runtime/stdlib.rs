@@ -553,6 +553,11 @@ pub fn builtin_xog_schema(args: Vec<Value>) -> Result<Value, SoplangError> {
     crate::data::load_schema(database_id(&args[0])?, text)
 }
 
+pub fn builtin_xog_xidh(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "xog_xidh", 1)?;
+    crate::data::close(database_id(&args[0])?)
+}
+
 pub fn builtin_xog_guuri(args: Vec<Value>) -> Result<Value, SoplangError> {
     expect_arity(&args, "xog_guuri", 1)?;
     crate::data::migrate(database_id(&args[0])?)
@@ -1378,6 +1383,7 @@ const BUILTINS: &[(&str, super::NativeFn, CallbackArity)] = &[
     ("dabool_saf", builtin_dabool_saf, CallbackArity::range(1, 1)),
     ("xog_fur", builtin_xog_fur, CallbackArity::range(2, 3)),
     ("xog_schema", builtin_xog_schema, CallbackArity::range(2, 2)),
+    ("xog_xidh", builtin_xog_xidh, CallbackArity::range(1, 1)),
     ("xog_guuri", builtin_xog_guuri, CallbackArity::range(1, 1)),
     ("xog_geli", builtin_xog_geli, CallbackArity::range(3, 3)),
     ("xog_raadi", builtin_xog_raadi, CallbackArity::range(2, 3)),

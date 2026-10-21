@@ -99,12 +99,22 @@ pub fn parse_schema(text: &str) -> Result<Schema, String> {
             if line == "}" {
                 break;
             }
-            columns.push(parse_column(line)?);
+            let column = parse_column(line)?;
+            if columns
+                .iter()
+                .any(|existing: &Column| existing.name == column.name)
+            {
+                return Err(format!("Tiirka '{}' waa la soo celiyey.", column.name));
+            }
+            columns.push(column);
         }
         if columns.iter().filter(|column| column.key).count() != 1 {
             return Err(format!(
                 "Jadwalka '{name}' wuxuu u baahan yahay hal furaha abn."
             ));
+        }
+        if name.starts_with("soplang_") {
+            return Err("Magacyada ku bilaabma soplang_ waxaa loo reebay nidaamka.".into());
         }
         if tables.iter().any(|table: &Table| table.name == name) {
             return Err(format!("Jadwalka '{name}' waa la soo celiyey."));

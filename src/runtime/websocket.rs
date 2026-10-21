@@ -62,6 +62,8 @@ pub fn connect(url: &str, timeout: Duration) -> Result<Value, SoplangError> {
 }
 
 fn connect_with_timeout(url: &str, timeout: Duration) -> Result<Socket, SoplangError> {
+    // Other TLS clients may enable a second provider through Cargo features.
+    let _ = rustls::crypto::ring::default_provider().install_default();
     let mut current = url.to_string();
     for attempt in 0..=3 {
         let request = current
