@@ -302,6 +302,15 @@ these explanations do not establish a historical abbreviation or SLS approval.
 | `abuur_gal` | Create a directory tree                 | (mkdir)              | `abuur_gal("data/pkg")`                    |
 | `tir_gal` | List directory entry names                | (list dir)           | `door names = tir_gal("data")`             |
 | `tirtir_gal` | Remove a directory                     | (rmdir)              | `tirtir_gal("data", run)`                  |
+| `fayl_fur` | Open a file handle                     | (open)               | `fayl_fur("magac.txt", "akhris")`          |
+| `fayl_akhris` | Read a bounded chunk                 | (read)               | `fayl_akhris(fayl, 64)`                    |
+| `fayl_xariiq` | Read one line                        | (read line)          | `fayl_xariiq(fayl)`                        |
+| `fayl_qor` | Write text or bytes                    | (write)              | `fayl_qor(fayl, "salaan")`                 |
+| `fayl_nadiifi` | Flush a file handle                 | (flush)              | `fayl_nadiifi(fayl)`                       |
+| `fayl_xidh` | Close a file handle                   | (close)              | `fayl_xidh(fayl)`                          |
+| `fayl_raad` | Seek to a file position               | (seek)               | `fayl_raad(fayl, 0, "bilow")`              |
+| `fayl_meel` | Return the file position              | (tell)               | `fayl_meel(fayl)`                          |
+| `fayl_beddel` | Atomically replace a file           | (replace)            | `fayl_beddel("magac.txt", "cusub")`        |
 | `nooc`   | Get type of variable                         | `typeof`             | `qor(nooc(magac))`                        |
 | `abn`    | Convert value to an integer (also the `int` type keyword above) | `int` | `door n = abn("5")`                 |
 | `jajab`  | Convert a number or numeric string to floating point | `float` | `door n = jajab("3.5")`             |

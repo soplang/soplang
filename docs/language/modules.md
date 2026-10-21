@@ -43,4 +43,7 @@ A file can be imported this way once. Importing it again, or a cycle back to a
 file already loaded, is an import error. Flat `keen` imports keep their
 existing cycle behavior.
 
-Package imports remain later 3.4 work.
+`keen "xisaab"` loads a package named in the nearest `soplang.toml`. The file is
+`<gelid>/xisaab.sop`. `keen "xisaab/util.sop"` loads `<gelid>/util.sop`. A
+relative path that already names a file stays a file import. See
+[packages](packages.md).

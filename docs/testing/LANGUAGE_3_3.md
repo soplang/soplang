@@ -1,7 +1,7 @@
 # Local verification for the 3.3 file and data stage
 
-These checks cover implemented slices. Later 3.3 scope (directories, binary
-files, JSON, HTTP) remains on [ROADMAP.md](../../ROADMAP.md).
+These checks cover the implemented 3.3 library. Streaming HTTP bodies and a
+WebSocket server remain in 3.6.
 
 ## Initial UTF-8 text file access
 
@@ -26,6 +26,8 @@ cargo test --locked --test filesystem_tests --test text_file_tests --test llvm_i
 
 The filesystem suite covers metadata, join/absolute paths, directory lifecycle,
 copy/move/delete guards, and LLVM execution at optimization levels 0 and 2.
+File handles, bounded reads, seeking, and atomic replacement are covered by
+`cargo test --locked --test file_handle_tests`.
 
 ## Whole-file binary access
 

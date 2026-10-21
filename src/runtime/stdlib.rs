@@ -121,7 +121,11 @@ fn expect_bytes_contents(value: &Value, name: &str) -> Result<Vec<u8>, SoplangEr
     match value {
         Value::Bytes(bytes) => super::bytes::read(bytes)
             .map(|data| data.clone())
-            .map_err(|_| err_type(format!("{name} waa inuu helaa baytyo aan la isticmaali karin."))),
+            .map_err(|_| {
+                err_type(format!(
+                    "{name} waa inuu helaa baytyo aan la isticmaali karin."
+                ))
+            }),
         _ => Err(err_type(format!("{name} waa inuu helaa baytyo."))),
     }
 }
@@ -222,7 +226,9 @@ fn bytes_argument(value: &Value, name: &str) -> Result<Vec<u8>, SoplangError> {
     match value {
         Value::Str(text) => Ok(text.as_bytes().to_vec()),
         Value::Bytes(bytes) => super::bytes::read(bytes).map(|data| data.clone()),
-        _ => Err(err_type(format!("{name}() wuxuu u baahan yahay qoraal ama baytyo."))),
+        _ => Err(err_type(format!(
+            "{name}() wuxuu u baahan yahay qoraal ama baytyo."
+        ))),
     }
 }
 
@@ -239,7 +245,9 @@ pub fn builtin_b64_akhris(args: Vec<Value>) -> Result<Value, SoplangError> {
         return Err(err_type("b64_akhris() waa inuu helaa qoraal."));
     };
     let url = super::base64::url_mode(args.get(1), "b64_akhris")?;
-    Ok(super::bytes::from_raw_vec(super::base64::decode(text, url)?))
+    Ok(super::bytes::from_raw_vec(super::base64::decode(
+        text, url,
+    )?))
 }
 
 fn expect_pattern_text<'a>(value: &'a Value, name: &str) -> Result<&'a str, SoplangError> {
@@ -352,7 +360,9 @@ pub fn builtin_deegaan_tirtir(args: Vec<Value>) -> Result<Value, SoplangError> {
 pub fn builtin_fuli(args: Vec<Value>) -> Result<Value, SoplangError> {
     expect_arity_range(&args, "fuli", 1, 2)?;
     let Value::Str(program) = &args[0] else {
-        return Err(err_type("fuli() waa inuu helaa magac barnaamij oo qoraal ah."));
+        return Err(err_type(
+            "fuli() waa inuu helaa magac barnaamij oo qoraal ah.",
+        ));
     };
     let command_args = match args.get(1) {
         None => Vec::new(),
@@ -387,7 +397,9 @@ pub fn builtin_http_codso(args: Vec<Value>) -> Result<Value, SoplangError> {
 pub fn builtin_server_fur(args: Vec<Value>) -> Result<Value, SoplangError> {
     expect_arity(&args, "server_fur", 2)?;
     let Value::Str(host) = &args[0] else {
-        return Err(err_type("Martigeliyaha server_fur() waa inuu noqdaa qoraal."));
+        return Err(err_type(
+            "Martigeliyaha server_fur() waa inuu noqdaa qoraal.",
+        ));
     };
     let Value::Int(port) = args[1] else {
         return Err(err_type("Dekedda server_fur() waa inay noqotaa abn."));
@@ -409,7 +421,9 @@ fn network_bytes(value: &Value, name: &str) -> Result<Vec<u8>, SoplangError> {
     match value {
         Value::Str(text) => Ok(text.as_bytes().to_vec()),
         Value::Bytes(bytes) => super::bytes::read(bytes).map(|data| data.clone()),
-        _ => Err(err_type(format!("{name}() wuxuu u baahan yahay qoraal ama baytyo."))),
+        _ => Err(err_type(format!(
+            "{name}() wuxuu u baahan yahay qoraal ama baytyo."
+        ))),
     }
 }
 
@@ -436,7 +450,9 @@ pub fn builtin_tcp_fur(args: Vec<Value>) -> Result<Value, SoplangError> {
 pub fn builtin_tcp_dhegeysi(args: Vec<Value>) -> Result<Value, SoplangError> {
     expect_arity(&args, "tcp_dhegeysi", 2)?;
     let Value::Str(host) = &args[0] else {
-        return Err(err_type("Martigeliyaha tcp_dhegeysi() waa inuu noqdaa qoraal."));
+        return Err(err_type(
+            "Martigeliyaha tcp_dhegeysi() waa inuu noqdaa qoraal.",
+        ));
     };
     let Value::Int(port) = args[1] else {
         return Err(err_type("Dekedda tcp_dhegeysi() waa inay noqotaa abn."));
@@ -557,14 +573,14 @@ pub fn builtin_fayl_xog(args: Vec<Value>) -> Result<Value, SoplangError> {
 
 pub fn builtin_isku_xidh(args: Vec<Value>) -> Result<Value, SoplangError> {
     if args.is_empty() {
-        return Err(err_type("isku_xidh() wuxuu u baahan yahay ugu yaraan hal qayb."));
+        return Err(err_type(
+            "isku_xidh() wuxuu u baahan yahay ugu yaraan hal qayb.",
+        ));
     }
     let segments = args
         .iter()
         .enumerate()
-        .map(|(index, value)| {
-            expect_text_path(value, &format!("isku_xidh() qaybta {index}"))
-        })
+        .map(|(index, value)| expect_text_path(value, &format!("isku_xidh() qaybta {index}")))
         .collect::<Result<Vec<_>, _>>()?;
     Ok(Value::Str(super::filesystem::join_paths(&segments)?))
 }
@@ -623,6 +639,79 @@ pub fn builtin_tirtir_gal(args: Vec<Value>) -> Result<Value, SoplangError> {
     Ok(Value::Null)
 }
 
+fn file_payload(value: &Value, name: &str) -> Result<Vec<u8>, SoplangError> {
+    match value {
+        Value::Str(text) => Ok(text.as_bytes().to_vec()),
+        Value::Bytes(bytes) => super::bytes::read(bytes).map(|data| data.clone()),
+        _ => Err(err_type(format!(
+            "{name}() wuxuu u baahan yahay qoraal ama baytyo."
+        ))),
+    }
+}
+
+pub fn builtin_fayl_fur(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "fayl_fur", 2)?;
+    let path = expect_text_path(&args[0], "fayl_fur")?;
+    let Value::Str(mode) = &args[1] else {
+        return Err(err_type("Habka fayl_fur() waa inuu noqdaa qoraal."));
+    };
+    super::file_handles::open(&path, mode)
+}
+
+pub fn builtin_fayl_akhris(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "fayl_akhris", 2)?;
+    let Value::Int(limit) = args[1] else {
+        return Err(err_type("Cabbirka fayl_akhris() waa inuu noqdaa abn."));
+    };
+    let limit = usize::try_from(limit).map_err(|_| err_type("Cabbirka fayl_akhris() ma saxna."))?;
+    super::file_handles::read_bytes(&args[0], limit)
+}
+
+pub fn builtin_fayl_xariiq(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "fayl_xariiq", 1)?;
+    super::file_handles::read_line(&args[0])
+}
+
+pub fn builtin_fayl_qor(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "fayl_qor", 2)?;
+    let data = file_payload(&args[1], "fayl_qor")?;
+    super::file_handles::write(&args[0], &data)
+}
+
+pub fn builtin_fayl_nadiifi(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "fayl_nadiifi", 1)?;
+    super::file_handles::flush(&args[0])
+}
+
+pub fn builtin_fayl_xidh(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "fayl_xidh", 1)?;
+    super::file_handles::close(&args[0])
+}
+
+pub fn builtin_fayl_raad(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "fayl_raad", 3)?;
+    let Value::Int(offset) = args[1] else {
+        return Err(err_type("Meesha fayl_raad() waa inay noqotaa abn."));
+    };
+    let Value::Str(origin) = &args[2] else {
+        return Err(err_type("Asalka fayl_raad() waa inuu noqdaa qoraal."));
+    };
+    super::file_handles::seek(&args[0], offset, origin)
+}
+
+pub fn builtin_fayl_meel(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "fayl_meel", 1)?;
+    super::file_handles::position(&args[0])
+}
+
+pub fn builtin_fayl_beddel(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "fayl_beddel", 2)?;
+    let path = expect_text_path(&args[0], "fayl_beddel")?;
+    let data = file_payload(&args[1], "fayl_beddel")?;
+    super::filesystem::replace_bytes(std::path::Path::new(&path), &data)?;
+    Ok(Value::Null)
+}
+
 /// Construct an immutable structured error without raising it.
 pub fn builtin_khalad(args: Vec<Value>) -> Result<Value, SoplangError> {
     expect_arity_range(&args, "khalad", 1, 3)?;
@@ -657,7 +746,8 @@ pub fn builtin_khalad(args: Vec<Value>) -> Result<Value, SoplangError> {
 pub fn builtin_qaabee(args: Vec<Value>) -> Result<Value, SoplangError> {
     expect_arity_range(&args, "qaabee", 1, 2)?;
     let descriptor = match args.get(1) {
-        None => "", Some(Value::Str(value)) => value,
+        None => "",
+        Some(Value::Str(value)) => value,
         _ => return Err(err_type("Qaabka qaabee() waa inuu noqdaa qoraal.")),
     };
     super::formatting::value(&args[0], descriptor).map(Value::Str)
@@ -841,7 +931,9 @@ pub fn builtin_baaxad(args: Vec<Value>) -> Result<Value, SoplangError> {
     while (step > 0 && i < stop) || (step < 0 && i > stop) {
         out.push(Value::Int(i));
         // Once the next value leaves i64, it is also past every valid bound.
-        let Some(next) = i.checked_add(step) else { break };
+        let Some(next) = i.checked_add(step) else {
+            break;
+        };
         i = next;
     }
     Ok(Value::List(Rc::new(RefCell::new(out))))
@@ -949,19 +1041,30 @@ impl CallbackArity {
         if self.stride == 2 {
             "tiro dhaban ah oo doodo ah".to_string()
         } else {
-            format!("{} dood", crate::error::argument_count(self.minimum, self.maximum))
+            format!(
+                "{} dood",
+                crate::error::argument_count(self.minimum, self.maximum)
+            )
         }
     }
 }
 
 // Registration and callback metadata use the same list, including aliases.
 const BUILTINS: &[(&str, super::NativeFn, CallbackArity)] = &[
-    ("loog", super::numeric::logarithm, CallbackArity::range(1, 2)),
+    (
+        "loog",
+        super::numeric::logarithm,
+        CallbackArity::range(1, 2),
+    ),
     ("sin", super::numeric::sine, CallbackArity::range(1, 2)),
     ("cos", super::numeric::cosine, CallbackArity::range(1, 2)),
     ("tan", super::numeric::tangent, CallbackArity::range(1, 2)),
     ("xagal", super::numeric::angle, CallbackArity::range(2, 2)),
-    ("joogto", super::numeric::constant, CallbackArity::range(1, 1)),
+    (
+        "joogto",
+        super::numeric::constant,
+        CallbackArity::range(1, 1),
+    ),
     ("xadid", super::numeric::clamp, CallbackArity::range(3, 3)),
     ("abuur", super::numeric::seed, CallbackArity::range(1, 1)),
     (
@@ -984,10 +1087,22 @@ const BUILTINS: &[(&str, super::NativeFn, CallbackArity)] = &[
     ("akhrifayl", builtin_akhrifayl, CallbackArity::range(1, 1)),
     ("qor_fayl", builtin_qor_fayl, CallbackArity::range(2, 2)),
     ("kudar_fayl", builtin_kudar_fayl, CallbackArity::range(2, 2)),
-    ("akhrif_baytyo", builtin_akhrif_baytyo, CallbackArity::range(1, 1)),
+    (
+        "akhrif_baytyo",
+        builtin_akhrif_baytyo,
+        CallbackArity::range(1, 1),
+    ),
     ("qor_baytyo", builtin_qor_baytyo, CallbackArity::range(2, 2)),
-    ("kudar_baytyo", builtin_kudar_baytyo, CallbackArity::range(2, 2)),
-    ("json_akhris", builtin_json_akhris, CallbackArity::range(1, 1)),
+    (
+        "kudar_baytyo",
+        builtin_kudar_baytyo,
+        CallbackArity::range(2, 2),
+    ),
+    (
+        "json_akhris",
+        builtin_json_akhris,
+        CallbackArity::range(1, 1),
+    ),
     ("json_qor", builtin_json_qor, CallbackArity::range(1, 1)),
     ("csv_akhris", builtin_csv_akhris, CallbackArity::range(1, 1)),
     ("csv_qor", builtin_csv_qor, CallbackArity::range(1, 1)),
@@ -995,27 +1110,71 @@ const BUILTINS: &[(&str, super::NativeFn, CallbackArity)] = &[
     ("url_akhris", builtin_url_akhris, CallbackArity::range(1, 2)),
     ("b64_qor", builtin_b64_qor, CallbackArity::range(1, 2)),
     ("b64_akhris", builtin_b64_akhris, CallbackArity::range(1, 2)),
-    ("regex_raadi", builtin_regex_raadi, CallbackArity::range(2, 2)),
-    ("regex_dhammaan", builtin_regex_dhammaan, CallbackArity::range(2, 2)),
-    ("regex_beddel", builtin_regex_beddel, CallbackArity::range(3, 3)),
+    (
+        "regex_raadi",
+        builtin_regex_raadi,
+        CallbackArity::range(2, 2),
+    ),
+    (
+        "regex_dhammaan",
+        builtin_regex_dhammaan,
+        CallbackArity::range(2, 2),
+    ),
+    (
+        "regex_beddel",
+        builtin_regex_beddel,
+        CallbackArity::range(3, 3),
+    ),
     ("waqti", builtin_waqti, CallbackArity::range(0, 0)),
-    ("waqti_akhris", builtin_waqti_akhris, CallbackArity::range(1, 1)),
+    (
+        "waqti_akhris",
+        builtin_waqti_akhris,
+        CallbackArity::range(1, 1),
+    ),
     ("waqti_qor", builtin_waqti_qor, CallbackArity::range(1, 1)),
     ("waqti_qayb", builtin_waqti_qayb, CallbackArity::range(1, 1)),
-    ("waqti_ka_qayb", builtin_waqti_ka_qayb, CallbackArity::range(1, 1)),
-    ("waqti_kudar", builtin_waqti_kudar, CallbackArity::range(2, 2)),
+    (
+        "waqti_ka_qayb",
+        builtin_waqti_ka_qayb,
+        CallbackArity::range(1, 1),
+    ),
+    (
+        "waqti_kudar",
+        builtin_waqti_kudar,
+        CallbackArity::range(2, 2),
+    ),
     ("amarro", builtin_amarro, CallbackArity::range(0, 0)),
     ("deegaan", builtin_deegaan, CallbackArity::range(1, 1)),
-    ("deegaan_qor", builtin_deegaan_qor, CallbackArity::range(2, 2)),
-    ("deegaan_tirtir", builtin_deegaan_tirtir, CallbackArity::range(1, 1)),
+    (
+        "deegaan_qor",
+        builtin_deegaan_qor,
+        CallbackArity::range(2, 2),
+    ),
+    (
+        "deegaan_tirtir",
+        builtin_deegaan_tirtir,
+        CallbackArity::range(1, 1),
+    ),
     ("fuli", builtin_fuli, CallbackArity::range(1, 2)),
     ("http_codso", builtin_http_codso, CallbackArity::range(2, 3)),
     ("server_fur", builtin_server_fur, CallbackArity::range(2, 2)),
-    ("server_aqbal", builtin_server_aqbal, CallbackArity::range(2, 3)),
-    ("server_xidh", builtin_server_xidh, CallbackArity::range(1, 1)),
+    (
+        "server_aqbal",
+        builtin_server_aqbal,
+        CallbackArity::range(2, 3),
+    ),
+    (
+        "server_xidh",
+        builtin_server_xidh,
+        CallbackArity::range(1, 1),
+    ),
     ("dns_raadi", builtin_dns_raadi, CallbackArity::range(1, 1)),
     ("tcp_fur", builtin_tcp_fur, CallbackArity::range(2, 3)),
-    ("tcp_dhegeysi", builtin_tcp_dhegeysi, CallbackArity::range(2, 2)),
+    (
+        "tcp_dhegeysi",
+        builtin_tcp_dhegeysi,
+        CallbackArity::range(2, 2),
+    ),
     ("tcp_aqbal", builtin_tcp_aqbal, CallbackArity::range(1, 2)),
     ("tcp_qor", builtin_tcp_qor, CallbackArity::range(2, 2)),
     ("tcp_akhris", builtin_tcp_akhris, CallbackArity::range(2, 2)),
@@ -1030,14 +1189,51 @@ const BUILTINS: &[(&str, super::NativeFn, CallbackArity)] = &[
     ("ws_xidh", builtin_ws_xidh, CallbackArity::range(1, 1)),
     ("fayl_jiraa", builtin_fayl_jiraa, CallbackArity::range(1, 1)),
     ("fayl_xog", builtin_fayl_xog, CallbackArity::range(1, 1)),
-    ("isku_xidh", builtin_isku_xidh, CallbackArity::range(1, usize::MAX)),
+    (
+        "isku_xidh",
+        builtin_isku_xidh,
+        CallbackArity::range(1, usize::MAX),
+    ),
     ("baabi_jid", builtin_baabi_jid, CallbackArity::range(1, 1)),
     ("nuqul_fayl", builtin_nuqul_fayl, CallbackArity::range(2, 3)),
-    ("wareeji_fayl", builtin_wareeji_fayl, CallbackArity::range(2, 2)),
-    ("tirtir_fayl", builtin_tirtir_fayl, CallbackArity::range(1, 1)),
+    (
+        "wareeji_fayl",
+        builtin_wareeji_fayl,
+        CallbackArity::range(2, 2),
+    ),
+    (
+        "tirtir_fayl",
+        builtin_tirtir_fayl,
+        CallbackArity::range(1, 1),
+    ),
     ("abuur_gal", builtin_abuur_gal, CallbackArity::range(1, 1)),
     ("tir_gal", builtin_tir_gal, CallbackArity::range(1, 1)),
     ("tirtir_gal", builtin_tirtir_gal, CallbackArity::range(1, 2)),
+    ("fayl_fur", builtin_fayl_fur, CallbackArity::range(2, 2)),
+    (
+        "fayl_akhris",
+        builtin_fayl_akhris,
+        CallbackArity::range(2, 2),
+    ),
+    (
+        "fayl_xariiq",
+        builtin_fayl_xariiq,
+        CallbackArity::range(1, 1),
+    ),
+    ("fayl_qor", builtin_fayl_qor, CallbackArity::range(2, 2)),
+    (
+        "fayl_nadiifi",
+        builtin_fayl_nadiifi,
+        CallbackArity::range(1, 1),
+    ),
+    ("fayl_xidh", builtin_fayl_xidh, CallbackArity::range(1, 1)),
+    ("fayl_raad", builtin_fayl_raad, CallbackArity::range(3, 3)),
+    ("fayl_meel", builtin_fayl_meel, CallbackArity::range(1, 1)),
+    (
+        "fayl_beddel",
+        builtin_fayl_beddel,
+        CallbackArity::range(2, 2),
+    ),
     ("nooc", builtin_nooc, CallbackArity::range(1, 1)),
     ("khalad", builtin_khalad, CallbackArity::range(1, 3)),
     ("qaabee", builtin_qaabee, CallbackArity::range(1, 2)),
@@ -1525,7 +1721,10 @@ fn object_remove(
 pub fn string_qeybi(s: String, args: &[Value]) -> Result<Value, SoplangError> {
     expect_arity_range(args, "qeybi", 0, 1)?;
     if args.is_empty() {
-        let words = s.split_whitespace().map(|word| Value::Str(word.into())).collect();
+        let words = s
+            .split_whitespace()
+            .map(|word| Value::Str(word.into()))
+            .collect();
         return Ok(Value::List(Rc::new(RefCell::new(words))));
     }
     let delim = value_to_string(&args[0]);

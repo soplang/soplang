@@ -226,8 +226,10 @@ Implemented locally; see [filesystem](docs/language/filesystem.md).
 4. Join paths and resolve relative paths across Linux, Windows, and macOS — `isku_xidh`, `baabi_jid`.
 5. Specify overwrite behavior, recursive directory operations, symbolic-link
    handling, and cross-filesystem moves before publishing the API — optional
-   overwrite on copy and optional recursive directory removal are implemented;
-   symlink semantics and cross-volume moves remain design gates.
+   overwrite on copy and optional recursive directory removal are implemented.
+   Copy and delete act on a symlink itself. `wareeji_fayl` copies a file or
+   symlink across filesystems and then removes the source. A directory move
+   across filesystems is rejected.
 
 Filesystem APIs should live in a dedicated standard-library module with short,
 consistent Somali names. Where operations match existing collection APIs,
@@ -239,14 +241,13 @@ names remain design decisions until the terminology review is complete.
 After the initial text API and byte-array type are available, add:
 
 1. Whole-file byte reads and writes — implemented as `akhrif_baytyo`, `qor_baytyo`, and `kudar_baytyo`; see [binary files](docs/language/binary-files.md).
-2. Explicit open handles, access modes, flush, and close operations.
-3. Line-by-line reading, bounded chunks, and streaming large files.
-4. File positions and seeking.
-5. Atomic replacement where supported, with documented platform guarantees.
+2. Explicit open handles, access modes, flush, and close operations — implemented as `fayl_fur`, `fayl_qor`, `fayl_nadiifi`, and `fayl_xidh`; see [file handles](docs/language/file-handles.md).
+3. Line-by-line reading and bounded chunks — implemented as `fayl_xariiq` and `fayl_akhris`. Unbounded streaming of request bodies remains with 3.6.
+4. File positions and seeking — implemented as `fayl_raad` and `fayl_meel`.
+5. Atomic replacement — implemented as `fayl_beddel`. POSIX rename replaces a file in the same directory atomically. Windows uses `MoveFileExW` with replace-existing and write-through.
 
-Handles require guaranteed cleanup on success and failure, including early
-returns. File watching is a later 3.x extension. Basic text access does not
-wait for handles, streaming, or file watching.
+`fayl_xidh` closes the handle. Process exit closes any handle still open. File
+watching is a later 3.x extension.
 
 ### Structured data and utilities
 
@@ -324,23 +325,22 @@ the concurrency and asynchronous I/O work in 3.6.
 1. Give imported files their own namespaces — implemented as `keen "file.sop" sida name`; see [modules](docs/language/modules.md). Flat `keen` imports stay unchanged.
 2. Add explicit public exports — implemented as `soosaar name, ...` inside a namespaced file. Without `soosaar`, names that start with `_` stay private.
 3. Add selective imports and import aliases — implemented as `keen "file.sop" ka name` and `name sida local`. A namespace `sida` and `ka` cannot share one import.
-4. Define relative and package imports.
-5. Detect conflicting names and cycles with clear diagnostics. A repeated or cyclic namespaced import is an error.
-6. Specify module initialization and caching rules. A namespaced file is initialized when the import runs, and only once.
+4. Define relative and package imports — relative `keen` resolves from the importing file. `keen "xisaab"` and `keen "xisaab/util.sop"` load a dependency from the nearest manifest; see [packages](docs/language/packages.md).
+5. Detect conflicting names and cycles with clear diagnostics — implemented. A repeated or cyclic namespaced import is an error.
+6. Specify module initialization and caching rules — implemented. A namespaced file is initialized when the import runs, and only once.
 
 ### Package system
 
 1. Define a project and package manifest — implemented as `soplang.toml`; see [packages](docs/language/packages.md).
 2. Record package names, versions, and supported Soplang versions — `magac`, `nusxa`, and `soplang`.
-3. Add dependency declarations and local path dependencies — implemented as `[ku-tiirsan]` with a relative path to another `soplang.toml`. Version constraints and downloads remain later work.
-4. Create a deterministic lockfile — implemented as optional `soplang.lock`. When present, it must match the resolved name, version, and relative path of every dependency, sorted by name.
-5. Add a package cache and integrity hashes.
-6. Add install, update, remove, and publish commands.
-7. Make dependency resolution and builds reproducible.
+3. Add dependency declarations and local path dependencies — implemented as `[ku-tiirsan]` with a relative path, a `kayd:` constraint, or an `http`/`https` `.sopkg` URL.
+4. Create a deterministic lockfile — implemented as optional `soplang.lock`. When present, it must match the resolved name, version, and source of every dependency, sorted by name. Registry and archive entries also pin `sumad`.
+5. Add a package cache and integrity hashes — implemented. `SOPLANG_CACHE` stores the unpacked tree. `sumad` is the SHA-256 of the sorted paths and bytes.
+6. Add install, update, remove, and publish commands — implemented as `--ku-dar`, `--cusbooneysii`, `--ka-saar`, and `--daabac`.
+7. Make dependency resolution and builds reproducible — a present lock pins the version and hash. `--cusbooneysii` selects the highest match and rewrites the lock.
 
-Package downloads will use the HTTP and archive foundations from 3.3. Whether
-the first package source is Git repositories or a dedicated registry remains a
-design decision.
+The first package source is a directory registry (`SOPLANG_KAYD`) plus HTTP
+`.sopkg` archives. Git sources remain later work.
 
 ### Web application facilities
 
@@ -459,9 +459,8 @@ their implementation release begins:
 4. Modules: namespace, export, selective import, and alias syntax.
 5. Networking: the HTTP module API and lower-level socket abstractions.
 6. Concurrency: tasks and channels, async/await, or another model.
-7. Packages: Git-based sources, a dedicated registry, or a staged combination.
-8. Filesystem: Somali vocabulary, access modes, cleanup, overwrite behavior,
-   directory recursion, path rules, and platform-specific guarantees.
+7. Packages: decided for this stage as a directory registry plus HTTP `.sopkg` archives. Git sources remain later work.
+8. Filesystem: decided for this stage. See [filesystem](docs/language/filesystem.md) and [file handles](docs/language/file-handles.md) for symlink, cross-filesystem, and atomic-replace behavior.
 9. Web APIs: route registration, handler callbacks, request/response types,
    middleware, error containment, and the Rust HTTP implementation.
 10. Web application integrations: database drivers, templates, and session

@@ -54,6 +54,12 @@ All notable changes to this project will be documented in this file.
 
 * `soplang.lock`, when present, must list each resolved dependency's name, version, and path in name order. A mismatch fails with `E057` before the program runs.
 
+* File handles `fayl_fur`, `fayl_akhris`, `fayl_xariiq`, `fayl_qor`, `fayl_nadiifi`, `fayl_xidh`, `fayl_raad`, and `fayl_meel` open, read, write, flush, close, and seek files. `fayl_beddel` replaces a file from a temporary file in the same directory. Handle failures use `E058`.
+
+* Symlink copy and delete operate on the link. A cross-filesystem `wareeji_fayl` copies a file or symlink and then removes the source. Directory moves across filesystems fail.
+
+* Package dependencies accept `kayd:` version constraints and `http` or `https` `.sopkg` archives. Resolved packages are cached and pinned in `soplang.lock` with a `sumad` hash. `--ku-dar`, `--cusbooneysii`, `--ka-saar`, and `--daabac` install, update, remove, and publish. `keen "xisaab"` loads that package.
+
 
 * Numeric builtins add logarithms, radian trigonometry with optional inverse mode, `atan2`-style angles, named constants, clamping, and context-local seeded random streams. Integer-only extrema keep exact 64-bit results; invalid random calls do not advance the generator.
 

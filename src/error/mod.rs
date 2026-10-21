@@ -57,6 +57,7 @@ pub mod codes {
     pub const E055_NETWORK: &str = "E055";
     pub const E056_WEBSOCKET: &str = "E056";
     pub const E057_PACKAGE: &str = "E057";
+    pub const E058_FILE: &str = "E058";
 }
 
 /// A compiled function and its caller's source location.

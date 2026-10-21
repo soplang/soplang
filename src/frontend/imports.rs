@@ -61,7 +61,10 @@ fn bundle_one(
 
         let start = tokens[i].start;
         if let Some(end_token) = preserved_import_end(&tokens, i) {
-            let end = tokens.get(end_token).map(|token| token.start).unwrap_or(source.len());
+            let end = tokens
+                .get(end_token)
+                .map(|token| token.start)
+                .unwrap_or(source.len());
             if start > cursor {
                 out.push_str(&source[cursor..start]);
             }
@@ -77,7 +80,7 @@ fn bundle_one(
         cursor = import_end;
         i += 2;
 
-        let import_path = resolve_import_path(&base_dir, &path_tok.lexeme)?;
+        let import_path = resolve_import_path(&base_dir, &path_tok.lexeme, source_path.is_some())?;
         let canon = import_path.canonicalize().map_err(|e| {
             let error = file_read_error(Path::new(&path_tok.lexeme), &e);
             import_error_ex(
@@ -152,7 +155,8 @@ fn flatten_imports(
                 flatten_imports(vec![*stmt], source_path, out, seen).map_err(|e| span.attach(e))?;
             }
             Stmt::Import(import) => {
-                let import_path = resolve_import_path(&base_dir, &import.path)?;
+                let import_path =
+                    resolve_import_path(&base_dir, &import.path, source_path.is_some())?;
                 let canon = import_path.canonicalize().map_err(|e| {
                     let error = file_read_error(Path::new(&import.path), &e);
                     import_error_ex(
@@ -342,7 +346,12 @@ fn rename_stmt(stmt: &mut Stmt, names: &HashMap<String, String>) {
             }
             rename_stmts(body, names);
         }
-        Stmt::If { cond, then_body, elseifs, else_body } => {
+        Stmt::If {
+            cond,
+            then_body,
+            elseifs,
+            else_body,
+        } => {
             rename_expr(cond, names);
             rename_stmts(then_body, names);
             for (cond, body) in elseifs {
@@ -353,7 +362,11 @@ fn rename_stmt(stmt: &mut Stmt, names: &HashMap<String, String>) {
                 rename_stmts(body, names);
             }
         }
-        Stmt::Switch { expr, cases, default } => {
+        Stmt::Switch {
+            expr,
+            cases,
+            default,
+        } => {
             rename_expr(expr, names);
             for (value, body) in cases {
                 rename_expr(value, names);
@@ -363,7 +376,13 @@ fn rename_stmt(stmt: &mut Stmt, names: &HashMap<String, String>) {
                 rename_stmts(body, names);
             }
         }
-        Stmt::For { start, end, step, body, .. } => {
+        Stmt::For {
+            start,
+            end,
+            step,
+            body,
+            ..
+        } => {
             rename_expr(start, names);
             rename_expr(end, names);
             if let Some(step) = step {
@@ -385,7 +404,12 @@ fn rename_stmt(stmt: &mut Stmt, names: &HashMap<String, String>) {
             }
         }
         Stmt::Throw(value) | Stmt::Expr(value) => rename_expr(value, names),
-        Stmt::TryCatch { try_body, catch_body, finally_body, .. } => {
+        Stmt::TryCatch {
+            try_body,
+            catch_body,
+            finally_body,
+            ..
+        } => {
             rename_stmts(try_body, names);
             rename_stmts(catch_body, names);
             rename_stmts(finally_body, names);
@@ -413,7 +437,10 @@ fn rename_expr(expr: &mut Expr, names: &HashMap<String, String>) {
             rename_expr(right, names);
         }
         Expr::UnaryOp { expr, .. } => rename_expr(expr, names),
-        Expr::Invoke { callee, args } | Expr::MethodCall { obj: callee, args, .. } => {
+        Expr::Invoke { callee, args }
+        | Expr::MethodCall {
+            obj: callee, args, ..
+        } => {
             rename_expr(callee, names);
             for arg in args {
                 rename_expr(arg, names);
@@ -424,7 +451,9 @@ fn rename_expr(expr: &mut Expr, names: &HashMap<String, String>) {
             rename_expr(obj, names);
             rename_expr(idx, names);
         }
-        Expr::Property { obj, .. } | Expr::NamedArgument { value: obj, .. } => rename_expr(obj, names),
+        Expr::Property { obj, .. } | Expr::NamedArgument { value: obj, .. } => {
+            rename_expr(obj, names)
+        }
         Expr::List(items) => {
             for item in items {
                 rename_expr(item, names);
@@ -468,7 +497,10 @@ fn preserved_import_end(tokens: &[crate::frontend::token::Token], index: usize) 
         if ident(cursor, Some("sida")) && ident(cursor + 1, None) {
             cursor += 2;
         }
-        if tokens.get(cursor).is_some_and(|token| token.kind == TokenType::Comma) {
+        if tokens
+            .get(cursor)
+            .is_some_and(|token| token.kind == TokenType::Comma)
+        {
             cursor += 1;
             continue;
         }
@@ -476,13 +508,25 @@ fn preserved_import_end(tokens: &[crate::frontend::token::Token], index: usize) 
     }
 }
 
-fn resolve_import_path(base_dir: &Path, path: &str) -> Result<PathBuf, SoplangError> {
-    let candidate = PathBuf::from(path);
-    if candidate.is_absolute() {
-        Ok(candidate)
+fn resolve_import_path(
+    base_dir: &Path,
+    path: &str,
+    packages: bool,
+) -> Result<PathBuf, SoplangError> {
+    let candidate = if Path::new(path).is_absolute() {
+        PathBuf::from(path)
     } else {
-        Ok(base_dir.join(candidate))
+        base_dir.join(path)
+    };
+    if candidate.is_file() {
+        return Ok(candidate);
     }
+    if packages {
+        if let Some(file) = crate::package::import_file(base_dir, path)? {
+            return Ok(file);
+        }
+    }
+    Ok(candidate)
 }
 
 #[cfg(test)]

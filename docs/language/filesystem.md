@@ -46,6 +46,13 @@ includes:
 | `tir_gal(path)` | List entry names in a directory as a `teed`. |
 | `tirtir_gal(path, qoto_dheer?)` | Remove a directory. Pass `run` as the second argument to remove recursively. |
 
-Whole-file [binary reads and writes](binary-files.md) are available separately.
-Cross-filesystem moves, symbolic-link policies, and streaming handles remain
-later 3.3 work. See [ROADMAP.md](../../ROADMAP.md).
+Whole-file [binary reads and writes](binary-files.md) and
+[file handles](file-handles.md) are available separately.
+
+Copying a symlink copies the link, not the target file. Deleting a file or a
+directory path that is a symlink removes the link and leaves the target in
+place. `tirtir_gal` does not follow a directory symlink.
+
+`wareeji_fayl` renames on the same filesystem. Across filesystems, a file or
+symlink is copied and then the source is removed. A directory move across
+filesystems fails, so a partial tree is not left behind.

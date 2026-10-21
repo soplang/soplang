@@ -9,7 +9,9 @@ use std::time::{Duration, Instant};
 
 use clap::Parser as ClapParser;
 
-use soplang::{build_source, cli::Shell, format_error_with_source, run_source, set_program_arguments};
+use soplang::{
+    build_source, cli::Shell, format_error_with_source, run_source, set_program_arguments,
+};
 
 #[derive(ClapParser)]
 #[command(
@@ -53,6 +55,34 @@ struct Cli {
     #[arg(short, long, help = "Ha muujin farriinta guusha dhismaha (--build).")]
     quiet: bool,
 
+    #[arg(
+        long,
+        value_name = "MAGAC",
+        requires = "qeexid",
+        help = "Ku dar ku-tiirsan xirmada. Waxay u baahan tahay --qeexid."
+    )]
+    ku_dar: Option<String>,
+
+    #[arg(
+        long,
+        value_name = "QEEXID",
+        requires = "ku_dar",
+        help = "Jidka ama nusxada ku-tiirsiga, sida ../xisaab ama kayd:^0.1.0."
+    )]
+    qeexid: Option<String>,
+
+    #[arg(
+        long,
+        help = "Cusbooneysii ku-tiirsanayaasha xirmada oo qor soplang.lock."
+    )]
+    cusbooneysii: bool,
+
+    #[arg(long, value_name = "MAGAC", help = "Ka saar ku-tiirsan xirmada.")]
+    ka_saar: Option<String>,
+
+    #[arg(long, help = "Daabac xirmadan kaydka Soplang.")]
+    daabac: bool,
+
     #[arg(short, long, help = "Fuli qoraalka la bixiyey, dabadeed bax.")]
     #[arg(value_name = "QORAALKA")]
     command: Option<String>,
@@ -85,7 +115,10 @@ struct Cli {
     #[arg(long, help = "Daar hubinta adag ee noocyada xogta.")]
     strict: bool,
 
-    #[arg(long, help = "Ha isticmaalin midab marka khalad la soo bandhigayo; waxay la mid tahay NO_COLOR=1.")]
+    #[arg(
+        long,
+        help = "Ha isticmaalin midab marka khalad la soo bandhigayo; waxay la mid tahay NO_COLOR=1."
+    )]
     no_color: bool,
 
     #[arg(trailing_var_arg = true, allow_hyphen_values = true, hide = true)]
@@ -110,6 +143,19 @@ fn main() {
         std::env::set_var("NO_COLOR", "1");
     }
     set_program_arguments(user_arguments(&cli));
+
+    if let Some(result) = package_command(&cli) {
+        match result {
+            Ok(message) => {
+                println!("{message}");
+                return;
+            }
+            Err(error) => {
+                eprintln!("{}", format_error_with_source(&error, None));
+                process::exit(1);
+            }
+        }
+    }
 
     if cli.build {
         let path = match &cli.filename {
@@ -292,6 +338,60 @@ fn main() {
     run_shell(cli.strict);
 }
 
+fn package_command(cli: &Cli) -> Option<Result<String, soplang::SoplangError>> {
+    let selected = [
+        cli.ku_dar.is_some(),
+        cli.cusbooneysii,
+        cli.ka_saar.is_some(),
+        cli.daabac,
+    ]
+    .into_iter()
+    .filter(|selected| *selected)
+    .count();
+    if selected == 0 {
+        return None;
+    }
+    if selected > 1
+        || cli.build
+        || cli.command.is_some()
+        || cli.file.is_some()
+        || cli.example.is_some()
+        || cli.filename.is_some()
+        || cli.ast
+        || cli.hir
+    {
+        return Some(Err(soplang::error::runtime_error(
+            "Amarada xirmada waa inay keli kacaan.",
+            0,
+            0,
+        )));
+    }
+    let dir = match std::env::current_dir() {
+        Ok(dir) => dir,
+        Err(error) => {
+            return Some(Err(soplang::error::runtime_error(
+                format!(
+                    "Galka hadda lama akhriyi karo. {}",
+                    soplang::error::io_reason(&error)
+                ),
+                0,
+                0,
+            )));
+        }
+    };
+    if let Some(name) = &cli.ku_dar {
+        let spec = cli.qeexid.as_deref().unwrap_or("");
+        return Some(soplang::package::add_dependency(&dir, name, spec));
+    }
+    if let Some(name) = &cli.ka_saar {
+        return Some(soplang::package::remove_dependency(&dir, name));
+    }
+    if cli.cusbooneysii {
+        return Some(soplang::package::update_dependencies(&dir));
+    }
+    Some(soplang::package::publish_package(&dir))
+}
+
 fn run_shell(strict: bool) {
     match Shell::try_new(strict) {
         Ok(mut shell) => shell.run(),
@@ -303,10 +403,8 @@ fn run_shell(strict: bool) {
 }
 
 fn user_arguments(cli: &Cli) -> Vec<String> {
-    let positional_is_program = cli.command.is_none()
-        && cli.file.is_none()
-        && cli.example.is_none()
-        && !cli.build;
+    let positional_is_program =
+        cli.command.is_none() && cli.file.is_none() && cli.example.is_none() && !cli.build;
     let mut args = Vec::new();
     if !positional_is_program {
         if let Some(name) = &cli.filename {
