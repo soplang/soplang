@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Preserve editor scopes and imports in incomplete functions and lexical prefixes while retaining compiler diagnostics and analysis limits. Keep aliased file buffers aligned with their own source and refuse ambiguous rename edits.
+
 - Add dependency command forms and consistent strict/offline project run/build options, reject ignored command arguments, and discover project roots from nested directories. Generate public API Markdown from original signatures and documentation comments with atomic output.
 
 - Add source breakpoints, stepping, caller-frame selection and bounded local inspection to JIT and instrumented LLVM executables. Keep debugger state in its execution context and ordinary builds free of source instrumentation.

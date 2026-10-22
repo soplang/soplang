@@ -235,25 +235,48 @@ impl Server {
     }
 
     fn overlays(&self) -> HashMap<PathBuf, String> {
-        self.documents
-            .iter()
+        let mut documents: Vec<_> = self.documents.iter().collect();
+        documents.sort_by(|a, b| b.0.cmp(a.0));
+        documents
+            .into_iter()
             .map(|(uri, text)| (path_of(uri), text.clone()))
+            .collect()
+    }
+
+    fn ambiguous_paths(&self) -> HashSet<PathBuf> {
+        let mut seen = HashSet::new();
+        self.documents
+            .keys()
+            .map(|uri| path_of(uri))
+            .filter(|path| !seen.insert(path.clone()))
             .collect()
     }
 
     fn uri_for_path(&self, path: &Path) -> String {
         self.documents
             .keys()
-            .find(|uri| path_of(uri) == path)
+            .filter(|uri| path_of(uri) == path)
+            .min()
             .cloned()
             .unwrap_or_else(|| uri_of(path))
     }
 
+    fn uri_for_request(&self, path: &Path, message: &Value) -> String {
+        message
+            .pointer("/params/textDocument/uri")
+            .and_then(Value::as_str)
+            .filter(|uri| path_of(uri) == path)
+            .map(str::to_owned)
+            .unwrap_or_else(|| self.uri_for_path(path))
+    }
+
     fn indexed(&self, uri: &str, text: &str, position: (u64, u64)) -> Option<Indexed> {
         let path = path_of(uri);
-        let overlays = self.overlays();
+        let mut overlays = self.overlays();
+        overlays.insert(path.clone(), text.into());
         let limits = Limits::default();
         let (mut candidates, mut complete) = workspace::discover(&self.roots, limits.max_files);
+        complete &= self.ambiguous_paths().is_empty();
         candidates.extend(
             overlays
                 .keys()
@@ -380,7 +403,7 @@ impl Server {
         };
         let symbol = analysis.index.definition_symbol(&symbol);
         json!({
-            "uri": self.uri_for_path(&symbol.location.path),
+            "uri": self.uri_for_request(&symbol.location.path,message),
             "range": range_of(analysis.source(&symbol.location.path).unwrap_or(""), symbol.location.start, symbol.location.end)
         })
     }
@@ -399,7 +422,7 @@ impl Server {
             .filter(|occurrence| occurrence.symbol == symbol.id && (include_declaration || !occurrence.declaration))
             .map(|occurrence| {
                 json!({
-                    "uri": self.uri_for_path(&occurrence.location.path),
+                    "uri": self.uri_for_request(&occurrence.location.path,message),
                     "range": range_of(analysis.source(&occurrence.location.path).unwrap_or(""), occurrence.location.start, occurrence.location.end)
                 })
             })
@@ -414,6 +437,18 @@ impl Server {
         let Some((symbol, analysis)) = self.symbol_at(message) else {
             return Value::Null;
         };
+        // Prefix recovery is suitable for navigation, but cannot prove that
+        // references after an actual syntax error have all been indexed.
+        if analysis
+            .files
+            .iter()
+            .find(|file| file.path == symbol.location.path)
+            .is_some_and(|file| {
+                crate::frontend::parse_source(&file.text, Some(&file.path)).is_err()
+            })
+        {
+            return Value::Null;
+        }
         if symbol.location.path.starts_with("<soplang>")
             || (!analysis.complete && analysis.index.workspace_symbol(&symbol.id))
         {
@@ -429,6 +464,12 @@ impl Server {
                 .index
                 .rename_preserves_bindings(&symbol.id, new_name)
         {
+            return Value::Null;
+        }
+        let ambiguous = self.ambiguous_paths();
+        if analysis.index.occurrences.iter().any(|occurrence| {
+            occurrence.symbol == symbol.id && ambiguous.contains(&occurrence.location.path)
+        }) {
             return Value::Null;
         }
         let mut changes = BTreeMap::<String, Vec<Value>>::new();

@@ -5,7 +5,7 @@ mod types;
 use super::SourceFile;
 use crate::frontend::{
     ast::{Expr, InterpolationPart, Literal, Param, Stmt, TypeAnnotation},
-    Lexer, Token, TokenType as K,
+    Token, TokenType as K,
 };
 use std::collections::{HashMap, HashSet};
 use std::path::{Path, PathBuf};
@@ -136,10 +136,11 @@ impl Index {
             parent: None,
             class: None,
         });
+        let mut contextual_by_file = HashMap::new();
         for file in files {
-            if let Ok(tokens) = Lexer::new(&file.text).tokenize() {
-                index.tokens.insert(file.path.clone(), index_tokens(tokens));
-            }
+            let (_, tokens, contextual) = super::editor_syntax(&file.text, &file.path);
+            index.tokens.insert(file.path.clone(), index_tokens(tokens));
+            contextual_by_file.insert(file.path.clone(), contextual);
         }
         for file in files {
             let scope = index.scopes.len();
@@ -195,11 +196,7 @@ impl Index {
             if tokens.is_empty() {
                 continue;
             }
-            let mut parser =
-                crate::frontend::Parser::new(Lexer::new(&file.text).tokenize().unwrap_or_default())
-                    .with_source(&file.text, Some(&file.path));
-            parser.parse_partial();
-            let contextual = parser.contextual_keyword_offsets();
+            let contextual = &contextual_by_file[&file.path];
             for (i, token) in tokens.iter().enumerate() {
                 if contextual.contains(&token.start) {
                     continue;
@@ -405,7 +402,7 @@ impl Index {
             .iter()
             .enumerate()
             .filter(|(_, s)| s.path == path && s.start <= offset && offset <= s.end)
-            .min_by_key(|(_, s)| s.end - s.start)
+            .min_by_key(|(index, s)| (s.end - s.start, std::cmp::Reverse(*index)))
             .map(|(i, _)| i)
             .unwrap_or(0)
     }

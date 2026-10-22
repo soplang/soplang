@@ -128,10 +128,22 @@ Its grammar follows the compiler's comments, literal prefixes, triple strings
 and interpolation. See the [extension README](../../editors/vscode/README.md)
 for executable settings, packaging and integration tests.
 
-`soplang lsp` answers
+`soplang lsp` accepts the language client's `--stdio` flag and answers
 `initialize`, document open and change, diagnostics, completion, hover,
 definition, references, rename, formatting, semantic tokens, and the code
 action `Hagaaji qaabka`.
+
+Incomplete editor input retains earlier tokens, imports, parameters and local
+scopes, including inside an unclosed function or unfinished string/comment.
+This recovery is only for navigation and completion; compiler acceptance and
+syntax diagnostics are unchanged. Token/nesting limits still apply when
+lexing fails. Synthetic recovery tokens never become source edits. Rename is refused when
+the defining file has a syntax error, including for local variables.
+
+When multiple open URIs refer to one file, navigation uses the requesting
+buffer's text and URI. Imports choose a deterministic overlay. Renames that
+could touch an ambiguous document are refused until the extra buffer is closed;
+workspace renames require an unambiguous analysis.
 
 The server uses UTF-16 positions and accepts incremental document updates.
 Definitions and references use the target file's current text; rename groups

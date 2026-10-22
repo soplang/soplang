@@ -45,6 +45,28 @@ impl<'a> Lexer<'a> {
         Ok(tokens)
     }
 
+    /// Editor-only prefix tokens. Keep valid earlier tokens when the current
+    /// string/comment is unfinished, and stop before the editor token budget.
+    /// Compiler tokenization continues to return the original lexical error.
+    pub(crate) fn tokenize_prefix(&mut self) -> Vec<Token> {
+        let mut tokens = Vec::new();
+        loop {
+            match self.next_token() {
+                Ok(token) => {
+                    let eof = token.kind == TokenType::Eof;
+                    tokens.push(token);
+                    if eof { return tokens; }
+                }
+                Err(_) => break,
+            }
+            if tokens.len() > 100_000 { break; }
+        }
+        let mut eof = Token::new(TokenType::Eof, "", self.line, self.col, self.index);
+        eof.end = eof.start;
+        tokens.push(eof);
+        tokens
+    }
+
     pub(super) fn next_token(&mut self) -> Result<Token, SoplangError> {
         while let Some(c) = self.current {
             if c.is_whitespace() {

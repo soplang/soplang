@@ -38,7 +38,7 @@ pub fn dispatch(command: &str) -> Result<i32, SoplangError> {
         "run" => run_project(&args),
         "dhis" | "build" => build_project(&args),
         "add" | "remove" | "update" => package_command(command, &args),
-        "lsp" if args.is_empty() => {
+        "lsp" if args.is_empty() || args == ["--stdio"] => {
             super::lsp::serve()?;
             Ok(0)
         }

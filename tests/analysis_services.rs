@@ -163,3 +163,80 @@ fn filesystem_source_reads_are_bounded_and_unsaved_overlays_take_precedence() {
         .unwrap_err()
         .contains("fayl caadi ah"));
 }
+
+#[test]
+fn unfinished_function_scopes_retain_parameters_locals_and_imports() {
+    let path = Path::new("/tmp/editor-unfinished.sop");
+    for tail in [
+        "local.",
+        "qor(local",
+        "door pending =",
+        "qoraal broken = \"unfinished",
+        "/* unfinished comment",
+    ] {
+        let source=format!("keen \"types.sop\" sida m\nhawl edit(abn count) {{\n m.Qof local = cusub m.Qof()\n {tail}");
+        let mut overlays = HashMap::new();
+        overlays.insert(
+            PathBuf::from("/tmp/types.sop"),
+            "qaab Qof { hawl magac(): qoraal { celi \"Amina\" } }".into(),
+        );
+        let analysis = check_source(
+            &source,
+            path,
+            false,
+            Limits::default(),
+            &|p| overlay_loader(&overlays, p),
+            &|| false,
+        );
+        assert!(
+            analysis.error.is_some(),
+            "incomplete source must retain its diagnostic"
+        );
+        assert!(soplang::frontend::parse_source(&source, Some(path)).is_err());
+        let index = Index::build(&analysis.files);
+        let names: Vec<_> = index
+            .visible(path, source.len())
+            .iter()
+            .map(|symbol| symbol.name.as_str())
+            .collect();
+        assert!(
+            names.contains(&"count") && names.contains(&"local"),
+            "{tail}: {names:?}"
+        );
+        if tail == "local." {
+            assert!(
+                index
+                    .members_at(path, source.len())
+                    .unwrap()
+                    .iter()
+                    .any(|symbol| symbol.name == "magac"),
+                "{index:?}"
+            );
+        }
+        assert!(!index
+            .symbols
+            .iter()
+            .any(|symbol| symbol.name.starts_with("__soplang_incomplete")));
+    }
+}
+
+#[test]
+fn lexical_errors_do_not_bypass_editor_token_or_nesting_budgets() {
+    let path = Path::new("/tmp/editor-budgets.sop");
+    for source in [
+        format!("{}'unfinished", "qor(1)\n".repeat(35_000)),
+        format!("{}'unfinished", "(".repeat(129)),
+        format!("{}'unfinished", "!".repeat(513)),
+    ] {
+        let analysis = check_source(
+            &source,
+            path,
+            false,
+            Limits::default(),
+            &|_| unreachable!(),
+            &|| false,
+        );
+        assert!(analysis.files.is_empty());
+        assert!(analysis.error.unwrap().message().contains("xadka"));
+    }
+}

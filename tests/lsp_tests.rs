@@ -530,7 +530,7 @@ fn stdio_framing_is_bounded_and_shutdown_exits_cleanly() {
     }
     let run = |wire: &[u8]| {
         let mut child = Command::new(env!("CARGO_BIN_EXE_soplang"))
-            .arg("lsp")
+            .args(["lsp", "--stdio"])
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
@@ -570,4 +570,117 @@ fn stdio_framing_is_bounded_and_shutdown_exits_cleanly() {
     let output = run(b"Content-Length: 999999999999\r\n\r\n");
     assert!(!output.status.success());
     assert!(String::from_utf8_lossy(&output.stderr).contains("aad ayay u weyn"));
+}
+
+#[test]
+fn unfinished_function_completion_keeps_imported_models_and_local_bindings() {
+    let tree = Tree::new("unfinished");
+    let main = uri(&tree.0.join("main.sop"));
+    fs::write(
+        tree.0.join("models.sop"),
+        "qaab Qof { hawl magac(): qoraal { celi \"Amina\" } }\n",
+    )
+    .unwrap();
+    let source =
+        "keen \"models.sop\" sida m\nhawl edit(abn count) {\n m.Qof local = cusub m.Qof()\n local.";
+    let mut server = Server::default();
+    let notice = open(&mut server, &main, source);
+    assert!(!notice[0]["params"]["diagnostics"]
+        .as_array()
+        .unwrap()
+        .is_empty());
+    let result = request(
+        &mut server,
+        "textDocument/completion",
+        &main,
+        json!({"line":3,"character":7}),
+        json!({}),
+    );
+    assert!(
+        result
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|item| item["label"] == "magac"),
+        "{result}"
+    );
+    open(
+        &mut server,
+        &main,
+        "hawl edit(abn count) {\n qoraal local = \"Amina\"\n qoraal pending = \"unfinished",
+    );
+    let result = request(
+        &mut server,
+        "textDocument/completion",
+        &main,
+        json!({"line":2,"character":30}),
+        json!({}),
+    );
+    assert!(
+        result
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|item| item["label"] == "count"),
+        "{result}"
+    );
+}
+
+#[test]
+fn aliased_document_uris_keep_their_own_text_and_refuse_ambiguous_renames() {
+    let tree = Tree::new("aliases");
+    let path = tree.0.join("a.sop");
+    fs::write(&path, "abn value=0\n").unwrap();
+    let first = uri(&path);
+    let second = first.replace("/a.sop", "/%61.sop");
+    let mut server = Server::default();
+    open(&mut server, &first, "abn value=1\nqor(value)\n");
+    open(&mut server, &second, "// 😀\nabn value=2\nqor(value)\n");
+    for (uri, line, definition) in [(&first, 1, 0), (&second, 2, 1)] {
+        let result = request(
+            &mut server,
+            "textDocument/definition",
+            uri,
+            json!({"line":line,"character":5}),
+            json!({}),
+        );
+        assert_eq!(result["uri"], *uri);
+        assert_eq!(result["range"]["start"]["line"], definition);
+        let result = request(
+            &mut server,
+            "textDocument/rename",
+            uri,
+            json!({"line":line,"character":5}),
+            json!({"newName":"renamed"}),
+        );
+        assert!(result.is_null(), "{result}");
+    }
+    server.handle(&json!({"jsonrpc":"2.0","method":"textDocument/didClose","params":{"textDocument":{"uri":second}}}).to_string());
+    let result = request(
+        &mut server,
+        "textDocument/rename",
+        &first,
+        json!({"line":1,"character":5}),
+        json!({"newName":"renamed"}),
+    );
+    assert_eq!(result["changes"][&first].as_array().unwrap().len(), 2);
+}
+
+#[test]
+fn local_rename_refuses_to_skip_references_after_a_syntax_error() {
+    let mut server = Server::default();
+    let uri = "untitled:broken-function.sop";
+    open(
+        &mut server,
+        uri,
+        "hawl f(abn value) {\n qor(value)\n @\n qor(value)\n}\n",
+    );
+    let result = request(
+        &mut server,
+        "textDocument/rename",
+        uri,
+        json!({"line":0,"character":13}),
+        json!({"newName":"renamed"}),
+    );
+    assert!(result.is_null(), "{result}");
 }

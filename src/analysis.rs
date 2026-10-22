@@ -8,6 +8,8 @@ use std::collections::HashMap;
 use std::path::{Component, Path, PathBuf};
 
 pub mod index;
+mod recovery;
+use recovery::editor_syntax;
 
 #[derive(Clone, Debug)]
 pub struct SourceFile {
@@ -194,43 +196,13 @@ impl frontend::imports::ImportSources for EditorSources<'_> {
         {
             return Err(self.limited(&path));
         }
-        if let Ok(tokens) = frontend::Lexer::new(source).tokenize() {
-            fn bounded(tokens: &[frontend::Token], total: &mut usize) -> bool {
-                use frontend::TokenType as K;
-                let (mut nesting, mut operators) = (0usize, 0usize);
-                for token in tokens {
-                    *total += 1;
-                    match token.kind {
-                        K::LBrace | K::LBracket | K::LParen => nesting += 1,
-                        K::RBrace | K::RBracket | K::RParen => {
-                            nesting = nesting.saturating_sub(1);
-                            operators = 0;
-                        }
-                        K::Plus | K::Minus | K::Not | K::Star | K::Slash | K::And | K::Or => {
-                            operators += 1
-                        }
-                        K::Assign | K::Comma | K::Semicolon => operators = 0,
-                        _ => {}
-                    }
-                    if nesting > 128 || operators > 512 || *total > 100_000 {
-                        return false;
-                    }
-                    for part in &token.format_parts {
-                        if let frontend::token::FormatPart::Field { tokens, .. } = part {
-                            if !bounded(tokens, total) {
-                                return false;
-                            }
-                        }
-                    }
-                }
-                true
-            }
-            if !bounded(&tokens, &mut 0) {
+        {
+            let tokens = frontend::Lexer::new(source).tokenize_prefix();
+            if !recovery::bounded(&tokens, &mut 0) {
                 return Err(self.limited(&path));
             }
         }
-        let statements = frontend::parse_source(source, Some(&path))
-            .unwrap_or_else(|_| frontend::parse_partial(source, Some(&path)));
+        let statements = editor_syntax(source, &path).0;
         self.files.push(SourceFile {
             path,
             text: source.to_string(),
