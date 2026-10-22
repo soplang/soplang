@@ -428,10 +428,12 @@ impl ImportResolver {
             .filter(|(name, _)| public.contains(name))
             .map(|(name, mangled)| (name.clone(), mangled.clone()))
             .collect();
+        let mut private_classes = classes.clone();
+        collect_private_classes(&Lexer::new(source).tokenize()?, id, &mut private_classes);
         rename_stmts(
             &mut body,
             &ClassBindings {
-                names: classes.clone(),
+                names: private_classes,
                 ..Default::default()
             },
         )?;
@@ -869,6 +871,23 @@ fn rename_type(ty: &mut TypeAnnotation, names: &ClassBindings) -> Result<(), Sop
         _ => {}
     }
     Ok(())
+}
+
+/// Class declarations inside factories and anonymous functions still enter the
+/// compiled class registry. Give them the same module identity as top-level
+/// declarations without adding them to that module's public export list.
+fn collect_private_classes(tokens: &[super::token::Token], module: usize, names: &mut HashMap<String,String>) {
+    for pair in tokens.windows(2) {
+        if pair[0].kind == TokenType::Qaab && pair[1].kind == TokenType::Identifier {
+            let name=&pair[1].lexeme;
+            names.entry(name.clone()).or_insert_with(||format!("__soplang_module{module}_{name}"));
+        }
+    }
+    for token in tokens {
+        for part in &token.format_parts {
+            if let super::token::FormatPart::Field { tokens, .. } = part {collect_private_classes(tokens,module,names);}
+        }
+    }
 }
 
 fn preserved_import_end(tokens: &[crate::frontend::token::Token], index: usize) -> Option<usize> {

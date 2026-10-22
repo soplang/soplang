@@ -631,3 +631,61 @@ fn private_and_unknown_classes_are_not_exported() {
     assert!(stderr.contains("Maqan"), "{stderr}");
     fs::remove_dir_all(dir).unwrap();
 }
+
+#[test]
+fn factory_classes_in_different_modules_have_private_identities() {
+    let dir = temp_dir("nested_class_modules");
+    for (name, bias) in [("left", 1), ("right", 10)] {
+        fs::write(
+            dir.join(format!("{name}.sop")),
+            format!(
+                r#"
+soosaar make, factory
+abn _bias = {bias}
+hawl make(abn seed) {{
+    qaab Parent {{
+        hawl value() {{ celi seed + _bias }}
+    }}
+    qaab Local dhaxal Parent {{
+        hawl value() {{ celi waalid.value() + seed }}
+    }}
+    celi cusub Local()
+}}
+hawl factory(abn seed) {{
+    celi hawl() {{
+        qaab Hidden {{ hawl value() {{ celi seed + _bias }} }}
+        celi cusub Hidden()
+    }}
+}}
+"#
+            ),
+        )
+        .unwrap();
+    }
+    fs::write(
+        dir.join("main.sop"),
+        r#"
+keen "left.sop" sida a
+keen "right.sop" sida b
+door first = a.make(1)
+door second = b.make(2)
+door again = a.make(5)
+door left = a.factory(3)()
+door right = b.factory(4)()
+kuceli (i ku taxane(1500)) { door cycle = [] cycle.geli(cycle) }
+qor(first.value(), second.value(), again.value(), left.value(), right.value())
+"#,
+    )
+    .unwrap();
+    assert_backends(&dir, "3 14 11 4 14\n", false);
+    let source = fs::read_to_string(dir.join("main.sop")).unwrap();
+    let mut repl = soplang::ReplSession::new(false).unwrap();
+    repl.eval(&source, Some(&dir.join("main.sop"))).unwrap();
+    repl.collect();
+    repl.eval("door checked = first.value() + second.value()", None)
+        .unwrap();
+    assert_eq!(repl.get_global("checked"), Some(soplang::Value::Int(17)));
+    let hidden = "keen \"left.sop\" sida a\ndoor x = cusub a.Hidden()\n";
+    assert!(soplang::run_source(hidden, Some(&dir.join("main.sop")), false, false, false).is_err());
+    fs::remove_dir_all(dir).unwrap();
+}

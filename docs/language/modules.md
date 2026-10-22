@@ -82,3 +82,9 @@ root lock. A cached dependency's own manifest identifies its direct dependencies
 its own lock cannot select different transitive versions. Git snapshot-relative
 imports must stay inside that snapshot. REPL dependency selections remain stable
 until the session restarts. See [packages](packages.md).
+
+Classes declared inside module factories or anonymous functions retain their
+module identity. Separate modules can use the same private class name, including
+for inherited classes, without colliding. Returned instances retain their own
+captured method environments after later factory calls and garbage collection.
+These nested classes are not added to the module's public exports.

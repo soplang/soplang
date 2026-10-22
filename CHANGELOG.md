@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Isolate private classes declared in module factories and anonymous functions while preserving inheritance, captured methods and module export boundaries.
+
 - Preserve editor scopes and imports in incomplete functions and lexical prefixes while retaining compiler diagnostics and analysis limits. Keep aliased file buffers aligned with their own source and refuse ambiguous rename edits.
 
 - Add dependency command forms and consistent strict/offline project run/build options, reject ignored command arguments, and discover project roots from nested directories. Generate public API Markdown from original signatures and documentation comments with atomic output.
