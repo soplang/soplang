@@ -225,15 +225,16 @@ impl frontend::imports::ImportSources for EditorSources<'_> {
 /// Read-only filesystem provider with unsaved entry/import overlays.
 pub fn overlay_loader(overlays: &HashMap<PathBuf, String>, path: &Path) -> Result<String, String> {
     use std::io::Read;
-    let path = source_identity(path);
     let max = Limits::default().max_file_bytes;
-    if let Some(text) = overlays.get(&path) {
+    let identity = source_identity(path);
+    if let Some(text) = overlays.get(path).or_else(|| overlays.get(&identity)) {
         return if text.len() <= max {
             Ok(text.clone())
         } else {
             Err("Faylku wuxuu dhaafay xadka qoraalka ee tifaftiraha.".into())
         };
     }
+    let path = identity;
     let meta = std::fs::metadata(&path).map_err(|error| {
         crate::error::file_read_error(&path, &error)
             .message()

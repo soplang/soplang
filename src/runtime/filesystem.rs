@@ -276,11 +276,19 @@ fn atomic_rename(from: &Path, to: &Path) -> io::Result<()> {
         }
         let from = wide(from);
         let to = wide(to);
-        if unsafe { MoveFileExW(from.as_ptr(), to.as_ptr(), 1 | 8) } == 0 {
-            Err(io::Error::last_os_error())
-        } else {
-            Ok(())
+        for attempt in 0..32 {
+            if unsafe { MoveFileExW(from.as_ptr(), to.as_ptr(), 1 | 8) } != 0 {
+                return Ok(());
+            }
+            let error = io::Error::last_os_error();
+            // Concurrent replacements can briefly hold the destination open.
+            // Retry only Windows sharing/lock failures; other errors are final.
+            if attempt == 31 || !matches!(error.raw_os_error(), Some(5 | 32 | 33)) {
+                return Err(error);
+            }
+            std::thread::sleep(std::time::Duration::from_millis(2));
         }
+        unreachable!()
     }
     #[cfg(not(windows))]
     {

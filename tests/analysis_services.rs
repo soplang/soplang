@@ -159,6 +159,23 @@ fn filesystem_source_reads_are_bounded_and_unsaved_overlays_take_precedence() {
     assert_eq!(overlay_loader(&overlays, &path).unwrap(), "door x = 1");
     std::fs::remove_file(path).unwrap();
     #[cfg(unix)]
+    {
+        let dir = std::env::temp_dir().join(format!("soplang_editor_alias_{}", std::process::id()));
+        let alias = dir.with_extension("link");
+        std::fs::create_dir(&dir).unwrap();
+        std::os::unix::fs::symlink(&dir, &alias).unwrap();
+        let source = dir.join("large.sop");
+        std::fs::File::create(&source)
+            .unwrap()
+            .set_len(Limits::default().max_file_bytes as u64 + 1)
+            .unwrap();
+        let requested = alias.join("large.sop");
+        let overlays = HashMap::from([(requested.clone(), "door x = 2".into())]);
+        assert_eq!(overlay_loader(&overlays, &requested).unwrap(), "door x = 2");
+        std::fs::remove_file(alias).unwrap();
+        std::fs::remove_dir_all(dir).unwrap();
+    }
+    #[cfg(unix)]
     assert!(overlay_loader(&HashMap::new(), Path::new("/dev/zero"))
         .unwrap_err()
         .contains("fayl caadi ah"));

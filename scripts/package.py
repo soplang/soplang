@@ -49,7 +49,7 @@ def main():
             binary = Path(message["executable"])
         for name in message["filenames"]:
             path = Path(name)
-            if path.suffix == ".rlib":
+            if path.suffix in (".rlib", ".so", ".dylib", ".dll"):
                 if target["name"] == "soplang":
                     runtime = path
                 else:
