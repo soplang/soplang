@@ -187,6 +187,32 @@ fn llvm_timer_tasks_complete_and_cancel() {
 }
 
 #[test]
+fn llvm_async_file_tasks_round_trip() {
+    let file = std::env::temp_dir().join(format!(
+        "soplang_llvm_async_file_{}_{}",
+        std::process::id(),
+        SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_nanos()
+    ));
+    let path = file.display().to_string().replace('\\', "/");
+    let source = format!(
+        r#"
+        sug(qor_fayl_shaqo("{path}", "one"))
+        sug(kudar_fayl_shaqo("{path}", "-two"))
+        hubi(sug(akhrifayl_shaqo("{path}")) == "one-two")
+        sug(qor_baytyo_shaqo("{path}", baytyo([65])))
+        sug(kudar_baytyo_shaqo("{path}", baytyo([66])))
+        hubi(sug(akhrifayl_shaqo("{path}")) == "AB")
+        qor("async files ok")
+        "#
+    );
+    assert_eq!(run_llvm("async_file_tasks", &source), "async files ok\n");
+    let _ = fs::remove_file(file);
+}
+
+#[test]
 fn llvm_callable_annotations_preserve_values_and_validate_callbacks() {
     for opt in [0, 2] {
         assert_eq!(

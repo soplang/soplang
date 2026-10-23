@@ -23,9 +23,15 @@ gelin	[farriin]	qoraal	Read one input line, with an optional prompt.
 akhrifayl	qoraal jid	qoraal	Read a UTF-8 text file relative to the working directory.
 qor_fayl	qoraal jid;qoraal qoraal	maran	Overwrite a UTF-8 text file.
 kudar_fayl	qoraal jid;qoraal qoraal	maran	Append UTF-8 text to a file.
+akhrifayl_shaqo	qoraal jid	@native:task	Read at most 16 MiB of UTF-8 text in a cancellable file task.
+qor_fayl_shaqo	qoraal jid;qoraal qoraal	@native:task	Overwrite at most 16 MiB of UTF-8 text in a file task.
+kudar_fayl_shaqo	qoraal jid;qoraal qoraal	@native:task	Append at most 16 MiB of UTF-8 text in a file task.
 akhrif_baytyo	qoraal jid	baytyo	Read a whole binary file without UTF-8 decoding.
 qor_baytyo	qoraal jid;baytyo xog	maran	Overwrite a binary file.
 kudar_baytyo	qoraal jid;baytyo xog	maran	Append bytes to a binary file.
+akhrif_baytyo_shaqo	qoraal jid	@native:task	Read at most 16 MiB of bytes in a cancellable file task.
+qor_baytyo_shaqo	qoraal jid;baytyo xog	@native:task	Overwrite at most 16 MiB of bytes in a file task.
+kudar_baytyo_shaqo	qoraal jid;baytyo xog	@native:task	Append at most 16 MiB of bytes in a file task.
 json_akhris	qoraal qoraal	door	Parse JSON into ordinary Soplang values; object fields never create class identity.
 json_qor	qiime	qoraal	Serialize a JSON-compatible value; cycles and unsupported values fail.
 csv_akhris	qoraal qoraal	teed[teed[qoraal]]	Parse CSV rows, including quoted delimiters and newlines.

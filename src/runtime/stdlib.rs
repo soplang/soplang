@@ -106,18 +106,18 @@ pub fn builtin_gelin(args: Vec<Value>) -> Result<Value, SoplangError> {
     Ok(Value::Str(line))
 }
 
-fn expect_text_path(value: &Value, name: &str) -> Result<String, SoplangError> {
+pub(super) fn expect_text_path(value: &Value, name: &str) -> Result<String, SoplangError> {
     match value {
         Value::Str(path) => Ok(path.clone()),
         _ => Err(err_type(format!("{name} waa inuu helaa jid qoraal ah."))),
     }
 }
 
-fn expect_text_contents(value: &Value) -> Result<String, SoplangError> {
+pub(super) fn expect_text_contents(value: &Value) -> Result<String, SoplangError> {
     Ok(value_to_string(value))
 }
 
-fn expect_bytes_contents(value: &Value, name: &str) -> Result<Vec<u8>, SoplangError> {
+pub(super) fn expect_bytes_contents(value: &Value, name: &str) -> Result<Vec<u8>, SoplangError> {
     match value {
         Value::Bytes(bytes) => super::bytes::read(bytes)
             .map(|data| data.clone())
@@ -1400,6 +1400,21 @@ const BUILTINS: &[(&str, super::NativeFn, CallbackArity)] = &[
     ("qor_fayl", builtin_qor_fayl, CallbackArity::range(2, 2)),
     ("kudar_fayl", builtin_kudar_fayl, CallbackArity::range(2, 2)),
     (
+        "akhrifayl_shaqo",
+        super::async_files::read_text,
+        CallbackArity::range(1, 1),
+    ),
+    (
+        "qor_fayl_shaqo",
+        super::async_files::write_text,
+        CallbackArity::range(2, 2),
+    ),
+    (
+        "kudar_fayl_shaqo",
+        super::async_files::append_text,
+        CallbackArity::range(2, 2),
+    ),
+    (
         "akhrif_baytyo",
         builtin_akhrif_baytyo,
         CallbackArity::range(1, 1),
@@ -1408,6 +1423,21 @@ const BUILTINS: &[(&str, super::NativeFn, CallbackArity)] = &[
     (
         "kudar_baytyo",
         builtin_kudar_baytyo,
+        CallbackArity::range(2, 2),
+    ),
+    (
+        "akhrif_baytyo_shaqo",
+        super::async_files::read_bytes,
+        CallbackArity::range(1, 1),
+    ),
+    (
+        "qor_baytyo_shaqo",
+        super::async_files::write_bytes,
+        CallbackArity::range(2, 2),
+    ),
+    (
+        "kudar_baytyo_shaqo",
+        super::async_files::append_bytes,
         CallbackArity::range(2, 2),
     ),
     (

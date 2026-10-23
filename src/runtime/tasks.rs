@@ -2,6 +2,9 @@
 
 use std::cell::{Cell, RefCell};
 use std::collections::{HashMap, VecDeque};
+use std::future::Future;
+use std::io;
+use std::path::PathBuf;
 use std::rc::Rc;
 use std::sync::mpsc::{self, Receiver, Sender, TryRecvError};
 use std::sync::OnceLock;
@@ -17,6 +20,7 @@ use crate::error::{runtime_error, SoplangError};
 type Fiber = Coroutine<Signal, Event, Result<Value, SoplangError>>;
 type FiberYielder = Yielder<Signal, Event>;
 const MAX_ACTIVE_TASKS: usize = 4096;
+const MAX_FILE_TASKS: usize = 16;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum Signal {
@@ -142,11 +146,24 @@ struct PendingIo {
     abort: tokio::task::AbortHandle,
     parent: i64,
     handle: Rc<TaskData>,
+    file: bool,
 }
 
 struct Completion {
     id: i64,
-    result: Result<(), String>,
+    result: Result<OwnedResult, OwnedFailure>,
+}
+
+pub(super) enum OwnedResult {
+    Unit,
+    Text(String),
+    Bytes(Vec<u8>),
+}
+
+pub(super) enum OwnedFailure {
+    Read(PathBuf, io::Error),
+    Write(PathBuf, io::Error),
+    FileTooLarge(PathBuf),
 }
 
 impl Default for Scheduler {
@@ -231,18 +248,36 @@ fn check_limit(state: &RuntimeState) -> Result<(), SoplangError> {
     }
 }
 
-pub(super) fn timer(millis: u64) -> Result<Value, SoplangError> {
+pub(super) fn spawn_external<F>(future: F, file: bool) -> Result<Value, SoplangError>
+where
+    F: Future<Output = Result<OwnedResult, OwnedFailure>> + Send + 'static,
+{
     let executor = executor()?;
     STATE.with(|state| {
+        while try_completion(state) {}
         check_limit(state)?;
+        let mut scheduler = state.scheduler.borrow_mut();
+        if file
+            && scheduler
+                .pending_io
+                .values()
+                .filter(|entry| entry.file)
+                .count()
+                >= MAX_FILE_TASKS
+        {
+            return Err(runtime_error(
+                "Faylal badan ayaa hal mar la adeegsanayaa.",
+                0,
+                0,
+            ));
+        }
         let data = new_handle(state);
         let id = data.handle();
-        let mut scheduler = state.scheduler.borrow_mut();
         let parent = scheduler.running;
         let sender = scheduler.completion_tx.clone();
         let handle = executor.spawn(async move {
-            tokio::time::sleep(Duration::from_millis(millis)).await;
-            let _ = sender.send(Completion { id, result: Ok(()) });
+            let result = future.await;
+            let _ = sender.send(Completion { id, result });
         });
         scheduler.pending_io.insert(
             id,
@@ -250,10 +285,21 @@ pub(super) fn timer(millis: u64) -> Result<Value, SoplangError> {
                 abort: handle.abort_handle(),
                 parent,
                 handle: Rc::clone(&data),
+                file,
             },
         );
         Ok(Value::Task(data))
     })
+}
+
+pub(super) fn timer(millis: u64) -> Result<Value, SoplangError> {
+    spawn_external(
+        async move {
+            tokio::time::sleep(Duration::from_millis(millis)).await;
+            Ok(OwnedResult::Unit)
+        },
+        false,
+    )
 }
 
 fn wake_awaiters(scheduler: &mut Scheduler, target: i64) {
@@ -274,8 +320,20 @@ fn finish_io(state: &RuntimeState, completion: Completion) {
     };
     let result = completion
         .result
-        .map(|()| Value::Null)
-        .map_err(|detail| crate::error::external_error("Shaqada dibadda way fashilantay.", detail));
+        .map(|result| match result {
+            OwnedResult::Unit => Value::Null,
+            OwnedResult::Text(text) => Value::Str(text),
+            OwnedResult::Bytes(bytes) => super::bytes::from_raw_vec(bytes),
+        })
+        .map_err(|error| match error {
+            OwnedFailure::Read(path, error) => crate::error::file_read_error(&path, &error),
+            OwnedFailure::Write(path, error) => crate::error::file_write_error(&path, &error),
+            OwnedFailure::FileTooLarge(path) => runtime_error(
+                format!("Faylka '{}' wuxuu ka weyn yahay 16 MiB.", path.display()),
+                0,
+                0,
+            ),
+        });
     *pending.handle.result.borrow_mut() = Some(result);
     wake_awaiters(&mut scheduler, completion.id);
 }
