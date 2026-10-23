@@ -153,3 +153,21 @@ client. Split larger schemas into separate clients. The current query API
 supports typed equality filters and scalar fields, without joins, relations,
 aggregate expressions or arbitrary SQL. A typed client does not add operations
 that its connector cannot perform.
+
+## Schema diagnostics and editing
+
+`check schema.sop`, `xog abuur` and the editor share one schema parser. Errors
+carry `E059`, the schema filename, the original line and the offending token's
+range. Comments start with `#`, including inline comments; whitespace between
+words may include tabs. Opening braces may follow the name directly or appear
+on the next line. A table needs one non-nullable integer key, unique column
+names and known scalar types. Repeated braces and extra column flags are errors.
+
+`fmt schema.sop` formats the schema, preserving comments and blank lines.
+`--qor` uses the same validated, atomic replacement as source formatting.
+The editor has a separate Soplang Schema language with `#` comments, nullable
+types, context-sensitive type/key completion, hover help, formatting and precise
+diagnostics. An untitled buffer can select this language explicitly. Schema
+text is never analyzed or executed as ordinary Soplang code. Changing a field
+still requires regenerating the typed client and applying an appropriate
+migration; source rename does not attempt to migrate database fields.

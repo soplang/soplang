@@ -60,6 +60,10 @@ retain their original language.
 
 ## Formatting
 
+`schema.sop` uses the shared schema formatter and hash-comment syntax. Its
+CLI and editor diagnostics identify the offending schema token with `E059`.
+Other `.sop` files use the executable language formatter.
+
 The formatter uses four-space indentation and consistent spacing. It preserves
 comments, anonymous function bodies, quoted object keys, type annotations and
 the exact contents of strings, including raw strings and interpolation.

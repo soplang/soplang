@@ -51,6 +51,15 @@ async function run() {
     assert.equal(libraryUri.scheme, "soplang-stdlib");
     const library = await vscode.workspace.openTextDocument(libraryUri);
     assert.ok(library.getText().includes("qaab Web"));
+    const schema = await vscode.workspace.openTextDocument({ language: "soplang-schema", content: "# People\njadwal qof {\n id abn furaha\n magac integer\n}\n" });
+    await vscode.window.showTextDocument(schema);
+    const schemaError = await eventually(() => vscode.languages.getDiagnostics(schema.uri).find((row) => row.code === "E059"), "schema diagnostic was not published");
+    assert.equal(schemaError.range.start.line, 3);
+    assert.equal(schemaError.range.start.character, 7);
+    const schemaCompletion = await vscode.commands.executeCommand("vscode.executeCompletionItemProvider", schema.uri, new vscode.Position(3, 7));
+    assert.ok(schemaCompletion.items.some((item) => item.label === "qoraal"));
+    const schemaFile = await vscode.workspace.openTextDocument(vscode.Uri.joinPath(vscode.workspace.workspaceFolders[0].uri, "schema.sop"));
+    assert.equal(schemaFile.languageId, "soplang-schema");
     console.log("SOPLANG_VSCODE_INTEGRATION_OK");
 }
 

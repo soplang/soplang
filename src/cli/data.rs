@@ -58,7 +58,7 @@ pub(super) fn dispatch(args: &[String]) -> Result<i32, SoplangError> {
     let schema_path = schema.unwrap_or_else(|| "schema.sop".into());
     let source =
         crate::analysis::overlay_loader(&Default::default(), &schema_path).map_err(error)?;
-    let schema = crate::data::parse_schema(&source).map_err(error)?;
+    let schema = crate::data::parse_schema_file(&source, &schema_path)?;
     let generated = crate::data::generate_client(&schema).map_err(error)?;
     if let Some(path) = check {
         let existing =

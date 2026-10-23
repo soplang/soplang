@@ -8,11 +8,12 @@ use serde_json::{json, Value};
 
 use crate::analysis::index::{Index, Symbol};
 use crate::analysis::{check_source, overlay_loader, source_identity, Limits, SourceFile};
-use crate::data::parse_schema;
+use crate::data::parse_schema_file;
 use crate::error::{runtime_error_ex, ErrorMeta, SoplangError};
 use crate::frontend::{Lexer, TokenType};
 
 mod position;
+mod schema;
 mod workspace;
 use position::{offset as offset_at, range as range_of};
 
@@ -37,6 +38,7 @@ impl Indexed {
 pub struct Server {
     documents: HashMap<String, String>,
     versions: HashMap<String, i64>,
+    schemas: HashSet<String>,
     published: HashSet<String>,
     shutdown: bool,
     roots: BTreeSet<PathBuf>,
@@ -175,6 +177,13 @@ impl Server {
                     if let Some(version) = version {
                         self.versions.insert(uri.clone(), version);
                     }
+                    if message
+                        .pointer("/params/textDocument/languageId")
+                        .and_then(Value::as_str)
+                        == Some("soplang-schema")
+                    {
+                        self.schemas.insert(uri.clone());
+                    }
                     self.documents.insert(uri, text);
                     return self.refresh_diagnostics();
                 }
@@ -187,6 +196,7 @@ impl Server {
                 {
                     self.documents.remove(uri);
                     self.versions.remove(uri);
+                    self.schemas.remove(uri);
                 }
                 return self.refresh_diagnostics();
             }
@@ -234,6 +244,13 @@ impl Server {
         Some((uri, text))
     }
 
+    fn is_schema(&self, uri: &str) -> bool {
+        self.schemas.contains(uri)
+            || path_of(uri)
+                .file_name()
+                .is_some_and(|name| name == "schema.sop")
+    }
+
     fn overlays(&self) -> HashMap<PathBuf, String> {
         let mut documents: Vec<_> = self.documents.iter().collect();
         documents.sort_by(|a, b| b.0.cmp(a.0));
@@ -271,6 +288,9 @@ impl Server {
     }
 
     fn indexed(&self, uri: &str, text: &str, position: (u64, u64)) -> Option<Indexed> {
+        if self.is_schema(uri) {
+            return None;
+        }
         let path = path_of(uri);
         let mut overlays = self.overlays();
         overlays.insert(path.clone(), text.into());
@@ -283,6 +303,9 @@ impl Server {
                 .filter(|path| path.file_name().is_none_or(|name| name != "schema.sop"))
                 .cloned(),
         );
+        for uri in self.documents.keys().filter(|uri| self.is_schema(uri)) {
+            candidates.remove(&path_of(uri));
+        }
         candidates.remove(&path);
         let mut files = BTreeMap::<PathBuf, SourceFile>::new();
         let mut bytes = 0;
@@ -340,7 +363,7 @@ impl Server {
             grouped.entry(uri.clone()).or_default();
         }
         for (uri, text) in &self.documents {
-            for notice in diagnostics(uri.clone(), text, &overlays) {
+            for notice in diagnostics(uri.clone(), text, &overlays, self.is_schema(uri)) {
                 let uri = notice["params"]["uri"].as_str().unwrap().to_string();
                 let items = grouped.entry(uri).or_default();
                 for item in notice["params"]["diagnostics"].as_array().unwrap() {
@@ -371,6 +394,11 @@ impl Server {
         let Some((uri, text)) = self.text(message) else {
             return json!([]);
         };
+        if self.is_schema(&uri) {
+            return offset_at(&text, position(message).0, position(message).1)
+                .map(|offset| schema::completion(&text, offset))
+                .unwrap_or_else(|| json!([]));
+        }
         let Some(analysis) = self.indexed(&uri, &text, position(message)) else {
             return json!([]);
         };
@@ -391,6 +419,13 @@ impl Server {
     }
 
     fn hover(&self, message: &Value) -> Value {
+        if let Some((uri, text)) = self.text(message) {
+            if self.is_schema(&uri) {
+                return offset_at(&text, position(message).0, position(message).1)
+                    .map(|offset| schema::hover(&text, offset))
+                    .unwrap_or(Value::Null);
+            }
+        }
         let Some((symbol, analysis)) = self.symbol_at(message) else {
             return Value::Null;
         };
@@ -493,7 +528,12 @@ impl Server {
         let Some((uri, text)) = self.text(message) else {
             return json!([]);
         };
-        match crate::cli::tools::format_source(&text, &path_of(&uri)) {
+        let formatted = if self.is_schema(&uri) {
+            crate::data::format_schema(&text, &path_of(&uri))
+        } else {
+            crate::cli::tools::format_source(&text, &path_of(&uri))
+        };
+        match formatted {
             Ok(formatted) => json!([{
                 "range": range_of(&text, 0, text.len()),
                 "newText": formatted
@@ -515,9 +555,12 @@ impl Server {
     }
 
     fn tokens(&self, message: &Value) -> Value {
-        let Some((_, text)) = self.text(message) else {
+        let Some((uri, text)) = self.text(message) else {
             return json!({"data": []});
         };
+        if self.is_schema(&uri) {
+            return json!({"data": []});
+        }
         use crate::frontend::trivia::{lossless_tokens, PieceKind};
         let Ok(pieces) = lossless_tokens(&text) else {
             return json!({"data": []});
@@ -569,15 +612,20 @@ impl Server {
     }
 }
 
-fn diagnostics(uri: String, text: &str, overlays: &HashMap<PathBuf, String>) -> Vec<Value> {
+fn diagnostics(
+    uri: String,
+    text: &str,
+    overlays: &HashMap<PathBuf, String>,
+    schema: bool,
+) -> Vec<Value> {
     let path = path_of(&uri);
     let mut targets = BTreeMap::<String, Vec<Value>>::from([(uri.clone(), Vec::new())]);
-    if path.file_name().and_then(|name| name.to_str()) == Some("schema.sop") {
-        if let Err(error) = parse_schema(text) {
+    if schema {
+        if let Err(error) = parse_schema_file(text, &path) {
             targets
                 .get_mut(&uri)
                 .unwrap()
-                .push(diagnostic_message(text, 1, 1, &error));
+                .push(diagnostic_error(text, &error));
         }
     } else {
         let analysis = check_source(
@@ -606,13 +654,10 @@ fn diagnostics(uri: String, text: &str, overlays: &HashMap<PathBuf, String>) -> 
             } else {
                 uri_of(&source_path)
             };
-            let (line, column) = error.location();
-            targets.entry(target).or_default().push(diagnostic_message(
-                source,
-                line,
-                column,
-                error.message(),
-            ));
+            targets
+                .entry(target)
+                .or_default()
+                .push(diagnostic_error(source, &error));
         }
     }
     targets
@@ -624,14 +669,20 @@ fn diagnostics(uri: String, text: &str, overlays: &HashMap<PathBuf, String>) -> 
         .collect()
 }
 
-fn diagnostic_message(source: &str, line: usize, col: usize, message: &str) -> Value {
+fn diagnostic_error(source: &str, error: &SoplangError) -> Value {
+    let (line, col) = error.location();
     let start = position::scalar_offset(source, line, col);
-    let end = source
-        .get(start..)
-        .and_then(|tail| tail.chars().next())
-        .map(|ch| start + ch.len_utf8())
-        .unwrap_or(start);
-    json!({"range": range_of(source, start, end), "severity":1, "source":"soplang", "message":message})
+    let end = position::scalar_offset(
+        source,
+        error.meta().end_line.unwrap_or(line),
+        error.meta().end_col.unwrap_or(col + 1),
+    )
+    .max(start);
+    let mut diagnostic = json!({"range":range_of(source,start,end),"severity":1,"source":"soplang","message":error.message()});
+    if let Some(code) = error.code() {
+        diagnostic["code"] = json!(code);
+    }
+    diagnostic
 }
 
 fn document_text(

@@ -22,6 +22,16 @@
           ".sop"
         ],
         "configuration": "./language-configuration.json"
+      },
+      {
+        "id": "soplang-schema",
+        "aliases": [
+          "Soplang Schema"
+        ],
+        "filenames": [
+          "schema.sop"
+        ],
+        "configuration": "./schema-configuration.json"
       }
     ],
     "grammars": [
@@ -29,6 +39,11 @@
         "language": "soplang",
         "scopeName": "source.soplang",
         "path": "./syntaxes/soplang.tmLanguage.json"
+      },
+      {
+        "language": "soplang-schema",
+        "scopeName": "source.soplang-schema",
+        "path": "./syntaxes/schema.tmLanguage.json"
       }
     ],
     "configuration": {
@@ -68,12 +83,17 @@
       {
         "language": "soplang",
         "path": "./snippets/soplang.json"
+      },
+      {
+        "language": "soplang-schema",
+        "path": "./snippets/schema.json"
       }
     ]
   },
   "main": "./extension.js",
   "activationEvents": [
-    "onLanguage:soplang"
+    "onLanguage:soplang",
+    "onLanguage:soplang-schema"
   ],
   "license": "MIT",
   "repository": {

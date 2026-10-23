@@ -83,3 +83,20 @@ test("all quote/prefix combinations release their string scopes at the delimiter
         }
     }
 });
+
+test("schema files use hash comments, scalar types and schema declarations", async () => {
+    await ready;
+    const registry = new tm.Registry({
+        onigLib: Promise.resolve({ createOnigScanner: (patterns) => new onig.OnigScanner(patterns), createOnigString: (text) => new onig.OnigString(text) }),
+        loadGrammar: async () => tm.parseRawGrammar(fs.readFileSync(path.join(__dirname, "../syntaxes/schema.tmLanguage.json"), "utf8"), "schema.json"),
+    });
+    const grammar = await registry.loadGrammar("source.soplang-schema");
+    const lines = ["# People", "jadwal qof {", "    id abn furaha", "    magac qoraal? # optional", "}"];
+    const result = lines.flatMap((line) => grammar.tokenizeLine(line, tm.INITIAL).tokens.map((token) => ({ text: line.slice(token.startIndex, token.endIndex), scopes: token.scopes })));
+    for (const [text, scope] of [["# People", "comment.line.number-sign.soplang-schema"], ["jadwal", "keyword.declaration.soplang-schema"], ["qof", "entity.name.type.soplang-schema"], ["abn", "storage.type.soplang-schema"], ["furaha", "storage.modifier.soplang-schema"]]) {
+        assert.ok(result.some((token) => token.text === text && token.scopes.includes(scope)), `${text}: ${JSON.stringify(result)}`);
+    }
+    const manifest = JSON.parse(fs.readFileSync(path.join(__dirname, "../package.json")));
+    assert.ok(manifest.contributes.languages.some((language) => language.id === "soplang-schema" && language.filenames.includes("schema.sop")));
+    assert.equal(JSON.parse(fs.readFileSync(path.join(__dirname, "../schema-configuration.json"))).comments.lineComment, "#");
+});

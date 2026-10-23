@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Share precise `E059` schema diagnostics and comment-preserving schema formatting between CLI and editor tools. Add a dedicated VS Code schema language, grammar, snippets, contextual completion and hover help, including untitled buffers.
+
 - Isolate private classes declared in module factories and anonymous functions while preserving inheritance, captured methods and module export boundaries.
 
 - Preserve editor scopes and imports in incomplete functions and lexical prefixes while retaining compiler diagnostics and analysis limits. Keep aliased file buffers aligned with their own source and refuse ambiguous rename edits.

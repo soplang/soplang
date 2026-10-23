@@ -30,6 +30,16 @@ async function main() {
             const checked = spawnSync(binary, ["check", file], { encoding: "utf8" });
             if (checked.status !== 0) throw new Error(`Invalid ${name} snippet: ${checked.stderr || checked.error}`);
         }
+        const schemaSnippets = JSON.parse(fs.readFileSync(path.join(extensionDevelopmentPath, "snippets/schema.json")));
+        for (const [name, snippet] of Object.entries(schemaSnippets)) {
+            const source = snippet.body.join("\n").replace(/\$\{\d+:([^}]*)\}/g, "$1");
+            const file = path.join(workspace, "schema.sop");
+            fs.writeFileSync(file, source);
+            const checked = spawnSync(binary, ["check", file], { encoding: "utf8" });
+            if (checked.status !== 0) throw new Error(`Invalid schema ${name} snippet: ${checked.stderr || checked.error}`);
+            fs.rmSync(file);
+        }
+        fs.writeFileSync(path.join(workspace, "schema.sop"), "jadwal qof {\n id abn furaha\n}\n");
         await runTests({
             extensionDevelopmentPath,
             extensionTestsPath: path.join(__dirname, "integration"),

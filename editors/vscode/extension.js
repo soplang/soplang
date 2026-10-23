@@ -43,6 +43,8 @@ async function restart() {
             { language: "soplang", scheme: "file" },
             { language: "soplang", scheme: "untitled" },
             { language: "soplang", scheme: "soplang-stdlib" },
+            { language: "soplang-schema", scheme: "file" },
+            { language: "soplang-schema", scheme: "untitled" },
         ],
         outputChannel: output,
         traceOutputChannel: output,

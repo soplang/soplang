@@ -6,7 +6,7 @@ use std::path::{Path, PathBuf};
 
 use super::options::Options;
 use super::testing::{materialize, split_tests};
-use crate::data::parse_schema;
+use crate::data::parse_schema_file;
 use crate::error::{runtime_error_ex, ErrorMeta, SoplangError};
 use crate::frontend::imports::resolve_imports;
 use crate::frontend::parse_source;
@@ -77,6 +77,9 @@ fn format_file(args: &[String]) -> Result<i32, SoplangError> {
 }
 
 pub fn format_source(text: &str, path: &Path) -> Result<String, SoplangError> {
+    if path.file_name().is_some_and(|name| name == "schema.sop") {
+        return crate::data::format_schema(text, path);
+    }
     crate::frontend::formatter::format_source(text, path)
 }
 
@@ -93,7 +96,7 @@ fn check_file(args: &[String]) -> Result<i32, SoplangError> {
     );
     let text = crate::analysis::overlay_loader(&Default::default(), &path).map_err(tool_error)?;
     if path.file_name().and_then(|name| name.to_str()) == Some("schema.sop") {
-        parse_schema(&text).map_err(tool_error)?;
+        parse_schema_file(&text, &path)?;
         println!("schema.sop waa sax.");
         return Ok(0);
     }
@@ -112,7 +115,7 @@ fn check_file(args: &[String]) -> Result<i32, SoplangError> {
     if schema.is_file() {
         let text =
             crate::analysis::overlay_loader(&Default::default(), &schema).map_err(tool_error)?;
-        parse_schema(&text).map_err(tool_error)?;
+        parse_schema_file(&text, &schema)?;
     }
     let stmts = analysis.statements;
     let (prelude, setups, cleanups, tests) = split_tests(&stmts);

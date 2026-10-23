@@ -65,3 +65,16 @@ Node.js 22 or newer is required for the packaging tools. The extension itself
 supports VS Code 1.85 or newer. `npm test` checks client startup/lifecycle with
 the VS Code API mocked and tokenizes source using the real TextMate/Oniguruma
 engine. The Rust language-server tests exercise framed protocol traffic.
+
+## Database schemas
+
+`schema.sop` opens in Soplang Schema. This language uses `#` comments and the
+`jadwal`, `abn`, `jajab`, `qoraal`, `bool`, `?` and `furaha` forms. The server
+provides type/key completion, hover help, comment-preserving formatting and
+`E059` diagnostics covering the actual invalid token. Untitled buffers can
+select Soplang Schema manually. The `jadwal` snippet creates a valid table.
+
+Generated client modules remain ordinary Soplang source, so their model methods,
+record getters and typed input parameters use the existing navigation and
+completion services. Schema rename does not change databases or regenerate
+clients automatically.

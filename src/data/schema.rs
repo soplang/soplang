@@ -69,101 +69,244 @@ impl ColumnType {
     }
 }
 
+/// Parse schema text supplied at runtime, retaining the string-error API.
 pub fn parse_schema(text: &str) -> Result<Schema, String> {
+    parse_schema_at(text, None).map_err(|error| error.message().to_string())
+}
+
+/// CLI/editor diagnostics retain the actual schema file and token range.
+pub fn parse_schema_file(
+    text: &str,
+    path: &std::path::Path,
+) -> Result<Schema, crate::error::SoplangError> {
+    parse_schema_at(text, Some(path))
+}
+
+struct SourceLine<'a> {
+    number: usize,
+    raw: &'a str,
+    code: &'a str,
+}
+impl SourceLine<'_> {
+    fn words(&self) -> Vec<(&str, usize)> {
+        let mut cursor = 0;
+        self.code
+            .split_whitespace()
+            .map(|word| {
+                let start = cursor + self.code[cursor..].find(word).unwrap();
+                cursor = start + word.len();
+                (word, start)
+            })
+            .collect()
+    }
+    fn error(
+        &self,
+        path: Option<&std::path::Path>,
+        message: impl Into<String>,
+        start: usize,
+        width: usize,
+    ) -> crate::error::SoplangError {
+        let offset = self.raw.find(self.code).unwrap_or(0) + start;
+        let col = self.raw[..offset.min(self.raw.len())].chars().count() + 1;
+        let mut meta = crate::error::ErrorMeta::default()
+            .with_code(crate::error::codes::E059_DATA)
+            .with_span(self.number, col + width.max(1));
+        meta.file = path.map(std::path::Path::to_path_buf);
+        meta.source_line = Some(self.raw.into());
+        crate::error::runtime_error_ex(message, self.number, col, meta)
+    }
+    fn word_error(
+        &self,
+        path: Option<&std::path::Path>,
+        message: impl Into<String>,
+        index: usize,
+    ) -> crate::error::SoplangError {
+        let words = self.words();
+        let (word, start) = words.get(index).copied().unwrap_or(("", self.code.len()));
+        self.error(path, message, start, word.chars().count())
+    }
+}
+fn parse_schema_at(
+    text: &str,
+    path: Option<&std::path::Path>,
+) -> Result<Schema, crate::error::SoplangError> {
     let mut tables = Vec::new();
     let mut lines = text
         .lines()
-        .map(|line| line.split('#').next().unwrap_or("").trim())
-        .filter(|line| !line.is_empty());
-    while let Some(line) = lines.next() {
-        let Some(name) = line.strip_prefix("jadwal ") else {
-            return Err(format!("Safka schema.sop ma saxna: {line}"));
-        };
-        let name = name.trim().trim_end_matches('{').trim();
+        .enumerate()
+        .map(|(index, raw)| SourceLine {
+            number: index + 1,
+            raw,
+            code: raw.split('#').next().unwrap_or("").trim(),
+        })
+        .filter(|line| !line.code.is_empty());
+    while let Some(header) = lines.next() {
+        let rest = header
+            .code
+            .strip_prefix("jadwal")
+            .filter(|rest| rest.starts_with(char::is_whitespace))
+            .ok_or_else(|| header.word_error(path, "Jadwalka ku bilow erayga jadwal.", 0))?
+            .trim();
+        let opened = rest.ends_with('{');
+        let name = rest.strip_suffix('{').unwrap_or(rest).trim();
         if !ident(name) {
-            return Err(format!("Magaca jadwalka '{name}' ma saxna."));
+            return Err(header.word_error(path, format!("Magaca jadwalka '{name}' ma saxna."), 1));
         }
-        if !line.contains('{') {
+        if name.starts_with("soplang_") {
+            return Err(header.word_error(
+                path,
+                "Magacyada ku bilaabma soplang_ waxaa loo reebay nidaamka.",
+                1,
+            ));
+        }
+        if tables.iter().any(|table: &Table| table.name == name) {
+            return Err(header.word_error(
+                path,
+                format!("Jadwalka '{name}' waa la soo celiyey."),
+                1,
+            ));
+        }
+        if !opened {
             let Some(open) = lines.next() else {
-                return Err("Jadwalka ma furmin.".into());
+                return Err(header.word_error(path, "Jadwalka ma furmin.", 1));
             };
-            if open != "{" {
-                return Err("Jadwalka waa inuu ku furmo {.".into());
+            if open.code != "{" {
+                return Err(open.word_error(path, "Jadwalka waa inuu ku furmo {.", 0));
             }
         }
         let mut columns = Vec::new();
         loop {
             let Some(line) = lines.next() else {
-                return Err(format!("Jadwalka '{name}' ma xidhmin."));
+                return Err(header.word_error(path, format!("Jadwalka '{name}' ma xidhmin."), 1));
             };
-            if line == "}" {
+            if line.code == "}" {
                 break;
             }
-            let column = parse_column(line)?;
+            let words = line.words();
+            let (column_name, _) = words[0];
+            if !ident(column_name) {
+                return Err(line.word_error(
+                    path,
+                    format!("Magaca tiirka '{column_name}' ma saxna."),
+                    0,
+                ));
+            }
+            let Some((kind, _)) = words.get(1).copied() else {
+                return Err(line.word_error(
+                    path,
+                    format!("Nooca tiirka '{column_name}' waa ka maqan yahay."),
+                    1,
+                ));
+            };
+            let optional = kind.ends_with('?');
+            let ty =
+                ColumnType::parse(kind.strip_suffix('?').unwrap_or(kind)).ok_or_else(|| {
+                    line.word_error(path, format!("Nooca '{kind}' lama aqoonsan."), 1)
+                })?;
+            let mut key = false;
+            for (index, (flag, _)) in words.iter().enumerate().skip(2) {
+                if *flag != "furaha" {
+                    return Err(line.word_error(
+                        path,
+                        format!("Calaamadda '{flag}' lama aqoonsan."),
+                        index,
+                    ));
+                }
+                if key || ty != ColumnType::Int || optional {
+                    return Err(line.word_error(
+                        path,
+                        format!("Furaha '{column_name}' waa inuu noqdaa abn hal mar."),
+                        index,
+                    ));
+                }
+                key = true;
+            }
             if columns
                 .iter()
-                .any(|existing: &Column| existing.name == column.name)
+                .any(|column: &Column| column.name == column_name)
             {
-                return Err(format!("Tiirka '{}' waa la soo celiyey.", column.name));
+                return Err(line.word_error(
+                    path,
+                    format!("Tiirka '{column_name}' waa la soo celiyey."),
+                    0,
+                ));
             }
-            columns.push(column);
+            if key && columns.iter().any(|column| column.key) {
+                return Err(line.word_error(
+                    path,
+                    format!("Jadwalka '{name}' wuxuu yeelan karaa hal furaha abn oo keliya."),
+                    2,
+                ));
+            }
+            columns.push(Column {
+                name: column_name.into(),
+                ty,
+                optional,
+                key,
+            });
         }
-        if columns.iter().filter(|column| column.key).count() != 1 {
-            return Err(format!(
-                "Jadwalka '{name}' wuxuu u baahan yahay hal furaha abn."
+        if !columns.iter().any(|column| column.key) {
+            return Err(header.word_error(
+                path,
+                format!("Jadwalka '{name}' wuxuu u baahan yahay hal furaha abn."),
+                1,
             ));
         }
-        if name.starts_with("soplang_") {
-            return Err("Magacyada ku bilaabma soplang_ waxaa loo reebay nidaamka.".into());
-        }
-        if tables.iter().any(|table: &Table| table.name == name) {
-            return Err(format!("Jadwalka '{name}' waa la soo celiyey."));
-        }
         tables.push(Table {
-            name: name.to_string(),
+            name: name.into(),
             columns,
         });
     }
     if tables.is_empty() {
-        return Err("schema.sop ma leh jadwal.".into());
+        return Err(SourceLine {
+            number: 1,
+            raw: text.lines().next().unwrap_or(""),
+            code: "",
+        }
+        .error(path, "schema.sop ma leh jadwal.", 0, 1));
     }
     Ok(Schema { tables })
 }
 
-fn parse_column(line: &str) -> Result<Column, String> {
-    let mut parts = line.split_whitespace();
-    let name = parts
-        .next()
-        .ok_or_else(|| "Tiirka schema.sop ma saxna.".to_string())?;
-    let ty = parts
-        .next()
-        .ok_or_else(|| format!("Nooca tiirka '{name}' waa ka maqan yahay."))?;
-    if !ident(name) {
-        return Err(format!("Magaca tiirka '{name}' ma saxna."));
-    }
-    let (ty, optional) = if let Some(base) = ty.strip_suffix('?') {
-        (base, true)
-    } else {
-        (ty, false)
-    };
-    let ty = ColumnType::parse(ty).ok_or_else(|| format!("Nooca '{ty}' lama aqoonsan."))?;
-    let mut key = false;
-    for flag in parts {
-        if flag == "furaha" {
-            if key || ty != ColumnType::Int || optional {
-                return Err(format!("Furaha '{name}' waa inuu noqdaa abn hal mar."));
+pub fn format_schema(
+    text: &str,
+    path: &std::path::Path,
+) -> Result<String, crate::error::SoplangError> {
+    parse_schema_file(text, path)?;
+    let mut out = String::new();
+    let mut depth = 0;
+    for line in text.lines() {
+        let (code, comment) = line
+            .split_once('#')
+            .map(|(code, comment)| (code, Some(comment)))
+            .unwrap_or((line, None));
+        let code = code
+            .replace('{', " { ")
+            .replace('}', " } ")
+            .split_whitespace()
+            .collect::<Vec<_>>()
+            .join(" ");
+        if code == "}" {
+            depth = 0;
+        }
+        if !code.is_empty() || comment.is_some() {
+            out.push_str(&"    ".repeat(depth));
+            out.push_str(&code);
+        }
+        if let Some(comment) = comment {
+            if !code.is_empty() {
+                out.push(' ');
             }
-            key = true;
-        } else {
-            return Err(format!("Calaamadda '{flag}' lama aqoonsan."));
+            out.push('#');
+            out.push_str(comment.trim_end());
+        }
+        out.push('\n');
+        if code.ends_with('{') {
+            depth = 1;
         }
     }
-    Ok(Column {
-        name: name.to_string(),
-        ty,
-        optional,
-        key,
-    })
+    parse_schema_file(&out, path)?;
+    Ok(out)
 }
 
 pub fn ident(name: &str) -> bool {

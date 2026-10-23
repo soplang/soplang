@@ -22,7 +22,7 @@ use std::time::Duration;
 use tokio::net::TcpStream;
 use tokio_util::compat::TokioAsyncWriteCompatExt;
 
-pub use schema::{ident, parse_schema, ColumnType, Schema};
+pub use schema::{format_schema, ident, parse_schema, parse_schema_file, ColumnType, Schema};
 pub use generate::{generate_client, GENERATED_HEADER};
 
 use crate::error::{codes, runtime_error_ex, ErrorMeta, SoplangError};

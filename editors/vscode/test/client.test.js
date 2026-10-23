@@ -57,7 +57,7 @@ test("starts the configured executable over stdio and disposes it on restart", a
     assert.equal(first.server.transport, 0);
     assert.equal(first.server.options.shell, undefined);
     assert.equal(first.options.markdown.isTrusted, false);
-    assert.equal(JSON.stringify(first.options.documentSelector), '[{"language":"soplang","scheme":"file"},{"language":"soplang","scheme":"untitled"},{"language":"soplang","scheme":"soplang-stdlib"}]');
+    assert.equal(JSON.stringify(first.options.documentSelector), '[{"language":"soplang","scheme":"file"},{"language":"soplang","scheme":"untitled"},{"language":"soplang","scheme":"soplang-stdlib"},{"language":"soplang-schema","scheme":"file"},{"language":"soplang-schema","scheme":"untitled"}]');
     ext.config["server.path"] = "another-soplang";
     await ext.commands.get("soplang.restartServer")();
     assert.equal(first.stopped, 1);
