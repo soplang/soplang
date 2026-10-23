@@ -14,6 +14,13 @@ pub(super) struct Param {
 }
 
 impl Param {
+    pub(super) fn text(value: String) -> Self {
+        Self {
+            ty: ColumnType::Text,
+            value: SqlValue::Text(value),
+        }
+    }
+
     pub fn sqlite(&self) -> rusqlite::types::Value {
         use rusqlite::types::Value as V;
         match &self.value {
@@ -157,11 +164,17 @@ pub(super) fn select(
 ) -> Statement {
     let mut params = Vec::new();
     let clause = predicate(kind, table, filter, &mut params);
+    let columns = table
+        .columns
+        .iter()
+        .map(|column| identifier(kind, &column.name))
+        .collect::<Vec<_>>()
+        .join(", ");
     let table = identifier(kind, &table.name);
     let text = if matches!(kind, DriverKind::SqlServer) {
-        format!("SELECT TOP 1000 * FROM {table}{clause}")
+        format!("SELECT TOP 1000 {columns} FROM {table}{clause}")
     } else {
-        format!("SELECT * FROM {table}{clause} LIMIT 1000")
+        format!("SELECT {columns} FROM {table}{clause} LIMIT 1000")
     };
     Statement { text, params }
 }

@@ -35,6 +35,31 @@ impl Schema {
         self.tables.iter().find(|table| table.name == name)
     }
 
+    /// Canonical schema source for validated migration snapshots.
+    pub(super) fn source(&self) -> String {
+        let mut text = String::new();
+        for table in &self.tables {
+            text.push_str(&format!("jadwal {} {{\n", table.name));
+            for column in &table.columns {
+                let ty = match column.ty {
+                    ColumnType::Int => "abn",
+                    ColumnType::Text => "qoraal",
+                    ColumnType::Float => "jajab",
+                    ColumnType::Bool => "bool",
+                };
+                text.push_str(&format!(
+                    "    {} {}{}{}\n",
+                    column.name,
+                    ty,
+                    if column.optional { "?" } else { "" },
+                    if column.key { " furaha" } else { "" }
+                ));
+            }
+            text.push_str("}\n");
+        }
+        text
+    }
+
     pub fn fingerprint(&self) -> String {
         let mut hasher = Sha256::new();
         for table in &self.tables {

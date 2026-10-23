@@ -7,6 +7,7 @@
 
 mod schema;
 mod generate;
+mod migration;
 mod sql;
 
 use crate::runtime::with_databases;
@@ -444,6 +445,7 @@ fn mongo_validator(table: &schema::Table) -> Document {
 }
 
 fn apply_migration(db: &mut Database, schema: &Schema) -> Result<(), SoplangError> {
+    migration::preflight(db, schema)?;
     if matches!(db.kind, DriverKind::Mongo) {
         let Conn::Mongo(mongo) = db.current() else {
             unreachable!()
@@ -481,19 +483,8 @@ fn apply_migration(db: &mut Database, schema: &Schema) -> Result<(), SoplangErro
                 .run()
                 .map_err(|error| driver_error(error))?;
         }
-        mongo
-            .database
-            .collection::<Document>("soplang_guuri")
-            .update_one(
-                doc! { "_id": "schema" },
-                doc! { "$set": { "sha256": schema.fingerprint() } },
-            )
-            .upsert(true)
-            .run()
-            .map_err(|error| driver_error(error))?;
-        return Ok(());
+        return migration::record(db, schema);
     }
-    exec(db, &migration_table(db.kind))?;
     for table in &schema.tables {
         exec(db, &create_table(db.kind, table))?;
         let existing = existing_columns(db, &table.name)?;
@@ -503,13 +494,7 @@ fn apply_migration(db: &mut Database, schema: &Schema) -> Result<(), SoplangErro
             }
         }
     }
-    let hash = schema.fingerprint();
-    exec(db, "DELETE FROM soplang_guuri")?;
-    exec(
-        db,
-        &format!("INSERT INTO soplang_guuri (sha256) VALUES ('{hash}')"),
-    )?;
-    Ok(())
+    migration::record(db, schema)
 }
 
 fn migration_table(kind: DriverKind) -> String {

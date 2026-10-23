@@ -281,6 +281,7 @@ fn live_in_context(kind: &str, target: &str) {
     );
     data::delete(id, "qof", &obj(&[("magac", Value::Str(marker))])).unwrap();
     assert!(names(&data::find(id, "qof", Some(&filter)).unwrap()).is_empty());
+    migration_safety(id);
     data::close(id).unwrap();
 }
 
@@ -318,4 +319,126 @@ fn live_sqlserver() {
 #[ignore]
 fn live_mongo() {
     live("mongo", &std::env::var("SOPLANG_MONGO").unwrap());
+}
+
+#[test]
+fn migrations_reject_incompatible_changes_before_ddl_and_keep_old_clients_readable() {
+    let path = temp_db("migration_safety");
+    let context = soplang::runtime::RuntimeContext::new();
+    context.with(|| {
+        let id = id_of(&data::open("sqlite", path.to_str().unwrap(), 2).unwrap());
+        migration_safety(id);
+        data::close(id).unwrap();
+    });
+    fs::remove_file(path).unwrap();
+}
+
+fn migration_safety(id: i64) {
+    data::load_schema(id, SCHEMA).unwrap();
+    data::migrate(id).unwrap();
+    let marker = "migration-guard";
+    data::insert(id, "qof", &obj(&[("magac", Value::Str(marker.into()))])).unwrap();
+    // An allowed addition preceding an incompatible change must not leak into
+    // non-transactional DDL connectors either: preflight covers every table.
+    for bad in [
+        SCHEMA.replace("magac qoraal", "magac abn"),
+        SCHEMA.replace("magac qoraal", "magac qoraal?"),
+        SCHEMA.replace("  da abn?\n", ""),
+        SCHEMA.replace("id abn furaha", "other abn furaha"),
+        SCHEMA.replace("}\n", "  required qoraal\n}\n"),
+        "jadwal different {\n id abn furaha\n}\n".into(),
+    ] {
+        let bad = format!("jadwal not_created {{\n id abn furaha\n}}\n{bad}");
+        data::load_schema(id, &bad).unwrap();
+        let error = data::migrate(id).unwrap_err();
+        assert_eq!(error.meta().code.as_deref(), Some("E059"), "{error}");
+        data::load_schema(id, SCHEMA).unwrap();
+        data::migrate(id).unwrap();
+        assert!(names(&data::find(id, "qof", None).unwrap()).contains(&marker.into()));
+    }
+    let next = format!(
+        "{}jadwal not_created {{\n id abn furaha\n}}\n",
+        SCHEMA.replace("}\n", "  notes qoraal?\n}\n")
+    );
+    data::load_schema(id, &next).unwrap();
+    data::migrate(id).unwrap();
+    data::migrate(id).unwrap();
+    // Old binaries can read their own declared projection during a rolling
+    // application update, without running a migration that removes columns.
+    data::load_schema(id, SCHEMA).unwrap();
+    assert!(names(&data::find(id, "qof", None).unwrap()).contains(&marker.into()));
+    assert!(data::migrate(id).is_err());
+    data::load_schema(id, &next).unwrap();
+    data::delete(id, "qof", &obj(&[("magac", Value::Str(marker.into()))])).unwrap();
+}
+
+#[test]
+fn migration_journal_bootstraps_matching_legacy_hashes_and_refuses_corruption() {
+    let path = temp_db("migration_journal");
+    let context = soplang::runtime::RuntimeContext::new();
+    context.with(|| {
+        let id = id_of(&data::open("sqlite", path.to_str().unwrap(), 1).unwrap());
+        data::load_schema(id, SCHEMA).unwrap();
+        data::migrate(id).unwrap();
+        let connection = rusqlite::Connection::open(&path).unwrap();
+        connection
+            .execute_batch("DROP TABLE soplang_schema")
+            .unwrap();
+        let next = SCHEMA.replace("}\n", " extra qoraal?\n}\n");
+        data::load_schema(id, &next).unwrap();
+        assert!(data::migrate(id).is_err());
+        data::load_schema(id, SCHEMA).unwrap();
+        data::migrate(id).unwrap();
+        data::load_schema(id, &next).unwrap();
+        data::migrate(id).unwrap();
+        let hash: String = connection
+            .query_row("SELECT sha256 FROM soplang_guuri", [], |row| row.get(0))
+            .unwrap();
+        connection
+            .execute(
+                "UPDATE soplang_schema SET qaab = ?",
+                ["jadwal wrong {\n id abn furaha\n}\n"],
+            )
+            .unwrap();
+        assert!(data::migrate(id).is_err());
+        assert_eq!(
+            hash,
+            connection
+                .query_row::<String, _, _>("SELECT sha256 FROM soplang_guuri", [], |row| row.get(0))
+                .unwrap()
+        );
+        data::close(id).unwrap();
+    });
+    fs::remove_file(path).unwrap();
+}
+
+#[test]
+fn migrations_refuse_unmanaged_tables_and_add_required_columns_only_to_empty_tables() {
+    let path = temp_db("migration_adoption");
+    let context = soplang::runtime::RuntimeContext::new();
+    context.with(|| {
+        let id = id_of(&data::open("sqlite", path.to_str().unwrap(), 1).unwrap());
+        let connection = rusqlite::Connection::open(&path).unwrap();
+        connection
+            .execute_batch("CREATE TABLE qof (id INTEGER PRIMARY KEY, magac TEXT)")
+            .unwrap();
+        data::load_schema(id, SCHEMA).unwrap();
+        assert!(data::migrate(id).is_err());
+        connection.execute_batch("DROP TABLE qof").unwrap();
+        data::migrate(id).unwrap();
+        let next = SCHEMA.replace("}\n", " required qoraal\n}\n");
+        data::load_schema(id, &next).unwrap();
+        data::migrate(id).unwrap();
+        data::insert(
+            id,
+            "qof",
+            &obj(&[
+                ("magac", Value::Str("Amina".into())),
+                ("required", Value::Str("present".into())),
+            ]),
+        )
+        .unwrap();
+        data::close(id).unwrap();
+    });
+    fs::remove_file(path).unwrap();
 }

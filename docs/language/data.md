@@ -28,8 +28,26 @@ xog.xidh(db)
 ```
 
 `fur(kind, target, wadarta?)` opens one to eight connections. The default is
-one. `guuri` creates missing tables and adds missing columns. It does not drop
-columns. The schema hash is stored in `soplang_guuri`.
+one. `guuri` creates tables and adds columns after validating the previous
+migration's schema. It rejects table/column removals and changes to existing
+column types, keys or nullability. New required columns need an empty table;
+nullable columns can be added to populated tables. Every proposed change is
+checked before application DDL starts. Automatic migrations do not adopt
+pre-existing tables that have no migration record.
+
+SQL records the hash in `soplang_guuri` and the canonical schema in
+`soplang_schema`. MongoDB stores both in its `soplang_guuri` schema document.
+Corrupt or inconsistent records stop migration. A database from an older build
+with only a hash must first migrate the exact schema matching that hash; this
+records its snapshot without changing tables. It can then migrate the new
+schema. Keep a copy of the previously applied `schema.sop` for this upgrade.
+Do not edit metadata to force an incompatible change through. Run migrations
+from one process at a time; there is no distributed migration lock.
+
+SQL reads select the calling client's declared columns so an older binary can
+read during an additive deployment. Running its older migration against a
+newer recorded schema is refused. Migrations do not implement data backfills,
+destructive changes, a down-migration command or automatic drift repair.
 Connections belong to the execution context and close when it is destroyed.
 `xidh(db)` closes a pool explicitly. A pool cannot be used from another context
 or closed during a transaction. SQLite `:memory:` pools share one private
@@ -49,6 +67,10 @@ SQLite, PostgreSQL, CockroachDB and SQL Server migrations run in a transaction.
 MySQL and MariaDB DDL uses the server's implicit commit behavior. MongoDB
 migrations create or update collection validators and unique key indexes while
 preserving existing documents. MongoDB integer keys use an atomic counter.
+MySQL, MariaDB and MongoDB migrations are not atomic: driver or process failures
+can leave partial DDL. Metadata is written only after application DDL succeeds;
+inconsistent metadata is rejected on retry. Take a backup and inspect a failed
+migration before continuing.
 
 `xog.awood(kind)` reports the operations that kind supports.
 
@@ -68,7 +90,9 @@ SQLite is tested by the default suite, including rollback and a pool of two.
 Live tests cover parameter binding, Unicode text, nulls, typed reads, pooled
 connections, rollback, commit, updates, deletes and repeated migrations that
 preserve existing records. Their tests are ignored by default. Set the matching
-connection variable and explicitly select the test: `SOPLANG_POSTGRES`,
+connection variable and explicitly select the test. Use a fresh disposable
+database: connector tests retain their migration metadata and do not reset an
+incompatible schema. The variables are: `SOPLANG_POSTGRES`,
 `SOPLANG_COCKROACH`, `SOPLANG_MYSQL`, `SOPLANG_MARIADB`,
 `SOPLANG_SQLSERVER`, or `SOPLANG_MONGO`.
 
