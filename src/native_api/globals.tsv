@@ -1,0 +1,128 @@
+# name<TAB>parameters separated by ;<TAB>result<TAB>documentation
+loog	tiro;[sal]	jajab	Logarithm; the default base is e.
+sin	tiro;[bool rogan]	jajab	Sine in radians, or inverse sine when rogan is run.
+cos	tiro;[bool rogan]	jajab	Cosine in radians, or inverse cosine when rogan is run.
+tan	tiro;[bool rogan]	jajab	Tangent in radians, or inverse tangent when rogan is run.
+xagal	y;x	jajab	Return atan2(y, x) in radians.
+joogto	qoraal magac	jajab	Named numeric constant: pi, e, or tau.
+xadid	tiro;ugu_yar;ugu_weyn	door	Clamp a number between two bounds.
+abuur	abn iniin	maran	Seed the current runtime's random stream.
+urur	*qiimayaal	urur	Construct an insertion-ordered set of immutable keys. Each argument is one element.
+xirmo	*qiimayaal	xirmo	Construct an immutable tuple. Each argument is one position.
+baytyo	[il]	baytyo	Construct bytes from UTF-8 text, a byte list or another byte array; no argument creates an empty array.
+qor	*qiimayaal	maran	Print positional values separated by spaces, followed by a newline.
+gelin	[farriin]	qoraal	Read one input line, with an optional prompt.
+akhrifayl	qoraal jid	qoraal	Read a UTF-8 text file relative to the working directory.
+qor_fayl	qoraal jid;qoraal qoraal	maran	Overwrite a UTF-8 text file.
+kudar_fayl	qoraal jid;qoraal qoraal	maran	Append UTF-8 text to a file.
+akhrif_baytyo	qoraal jid	baytyo	Read a whole binary file without UTF-8 decoding.
+qor_baytyo	qoraal jid;baytyo xog	maran	Overwrite a binary file.
+kudar_baytyo	qoraal jid;baytyo xog	maran	Append bytes to a binary file.
+json_akhris	qoraal qoraal	door	Parse JSON into ordinary Soplang values; object fields never create class identity.
+json_qor	qiime	qoraal	Serialize a JSON-compatible value; cycles and unsupported values fail.
+csv_akhris	qoraal qoraal	teed[teed[qoraal]]	Parse CSV rows, including quoted delimiters and newlines.
+csv_qor	teed safaf	qoraal	Serialize rows of text fields as CSV.
+url_qor	qoraal qoraal;[qoraal hab]	qoraal	Percent-encode UTF-8 text; the foom mode uses + for spaces.
+url_akhris	qoraal qoraal;[qoraal hab]	qoraal	Decode URL text; invalid percent escapes or UTF-8 fail.
+b64_qor	xog;[qoraal hab]	qoraal	Encode text or bytes as Base64; url selects the URL-safe unpadded alphabet.
+b64_akhris	qoraal qoraal;[qoraal hab]	baytyo	Decode Base64 into bytes; invalid input fails.
+regex_raadi	qoraal qaab;qoraal qoraal	qoraal?	Return the first matched text or maran, using the Rust regex dialect.
+regex_dhammaan	qoraal qaab;qoraal qoraal	teed[qoraal]	Return all non-overlapping regex matches.
+regex_beddel	qoraal qaab;qoraal qoraal;qoraal beddel	qoraal	Replace every regex match; replacement capture syntax follows Rust regex.
+waqti		abn	Return the current UTC Unix timestamp in whole seconds.
+waqti_akhris	qoraal qoraal	abn	Parse a UTC timestamp ending in Z.
+waqti_qor	abn ilbiriqsi	qoraal	Format whole Unix seconds as UTC text.
+waqti_qayb	abn ilbiriqsi	walax	Split a UTC timestamp into calendar fields.
+waqti_ka_qayb	walax qaybo	abn	Construct a UTC timestamp from validated calendar fields.
+waqti_kudar	abn waqti;abn ilbiriqsi	abn	Shift a timestamp by whole seconds.
+amarro		teed[qoraal]	Return application arguments, excluding the executable and source filename.
+deegaan	qoraal magac	qoraal?	Read an environment variable, returning maran when absent.
+deegaan_qor	qoraal magac;qoraal qiime	maran	Set an environment variable.
+deegaan_tirtir	qoraal magac	maran	Remove an environment variable.
+fuli	qoraal barnaamij;[teed[qoraal] doodo]	walax	Run a program without a shell and return exit code, stdout and stderr.
+http_codso	qoraal hab;qoraal url;[walax xulasho]	walax	Send an HTTP or HTTPS request; HTTPS verifies certificates through the platform trust store.
+server_fur	qoraal marti;abn deked;[walax xulasho]	walax	Open a sequential HTTP listener; shahaado and fure options enable TLS.
+habee_qoraal	qoraal qaab;walax xog	qoraal	Render a template with HTML-escaped named substitutions.
+qayb_foom	qoraal nooc;jir	teed	Parse a bounded multipart/form-data body without changing uploaded bytes.
+aqoonsi_sugan		qoraal	Generate a cryptographically random URL-safe session identifier.
+kuki_habee	qoraal aqoonsi;[walax xulasho]	qoraal	Build a validated session cookie with path, lifetime and security options.
+server_tijaabi	waddooyin;qoraal hab;qoraal jid;[jir];[walax madax]	walax	Send an in-memory request through the same HTTP parser and route pipeline as a live listener.
+hubi	qiime;[la_filayo]	maran	Assert that one value is run, or that two values are structurally equal.
+jebi		maran	Pause at the source debugger. Local inspection and stepping need debug instrumentation.
+dabool_saf	abn saf	maran	Record a coverage line in the current configured report.
+xog_fur	qoraal nooc;qoraal jid;[walax xulasho]	walax	Open a context-owned database pool; wadarta selects one to eight connections.
+xog_schema	walax db;qoraal schema	maran	Validate and attach a database schema without applying migrations.
+xog_xidh	walax db	maran	Close a database pool outside a transaction.
+xog_guuri	walax db	maran	Apply the supported schema migration operations.
+xog_geli	walax db;qoraal jadwal;walax xog	abn	Insert a validated record; return the affected count.
+xog_raadi	walax db;qoraal jadwal;[walax shaandhe]	teed[walax]	Read at most 1000 records using equality filters combined with AND.
+xog_beddel	walax db;qoraal jadwal;walax shaandhe;walax xog	abn	Update matching records with parameter-bound values.
+xog_tirtir	walax db;qoraal jadwal;walax shaandhe	abn	Delete matching records and return the affected count.
+xog_macaamil	walax db;hawl shaqo	maran	Run a callback on one pinned database connection; errors roll back the transaction.
+xog_awood	qoraal nooc	walax	Report connector capabilities.
+server_aqbal	walax server;waddooyin;[walax xulasho]	maran	Accept and dispatch sequential HTTP requests with bounded exchanges.
+server_xidh	walax server	maran	Close an HTTP listener owned by this runtime.
+dns_raadi	qoraal marti	teed[qoraal]	Resolve a hostname to sorted IP addresses.
+tcp_fur	qoraal marti;abn deked;[walax xulasho]	walax	Open a TCP connection with the requested transport options.
+tcp_dhegeysi	qoraal marti;abn deked	walax	Bind a TCP listener.
+tcp_aqbal	walax dhegeyste;[walax xulasho]	walax	Accept one TCP connection.
+tcp_qor	walax xiriir;xog	maran	Write text or bytes to a TCP connection.
+tcp_akhris	walax xiriir;abn cabbir	baytyo	Read bounded bytes from a TCP connection.
+tcp_xidh	walax xiriir	maran	Close a TCP connection or listener.
+udp_fur	qoraal marti;abn deked;[walax xulasho]	walax	Bind a UDP socket with transport options.
+udp_qor	walax xiriir;xog;qoraal marti;abn deked	maran	Send one UDP datagram.
+udp_akhris	walax xiriir;abn cabbir	walax	Receive one bounded UDP datagram and its sender information.
+udp_xidh	walax xiriir	maran	Close a UDP socket.
+ws_fur	qoraal url;[walax xulasho]	walax	Connect to ws:// or verified wss:// with bounded upgrade and transport timeouts.
+ws_qor	walax xiriir;xog	maran	Send one text or binary WebSocket message.
+ws_akhris	walax xiriir	walax	Read the next WebSocket data message.
+ws_xidh	walax xiriir	maran	Close a WebSocket connection.
+fayl_jiraa	qoraal jid	bool	Test whether a filesystem entry exists.
+fayl_xog	qoraal jid	walax	Read entry metadata without following a symbolic link.
+isku_xidh	qoraal jid;*qaybo	qoraal	Join path components using platform path rules.
+baabi_jid	qoraal jid	qoraal	Normalize a path lexically without requiring it to exist.
+nuqul_fayl	qoraal il;qoraal meel;[bool beddel]	maran	Copy a file or symbolic link with an explicit replacement option.
+wareeji_fayl	qoraal il;qoraal meel	maran	Move a filesystem entry, with cross-filesystem support for files and links.
+tirtir_fayl	qoraal jid	maran	Remove a file or symbolic link.
+abuur_gal	qoraal jid	maran	Create one directory.
+tir_gal	qoraal jid	teed[qoraal]	List directory entries.
+tirtir_gal	qoraal jid;[bool gudaha]	maran	Remove a directory; recursive removal is explicit.
+fayl_fur	qoraal jid;qoraal hab	walax	Open a context-owned file handle in the selected mode.
+fayl_akhris	walax fayl;abn cabbir	baytyo	Read bounded bytes from an open file.
+fayl_xariiq	walax fayl	qoraal?	Read one UTF-8 line, or maran at EOF.
+fayl_qor	walax fayl;xog	maran	Write text or bytes to an open file.
+fayl_nadiifi	walax fayl	maran	Flush an open file's buffered writes.
+fayl_xidh	walax fayl	maran	Close a file handle.
+fayl_raad	walax fayl;abn meel;qoraal sal	abn	Seek from the beginning, current position or end of a file.
+fayl_meel	walax fayl	abn	Return the file cursor position.
+fayl_beddel	qoraal jid;xog	maran	Atomically replace a file from a temporary file in the same directory.
+fayl_gudaha	qoraal asal;qoraal jid	baytyo?	Read a contained file as bytes, or return maran when absent; reject paths that escape the root.
+nooc	qiime	qoraal	Return the runtime type name.
+khalad	qoraal farriin;[qoraal summad];[sabab]	khalad	Create a structured error with an optional code and cause.
+qaabee	qiime;[qoraal qaab]	qoraal	Format a value with the interpolation formatting rules.
+wareeg	il	@native:cursor	Construct or obtain a context-owned iterator over an iterable.
+xiga	wareeg wareeg	walax	Read an iterator step containing dhammaad and qiime.
+taxane	abn bilow_ama_dhammaad;[abn dhammaad];[abn tallaabo]	@native:cursor	Create a lazy exclusive-end integer range.
+tirso	il;[abn bilow]	@native:cursor	Lazily enumerate an iterable, starting at zero unless configured.
+lamaane	*ilo	@native:cursor	Lazily zip iterables, stopping at the shortest input.
+abn	qiime	abn	Convert a value to a checked signed 64-bit integer.
+jajab	qiime	jajab	Convert a value to a floating-point number.
+qoraal	qiime	qoraal	Convert a value to text; bytes require valid UTF-8.
+bool	qiime	bool	Convert a value using Soplang truthiness.
+teed	*qiimayaal	teed	Construct a list. A single collection argument remains one nested element.
+walax	*furayaal_iyo_qiimayaal	walax	Construct an object from alternating string keys and values; the argument count must be even.
+daji	tiro	abn	Round a number down to an integer.
+kor	tiro	abn	Round a number up to an integer.
+dherer	qiime	abn	Return the length of text or a supported collection.
+xul	[ugu_yar];[ugu_weyn]	door	Generate a random number using the current runtime's stream.
+baaxad	abn bilow_ama_dhammaad;[abn dhammaad];[abn tallaabo]	teed[abn]	Construct an eager exclusive-end integer range; taxane is its lazy alternative.
+dhammeystir	tiro	abn	Round a number to the nearest integer.
+sugan	tiro	door	Return the absolute numeric value.
+ugu_yar	qiime;*kale	door	Compatibility alias for yar; return the smallest numeric argument.
+ugu_weyn	qiime;*kale	door	Compatibility alias for weyn; return the largest numeric argument.
+yar	qiime;*kale	door	Return the smallest numeric argument while preserving integer precision when possible.
+weyn	qiime;*kale	door	Return the largest numeric argument while preserving integer precision when possible.
+awood	sal;jibbaar	jajab	Raise one number to a numeric power.
+jibbaar	sal;jibbaar	jajab	Compatibility spelling of awood.
+duub	tiro	abn	Compatibility spelling of dhammeystir.
+xidid	tiro	jajab	Return the square root of a nonnegative number.

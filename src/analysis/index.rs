@@ -1,5 +1,6 @@
 //! Source identities for editor symbols. Runtime slots are deliberately unused.
 mod modules;
+mod native;
 mod types;
 
 use super::SourceFile;
@@ -63,6 +64,9 @@ pub struct Index {
     alias_targets: HashMap<String, String>,
     member_locations: HashSet<Location>,
     value_hints: HashMap<String, Vec<(Expr, usize)>>,
+    native: HashMap<String, &'static crate::native_api::Api>,
+    value_keywords: HashSet<(PathBuf, usize)>,
+    reassigned: HashSet<String>,
     by_id: HashMap<String, usize>,
     by_name: HashMap<(usize, String), Vec<usize>>,
 }
@@ -136,6 +140,7 @@ impl Index {
             parent: None,
             class: None,
         });
+        index.install_native();
         let mut contextual_by_file = HashMap::new();
         for file in files {
             let (_, tokens, contextual) = super::editor_syntax(&file.text, &file.path);
@@ -148,7 +153,7 @@ impl Index {
                 path: file.path.clone(),
                 start: 0,
                 end: file.text.len(),
-                parent: None,
+                parent: Some(0),
                 class: None,
             });
             index.file_scopes.insert(file.path.clone(), scope);
@@ -176,6 +181,7 @@ impl Index {
                 }
             }
         }
+        index.reassigned = assigned.clone();
         for symbol in &mut index.symbols {
             if assigned.contains(&symbol.id)
                 && symbol.owner.is_none()
@@ -201,7 +207,13 @@ impl Index {
                 if contextual.contains(&token.start) {
                     continue;
                 }
+                let member = i > 0 && tokens[i - 1].kind == K::Dot;
+                let value_keyword = index
+                    .value_keywords
+                    .contains(&(file.path.clone(), token.start));
                 if !matches!(token.kind, K::Identifier | K::Nafta | K::Waalid)
+                    && !member
+                    && !value_keyword
                     && !declarations.contains(&Location {
                         path: file.path.clone(),
                         start: token.start,
@@ -265,6 +277,7 @@ impl Index {
             .filter(|o| o.write && !o.declaration)
             .map(|o| o.symbol.clone())
             .collect();
+        index.reassigned = assigned.clone();
         for symbol in &mut index.symbols {
             if assigned.contains(&symbol.id)
                 && symbol.owner.is_none()
@@ -475,6 +488,13 @@ impl Index {
         result
     }
     pub fn method(&self, ty: &str, name: &str) -> Option<&Symbol> {
+        let ty = ty.strip_suffix('?').unwrap_or(ty);
+        if let Some(owner) = crate::native_api::base(ty) {
+            return self
+                .symbols
+                .iter()
+                .find(|symbol| symbol.owner.as_deref() == Some(owner) && symbol.name == name);
+        }
         if let Some(module) = self.module_aliases.get(ty) {
             return self
                 .exports
@@ -1006,6 +1026,11 @@ impl Index {
     ) {
         if let Expr::Located { span, .. } = expr {
             start = offset(&file.text, span.line, span.col);
+        }
+        if let Expr::Identifier(name) | Expr::Call { name, .. } = expr.unlocated() {
+            if let Some(token) = self.anchor(file, start, name) {
+                self.value_keywords.insert((file.path.clone(), token.start));
+            }
         }
         match expr.unlocated() {
             Expr::AnonymousFunc {

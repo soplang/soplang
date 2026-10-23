@@ -7,6 +7,7 @@ pub mod data;
 pub mod error;
 pub mod frontend;
 pub mod hir;
+pub mod native_api;
 pub mod package;
 pub mod runtime;
 pub mod semantic;

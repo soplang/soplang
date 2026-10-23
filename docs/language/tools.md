@@ -180,6 +180,24 @@ local import aliases can still be renamed. User files named `web.sop` or
 `xog.sop` continue to take precedence over the bundled imports.
 
 
+The editor also offers native global functions and collection methods without an
+import. Known receivers include text, lists, objects, bytes, tuples, sets and
+iterators. Completion follows declared container element types and known native
+return types; unknown dynamic receivers have no guessed members. Local bindings
+and imported names take precedence over native globals.
+
+Hover shows native signatures, overloads and descriptions. Definition opens the
+installed compiler's readonly `soplang-stdlib:/native.sop` API reference. This is
+reference text, not an importable module. Native definitions cannot be renamed.
+References distinguish value uses such as `qoraal(value)` from type annotations.
+
+Signature help follows nested argument lists, offers overloads such as
+`values.geli(value)` and `values.geli(index, value)`, and supports source
+functions, constructors, defaults and named arguments. Native arguments remain
+positional. Optional native arguments appear in brackets and a rest parameter
+starts with `*`. These services inspect source without running the program.
+
+
 ## Breakpoints and profile
 
 `soplang debug file.sop` pauses before the first executable statement. A pause

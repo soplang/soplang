@@ -3,7 +3,7 @@
 Install Soplang and make `soplang` available on `PATH`, then open a `.sop` file.
 The extension starts `soplang lsp` over standard input/output in trusted
 workspaces. It uses the compiler's language server for diagnostics, completion,
-hover, definitions, references, rename, formatting, code actions, and semantic
+hover, signature help, definitions, references, rename, formatting, code actions, and semantic
 highlighting. File documents and untitled buffers are supported. Bundled library
 definitions open read-only source documents from the installed compiler, and
 workspace file changes refresh imported-source diagnostics. The extension runs
@@ -78,3 +78,14 @@ Generated client modules remain ordinary Soplang source, so their model methods,
 record getters and typed input parameters use the existing navigation and
 completion services. Schema rename does not change databases or regenerate
 clients automatically.
+
+
+## Native APIs
+
+Completion and hover include native global functions and methods on known text,
+list, object, byte, tuple, set and iterator values. The server follows declared
+element types and known return types, and respects local shadows. Signature help
+offers native overloads and source function/constructor parameters while editing
+argument lists. Native definitions open a readonly reference from the installed
+compiler through `soplang-stdlib:/native.sop`. No program is executed for these
+requests.

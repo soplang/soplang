@@ -31,6 +31,9 @@ impl Indexed {
             .iter()
             .find(|file| file.path == path)
             .map(|file| file.text.as_str())
+            .or_else(|| {
+                (path == Path::new(crate::native_api::SOURCE_PATH)).then(crate::native_api::source)
+            })
     }
 }
 
@@ -110,6 +113,7 @@ impl Server {
                         "positionEncoding": "utf-16",
                         "completionProvider": {"triggerCharacters": ["."]},
                         "hoverProvider": true,
+                        "signatureHelpProvider":{"triggerCharacters":["(",","],"retriggerCharacters":[","]},
                         "definitionProvider": true,
                         "referencesProvider": true,
                         "renameProvider": true,
@@ -202,18 +206,15 @@ impl Server {
             }
             "textDocument/completion" => self.completion(&message),
             "textDocument/hover" => self.hover(&message),
+            "textDocument/signatureHelp" => self.signature_help(&message),
             "textDocument/definition" => self.definition(&message),
             "textDocument/references" => self.references(&message),
             "soplang/source" => message
                 .pointer("/params/uri")
                 .and_then(Value::as_str)
                 .and_then(bundled_path)
-                .and_then(|path| {
-                    path.file_name()
-                        .and_then(|name| name.to_str())
-                        .and_then(crate::frontend::imports::bundled_source)
-                })
-                .map(|(_, text)| Value::String(text.into()))
+                .and_then(|path| reference_source(&path))
+                .map(|text| Value::String(text.into()))
                 .unwrap_or(Value::Null),
             "textDocument/rename" => self.rename(&message),
             "textDocument/formatting" => self.formatting(&message),
@@ -409,10 +410,14 @@ impl Server {
         let items: Vec<Value> = symbols
             .into_iter()
             .map(|symbol| {
-                json!({
+                let mut item = json!({
                     "label": symbol.name, "kind": completion_kind(symbol),
-                    "detail": analysis.index.symbol_label(symbol)
-                })
+                    "detail": analysis.index.native_api(&symbol.id).map(|api|api.label(&api.signatures[0],analysis.index.completion_receiver(&analysis.path,analysis.offset).as_deref())).map(|label|analysis.index.display_type(&label)).unwrap_or_else(||analysis.index.symbol_label(symbol))
+                });
+                if let Some(api) = analysis.index.native_api(&symbol.id) {
+                    item["documentation"] = json!(api.documentation);
+                }
+                item
             })
             .collect();
         json!(items)
@@ -429,7 +434,112 @@ impl Server {
         let Some((symbol, analysis)) = self.symbol_at(message) else {
             return Value::Null;
         };
-        json!({"contents": {"kind": "plaintext", "value": analysis.index.symbol_label(&symbol)}})
+        let text = if let Some(api) = analysis.index.native_api(&symbol.id) {
+            let receiver = analysis
+                .index
+                .member_receiver(&analysis.path, analysis.offset);
+            let text = api.hover(receiver.as_deref());
+            analysis.index.display_type(&text)
+        } else {
+            analysis.index.symbol_label(&symbol)
+        };
+        json!({"contents": {"kind": "plaintext", "value":text}})
+    }
+
+    fn signature_help(&self, message: &Value) -> Value {
+        let Some((uri, text)) = self.text(message) else {
+            return Value::Null;
+        };
+        let Some(analysis) = self.indexed(&uri, &text, position(message)) else {
+            return Value::Null;
+        };
+        let Some((symbol, receiver, active, count, name)) =
+            analysis.index.call_site(&analysis.path, analysis.offset)
+        else {
+            return Value::Null;
+        };
+        let (labels, documentation): (Vec<(String, Vec<String>)>, Option<&str>) =
+            if let Some(api) = analysis.index.native_api(&symbol.id) {
+                (
+                    api.signatures
+                        .iter()
+                        .map(|signature| {
+                            (
+                                analysis
+                                    .index
+                                    .display_type(&api.label(signature, receiver.as_deref())),
+                                signature.parameters.clone(),
+                            )
+                        })
+                        .collect(),
+                    Some(api.documentation.as_str()),
+                )
+            } else if symbol.kind == 5 {
+                let parameters = analysis
+                    .index
+                    .method(&symbol.ty, "dhis")
+                    .and_then(|method| method.parameters.clone())
+                    .unwrap_or_default();
+                let label = analysis.index.display_type(&format!(
+                    "cusub {}({})",
+                    symbol.name,
+                    parameters.join(", ")
+                ));
+                (vec![(label, parameters)], None)
+            } else {
+                (
+                    vec![(
+                        analysis.index.symbol_label(&symbol),
+                        symbol.parameters.clone().unwrap_or_default(),
+                    )],
+                    None,
+                )
+            };
+        let selected = if let Some(api) = analysis.index.native_api(&symbol.id) {
+            api.signatures
+                .iter()
+                .position(|signature| {
+                    let (min, max) = signature.bounds();
+                    count >= min && count <= max
+                })
+                .or_else(|| {
+                    api.signatures
+                        .iter()
+                        .position(|signature| signature.bounds().1 >= count)
+                })
+                .unwrap_or(api.signatures.len() - 1)
+        } else {
+            0
+        };
+        let parameters = &labels[selected].1;
+        let active = name
+            .as_ref()
+            .and_then(|name| {
+                parameters.iter().position(|parameter| {
+                    parameter
+                        .split(" = ")
+                        .next()
+                        .unwrap_or(parameter)
+                        .split_whitespace()
+                        .last()
+                        .unwrap_or("")
+                        .trim_start_matches('*')
+                        == name
+                })
+            })
+            .unwrap_or(active);
+        let signatures: Vec<_> = labels.iter().map(|(label, parameters)| {
+            let mut entry = json!({"label":label,"parameters":parameters.iter().map(|label|json!({"label":label})).collect::<Vec<_>>()});
+            if let Some(documentation) = documentation {
+                entry["documentation"] = json!(documentation);
+            }
+            entry
+        }).collect();
+        let mut result = json!({"signatures":signatures,"activeSignature":selected});
+        if !parameters.is_empty() {
+            result["activeParameter"] = json!(active.min(parameters.len() - 1));
+        }
+        result
     }
 
     fn definition(&self, message: &Value) -> Value {
@@ -749,6 +859,9 @@ fn bundled_path(uri: &str) -> Option<PathBuf> {
         return None;
     }
     let name = uri.path().strip_prefix('/')?;
+    if name == "native.sop" {
+        return Some(crate::native_api::SOURCE_PATH.into());
+    }
     let (name, _) = crate::frontend::imports::bundled_source(name)?;
     Some(PathBuf::from("<soplang>").join(name))
 }
@@ -765,7 +878,19 @@ fn path_of(uri: &str) -> PathBuf {
     source_identity(Path::new(uri))
 }
 
+fn reference_source(path: &Path) -> Option<&'static str> {
+    if path == Path::new(crate::native_api::SOURCE_PATH) {
+        return Some(crate::native_api::source());
+    }
+    path.file_name()
+        .and_then(|name| name.to_str())
+        .and_then(crate::frontend::imports::bundled_source)
+        .map(|(_, text)| text)
+}
 fn uri_of(path: &Path) -> String {
+    if path == Path::new(crate::native_api::SOURCE_PATH) {
+        return "soplang-stdlib:/native.sop".into();
+    }
     if path.starts_with("<soplang>") {
         if let Some(name) = path
             .file_name()

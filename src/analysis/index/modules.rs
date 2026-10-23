@@ -418,6 +418,9 @@ impl Index {
     }
 
     pub fn symbol_label(&self, symbol: &Symbol) -> String {
+        if let Some(api) = self.native_api(&symbol.id) {
+            return api.label(&api.signatures[0], None);
+        }
         if let Some(parameters) = &symbol.parameters {
             let suffix = if symbol.returns == "door" {
                 String::new()
@@ -441,7 +444,7 @@ impl Index {
         if self.module_aliases.contains_key(ty) {
             return "keen".into();
         }
-        let mut display = ty.to_string();
+        let mut display = crate::native_api::display(ty);
         let mut keys: Vec<_> = self.class_keys.iter().collect();
         keys.sort_by_key(|(key, _)| std::cmp::Reverse(key.len()));
         for (key, id) in keys {

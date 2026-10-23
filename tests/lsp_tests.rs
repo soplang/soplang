@@ -684,3 +684,259 @@ fn local_rename_refuses_to_skip_references_after_a_syntax_error() {
     );
     assert!(result.is_null(), "{result}");
 }
+
+#[test]
+fn native_completion_navigation_and_references_keep_lexical_identities() {
+    let source = "qoraal text = qoraal(2)\ndoor emit = qor\nqor(text, \"qor qoraal\")\nhawl local() {\n hawl json_akhris(qoraal value) { celi value }\n json_akhris(\"local\")\n}\n";
+    let uri = "untitled:native-identities";
+    let mut server = Server::default();
+    open(&mut server, uri, source);
+    let items = request(
+        &mut server,
+        "textDocument/completion",
+        uri,
+        at(source, "door emit", 0),
+        json!({}),
+    );
+    for name in ["qor", "gelin", "json_akhris", "xog_fur", "http_codso"] {
+        assert!(
+            items
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|item| item["label"] == name),
+            "{name}: {items}"
+        );
+    }
+    assert!(items
+        .as_array()
+        .unwrap()
+        .iter()
+        .all(|item| !item["label"].as_str().unwrap().starts_with('#')));
+    let definition = request(
+        &mut server,
+        "textDocument/definition",
+        uri,
+        at(source, "qor(text", 1),
+        json!({}),
+    );
+    assert_eq!(
+        definition["uri"], "soplang-stdlib:/native.sop",
+        "{definition}"
+    );
+    let response = server.handle(&json!({"jsonrpc":"2.0","id":3,"method":"soplang/source","params":{"uri":definition["uri"]}}).to_string());
+    let native = response[0]["result"].as_str().unwrap();
+    let line = definition["range"]["start"]["line"].as_u64().unwrap() as usize;
+    assert!(native.lines().nth(line).unwrap().contains("hawl qor("));
+    let hover = request(
+        &mut server,
+        "textDocument/hover",
+        uri,
+        at(source, "qor(text", 1),
+        json!({}),
+    );
+    assert!(
+        hover["contents"]["value"]
+            .as_str()
+            .unwrap()
+            .contains("*qiimayaal"),
+        "{hover}"
+    );
+    let references = request(
+        &mut server,
+        "textDocument/references",
+        uri,
+        at(source, "qor(text", 1),
+        json!({"context":{"includeDeclaration":false}}),
+    );
+    let lines: Vec<_> = references
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|r| r["range"]["start"]["line"].as_u64().unwrap())
+        .collect();
+    assert_eq!(lines, [1, 2], "{references}");
+    let casts = request(
+        &mut server,
+        "textDocument/references",
+        uri,
+        at(source, "qoraal(2)", 1),
+        json!({"context":{"includeDeclaration":false}}),
+    );
+    assert_eq!(casts.as_array().unwrap().len(), 1, "{casts}");
+    assert_eq!(casts[0]["range"]["start"]["character"], 14);
+    let local = request(
+        &mut server,
+        "textDocument/definition",
+        uri,
+        at(source, "json_akhris(\"local", 1),
+        json!({}),
+    );
+    assert_eq!(local["uri"], uri);
+    assert_eq!(local["range"]["start"]["line"], 4);
+    assert!(request(
+        &mut server,
+        "textDocument/rename",
+        uri,
+        at(source, "qor(text", 1),
+        json!({"newName":"print"})
+    )
+    .is_null());
+}
+
+#[test]
+fn primitive_completion_tracks_generic_receivers_and_readonly_methods() {
+    let source = "teed[qoraal] words = [\"a\"]\nwalax fields = {}\ndoor bytes = baytyo()\ndoor pair = xirmo(1, 2)\ndoor keys = urur(1)\ndoor iter = taxane(3)\ndoor unknown = gelin\nwords.nuqul().hore().weynee()\nwords.hel(0).yaree()\nfields.furayaal().hore().masax()\nbytes.teed()\npair.dherer()\nkeys.leeyahay(1)\niter.xiga()\ndoor count = [1, 2].dherer()\ndoor upper = (\"x\").yaree()\nunknown.other()\n";
+    let uri = "untitled:native-methods";
+    let mut server = Server::default();
+    open(&mut server, uri, source);
+    for (needle, within, required, absent) in [
+        ("words.nuqul", 6, "geli", "furayaal"),
+        ("[1, 2].dherer", 7, "geli", "furayaal"),
+        ("(\"x\").yaree", 6, "weynee", "geli"),
+        ("hore().weynee", 7, "yaree", "geli"),
+        ("hel(0).yaree", 7, "weynee", "geli"),
+        ("hore().masax", 7, "qeybi", "geli"),
+        ("bytes.teed", 6, "teed", "furayaal"),
+        ("pair.dherer", 5, "hore", "geli"),
+        ("keys.leeyahay", 5, "geli", "habee"),
+        ("iter.xiga", 5, "xiga", "geli"),
+    ] {
+        let items = request(
+            &mut server,
+            "textDocument/completion",
+            uri,
+            at(source, needle, within),
+            json!({}),
+        );
+        assert!(
+            items
+                .as_array()
+                .unwrap()
+                .iter()
+                .any(|item| item["label"] == required),
+            "{needle}: {items}"
+        );
+        assert!(
+            items
+                .as_array()
+                .unwrap()
+                .iter()
+                .all(|item| item["label"] != absent),
+            "{needle}: {items}"
+        );
+    }
+    let unknown = request(
+        &mut server,
+        "textDocument/completion",
+        uri,
+        at(source, "unknown.other", 8),
+        json!({}),
+    );
+    assert_eq!(unknown, json!([]));
+    let hover = request(
+        &mut server,
+        "textDocument/hover",
+        uri,
+        at(source, "words.nuqul", 8),
+        json!({}),
+    );
+    assert!(
+        hover["contents"]["value"]
+            .as_str()
+            .unwrap()
+            .contains("teed[qoraal]"),
+        "{hover}"
+    );
+    let definition = request(
+        &mut server,
+        "textDocument/definition",
+        uri,
+        at(source, "bytes.teed", 8),
+        json!({}),
+    );
+    assert_eq!(
+        definition["uri"], "soplang-stdlib:/native.sop",
+        "{definition}"
+    );
+}
+
+#[test]
+fn signature_help_selects_overloads_and_skips_nested_argument_commas() {
+    let source = "hawl greet(qoraal name, abn times = 1) {}\nqaab Person { hawl dhis(qoraal name, abn age) {} }\nteed values = []\ndoor emit = qor\nvalues.geli(1)\nvalues.geli(0, 1)\nvalues.saar()\nqor({x: [1, 2], y: 3}, f\"{walax(\"a\", 2)}\", 7)\ngreet(times: 4, name: \"test\")\ndoor p = cusub Person(\"x\", 4)\nemit(1, 2, 3)\n";
+    let uri = "untitled:native-signatures";
+    let mut server = Server::default();
+    open(&mut server, uri, source);
+    for (needle, within, selected, parameter, label) in [
+        ("geli(1)", 6, 0, Some(0), "geli(qiime)"),
+        ("geli(0, 1)", 9, 1, Some(1), "geli(abn tusmo, qiime)"),
+        ("saar()", 5, 0, None, "saar()"),
+        ("}, f\"", 3, 0, Some(0), "qor(*qiimayaal)"),
+        ("times: 4", 7, 0, Some(1), "greet("),
+        ("name: \"test\"", 7, 0, Some(0), "greet("),
+        ("Person(\"x\", 4)", 13, 0, Some(1), "Person"),
+        ("emit(1, 2, 3)", 12, 0, Some(0), "qor(*qiimayaal)"),
+    ] {
+        let help = request(
+            &mut server,
+            "textDocument/signatureHelp",
+            uri,
+            at(source, needle, within),
+            json!({}),
+        );
+        assert_eq!(help["activeSignature"], selected, "{needle}: {help}");
+        assert_eq!(
+            help["activeParameter"].as_u64(),
+            parameter,
+            "{needle}: {help}"
+        );
+        assert!(
+            help["signatures"][selected as usize]["label"]
+                .as_str()
+                .unwrap()
+                .contains(label),
+            "{needle}: {help}"
+        );
+    }
+    let unfinished = "teed values = []\nvalues.geli(0, ";
+    let uri2 = "untitled:native-unfinished";
+    open(&mut server, uri2, unfinished);
+    let help = request(
+        &mut server,
+        "textDocument/signatureHelp",
+        uri2,
+        at(unfinished, "geli(0, ", 8),
+        json!({}),
+    );
+    assert_eq!(help["activeSignature"], 1, "{help}");
+    assert_eq!(help["activeParameter"], 1, "{help}");
+}
+
+#[test]
+fn signature_help_does_not_reuse_reassigned_callable_contracts() {
+    let source = "hawl emit = qor\nemit = json_akhris\nemit(\"{}\")\n";
+    let uri = "untitled:reassigned-native-signature";
+    let mut server = Server::default();
+    open(&mut server, uri, source);
+    let help = request(
+        &mut server,
+        "textDocument/signatureHelp",
+        uri,
+        at(source, "emit(\"{}\")", 9),
+        json!({}),
+    );
+    assert!(help.is_null(), "{help}");
+
+    let source =
+        "hawl consume(a, b, c) {}\nconsume({x: [1, 2], y: 3}, f\"{walax(\"a\", 2)}\", 7)\n";
+    let uri = "untitled:nested-signature-commas";
+    open(&mut server, uri, source);
+    let help = request(
+        &mut server,
+        "textDocument/signatureHelp",
+        uri,
+        at(source, ", 7)", 3),
+        json!({}),
+    );
+    assert_eq!(help["activeParameter"], 2, "{help}");
+}

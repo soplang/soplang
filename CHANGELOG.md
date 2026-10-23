@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Add native global and collection API completion, hover, readonly definitions and references to the language server. Preserve lexical shadows and type/value distinctions, follow known container return types, and provide overload-aware signature help for native and source calls.
+
 - Share precise `E059` schema diagnostics and comment-preserving schema formatting between CLI and editor tools. Add a dedicated VS Code schema language, grammar, snippets, contextual completion and hover help, including untitled buffers.
 
 - Isolate private classes declared in module factories and anonymous functions while preserving inheritance, captured methods and module export boundaries.

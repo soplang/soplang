@@ -11,7 +11,13 @@ impl Index {
             .unwrap_or_else(|| "door".into())
     }
 
-    fn receiver_at(&self, path: &Path, index: usize, scope: usize, depth: usize) -> String {
+    pub(super) fn receiver_at(
+        &self,
+        path: &Path,
+        index: usize,
+        scope: usize,
+        depth: usize,
+    ) -> String {
         if depth > 32 {
             return "door".into();
         }
@@ -54,7 +60,30 @@ impl Index {
                     }
                     false
                 });
-                if let Some(open) = open.filter(|open| *open > 0) {
+                if let Some(open) = open {
+                    let preceding = open.checked_sub(1).map(|i| &tokens[i].kind);
+                    let follows_value = preceding.is_some_and(|kind| {
+                        matches!(
+                            kind,
+                            K::Identifier
+                                | K::RParen
+                                | K::RBracket
+                                | K::String
+                                | K::FormattedString
+                                | K::Nafta
+                                | K::Waalid
+                        )
+                    });
+                    if token.kind == K::RBracket && !follows_value {
+                        return "teed".into();
+                    }
+                    if open == 0 {
+                        return if index > 1 {
+                            self.receiver_at(path, index - 1, scope, depth + 1)
+                        } else {
+                            "door".into()
+                        };
+                    }
                     if token.kind == K::RBracket {
                         let ty = self.receiver_at(path, open - 1, scope, depth + 1);
                         return ty
@@ -67,10 +96,19 @@ impl Index {
                         return if symbol.kind == 5 {
                             symbol.ty.clone()
                         } else {
-                            symbol.returns.clone()
+                            let receiver = if open >= 3 && tokens[open - 2].kind == K::Dot {
+                                self.receiver_at(path, open - 3, scope, depth + 1)
+                            } else {
+                                String::new()
+                            };
+                            self.call_result(
+                                symbol,
+                                &receiver,
+                                Some(self.argument_count(path, open, index)),
+                            )
                         };
                     }
-                    if index > open + 1 {
+                    if index > open + 1 && !follows_value {
                         return self.receiver_at(path, index - 1, scope, depth + 1);
                     }
                 }
@@ -90,7 +128,7 @@ impl Index {
         }
     }
 
-    fn token_symbol(
+    pub(super) fn token_symbol(
         &self,
         path: &Path,
         index: usize,
@@ -159,20 +197,21 @@ impl Index {
                 .resolve(name, scope, at, path)
                 .map(|symbol| symbol.ty.clone())
                 .unwrap_or_else(|| "door".into()),
-            Expr::Call { name, .. } => self
+            Expr::Call { name, args } => self
                 .resolve(name, scope, at, path)
-                .map(|symbol| symbol.returns.clone())
+                .map(|symbol| self.call_result(symbol, "", Some(args.len())))
                 .unwrap_or_else(|| "door".into()),
             Expr::Property { obj, prop: name } => {
                 let receiver = self.expression_type(obj, scope, path, at, depth + 1);
                 self.method(&receiver, name)
+                    .filter(|symbol| self.native_api(&symbol.id).is_none())
                     .map(|symbol| symbol.ty.clone())
                     .unwrap_or_else(|| "door".into())
             }
-            Expr::MethodCall { obj, method, .. } => {
+            Expr::MethodCall { obj, method, args } => {
                 let receiver = self.expression_type(obj, scope, path, at, depth + 1);
                 self.method(&receiver, method)
-                    .map(|symbol| symbol.returns.clone())
+                    .map(|symbol| self.call_result(symbol, &receiver, Some(args.len())))
                     .unwrap_or_else(|| "door".into())
             }
             Expr::List(values) if !values.is_empty() => {
@@ -202,19 +241,12 @@ impl Index {
     /// Members include inherited methods and known instance fields; namespace
     /// completion exposes only the module's declared public exports.
     pub fn members_at(&self, path: &Path, at: usize) -> Option<Vec<&Symbol>> {
-        let tokens = self.tokens.get(path)?;
-        let mut cursor = tokens.partition_point(|token| token.start < at);
-        if cursor > 0 && tokens[cursor - 1].kind == K::Eof {
-            cursor -= 1;
+        let mut ty = self.completion_receiver(path, at)?;
+        if let Some(native) = crate::native_api::base(&ty) {
+            ty = native.into();
+        } else if ty.ends_with('?') {
+            ty.pop();
         }
-        if cursor > 0 && tokens[cursor - 1].kind == K::Identifier {
-            cursor -= 1;
-        }
-        if cursor < 2 || tokens[cursor - 1].kind != K::Dot {
-            return None;
-        }
-        let scope = self.scope_at(path, at);
-        let mut ty = self.receiver_at(path, cursor - 2, scope, 0);
         let mut names = HashSet::new();
         let mut members = Vec::new();
         if let Some(module) = self.module_aliases.get(&ty) {

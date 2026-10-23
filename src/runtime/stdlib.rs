@@ -1591,6 +1591,11 @@ const BUILTINS: &[(&str, super::NativeFn, CallbackArity)] = &[
     ("xidid", builtin_xidid, CallbackArity::range(1, 1)),
 ];
 
+/// Read-only registration metadata. Inspection never invokes a native function.
+pub(crate) fn builtin_metadata() -> impl Iterator<Item = (&'static str, CallbackArity)> {
+    BUILTINS.iter().filter(|(name,_,_)|!name.starts_with('#')).map(|(name,_,arity)|(*name,*arity))
+}
+
 pub(crate) fn builtin_callback_arity(function: super::NativeFn) -> Option<CallbackArity> {
     BUILTINS
         .iter()

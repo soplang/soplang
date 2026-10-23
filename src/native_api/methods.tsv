@@ -1,0 +1,144 @@
+# receiver<TAB>name<TAB>parameter variants separated by ~<TAB>result<TAB>documentation
+teed	ballaadhi	il	$self	Append an iterable in place after validating the complete input; return the receiver.
+teed	keli		$self	Return the first occurrence of each structurally distinct value in order.
+teed	wadar	[bilow]	door	Sum numeric elements left to right; the default initial value is integer zero.
+teed	tirso	[abn bilow]	@native:cursor	Lazily enumerate a snapshot of list members.
+teed	lamaane	*ilo	@native:cursor	Lazily zip this list with other iterables, stopping at the shortest.
+teed	shaandhee	hawl shaqo	$self	Return the elements for which the callback is truthy; callbacks receive one element.
+teed	aaddin	hawl shaqo	teed	Map one callback over a membership snapshot; callback results become list elements.
+teed	ururi	hawl shaqo;bilow	door	Fold left; the callback receives the accumulator and current element.
+teed	isku_gee	hawl shaqo;bilow	door	Compatibility alias for ururi.
+teed	dhammaan	hawl shaqo	bool	Test whether every callback result is truthy; empty input returns run.
+teed	qaar	hawl shaqo	bool	Test whether any callback result is truthy; empty input returns been.
+teed	urur		urur	Convert elements to a set; mutable or otherwise unhashable keys fail.
+teed	xirmo		xirmo	Copy list elements into immutable tuple positions.
+teed	kasaar		$element	Remove the last element; empty input fails.
+teed	dherer		abn	Return the number of elements.
+teed	hel	abn tusmo~abn tusmo;haddii_maqan	door	Read an index with an optional default; negative indexes count from the end.
+teed	dhig	abn tusmo;qiime	$self	Replace an existing indexed element, checking shared contracts.
+teed	saar	~abn tusmo~qiime;qoraal hab	$element?	Remove the last element, an index, or the first equal value when hab is qiime.
+teed	kudar	qiime	teed	Append a non-list in place, or concatenate another list into a new list.
+teed	midee	teed kale	teed	Return a concatenated copy without changing either list.
+teed	leeyahay	qiime	bool	Test structural membership.
+teed	nuqul		$self	Return a shallow copy, preserving nested references.
+teed	nadiifi		$self	Clear all elements and return the receiver.
+teed	rog		$self	Reverse the receiver in place.
+teed	habee	[hawl fure];[bool rogan]	$self	Sort in place, stably, with optional key callback and reverse order.
+teed	jar	[abn bilow];[abn dhammaad]	$self	Copy a slice with exclusive end, negative offsets and clamped bounds.
+teed	tiri	qiime	abn	Count structurally equal elements.
+teed	raadi	qiime	abn?	Return the first matching index, or maran.
+teed	muuji	qiime	abn?	Compatibility alias for raadi.
+teed	geli	qiime~abn tusmo;qiime	$self	Append an element or insert it at an integer position.
+teed	ka_saar	abn tusmo	$element	Compatibility indexed removal; use saar(tusmo).
+teed	hore		$element?	Return the first element or maran.
+teed	koowaad		$element?	Compatibility alias for hore.
+teed	dambe		$element?	Return the last element or maran.
+teed	ugu_dambeeya		$element?	Compatibility alias for dambe.
+walax	geli	qoraal fure;qiime	$self	Insert only when the key is absent; preserve existing values including maran.
+walax	ballaadhi	walax kale	$self	Merge in place after shared-contract validation; right-hand fields win.
+walax	aaddin	hawl shaqo;[qoraal hab]	walax	Map sorted key/value snapshots; lamaane mode accepts a checked replacement key/value pair.
+walax	shaandhee	hawl shaqo	$self	Keep entries with truthy callback results; callbacks receive key and value.
+walax	furayaal		teed[qoraal]	Return keys in sorted order.
+walax	fure		teed[qoraal]	Compatibility alias for furayaal.
+walax	dherer		abn	Return the number of fields.
+walax	saar	qoraal fure	door	Remove and return a field, or maran when absent.
+walax	leeyahay	qoraal fure	bool	Test whether a field exists, including when its value is maran.
+walax	tir	qoraal fure	$self	Remove a field and return the receiver.
+walax	kudar	walax kale	walax	Compatibility spelling of midee; return a merged copy.
+walax	midee	walax kale	walax	Return a merged copy; right-hand fields win.
+walax	nuqul		$self	Return a shallow object copy.
+walax	nadiifi		$self	Remove every field and return the receiver.
+walax	qiimayaal		teed	Return field values in sorted-key order.
+walax	qiime		teed	Compatibility alias for qiimayaal.
+walax	lammaanayaal		teed	Return key/value pairs in sorted-key order.
+walax	lamaane		teed	Compatibility alias for lammaanayaal.
+walax	hel	fure_ama_jid~fure_ama_jid;haddii_maqan	door	Read a key or an explicit list/tuple path, with an optional default.
+walax	dhig	qoraal fure;qiime	$self	Set one field after checking shared contracts.
+walax	ka_qaad	qoraal fure	door	Compatibility alias for saar.
+qoraal	qaabee	*qiimayaal	qoraal	Render positional template fields, including formatting specifications.
+qoraal	qeybi	[kala_qaybiye]	teed[qoraal]	Split on Unicode whitespace by default; an explicit separator retains empty fields.
+qoraal	leeyahay	qoraal qayb	bool	Test whether text contains an exact substring.
+qoraal	dhammaad	qoraal qayb	bool	Test an exact suffix.
+qoraal	dhamaad	qoraal qayb	bool	Compatibility alias for dhammaad.
+qoraal	bilow	qoraal qayb	bool	Test an exact prefix.
+qoraal	beddel	hore;cusub;[tirada]	qoraal	Replace the first occurrence by default; a count limits replacements, and maran selects all.
+qoraal	beddel_dhammaan	hore;cusub	qoraal	Replace every occurrence.
+qoraal	xiriiri	teed qaybo	qoraal	Join rendered list values using this text as the separator.
+qoraal	kudar	teed qaybo	qoraal	Compatibility alias for xiriiri.
+qoraal	jar	[abn bilow];[abn dhammaad]	qoraal	Copy a Unicode-scalar slice with exclusive end and clamped integer bounds.
+qoraal	weynee	[qoraal hab]	qoraal	Uppercase text; hore capitalizes the first scalar, eray titlecases Unicode words.
+qoraal	hubi	qoraal nooc	bool	Classify nonempty text by Unicode scalar properties.
+qoraal	buuxi	abn ballac;[qoraal buuxin];[qoraal jiho]	qoraal	Pad to a Unicode scalar width; jiho is hore, dambe or dhexe.
+qoraal	kalaqaad	qoraal kala_qaybiye;[qoraal jiho]	xirmo[qoraal,qoraal,qoraal]	Partition around the first or last match and return before, separator and after.
+qoraal	sadarro	[bool dhammaad]	teed[qoraal]	Split Unicode line endings, optionally preserving each exact ending.
+qoraal	xarfaha_waaweyn		qoraal	Compatibility uppercase spelling; accepts no casing mode.
+qoraal	xarafaha_weyn		qoraal	Compatibility uppercase spelling; accepts no casing mode.
+qoraal	yaree		qoraal	Apply Unicode lowercase conversion.
+qoraal	xarfaha_yaryar		qoraal	Compatibility alias for yaree.
+qoraal	masax	[qoraal jiho]	qoraal	Trim Unicode whitespace from both ends by default, or from hore or dambe.
+qoraal	raadi	qoraal qayb;[qoraal jiho]	abn	Return a Unicode-scalar match index, or -1; jiho is hore or dambe.
+qoraal	dherer		abn	Count Unicode scalar characters, not UTF-8 bytes or graphemes.
+qoraal	hel	abn tusmo~abn tusmo;haddii_maqan	door	Read a scalar character with an optional default; negative indexes count backward.
+qoraal	hore		qoraal?	Return the first scalar character or maran.
+qoraal	dambe		qoraal?	Return the last scalar character or maran.
+qoraal	masax_bilow		qoraal	Trim leading Unicode whitespace.
+qoraal	masax_dhammaad		qoraal	Trim trailing Unicode whitespace.
+qoraal	masax_dhamaad		qoraal	Compatibility alias for masax_dhammaad.
+qoraal	tiri	qoraal qayb	abn	Count non-overlapping occurrences; an empty needle fails.
+qoraal	kuceli	abn tirada	qoraal	Repeat text a nonnegative number of times.
+qoraal	ku_celi	abn tirada	qoraal	Compatibility alias for kuceli.
+qoraal	raadi_dambe	qoraal qayb	abn	Compatibility last-match search; return a scalar index or -1.
+baytyo	dherer		abn	Return the byte count.
+baytyo	qoraal		qoraal	Decode UTF-8 strictly; malformed byte sequences fail.
+baytyo	teed		teed[abn]	Copy byte integers into a new list.
+baytyo	hel	abn tusmo~abn tusmo;haddii_maqan	door	Read a byte with an optional default.
+baytyo	dhig	abn tusmo;abn bayt	$self	Replace an existing byte with an integer from 0 through 255.
+baytyo	geli	abn bayt~abn tusmo;abn bayt	$self	Append a byte or insert one at an integer position.
+baytyo	saar	[abn tusmo]	abn	Remove and return a byte; empty removal fails.
+baytyo	hore		abn?	Return the first byte or maran.
+baytyo	dambe		abn?	Return the last byte or maran.
+baytyo	nuqul		$self	Return an independent byte-array copy.
+baytyo	jar	[abn bilow];[abn dhammaad]	baytyo	Copy an exclusive-end byte slice.
+baytyo	midee	baytyo kale	baytyo	Return a new concatenation without changing either input.
+baytyo	nadiifi		$self	Clear the receiver.
+baytyo	rog		$self	Reverse bytes in place.
+baytyo	leeyahay	abn bayt	bool	Test byte membership.
+baytyo	tiri	abn bayt	abn	Count matching bytes.
+baytyo	raadi	abn bayt	abn?	Return the first matching byte index, or maran.
+xirmo	dherer		abn	Return the number of tuple positions.
+xirmo	hel	abn tusmo~abn tusmo;haddii_maqan	door	Read a tuple position with an optional default.
+xirmo	hore		$element?	Return the first position or maran.
+xirmo	dambe		$element?	Return the last position or maran.
+xirmo	nuqul		$self	Copy immutable positions while sharing nested values.
+xirmo	urur		urur	Convert positions into set elements; keys must be immutable and hashable.
+xirmo	teed		teed	Copy positions into a new list.
+xirmo	jar	[abn bilow];[abn dhammaad]	xirmo	Copy an exclusive-end tuple slice.
+xirmo	midee	xirmo kale	xirmo	Return a new concatenated tuple.
+xirmo	leeyahay	qiime	bool	Test structural membership.
+xirmo	tiri	qiime	abn	Count equal positions.
+xirmo	raadi	qiime	abn?	Return the first matching position, or maran.
+urur	geli	qiime	$self	Insert an immutable key, preserving its first insertion order.
+urur	saar	qiime	$element?	Remove and return a stored key, or maran.
+urur	leeyahay	qiime	bool	Test key membership; unsupported mutable key kinds fail.
+urur	dherer		abn	Return the number of keys.
+urur	nadiifi		$self	Clear every key and return the receiver.
+urur	nuqul		$self	Return an independent set copy.
+urur	urur		$self	Return an independent set copy.
+urur	teed		teed	Copy keys into a list in insertion order.
+urur	xirmo		xirmo	Copy keys into tuple positions in insertion order.
+urur	midee	urur kale	urur	Return the union in stable left-then-right order.
+urur	wadaag	urur kale	urur	Return the intersection in left order.
+urur	reeb	urur kale	urur	Return left keys absent from the right.
+urur	kaladuwan	urur kale	urur	Return the symmetric difference.
+urur	hoosaad	urur kale	bool	Test whether every left key is present on the right.
+@native:cursor	xiga		walax	Read the next dhammaad/qiime step from this cursor.
+@native:cursor	urur		urur	Consume the remaining cursor values into a set.
+qoraal	urur		urur	Convert scalar characters to an insertion-ordered set.
+baytyo	urur		urur	Convert byte values to an insertion-ordered set.
+teed	wareeg		@native:cursor	Iterate over a membership snapshot.
+walax	wareeg		@native:cursor	Iterate over a sorted snapshot of plain-object keys.
+qoraal	wareeg		@native:cursor	Iterate over Unicode scalar characters.
+baytyo	wareeg		@native:cursor	Iterate over a byte snapshot.
+xirmo	wareeg		@native:cursor	Iterate over immutable tuple positions.
+urur	wareeg		@native:cursor	Iterate over a snapshot of insertion-ordered keys.
+@native:cursor	wareeg		@native:cursor	Return this cursor without rewinding it.
