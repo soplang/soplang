@@ -271,12 +271,38 @@ impl Server {
     }
 
     fn uri_for_path(&self, path: &Path) -> String {
-        self.documents
+        if let Some(uri) = self
+            .documents
             .keys()
             .filter(|uri| path_of(uri) == path)
             .min()
             .cloned()
-            .unwrap_or_else(|| uri_of(path))
+        {
+            return uri;
+        }
+        // Files discovered through imports or workspace search have canonical
+        // identities. Keep the client's path spelling for their URIs too.
+        let mut aliases: Vec<_> = self
+            .documents
+            .keys()
+            .filter_map(|uri| url::Url::parse(uri).ok()?.to_file_path().ok())
+            .filter_map(|display| {
+                let parent = display.parent()?.to_path_buf();
+                Some((source_identity(&parent), parent))
+            })
+            .collect();
+        aliases.sort_by(|a, b| {
+            b.0.components()
+                .count()
+                .cmp(&a.0.components().count())
+                .then_with(|| a.1.cmp(&b.1))
+        });
+        for (identity, display) in aliases {
+            if let Ok(relative) = path.strip_prefix(identity) {
+                return uri_of(&display.join(relative));
+            }
+        }
+        uri_of(path)
     }
 
     fn uri_for_request(&self, path: &Path, message: &Value) -> String {

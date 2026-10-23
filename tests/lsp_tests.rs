@@ -126,6 +126,42 @@ fn namespace_members_and_same_named_classes_keep_distinct_identities() {
     assert!(!members.contains(&"_private".into()));
 }
 
+#[cfg(unix)]
+#[test]
+fn closed_import_uris_keep_the_open_documents_directory_alias() {
+    let tree = Tree::new("directory-alias");
+    let alias = tree.0.with_extension("link");
+    std::os::unix::fs::symlink(&tree.0, &alias).unwrap();
+    fs::write(
+        tree.0.join("lib.sop"),
+        "soosaar value\nhawl value() { celi 1 }\n",
+    )
+    .unwrap();
+    let source = "keen \"lib.sop\" sida lib\nqor(lib.value())\n";
+    fs::write(tree.0.join("main.sop"), source).unwrap();
+    let main_uri = uri(&alias.join("main.sop"));
+    let lib_uri = uri(&alias.join("lib.sop"));
+    let mut server = Server::default();
+    open(&mut server, &main_uri, source);
+    let definition = request(
+        &mut server,
+        "textDocument/definition",
+        &main_uri,
+        at(source, "value()", 1),
+        json!({}),
+    );
+    assert_eq!(definition["uri"], lib_uri);
+    let rename = request(
+        &mut server,
+        "textDocument/rename",
+        &main_uri,
+        at(source, "value()", 1),
+        json!({"newName":"result"}),
+    );
+    assert!(rename["changes"][&lib_uri].as_array().is_some(), "{rename}");
+    fs::remove_file(alias).unwrap();
+}
+
 #[test]
 fn explicit_alias_rename_changes_the_binding_and_target_rename_changes_import_names() {
     let tree = Tree::new("alias-rename");
