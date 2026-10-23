@@ -1370,6 +1370,26 @@ const BUILTINS: &[(&str, super::NativeFn, CallbackArity)] = &[
         super::tasks::builtin_baaji,
         CallbackArity::range(1, 1),
     ),
+    (
+        "marin",
+        super::channels::builtin_marin,
+        CallbackArity::range(1, 1),
+    ),
+    (
+        "dir",
+        super::channels::builtin_dir,
+        CallbackArity::range(2, 2),
+    ),
+    (
+        "qaad",
+        super::channels::builtin_qaad,
+        CallbackArity::range(1, 1),
+    ),
+    (
+        "xidh",
+        super::channels::builtin_xidh,
+        CallbackArity::range(1, 1),
+    ),
     ("gelin", builtin_gelin, CallbackArity::range(0, 1)),
     ("akhrifayl", builtin_akhrifayl, CallbackArity::range(1, 1)),
     ("qor_fayl", builtin_qor_fayl, CallbackArity::range(2, 2)),

@@ -51,6 +51,7 @@ pub(super) struct RuntimeState {
     pub closures: RefCell<HandleArena<Rc<ClosureData>>>,
     pub iterators: RefCell<HandleArena<Rc<super::iterators::IteratorData>>>,
     pub tasks: RefCell<HandleArena<Rc<super::tasks::TaskData>>>,
+    pub channels: RefCell<HandleArena<Rc<super::channels::ChannelData>>>,
     pub scheduler: RefCell<super::tasks::Scheduler>,
     pub parked_roots: RefCell<HashMap<i64, Vec<super::roots::RootFrame>>>,
 }

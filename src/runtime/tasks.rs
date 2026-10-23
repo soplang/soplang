@@ -22,6 +22,13 @@ enum Signal {
 
 enum Event {
     Await(i64),
+    Channel(i64),
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum Wait {
+    Task(i64),
+    Channel(i64),
 }
 
 thread_local! {
@@ -112,7 +119,7 @@ struct Task {
     fiber: Fiber,
     handle: Rc<TaskData>,
     local: TaskLocal,
-    waiting_for: Option<i64>,
+    waiting_for: Option<Wait>,
     cancel: bool,
     parent: i64,
 }
@@ -228,7 +235,7 @@ fn step(state: &RuntimeState) -> Result<bool, SoplangError> {
     scheduler.running = 0;
     match outcome {
         CoroutineResult::Yield(Event::Await(target)) => {
-            task.waiting_for = Some(target);
+            task.waiting_for = Some(Wait::Task(target));
             if state
                 .tasks
                 .borrow()
@@ -238,6 +245,10 @@ fn step(state: &RuntimeState) -> Result<bool, SoplangError> {
                 task.waiting_for = None;
                 scheduler.ready.push_back(id);
             }
+            scheduler.tasks.insert(id, task);
+        }
+        CoroutineResult::Yield(Event::Channel(channel)) => {
+            task.waiting_for = Some(Wait::Channel(channel));
             scheduler.tasks.insert(id, task);
         }
         CoroutineResult::Return(result) => {
@@ -255,7 +266,7 @@ fn step(state: &RuntimeState) -> Result<bool, SoplangError> {
             scheduler.ready.extend(cancelled_children);
             let mut ready = Vec::new();
             for (other, waiting) in scheduler.tasks.iter_mut() {
-                if waiting.waiting_for == Some(id) {
+                if waiting.waiting_for == Some(Wait::Task(id)) {
                     waiting.waiting_for = None;
                     ready.push(*other);
                 }
@@ -264,6 +275,44 @@ fn step(state: &RuntimeState) -> Result<bool, SoplangError> {
         }
     }
     Ok(true)
+}
+
+pub(super) fn running_task() -> i64 {
+    STATE.with(|state| state.scheduler.borrow().running)
+}
+
+pub(super) fn wait_channel(channel: i64) -> Result<(), SoplangError> {
+    STATE.with(|state| {
+        if state.scheduler.borrow().running != 0 {
+            suspend(Event::Channel(channel))
+        } else if step(state)? {
+            Ok(())
+        } else {
+            Err(runtime_error(
+                "Shaqooyinka sugaya ma dhaqaaqi karaan.",
+                0,
+                0,
+            ))
+        }
+    })
+}
+
+pub(super) fn wake_channel_task(id: i64, channel: i64) -> bool {
+    if id == 0 {
+        return true;
+    }
+    STATE.with(|state| {
+        let mut scheduler = state.scheduler.borrow_mut();
+        let Some(task) = scheduler.tasks.get_mut(&id) else {
+            return false;
+        };
+        if task.waiting_for != Some(Wait::Channel(channel)) {
+            return false;
+        }
+        task.waiting_for = None;
+        scheduler.ready.push_back(id);
+        true
+    })
 }
 
 pub(super) fn await_task(data: &Rc<TaskData>) -> Result<Value, SoplangError> {

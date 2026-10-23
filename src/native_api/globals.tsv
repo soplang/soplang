@@ -14,6 +14,10 @@ qor	*qiimayaal	maran	Print positional values separated by spaces, followed by a 
 shaqo	hawl callback;*doodo	@native:task	Start a child task in the current runtime context.
 sug	@native:task shaqo	door	Wait for a task and return its result, or raise its error.
 baaji	@native:task shaqo	maran	Request cooperative cancellation of a task.
+marin	abn xad	@native:channel	Create a bounded channel; zero capacity requires a receiver for each send.
+dir	@native:channel marin;qiime	maran	Send one value, waiting if the channel is full.
+qaad	@native:channel marin	walax	Receive a value as {qiime, dhammaad}; a closed empty channel has dhammaad=run.
+xidh	@native:channel marin	maran	Close a channel and wake waiting tasks.
 gelin	[farriin]	qoraal	Read one input line, with an optional prompt.
 akhrifayl	qoraal jid	qoraal	Read a UTF-8 text file relative to the working directory.
 qor_fayl	qoraal jid;qoraal qoraal	maran	Overwrite a UTF-8 text file.

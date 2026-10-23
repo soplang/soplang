@@ -5,8 +5,8 @@ use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
 
 use super::abi::{
-    ClosureData, SoplangValue, TAG_BYTES, TAG_CLOSURE, TAG_ERROR, TAG_ITERATOR, TAG_LIST,
-    TAG_OBJECT, TAG_SET, TAG_STR, TAG_TASK, TAG_TUPLE,
+    ClosureData, SoplangValue, TAG_BYTES, TAG_CHANNEL, TAG_CLOSURE, TAG_ERROR, TAG_ITERATOR,
+    TAG_LIST, TAG_OBJECT, TAG_SET, TAG_STR, TAG_TASK, TAG_TUPLE,
 };
 use super::context::RuntimeState;
 use super::value::Value;
@@ -61,6 +61,7 @@ pub struct MemoryStats {
     pub errors: usize,
     pub iterators: usize,
     pub tasks: usize,
+    pub channels: usize,
     /// Number of shared collection identities with element contracts.
     pub type_contracts: usize,
     pub active_frames: usize,
@@ -81,6 +82,7 @@ impl MemoryStats {
             + self.errors
             + self.iterators
             + self.tasks
+            + self.channels
     }
 }
 
@@ -105,6 +107,7 @@ pub(super) fn stats(state: &RuntimeState) -> MemoryStats {
         errors: state.errors.borrow().len(),
         iterators: state.iterators.borrow().len(),
         tasks: state.tasks.borrow().len(),
+        channels: state.channels.borrow().len(),
         type_contracts: state.contracts.borrow().len(),
         active_frames: state.roots.borrow().len()
             + state
@@ -129,6 +132,7 @@ enum Node {
     Closure(Rc<ClosureData>),
     Iterator(Rc<super::IteratorData>),
     Task(Rc<super::tasks::TaskData>),
+    Channel(Rc<super::channels::ChannelData>),
 }
 
 type Key = (u8, usize);
@@ -144,6 +148,7 @@ impl Node {
             Self::Closure(value) => (TAG_CLOSURE, Rc::as_ptr(value) as usize),
             Self::Iterator(value) => (TAG_ITERATOR, Rc::as_ptr(value) as usize),
             Self::Task(value) => (TAG_TASK, Rc::as_ptr(value) as usize),
+            Self::Channel(value) => (TAG_CHANNEL, Rc::as_ptr(value) as usize),
         }
     }
 
@@ -157,6 +162,7 @@ impl Node {
             Self::Closure(value) => Rc::strong_count(value),
             Self::Iterator(value) => Rc::strong_count(value),
             Self::Task(value) => Rc::strong_count(value),
+            Self::Channel(value) => Rc::strong_count(value),
         }
     }
 
@@ -170,6 +176,7 @@ impl Node {
             Value::Closure(value) => Some(Self::Closure(Rc::clone(value))),
             Value::Iterator(value) => Some(Self::Iterator(Rc::clone(value))),
             Value::Task(value) => Some(Self::Task(Rc::clone(value))),
+            Value::Channel(value) => Some(Self::Channel(Rc::clone(value))),
             _ => None,
         }
     }
@@ -229,6 +236,14 @@ impl Node {
                 ),
                 None => (Vec::new(), Vec::new(), true),
             },
+            Self::Channel(value) => match value.children() {
+                Some(values) => (
+                    values.iter().filter_map(Self::from_value).collect(),
+                    Vec::new(),
+                    false,
+                ),
+                None => (Vec::new(), Vec::new(), true),
+            },
         }
     }
 
@@ -249,6 +264,7 @@ impl Node {
             Self::Set(value) => value.clear(),
             Self::Iterator(value) => value.clear(),
             Self::Task(value) => value.clear(),
+            Self::Channel(value) => value.clear(),
         }
     }
 }
@@ -327,6 +343,9 @@ impl Graph {
         for (id, value) in state.tasks.borrow().iter() {
             graph.arena(id, Node::Task(Rc::clone(value)));
         }
+        for (id, value) in state.channels.borrow().iter() {
+            graph.arena(id, Node::Channel(Rc::clone(value)));
+        }
         let mut index = 0;
         while index < graph.nodes.len() {
             let (references, mut handles, borrowed) = graph.nodes[index].node.children(teardown);
@@ -364,6 +383,9 @@ pub(super) fn collect(state: &RuntimeState, teardown: bool) -> CollectionReport 
         }
         for (_, task) in state.tasks.borrow().iter() {
             task.clear();
+        }
+        for (_, channel) in state.channels.borrow().iter() {
+            channel.clear();
         }
     }
     let mut graph = Graph::build(state, teardown);
@@ -469,6 +491,10 @@ pub(super) fn collect(state: &RuntimeState, teardown: bool) -> CollectionReport 
         .borrow_mut()
         .retain(|id, _| keep(TAG_ITERATOR, id));
     state.tasks.borrow_mut().retain(|id, _| keep(TAG_TASK, id));
+    state
+        .channels
+        .borrow_mut()
+        .retain(|id, _| keep(TAG_CHANNEL, id));
     let swept = before.values().saturating_sub(stats(state).values());
     state
         .byte_ids
@@ -526,7 +552,7 @@ pub(super) fn collect(state: &RuntimeState, teardown: bool) -> CollectionReport 
                         .borrow_mut()
                         .insert(Rc::as_ptr(value) as usize, id);
                 }
-                Node::Closure(_) | Node::Iterator(_) | Node::Task(_) => (), // Opaque values stay in their owning context.
+                Node::Closure(_) | Node::Iterator(_) | Node::Task(_) | Node::Channel(_) => (), // Opaque values stay in their owning context.
             }
         }
     }

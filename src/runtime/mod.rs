@@ -4,6 +4,7 @@ pub mod abi;
 mod base64;
 mod binary_files;
 mod bytes;
+mod channels;
 mod context;
 mod contracts;
 mod csv;

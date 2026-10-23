@@ -19,6 +19,9 @@ before it suspends.
 waits for its result or raises its error. `baaji(task)` requests cancellation.
 `marin(xad)` creates a bounded channel; `dir` and `qaad` wait when full and empty,
 respectively, and `xidh` closes it. A zero-capacity channel is a rendezvous.
+`qaad` returns `{qiime, dhammaad}`. Closing a channel preserves buffered values;
+after they are drained, `qaad` returns `{qiime: maran, dhammaad: run}`. Sends after
+closure fail. A blocked sender or receiver resumes when the channel closes.
 Timer and I/O operations return task handles that can be passed to `sug`.
 
 ## Task lifetime and cancellation

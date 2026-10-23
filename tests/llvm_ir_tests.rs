@@ -117,6 +117,24 @@ fn llvm_tasks_wait_for_compiled_callbacks() {
 }
 
 #[test]
+fn llvm_channels_exchange_values_between_tasks() {
+    assert_eq!(
+        run_llvm(
+            "channels",
+            r#"
+            door channel = marin(0)
+            hawl producer() { dir(channel, 42) xidh(channel) }
+            door task = shaqo(producer)
+            qor(qaad(channel).qiime)
+            qor(qaad(channel).dhammaad)
+            sug(task)
+            "#,
+        ),
+        "42\nrun\n"
+    );
+}
+
+#[test]
 fn llvm_callable_annotations_preserve_values_and_validate_callbacks() {
     for opt in [0, 2] {
         assert_eq!(

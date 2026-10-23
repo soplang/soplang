@@ -363,6 +363,7 @@ pub const TAG_BYTES: u8 = 12;
 pub const TAG_TUPLE: u8 = 13;
 pub const TAG_SET: u8 = 14;
 pub const TAG_TASK: u8 = 15;
+pub const TAG_CHANNEL: u8 = 16;
 /// Internal argument slot marker; never a language value.
 pub(crate) const TAG_MISSING: u8 = 255;
 
@@ -474,6 +475,7 @@ fn validate_handle(value: SoplangValue) -> Result<(), SoplangError> {
     let live = match value.tag {
         TAG_ITERATOR => STATE.with(|state| state.iterators.borrow().contains(value.payload)),
         TAG_TASK => STATE.with(|state| state.tasks.borrow().contains(value.payload)),
+        TAG_CHANNEL => STATE.with(|state| state.channels.borrow().contains(value.payload)),
         TAG_ERROR => ERROR_HEAP.with(|heap| heap.borrow().contains(value.payload)),
         TAG_STR => STR_HEAP.with(|heap| heap.borrow().contains(value.payload)),
         TAG_LIST => LIST_HEAP.with(|heap| heap.borrow().contains(value.payload)),
@@ -683,6 +685,11 @@ pub fn value_to_soplang(v: &Value) -> SoplangValue {
             _pad: [0; 7],
             payload: data.handle(),
         },
+        Value::Channel(data) => SoplangValue {
+            tag: TAG_CHANNEL,
+            _pad: [0; 7],
+            payload: data.handle(),
+        },
         Value::Closure(data) => SoplangValue {
             tag: TAG_CLOSURE,
             _pad: [0; 7],
@@ -734,6 +741,10 @@ pub fn soplang_to_value(sv: SoplangValue) -> Result<Value, SoplangError> {
         TAG_TASK => STATE
             .with(|state| state.tasks.borrow().get(sv.payload).cloned())
             .map(Value::Task)
+            .ok_or_else(invalid_handle),
+        TAG_CHANNEL => STATE
+            .with(|state| state.channels.borrow().get(sv.payload).cloned())
+            .map(Value::Channel)
             .ok_or_else(invalid_handle),
         TAG_ERROR => ERROR_HEAP
             .with(|heap| heap.borrow().get(sv.payload).cloned())

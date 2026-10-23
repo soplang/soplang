@@ -32,6 +32,7 @@ pub enum Value {
     Error(Rc<SoplangError>),
     Iterator(Rc<super::IteratorData>),
     Task(Rc<super::tasks::TaskData>),
+    Channel(Rc<super::channels::ChannelData>),
     Null,
 }
 
@@ -62,6 +63,7 @@ impl Value {
             Value::Error(error) => ValueDebug::Error(error.message()),
             Value::Iterator(data) => ValueDebug::Iterator(data.handle()),
             Value::Task(data) => ValueDebug::Task(data.handle()),
+            Value::Channel(data) => ValueDebug::Channel(data.handle()),
             Value::Null => ValueDebug::Null,
         }
     }
@@ -85,6 +87,7 @@ enum ValueDebug<'a> {
     Error(&'a str),
     Iterator(i64),
     Task(i64),
+    Channel(i64),
     Null,
 }
 
@@ -162,6 +165,7 @@ fn value_eq(a: &Value, b: &Value, seen: &mut HashSet<(u8, usize, usize)>) -> boo
             }
             (Value::Iterator(a), Value::Iterator(b)) => Rc::ptr_eq(a, b),
             (Value::Task(a), Value::Task(b)) => Rc::ptr_eq(a, b),
+            (Value::Channel(a), Value::Channel(b)) => Rc::ptr_eq(a, b),
             (Value::Error(a), Value::Error(b)) => Rc::ptr_eq(a, b),
             (Value::Function(a), Value::Function(b)) => a == b,
             (Value::Closure(a), Value::Closure(b)) => Rc::ptr_eq(a, b),
@@ -195,6 +199,7 @@ impl Value {
             Value::Error(_) => "khalad",
             Value::Iterator(_) => "wareeg",
             Value::Task(_) => "shaqo",
+            Value::Channel(_) => "marin",
             Value::Null => "maran",
         }
     }
@@ -217,7 +222,8 @@ impl Value {
             | Value::Closure(_)
             | Value::Error(_)
             | Value::Iterator(_)
-            | Value::Task(_) => true,
+            | Value::Task(_)
+            | Value::Channel(_) => true,
         }
     }
 }
@@ -264,6 +270,7 @@ fn format_value(v: &Value, seen: &mut HashSet<(u8, usize)>, opaque_functions: bo
         Value::Error(error) => error.message().to_owned(),
         Value::Iterator(_) => "<wareeg>".into(),
         Value::Task(_) => "<shaqo>".into(),
+        Value::Channel(_) => "<marin>".into(),
         Value::Bytes(bytes) => match bytes.try_borrow() {
             Ok(bytes) => format!("baytyo({:?})", &*bytes),
             Err(_) => "<baytyo>".into(),
