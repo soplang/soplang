@@ -125,6 +125,22 @@ migration before continuing.
 | `sqlserver` | TDS with rustls TLS | `server=tcp:host,1433;User Id=...;Password=...;Database=...;Encrypt=true` |
 | `mongo` | official MongoDB client | `mongodb://host/database` |
 
+| Connector | Schema migrations | Data transactions | TLS configuration |
+| --- | --- | --- | --- |
+| SQLite | Additive, transactional | Yes | Not applicable |
+| PostgreSQL | Additive, transactional | Yes | `tls`, `shahaado_ca`, or PostgreSQL `sslmode` |
+| CockroachDB | Additive, transactional | Yes | `tls`, `shahaado_ca`, or PostgreSQL `sslmode` |
+| MySQL | Additive, non-atomic DDL | Yes | `tls`, `shahaado_ca`, or MySQL URI TLS settings |
+| MariaDB | Additive, non-atomic DDL | Yes | `tls`, `shahaado_ca`, or MySQL URI TLS settings |
+| SQL Server | Additive, transactional | Yes | TDS connection settings and optional CA |
+| MongoDB | Additive, non-atomic validator and index updates | Replica set or sharded cluster | MongoDB URI TLS settings and optional CA |
+
+Every connector supports schema loading, insertion, filtered reads, updates,
+deletes, and a pool of one to eight connections. `xog.awood(kind)` exposes the
+current operation flags and maximum pool size. It does not provide arbitrary
+SQL execution, joins, or connector-specific commands. Transaction support in
+the table refers to data operations; migration atomicity is listed separately.
+
 SQLite is tested by the default suite, including rollback and a pool of two.
 Live tests cover parameter binding, Unicode text, nulls, typed reads, pooled
 connections, rollback, commit, updates, deletes and repeated migrations that

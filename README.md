@@ -6,7 +6,23 @@ Soplang is a programming language with Somali keywords. It supports static and d
 
 **Soplang 3.0.1 is available** for Linux x86_64, Windows x64, macOS Apple Silicon, and Docker. Get the [release packages](https://github.com/soplang/soplang/releases/tag/v3.0.1) or follow the [installation guide](docs/installation.md).
 
-The source branch includes the [3.1 runtime foundation milestone](docs/releases/3.1.0.md). Its distribution and publication are pending. Work toward 3.2 includes [collection iteration](docs/language/iteration.md), [default, named, and variadic parameters](docs/language/function-arguments.md), callback signature validation, [byte arrays](docs/language/bytes.md), [optional/union annotations](docs/language/optional-union-types.md), [typed lists and objects](docs/language/typed-collections.md), [tuples](docs/language/tuples.md), and [sets](docs/language/sets.md) with [typed elements](docs/language/typed-sets.md). Expanded [Unicode text methods](docs/language/text-methods.md) are also implemented. Expanded [list methods](docs/language/list-methods.md) are implemented too. Expanded [object methods](docs/language/object-methods.md) are implemented as well. Expanded [numeric functions](docs/language/numeric-functions.md) are implemented too. The [3.2 language foundations milestone](docs/releases/3.2.0.md) is complete locally; distribution and publication remain pending. Initial 3.3 [UTF-8 text file builtins](docs/language/text-files.md), [path/filesystem helpers](docs/language/filesystem.md), and [binary file I/O](docs/language/binary-files.md) are implemented locally as well. [JSON conversion](docs/language/json.md) is implemented too. [CSV rows](docs/language/csv.md) are implemented as well. [URL encoding](docs/language/url.md) is implemented too. [Base64](docs/language/base64.md) is implemented as well. [Regular expressions](docs/language/regular-expressions.md) are implemented too. [UTC date and time](docs/language/time.md) is implemented as well. [Program arguments and environment variables](docs/language/process.md) are implemented too. `fuli` runs a child program and captures its exit code and output. The [HTTP client](docs/language/http.md) sends synchronous requests. The [HTTP server](docs/language/http-server.md) answers one request at a time. [DNS lookup and TCP sockets](docs/language/networking.md) are implemented as well. UDP datagrams and a WebSocket client are included. Namespaced imports use `keen "file.sop" sida name`; see [modules](docs/language/modules.md). A directory may also contain a [package manifest](docs/language/packages.md).
+The development source contains the planned 3.1 through 3.5 milestones. These
+are implementation milestones; their distribution and publication remain
+separate from the currently available 3.0.1 packages.
+
+- [3.1 runtime foundations](docs/releases/3.1.0.md): long-running contexts,
+  structured errors, cleanup, strings, and callable expressions.
+- [3.2 language foundations](docs/releases/3.2.0.md): iteration, function
+  arguments, byte arrays, typed collections, tuples, sets, and numeric methods.
+- [3.3 files and networking](docs/releases/3.3.0.md): file handles, structured
+  data, HTTP, DNS, TCP, UDP, and a WebSocket client.
+- [3.4 modules and web applications](docs/releases/3.4.0.md): Git packages,
+  project initialization, the sequential web framework, and a typed data layer.
+- [3.5 developer tooling](docs/releases/3.5.0.md): project commands, native
+  tests, coverage, language server, VS Code extension, debugging, and profiling.
+
+The [roadmap](ROADMAP.md) keeps concurrent tasks, async I/O, streaming, and
+concurrent servers in 3.6.
 
 The implementation is in Rust. Files and the REPL use Cranelift JIT; `--build` produces standalone LLVM executables. See [COMPILER_PLAN.md](COMPILER_PLAN.md).
 

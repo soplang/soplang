@@ -193,6 +193,8 @@ step representation.
 
 ## Soplang 3.3 — files, structured data, and networking
 
+Implemented in the development source; see the [3.3 milestone notes](docs/releases/3.3.0.md).
+
 This release grows the standard library after runtime resource handling is in
 place. Implement file and JSON foundations first, followed by the HTTP client
 and limited JSON server. Each part must pass its own release gates before the
@@ -270,7 +272,6 @@ variables provide configuration for file-based tools and server applications.
 ### Synchronous HTTP client
 
 Implemented locally as `http_codso`; see [HTTP client](docs/language/http.md).
-A namespace module still waits for the 3.4 package work.
 
 1. GET, POST, PUT, PATCH, and DELETE requests — implemented.
 2. Request headers and text, byte, and JSON bodies — implemented.
@@ -320,6 +321,8 @@ the concurrency and asynchronous I/O work in 3.6.
 
 ## Soplang 3.4 — modules and packages
 
+Implemented in the development source; see the [3.4 milestone notes](docs/releases/3.4.0.md).
+
 ### Module system
 
 1. Give imported files their own namespaces — implemented as `keen "file.sop" sida name`; see [modules](docs/language/modules.md). Flat `keen` imports stay unchanged.
@@ -341,7 +344,7 @@ are preserved. See [packages](docs/language/packages.md#create-a-project).
 4. Keep one version per package: implemented as one repository/commit selection for each name, with conflicts rejected across the full graph.
 5. Pin exact commits and content hashes in a deterministic root lock: implemented. Dependency-owned locks cannot override the root selection.
 6. Verify a package cache and support offline builds: implemented as immutable staged trees, checksum verification, concurrent publication, and `--offline`.
-7. Add, remove and explicitly update dependencies: implemented through the package flags. Git publication uses the repository's own commit/tag workflow; no central package host is required.
+7. Add, remove and explicitly update dependencies: implemented through the `add`, `remove`, and `update` commands. Git publication uses the repository's own commit/tag workflow; no central package host is required.
 
 The directory-registry and `.sopkg` providers remain compatibility sources.
 Standard command forms are implemented in 3.5. Public class exports, the
@@ -366,6 +369,8 @@ requirements; database selection and a decision about whether to include an ORM
 are already settled. Document each connector's supported operations explicitly.
 
 ## Soplang 3.5 — developer tooling
+
+Implemented in the development source; see the [3.5 milestone notes](docs/releases/3.5.0.md).
 
 ### Command-line tools
 

@@ -2882,7 +2882,7 @@ dependencies = [
 
 [[package]]
 name = "soplang"
-version = "3.1.0"
+version = "3.5.0"
 dependencies = [
  "clap",
  "colored",

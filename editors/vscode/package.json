@@ -2,7 +2,7 @@
   "name": "soplang",
   "displayName": "Soplang",
   "description": "Soplang language support with diagnostics, navigation, formatting, and semantic highlighting.",
-  "version": "3.1.0",
+  "version": "3.5.0",
   "publisher": "soplang",
   "engines": {
     "vscode": "^1.85.0"
