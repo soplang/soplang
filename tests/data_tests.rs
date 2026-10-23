@@ -442,3 +442,105 @@ fn migrations_refuse_unmanaged_tables_and_add_required_columns_only_to_empty_tab
     });
     fs::remove_file(path).unwrap();
 }
+
+#[test]
+#[ignore]
+fn live_mongo_schema_rows_and_recovered_counters() {
+    use mongodb::{
+        bson::{doc, Document},
+        sync::Client,
+    };
+    let target = std::env::var("SOPLANG_MONGO").unwrap();
+    let client = Client::with_uri_str(&target).unwrap();
+    let name = format!(
+        "soplang_contract_{}_{}",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos()
+    );
+    let raw = client.database(&name);
+    let mut url = url::Url::parse(&target).unwrap();
+    url.set_path(&name);
+    let schema = "jadwal entry {\n _id abn furaha\n amount jajab\n note qoraal?\n}\n";
+    let context = soplang::runtime::RuntimeContext::new();
+    context.with(|| {
+        let id = id_of(&data::open("mongo", url.as_str(), 2).unwrap());
+        data::load_schema(id, schema).unwrap();
+        data::migrate(id).unwrap();
+        data::insert(
+            id,
+            "entry",
+            &obj(&[("_id", Value::Int(100)), ("amount", Value::Float(1.5))]),
+        )
+        .unwrap();
+        let entries = raw.collection::<Document>("entry");
+        entries
+            .insert_one(doc! {"_id": 200_i32, "amount": 2_i32})
+            .run()
+            .unwrap();
+        data::insert(id, "entry", &obj(&[("amount", Value::Float(3.5))])).unwrap();
+        raw.collection::<Document>("soplang_counters")
+            .delete_one(doc! {"_id":"entry"})
+            .run()
+            .unwrap();
+        data::insert(id, "entry", &obj(&[("amount", Value::Float(4.5))])).unwrap();
+        let Value::List(rows) = data::find(id, "entry", None).unwrap() else {
+            panic!("rows")
+        };
+        let mut keys = Vec::new();
+        for row in rows.borrow().iter() {
+            let Value::Object(fields) = row else {
+                panic!("row")
+            };
+            let fields = fields.borrow();
+            let Some(Value::Int(key)) = fields.get("_id") else {
+                panic!("declared _id")
+            };
+            keys.push(*key);
+            assert!(matches!(fields.get("amount"), Some(Value::Float(_))));
+            assert_eq!(fields.get("note"), Some(&Value::Null));
+        }
+        keys.sort();
+        assert_eq!(keys, [100, 200, 201, 202]);
+        entries
+            .insert_one(doc! {"_id":300_i64, "amount":3.0, "extra":[1,2]})
+            .bypass_document_validation(true)
+            .run()
+            .unwrap();
+        let Value::List(rows) =
+            data::find(id, "entry", Some(&obj(&[("_id", Value::Int(300))]))).unwrap()
+        else {
+            panic!("rows")
+        };
+        let Value::Object(fields) = &rows.borrow()[0] else {
+            panic!("row")
+        };
+        assert!(!fields.borrow().contains_key("extra"));
+        assert!(data::migrate(id).is_err());
+        entries.delete_one(doc! {"_id":300_i64}).run().unwrap();
+        entries
+            .insert_one(doc! {"_id":400_i64, "amount":"invalid"})
+            .bypass_document_validation(true)
+            .run()
+            .unwrap();
+        assert!(data::find(id, "entry", None).is_err());
+        assert!(data::migrate(id).is_err());
+        entries.delete_one(doc! {"_id":400_i64}).run().unwrap();
+        let next = schema.replace("}\n", " tag qoraal?\n}\n");
+        data::load_schema(id, &next).unwrap();
+        data::migrate(id).unwrap();
+        let Value::List(rows) = data::find(id, "entry", None).unwrap() else {
+            panic!("rows")
+        };
+        for row in rows.borrow().iter() {
+            let Value::Object(fields) = row else {
+                panic!("row")
+            };
+            assert_eq!(fields.borrow().get("tag"), Some(&Value::Null));
+        }
+        data::close(id).unwrap();
+    });
+    raw.drop().run().unwrap();
+}

@@ -8,6 +8,7 @@
 mod schema;
 mod generate;
 mod migration;
+mod mongo;
 mod sql;
 
 use crate::runtime::with_databases;
@@ -209,7 +210,7 @@ pub fn find(id: i64, table: &str, filter: Option<&Value>) -> Result<Value, Sopla
         };
         validate_fields(&table, &mut filter, false)?;
         match db.current() {
-            Conn::Mongo(mongo) => mongo_find(mongo, &table.name, &filter),
+            Conn::Mongo(mongo) => mongo_find(mongo, &table, &filter),
             _ => {
                 let sql = sql::select(db.kind, &table, &filter);
                 let mut rows = query_statement(db, &sql)?;
@@ -425,17 +426,15 @@ fn mongo_validator(table: &schema::Table) -> Document {
     let mut properties = doc! { "_id": {} };
     let mut required = Vec::new();
     for column in &table.columns {
-        let ty = match column.ty {
-            ColumnType::Int => "long",
-            ColumnType::Text => "string",
-            ColumnType::Float => "double",
-            ColumnType::Bool => "bool",
+        let mut types = match column.ty {
+            ColumnType::Int => vec!["int", "long"],
+            ColumnType::Text => vec!["string"],
+            ColumnType::Float => vec!["int", "long", "double"],
+            ColumnType::Bool => vec!["bool"],
         };
-        let types = if column.optional {
-            vec![ty, "null"]
-        } else {
-            vec![ty]
-        };
+        if column.optional {
+            types.push("null");
+        }
         properties.insert(&column.name, doc! { "bsonType": types });
         if !column.optional {
             required.push(column.name.clone());
@@ -468,6 +467,10 @@ fn apply_migration(db: &mut Database, schema: &Schema) -> Result<(), SoplangErro
                 .run()
                 .map_err(|error| driver_error(error))?;
             let key = table.columns.iter().find(|column| column.key).unwrap();
+            // MongoDB already creates the unique primary _id index.
+            if key.name == "_id" {
+                continue;
+            }
             let index = mongodb::IndexModel::builder()
                 .keys(doc! { &key.name: 1 })
                 .options(
@@ -930,6 +933,7 @@ fn mongo_insert(
     let key = table.columns.iter().find(|column| column.key).unwrap();
     let counters = mongo.database.collection::<Document>("soplang_counters");
     if !fields.contains_key(&key.name) {
+        mongo::baseline_counter(mongo, table)?;
         let action = counters
             .find_one_and_update(
                 doc! { "_id": &table.name },
@@ -973,10 +977,10 @@ fn mongo_insert(
 
 fn mongo_find(
     mongo: &mut MongoHandle,
-    table: &str,
+    table: &schema::Table,
     filter: &HashMap<String, SqlValue>,
 ) -> Result<Value, SoplangError> {
-    let collection = mongo.database.clone().collection::<Document>(table);
+    let collection = mongo.database.clone().collection::<Document>(&table.name);
     let filter = document(filter);
     let mut rows = Vec::new();
     if mongo.session.is_some() {
@@ -984,25 +988,31 @@ fn mongo_find(
             let session = mongo.session.as_mut().unwrap();
             collection
                 .find(filter)
+                .projection(mongo::projection(table))
+                .limit(1000)
                 .session(session)
                 .run()
                 .map_err(|error| driver_error(error))?
         };
         let session = mongo.session.as_mut().unwrap();
         for document in cursor.iter(session).take(1000) {
-            rows.push(document_to_value(
+            rows.push(mongo::decode_row(
                 document.map_err(|error| driver_error(error))?,
-            ));
+                table,
+            )?);
         }
     } else {
         let cursor = collection
             .find(filter)
+            .projection(mongo::projection(table))
+            .limit(1000)
             .run()
             .map_err(|error| driver_error(error))?;
         for document in cursor.take(1000) {
-            rows.push(document_to_value(
+            rows.push(mongo::decode_row(
                 document.map_err(|error| driver_error(error))?,
-            ));
+                table,
+            )?);
         }
     }
     Ok(Value::List(std::rc::Rc::new(std::cell::RefCell::new(rows))))
@@ -1062,27 +1072,6 @@ fn bson_value(value: &SqlValue) -> Bson {
     }
 }
 
-fn document_to_value(document: Document) -> Value {
-    let mut fields = HashMap::new();
-    for (name, value) in document {
-        if name == "_id" {
-            continue;
-        }
-        fields.insert(
-            name,
-            match value {
-                Bson::Null => Value::Null,
-                Bson::Int32(value) => Value::Int(i64::from(value)),
-                Bson::Int64(value) => Value::Int(value),
-                Bson::Double(value) => Value::Float(value),
-                Bson::String(value) => Value::Str(value),
-                Bson::Boolean(value) => Value::Bool(value),
-                other => Value::Str(other.to_string()),
-            },
-        );
-    }
-    object_from(fields)
-}
 
 fn require_table(db: &Database, name: &str) -> Result<schema::Table, SoplangError> {
     if !schema::ident(name) {
@@ -1175,22 +1164,23 @@ fn sql_value(value: &Value) -> Result<SqlValue, SoplangError> {
     }
 }
 
+fn runtime_value(value: &SqlValue) -> Value {
+    match value {
+        SqlValue::Null => Value::Null,
+        SqlValue::Int(value) => Value::Int(*value),
+        SqlValue::Float(value) => Value::Float(*value),
+        SqlValue::Text(value) => Value::Str(value.clone()),
+        SqlValue::Bool(value) => Value::Bool(*value),
+    }
+}
+
 fn rows_to_value(rows: &[SqlRow]) -> Value {
     Value::List(std::rc::Rc::new(std::cell::RefCell::new(
         rows.iter()
             .map(|row| {
                 let mut fields = HashMap::new();
                 for (name, value) in &row.values {
-                    fields.insert(
-                        name.clone(),
-                        match value {
-                            SqlValue::Null => Value::Null,
-                            SqlValue::Int(value) => Value::Int(*value),
-                            SqlValue::Float(value) => Value::Float(*value),
-                            SqlValue::Text(value) => Value::Str(value.clone()),
-                            SqlValue::Bool(value) => Value::Bool(*value),
-                        },
-                    );
+                    fields.insert(name.clone(), runtime_value(value));
                 }
                 object_from(fields)
             })

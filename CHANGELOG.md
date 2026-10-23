@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Enforce schema projections and typed MongoDB reads, preserve declared `_id` keys, normalize BSON integers and missing nullable fields, validate stored documents before migrations, and reconcile generated key counters with existing records.
+
 - Record validated schema snapshots and preflight additive ORM migrations before application DDL. Reject incompatible or unmanaged changes, require empty tables for new required columns, validate legacy/corrupt migration metadata, and select explicit SQL columns for older clients during additive deployments.
 
 - Add native global and collection API completion, hover, readonly definitions and references to the language server. Preserve lexical shadows and type/value distinctions, follow known container return types, and provide overload-aware signature help for native and source calls.

@@ -206,6 +206,30 @@ pub(super) fn preflight(db: &mut Database, next: &Schema) -> Result<(), SoplangE
             return Err(data_error(format!("Jadwalka '{}' wuu jiraa, balse kuma jiro diiwaanka guurinta. Si toos ah looguma dari karo.", table.name)));
         }
     }
+    if let Conn::Mongo(mongo) = db.current() {
+        let existing = mongo
+            .database
+            .list_collection_names()
+            .run()
+            .map_err(driver_error)?;
+        for table in &next.tables {
+            if existing.contains(&table.name) {
+                let invalid_row = mongo
+                    .database
+                    .collection::<Document>(&table.name)
+                    .find_one(doc! { "$nor": [mongo_validator(table)] })
+                    .projection(doc! { "_id": 1 })
+                    .run()
+                    .map_err(driver_error)?;
+                if invalid_row.is_some() {
+                    return Err(data_error(format!(
+                        "Xogta ku jirta jadwalka '{}' ma waafaqsana qaabka cusub.",
+                        table.name
+                    )));
+                }
+            }
+        }
+    }
     for table in require_empty {
         if not_empty(db, &table.name)? {
             return Err(data_error(format!("Tiir qasab ah laguma dari karo jadwalka '{}' inta xog ku jirto; marka hore ku dar tiir ikhtiyaari ah.", table.name)));

@@ -66,7 +66,13 @@ must not start another transaction, run a migration, or close the pool.
 SQLite, PostgreSQL, CockroachDB and SQL Server migrations run in a transaction.
 MySQL and MariaDB DDL uses the server's implicit commit behavior. MongoDB
 migrations create or update collection validators and unique key indexes while
-preserving existing documents. MongoDB integer keys use an atomic counter.
+preserving existing documents. Existing collections are checked against the
+proposed validator before it is changed. Reads project declared fields, retain
+an explicitly declared `_id`, normalize integer BSON representations, and fill
+missing optional fields with `maran`. Invalid stored field values return `E059`
+rather than being converted to display strings. MongoDB integer keys use an
+atomic counter reconciled with the indexed maximum stored key before reserving
+an automatic value; missing counter metadata does not restart at one.
 MySQL, MariaDB and MongoDB migrations are not atomic: driver or process failures
 can leave partial DDL. Metadata is written only after application DDL succeeds;
 inconsistent metadata is rejected on retry. Take a backup and inspect a failed
