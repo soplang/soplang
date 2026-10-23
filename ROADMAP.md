@@ -423,8 +423,9 @@ APIs.
 4. Timers and event-loop integration.
 5. Streaming request and response bodies.
 
-The project must decide whether Soplang exposes explicit async/await syntax or
-uses another task model before this work begins.
+The public model uses task handles and `sug(task)` rather than new async/await
+keywords. The execution and ownership contract is in
+[the concurrency design](docs/architecture/CONCURRENCY.md).
 
 ### Advanced server capabilities
 
