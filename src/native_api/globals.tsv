@@ -11,6 +11,9 @@ urur	*qiimayaal	urur	Construct an insertion-ordered set of immutable keys. Each 
 xirmo	*qiimayaal	xirmo	Construct an immutable tuple. Each argument is one position.
 baytyo	[il]	baytyo	Construct bytes from UTF-8 text, a byte list or another byte array; no argument creates an empty array.
 qor	*qiimayaal	maran	Print positional values separated by spaces, followed by a newline.
+shaqo	hawl callback;*doodo	@native:task	Start a child task in the current runtime context.
+sug	@native:task shaqo	door	Wait for a task and return its result, or raise its error.
+baaji	@native:task shaqo	maran	Request cooperative cancellation of a task.
 gelin	[farriin]	qoraal	Read one input line, with an optional prompt.
 akhrifayl	qoraal jid	qoraal	Read a UTF-8 text file relative to the working directory.
 qor_fayl	qoraal jid;qoraal qoraal	maran	Overwrite a UTF-8 text file.

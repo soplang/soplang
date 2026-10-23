@@ -102,6 +102,21 @@ fn test_llvm_qor_multiple_arguments() {
 }
 
 #[test]
+fn llvm_tasks_wait_for_compiled_callbacks() {
+    assert_eq!(
+        run_llvm(
+            "tasks",
+            r#"
+            hawl labalaab(abn n) { celi n * 2 }
+            hawl parent(abn n) { celi sug(shaqo(labalaab, n)) + 1 }
+            qor(sug(shaqo(parent, 20)))
+            "#,
+        ),
+        "41\n"
+    );
+}
+
+#[test]
 fn llvm_callable_annotations_preserve_values_and_validate_callbacks() {
     for opt in [0, 2] {
         assert_eq!(

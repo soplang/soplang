@@ -50,6 +50,9 @@ pub(super) struct RuntimeState {
     pub instances: RefCell<HashMap<usize, InstanceClass>>,
     pub closures: RefCell<HandleArena<Rc<ClosureData>>>,
     pub iterators: RefCell<HandleArena<Rc<super::iterators::IteratorData>>>,
+    pub tasks: RefCell<HandleArena<Rc<super::tasks::TaskData>>>,
+    pub scheduler: RefCell<super::tasks::Scheduler>,
+    pub parked_roots: RefCell<HashMap<i64, Vec<super::roots::RootFrame>>>,
 }
 
 impl Drop for RuntimeState {
@@ -103,7 +106,8 @@ impl RuntimeContext {
                 debugger: self.state.debugger.replace(Default::default()),
             };
             let result = operation();
-            let error = self.state.pending_error.borrow_mut().take();
+            let drain_error = super::tasks::drain().err();
+            let error = self.state.pending_error.borrow_mut().take().or(drain_error);
             match error {
                 Some(error) => Err(error),
                 None => Ok(result),

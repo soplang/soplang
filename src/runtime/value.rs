@@ -31,6 +31,7 @@ pub enum Value {
     Closure(Rc<super::abi::ClosureData>),
     Error(Rc<SoplangError>),
     Iterator(Rc<super::IteratorData>),
+    Task(Rc<super::tasks::TaskData>),
     Null,
 }
 
@@ -60,6 +61,7 @@ impl Value {
             Value::Closure(data) => ValueDebug::Closure(data.handle()),
             Value::Error(error) => ValueDebug::Error(error.message()),
             Value::Iterator(data) => ValueDebug::Iterator(data.handle()),
+            Value::Task(data) => ValueDebug::Task(data.handle()),
             Value::Null => ValueDebug::Null,
         }
     }
@@ -82,6 +84,7 @@ enum ValueDebug<'a> {
     Closure(i64),
     Error(&'a str),
     Iterator(i64),
+    Task(i64),
     Null,
 }
 
@@ -158,6 +161,7 @@ fn value_eq(a: &Value, b: &Value, seen: &mut HashSet<(u8, usize, usize)>) -> boo
                     }
             }
             (Value::Iterator(a), Value::Iterator(b)) => Rc::ptr_eq(a, b),
+            (Value::Task(a), Value::Task(b)) => Rc::ptr_eq(a, b),
             (Value::Error(a), Value::Error(b)) => Rc::ptr_eq(a, b),
             (Value::Function(a), Value::Function(b)) => a == b,
             (Value::Closure(a), Value::Closure(b)) => Rc::ptr_eq(a, b),
@@ -190,6 +194,7 @@ impl Value {
             Value::Function(_) | Value::NativeFunction(_) | Value::Closure(_) => "hawl",
             Value::Error(_) => "khalad",
             Value::Iterator(_) => "wareeg",
+            Value::Task(_) => "shaqo",
             Value::Null => "maran",
         }
     }
@@ -211,7 +216,8 @@ impl Value {
             | Value::NativeFunction(_)
             | Value::Closure(_)
             | Value::Error(_)
-            | Value::Iterator(_) => true,
+            | Value::Iterator(_)
+            | Value::Task(_) => true,
         }
     }
 }
@@ -257,6 +263,7 @@ fn format_value(v: &Value, seen: &mut HashSet<(u8, usize)>, opaque_functions: bo
         Value::Str(s) => s.clone(),
         Value::Error(error) => error.message().to_owned(),
         Value::Iterator(_) => "<wareeg>".into(),
+        Value::Task(_) => "<shaqo>".into(),
         Value::Bytes(bytes) => match bytes.try_borrow() {
             Ok(bytes) => format!("baytyo({:?})", &*bytes),
             Err(_) => "<baytyo>".into(),

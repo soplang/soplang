@@ -28,6 +28,7 @@ mod report;
 mod roots;
 mod sets;
 pub mod stdlib;
+mod tasks;
 mod template;
 mod text;
 mod text_files;

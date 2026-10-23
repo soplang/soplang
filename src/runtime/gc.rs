@@ -6,7 +6,7 @@ use std::rc::Rc;
 
 use super::abi::{
     ClosureData, SoplangValue, TAG_BYTES, TAG_CLOSURE, TAG_ERROR, TAG_ITERATOR, TAG_LIST,
-    TAG_OBJECT, TAG_SET, TAG_STR, TAG_TUPLE,
+    TAG_OBJECT, TAG_SET, TAG_STR, TAG_TASK, TAG_TUPLE,
 };
 use super::context::RuntimeState;
 use super::value::Value;
@@ -60,6 +60,7 @@ pub struct MemoryStats {
     pub closures: usize,
     pub errors: usize,
     pub iterators: usize,
+    pub tasks: usize,
     /// Number of shared collection identities with element contracts.
     pub type_contracts: usize,
     pub active_frames: usize,
@@ -79,6 +80,7 @@ impl MemoryStats {
             + self.closures
             + self.errors
             + self.iterators
+            + self.tasks
     }
 }
 
@@ -102,8 +104,15 @@ pub(super) fn stats(state: &RuntimeState) -> MemoryStats {
         closures: state.closures.borrow().len(),
         errors: state.errors.borrow().len(),
         iterators: state.iterators.borrow().len(),
+        tasks: state.tasks.borrow().len(),
         type_contracts: state.contracts.borrow().len(),
-        active_frames: state.roots.borrow().len(),
+        active_frames: state.roots.borrow().len()
+            + state
+                .parked_roots
+                .borrow()
+                .values()
+                .map(Vec::len)
+                .sum::<usize>(),
         pinned_values: state.pins.borrow().len(),
         collections: state.collector.collections.get(),
         reclaimed: state.collector.reclaimed.get(),
@@ -119,6 +128,7 @@ enum Node {
     Object(Rc<std::cell::RefCell<HashMap<String, Value>>>),
     Closure(Rc<ClosureData>),
     Iterator(Rc<super::IteratorData>),
+    Task(Rc<super::tasks::TaskData>),
 }
 
 type Key = (u8, usize);
@@ -133,6 +143,7 @@ impl Node {
             Self::Object(value) => (TAG_OBJECT, Rc::as_ptr(value) as usize),
             Self::Closure(value) => (TAG_CLOSURE, Rc::as_ptr(value) as usize),
             Self::Iterator(value) => (TAG_ITERATOR, Rc::as_ptr(value) as usize),
+            Self::Task(value) => (TAG_TASK, Rc::as_ptr(value) as usize),
         }
     }
 
@@ -145,6 +156,7 @@ impl Node {
             Self::Object(value) => Rc::strong_count(value),
             Self::Closure(value) => Rc::strong_count(value),
             Self::Iterator(value) => Rc::strong_count(value),
+            Self::Task(value) => Rc::strong_count(value),
         }
     }
 
@@ -157,6 +169,7 @@ impl Node {
             Value::Object(value) => Some(Self::Object(Rc::clone(value))),
             Value::Closure(value) => Some(Self::Closure(Rc::clone(value))),
             Value::Iterator(value) => Some(Self::Iterator(Rc::clone(value))),
+            Value::Task(value) => Some(Self::Task(Rc::clone(value))),
             _ => None,
         }
     }
@@ -208,6 +221,14 @@ impl Node {
                 ),
                 None => (Vec::new(), Vec::new(), true),
             },
+            Self::Task(value) => match value.children() {
+                Some(values) => (
+                    values.iter().filter_map(Self::from_value).collect(),
+                    Vec::new(),
+                    false,
+                ),
+                None => (Vec::new(), Vec::new(), true),
+            },
         }
     }
 
@@ -227,6 +248,7 @@ impl Node {
             Self::Tuple(value) => value.clear(),
             Self::Set(value) => value.clear(),
             Self::Iterator(value) => value.clear(),
+            Self::Task(value) => value.clear(),
         }
     }
 }
@@ -302,6 +324,9 @@ impl Graph {
         for (id, value) in state.iterators.borrow().iter() {
             graph.arena(id, Node::Iterator(Rc::clone(value)));
         }
+        for (id, value) in state.tasks.borrow().iter() {
+            graph.arena(id, Node::Task(Rc::clone(value)));
+        }
         let mut index = 0;
         while index < graph.nodes.len() {
             let (references, mut handles, borrowed) = graph.nodes[index].node.children(teardown);
@@ -337,6 +362,9 @@ pub(super) fn collect(state: &RuntimeState, teardown: bool) -> CollectionReport 
         for (_, iterator) in state.iterators.borrow().iter() {
             iterator.clear();
         }
+        for (_, task) in state.tasks.borrow().iter() {
+            task.clear();
+        }
     }
     let mut graph = Graph::build(state, teardown);
     let mut work = Vec::new();
@@ -357,7 +385,8 @@ pub(super) fn collect(state: &RuntimeState, teardown: bool) -> CollectionReport 
                 .iter()
                 .map(|(_, value)| Edge::Handle(*value)),
         );
-        for frame in state.roots.borrow().iter() {
+        let parked = state.parked_roots.borrow();
+        for frame in state.roots.borrow().iter().chain(parked.values().flatten()) {
             for slot in 0..frame.len {
                 let offset = slot * frame.stride;
                 // Generated frames own this aligned storage until leave_roots;
@@ -439,6 +468,7 @@ pub(super) fn collect(state: &RuntimeState, teardown: bool) -> CollectionReport 
         .iterators
         .borrow_mut()
         .retain(|id, _| keep(TAG_ITERATOR, id));
+    state.tasks.borrow_mut().retain(|id, _| keep(TAG_TASK, id));
     let swept = before.values().saturating_sub(stats(state).values());
     state
         .byte_ids
@@ -496,7 +526,7 @@ pub(super) fn collect(state: &RuntimeState, teardown: bool) -> CollectionReport 
                         .borrow_mut()
                         .insert(Rc::as_ptr(value) as usize, id);
                 }
-                Node::Closure(_) | Node::Iterator(_) => (), // Opaque values stay in their owning context.
+                Node::Closure(_) | Node::Iterator(_) | Node::Task(_) => (), // Opaque values stay in their owning context.
             }
         }
     }

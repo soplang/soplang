@@ -330,6 +330,9 @@ pub fn take_pending_error() -> Option<SoplangError> {
 #[no_mangle]
 pub extern "C" fn soplang_finish_execution() -> c_int {
     use std::io::Write;
+    if let Err(error) = super::tasks::drain() {
+        let _ = handle_runtime_error(error);
+    }
     match take_pending_error() {
         Some(error) => {
             let _ = std::io::stdout().flush();
@@ -359,6 +362,7 @@ pub const TAG_ITERATOR: u8 = 11;
 pub const TAG_BYTES: u8 = 12;
 pub const TAG_TUPLE: u8 = 13;
 pub const TAG_SET: u8 = 14;
+pub const TAG_TASK: u8 = 15;
 /// Internal argument slot marker; never a language value.
 pub(crate) const TAG_MISSING: u8 = 255;
 
@@ -469,6 +473,7 @@ pub(super) fn invalid_handle() -> SoplangError {
 fn validate_handle(value: SoplangValue) -> Result<(), SoplangError> {
     let live = match value.tag {
         TAG_ITERATOR => STATE.with(|state| state.iterators.borrow().contains(value.payload)),
+        TAG_TASK => STATE.with(|state| state.tasks.borrow().contains(value.payload)),
         TAG_ERROR => ERROR_HEAP.with(|heap| heap.borrow().contains(value.payload)),
         TAG_STR => STR_HEAP.with(|heap| heap.borrow().contains(value.payload)),
         TAG_LIST => LIST_HEAP.with(|heap| heap.borrow().contains(value.payload)),
@@ -673,6 +678,11 @@ pub fn value_to_soplang(v: &Value) -> SoplangValue {
             _pad: [0; 7],
             payload: data.handle(),
         },
+        Value::Task(data) => SoplangValue {
+            tag: TAG_TASK,
+            _pad: [0; 7],
+            payload: data.handle(),
+        },
         Value::Closure(data) => SoplangValue {
             tag: TAG_CLOSURE,
             _pad: [0; 7],
@@ -720,6 +730,10 @@ pub fn soplang_to_value(sv: SoplangValue) -> Result<Value, SoplangError> {
         TAG_ITERATOR => STATE
             .with(|state| state.iterators.borrow().get(sv.payload).cloned())
             .map(Value::Iterator)
+            .ok_or_else(invalid_handle),
+        TAG_TASK => STATE
+            .with(|state| state.tasks.borrow().get(sv.payload).cloned())
+            .map(Value::Task)
             .ok_or_else(invalid_handle),
         TAG_ERROR => ERROR_HEAP
             .with(|heap| heap.borrow().get(sv.payload).cloned())

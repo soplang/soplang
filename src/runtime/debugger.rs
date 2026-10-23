@@ -41,6 +41,17 @@ pub(super) struct Debugger {
     frames: Vec<Frame>,
 }
 
+impl Debugger {
+    pub(super) fn for_task(&self) -> Self {
+        Self {
+            enabled: self.enabled,
+            breakpoints: self.breakpoints.clone(),
+            step_depth: self.step_depth,
+            frames: Vec::new(),
+        }
+    }
+}
+
 const DEBUGGER: RuntimeLocal<RefCell<Debugger>> = RuntimeLocal::new(|state| &state.debugger);
 
 pub(super) fn enter() {

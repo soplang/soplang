@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 clap = { version = "4", features = ["derive"] }
 colored = "2"
+corosensei = "0.3.4"
 cranelift = "0.125"
 cranelift-frontend = "0.125"
 cranelift-jit = "0.125"
