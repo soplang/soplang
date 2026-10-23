@@ -281,6 +281,7 @@ fn live_in_context(kind: &str, target: &str) {
     );
     data::delete(id, "qof", &obj(&[("magac", Value::Str(marker))])).unwrap();
     assert!(names(&data::find(id, "qof", Some(&filter)).unwrap()).is_empty());
+    explicit_key_contract(id);
     migration_safety(id);
     data::close(id).unwrap();
 }
@@ -543,4 +544,56 @@ fn live_mongo_schema_rows_and_recovered_counters() {
         data::close(id).unwrap();
     });
     raw.drop().run().unwrap();
+}
+
+fn explicit_key_contract(id: i64) {
+    let explicit = obj(&[
+        ("id", Value::Int(-8128)),
+        ("magac", Value::Str("explicit-key".into())),
+    ]);
+    data::insert(id, "qof", &explicit).unwrap();
+    assert!(data::insert(id, "qof", &explicit).is_err());
+    // Exercise both pooled connections after a failed explicit insertion.
+    // A leaked IDENTITY_INSERT setting makes the generated insert fail.
+    let generated: Vec<_> = (0..2)
+        .map(|n| format!("generated-after-explicit-{n}"))
+        .collect();
+    for name in &generated {
+        data::insert(id, "qof", &obj(&[("magac", Value::Str(name.clone()))])).unwrap();
+    }
+    for name in generated {
+        data::delete(id, "qof", &obj(&[("magac", Value::Str(name))])).unwrap();
+    }
+    let filter = obj(&[("id", Value::Int(-8128))]);
+    assert_eq!(
+        names(&data::find(id, "qof", Some(&filter)).unwrap()),
+        ["explicit-key"]
+    );
+    data::delete(id, "qof", &filter).unwrap();
+    let rollback = data::transaction::<()>(id, || {
+        data::insert(
+            id,
+            "qof",
+            &obj(&[
+                ("id", Value::Int(-8192)),
+                ("magac", Value::Str("explicit-rollback".into())),
+            ]),
+        )?;
+        Err(soplang::error::runtime_error("rollback", 0, 0))
+    });
+    assert!(rollback.is_err());
+    let filter = obj(&[("id", Value::Int(-8192))]);
+    assert!(names(&data::find(id, "qof", Some(&filter)).unwrap()).is_empty());
+}
+
+#[test]
+fn sqlite_explicit_keys_recover_after_duplicates_and_rollbacks() {
+    let context = soplang::runtime::RuntimeContext::new();
+    context.with(|| {
+        let id = id_of(&data::open("sqlite", ":memory:", 2).unwrap());
+        data::load_schema(id, SCHEMA).unwrap();
+        data::migrate(id).unwrap();
+        explicit_key_contract(id);
+        data::close(id).unwrap();
+    });
 }

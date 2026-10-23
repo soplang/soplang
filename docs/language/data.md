@@ -60,6 +60,14 @@ columns, missing required fields, nulls in required fields, and incorrect value
 types are rejected. An `abn` value may be widened to a `jajab` column. Optional
 fields omitted on insertion become null, and null filters use `IS NULL`.
 
+Integer keys may be supplied explicitly. SQL Server performs the parameterized
+insert and `IDENTITY_INSERT` cleanup in one server batch; duplicate-key errors
+restore the setting before returning `E059`. Generated keys follow the database's
+identity or sequence rules. Soplang does not reseed PostgreSQL/CockroachDB
+sequences after explicit inserts; applications importing keys must account for
+that when resuming automatic generation. Insert results remain affected counts,
+not generated IDs.
+
 `macaamil(db, hawl() { ... })` runs the callback on one pinned connection and
 commits when it returns. A failure rolls the transaction back. The callback
 must not start another transaction, run a migration, or close the pool.

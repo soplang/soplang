@@ -140,6 +140,11 @@ pub(super) fn insert(
             values.push(parameter(kind, column, value, &mut params));
         }
     }
+    let explicit_identity = matches!(kind, DriverKind::SqlServer)
+        && table
+            .columns
+            .iter()
+            .any(|column| column.key && fields.contains_key(&column.name));
     let table = identifier(kind, &table.name);
     let text = if names.is_empty() {
         if matches!(kind, DriverKind::Mysql | DriverKind::Mariadb) {
@@ -153,6 +158,13 @@ pub(super) fn insert(
             names.join(", "),
             values.join(", ")
         )
+    };
+    // Keep the setting, parameterized INSERT and cleanup in one server batch.
+    // SQL errors restore the session before they are rethrown to the caller.
+    let text = if explicit_identity {
+        format!("SET IDENTITY_INSERT {table} ON; BEGIN TRY {text}; SET IDENTITY_INSERT {table} OFF; END TRY BEGIN CATCH SET IDENTITY_INSERT {table} OFF; THROW; END CATCH;")
+    } else {
+        text
     };
     Statement { text, params }
 }

@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Support explicit SQL Server integer keys in a parameterized server batch that restores `IDENTITY_INSERT` on success and SQL errors. Verify explicit keys, duplicate recovery, generated inserts and rollback across connector pools.
+
 - Enforce schema projections and typed MongoDB reads, preserve declared `_id` keys, normalize BSON integers and missing nullable fields, validate stored documents before migrations, and reconcile generated key counters with existing records.
 
 - Record validated schema snapshots and preflight additive ORM migrations before application DDL. Reject incompatible or unmanaged changes, require empty tables for new required columns, validate legacy/corrupt migration metadata, and select explicit SQL columns for older clients during additive deployments.
