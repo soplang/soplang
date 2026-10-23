@@ -14,6 +14,7 @@ qor	*qiimayaal	maran	Print positional values separated by spaces, followed by a 
 shaqo	hawl callback;*doodo	@native:task	Start a child task in the current runtime context.
 sug	@native:task shaqo	door	Wait for a task and return its result, or raise its error.
 baaji	@native:task shaqo	maran	Request cooperative cancellation of a task.
+hurdada	abn millisekan	@native:task	Return a cancellable timer task that completes after the given milliseconds.
 marin	abn xad	@native:channel	Create a bounded channel; zero capacity requires a receiver for each send.
 dir	@native:channel marin;qiime	maran	Send one value, waiting if the channel is full.
 qaad	@native:channel marin	walax	Receive a value as {qiime, dhammaad}; a closed empty channel has dhammaad=run.

@@ -159,3 +159,60 @@ fn cpu_task_cancellation_runs_cleanup_at_a_loop_poll() {
     )
     .unwrap();
 }
+
+#[test]
+fn timer_tasks_complete_without_blocking_other_tasks() {
+    run_source(
+        r#"
+        door ran = been
+        hawl mark() { ran = run }
+        hawl wait() { sug(hurdada(20)) celi 7 }
+        door timer = hurdada(20)
+        door marker = shaqo(mark)
+        door waiter = shaqo(wait)
+        sug(timer)
+        hubi(ran)
+        hubi(sug(waiter), 7)
+        sug(marker)
+        "#,
+        None,
+        false,
+        false,
+        false,
+    )
+    .unwrap();
+}
+
+#[test]
+fn cancelling_a_timer_wakes_awaiters_promptly() {
+    let started = std::time::Instant::now();
+    run_source(
+        r#"
+        door timer = hurdada(10000)
+        baaji(timer)
+        door caught = been
+        tijaabi { sug(timer) } qabo (e) { caught = run }
+        hubi(caught)
+        "#,
+        None,
+        false,
+        false,
+        false,
+    )
+    .unwrap();
+    assert!(started.elapsed() < std::time::Duration::from_secs(2));
+}
+
+#[test]
+fn unawaited_timers_cancel_at_scope_exit_and_completed_handles_collect() {
+    let started = std::time::Instant::now();
+    run_source("door timer=hurdada(10000)", None, false, false, false).unwrap();
+    assert!(started.elapsed() < std::time::Duration::from_secs(2));
+
+    let mut session = ReplSession::new(false).unwrap();
+    session
+        .eval("abn i=0 intay (i<100) { sug(hurdada(0)) i=i+1 }", None)
+        .unwrap();
+    session.collect();
+    assert_eq!(session.memory_stats().tasks, 0);
+}

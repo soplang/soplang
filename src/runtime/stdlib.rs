@@ -1371,6 +1371,11 @@ const BUILTINS: &[(&str, super::NativeFn, CallbackArity)] = &[
         CallbackArity::range(1, 1),
     ),
     (
+        "hurdada",
+        super::tasks::builtin_hurdada,
+        CallbackArity::range(1, 1),
+    ),
+    (
         "marin",
         super::channels::builtin_marin,
         CallbackArity::range(1, 1),

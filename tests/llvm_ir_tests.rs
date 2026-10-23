@@ -170,6 +170,23 @@ fn llvm_loop_polls_run_other_tasks_and_deliver_cancellation() {
 }
 
 #[test]
+fn llvm_timer_tasks_complete_and_cancel() {
+    assert_eq!(
+        run_llvm(
+            "timers",
+            r#"
+            hawl wait() { sug(hurdada(10)) celi 8 }
+            qor(sug(shaqo(wait)))
+            door timer = hurdada(10000)
+            baaji(timer)
+            tijaabi { sug(timer) } qabo (e) { qor("cancelled") }
+            "#,
+        ),
+        "8\ncancelled\n"
+    );
+}
+
+#[test]
 fn llvm_callable_annotations_preserve_values_and_validate_callbacks() {
     for opt in [0, 2] {
         assert_eq!(

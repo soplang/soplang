@@ -23,6 +23,9 @@ respectively, and `xidh` closes it. A zero-capacity channel is a rendezvous.
 after they are drained, `qaad` returns `{qiime: maran, dhammaad: run}`. Sends after
 closure fail. A blocked sender or receiver resumes when the channel closes.
 Timer and I/O operations return task handles that can be passed to `sug`.
+`hurdada(millisekan)` returns a cancellable timer task; its completed value is
+`maran`. Timer callbacks use the worker runtime and return only an owned
+completion marker to the context thread.
 
 ## Task lifetime and cancellation
 

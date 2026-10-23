@@ -3,6 +3,9 @@
 use std::cell::{Cell, RefCell};
 use std::collections::{HashMap, VecDeque};
 use std::rc::Rc;
+use std::sync::mpsc::{self, Receiver, Sender, TryRecvError};
+use std::sync::OnceLock;
+use std::time::Duration;
 
 use corosensei::{Coroutine, CoroutineResult, Yielder};
 
@@ -13,6 +16,7 @@ use crate::error::{runtime_error, SoplangError};
 
 type Fiber = Coroutine<Signal, Event, Result<Value, SoplangError>>;
 type FiberYielder = Yielder<Signal, Event>;
+const MAX_ACTIVE_TASKS: usize = 4096;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum Signal {
@@ -125,11 +129,38 @@ struct Task {
     parent: i64,
 }
 
-#[derive(Default)]
 pub(super) struct Scheduler {
     tasks: HashMap<i64, Task>,
     ready: VecDeque<i64>,
     running: i64,
+    pending_io: HashMap<i64, PendingIo>,
+    completion_tx: Sender<Completion>,
+    completion_rx: Receiver<Completion>,
+}
+
+struct PendingIo {
+    abort: tokio::task::AbortHandle,
+    parent: i64,
+    handle: Rc<TaskData>,
+}
+
+struct Completion {
+    id: i64,
+    result: Result<(), String>,
+}
+
+impl Default for Scheduler {
+    fn default() -> Self {
+        let (completion_tx, completion_rx) = mpsc::channel();
+        Self {
+            tasks: HashMap::new(),
+            ready: VecDeque::new(),
+            running: 0,
+            pending_io: HashMap::new(),
+            completion_tx,
+            completion_rx,
+        }
+    }
 }
 
 impl Drop for Scheduler {
@@ -139,6 +170,9 @@ impl Drop for Scheduler {
         // safer than corosensei force-unwinding through generated C ABI frames.
         for (_, task) in self.tasks.drain() {
             std::mem::forget(task.fiber);
+        }
+        for (_, pending) in self.pending_io.drain() {
+            pending.abort.abort();
         }
     }
 }
@@ -158,6 +192,115 @@ fn validate(state: &RuntimeState, data: &Rc<TaskData>) -> Result<(), SoplangErro
     }
 }
 
+fn executor() -> Result<&'static tokio::runtime::Runtime, SoplangError> {
+    static EXECUTOR: OnceLock<Result<tokio::runtime::Runtime, String>> = OnceLock::new();
+    EXECUTOR
+        .get_or_init(|| {
+            tokio::runtime::Builder::new_multi_thread()
+                .worker_threads(2)
+                .thread_name("soplang-io")
+                .enable_all()
+                .build()
+                .map_err(|error| error.to_string())
+        })
+        .as_ref()
+        .map_err(|detail| {
+            crate::error::external_error("Shaqooyinka dibadda lama bilaabi karin.", detail)
+        })
+}
+
+fn new_handle(state: &RuntimeState) -> Rc<TaskData> {
+    let data = Rc::new(TaskData {
+        id: Cell::new(0),
+        result: RefCell::new(None),
+    });
+    let id = state.tasks.borrow_mut().insert(Rc::clone(&data));
+    data.id.set(id);
+    state.collector.allocated(std::mem::size_of::<TaskData>());
+    data
+}
+
+fn check_limit(state: &RuntimeState) -> Result<(), SoplangError> {
+    let scheduler = state.scheduler.borrow();
+    let active =
+        scheduler.tasks.len() + scheduler.pending_io.len() + usize::from(scheduler.running != 0);
+    if active >= MAX_ACTIVE_TASKS {
+        Err(runtime_error("Shaqooyin badan ayaa hal mar socda.", 0, 0))
+    } else {
+        Ok(())
+    }
+}
+
+pub(super) fn timer(millis: u64) -> Result<Value, SoplangError> {
+    let executor = executor()?;
+    STATE.with(|state| {
+        check_limit(state)?;
+        let data = new_handle(state);
+        let id = data.handle();
+        let mut scheduler = state.scheduler.borrow_mut();
+        let parent = scheduler.running;
+        let sender = scheduler.completion_tx.clone();
+        let handle = executor.spawn(async move {
+            tokio::time::sleep(Duration::from_millis(millis)).await;
+            let _ = sender.send(Completion { id, result: Ok(()) });
+        });
+        scheduler.pending_io.insert(
+            id,
+            PendingIo {
+                abort: handle.abort_handle(),
+                parent,
+                handle: Rc::clone(&data),
+            },
+        );
+        Ok(Value::Task(data))
+    })
+}
+
+fn wake_awaiters(scheduler: &mut Scheduler, target: i64) {
+    let mut ready = Vec::new();
+    for (id, task) in scheduler.tasks.iter_mut() {
+        if task.waiting_for == Some(Wait::Task(target)) {
+            task.waiting_for = None;
+            ready.push(*id);
+        }
+    }
+    scheduler.ready.extend(ready);
+}
+
+fn finish_io(state: &RuntimeState, completion: Completion) {
+    let mut scheduler = state.scheduler.borrow_mut();
+    let Some(pending) = scheduler.pending_io.remove(&completion.id) else {
+        return;
+    };
+    let result = completion
+        .result
+        .map(|()| Value::Null)
+        .map_err(|detail| crate::error::external_error("Shaqada dibadda way fashilantay.", detail));
+    *pending.handle.result.borrow_mut() = Some(result);
+    wake_awaiters(&mut scheduler, completion.id);
+}
+
+fn try_completion(state: &RuntimeState) -> bool {
+    let completion = state.scheduler.borrow().completion_rx.try_recv();
+    match completion {
+        Ok(completion) => {
+            finish_io(state, completion);
+            true
+        }
+        Err(TryRecvError::Empty | TryRecvError::Disconnected) => false,
+    }
+}
+
+fn cancel_io(scheduler: &mut Scheduler, id: i64) -> bool {
+    let Some(pending) = scheduler.pending_io.remove(&id) else {
+        return false;
+    };
+    pending.abort.abort();
+    *pending.handle.result.borrow_mut() = Some(Err(cancelled()));
+    wake_awaiters(scheduler, id);
+    true
+}
+
 pub(super) fn spawn(callee: Value, args: Vec<Value>) -> Result<Value, SoplangError> {
     if !matches!(
         callee,
@@ -166,12 +309,9 @@ pub(super) fn spawn(callee: Value, args: Vec<Value>) -> Result<Value, SoplangErr
         return Err(runtime_error("shaqo() waxay u baahan tahay hawl.", 0, 0));
     }
     STATE.with(|state| {
-        let data = Rc::new(TaskData {
-            id: Cell::new(0),
-            result: RefCell::new(None),
-        });
-        let id = state.tasks.borrow_mut().insert(Rc::clone(&data));
-        data.id.set(id);
+        check_limit(state)?;
+        let data = new_handle(state);
+        let id = data.handle();
         let fiber = Coroutine::new(move |yielder: &FiberYielder, signal| {
             if signal == Signal::Cancel {
                 return Err(cancelled());
@@ -203,10 +343,22 @@ pub(super) fn spawn(callee: Value, args: Vec<Value>) -> Result<Value, SoplangErr
 }
 
 fn step(state: &RuntimeState) -> Result<bool, SoplangError> {
+    try_completion(state);
     let (id, mut task) = {
         let mut scheduler = state.scheduler.borrow_mut();
         let Some(id) = scheduler.ready.pop_front() else {
-            return Ok(false);
+            if scheduler.pending_io.is_empty() {
+                return Ok(false);
+            }
+            drop(scheduler);
+            let completion = state
+                .scheduler
+                .borrow()
+                .completion_rx
+                .recv()
+                .map_err(|_| runtime_error("Shaqooyinka dibadda way istaageen.", 0, 0))?;
+            finish_io(state, completion);
+            return Ok(true);
         };
         let task = scheduler.tasks.remove(&id).expect("ready task missing");
         scheduler.running = id;
@@ -269,14 +421,15 @@ fn step(state: &RuntimeState) -> Result<bool, SoplangError> {
                 }
             }
             scheduler.ready.extend(cancelled_children);
-            let mut ready = Vec::new();
-            for (other, waiting) in scheduler.tasks.iter_mut() {
-                if waiting.waiting_for == Some(Wait::Task(id)) {
-                    waiting.waiting_for = None;
-                    ready.push(*other);
-                }
+            let child_io: Vec<_> = scheduler
+                .pending_io
+                .iter()
+                .filter_map(|(child_id, pending)| (pending.parent == id).then_some(*child_id))
+                .collect();
+            for child_id in child_io {
+                cancel_io(&mut scheduler, child_id);
             }
-            scheduler.ready.extend(ready);
+            wake_awaiters(&mut scheduler, id);
         }
     }
     Ok(true)
@@ -284,6 +437,7 @@ fn step(state: &RuntimeState) -> Result<bool, SoplangError> {
 
 pub(super) fn poll() -> Result<(), SoplangError> {
     STATE.with(|state| {
+        try_completion(state);
         let scheduler = state.scheduler.borrow();
         let has_ready = !scheduler.ready.is_empty();
         let running = scheduler.running;
@@ -366,6 +520,9 @@ pub(super) fn cancel_task(data: &Rc<TaskData>) -> Result<(), SoplangError> {
     STATE.with(|state| {
         validate(state, data)?;
         let mut scheduler = state.scheduler.borrow_mut();
+        if cancel_io(&mut scheduler, data.handle()) {
+            return Ok(());
+        }
         if let Some(task) = scheduler.tasks.get_mut(&data.handle()) {
             task.cancel = true;
             if task.waiting_for.take().is_some() {
@@ -380,6 +537,10 @@ pub(super) fn drain() -> Result<(), SoplangError> {
     STATE.with(|state| {
         {
             let mut scheduler = state.scheduler.borrow_mut();
+            let pending: Vec<_> = scheduler.pending_io.keys().copied().collect();
+            for id in pending {
+                cancel_io(&mut scheduler, id);
+            }
             let waiting: Vec<_> = scheduler
                 .tasks
                 .iter_mut()
@@ -420,4 +581,22 @@ pub(super) fn builtin_baaji(args: Vec<Value>) -> Result<Value, SoplangError> {
     };
     cancel_task(data)?;
     Ok(Value::Null)
+}
+
+pub(super) fn builtin_hurdada(args: Vec<Value>) -> Result<Value, SoplangError> {
+    let [Value::Int(millis)] = args.as_slice() else {
+        return Err(runtime_error(
+            "hurdada() waxay u baahan tahay millisekanno tiro dhan ah.",
+            0,
+            0,
+        ));
+    };
+    if !(0..=86_400_000).contains(millis) {
+        return Err(runtime_error(
+            "Hurdadu waa inay u dhexeysaa 0 iyo 86400000 millisekan.",
+            0,
+            0,
+        ));
+    }
+    timer(*millis as u64)
 }
