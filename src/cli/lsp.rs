@@ -286,9 +286,12 @@ impl Server {
             .documents
             .keys()
             .filter_map(|uri| url::Url::parse(uri).ok()?.to_file_path().ok())
-            .filter_map(|display| {
-                let parent = display.parent()?.to_path_buf();
-                Some((source_identity(&parent), parent))
+            .flat_map(|display| {
+                display
+                    .ancestors()
+                    .skip(1)
+                    .map(|parent| (source_identity(parent), parent.to_path_buf()))
+                    .collect::<Vec<_>>()
             })
             .collect();
         aliases.sort_by(|a, b| {

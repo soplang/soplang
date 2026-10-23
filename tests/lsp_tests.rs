@@ -132,15 +132,17 @@ fn closed_import_uris_keep_the_open_documents_directory_alias() {
     let tree = Tree::new("directory-alias");
     let alias = tree.0.with_extension("link");
     std::os::unix::fs::symlink(&tree.0, &alias).unwrap();
+    fs::create_dir_all(tree.0.join("src")).unwrap();
+    fs::create_dir_all(tree.0.join("lib")).unwrap();
     fs::write(
-        tree.0.join("lib.sop"),
+        tree.0.join("lib/lib.sop"),
         "soosaar value\nhawl value() { celi 1 }\n",
     )
     .unwrap();
-    let source = "keen \"lib.sop\" sida lib\nqor(lib.value())\n";
-    fs::write(tree.0.join("main.sop"), source).unwrap();
-    let main_uri = uri(&alias.join("main.sop"));
-    let lib_uri = uri(&alias.join("lib.sop"));
+    let source = "keen \"../lib/lib.sop\" sida lib\nqor(lib.value())\n";
+    fs::write(tree.0.join("src/main.sop"), source).unwrap();
+    let main_uri = uri(&alias.join("src/main.sop"));
+    let lib_uri = uri(&alias.join("lib/lib.sop"));
     let mut server = Server::default();
     open(&mut server, &main_uri, source);
     let definition = request(
