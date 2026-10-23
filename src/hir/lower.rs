@@ -137,6 +137,7 @@ pub enum HirInstr {
         val: Slot,
     },
     Label(LabelId),
+    Poll,
     Jump(LabelId),
     JumpIf {
         cond: Slot,
@@ -385,6 +386,7 @@ impl fmt::Display for HirInstr {
             HirInstr::GetProp { dst, obj, prop } => write!(f, "  %{} = %{}.{}", dst, obj, prop),
             HirInstr::SetProp { obj, prop, val } => write!(f, "  %{}.{} = %{}", obj, prop, val),
             HirInstr::Label(id) => write!(f, "L{}:", id),
+            HirInstr::Poll => write!(f, "  poll"),
             HirInstr::Jump(id) => write!(f, "  jump L{}", id),
             HirInstr::JumpIf {
                 cond,
@@ -705,6 +707,7 @@ impl<'a> HirLowering<'a> {
                     }
                     inner.emit_type_check(*slot, &param.type_ann, "dood");
                 }
+                inner.emit(HirInstr::Poll);
                 for s in body_stmts {
                     inner.lower_stmt(s);
                 }
@@ -866,6 +869,7 @@ impl<'a> HirLowering<'a> {
         let fallible = matches!(
             instr,
             HirInstr::CallNamed { .. }
+                | HirInstr::Poll
                 | HirInstr::IterBegin { .. }
                 | HirInstr::IterNext { .. }
                 | HirInstr::FormatValue { .. }
@@ -1389,6 +1393,7 @@ impl<'a> HirLowering<'a> {
                     });
                 }
                 self.emit(HirInstr::Label(cond_lbl));
+                self.emit(HirInstr::Poll);
                 if let Some(span) = self.current_span.clone() {
                     self.debug_point(&span);
                 }
@@ -1467,6 +1472,7 @@ impl<'a> HirLowering<'a> {
                 let end = self.new_label();
                 self.loop_stack.push((end, next));
                 self.emit(HirInstr::Label(next));
+                self.emit(HirInstr::Poll);
                 if let Some(span) = self.current_span.clone() {
                     self.debug_point(&span);
                 }
@@ -1537,6 +1543,7 @@ impl<'a> HirLowering<'a> {
                 let cont_lbl = self.new_label();
                 self.loop_stack.push((break_lbl, cont_lbl));
                 self.emit(HirInstr::Label(cont_lbl));
+                self.emit(HirInstr::Poll);
                 if let Some(span) = self.current_span.clone() {
                     self.debug_point(&span);
                 }

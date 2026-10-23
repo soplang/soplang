@@ -28,6 +28,7 @@ bridge!(
     )
 );
 bridge!(soplang_gc_safepoint());
+bridge!(soplang_task_poll());
 bridge!(soplang_debug_begin(ptr: *const u8, len: usize));
 bridge!(soplang_debug_point(ptr: *const u8, len: usize));
 bridge!(soplang_debug_init(slot: usize));

@@ -38,7 +38,7 @@ The scheduler must never drop a suspended compiled stack to cancel it. A forced
 Rust unwind cannot cross generated `extern "C"` frames safely. It resumes a
 cancelled task until the compiled function returns through its ordinary error
 path, then releases its stack and handle. Tasks that keep executing CPU code
-must observe cancellation at bounded safepoints.
+observe cancellation at compiler-inserted loop and function-entry polls.
 
 ## Runtime state at a switch
 

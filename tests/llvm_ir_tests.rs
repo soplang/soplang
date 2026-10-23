@@ -135,6 +135,41 @@ fn llvm_channels_exchange_values_between_tasks() {
 }
 
 #[test]
+fn llvm_loop_polls_run_other_tasks_and_deliver_cancellation() {
+    assert_eq!(
+        run_llvm(
+            "task_poll",
+            r#"
+            door ready = been
+            hawl mark() { ready = run }
+            door marker = shaqo(mark)
+            abn attempts = 0
+            intay (!ready && attempts < 100) { attempts = attempts + 1 }
+            hubi(ready && attempts < 100)
+            sug(marker)
+
+            door cleaned = been
+            hawl spin() {
+                tijaabi {
+                    abn i = 0
+                    intay (i < 1000000) { i = i + 1 }
+                } dhammee { cleaned = run }
+            }
+            hawl stop(task) { baaji(task) }
+            door worker = shaqo(spin)
+            door stopper = shaqo(stop, worker)
+            door caught = been
+            tijaabi { sug(worker) } qabo (e) { caught = run }
+            hubi(caught && cleaned)
+            sug(stopper)
+            qor("task polls ok")
+            "#,
+        ),
+        "task polls ok\n"
+    );
+}
+
+#[test]
 fn llvm_callable_annotations_preserve_values_and_validate_callbacks() {
     for opt in [0, 2] {
         assert_eq!(

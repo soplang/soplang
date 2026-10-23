@@ -98,6 +98,13 @@ pub extern "C" fn soplang_gc_safepoint() {
     }
 }
 
+#[no_mangle]
+pub extern "C" fn soplang_task_poll() {
+    if let Err(error) = super::tasks::poll() {
+        let _ = handle_runtime_error(error);
+    }
+}
+
 /// Compiler-generated debugger metadata; pointers refer to immutable code data.
 #[no_mangle]
 pub extern "C" fn soplang_debug_begin(ptr: *const u8, len: usize) {

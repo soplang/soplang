@@ -16,6 +16,7 @@ use crate::semantic::SymbolTable;
 const DECLS: &str = r#"%SoplangValue = type { i8, i64 }
 
 declare void @soplang_gc_safepoint()
+declare void @soplang_task_poll()
 declare void @soplang_set_program_args(i32, ptr)
 declare void @soplang_enter_roots(ptr, ptr, i64, i64)
 declare void @soplang_leave_roots()
@@ -327,13 +328,14 @@ struct Keep(*const ());
 unsafe impl Sync for Keep {}
 
 #[used]
-static KEEP: [Keep; 71] = [
+static KEEP: [Keep; 72] = [
     Keep(runtime::soplang_set_location as *const ()),
     Keep(runtime::soplang_debug_begin as *const ()),
     Keep(runtime::soplang_debug_point as *const ()),
     Keep(runtime::soplang_debug_init as *const ()),
     Keep(runtime::soplang_enter_roots as *const ()),
     Keep(runtime::soplang_gc_safepoint as *const ()),
+    Keep(runtime::soplang_task_poll as *const ()),
     Keep(runtime::soplang_set_program_args as *const ()),
     Keep(runtime::soplang_leave_roots as *const ()),
     Keep(runtime::soplang_int as *const ()),
@@ -1140,6 +1142,10 @@ impl<'a> FnEmit<'a> {
             }
             HirInstr::Label(id) => {
                 self.line(format!("L{id}:"));
+                Ok(false)
+            }
+            HirInstr::Poll => {
+                self.line("  call void @soplang_task_poll()");
                 Ok(false)
             }
             HirInstr::Jump(id) | HirInstr::Break(id) | HirInstr::Continue(id) => {

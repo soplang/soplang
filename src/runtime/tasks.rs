@@ -23,6 +23,7 @@ enum Signal {
 enum Event {
     Await(i64),
     Channel(i64),
+    Yield,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -251,6 +252,10 @@ fn step(state: &RuntimeState) -> Result<bool, SoplangError> {
             task.waiting_for = Some(Wait::Channel(channel));
             scheduler.tasks.insert(id, task);
         }
+        CoroutineResult::Yield(Event::Yield) => {
+            scheduler.tasks.insert(id, task);
+            scheduler.ready.push_back(id);
+        }
         CoroutineResult::Return(result) => {
             *task.handle.result.borrow_mut() = Some(result);
             state.parked_roots.borrow_mut().remove(&id);
@@ -275,6 +280,24 @@ fn step(state: &RuntimeState) -> Result<bool, SoplangError> {
         }
     }
     Ok(true)
+}
+
+pub(super) fn poll() -> Result<(), SoplangError> {
+    STATE.with(|state| {
+        let scheduler = state.scheduler.borrow();
+        let has_ready = !scheduler.ready.is_empty();
+        let running = scheduler.running;
+        drop(scheduler);
+        if !has_ready {
+            return Ok(());
+        }
+        if running == 0 {
+            step(state)?;
+            Ok(())
+        } else {
+            suspend(Event::Yield)
+        }
+    })
 }
 
 pub(super) fn running_task() -> i64 {

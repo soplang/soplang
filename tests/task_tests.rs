@@ -111,3 +111,51 @@ fn completed_task_cycles_are_collected() {
     session.collect();
     assert_eq!(session.memory_stats().tasks, 0);
 }
+
+#[test]
+fn loop_polls_let_ready_tasks_run() {
+    run_source(
+        r#"
+        door ready = been
+        hawl mark() { ready = run }
+        door child = shaqo(mark)
+        abn attempts = 0
+        intay (!ready && attempts < 100) { attempts = attempts + 1 }
+        hubi(ready)
+        hubi(attempts < 100)
+        sug(child)
+        "#,
+        None,
+        false,
+        false,
+        false,
+    )
+    .unwrap();
+}
+
+#[test]
+fn cpu_task_cancellation_runs_cleanup_at_a_loop_poll() {
+    run_source(
+        r#"
+        door cleaned = been
+        hawl spin() {
+            tijaabi {
+                abn i = 0
+                intay (i < 1000000) { i = i + 1 }
+            } dhammee { cleaned = run }
+        }
+        hawl stop(task) { baaji(task) }
+        door worker = shaqo(spin)
+        door stopper = shaqo(stop, worker)
+        door caught = been
+        tijaabi { sug(worker) } qabo (e) { caught = run }
+        hubi(caught && cleaned)
+        sug(stopper)
+        "#,
+        None,
+        false,
+        false,
+        false,
+    )
+    .unwrap();
+}

@@ -91,6 +91,7 @@ fn register_runtime_symbols(builder: &mut JITBuilder) {
     sym!(builder, soplang_debug_init);
     sym!(builder, soplang_enter_roots);
     sym!(builder, soplang_gc_safepoint);
+    sym!(builder, soplang_task_poll);
     sym!(builder, soplang_leave_roots);
     sym!(builder, soplang_int);
     sym!(builder, soplang_float);
@@ -1126,6 +1127,13 @@ fn compile_body(
                 }
                 builder.ins().jump(block_map[target], &[]);
                 terminated = true;
+            }
+
+            HirInstr::Poll => {
+                if terminated {
+                    continue;
+                }
+                call_rt_void(builder, module, "soplang_task_poll", &[])?;
             }
 
             HirInstr::JumpIf {
