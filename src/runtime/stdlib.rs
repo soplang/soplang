@@ -547,7 +547,34 @@ pub fn builtin_xog_fur(args: Vec<Value>) -> Result<Value, SoplangError> {
         None => 1,
         Some(value) => object_int(value, "wadarta")?,
     };
-    crate::data::open(kind, target, pool)
+    let mut transport = crate::data::ConnectionOptions::default();
+    if let Some(Value::Object(fields)) = args.get(2) {
+        let fields = fields
+            .try_borrow()
+            .map_err(|_| err_runtime("Walaxda lama akhriyi karo."))?;
+        for name in fields.keys() {
+            if !matches!(name.as_str(), "wadarta" | "tls" | "shahaado_ca") {
+                return Err(err_type(format!(
+                    "Xulashada xog_fur() ma aqoonsana '{name}'."
+                )));
+            }
+        }
+        transport.tls = match fields.get("tls") {
+            None => false,
+            Some(Value::Bool(value)) => *value,
+            _ => return Err(err_type("Xulashada tls waa inay noqotaa bool.")),
+        };
+        transport.ca_file = match fields.get("shahaado_ca") {
+            None | Some(Value::Null) => None,
+            Some(Value::Str(path)) if !path.is_empty() => Some(std::path::PathBuf::from(path)),
+            _ => {
+                return Err(err_type(
+                    "shahaado_ca waa inay noqotaa jid qoraal ah oo aan madhnayn, ama maran.",
+                ))
+            }
+        };
+    }
+    crate::data::open_with_options(kind, target, pool, &transport)
 }
 
 fn object_int(value: &Value, field: &str) -> Result<usize, SoplangError> {

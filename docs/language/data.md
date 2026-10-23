@@ -27,8 +27,33 @@ door rows = xog.raadi(db, "qof", { magac: "Amina" })
 xog.xidh(db)
 ```
 
-`fur(kind, target, wadarta?)` opens one to eight connections. The default is
-one. `guuri` creates tables and adds columns after validating the previous
+`fur(kind, target, wadar?, tls?, shahaado_ca?)` opens one to eight connections.
+The default is one. For PostgreSQL, CockroachDB, MySQL and MariaDB, `tls: run`
+requires an encrypted connection with certificate and hostname verification.
+`shahaado_ca: "ca.pem"` adds trusted PEM CA certificates and also requires TLS.
+The file must be a regular file of at most 1 MiB. These options work with the
+native `xog_fur` call and with the generated `MacmiilXog` constructor as well:
+
+```soplang
+door db = xog.fur("postgres", "postgres://app:secret@db.example/app", tls: run,
+                  shahaado_ca: "ca.pem")
+# or: cusub client.MacmiilXog("postgres", target, tls: run, shahaado_ca: "ca.pem")
+```
+
+The additional CA extends the host's trusted roots; verification remains
+enabled. PostgreSQL connection strings can also select `sslmode=disable` for a
+plaintext connection or `sslmode=require` for verified TLS. Explicit `tls` or
+`shahaado_ca` conflicts with `sslmode=disable`. PostgreSQL's default
+`sslmode=prefer` may use plaintext only when the server does not offer TLS;
+use `tls: run` when encryption is required. MySQL and MariaDB use plaintext by
+default unless TLS is selected through these options or their connection URI.
+MySQL URI settings that disable certificate or hostname verification are
+rejected, and a TLS connection cannot switch to a local socket. MongoDB and
+SQL Server configure TLS through their existing driver connection strings,
+including their driver-specific CA settings; the `tls` and `shahaado_ca`
+options are rejected for those drivers rather than ignored.
+
+`guuri` creates tables and adds columns after validating the previous
 migration's schema. It rejects table/column removals and changes to existing
 column types, keys or nullability. New required columns need an empty table;
 nullable columns can be added to populated tables. Every proposed change is

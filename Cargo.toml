@@ -24,7 +24,9 @@ toml = { version = "0.8.23", features = ["preserve_order"] }
 url = "2.5.8"
 rusqlite = { version = "0.40.2", features = ["bundled"] }
 postgres = "0.19.14"
-mysql = "28.0.4"
+tokio-postgres-rustls = { version = "0.14.0", default-features = false, features = ["ring"] }
+rustls-platform-verifier = "0.7.1"
+mysql = { version = "28.0.4", features = ["rustls-tls-ring"] }
 rustls = { version = "0.23.46", default-features = false, features = ["ring", "std", "tls12", "logging"] }
 rustls-pemfile = "2.2.0"
 serde = { version = "1.0.228", features = ["derive"] }

@@ -10,6 +10,7 @@ mod generate;
 mod migration;
 mod mongo;
 mod sql;
+mod tls;
 
 use crate::runtime::with_databases;
 use sql::{Param, Statement};
@@ -19,13 +20,13 @@ use std::sync::atomic::{AtomicI64, Ordering};
 use mongodb::bson::{doc, Bson, Document};
 use mongodb::sync::Client as MongoClient;
 use mysql::prelude::Queryable;
-use postgres::NoTls;
 use std::time::Duration;
 use tokio::net::TcpStream;
 use tokio_util::compat::TokioAsyncWriteCompatExt;
 
 pub use schema::{format_schema, ident, parse_schema, parse_schema_file, ColumnType, Schema};
 pub use generate::{generate_client, GENERATED_HEADER};
+pub use tls::ConnectionOptions;
 
 use crate::error::{codes, runtime_error_ex, ErrorMeta, SoplangError};
 use crate::runtime::value::Value;
@@ -87,7 +88,17 @@ enum SqlValue {
 }
 
 pub fn open(kind: &str, target: &str, pool: usize) -> Result<Value, SoplangError> {
+    open_with_options(kind, target, pool, &ConnectionOptions::default())
+}
+
+pub fn open_with_options(
+    kind: &str,
+    target: &str,
+    pool: usize,
+    options: &ConnectionOptions,
+) -> Result<Value, SoplangError> {
     let kind = DriverKind::parse(kind)?;
+    options.check_kind(kind)?;
     if !(1..=8).contains(&pool) {
         return Err(data_error(
             "Tirada xiriirradu waa inay u dhexaysaa 1 iyo 8.",
@@ -105,7 +116,7 @@ pub fn open(kind: &str, target: &str, pool: usize) -> Result<Value, SoplangError
     };
     let mut conns = Vec::with_capacity(pool);
     for _ in 0..pool {
-        conns.push(connect(kind, target)?);
+        conns.push(connect(kind, target, options)?);
     }
     with_databases(|databases| {
         databases.borrow_mut().insert(
@@ -360,7 +371,11 @@ impl DriverKind {
     }
 }
 
-fn connect(kind: DriverKind, target: &str) -> Result<Conn, SoplangError> {
+fn connect(
+    kind: DriverKind,
+    target: &str,
+    options: &ConnectionOptions,
+) -> Result<Conn, SoplangError> {
     match kind {
         DriverKind::Sqlite => {
             let conn = rusqlite::Connection::open(target).map_err(|error| driver_error(error))?;
@@ -371,13 +386,10 @@ fn connect(kind: DriverKind, target: &str) -> Result<Conn, SoplangError> {
             Ok(Conn::Sqlite(conn))
         }
         DriverKind::Postgres | DriverKind::Cockroach => {
-            let client =
-                postgres::Client::connect(target, NoTls).map_err(|error| driver_error(error))?;
-            Ok(Conn::Postgres(client))
+            tls::postgres(target, options).map(Conn::Postgres)
         }
         DriverKind::Mysql | DriverKind::Mariadb => {
-            let conn = mysql::Conn::new(target).map_err(|error| driver_error(error))?;
-            Ok(Conn::Mysql(conn))
+            tls::mysql(target, options).map(Conn::Mysql)
         }
         DriverKind::Mongo => {
             let client = MongoClient::with_uri_str(target).map_err(|error| driver_error(error))?;

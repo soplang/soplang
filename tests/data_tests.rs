@@ -597,3 +597,9 @@ fn sqlite_explicit_keys_recover_after_duplicates_and_rollbacks() {
         data::close(id).unwrap();
     });
 }
+
+#[test]
+fn database_transport_options_are_checked_without_silent_fallback() {
+    let source = include_str!("fixtures/database_transport_options.sop");
+    soplang::run_source(source, None, false, false, false).unwrap();
+}

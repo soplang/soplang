@@ -1101,3 +1101,22 @@ fn test_llvm_json_class_identity() {
         );
     }
 }
+
+#[test]
+fn llvm_database_transport_options_preserve_errors_and_bundled_defaults() {
+    let source = include_str!("fixtures/database_transport_options.sop");
+    let path =
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/database_transport_options.sop");
+    for opt in [0, 2] {
+        let binary = temp_bin(&format!("database_transport_{opt}"));
+        soplang::build_source(source, Some(&path), &binary, opt, false).unwrap();
+        let output = Command::new(&binary).output().unwrap();
+        let _ = fs::remove_file(&binary);
+        assert!(
+            output.status.success(),
+            "{}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        assert_eq!(output.stdout, b"database transport ok\n");
+    }
+}

@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Require verified TLS for PostgreSQL, CockroachDB, MySQL and MariaDB when requested through `tls` or a PEM `shahaado_ca`; expose these options through native, bundled and generated database clients.
+
 - Support explicit SQL Server integer keys in a parameterized server batch that restores `IDENTITY_INSERT` on success and SQL errors. Verify explicit keys, duplicate recovery, generated inserts and rollback across connector pools.
 
 - Enforce schema projections and typed MongoDB reads, preserve declared `_id` keys, normalize BSON integers and missing nullable fields, validate stored documents before migrations, and reconcile generated key counters with existing records.

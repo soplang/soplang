@@ -289,7 +289,7 @@ fn emit_model(out: &mut String, table: &Table) {
 }
 
 fn emit_client(out: &mut String, schema: &Schema) {
-    out.push_str("qaab MacmiilXog {\n    hawl dhis(qoraal nooc, qoraal jid, abn wadarta = 1): maran {\n        nafta._db = xog_fur(nooc, jid, { wadarta: wadarta })\n        nafta._xidhan = been\n        tijaabi {\n            xog_schema(nafta._db, _soplangSchema)\n");
+    out.push_str("qaab MacmiilXog {\n    hawl dhis(qoraal nooc, qoraal jid, abn wadarta = 1, bool tls = been, qoraal? shahaado_ca = maran): maran {\n        nafta._db = xog_fur(nooc, jid, { wadarta: wadarta, tls: tls, shahaado_ca: shahaado_ca })\n        nafta._xidhan = been\n        tijaabi {\n            xog_schema(nafta._db, _soplangSchema)\n");
     for table in &schema.tables {
         let row = title(&table.name);
         writeln!(

@@ -2,9 +2,10 @@ soosaar fur, xidh, schema, guuri, ku_geli, raadi, beddel, tirtir, macaamil, awoo
 
 hawl xidh(db) { celi xog_xidh(db) }
 
-hawl fur(nooc, jid, wadar = maran) {
-    haddii (wadar == maran) { celi xog_fur(nooc, jid) }
-    celi xog_fur(nooc, jid, { wadarta: wadar })
+hawl fur(nooc, jid, wadar = maran, tls = been, shahaado_ca = maran) {
+    door xulasho = { tls: tls, shahaado_ca: shahaado_ca }
+    haddii (wadar != maran) { xulasho.wadarta = wadar }
+    celi xog_fur(nooc, jid, xulasho)
 }
 
 hawl schema(db, qoraalka) {

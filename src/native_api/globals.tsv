@@ -50,7 +50,7 @@ server_tijaabi	waddooyin;qoraal hab;qoraal jid;[jir];[walax madax]	walax	Send an
 hubi	qiime;[la_filayo]	maran	Assert that one value is run, or that two values are structurally equal.
 jebi		maran	Pause at the source debugger. Local inspection and stepping need debug instrumentation.
 dabool_saf	abn saf	maran	Record a coverage line in the current configured report.
-xog_fur	qoraal nooc;qoraal jid;[walax xulasho]	walax	Open a context-owned database pool; wadarta selects one to eight connections.
+xog_fur	qoraal nooc;qoraal jid;[walax xulasho]	walax	Open a context-owned pool; wadarta selects one to eight connections. PostgreSQL/MySQL wire connections accept tls and a PEM shahaado_ca; CA selection also requires TLS.
 xog_schema	walax db;qoraal schema	maran	Validate and attach a database schema without applying migrations.
 xog_xidh	walax db	maran	Close a database pool outside a transaction.
 xog_guuri	walax db	maran	Apply the supported schema migration operations.
