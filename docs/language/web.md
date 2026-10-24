@@ -3,7 +3,7 @@
 `keen "web" sida web` loads the bundled web framework. For sequential serving,
 it builds on `server_fur`, `server_aqbal`, and `server_xidh`. An asynchronous TCP
 listener can dispatch several requests at once through `app.aqbal_shaqo`.
-Streaming and WebSocket servers remain 3.6 work.
+Chunked uploads and WebSocket routes remain 3.6 work.
 
 ```soplang
 keen "web" sida web
@@ -95,8 +95,18 @@ last occurrence wins for repeated keys. Missing `=` means an empty value.
 `web.socod` pulls one chunk only after the previous chunk has been written.
 Chunks must be 1 to 65536 bytes. It uses HTTP/1.1 chunked transfer encoding,
 and defaults to `application/octet-stream`. See [HTTP server](http-server.md)
-for framing, errors, and the in-memory test client limit. Request bodies are
-still buffered; streaming uploads remain 3.6 work.
+for framing, errors, and the in-memory test client limit. Buffered routes
+still load their full request bodies. For a streaming upload,
+register the handler with `app.hel_socod(method, path, handler)` and call
+`web.jidh_akhris(codsi, size?)` inside it. The size defaults to 65536 and
+cannot exceed 65536. The handler runs after headers arrive, and each read
+returns up to that many bytes. An empty byte array marks the declared end.
+`codsi.qoraal`, `codsi.baytyo`, and `codsi.json` are `maran` on these routes.
+Streaming uploads require an asynchronous TCP listener and a total body no
+larger than the configured `app.cabbir` (up to 1 GiB). Send `Content-Length`
+for a nonempty body; omitting it means an empty body. The
+body handle closes when the handler returns. Chunked upload framing remains
+later 3.6 work.
 
 `app.shahaado(cert, key)` stores PEM paths. `app.fur(host, port)` then calls
 `server_fur` with those files. Without them, `fur` opens a plain listener.

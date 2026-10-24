@@ -1,9 +1,11 @@
 //! HTTP server for JSON APIs, with sequential and task-based exchanges.
 
+use std::cell::RefCell;
 use std::collections::HashMap;
 use std::io::{self, Read, Write};
 #[cfg_attr(not(test), allow(unused_imports))]
 use std::net::{TcpListener, TcpStream};
+use std::rc::Rc;
 use std::sync::atomic::{AtomicI64, Ordering};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
@@ -19,6 +21,7 @@ const STATE: RuntimeLocal<RuntimeState> = RuntimeLocal::new(|state| state);
 const DEFAULT_TIMEOUT: Duration = Duration::from_secs(30);
 const DEFAULT_LIMIT: usize = 1024 * 1024;
 const MAX_LIMIT: usize = 16 * 1024 * 1024;
+const MAX_STREAM_BODY: usize = 1024 * 1024 * 1024;
 const MAX_HEADERS: usize = 8 * 1024;
 const MAX_STREAM_CHUNK: usize = 64 * 1024;
 const DEFAULT_WORKERS: usize = 8;
@@ -30,6 +33,7 @@ pub(super) struct Listener {
 }
 
 static NEXT_ID: AtomicI64 = AtomicI64::new(1);
+static NEXT_BODY_ID: AtomicI64 = AtomicI64::new(1);
 
 /// An absolute exchange deadline also bounds TLS's internal read/write loops.
 struct DeadlineStream {
@@ -88,6 +92,17 @@ struct Route {
     method: String,
     parts: Vec<Part>,
     handler: Value,
+    streaming: bool,
+}
+
+pub(super) struct RequestBody {
+    connection_id: i64,
+    prefetched: Vec<u8>,
+    offset: usize,
+    remaining: usize,
+    expires: Instant,
+    reading: bool,
+    active: bool,
 }
 
 enum Part {
@@ -251,7 +266,7 @@ fn serve_async_connection(
         .checked_add(timeout)
         .ok_or_else(|| error("Waqtiga serverka aad buu u dheer yahay."))?;
     let mut stream = TaskStream::for_http(connection.clone(), expires);
-    let result = serve(&mut stream, routes, limit);
+    let result = serve_async_request(&mut stream, connection, routes, limit, expires);
     let bridge_failure = stream.take_failure();
     let _ = super::net::close(connection);
     match bridge_failure {
@@ -555,8 +570,65 @@ fn serve<S: Read + Write>(
     routes: &[Route],
     limit: usize,
 ) -> Result<Value, SoplangError> {
-    match read_request(stream, limit) {
+    match read_request(stream, limit.min(MAX_LIMIT)) {
         Ok(request) => dispatch(stream, routes, request),
+        Err(ResponseFault::Reply(status, message)) => {
+            let _ = write_response(
+                stream,
+                status,
+                &[],
+                &error_body(&message),
+                "application/json",
+            );
+            Ok(Value::Null)
+        }
+        Err(ResponseFault::Stop(message)) => Err(error(message)),
+    }
+}
+
+fn serve_async_request(
+    stream: &mut TaskStream,
+    connection: &Value,
+    routes: &[Route],
+    limit: usize,
+    expires: Instant,
+) -> Result<Value, SoplangError> {
+    let (mut request, length) = match read_request_head(stream, limit) {
+        Ok(head) => head,
+        Err(ResponseFault::Reply(status, message)) => {
+            let _ = write_response(
+                stream,
+                status,
+                &[],
+                &error_body(&message),
+                "application/json",
+            );
+            return Ok(Value::Null);
+        }
+        Err(ResponseFault::Stop(message)) => return Err(error(message)),
+    };
+    let (route, _) = select_route(routes, &request);
+    if let Some((route, params)) = route {
+        if route.streaming {
+            let handle = register_request_body(connection, &request.body, length, expires)?;
+            let request_value = streaming_request_object(&request, params, handle.clone(), length);
+            let result = dispatch_handler(stream, route, request_value);
+            close_request_body(&handle);
+            return result;
+        }
+    }
+    if length > limit.min(MAX_LIMIT) {
+        let _ = write_response(
+            stream,
+            413,
+            &[],
+            &error_body("Jidhka codsiga wuu ka weyn yahay xadka."),
+            "application/json",
+        );
+        return Ok(Value::Null);
+    }
+    match fill_request_body(stream, &mut request, length) {
+        Ok(()) => dispatch(stream, routes, request),
         Err(ResponseFault::Reply(status, message)) => {
             let _ = write_response(
                 stream,
@@ -603,17 +675,7 @@ fn dispatch<S: Write>(
     routes: &[Route],
     request: RawRequest,
 ) -> Result<Value, SoplangError> {
-    let mut path_match = None;
-    let mut method_mismatch = false;
-    for route in routes {
-        if let Some(params) = match_path(&route.parts, &request.path) {
-            if route.method == request.method {
-                path_match = Some((route, params));
-                break;
-            }
-            method_mismatch = true;
-        }
-    }
+    let (path_match, method_mismatch) = select_route(routes, &request);
     let Some((route, params)) = path_match else {
         let status = if method_mismatch { 405 } else { 404 };
         let message = if method_mismatch {
@@ -630,6 +692,16 @@ fn dispatch<S: Write>(
         );
         return Ok(Value::Null);
     };
+    if route.streaming {
+        let _ = write_response(
+            stream,
+            500,
+            &[],
+            &error_body("Socodka jidhka codsigu wuxuu u baahan yahay server async ah."),
+            "application/json",
+        );
+        return Ok(Value::Null);
+    }
     let request_value = match request_object(&request, params) {
         Ok(value) => value,
         Err(message) => {
@@ -637,6 +709,30 @@ fn dispatch<S: Write>(
             return Ok(Value::Null);
         }
     };
+    dispatch_handler(stream, route, request_value)
+}
+
+fn select_route<'a>(
+    routes: &'a [Route],
+    request: &RawRequest,
+) -> (Option<(&'a Route, HashMap<String, String>)>, bool) {
+    let mut method_mismatch = false;
+    for route in routes {
+        if let Some(params) = match_path(&route.parts, &request.path) {
+            if route.method == request.method {
+                return (Some((route, params)), method_mismatch);
+            }
+            method_mismatch = true;
+        }
+    }
+    (None, method_mismatch)
+}
+
+fn dispatch_handler<S: Write>(
+    stream: &mut S,
+    route: &Route,
+    request_value: Value,
+) -> Result<Value, SoplangError> {
     match super::abi::invoke(&route.handler, &[request_value]) {
         Ok(value) => {
             let response = match response_from(&value) {
@@ -709,12 +805,168 @@ fn request_object(request: &RawRequest, params: HashMap<String, String>) -> Resu
     ]))
 }
 
+fn streaming_request_object(
+    request: &RawRequest,
+    params: HashMap<String, String>,
+    body: Value,
+    length: usize,
+) -> Value {
+    object(&[
+        ("hab", Value::Str(request.method.clone())),
+        ("jid", Value::Str(request.path.clone())),
+        ("weydiimo", string_object(&request.query)),
+        ("cinwaan", string_object(&request.headers)),
+        ("qoraal", Value::Null),
+        ("baytyo", Value::Null),
+        ("json", Value::Null),
+        ("qayb", string_object(&params)),
+        ("jidh", body),
+        ("dherer_jidh", Value::Int(length as i64)),
+    ])
+}
+
+fn register_request_body(
+    connection: &Value,
+    prefetched: &[u8],
+    length: usize,
+    expires: Instant,
+) -> Result<Value, SoplangError> {
+    let connection_id = super::net::endpoint_id(connection, "xidhiidh_async")?;
+    STATE.with(|state| {
+        let id = NEXT_BODY_ID.fetch_add(1, Ordering::Relaxed);
+        state.http_request_bodies.borrow_mut().insert(
+            id,
+            Rc::new(RefCell::new(RequestBody {
+                connection_id,
+                prefetched: prefetched.to_vec(),
+                offset: 0,
+                remaining: length - prefetched.len(),
+                expires,
+                reading: false,
+                active: true,
+            })),
+        );
+        Ok(object(&[
+            ("aqoonsi", Value::Int(id)),
+            ("nooc", Value::Str("jidh_http".into())),
+        ]))
+    })
+}
+
+fn request_body_id(handle: &Value) -> Result<i64, SoplangError> {
+    let Value::Object(handle) = handle else {
+        return Err(error("Jidhka codsigu waa inuu noqdaa walax."));
+    };
+    let handle = handle
+        .try_borrow()
+        .map_err(|_| error("Walaxda hadda lama akhriyi karo."))?;
+    match (handle.get("nooc"), handle.get("aqoonsi")) {
+        (Some(Value::Str(kind)), Some(Value::Int(id))) if kind == "jidh_http" => Ok(*id),
+        _ => Err(error("Aqoonsiga jidhka codsigu ma saxna.")),
+    }
+}
+
+fn close_request_body(handle: &Value) {
+    if let Ok(id) = request_body_id(handle) {
+        STATE.with(|state| {
+            if let Some(body) = state.http_request_bodies.borrow_mut().remove(&id) {
+                body.borrow_mut().active = false;
+            }
+        });
+    }
+}
+
+pub fn read_request_body(handle: &Value, limit: i64) -> Result<Value, SoplangError> {
+    let limit = usize::try_from(limit)
+        .ok()
+        .filter(|limit| (1..=MAX_STREAM_CHUNK).contains(limit))
+        .ok_or_else(|| error("Cabbirka akhriska jidhku waa inuu u dhaxaysaa 1 iyo 65536."))?;
+    let id = request_body_id(handle)?;
+    let body = STATE.with(|state| {
+        state
+            .http_request_bodies
+            .borrow()
+            .get(&id)
+            .cloned()
+            .ok_or_else(|| error("Jidhka codsigu wuu xirmay."))
+    })?;
+    let (connection_id, read_size, millis) = {
+        let mut body = body
+            .try_borrow_mut()
+            .map_err(|_| error("Jidhka codsiga hadda waa la akhriyayaa."))?;
+        if !body.active {
+            return Err(error("Jidhka codsigu wuu xirmay."));
+        }
+        if body.offset < body.prefetched.len() {
+            let end = (body.offset + limit).min(body.prefetched.len());
+            let bytes = body.prefetched[body.offset..end].to_vec();
+            body.offset = end;
+            return Ok(super::bytes::from_raw_vec(bytes));
+        }
+        if body.remaining == 0 {
+            return Ok(super::bytes::from_raw_vec(Vec::new()));
+        }
+        if body.reading {
+            return Err(error("Jidhka codsiga hadda waa la akhriyayaa."));
+        }
+        let remaining = body
+            .expires
+            .checked_duration_since(Instant::now())
+            .filter(|time| !time.is_zero())
+            .ok_or_else(|| error("Waqtigii codsiga wuu dhammaaday."))?;
+        body.reading = true;
+        (
+            body.connection_id,
+            limit.min(body.remaining),
+            remaining.as_millis().min(u64::MAX as u128) as u64,
+        )
+    };
+    let result = (|| {
+        let operation = super::async_net::read(vec![
+            super::net::endpoint(connection_id, "xidhiidh_async", "", 0),
+            Value::Int(read_size as i64),
+        ])?;
+        let Value::Task(operation) = operation else {
+            unreachable!("asynchronous TCP read returns a task")
+        };
+        super::tasks::await_with_timeout(&operation, millis)
+    })();
+    let mut body = body
+        .try_borrow_mut()
+        .map_err(|_| error("Jidhka codsiga hadda waa la akhriyayaa."))?;
+    body.reading = false;
+    if !body.active {
+        return Err(error("Jidhka codsigu wuu xirmay."));
+    }
+    let Value::Bytes(bytes) = result? else {
+        unreachable!("asynchronous TCP read returns bytes")
+    };
+    let count = bytes
+        .try_borrow()
+        .map_err(|_| error("Baytyada jidhka codsiga lama akhriyi karo."))?
+        .len();
+    if count == 0 {
+        return Err(error("Jidhka codsiga ma dhammaystirna."));
+    }
+    body.remaining -= count;
+    Ok(Value::Bytes(bytes))
+}
+
 enum ResponseFault {
     Reply(u16, String),
     Stop(String),
 }
 
 fn read_request<S: Read>(stream: &mut S, limit: usize) -> Result<RawRequest, ResponseFault> {
+    let (mut request, length) = read_request_head(stream, limit)?;
+    fill_request_body(stream, &mut request, length)?;
+    Ok(request)
+}
+
+fn read_request_head<S: Read>(
+    stream: &mut S,
+    limit: usize,
+) -> Result<(RawRequest, usize), ResponseFault> {
     let mut buffer = Vec::new();
     let mut chunk = [0u8; 2048];
     let header_end;
@@ -827,7 +1079,26 @@ fn read_request<S: Read>(stream: &mut S, limit: usize) -> Result<RawRequest, Res
         ));
     }
     let mut body = buffer[header_end..].to_vec();
-    while body.len() < length {
+    body.truncate(length);
+    Ok((
+        RawRequest {
+            method,
+            path,
+            query,
+            headers: header_map,
+            body,
+        },
+        length,
+    ))
+}
+
+fn fill_request_body<S: Read>(
+    stream: &mut S,
+    request: &mut RawRequest,
+    length: usize,
+) -> Result<(), ResponseFault> {
+    let mut chunk = [0u8; 2048];
+    while request.body.len() < length {
         let read = stream
             .read(&mut chunk)
             .map_err(|_| ResponseFault::Stop("Akhriska jidhka wuu fashilmay.".into()))?;
@@ -837,16 +1108,10 @@ fn read_request<S: Read>(stream: &mut S, limit: usize) -> Result<RawRequest, Res
                 "Jidhka codsiga ma dhammaystirna.".into(),
             ));
         }
-        body.extend_from_slice(&chunk[..read]);
+        request.body.extend_from_slice(&chunk[..read]);
     }
-    body.truncate(length);
-    Ok(RawRequest {
-        method,
-        path,
-        query,
-        headers: header_map,
-        body,
-    })
+    request.body.truncate(length);
+    Ok(())
 }
 
 fn split_target(target: &str) -> Result<(String, HashMap<String, String>), ResponseFault> {
@@ -890,8 +1155,10 @@ fn compile_route(value: &Value) -> Result<Route, SoplangError> {
     let route = route
         .try_borrow()
         .map_err(|_| error("Teedka hadda lama akhriyi karo."))?;
-    if route.len() != 3 {
-        return Err(error("Waddo kasta waa inay noqotaa teed saddex qayb ah."));
+    if !matches!(route.len(), 3 | 4) {
+        return Err(error(
+            "Waddo kasta waa inay noqotaa teed saddex ama afar qayb ah.",
+        ));
     }
     let Value::Str(method) = &route[0] else {
         return Err(error("Habka waddada waa inuu noqdaa qoraal."));
@@ -917,10 +1184,16 @@ fn compile_route(value: &Value) -> Result<Route, SoplangError> {
         }
         _ => return Err(error("Qabta-hawsha waddada waa inuu noqdaa hawl.")),
     };
+    let streaming = match route.get(3) {
+        None => false,
+        Some(Value::Str(mode)) if mode == "socod" => true,
+        _ => return Err(error("Nooca waddada afraad waa inuu noqdaa 'socod'.")),
+    };
     Ok(Route {
         method,
         parts: parse_pattern(path)?,
         handler,
+        streaming,
     })
 }
 
@@ -1097,8 +1370,8 @@ fn limits(options: Option<&Value>) -> Result<(Duration, usize), SoplangError> {
         None => DEFAULT_LIMIT,
         Some(Value::Int(size)) => usize::try_from(*size)
             .ok()
-            .filter(|size| (1..=MAX_LIMIT).contains(size))
-            .ok_or_else(|| error("Cabbirka jidhka waa inuu u dhaxeeyaa 1 iyo 16777216."))?,
+            .filter(|size| (1..=MAX_STREAM_BODY).contains(size))
+            .ok_or_else(|| error("Cabbirka jidhka waa inuu u dhaxeeyaa 1 iyo 1073741824."))?,
         _ => return Err(error("Cabbirka jidhka waa inuu noqdaa abn.")),
     };
     Ok((timeout, limit))

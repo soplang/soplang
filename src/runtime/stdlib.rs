@@ -688,6 +688,14 @@ pub fn builtin_server_adeeg_shaqo(args: Vec<Value>) -> Result<Value, SoplangErro
     super::http_server::serve_async(&args[0], &args[1], args.get(2))
 }
 
+pub fn builtin_server_jidh_akhris(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity(&args, "server_jidh_akhris", 2)?;
+    let Value::Int(limit) = args[1] else {
+        return Err(err_type("Cabbirka akhriska jidhku waa inuu noqdaa abn."));
+    };
+    super::http_server::read_request_body(&args[0], limit)
+}
+
 pub fn builtin_server_xidh(args: Vec<Value>) -> Result<Value, SoplangError> {
     expect_arity(&args, "server_xidh", 1)?;
     super::http_server::close(&args[0])
@@ -1584,6 +1592,11 @@ const BUILTINS: &[(&str, super::NativeFn, CallbackArity)] = &[
         "server_adeeg_shaqo",
         builtin_server_adeeg_shaqo,
         CallbackArity::range(2, 3),
+    ),
+    (
+        "server_jidh_akhris",
+        builtin_server_jidh_akhris,
+        CallbackArity::range(2, 2),
     ),
     (
         "server_xidh",

@@ -276,6 +276,9 @@ these explanations do not establish a historical abbreviation or SLS approval.
 | `http_codso` | Send an HTTP request                | `fetch`              | `http_codso("GET", url)`                   |
 | `server_fur` | Bind an HTTP server, optionally with TLS | (listen)        | `server_fur("127.0.0.1", 8080, { shahaado: "cert.pem", fure: "key.pem" })` |
 | `server_aqbal` | Handle one HTTP request           | (accept)             | `server_aqbal(server, routes)`             |
+| `server_aqbal_shaqo` | Handle one HTTP request in a task | (async accept) | `server_aqbal_shaqo(listener, routes)` |
+| `server_adeeg_shaqo` | Serve bounded concurrent HTTP requests | (async serve) | `server_adeeg_shaqo(listener, routes)` |
+| `server_jidh_akhris` | Read a streaming request chunk | (body read) | `server_jidh_akhris(codsi.jidh, 65536)` |
 | `server_xidh` | Close an HTTP server               | (close)              | `server_xidh(server)`                      |
 | `dns_raadi` | Look up IP addresses                | `getaddrinfo`        | `dns_raadi("localhost")`                   |
 | `tcp_fur` | Connect a TCP socket                 | `connect`            | `tcp_fur("127.0.0.1", 8080)`               |

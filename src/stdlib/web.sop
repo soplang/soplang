@@ -1,4 +1,4 @@
-soosaar Web, json, html, leex, kuki, foom, hubi, cors, fayl, kuki_qoraal, habee, qayb, diid, socod
+soosaar Web, json, html, leex, kuki, foom, hubi, cors, fayl, kuki_qoraal, habee, qayb, diid, socod, jidh_akhris
 
 hawl json(xog, heer=200) {
     celi { heer: heer, json: xog }
@@ -10,6 +10,10 @@ hawl html(nux, heer=200) {
 
 hawl socod(xiga, heer=200, nooc="application/octet-stream") {
     celi { heer: heer, socod: xiga, cinwaan: { "content-type": nooc } }
+}
+
+hawl jidh_akhris(codsi, cabbir=65536) {
+    celi server_jidh_akhris(codsi.jidh, cabbir)
 }
 
 hawl leex(jid, heer=302) {
@@ -180,6 +184,12 @@ qaab Web {
     hawl hel(hab, jid, shaqo) {
         door buuxa = nafta.asal + jid
         nafta.waddo.geli([hab, buuxa, nafta.isku_duub(nafta.dhex.nuqul(), shaqo)])
+        nafta.waddo.geli(["OPTIONS", buuxa, nafta.isku_duub(nafta.dhex.nuqul(), hawl(codsi) { celi { heer: 204 } })])
+    }
+
+    hawl hel_socod(hab, jid, shaqo) {
+        door buuxa = nafta.asal + jid
+        nafta.waddo.geli([hab, buuxa, nafta.isku_duub(nafta.dhex.nuqul(), shaqo), "socod"])
         nafta.waddo.geli(["OPTIONS", buuxa, nafta.isku_duub(nafta.dhex.nuqul(), hawl(codsi) { celi { heer: 204 } })])
     }
 

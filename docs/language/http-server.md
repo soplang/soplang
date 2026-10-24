@@ -68,10 +68,39 @@ The handler receives one `walax`:
 | `baytyo` | Raw body. |
 | `json` | Parsed JSON when the content type contains `json`. Invalid JSON returns status 400 without calling the handler. |
 
+On an asynchronous listener, a route may use a fourth item `"socod"`. This
+calls its handler after the headers arrive, before the full body is read:
+
+```soplang
+hawl upload(codsi) {
+    door total = 0
+    intay (run) {
+        door chunk = server_jidh_akhris(codsi.jidh, 65536)
+        haddii (dherer(chunk) == 0) { jooji }
+        total = total + dherer(chunk)
+    }
+    celi {json: {baytyo: total}}
+}
+door server = sug(tcp_dhegeysi_shaqo("127.0.0.1", 8080))
+sug(server_aqbal_shaqo(server, [["POST", "/upload", upload, "socod"]], {cabbir: 1073741824}))
+tcp_xidh(server)
+```
+
+The request adds `jidh` (a scoped body handle) and `dherer_jidh` (the declared
+length). Its `qoraal`, `baytyo`, and `json` fields are `maran`; parse chunks
+explicitly. `server_jidh_akhris(handle, size)` returns up to `size` bytes,
+with size from 1 to 65536, and an empty `baytyo` at the declared end. It
+suspends the owning task while waiting for TCP input, so the server can handle
+other connections. The handle becomes invalid when the handler returns.
+Early disconnects and timeouts are catchable errors. Nonempty streaming uploads
+require `Content-Length`; omitting it means an empty body. Chunked request
+bodies remain unsupported.
+
 The body must use `Content-Length`. Chunked bodies are rejected. The default
 limit is 1048576 bytes and the default read and write timeout is 30 seconds.
 Pass `{cabbir: n, waqti: seconds}` as the third argument of `server_aqbal` to
-change them.
+change them. Buffered routes never accept more than 16 MiB. Streaming routes
+may raise `cabbir` to 1 GiB while retaining at most one read chunk at a time.
 
 ## Response
 

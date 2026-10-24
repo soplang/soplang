@@ -372,3 +372,121 @@ fn bounded_http_serving_drains_active_requests_in_jit_and_llvm() {
     drive_serving(&mut Command::new(&binary));
     std::fs::remove_dir_all(dir).unwrap();
 }
+
+const STREAMING_REQUEST_PROGRAM: &str = r#"
+keen "web" sida web
+door app = cusub web.Web()
+app.cabbir = 17 * 1024 * 1024
+door saved = {jidh: maran}
+app.hel_socod("POST", "/upload", hawl(codsi) {
+    saved.jidh = codsi.jidh
+    door total = 0
+    door parts = 0
+    intay (run) {
+        door chunk = web.jidh_akhris(codsi, 32768)
+        haddii (dherer(chunk) == 0) { jooji }
+        total = total + dherer(chunk)
+        parts = parts + 1
+        haddii (parts == 1) { qor("first-chunk") }
+    }
+    celi web.json({total: total, parts: parts})
+})
+app.hel("POST", "/buffered", hawl(codsi) { celi web.json({accepted: run}) })
+door server = sug(tcp_dhegeysi_shaqo("127.0.0.1", 0))
+qor(server.deked)
+sug(app.aqbal_shaqo(server))
+sug(app.aqbal_shaqo(server))
+tcp_xidh(server)
+door closed = been
+tijaabi { server_jidh_akhris(saved.jidh, 1) } qabo (e) { closed = run }
+haddii (!closed) { tuur "body handle escaped" }
+qor("stream done")
+"#;
+
+fn drive_streaming_request(command: &mut Command) {
+    const LENGTH: usize = 16 * 1024 * 1024 + 1;
+    let mut child = command
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .unwrap();
+    let mut stdout = BufReader::new(child.stdout.take().unwrap());
+    let mut port = String::new();
+    stdout.read_line(&mut port).unwrap();
+    let mut stream = TcpStream::connect(format!("127.0.0.1:{}", port.trim())).unwrap();
+    stream
+        .set_read_timeout(Some(Duration::from_secs(10)))
+        .unwrap();
+    stream
+        .write_all(
+            format!("POST /upload HTTP/1.1\r\nHost: localhost\r\nContent-Length: {LENGTH}\r\n\r\n")
+                .as_bytes(),
+        )
+        .unwrap();
+    let chunk = vec![b'x'; 32768];
+    stream.write_all(&chunk).unwrap();
+    let mut started = String::new();
+    stdout.read_line(&mut started).unwrap();
+    assert_eq!(started.trim(), "first-chunk");
+    let mut remaining = LENGTH - chunk.len();
+    while remaining > 0 {
+        let count = remaining.min(chunk.len());
+        stream.write_all(&chunk[..count]).unwrap();
+        remaining -= count;
+    }
+    let mut response = String::new();
+    stream.read_to_string(&mut response).unwrap();
+    assert!(response.starts_with("HTTP/1.1 200"), "{response}");
+    assert!(
+        response.contains(&format!("\"total\":{LENGTH}")),
+        "{response}"
+    );
+    let mut buffered = TcpStream::connect(format!("127.0.0.1:{}", port.trim())).unwrap();
+    buffered
+        .set_read_timeout(Some(Duration::from_secs(3)))
+        .unwrap();
+    buffered
+        .write_all(
+            format!(
+                "POST /buffered HTTP/1.1\r\nHost: localhost\r\nContent-Length: {LENGTH}\r\n\r\n"
+            )
+            .as_bytes(),
+        )
+        .unwrap();
+    let mut rejected = String::new();
+    buffered.read_to_string(&mut rejected).unwrap();
+    assert!(rejected.starts_with("HTTP/1.1 413"), "{rejected}");
+    let mut rest = String::new();
+    stdout.read_to_string(&mut rest).unwrap();
+    let output = child.wait_with_output().unwrap();
+    assert!(
+        output.status.success(),
+        "status {:?}\n{}\n{rest}",
+        output.status.code(),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(rest.contains("stream done"), "{rest}");
+}
+
+#[test]
+fn streaming_request_body_exceeds_buffered_limit_in_jit_and_llvm() {
+    let mut jit = Command::new(env!("CARGO_BIN_EXE_soplang"));
+    jit.arg("-c").arg(STREAMING_REQUEST_PROGRAM);
+    drive_streaming_request(&mut jit);
+
+    let dir = std::env::temp_dir().join(format!(
+        "soplang_streaming_request_{}_{}",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos()
+    ));
+    std::fs::create_dir_all(&dir).unwrap();
+    let source = dir.join("main.sop");
+    let binary = dir.join("server");
+    std::fs::write(&source, STREAMING_REQUEST_PROGRAM).unwrap();
+    soplang::build_source(STREAMING_REQUEST_PROGRAM, Some(&source), &binary, 2, false).unwrap();
+    drive_streaming_request(&mut Command::new(&binary));
+    std::fs::remove_dir_all(dir).unwrap();
+}
