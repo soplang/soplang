@@ -56,6 +56,7 @@ deegaan_qor	qoraal magac;qoraal qiime	maran	Set an environment variable.
 deegaan_tirtir	qoraal magac	maran	Remove an environment variable.
 fuli	qoraal barnaamij;[teed[qoraal] doodo]	walax	Run a program without a shell and return exit code, stdout and stderr.
 http_codso	qoraal hab;qoraal url;[walax xulasho]	walax	Send an HTTP or HTTPS request; HTTPS verifies certificates through the platform trust store.
+http_codso_shaqo	qoraal hab;qoraal url;[walax xulasho]	@native:task	Send a cancellable HTTP or HTTPS request on the I/O executor; sug returns the ordinary response object.
 server_fur	qoraal marti;abn deked;[walax xulasho]	walax	Open a sequential HTTP listener; shahaado and fure options enable TLS.
 habee_qoraal	qoraal qaab;walax xog	qoraal	Render a template with HTML-escaped named substitutions.
 qayb_foom	qoraal nooc;jir	teed	Parse a bounded multipart/form-data body without changing uploaded bytes.

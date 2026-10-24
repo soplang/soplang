@@ -21,6 +21,14 @@ type Fiber = Coroutine<Signal, Event, Result<Value, SoplangError>>;
 type FiberYielder = Yielder<Signal, Event>;
 const MAX_ACTIVE_TASKS: usize = 4096;
 const MAX_FILE_TASKS: usize = 16;
+const MAX_HTTP_TASKS: usize = 64;
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub(super) enum ExternalKind {
+    Timer,
+    File,
+    Http,
+}
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum Signal {
@@ -153,7 +161,7 @@ struct PendingIo {
     abort: tokio::task::AbortHandle,
     parent: i64,
     handle: Rc<TaskData>,
-    file: bool,
+    kind: ExternalKind,
 }
 
 struct Completion {
@@ -166,12 +174,19 @@ pub(super) enum OwnedResult {
     Unit,
     Text(String),
     Bytes(Vec<u8>),
+    Http {
+        status: i64,
+        headers: HashMap<String, String>,
+        body: Vec<u8>,
+    },
 }
 
 pub(super) enum OwnedFailure {
     Read(PathBuf, io::Error),
     Write(PathBuf, io::Error),
     FileTooLarge(PathBuf),
+    Http(String, String),
+    HttpTooLarge,
 }
 
 impl Default for Scheduler {
@@ -257,7 +272,7 @@ fn check_limit(state: &RuntimeState) -> Result<(), SoplangError> {
     }
 }
 
-pub(super) fn spawn_external<F>(future: F, file: bool) -> Result<Value, SoplangError>
+pub(super) fn spawn_external<F>(future: F, kind: ExternalKind) -> Result<Value, SoplangError>
 where
     F: Future<Output = Result<OwnedResult, OwnedFailure>> + Send + 'static,
 {
@@ -266,19 +281,19 @@ where
         while try_completion(state) {}
         check_limit(state)?;
         let mut scheduler = state.scheduler.borrow_mut();
-        if file
-            && scheduler
-                .pending_io
-                .values()
-                .filter(|entry| entry.file)
-                .count()
-                >= MAX_FILE_TASKS
+        let (limit, message) = match kind {
+            ExternalKind::Timer => (usize::MAX, ""),
+            ExternalKind::File => (MAX_FILE_TASKS, "Faylal badan ayaa hal mar la adeegsanayaa."),
+            ExternalKind::Http => (MAX_HTTP_TASKS, "Codsiyo HTTP badan ayaa hal mar socda."),
+        };
+        if scheduler
+            .pending_io
+            .values()
+            .filter(|entry| entry.kind == kind)
+            .count()
+            >= limit
         {
-            return Err(runtime_error(
-                "Faylal badan ayaa hal mar la adeegsanayaa.",
-                0,
-                0,
-            ));
+            return Err(runtime_error(message, 0, 0));
         }
         let data = new_handle(state);
         let id = data.handle();
@@ -298,7 +313,7 @@ where
                 abort: handle.abort_handle(),
                 parent,
                 handle: Rc::clone(&data),
-                file,
+                kind,
             },
         );
         Ok(Value::Task(data))
@@ -311,7 +326,7 @@ pub(super) fn timer(millis: u64) -> Result<Value, SoplangError> {
             tokio::time::sleep(Duration::from_millis(millis)).await;
             Ok(OwnedResult::Unit)
         },
-        false,
+        ExternalKind::Timer,
     )
 }
 
@@ -335,11 +350,6 @@ fn finish_io(state: &RuntimeState, completion: Completion) {
     };
     let result = completion
         .result
-        .map(|result| match result {
-            OwnedResult::Unit => Value::Null,
-            OwnedResult::Text(text) => Value::Str(text),
-            OwnedResult::Bytes(bytes) => super::bytes::from_raw_vec(bytes),
-        })
         .map_err(|error| match error {
             OwnedFailure::Read(path, error) => crate::error::file_read_error(&path, &error),
             OwnedFailure::Write(path, error) => crate::error::file_write_error(&path, &error),
@@ -348,6 +358,23 @@ fn finish_io(state: &RuntimeState, completion: Completion) {
                 0,
                 0,
             ),
+            OwnedFailure::Http(message, details) => {
+                super::http::error_with_details(message, details)
+            }
+            OwnedFailure::HttpTooLarge => super::http::error_with_details(
+                "Jawaabta HTTP way ka weyn tahay xadka.",
+                "response body limit exceeded",
+            ),
+        })
+        .and_then(|result| match result {
+            OwnedResult::Unit => Ok(Value::Null),
+            OwnedResult::Text(text) => Ok(Value::Str(text)),
+            OwnedResult::Bytes(bytes) => Ok(super::bytes::from_raw_vec(bytes)),
+            OwnedResult::Http {
+                status,
+                headers,
+                body,
+            } => super::http::decoded_response(status, headers, body),
         });
     pending.handle.finished_at.set(Some(completion.finished_at));
     *pending.handle.result.borrow_mut() = Some(result);
@@ -627,7 +654,7 @@ pub(super) fn await_with_timeout(data: &Rc<TaskData>, millis: u64) -> Result<Val
                 tokio::time::sleep_until(tokio::time::Instant::from_std(expires)).await;
                 Ok(OwnedResult::Unit)
             },
-            false,
+            ExternalKind::Timer,
         )?
         else {
             unreachable!("timer returns a task")

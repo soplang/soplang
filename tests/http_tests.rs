@@ -97,6 +97,61 @@ qor("http ok")
 }
 
 #[test]
+fn async_http_get_post_json_and_status() {
+    let url = serve(2, |request| {
+        if request.starts_with("POST") {
+            assert!(request.contains("\"n\":7") || request.contains("\"n\": 7"));
+            return response("201 Created", "application/json", "", r#"{"n":7}"#);
+        }
+        response("200 OK", "text/plain", "", "Salaan")
+    });
+    let source = format!(
+        r#"
+        door got = sug(http_codso_shaqo("GET", "{url}"))
+        hubi(got.heer == 200 && got.qoraal == "Salaan")
+        door posted = sug(http_codso_shaqo("POST", "{url}", {{json: {{n: 7}}}}))
+        hubi(posted.heer == 201 && posted.json.n == 7)
+        "#
+    );
+    soplang::run_source(&source, None, false, false, false).unwrap();
+}
+
+#[test]
+fn async_http_limits_redirects_and_cancels_slow_requests() {
+    let redirect = serve(1, |_| {
+        response("302 Found", "text/plain", "Location: http://127.0.0.1:1/next\r\n", "")
+    });
+    let large = serve(1, |_| response("200 OK", "text/plain", "", "0123456789abcdef"));
+    let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+    let slow = format!("http://{}/slow", listener.local_addr().unwrap());
+    thread::spawn(move || {
+        if let Ok((socket, _)) = listener.accept() {
+            thread::sleep(Duration::from_secs(2));
+            drop(socket);
+        }
+    });
+    let source = format!(
+        r#"
+        door moved = sug(http_codso_shaqo("GET", "{redirect}", {{leexasho: 0}}))
+        hubi(moved.heer == 302)
+        door large_error = been
+        tijaabi {{ sug(http_codso_shaqo("GET", "{large}", {{cabbir: 4}})) }}
+        qabo (e) {{ large_error = run }}
+        hubi(large_error)
+        door task = http_codso_shaqo("GET", "{slow}")
+        sug(hurdada(30))
+        door timed = been
+        tijaabi {{ sug_waqti(task, 10) }}
+        qabo (e) {{ timed = e == "Waqtigii shaqada loo qabtay wuu dhammaaday." }}
+        hubi(timed)
+        "#
+    );
+    let start = std::time::Instant::now();
+    soplang::run_source(&source, None, false, false, false).unwrap();
+    assert!(start.elapsed() < Duration::from_secs(1));
+}
+
+#[test]
 fn http_limits_redirects_size_and_timeout() {
     let redirect = serve(1, |_| {
         response("302 Found", "text/plain", "Location: http://127.0.0.1:1/next\r\n", "")

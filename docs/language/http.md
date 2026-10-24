@@ -1,5 +1,12 @@
 # HTTP client
 
+`http_codso_shaqo(hab, url, xulasho?)` performs a request on the I/O executor
+and returns a task. `sug(task)` returns the normal response object;
+`baaji(task)` or `sug_waqti(task, millisekan)` cancels an in-flight request.
+The async request body is limited to 16 MiB, and a runtime may have at most 64
+HTTP requests in flight. The `cabbir` response limit applies while chunks are
+read, so a larger body is not retained in memory.
+
 `http_codso(method, url, options?)` sends one synchronous HTTP request and
 waits for the response. Methods are `GET`, `POST`, `PUT`, `PATCH`, and
 `DELETE`. URLs must start with `http://` or `https://`. `https` verifies the

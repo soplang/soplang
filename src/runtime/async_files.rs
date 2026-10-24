@@ -6,7 +6,7 @@ use std::path::PathBuf;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
 use super::stdlib::{expect_arity, expect_bytes_contents, expect_text_contents, expect_text_path};
-use super::tasks::{self, OwnedFailure, OwnedResult};
+use super::tasks::{self, ExternalKind, OwnedFailure, OwnedResult};
 use super::value::Value;
 use crate::error::{runtime_error, SoplangError};
 
@@ -39,7 +39,7 @@ fn read(args: Vec<Value>, name: &str, text: bool) -> Result<Value, SoplangError>
                 Ok(OwnedResult::Bytes(bytes))
             }
         },
-        true,
+        ExternalKind::File,
     )
 }
 
@@ -77,7 +77,7 @@ fn write(args: Vec<Value>, name: &str, text: bool, append: bool) -> Result<Value
             }
             Ok(OwnedResult::Unit)
         },
-        true,
+        ExternalKind::File,
     )
 }
 

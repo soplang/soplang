@@ -1504,6 +1504,11 @@ const BUILTINS: &[(&str, super::NativeFn, CallbackArity)] = &[
     ),
     ("fuli", builtin_fuli, CallbackArity::range(1, 2)),
     ("http_codso", builtin_http_codso, CallbackArity::range(2, 3)),
+    (
+        "http_codso_shaqo",
+        super::async_http::request,
+        CallbackArity::range(2, 3),
+    ),
     ("server_fur", builtin_server_fur, CallbackArity::range(2, 3)),
     (
         "habee_qoraal",

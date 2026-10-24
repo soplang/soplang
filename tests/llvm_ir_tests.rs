@@ -237,6 +237,35 @@ fn llvm_async_file_tasks_round_trip() {
 }
 
 #[test]
+fn llvm_async_http_request_returns_the_standard_response() {
+    use std::io::{Read, Write};
+    use std::net::TcpListener;
+    let listener = TcpListener::bind("127.0.0.1:0").expect("bind");
+    let url = format!("http://{}/item", listener.local_addr().expect("address"));
+    let server = std::thread::spawn(move || {
+        let (mut stream, _) = listener.accept().expect("accept");
+        stream
+            .set_read_timeout(Some(std::time::Duration::from_secs(2)))
+            .expect("timeout");
+        let mut request = [0u8; 4096];
+        let size = stream.read(&mut request).expect("read request");
+        assert!(String::from_utf8_lossy(&request[..size]).starts_with("GET "));
+        stream
+            .write_all(b"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 4\r\nConnection: close\r\n\r\nLLVM")
+            .expect("response");
+    });
+    let source = format!(
+        r#"
+        door got = sug(http_codso_shaqo("GET", "{url}"))
+        hubi(got.heer == 200 && got.qoraal == "LLVM")
+        qor("async http ok")
+        "#
+    );
+    assert_eq!(run_llvm("async_http", &source), "async http ok\n");
+    server.join().expect("server");
+}
+
+#[test]
 fn llvm_callable_annotations_preserve_values_and_validate_callbacks() {
     for opt in [0, 2] {
         assert_eq!(

@@ -14,7 +14,7 @@ const DEFAULT_REDIRECTS: u32 = 5;
 const DEFAULT_LIMIT: u64 = 1024 * 1024;
 const MAX_LIMIT: u64 = 16 * 1024 * 1024;
 
-fn error(message: impl Into<String>) -> SoplangError {
+pub(super) fn error(message: impl Into<String>) -> SoplangError {
     runtime_error_ex(
         message,
         0,
@@ -23,7 +23,10 @@ fn error(message: impl Into<String>) -> SoplangError {
     )
 }
 
-fn error_with_details(message: impl Into<String>, details: impl std::fmt::Display) -> SoplangError {
+pub(super) fn error_with_details(
+    message: impl Into<String>,
+    details: impl std::fmt::Display,
+) -> SoplangError {
     runtime_error_ex(
         message,
         0,
@@ -34,12 +37,12 @@ fn error_with_details(message: impl Into<String>, details: impl std::fmt::Displa
     )
 }
 
-struct RequestOptions {
-    headers: Vec<(String, String)>,
-    body: Vec<u8>,
-    timeout: Duration,
-    redirects: u32,
-    limit: u64,
+pub(super) struct RequestOptions {
+    pub headers: Vec<(String, String)>,
+    pub body: Vec<u8>,
+    pub timeout: Duration,
+    pub redirects: u32,
+    pub limit: u64,
 }
 
 pub fn request(method: &str, url: &str, options: Option<&Value>) -> Result<Value, SoplangError> {
@@ -54,7 +57,7 @@ pub fn request(method: &str, url: &str, options: Option<&Value>) -> Result<Value
     response_value(response, options.limit)
 }
 
-fn normalize_method(method: &str) -> Result<String, SoplangError> {
+pub(super) fn normalize_method(method: &str) -> Result<String, SoplangError> {
     let method = method.to_ascii_uppercase();
     if !matches!(method.as_str(), "GET" | "POST" | "PUT" | "PATCH" | "DELETE") {
         return Err(error(
@@ -64,7 +67,7 @@ fn normalize_method(method: &str) -> Result<String, SoplangError> {
     Ok(method)
 }
 
-fn parse_options(options: Option<&Value>) -> Result<RequestOptions, SoplangError> {
+pub(super) fn parse_options(options: Option<&Value>) -> Result<RequestOptions, SoplangError> {
     let Some(Value::Object(object)) = options else {
         if options.is_some() {
             return Err(error("Xulashada HTTP waa inay noqotaa walax."));
