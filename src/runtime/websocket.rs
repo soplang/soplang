@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use std::net::{TcpStream, ToSocketAddrs};
 use std::rc::Rc;
 use std::sync::atomic::{AtomicI64, Ordering};
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use tungstenite::protocol::WebSocketConfig;
 use tungstenite::stream::MaybeTlsStream;
@@ -27,7 +27,7 @@ const DEFAULT_SERVER_WORKERS: usize = 8;
 const MAX_SERVER_WORKERS: usize = 32;
 
 pub(super) struct ServerConnection {
-    socket: RefCell<ServerSocket>,
+    socket: RefCell<Option<ServerSocket>>,
     endpoint_id: i64,
 }
 
@@ -319,7 +319,8 @@ pub fn serve_async(
 
 fn serve_async_task(args: Vec<Value>) -> Result<Value, SoplangError> {
     let options = args.get(2).filter(|value| !matches!(value, Value::Null));
-    let _ = super::net::timeout(options)?;
+    let operation_timeout = super::net::timeout(options)?;
+    let drain_timeout = shutdown_timeout(options, operation_timeout)?;
     let workers = worker_count(options)?;
     let mut pending = Vec::with_capacity(workers);
     for _ in 0..workers {
@@ -329,15 +330,51 @@ fn serve_async_task(args: Vec<Value>) -> Result<Value, SoplangError> {
         };
         pending.push(worker);
     }
+    // The listener controls admission. Once it closes, active peers have one
+    // shared deadline to finish; traffic on a peer cannot prolong shutdown.
+    while super::async_net::listener_is_open(&args[0]) {
+        let Value::Task(timer) = super::tasks::timer(50)? else {
+            unreachable!("timer returns a task")
+        };
+        super::tasks::await_task(&timer)?;
+    }
+    let expires = Instant::now()
+        .checked_add(drain_timeout)
+        .ok_or_else(|| error("Waqtiga WebSocket aad buu u dheer yahay."))?;
     let mut first_failure = None;
     for worker in pending {
-        if let Err(failure) = super::tasks::await_task(&worker) {
+        let remaining = expires
+            .checked_duration_since(Instant::now())
+            .unwrap_or_default()
+            .as_millis()
+            .min(u64::MAX as u128) as u64;
+        if let Err(failure) = super::tasks::await_with_timeout(&worker, remaining) {
             first_failure.get_or_insert(failure);
         }
     }
     match first_failure {
         Some(failure) => Err(failure),
         None => Ok(Value::Null),
+    }
+}
+
+fn shutdown_timeout(options: Option<&Value>, default: Duration) -> Result<Duration, SoplangError> {
+    let Some(Value::Object(options)) = options else {
+        return Ok(default);
+    };
+    let options = options
+        .try_borrow()
+        .map_err(|_| error("Walaxda hadda lama akhriyi karo."))?;
+    match options.get("waqti_xidhid") {
+        None => Ok(default),
+        Some(Value::Int(seconds)) if *seconds > 0 => Ok(Duration::from_secs(*seconds as u64)),
+        Some(Value::Float(seconds)) if seconds.is_finite() && *seconds > 0.0 => {
+            Duration::try_from_secs_f64(*seconds)
+                .map_err(|_| error("Waqtiga xidhitaanka WebSocket ma saxna."))
+        }
+        _ => Err(error(
+            "Waqtiga xidhitaanka WebSocket waa inuu noqdaa tiro ka weyn eber.",
+        )),
     }
 }
 
@@ -389,7 +426,7 @@ fn store_server_socket(socket: ServerSocket, connection: &Value) -> Result<Value
         sockets.insert(
             id,
             Rc::new(ServerConnection {
-                socket: RefCell::new(socket),
+                socket: RefCell::new(Some(socket)),
                 endpoint_id,
             }),
         );
@@ -425,15 +462,30 @@ fn server_socket(id: i64) -> Result<Rc<ServerConnection>, SoplangError> {
     })
 }
 
+fn with_server_socket<T>(
+    id: i64,
+    operation: impl FnOnce(&mut ServerSocket) -> Result<T, SoplangError>,
+) -> Result<T, SoplangError> {
+    let connection = server_socket(id)?;
+    let mut socket = connection
+        .socket
+        .try_borrow_mut()
+        .map_err(|_| error("Xidhiidhka WebSocket hadda waa la adeegsanayaa."))?
+        .take()
+        .ok_or_else(|| error("Xidhiidhka WebSocket hadda waa la adeegsanayaa."))?;
+    let result = operation(&mut socket);
+    let bridge_failure = socket.get_mut().take_failure();
+    *connection.socket.borrow_mut() = Some(socket);
+    match bridge_failure {
+        Some(failure) => Err(failure),
+        None => result,
+    }
+}
+
 fn send_server(id: i64, data: &[u8], text: bool) -> Result<Value, SoplangError> {
     if data.len() > MAX_SERVER_MESSAGE {
         return Err(error("Fariinta WebSocket way ka weyn tahay 1 MiB."));
     }
-    let socket = server_socket(id)?;
-    let mut socket = socket
-        .socket
-        .try_borrow_mut()
-        .map_err(|_| error("Xidhiidhka WebSocket hadda waa la adeegsanayaa."))?;
     let message = if text {
         Message::text(
             std::str::from_utf8(data).map_err(|_| error("Fariinta qoraalka ma aha UTF-8."))?,
@@ -441,40 +493,34 @@ fn send_server(id: i64, data: &[u8], text: bool) -> Result<Value, SoplangError> 
     } else {
         Message::binary(data.to_vec())
     };
-    let result = socket
-        .send(message)
-        .map_err(|failure| error_with_details(explain(&failure), failure));
-    if let Some(failure) = socket.get_mut().take_failure() {
-        return Err(failure);
-    }
-    result.map(|_| Value::Null)
+    with_server_socket(id, |socket| {
+        socket
+            .send(message)
+            .map_err(|failure| error_with_details(explain(&failure), failure))?;
+        Ok(Value::Null)
+    })
 }
 
 fn receive_server(id: i64) -> Result<Value, SoplangError> {
-    let socket = server_socket(id)?;
-    let mut socket = socket
-        .socket
-        .try_borrow_mut()
-        .map_err(|_| error("Xidhiidhka WebSocket hadda waa la adeegsanayaa."))?;
-    loop {
-        let result = socket.read();
-        if let Some(failure) = socket.get_mut().take_failure() {
-            return Err(failure);
-        }
-        match result.map_err(|failure| error_with_details(explain(&failure), failure))? {
+    with_server_socket(id, |socket| loop {
+        match socket
+            .read()
+            .map_err(|failure| error_with_details(explain(&failure), failure))?
+        {
             Message::Text(text) => return Ok(Value::Str(text.to_string())),
             Message::Binary(bytes) => return Ok(super::bytes::from_raw_vec(bytes.to_vec())),
             Message::Ping(_) | Message::Pong(_) | Message::Frame(_) => continue,
             Message::Close(_) => return Err(error("Xidhiidhka WebSocket waa la xidhay.")),
         }
-    }
+    })
 }
 
 fn close_server(id: i64) -> Result<Value, SoplangError> {
     STATE.with(|state| {
         let socket = state.server_websockets.borrow_mut().remove(&id);
         if let Some(socket) = socket {
-            if let Ok(mut owned) = socket.socket.try_borrow_mut() {
+            let owned = socket.socket.borrow_mut().take();
+            if let Some(mut owned) = owned {
                 let _ = owned.close(None);
             }
             super::async_net::close_connection(state, socket.endpoint_id);

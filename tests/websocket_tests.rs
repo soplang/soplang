@@ -3,8 +3,9 @@
 use std::io::{BufRead, BufReader, Read, Write};
 use std::net::{TcpListener, TcpStream};
 use std::process::{Command, Stdio};
+use std::sync::mpsc;
 use std::thread;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 use tungstenite::{accept, client, Message};
 
 fn serve() -> u16 {
@@ -285,5 +286,105 @@ fn bounded_websocket_server_drains_peers_in_jit_and_llvm() {
     ));
     soplang::backend::llvm_ir::link_llvm_binary(&ir, &path).unwrap();
     drive_bounded_server(&mut Command::new(&path));
+    std::fs::remove_file(path).unwrap();
+}
+
+const SHUTDOWN_PROGRAM: &str = r#"
+door listener = sug(tcp_dhegeysi_shaqo("127.0.0.1", 0))
+hawl handle(socket) {
+    qor("peer started")
+    door message = ws_akhris(socket)
+    haddii (message == "stop") {
+        tcp_xidh(listener)
+        ws_qor(socket, "stopped")
+    }
+}
+qor(listener.deked)
+door serving = ws_adeeg_shaqo(listener, handle, {shaqaale: 2, waqti: 3, waqti_xidhid: 0.25})
+tijaabi { sug(serving) } qabo (e) { qor("drain timed out") }
+qor("server done")
+"#;
+
+fn drive_shutdown(command: &mut Command) {
+    let mut child = command
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .unwrap();
+    let stdout = child.stdout.take().unwrap();
+    let (sender, receiver) = mpsc::channel();
+    let reader = thread::spawn(move || {
+        for line in BufReader::new(stdout).lines() {
+            if sender.send(line.unwrap()).is_err() {
+                break;
+            }
+        }
+    });
+    let port = receiver.recv_timeout(Duration::from_secs(5)).unwrap();
+    let connect = || {
+        let stream = TcpStream::connect(format!("127.0.0.1:{port}")).unwrap();
+        stream
+            .set_read_timeout(Some(Duration::from_secs(3)))
+            .unwrap();
+        stream
+            .set_write_timeout(Some(Duration::from_secs(3)))
+            .unwrap();
+        client(format!("ws://127.0.0.1:{port}/"), stream).unwrap().0
+    };
+    let mut idle = connect();
+    assert_eq!(
+        receiver.recv_timeout(Duration::from_secs(5)).unwrap(),
+        "peer started"
+    );
+    let mut control = connect();
+    control.send(Message::text("stop")).unwrap();
+    assert_eq!(control.read().unwrap().to_text().unwrap(), "stopped");
+    let started = Instant::now();
+    let mut output = Vec::new();
+    while !output.iter().any(|line| line == "server done") {
+        match receiver.recv_timeout(Duration::from_secs(2)) {
+            Ok(line) => output.push(line),
+            Err(failure) => {
+                let _ = child.kill();
+                let _ = child.wait();
+                panic!("WebSocket server did not drain: {failure:?}, output {output:?}");
+            }
+        }
+    }
+    assert!(started.elapsed() < Duration::from_secs(2));
+    assert!(
+        output.iter().any(|line| line == "drain timed out"),
+        "{output:?}"
+    );
+    assert!(matches!(idle.read(), Err(_) | Ok(Message::Close(_))));
+    let result = child.wait_with_output().unwrap();
+    reader.join().unwrap();
+    assert!(
+        result.status.success(),
+        "{}",
+        String::from_utf8_lossy(&result.stderr)
+    );
+}
+
+#[test]
+fn websocket_shutdown_cancels_idle_peers_in_jit_and_llvm() {
+    let mut jit = Command::new(env!("CARGO_BIN_EXE_soplang"));
+    jit.arg("-c").arg(SHUTDOWN_PROGRAM);
+    drive_shutdown(&mut jit);
+
+    let stmts = soplang::frontend::parse_source(SHUTDOWN_PROGRAM, None).unwrap();
+    let symbols = soplang::analyze(&stmts).unwrap();
+    let hir = soplang::HirLowering::lower(&symbols, &stmts);
+    let ir = soplang::backend::llvm_ir::emit_llvm_ir(&hir, &symbols).unwrap();
+    let path = std::env::temp_dir().join(format!(
+        "soplang_ws_shutdown_{}_{}",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos()
+    ));
+    soplang::backend::llvm_ir::link_llvm_binary(&ir, &path).unwrap();
+    drive_shutdown(&mut Command::new(&path));
     std::fs::remove_file(path).unwrap();
 }

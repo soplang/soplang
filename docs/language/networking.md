@@ -98,7 +98,8 @@ an asynchronous TCP listener. `sug` waits for its handler to finish.
 8 workers by default; `shaqaale` selects 1 to 32 workers. Each handler runs
 on the owning runtime thread and receives one WebSocket handle. Closing the
 listener with `tcp_xidh` cancels pending accepts; `sug` on the serving task
-waits for active handlers to finish. Invalid upgrades and client disconnects
+waits for active handlers to finish, then cancels any that exceed the shared
+shutdown deadline. Invalid upgrades and client disconnects
 affect only their connection. These server functions currently use plain TCP
 listeners and do not share an HTTP listener or route WebSocket upgrades through
 the bundled `web` module.
@@ -115,8 +116,13 @@ sug(serving)
 
 Server messages and frames are limited to 1 MiB; at most 64 server WebSocket
 handles may be open in one runtime context. The `waqti` option applies to each
-handshake, read, and write operation. The handle closes when its handler
-returns, even if the handler raises an error. `ws_xidh` closes it early.
+handshake, read, and write operation. For `ws_adeeg_shaqo`,
+`waqti_xidhid` sets the shutdown drain deadline in seconds and defaults to
+`waqti`. The deadline starts when the listener closes and is shared by all
+active handlers. If it expires, the serving task reports a catchable timeout
+after cancelling and draining the remaining handlers. The handle closes when
+its handler returns, even if the handler raises an error. `ws_xidh` closes it
+early.
 
 `ws_qor(socket, data)` sends a text frame for a `qoraal` and a binary frame for
 a `baytyo`. `ws_akhris(socket)` returns the next data frame as `qoraal` or

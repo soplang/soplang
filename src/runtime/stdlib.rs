@@ -832,7 +832,7 @@ pub fn builtin_ws_qor(args: Vec<Value>) -> Result<Value, SoplangError> {
     match &args[1] {
         Value::Str(text) => super::websocket::send(&args[0], text.as_bytes(), true),
         Value::Bytes(bytes) => {
-            let data = super::bytes::read(bytes)?;
+            let data = super::bytes::read(bytes)?.clone();
             super::websocket::send(&args[0], &data, false)
         }
         _ => Err(err_type("ws_qor() wuxuu u baahan yahay qoraal ama baytyo.")),
