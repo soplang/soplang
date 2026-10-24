@@ -773,7 +773,7 @@ fn serve<S: Read + Write>(
     limit: usize,
 ) -> Result<Value, SoplangError> {
     match read_request(stream, limit.min(MAX_LIMIT)) {
-        Ok(request) => dispatch(stream, routes, request),
+        Ok(request) => dispatch(stream, routes, request, None),
         Err(ResponseFault::Reply(status, message)) => {
             let _ = write_response(
                 stream,
@@ -814,7 +814,7 @@ fn serve_async_request(
         if route.streaming {
             let handle = register_request_body(connection, &request.body, framing, limit, expires)?;
             let request_value = streaming_request_object(&request, params, handle.clone(), framing);
-            let result = dispatch_handler(stream, route, request_value);
+            let result = dispatch_handler(stream, route, request_value, Some(expires));
             close_request_body(&handle);
             return result;
         }
@@ -830,7 +830,7 @@ fn serve_async_request(
         return Ok(Value::Null);
     }
     match fill_request_body(stream, &mut request, framing, limit.min(MAX_LIMIT)) {
-        Ok(()) => dispatch(stream, routes, request),
+        Ok(()) => dispatch(stream, routes, request, Some(expires)),
         Err(ResponseFault::Reply(status, message)) => {
             let _ = write_response(
                 stream,
@@ -876,6 +876,7 @@ fn dispatch<S: Write>(
     stream: &mut S,
     routes: &[Route],
     request: RawRequest,
+    deadline: Option<Instant>,
 ) -> Result<Value, SoplangError> {
     let (path_match, method_mismatch) = select_route(routes, &request);
     let Some((route, params)) = path_match else {
@@ -911,7 +912,7 @@ fn dispatch<S: Write>(
             return Ok(Value::Null);
         }
     };
-    dispatch_handler(stream, route, request_value)
+    dispatch_handler(stream, route, request_value, deadline)
 }
 
 fn select_route<'a>(
@@ -934,8 +935,9 @@ fn dispatch_handler<S: Write>(
     stream: &mut S,
     route: &Route,
     request_value: Value,
+    deadline: Option<Instant>,
 ) -> Result<Value, SoplangError> {
-    match super::abi::invoke(&route.handler, &[request_value]) {
+    match invoke_with_deadline(&route.handler, vec![request_value], deadline) {
         Ok(value) => {
             let response = match response_from(&value) {
                 Ok(response) => response,
@@ -951,7 +953,14 @@ fn dispatch_handler<S: Write>(
                     let _ = write_response(stream, response.0, &response.1, &body, &response.3);
                 }
                 ResponseBody::Stream(next) => {
-                    write_streaming_response(stream, response.0, &response.1, &next, &response.3)?;
+                    write_streaming_response(
+                        stream,
+                        response.0,
+                        &response.1,
+                        &next,
+                        &response.3,
+                        deadline,
+                    )?;
                 }
             }
         }
@@ -973,6 +982,24 @@ fn dispatch_handler<S: Write>(
         }
     }
     Ok(Value::Null)
+}
+
+fn invoke_with_deadline(
+    function: &Value,
+    args: Vec<Value>,
+    deadline: Option<Instant>,
+) -> Result<Value, SoplangError> {
+    let Some(deadline) = deadline else {
+        return super::abi::invoke(function, &args);
+    };
+    let remaining = deadline
+        .checked_duration_since(Instant::now())
+        .filter(|time| !time.is_zero())
+        .ok_or_else(|| error("Waqtigii codsiga wuu dhammaaday."))?;
+    let Value::Task(task) = super::tasks::spawn(function.clone(), args)? else {
+        unreachable!("handler runs in a task")
+    };
+    super::tasks::await_with_timeout(&task, remaining.as_millis().min(u64::MAX as u128) as u64)
 }
 
 fn request_object(request: &RawRequest, params: HashMap<String, String>) -> Result<Value, String> {
@@ -1642,6 +1669,7 @@ fn write_streaming_response<S: Write>(
     headers: &[(String, String)],
     next: &Value,
     content_type: &str,
+    deadline: Option<Instant>,
 ) -> Result<(), SoplangError> {
     write_response_head(stream, status, headers, content_type, None).map_err(|failure| {
         error(format!(
@@ -1650,7 +1678,7 @@ fn write_streaming_response<S: Write>(
         ))
     })?;
     loop {
-        let chunk = super::abi::invoke(next, &[])?;
+        let chunk = invoke_with_deadline(next, Vec::new(), deadline)?;
         let bytes = match chunk {
             Value::Null => break,
             Value::Str(text) => text.into_bytes(),

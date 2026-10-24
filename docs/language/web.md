@@ -70,8 +70,11 @@ or raises an error.
 `app.waqti` and `app.cabbir` are the connection exchange deadline in seconds
 and the request-body limit. The defaults are 30 and 1048576. All reads and
 writes, including TLS handshakes, share that absolute deadline. Incoming bytes
-do not restart it. Waiting for the next connection has no deadline; synchronous
-handler code cannot be forcibly interrupted.
+do not restart it. On asynchronous listeners, handlers and streaming response
+producers receive the same deadline. Cancellation runs `dhammee` cleanup at
+task suspension points and compiled loop and function-entry polls. Waiting for
+the next connection has no deadline; synchronous handler code cannot be
+forcibly interrupted.
 
 ## Requests and responses
 

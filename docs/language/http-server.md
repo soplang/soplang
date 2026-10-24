@@ -25,7 +25,9 @@ the owning runtime thread. Use `sug` to collect each task result and
 `tcp_xidh(server)` to close the asynchronous listener. Closing it cancels
 pending accepts. The options and route behavior match `server_aqbal`. The
 exchange timeout begins when a connection is accepted, and covers all reads
-and writes. This task-based path currently supports plain TCP.
+and writes. Handlers and streaming response producers run as scoped tasks;
+their deadlines cancel suspended work and run `dhammee` cleanup before the
+connection closes. This task-based path currently supports plain TCP.
 
 `server_adeeg_shaqo(server, routes, options?)` keeps accepting and serving
 connections until `tcp_xidh(server)` closes the asynchronous listener. It

@@ -3,7 +3,8 @@
 use std::io::{BufRead, BufReader, Read, Write};
 use std::net::TcpStream;
 use std::process::{Command, Stdio};
-use std::time::Duration;
+use std::thread;
+use std::time::{Duration, Instant};
 
 const PROGRAM: &str = r#"
 hawl hello(c) { celi {json: {id: c.qayb.id, x: c.weydiimo.x}} }
@@ -583,5 +584,318 @@ fn chunked_request_bodies_stream_and_buffer_in_jit_and_llvm() {
     std::fs::write(&source, CHUNKED_REQUEST_PROGRAM).unwrap();
     soplang::build_source(CHUNKED_REQUEST_PROGRAM, Some(&source), &binary, 2, false).unwrap();
     drive_chunked_request(&mut Command::new(&binary));
+    std::fs::remove_dir_all(dir).unwrap();
+}
+
+const HTTP_LOAD_PROGRAM: &str = r#"
+keen "web" sida web
+door server = sug(tcp_dhegeysi_shaqo("127.0.0.1", 0))
+door app = cusub web.Web()
+app.waqti = 0.45
+door active = 0
+door peak = 0
+door completed = 0
+app.hel("GET", "/ok", hawl(codsi) {
+    active = active + 1
+    haddii (active > peak) { peak = active }
+    sug(hurdada(10))
+    active = active - 1
+    completed = completed + 1
+    celi web.json({ok: run})
+})
+app.hel("GET", "/fail", hawl(codsi) { tuur "intentional failure" })
+app.hel("GET", "/stop", hawl(codsi) {
+    tcp_xidh(server)
+    celi web.json({stopped: run})
+})
+qor(server.deked)
+door serving = app.adeeg_shaqo(server, 4)
+sug(serving)
+qor("peak=" + qoraal(peak) + " completed=" + qoraal(completed))
+"#;
+
+#[cfg(target_os = "linux")]
+fn resident_kib(pid: u32) -> Option<usize> {
+    std::fs::read_to_string(format!("/proc/{pid}/status"))
+        .ok()?
+        .lines()
+        .find_map(|line| {
+            line.strip_prefix("VmRSS:")?
+                .split_whitespace()
+                .next()?
+                .parse()
+                .ok()
+        })
+}
+
+fn drive_http_load(command: &mut Command) {
+    let mut child = command
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .unwrap();
+    let mut stdout = BufReader::new(child.stdout.take().unwrap());
+    let mut port = String::new();
+    stdout.read_line(&mut port).unwrap();
+    let address = format!("127.0.0.1:{}", port.trim());
+    let connect = || {
+        let stream = TcpStream::connect(&address).unwrap();
+        stream
+            .set_read_timeout(Some(Duration::from_secs(4)))
+            .unwrap();
+        stream
+            .set_write_timeout(Some(Duration::from_secs(4)))
+            .unwrap();
+        stream
+    };
+
+    let mut stalled = Vec::new();
+    for _ in 0..4 {
+        let mut stream = connect();
+        stream.write_all(b"GET /ok HTTP/1.1\r\nHost:").unwrap();
+        stalled.push(stream);
+    }
+    for mut stream in stalled {
+        let mut one = [0];
+        assert_eq!(
+            stream.read(&mut one).unwrap(),
+            0,
+            "stalled client stayed open"
+        );
+    }
+
+    #[cfg(target_os = "linux")]
+    let mut initial_rss = None;
+    for wave in 0..12 {
+        #[cfg(not(target_os = "linux"))]
+        let _ = wave;
+        let mut requests = Vec::new();
+        for index in 0..8 {
+            let address = address.clone();
+            requests.push(thread::spawn(move || {
+                let mut stream = TcpStream::connect(address).unwrap();
+                stream
+                    .set_read_timeout(Some(Duration::from_secs(4)))
+                    .unwrap();
+                let path = if index < 6 { "/ok" } else { "/fail" };
+                stream
+                    .write_all(format!("GET {path} HTTP/1.1\r\nHost: localhost\r\n\r\n").as_bytes())
+                    .unwrap();
+                let mut response = String::new();
+                stream.read_to_string(&mut response).unwrap();
+                (path, response)
+            }));
+        }
+        let mut dropped = connect();
+        dropped
+            .write_all(b"GET /ok HTTP/1.1\r\nHost: localhost\r\n\r\n")
+            .unwrap();
+        drop(dropped);
+        for request in requests {
+            let (path, response) = request.join().unwrap();
+            let expected = if path == "/ok" { 200 } else { 500 };
+            assert!(
+                response.starts_with(&format!("HTTP/1.1 {expected}")),
+                "{response}"
+            );
+        }
+        #[cfg(target_os = "linux")]
+        {
+            if wave == 1 {
+                initial_rss = resident_kib(child.id());
+            }
+            if wave == 11 {
+                if let (Some(start), Some(end)) = (initial_rss, resident_kib(child.id())) {
+                    assert!(
+                        end <= start + 64 * 1024,
+                        "HTTP resident memory grew from {start} to {end} KiB"
+                    );
+                }
+            }
+        }
+    }
+    let mut stop = connect();
+    stop.write_all(b"GET /stop HTTP/1.1\r\nHost: localhost\r\n\r\n")
+        .unwrap();
+    let mut stopped = String::new();
+    stop.read_to_string(&mut stopped).unwrap();
+    assert!(stopped.starts_with("HTTP/1.1 200"), "{stopped}");
+    let deadline = Instant::now() + Duration::from_secs(5);
+    while child.try_wait().unwrap().is_none() {
+        if Instant::now() >= deadline {
+            let _ = child.kill();
+            let _ = child.wait();
+            panic!("HTTP server did not drain after shutdown");
+        }
+        thread::sleep(Duration::from_millis(10));
+    }
+    let mut rest = String::new();
+    stdout.read_to_string(&mut rest).unwrap();
+    let output = child.wait_with_output().unwrap();
+    assert!(
+        output.status.success(),
+        "{}\n{rest}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let line = rest.lines().find(|line| line.starts_with("peak=")).unwrap();
+    let mut fields = line.split_whitespace();
+    let peak: usize = fields
+        .next()
+        .unwrap()
+        .trim_start_matches("peak=")
+        .parse()
+        .unwrap();
+    let completed: usize = fields
+        .next()
+        .unwrap()
+        .trim_start_matches("completed=")
+        .parse()
+        .unwrap();
+    assert!((1..=4).contains(&peak), "{rest}");
+    assert!(completed >= 72, "{rest}");
+}
+
+#[test]
+fn bounded_http_server_survives_stalled_dropped_and_failing_clients() {
+    let mut jit = Command::new(env!("CARGO_BIN_EXE_soplang"));
+    jit.arg("-c").arg(HTTP_LOAD_PROGRAM);
+    drive_http_load(&mut jit);
+
+    let dir = std::env::temp_dir().join(format!(
+        "soplang_http_load_{}_{}",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos()
+    ));
+    std::fs::create_dir_all(&dir).unwrap();
+    let source = dir.join("main.sop");
+    let binary = dir.join("server");
+    std::fs::write(&source, HTTP_LOAD_PROGRAM).unwrap();
+    soplang::build_source(HTTP_LOAD_PROGRAM, Some(&source), &binary, 2, false).unwrap();
+    drive_http_load(&mut Command::new(&binary));
+    std::fs::remove_dir_all(dir).unwrap();
+}
+
+const HANDLER_DEADLINE_PROGRAM: &str = r#"
+keen "web" sida web
+door app = cusub web.Web()
+app.waqti = 0.25
+app.hel("GET", "/slow", hawl(codsi) {
+    tijaabi {
+        sug(hurdada(3000))
+        qor("too late")
+    } dhammee { qor("cleanup") }
+    celi web.json({ok: run})
+})
+app.hel("GET", "/stream", hawl(codsi) {
+    hawl next() {
+        tijaabi {
+            sug(hurdada(3000))
+            qor("too late")
+        } dhammee { qor("stream cleanup") }
+        celi "chunk"
+    }
+    celi web.socod(next)
+})
+app.hel("GET", "/fast", hawl(codsi) { celi web.json({ok: run}) })
+door server = sug(tcp_dhegeysi_shaqo("127.0.0.1", 0))
+qor(server.deked)
+tijaabi { sug(app.aqbal_shaqo(server)) } qabo (e) { qor("timed out") }
+tijaabi { sug(app.aqbal_shaqo(server)) } qabo (e) { qor("producer timed out") }
+sug(app.aqbal_shaqo(server))
+tcp_xidh(server)
+qor("deadline done")
+"#;
+
+fn drive_handler_deadline(command: &mut Command) {
+    let mut child = command
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .unwrap();
+    let mut stdout = BufReader::new(child.stdout.take().unwrap());
+    let mut port = String::new();
+    stdout.read_line(&mut port).unwrap();
+    let address = format!("127.0.0.1:{}", port.trim());
+    let mut slow = TcpStream::connect(&address).unwrap();
+    slow.set_read_timeout(Some(Duration::from_secs(3))).unwrap();
+    slow.write_all(b"GET /slow HTTP/1.1\r\nHost: localhost\r\n\r\n")
+        .unwrap();
+    let started = Instant::now();
+    let mut ignored = Vec::new();
+    slow.read_to_end(&mut ignored).unwrap();
+    assert!(
+        started.elapsed() < Duration::from_secs(2),
+        "handler exceeded its exchange deadline"
+    );
+    let mut cleanup = String::new();
+    stdout.read_line(&mut cleanup).unwrap();
+    assert_eq!(cleanup.trim(), "cleanup");
+    let mut timeout = String::new();
+    stdout.read_line(&mut timeout).unwrap();
+    assert_eq!(timeout.trim(), "timed out");
+    let mut stream = TcpStream::connect(&address).unwrap();
+    stream
+        .set_read_timeout(Some(Duration::from_secs(3)))
+        .unwrap();
+    stream
+        .write_all(b"GET /stream HTTP/1.1\r\nHost: localhost\r\n\r\n")
+        .unwrap();
+    let started = Instant::now();
+    let mut partial = Vec::new();
+    stream.read_to_end(&mut partial).unwrap();
+    assert!(
+        started.elapsed() < Duration::from_secs(2),
+        "producer exceeded its exchange deadline"
+    );
+    let mut cleanup = String::new();
+    stdout.read_line(&mut cleanup).unwrap();
+    assert_eq!(cleanup.trim(), "stream cleanup");
+    let mut timeout = String::new();
+    stdout.read_line(&mut timeout).unwrap();
+    assert_eq!(timeout.trim(), "producer timed out");
+    let mut fast = TcpStream::connect(&address).unwrap();
+    fast.set_read_timeout(Some(Duration::from_secs(3))).unwrap();
+    fast.write_all(b"GET /fast HTTP/1.1\r\nHost: localhost\r\n\r\n")
+        .unwrap();
+    let mut response = String::new();
+    fast.read_to_string(&mut response).unwrap();
+    assert!(response.starts_with("HTTP/1.1 200"), "{response}");
+    let mut rest = String::new();
+    stdout.read_to_string(&mut rest).unwrap();
+    let output = child.wait_with_output().unwrap();
+    assert!(
+        output.status.success(),
+        "{}\n{rest}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        rest.contains("deadline done") && !rest.contains("too late"),
+        "{rest}"
+    );
+}
+
+#[test]
+fn asynchronous_http_handler_deadline_runs_cleanup_in_jit_and_llvm() {
+    let mut jit = Command::new(env!("CARGO_BIN_EXE_soplang"));
+    jit.arg("-c").arg(HANDLER_DEADLINE_PROGRAM);
+    drive_handler_deadline(&mut jit);
+
+    let dir = std::env::temp_dir().join(format!(
+        "soplang_handler_deadline_{}_{}",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos()
+    ));
+    std::fs::create_dir_all(&dir).unwrap();
+    let source = dir.join("main.sop");
+    let binary = dir.join("server");
+    std::fs::write(&source, HANDLER_DEADLINE_PROGRAM).unwrap();
+    soplang::build_source(HANDLER_DEADLINE_PROGRAM, Some(&source), &binary, 2, false).unwrap();
+    drive_handler_deadline(&mut Command::new(&binary));
     std::fs::remove_dir_all(dir).unwrap();
 }

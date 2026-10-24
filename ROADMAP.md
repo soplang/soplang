@@ -403,14 +403,16 @@ Implemented in the development source; see the [3.5 milestone notes](docs/releas
 
 ## Soplang 3.6 — concurrency, asynchronous I/O, and servers
 
-This work follows memory reclamation, resource cleanup, and synchronous network
-APIs.
+Implemented in the development source. The 3.6 tag and release are pending
+separate approval. This work follows memory reclamation, resource cleanup, and
+synchronous network APIs.
 
 ### Concurrency
 
 1. Lightweight tasks.
 2. Channels for communication.
-3. Thread-safe shared runtime values.
+3. Race-free shared runtime values inside an owning context. Tagged values do
+   not cross I/O worker threads; owned byte buffers do.
 4. Cancellation and timeouts.
 5. Structured task lifetimes.
 6. Protection against data races.
@@ -440,6 +442,19 @@ Build on the sequential JSON server and request/response API from 3.3:
 6. Bounded queues and limits on concurrent requests and retained resources.
 7. Stress and load tests covering slow clients, disconnects, failures, and
    sustained memory use.
+
+The execution contract is documented in
+[the concurrency design](docs/architecture/CONCURRENCY.md). The APIs and
+limits are documented in [asynchronous files](docs/language/async-files.md),
+[networking](docs/language/networking.md), and
+[HTTP servers](docs/language/http-server.md). Tests cover both JIT and LLVM
+server paths, including bounded request and response streams, handler
+deadlines, shutdown draining, and repeated client load. On Linux, the HTTP
+load test also checks resident memory growth.
+
+Asynchronous HTTP and WebSocket listeners currently use plain TCP. Sequential
+HTTP serving supports TLS. HTTP keep-alive and routing WebSocket upgrades
+through the bundled `web` module remain later 3.x work.
 
 ## Later Soplang 3.x — advanced ecosystem
 

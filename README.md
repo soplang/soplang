@@ -6,9 +6,9 @@ Soplang is a programming language with Somali keywords. It supports static and d
 
 **Soplang 3.0.1 is available** for Linux x86_64, Windows x64, macOS Apple Silicon, and Docker. Get the [release packages](https://github.com/soplang/soplang/releases/tag/v3.0.1) or follow the [installation guide](docs/installation.md).
 
-The development source contains the planned 3.1 through 3.5 milestones. These
-are implementation milestones; their distribution and publication remain
-separate from the currently available 3.0.1 packages.
+The development source contains the 3.1 through 3.6 implementation milestones.
+Their distribution and publication remain separate from the currently
+available 3.0.1 packages.
 
 - [3.1 runtime foundations](docs/releases/3.1.0.md): long-running contexts,
   structured errors, cleanup, strings, and callable expressions.
@@ -20,9 +20,11 @@ separate from the currently available 3.0.1 packages.
   project initialization, the sequential web framework, and a typed data layer.
 - [3.5 developer tooling](docs/releases/3.5.0.md): project commands, native
   tests, coverage, language server, VS Code extension, debugging, and profiling.
+- [3.6 concurrency and servers](docs/architecture/CONCURRENCY.md): tasks,
+  channels, async I/O, streaming HTTP bodies, and bounded HTTP and WebSocket
+  servers. The 3.6 tag and release are pending.
 
-The [roadmap](ROADMAP.md) keeps concurrent tasks, async I/O, streaming, and
-concurrent servers in 3.6.
+The [roadmap](ROADMAP.md) records the completed milestones and later 3.x work.
 
 The implementation is in Rust. Files and the REPL use Cranelift JIT; `--build` produces standalone LLVM executables. See [COMPILER_PLAN.md](COMPILER_PLAN.md).
 
