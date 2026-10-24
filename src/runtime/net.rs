@@ -16,13 +16,31 @@ const DEFAULT_TIMEOUT: Duration = Duration::from_secs(30);
 
 static NEXT_ID: AtomicI64 = AtomicI64::new(1);
 
-fn error(message: impl Into<String>) -> SoplangError {
+pub(super) fn error(message: impl Into<String>) -> SoplangError {
     runtime_error_ex(
         message,
         0,
         0,
         ErrorMeta::default().with_code(codes::E055_NETWORK),
     )
+}
+
+pub(super) fn error_with_details(
+    message: impl Into<String>,
+    details: impl Into<String>,
+) -> SoplangError {
+    runtime_error_ex(
+        message,
+        0,
+        0,
+        ErrorMeta::default()
+            .with_code(codes::E055_NETWORK)
+            .with_details(details),
+    )
+}
+
+pub(super) fn new_id() -> i64 {
+    NEXT_ID.fetch_add(1, Ordering::Relaxed)
 }
 
 pub fn lookup(name: &str) -> Result<Value, SoplangError> {
@@ -57,7 +75,10 @@ pub fn connect(host: &str, port: i64, timeout: Duration) -> Result<Value, Soplan
         }
     }
     Err(error(match last {
-        Some(failure) => format!("Xidhiidhka '{host}' lama furin. {}", crate::error::io_reason(&failure)),
+        Some(failure) => format!(
+            "Xidhiidhka '{host}' lama furin. {}",
+            crate::error::io_reason(&failure)
+        ),
         None => format!("Magaca '{host}' lama helin."),
     }))
 }
@@ -219,6 +240,12 @@ pub fn close(endpoint: &Value) -> Result<Value, SoplangError> {
                     .get_or_insert_with(HashMap::new)
                     .remove(&id);
             }
+            Some("xidhiidh_async") => {
+                super::async_net::close_connection(state, id);
+            }
+            Some("dhegeysi_async") => {
+                super::async_net::close_listener(state, id);
+            }
             _ => return Err(error("Nooca soketka ma saxna.")),
         }
         Ok(Value::Null)
@@ -232,7 +259,9 @@ pub fn timeout(value: Option<&Value>) -> Result<Duration, SoplangError> {
     let Value::Object(object) = value else {
         return Err(error("Xulashada TCP waa inay noqotaa walax."));
     };
-    let object = object.try_borrow().map_err(|_| error("Walaxda hadda lama akhriyi karo."))?;
+    let object = object
+        .try_borrow()
+        .map_err(|_| error("Walaxda hadda lama akhriyi karo."))?;
     match object.get("waqti") {
         None => Ok(DEFAULT_TIMEOUT),
         Some(Value::Int(seconds)) if *seconds > 0 => Ok(Duration::from_secs(*seconds as u64)),
@@ -362,22 +391,24 @@ pub fn receive_udp(socket: &Value, limit: usize) -> Result<Value, SoplangError> 
     })
 }
 
-fn endpoint(id: i64, kind: &str, host: &str, port: u16) -> Value {
+pub(super) fn endpoint(id: i64, kind: &str, host: &str, port: u16) -> Value {
     let mut fields = HashMap::new();
     fields.insert("aqoonsi".to_string(), Value::Int(id));
     fields.insert("nooc".to_string(), Value::Str(kind.to_string()));
-    if kind == "dhegeysi" || kind == "udp" {
+    if matches!(kind, "dhegeysi" | "udp" | "dhegeysi_async") {
         fields.insert("martigeliye".to_string(), Value::Str(host.to_string()));
         fields.insert("deked".to_string(), Value::Int(i64::from(port)));
     }
     Value::Object(std::rc::Rc::new(std::cell::RefCell::new(fields)))
 }
 
-fn endpoint_id(value: &Value, expected: &str) -> Result<i64, SoplangError> {
+pub(super) fn endpoint_id(value: &Value, expected: &str) -> Result<i64, SoplangError> {
     let Value::Object(object) = value else {
         return Err(error("Xidhiidhka TCP waa inuu noqdaa walax."));
     };
-    let object = object.try_borrow().map_err(|_| error("Walaxda hadda lama akhriyi karo."))?;
+    let object = object
+        .try_borrow()
+        .map_err(|_| error("Walaxda hadda lama akhriyi karo."))?;
     match object.get("nooc") {
         Some(Value::Str(kind)) if kind == expected => {}
         _ => return Err(error("Nooca soketka ma saxna.")),

@@ -683,7 +683,7 @@ pub fn builtin_server_xidh(args: Vec<Value>) -> Result<Value, SoplangError> {
     super::http_server::close(&args[0])
 }
 
-fn network_bytes(value: &Value, name: &str) -> Result<Vec<u8>, SoplangError> {
+pub(super) fn network_bytes(value: &Value, name: &str) -> Result<Vec<u8>, SoplangError> {
     match value {
         Value::Str(text) => Ok(text.as_bytes().to_vec()),
         Value::Bytes(bytes) => super::bytes::read(bytes).map(|data| data.clone()),
@@ -1571,6 +1571,11 @@ const BUILTINS: &[(&str, super::NativeFn, CallbackArity)] = &[
     ("tcp_qor", builtin_tcp_qor, CallbackArity::range(2, 2)),
     ("tcp_akhris", builtin_tcp_akhris, CallbackArity::range(2, 2)),
     ("tcp_xidh", builtin_tcp_xidh, CallbackArity::range(1, 1)),
+    ("tcp_fur_shaqo", super::async_net::connect, CallbackArity::range(2, 3)),
+    ("tcp_dhegeysi_shaqo", super::async_net::listen, CallbackArity::range(2, 2)),
+    ("tcp_aqbal_shaqo", super::async_net::accept, CallbackArity::range(1, 2)),
+    ("tcp_qor_shaqo", super::async_net::write, CallbackArity::range(2, 2)),
+    ("tcp_akhris_shaqo", super::async_net::read, CallbackArity::range(2, 2)),
     ("udp_fur", builtin_udp_fur, CallbackArity::range(2, 3)),
     ("udp_qor", builtin_udp_qor, CallbackArity::range(4, 4)),
     ("udp_akhris", builtin_udp_akhris, CallbackArity::range(2, 2)),

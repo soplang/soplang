@@ -22,12 +22,14 @@ type FiberYielder = Yielder<Signal, Event>;
 const MAX_ACTIVE_TASKS: usize = 4096;
 const MAX_FILE_TASKS: usize = 16;
 const MAX_HTTP_TASKS: usize = 64;
+const MAX_TCP_TASKS: usize = 128;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub(super) enum ExternalKind {
     Timer,
     File,
     Http,
+    Tcp,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -162,6 +164,7 @@ struct PendingIo {
     parent: i64,
     handle: Rc<TaskData>,
     kind: ExternalKind,
+    resource: Option<i64>,
 }
 
 struct Completion {
@@ -179,6 +182,14 @@ pub(super) enum OwnedResult {
         headers: HashMap<String, String>,
         body: Vec<u8>,
     },
+    TcpConnection {
+        stream: tokio::net::TcpStream,
+        timeout: Duration,
+    },
+    TcpListener {
+        listener: tokio::net::TcpListener,
+        host: String,
+    },
 }
 
 pub(super) enum OwnedFailure {
@@ -187,6 +198,7 @@ pub(super) enum OwnedFailure {
     FileTooLarge(PathBuf),
     Http(String, String),
     HttpTooLarge,
+    Network(String, String),
 }
 
 impl Default for Scheduler {
@@ -276,6 +288,17 @@ pub(super) fn spawn_external<F>(future: F, kind: ExternalKind) -> Result<Value, 
 where
     F: Future<Output = Result<OwnedResult, OwnedFailure>> + Send + 'static,
 {
+    spawn_external_on(future, kind, None)
+}
+
+pub(super) fn spawn_external_on<F>(
+    future: F,
+    kind: ExternalKind,
+    resource: Option<i64>,
+) -> Result<Value, SoplangError>
+where
+    F: Future<Output = Result<OwnedResult, OwnedFailure>> + Send + 'static,
+{
     let executor = executor()?;
     STATE.with(|state| {
         while try_completion(state) {}
@@ -285,6 +308,7 @@ where
             ExternalKind::Timer => (usize::MAX, ""),
             ExternalKind::File => (MAX_FILE_TASKS, "Faylal badan ayaa hal mar la adeegsanayaa."),
             ExternalKind::Http => (MAX_HTTP_TASKS, "Codsiyo HTTP badan ayaa hal mar socda."),
+            ExternalKind::Tcp => (MAX_TCP_TASKS, "Hawlo TCP badan ayaa hal mar socda."),
         };
         if scheduler
             .pending_io
@@ -314,6 +338,7 @@ where
                 parent,
                 handle: Rc::clone(&data),
                 kind,
+                resource,
             },
         );
         Ok(Value::Task(data))
@@ -365,6 +390,9 @@ fn finish_io(state: &RuntimeState, completion: Completion) {
                 "Jawaabta HTTP way ka weyn tahay xadka.",
                 "response body limit exceeded",
             ),
+            OwnedFailure::Network(message, details) => {
+                super::net::error_with_details(message, details)
+            }
         })
         .and_then(|result| match result {
             OwnedResult::Unit => Ok(Value::Null),
@@ -375,6 +403,12 @@ fn finish_io(state: &RuntimeState, completion: Completion) {
                 headers,
                 body,
             } => super::http::decoded_response(status, headers, body),
+            OwnedResult::TcpConnection { stream, timeout } => {
+                super::async_net::store_connection(state, stream, timeout)
+            }
+            OwnedResult::TcpListener { listener, host } => {
+                super::async_net::store_listener(state, listener, host)
+            }
         });
     pending.handle.finished_at.set(Some(completion.finished_at));
     *pending.handle.result.borrow_mut() = Some(result);
@@ -401,6 +435,20 @@ fn cancel_io(scheduler: &mut Scheduler, id: i64) -> bool {
     *pending.handle.result.borrow_mut() = Some(Err(cancelled()));
     wake_awaiters(scheduler, id);
     true
+}
+
+pub(super) fn cancel_resource(resource: i64) {
+    STATE.with(|state| {
+        let mut scheduler = state.scheduler.borrow_mut();
+        let pending: Vec<_> = scheduler
+            .pending_io
+            .iter()
+            .filter_map(|(id, operation)| (operation.resource == Some(resource)).then_some(*id))
+            .collect();
+        for id in pending {
+            cancel_io(&mut scheduler, id);
+        }
+    });
 }
 
 pub(super) fn spawn(callee: Value, args: Vec<Value>) -> Result<Value, SoplangError> {
@@ -445,12 +493,12 @@ pub(super) fn spawn(callee: Value, args: Vec<Value>) -> Result<Value, SoplangErr
 }
 
 fn step(state: &RuntimeState) -> Result<bool, SoplangError> {
-    try_completion(state);
+    let completed = try_completion(state);
     let (id, mut task) = {
         let mut scheduler = state.scheduler.borrow_mut();
         let Some(id) = scheduler.ready.pop_front() else {
             if scheduler.pending_io.is_empty() {
-                return Ok(false);
+                return Ok(completed);
             }
             drop(scheduler);
             let completion = state

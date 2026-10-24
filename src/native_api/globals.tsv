@@ -85,6 +85,11 @@ tcp_aqbal	walax dhegeyste;[walax xulasho]	walax	Accept one TCP connection.
 tcp_qor	walax xiriir;xog	maran	Write text or bytes to a TCP connection.
 tcp_akhris	walax xiriir;abn cabbir	baytyo	Read bounded bytes from a TCP connection.
 tcp_xidh	walax xiriir	maran	Close a TCP connection or listener.
+tcp_fur_shaqo	qoraal marti;abn deked;[walax xulasho]	@native:task	Connect to TCP asynchronously and return a context-owned endpoint.
+tcp_dhegeysi_shaqo	qoraal marti;abn deked	@native:task	Bind an asynchronous TCP listener.
+tcp_aqbal_shaqo	walax dhegeyste;[walax xulasho]	@native:task	Accept one connection from an asynchronous listener.
+tcp_qor_shaqo	walax xiriir;xog	@native:task	Write text or bytes without blocking the owning runtime thread.
+tcp_akhris_shaqo	walax xiriir;abn cabbir	@native:task	Read bounded bytes without blocking the owning runtime thread.
 udp_fur	qoraal marti;abn deked;[walax xulasho]	walax	Bind a UDP socket with transport options.
 udp_qor	walax xiriir;xog;qoraal marti;abn deked	maran	Send one UDP datagram.
 udp_akhris	walax xiriir;abn cabbir	walax	Receive one bounded UDP datagram and its sender information.

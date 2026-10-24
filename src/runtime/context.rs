@@ -19,6 +19,8 @@ pub(super) struct RuntimeState {
     pub files: RefCell<Option<HashMap<i64, super::file_handles::OpenFile>>>,
     pub tcp_connections: RefCell<Option<HashMap<i64, std::net::TcpStream>>>,
     pub tcp_listeners: RefCell<Option<HashMap<i64, std::net::TcpListener>>>,
+    pub async_tcp_connections: RefCell<HashMap<i64, std::sync::Arc<super::async_net::Connection>>>,
+    pub async_tcp_listeners: RefCell<HashMap<i64, std::sync::Arc<tokio::net::TcpListener>>>,
     pub udp_sockets: RefCell<Option<HashMap<i64, std::net::UdpSocket>>>,
     pub http_listeners: RefCell<Option<HashMap<i64, super::http_server::Listener>>>,
     pub websockets: RefCell<Option<HashMap<i64, super::websocket::Socket>>>,

@@ -3,6 +3,7 @@
 pub mod abi;
 mod async_files;
 mod async_http;
+mod async_net;
 mod base64;
 mod binary_files;
 mod bytes;

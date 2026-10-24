@@ -17,6 +17,22 @@ qor(dns_raadi("localhost"))
 
 ## TCP
 
+The task forms `tcp_fur_shaqo`, `tcp_dhegeysi_shaqo`, `tcp_aqbal_shaqo`,
+`tcp_akhris_shaqo`, and `tcp_qor_shaqo` run TCP I/O without blocking the
+owning runtime thread. Pass each returned task to `sug` to get its result.
+They create separate asynchronous endpoints; close them with `tcp_xidh`.
+Closing an endpoint cancels its pending read, write, and accept tasks. Reads
+return up to the requested limit and at most 64 KiB per operation; repeat
+them to consume a stream. Writes accept at most 16 MiB. A cancelled write may
+have sent a prefix, so application protocols should frame their messages.
+
+```soplang
+door connection = sug(tcp_fur_shaqo("127.0.0.1", 9000))
+sug(tcp_qor_shaqo(connection, "salaan"))
+door answer = sug(tcp_akhris_shaqo(connection, 1024))
+tcp_xidh(connection)
+```
+
 `tcp_dhegeysi(host, port)` binds a listener. Port `0` chooses an open port.
 The result includes `deked` and `nooc` `"dhegeysi"`.
 
