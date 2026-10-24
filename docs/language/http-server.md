@@ -87,16 +87,18 @@ tcp_xidh(server)
 ```
 
 The request adds `jidh` (a scoped body handle) and `dherer_jidh` (the declared
-length). Its `qoraal`, `baytyo`, and `json` fields are `maran`; parse chunks
+length for `Content-Length`, or `maran` for chunked uploads). Its `qoraal`,
+`baytyo`, and `json` fields are `maran`; parse chunks
 explicitly. `server_jidh_akhris(handle, size)` returns up to `size` bytes,
 with size from 1 to 65536, and an empty `baytyo` at the declared end. It
 suspends the owning task while waiting for TCP input, so the server can handle
 other connections. The handle becomes invalid when the handler returns.
-Early disconnects and timeouts are catchable errors. Nonempty streaming uploads
-require `Content-Length`; omitting it means an empty body. Chunked request
-bodies remain unsupported.
+Early disconnects, malformed chunk framing, and timeouts are catchable errors.
+Use `Content-Length` or `Transfer-Encoding: chunked` for a nonempty upload;
+omitting both means an empty body.
 
-The body must use `Content-Length`. Chunked bodies are rejected. The default
+Buffered routes also accept chunked uploads and decode them before calling the
+handler. The default
 limit is 1048576 bytes and the default read and write timeout is 30 seconds.
 Pass `{cabbir: n, waqti: seconds}` as the third argument of `server_aqbal` to
 change them. Buffered routes never accept more than 16 MiB. Streaming routes
@@ -134,8 +136,9 @@ HTTP/1.1 requests need one nonempty `Host` field. Duplicate `Host`,
 `Content-Length`, or `Transfer-Encoding` fields are rejected. A request that
 combines transfer encoding and content length receives 400. Lengths must be
 unsigned decimal digits. The 8192-byte header limit includes the terminating
-blank line. This server requires known-length bodies and still rejects chunked
-transfer encoding.
+blank line. The only supported transfer encoding is `chunked`. Chunk sizes,
+chunk boundaries, and trailers are validated; decoded bytes count toward the
+body limit. Trailers are discarded and cannot change request headers.
 
 Response header names must be HTTP tokens. Values cannot contain carriage
 returns, newlines, NUL, or other control characters except tab. The server owns
@@ -148,7 +151,7 @@ cannot contain a body and omit `Content-Length`. A supplied text or byte body
 must have the matching Soplang type.
 
 The framing rules follow [RFC 9112, sections 3.2 and 6.3](https://www.rfc-editor.org/rfc/rfc9112#section-6.3).
-The server remains an HTTP subset. Request bodies still require
-`Content-Length` and are buffered; keep-alive and upgrades need later server
-work. TLS is available through sequential `server_fur` and
+The server remains an HTTP subset. Ordinary routes buffer request bodies;
+streaming routes pull bounded chunks on asynchronous listeners. Keep-alive and
+upgrades need later server work. TLS is available through sequential `server_fur` and
 `server_aqbal`; asynchronous TLS serving remains later work.

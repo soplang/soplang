@@ -97,12 +97,214 @@ struct Route {
 
 pub(super) struct RequestBody {
     connection_id: i64,
-    prefetched: Vec<u8>,
-    offset: usize,
-    remaining: usize,
+    decoder: BodyDecoder,
     expires: Instant,
     reading: bool,
     active: bool,
+}
+
+#[derive(Clone, Copy)]
+enum BodyFraming {
+    Length(usize),
+    Chunked,
+}
+
+#[derive(Clone, Copy)]
+enum BodyState {
+    Fixed(usize),
+    ChunkSize,
+    ChunkData(usize),
+    ChunkEnd,
+    Trailers,
+    Done,
+}
+
+struct BodyDecoder {
+    prefetched: Vec<u8>,
+    offset: usize,
+    state: BodyState,
+    total: usize,
+    limit: usize,
+    trailers: usize,
+}
+
+#[derive(Clone, Copy)]
+enum BodyReadError {
+    Bad(&'static str),
+    TooLarge,
+    Io,
+}
+
+impl BodyReadError {
+    fn message(&self) -> &'static str {
+        match self {
+            Self::Bad(message) => message,
+            Self::TooLarge => "Jidhka codsiga wuu ka weyn yahay xadka.",
+            Self::Io => "Akhriska jidhka wuu fashilmay.",
+        }
+    }
+
+    fn response(self) -> ResponseFault {
+        match self {
+            Self::TooLarge => ResponseFault::Reply(413, self.message().into()),
+            Self::Bad(_) => ResponseFault::Reply(400, self.message().into()),
+            Self::Io => ResponseFault::Stop(self.message().into()),
+        }
+    }
+}
+
+impl BodyDecoder {
+    fn new(prefetched: Vec<u8>, framing: BodyFraming, limit: usize) -> Self {
+        let state = match framing {
+            BodyFraming::Length(length) => BodyState::Fixed(length),
+            BodyFraming::Chunked => BodyState::ChunkSize,
+        };
+        Self {
+            prefetched,
+            offset: 0,
+            state,
+            total: 0,
+            limit,
+            trailers: 0,
+        }
+    }
+
+    fn next<S: Read>(&mut self, stream: &mut S, size: usize) -> Result<Vec<u8>, BodyReadError> {
+        loop {
+            match self.state {
+                BodyState::Fixed(0) | BodyState::Done => return Ok(Vec::new()),
+                BodyState::Fixed(remaining) | BodyState::ChunkData(remaining) => {
+                    let wanted = size.min(remaining);
+                    let bytes = self.take_data(stream, wanted)?;
+                    if bytes.is_empty() {
+                        return Err(BodyReadError::Bad("Jidhka codsiga ma dhammaystirna."));
+                    }
+                    let remaining = remaining - bytes.len();
+                    self.total += bytes.len();
+                    self.state = match self.state {
+                        BodyState::Fixed(_) => BodyState::Fixed(remaining),
+                        _ if remaining == 0 => BodyState::ChunkEnd,
+                        _ => BodyState::ChunkData(remaining),
+                    };
+                    return Ok(bytes);
+                }
+                BodyState::ChunkSize => {
+                    let line = self.read_line(stream)?;
+                    let size = line.split(|byte| *byte == b';').next().unwrap_or(&[]);
+                    if size.is_empty() || !size.iter().all(u8::is_ascii_hexdigit) {
+                        return Err(BodyReadError::Bad("Cabbirka qaybta chunked ma saxna."));
+                    }
+                    if line.iter().any(|byte| !matches!(*byte, 0x20..=0x7e)) {
+                        return Err(BodyReadError::Bad("Qaybta chunked ma saxna."));
+                    }
+                    let size = std::str::from_utf8(size)
+                        .ok()
+                        .and_then(|text| usize::from_str_radix(text, 16).ok())
+                        .ok_or(BodyReadError::TooLarge)?;
+                    if size > self.limit.saturating_sub(self.total) {
+                        return Err(BodyReadError::TooLarge);
+                    }
+                    self.state = if size == 0 {
+                        BodyState::Trailers
+                    } else {
+                        BodyState::ChunkData(size)
+                    };
+                }
+                BodyState::ChunkEnd => {
+                    if self.next_byte(stream)? != b'\r' || self.next_byte(stream)? != b'\n' {
+                        return Err(BodyReadError::Bad("Qaybta chunked ma dhammaystirna."));
+                    }
+                    self.state = BodyState::ChunkSize;
+                }
+                BodyState::Trailers => {
+                    let line = self.read_line(stream)?;
+                    self.trailers = self.trailers.saturating_add(line.len() + 2);
+                    if self.trailers > MAX_HEADERS {
+                        return Err(BodyReadError::Bad(
+                            "Cinwaannada dhammaadka way ka weyn yihiin.",
+                        ));
+                    }
+                    if line.is_empty() {
+                        self.state = BodyState::Done;
+                    } else if !valid_trailer(&line) {
+                        return Err(BodyReadError::Bad("Cinwaanka dhammaadka ma saxna."));
+                    }
+                }
+            }
+        }
+    }
+
+    fn take_data<S: Read>(
+        &mut self,
+        stream: &mut S,
+        size: usize,
+    ) -> Result<Vec<u8>, BodyReadError> {
+        if self.offset < self.prefetched.len() {
+            let end = (self.offset + size).min(self.prefetched.len());
+            let bytes = self.prefetched[self.offset..end].to_vec();
+            self.offset = end;
+            if self.offset == self.prefetched.len() {
+                self.prefetched.clear();
+                self.offset = 0;
+            }
+            return Ok(bytes);
+        }
+        let mut bytes = vec![0; size];
+        let read = stream.read(&mut bytes).map_err(|_| BodyReadError::Io)?;
+        bytes.truncate(read);
+        Ok(bytes)
+    }
+
+    fn next_byte<S: Read>(&mut self, stream: &mut S) -> Result<u8, BodyReadError> {
+        if self.offset == self.prefetched.len() {
+            self.prefetched.resize(2048, 0);
+            let read = stream
+                .read(&mut self.prefetched)
+                .map_err(|_| BodyReadError::Io)?;
+            if read == 0 {
+                return Err(BodyReadError::Bad("Jidhka codsiga ma dhammaystirna."));
+            }
+            self.prefetched.truncate(read);
+            self.offset = 0;
+        }
+        let byte = self.prefetched[self.offset];
+        self.offset += 1;
+        if self.offset == self.prefetched.len() {
+            self.prefetched.clear();
+            self.offset = 0;
+        }
+        Ok(byte)
+    }
+
+    fn read_line<S: Read>(&mut self, stream: &mut S) -> Result<Vec<u8>, BodyReadError> {
+        let mut line = Vec::new();
+        loop {
+            let byte = self.next_byte(stream)?;
+            if byte == b'\r' {
+                if self.next_byte(stream)? == b'\n' {
+                    return Ok(line);
+                }
+                return Err(BodyReadError::Bad("Xadka qaybta chunked ma saxna."));
+            }
+            if byte == b'\n' || line.len() >= MAX_HEADERS {
+                return Err(BodyReadError::Bad("Xadka qaybta chunked ma saxna."));
+            }
+            line.push(byte);
+        }
+    }
+}
+
+fn valid_trailer(line: &[u8]) -> bool {
+    let Some(colon) = line.iter().position(|byte| *byte == b':') else {
+        return false;
+    };
+    colon > 0
+        && line[..colon]
+            .iter()
+            .all(|byte| byte.is_ascii_alphanumeric() || b"!#$%&'*+-.^_`|~".contains(byte))
+        && line[colon + 1..]
+            .iter()
+            .all(|byte| matches!(*byte, b'\t' | 0x20..=0x7e))
 }
 
 enum Part {
@@ -593,7 +795,7 @@ fn serve_async_request(
     limit: usize,
     expires: Instant,
 ) -> Result<Value, SoplangError> {
-    let (mut request, length) = match read_request_head(stream, limit) {
+    let (mut request, framing) = match read_request_head(stream, limit) {
         Ok(head) => head,
         Err(ResponseFault::Reply(status, message)) => {
             let _ = write_response(
@@ -610,14 +812,14 @@ fn serve_async_request(
     let (route, _) = select_route(routes, &request);
     if let Some((route, params)) = route {
         if route.streaming {
-            let handle = register_request_body(connection, &request.body, length, expires)?;
-            let request_value = streaming_request_object(&request, params, handle.clone(), length);
+            let handle = register_request_body(connection, &request.body, framing, limit, expires)?;
+            let request_value = streaming_request_object(&request, params, handle.clone(), framing);
             let result = dispatch_handler(stream, route, request_value);
             close_request_body(&handle);
             return result;
         }
     }
-    if length > limit.min(MAX_LIMIT) {
+    if matches!(framing, BodyFraming::Length(length) if length > limit.min(MAX_LIMIT)) {
         let _ = write_response(
             stream,
             413,
@@ -627,7 +829,7 @@ fn serve_async_request(
         );
         return Ok(Value::Null);
     }
-    match fill_request_body(stream, &mut request, length) {
+    match fill_request_body(stream, &mut request, framing, limit.min(MAX_LIMIT)) {
         Ok(()) => dispatch(stream, routes, request),
         Err(ResponseFault::Reply(status, message)) => {
             let _ = write_response(
@@ -809,8 +1011,12 @@ fn streaming_request_object(
     request: &RawRequest,
     params: HashMap<String, String>,
     body: Value,
-    length: usize,
+    framing: BodyFraming,
 ) -> Value {
+    let length = match framing {
+        BodyFraming::Length(length) => Value::Int(length as i64),
+        BodyFraming::Chunked => Value::Null,
+    };
     object(&[
         ("hab", Value::Str(request.method.clone())),
         ("jid", Value::Str(request.path.clone())),
@@ -821,14 +1027,15 @@ fn streaming_request_object(
         ("json", Value::Null),
         ("qayb", string_object(&params)),
         ("jidh", body),
-        ("dherer_jidh", Value::Int(length as i64)),
+        ("dherer_jidh", length),
     ])
 }
 
 fn register_request_body(
     connection: &Value,
     prefetched: &[u8],
-    length: usize,
+    framing: BodyFraming,
+    limit: usize,
     expires: Instant,
 ) -> Result<Value, SoplangError> {
     let connection_id = super::net::endpoint_id(connection, "xidhiidh_async")?;
@@ -838,9 +1045,7 @@ fn register_request_body(
             id,
             Rc::new(RefCell::new(RequestBody {
                 connection_id,
-                prefetched: prefetched.to_vec(),
-                offset: 0,
-                remaining: length - prefetched.len(),
+                decoder: BodyDecoder::new(prefetched.to_vec(), framing, limit),
                 expires,
                 reading: false,
                 active: true,
@@ -890,66 +1095,51 @@ pub fn read_request_body(handle: &Value, limit: i64) -> Result<Value, SoplangErr
             .cloned()
             .ok_or_else(|| error("Jidhka codsigu wuu xirmay."))
     })?;
-    let (connection_id, read_size, millis) = {
+    let (connection_id, expires, mut decoder) = {
         let mut body = body
             .try_borrow_mut()
             .map_err(|_| error("Jidhka codsiga hadda waa la akhriyayaa."))?;
         if !body.active {
             return Err(error("Jidhka codsigu wuu xirmay."));
         }
-        if body.offset < body.prefetched.len() {
-            let end = (body.offset + limit).min(body.prefetched.len());
-            let bytes = body.prefetched[body.offset..end].to_vec();
-            body.offset = end;
-            return Ok(super::bytes::from_raw_vec(bytes));
-        }
-        if body.remaining == 0 {
-            return Ok(super::bytes::from_raw_vec(Vec::new()));
-        }
         if body.reading {
             return Err(error("Jidhka codsiga hadda waa la akhriyayaa."));
         }
-        let remaining = body
-            .expires
-            .checked_duration_since(Instant::now())
-            .filter(|time| !time.is_zero())
-            .ok_or_else(|| error("Waqtigii codsiga wuu dhammaaday."))?;
         body.reading = true;
         (
             body.connection_id,
-            limit.min(body.remaining),
-            remaining.as_millis().min(u64::MAX as u128) as u64,
+            body.expires,
+            std::mem::replace(
+                &mut body.decoder,
+                BodyDecoder::new(Vec::new(), BodyFraming::Length(0), 0),
+            ),
         )
     };
-    let result = (|| {
-        let operation = super::async_net::read(vec![
-            super::net::endpoint(connection_id, "xidhiidh_async", "", 0),
-            Value::Int(read_size as i64),
-        ])?;
-        let Value::Task(operation) = operation else {
-            unreachable!("asynchronous TCP read returns a task")
-        };
-        super::tasks::await_with_timeout(&operation, millis)
-    })();
+    let mut stream = TaskStream::for_http(
+        super::net::endpoint(connection_id, "xidhiidh_async", "", 0),
+        expires,
+    );
+    let result = decoder.next(&mut stream, limit);
+    let bridge_failure = stream.take_failure();
     let mut body = body
         .try_borrow_mut()
         .map_err(|_| error("Jidhka codsiga hadda waa la akhriyayaa."))?;
+    body.decoder = decoder;
     body.reading = false;
     if !body.active {
         return Err(error("Jidhka codsigu wuu xirmay."));
     }
-    let Value::Bytes(bytes) = result? else {
-        unreachable!("asynchronous TCP read returns bytes")
-    };
-    let count = bytes
-        .try_borrow()
-        .map_err(|_| error("Baytyada jidhka codsiga lama akhriyi karo."))?
-        .len();
-    if count == 0 {
-        return Err(error("Jidhka codsiga ma dhammaystirna."));
+    if let Some(failure) = bridge_failure {
+        body.active = false;
+        return Err(failure);
     }
-    body.remaining -= count;
-    Ok(Value::Bytes(bytes))
+    match result {
+        Ok(bytes) => Ok(super::bytes::from_raw_vec(bytes)),
+        Err(failure) => {
+            body.active = false;
+            Err(error(failure.message()))
+        }
+    }
 }
 
 enum ResponseFault {
@@ -958,15 +1148,15 @@ enum ResponseFault {
 }
 
 fn read_request<S: Read>(stream: &mut S, limit: usize) -> Result<RawRequest, ResponseFault> {
-    let (mut request, length) = read_request_head(stream, limit)?;
-    fill_request_body(stream, &mut request, length)?;
+    let (mut request, framing) = read_request_head(stream, limit)?;
+    fill_request_body(stream, &mut request, framing, limit)?;
     Ok(request)
 }
 
 fn read_request_head<S: Read>(
     stream: &mut S,
     limit: usize,
-) -> Result<(RawRequest, usize), ResponseFault> {
+) -> Result<(RawRequest, BodyFraming), ResponseFault> {
     let mut buffer = Vec::new();
     let mut chunk = [0u8; 2048];
     let header_end;
@@ -1047,39 +1237,51 @@ fn read_request_head<S: Read>(
             "Codsiga HTTP wuxuu u baahan yahay hal martigeliye oo sax ah.".into(),
         ));
     }
-    if header_map.contains_key("transfer-encoding") {
-        let (status, message) = if header_map.contains_key("content-length") {
-            (
+    let framing = match (
+        header_map.get("transfer-encoding"),
+        header_map.get("content-length"),
+    ) {
+        (Some(_), Some(_)) => {
+            return Err(ResponseFault::Reply(
                 400,
-                "Dhererka iyo habka gudbinta codsiga HTTP isma waafaqaan.",
-            )
-        } else {
-            (411, "Jidhka chunked lama taageero.")
-        };
-        return Err(ResponseFault::Reply(status, message.into()));
-    }
-    let length = match header_map.get("content-length") {
-        Some(value) if !value.is_empty() && value.bytes().all(|byte| byte.is_ascii_digit()) => {
-            value
-                .parse::<usize>()
-                .map_err(|_| ResponseFault::Reply(400, "Dhererka jidhka ma saxna.".into()))?
+                "Dhererka iyo habka gudbinta codsiga HTTP isma waafaqaan.".into(),
+            ))
         }
-        Some(_) => {
+        (Some(encoding), None) if encoding.trim().eq_ignore_ascii_case("chunked") => {
+            BodyFraming::Chunked
+        }
+        (Some(_), None) => {
+            return Err(ResponseFault::Reply(
+                400,
+                "Habka gudbinta codsiga HTTP ma saxna.".into(),
+            ))
+        }
+        (None, Some(value))
+            if !value.is_empty() && value.bytes().all(|byte| byte.is_ascii_digit()) =>
+        {
+            let length = value
+                .parse::<usize>()
+                .map_err(|_| ResponseFault::Reply(400, "Dhererka jidhka ma saxna.".into()))?;
+            if length > limit {
+                return Err(ResponseFault::Reply(
+                    413,
+                    "Jidhka codsiga wuu ka weyn yahay xadka.".into(),
+                ));
+            }
+            BodyFraming::Length(length)
+        }
+        (None, Some(_)) => {
             return Err(ResponseFault::Reply(
                 400,
                 "Dhererka jidhka ma saxna.".into(),
             ))
         }
-        None => 0,
+        (None, None) => BodyFraming::Length(0),
     };
-    if length > limit {
-        return Err(ResponseFault::Reply(
-            413,
-            "Jidhka codsiga wuu ka weyn yahay xadka.".into(),
-        ));
-    }
     let mut body = buffer[header_end..].to_vec();
-    body.truncate(length);
+    if let BodyFraming::Length(length) = framing {
+        body.truncate(length);
+    }
     Ok((
         RawRequest {
             method,
@@ -1088,29 +1290,26 @@ fn read_request_head<S: Read>(
             headers: header_map,
             body,
         },
-        length,
+        framing,
     ))
 }
 
 fn fill_request_body<S: Read>(
     stream: &mut S,
     request: &mut RawRequest,
-    length: usize,
+    framing: BodyFraming,
+    limit: usize,
 ) -> Result<(), ResponseFault> {
-    let mut chunk = [0u8; 2048];
-    while request.body.len() < length {
-        let read = stream
-            .read(&mut chunk)
-            .map_err(|_| ResponseFault::Stop("Akhriska jidhka wuu fashilmay.".into()))?;
-        if read == 0 {
-            return Err(ResponseFault::Reply(
-                400,
-                "Jidhka codsiga ma dhammaystirna.".into(),
-            ));
+    let mut decoder = BodyDecoder::new(std::mem::take(&mut request.body), framing, limit);
+    loop {
+        let chunk = decoder
+            .next(stream, MAX_STREAM_CHUNK)
+            .map_err(BodyReadError::response)?;
+        if chunk.is_empty() {
+            break;
         }
-        request.body.extend_from_slice(&chunk[..read]);
+        request.body.extend_from_slice(&chunk);
     }
-    request.body.truncate(length);
     Ok(())
 }
 
@@ -1612,7 +1811,7 @@ mod protocol_tests {
                 "Host: a\r\nContent-Length: 0\r\nTransfer-Encoding: chunked\r\n",
                 400,
             ),
-            ("Host: a\r\nTransfer-Encoding: chunked\r\n", 411),
+            ("Host: a\r\nTransfer-Encoding: gzip\r\n", 400),
             ("Host: a\r\nHost: b\r\n", 400),
             ("Host: \r\n", 400),
             ("Host: a b\r\n", 400),
@@ -1632,6 +1831,27 @@ mod protocol_tests {
         );
         assert!(matches!(request, Ok(request) if request.body == b"abc"));
         assert!(parse(b"GET / HTTP/1.0\r\n\r\n", 32).is_ok());
+    }
+
+    #[test]
+    fn chunked_requests_decode_and_enforce_the_decoded_limit() {
+        let valid = b"POST / HTTP/1.1\r\nHost: a\r\nTransfer-Encoding: chunked\r\n\r\n3;note=x\r\nabc\r\n2\r\nde\r\n0\r\nX-Final: yes\r\n\r\n";
+        assert!(matches!(parse(valid, 5), Ok(request) if request.body == b"abcde"));
+        assert!(matches!(parse(valid, 4), Err(ResponseFault::Reply(413, _))));
+        for invalid in [
+            b"Z\r\nabc\r\n0\r\n\r\n".as_slice(),
+            b"3\r\nabcX\n0\r\n\r\n",
+            b"1\r\na\r\n0\r\nBad-Trailer\r\n\r\n",
+            b"3\r\nab",
+        ] {
+            let mut request =
+                b"POST / HTTP/1.1\r\nHost: a\r\nTransfer-Encoding: chunked\r\n\r\n".to_vec();
+            request.extend_from_slice(invalid);
+            assert!(matches!(
+                parse(&request, 32),
+                Err(ResponseFault::Reply(400, _))
+            ));
+        }
     }
 
     #[test]

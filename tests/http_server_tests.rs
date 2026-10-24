@@ -490,3 +490,98 @@ fn streaming_request_body_exceeds_buffered_limit_in_jit_and_llvm() {
     drive_streaming_request(&mut Command::new(&binary));
     std::fs::remove_dir_all(dir).unwrap();
 }
+
+const CHUNKED_REQUEST_PROGRAM: &str = r#"
+keen "web" sida web
+door app = cusub web.Web()
+app.hel_socod("POST", "/stream", hawl(codsi) {
+    haddii (codsi.dherer_jidh != maran) { tuur "chunked length should be unknown" }
+    door total = 0
+    intay (run) {
+        door part = web.jidh_akhris(codsi, 2)
+        haddii (dherer(part) == 0) { jooji }
+        total = total + dherer(part)
+        haddii (total == 3) { qor("first-chunk") }
+    }
+    celi web.json({total: total})
+})
+app.hel("POST", "/buffered", hawl(codsi) {
+    celi web.json({body: codsi.qoraal})
+})
+door server = sug(tcp_dhegeysi_shaqo("127.0.0.1", 0))
+qor(server.deked)
+sug(app.aqbal_shaqo(server))
+sug(app.aqbal_shaqo(server))
+tcp_xidh(server)
+qor("chunked done")
+"#;
+
+fn drive_chunked_request(command: &mut Command) {
+    let mut child = command
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .unwrap();
+    let mut stdout = BufReader::new(child.stdout.take().unwrap());
+    let mut port = String::new();
+    stdout.read_line(&mut port).unwrap();
+    let address = format!("127.0.0.1:{}", port.trim());
+    let mut stream = TcpStream::connect(&address).unwrap();
+    stream
+        .set_read_timeout(Some(Duration::from_secs(10)))
+        .unwrap();
+    stream.write_all(b"POST /stream HTTP/1.1\r\nHost: localhost\r\nTransfer-Encoding: chunked\r\n\r\n3\r\nabc\r\n").unwrap();
+    let mut started = String::new();
+    stdout.read_line(&mut started).unwrap();
+    assert_eq!(started.trim(), "first-chunk");
+    stream
+        .write_all(b"2\r\nde\r\n0\r\nX-Final: yes\r\n\r\n")
+        .unwrap();
+    let mut response = String::new();
+    stream.read_to_string(&mut response).unwrap();
+    assert!(response.starts_with("HTTP/1.1 200"), "{response}");
+    assert!(response.contains("\"total\":5"), "{response}");
+
+    let mut buffered = TcpStream::connect(&address).unwrap();
+    buffered
+        .set_read_timeout(Some(Duration::from_secs(10)))
+        .unwrap();
+    buffered.write_all(b"POST /buffered HTTP/1.1\r\nHost: localhost\r\nTransfer-Encoding: chunked\r\n\r\n3\r\nabc\r\n2\r\nde\r\n0\r\n\r\n").unwrap();
+    let mut response = String::new();
+    buffered.read_to_string(&mut response).unwrap();
+    assert!(response.starts_with("HTTP/1.1 200"), "{response}");
+    assert!(response.contains("\"body\":\"abcde\""), "{response}");
+    let mut rest = String::new();
+    stdout.read_to_string(&mut rest).unwrap();
+    let output = child.wait_with_output().unwrap();
+    assert!(
+        output.status.success(),
+        "status {:?}\n{}\n{rest}",
+        output.status.code(),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(rest.contains("chunked done"), "{rest}");
+}
+
+#[test]
+fn chunked_request_bodies_stream_and_buffer_in_jit_and_llvm() {
+    let mut jit = Command::new(env!("CARGO_BIN_EXE_soplang"));
+    jit.arg("-c").arg(CHUNKED_REQUEST_PROGRAM);
+    drive_chunked_request(&mut jit);
+
+    let dir = std::env::temp_dir().join(format!(
+        "soplang_chunked_request_{}_{}",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos()
+    ));
+    std::fs::create_dir_all(&dir).unwrap();
+    let source = dir.join("main.sop");
+    let binary = dir.join("server");
+    std::fs::write(&source, CHUNKED_REQUEST_PROGRAM).unwrap();
+    soplang::build_source(CHUNKED_REQUEST_PROGRAM, Some(&source), &binary, 2, false).unwrap();
+    drive_chunked_request(&mut Command::new(&binary));
+    std::fs::remove_dir_all(dir).unwrap();
+}
