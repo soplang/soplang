@@ -8,7 +8,7 @@ use std::path::PathBuf;
 use std::rc::Rc;
 use std::sync::mpsc::{self, Receiver, Sender, TryRecvError};
 use std::sync::OnceLock;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use corosensei::{Coroutine, CoroutineResult, Yielder};
 
@@ -30,6 +30,7 @@ enum Signal {
 
 enum Event {
     Await(i64),
+    AwaitEither(i64, i64),
     Channel(i64),
     Yield,
 }
@@ -37,6 +38,7 @@ enum Event {
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum Wait {
     Task(i64),
+    Either(i64, i64),
     Channel(i64),
 }
 
@@ -46,6 +48,10 @@ thread_local! {
 
 fn cancelled() -> SoplangError {
     runtime_error("Shaqada waa la baajiyey.", 0, 0)
+}
+
+fn timed_out() -> SoplangError {
+    runtime_error("Waqtigii shaqada loo qabtay wuu dhammaaday.", 0, 0)
 }
 
 fn suspend(event: Event) -> Result<(), SoplangError> {
@@ -68,6 +74,7 @@ fn suspend(event: Event) -> Result<(), SoplangError> {
 pub struct TaskData {
     id: Cell<i64>,
     result: RefCell<Option<Result<Value, SoplangError>>>,
+    finished_at: Cell<Option<Instant>>,
 }
 
 impl TaskData {
@@ -152,6 +159,7 @@ struct PendingIo {
 struct Completion {
     id: i64,
     result: Result<OwnedResult, OwnedFailure>,
+    finished_at: Instant,
 }
 
 pub(super) enum OwnedResult {
@@ -230,6 +238,7 @@ fn new_handle(state: &RuntimeState) -> Rc<TaskData> {
     let data = Rc::new(TaskData {
         id: Cell::new(0),
         result: RefCell::new(None),
+        finished_at: Cell::new(None),
     });
     let id = state.tasks.borrow_mut().insert(Rc::clone(&data));
     data.id.set(id);
@@ -277,7 +286,11 @@ where
         let sender = scheduler.completion_tx.clone();
         let handle = executor.spawn(async move {
             let result = future.await;
-            let _ = sender.send(Completion { id, result });
+            let _ = sender.send(Completion {
+                id,
+                result,
+                finished_at: Instant::now(),
+            });
         });
         scheduler.pending_io.insert(
             id,
@@ -305,7 +318,9 @@ pub(super) fn timer(millis: u64) -> Result<Value, SoplangError> {
 fn wake_awaiters(scheduler: &mut Scheduler, target: i64) {
     let mut ready = Vec::new();
     for (id, task) in scheduler.tasks.iter_mut() {
-        if task.waiting_for == Some(Wait::Task(target)) {
+        if matches!(task.waiting_for, Some(Wait::Task(id)) if id == target)
+            || matches!(task.waiting_for, Some(Wait::Either(first, second)) if first == target || second == target)
+        {
             task.waiting_for = None;
             ready.push(*id);
         }
@@ -334,6 +349,7 @@ fn finish_io(state: &RuntimeState, completion: Completion) {
                 0,
             ),
         });
+    pending.handle.finished_at.set(Some(completion.finished_at));
     *pending.handle.result.borrow_mut() = Some(result);
     wake_awaiters(&mut scheduler, completion.id);
 }
@@ -354,6 +370,7 @@ fn cancel_io(scheduler: &mut Scheduler, id: i64) -> bool {
         return false;
     };
     pending.abort.abort();
+    pending.handle.finished_at.set(Some(Instant::now()));
     *pending.handle.result.borrow_mut() = Some(Err(cancelled()));
     wake_awaiters(scheduler, id);
     true
@@ -435,6 +452,7 @@ fn step(state: &RuntimeState) -> Result<bool, SoplangError> {
     } else {
         Signal::Continue
     });
+    let completed_at = Instant::now();
     task.local.swap(state);
     state
         .parked_roots
@@ -458,6 +476,20 @@ fn step(state: &RuntimeState) -> Result<bool, SoplangError> {
             }
             scheduler.tasks.insert(id, task);
         }
+        CoroutineResult::Yield(Event::AwaitEither(first, second)) => {
+            task.waiting_for = Some(Wait::Either(first, second));
+            if [first, second].iter().any(|target| {
+                state
+                    .tasks
+                    .borrow()
+                    .get(*target)
+                    .is_some_and(|data| data.result.borrow().is_some())
+            }) {
+                task.waiting_for = None;
+                scheduler.ready.push_back(id);
+            }
+            scheduler.tasks.insert(id, task);
+        }
         CoroutineResult::Yield(Event::Channel(channel)) => {
             task.waiting_for = Some(Wait::Channel(channel));
             scheduler.tasks.insert(id, task);
@@ -467,6 +499,7 @@ fn step(state: &RuntimeState) -> Result<bool, SoplangError> {
             scheduler.ready.push_back(id);
         }
         CoroutineResult::Return(result) => {
+            task.handle.finished_at.set(Some(completed_at));
             *task.handle.result.borrow_mut() = Some(result);
             state.parked_roots.borrow_mut().remove(&id);
             let mut cancelled_children = Vec::new();
@@ -574,6 +607,62 @@ pub(super) fn await_task(data: &Rc<TaskData>) -> Result<Value, SoplangError> {
     })
 }
 
+pub(super) fn await_with_timeout(data: &Rc<TaskData>, millis: u64) -> Result<Value, SoplangError> {
+    STATE.with(|state| {
+        validate(state, data)?;
+        if state.scheduler.borrow().running == data.handle() {
+            return Err(runtime_error("Shaqo isma sugi karto.", 0, 0));
+        }
+        if let Some(result) = data.result.borrow().as_ref() {
+            return result.clone();
+        }
+        if millis == 0 {
+            cancel_task(data)?;
+            let _ = await_task(data);
+            return Err(timed_out());
+        }
+        let expires = Instant::now() + Duration::from_millis(millis);
+        let Value::Task(deadline) = spawn_external(
+            async move {
+                tokio::time::sleep_until(tokio::time::Instant::from_std(expires)).await;
+                Ok(OwnedResult::Unit)
+            },
+            false,
+        )?
+        else {
+            unreachable!("timer returns a task")
+        };
+        let result = (|| loop {
+            if let Some(result) = data.result.borrow().as_ref() {
+                if data
+                    .finished_at
+                    .get()
+                    .is_some_and(|finished| finished <= expires)
+                {
+                    return result.clone();
+                }
+                return Err(timed_out());
+            }
+            if Instant::now() >= expires {
+                cancel_task(data)?;
+                let _ = await_task(data);
+                return Err(timed_out());
+            }
+            if state.scheduler.borrow().running != 0 {
+                suspend(Event::AwaitEither(data.handle(), deadline.handle()))?;
+            } else if !step(state)? {
+                return Err(runtime_error(
+                    "Shaqooyinka sugaya ma dhaqaaqi karaan.",
+                    0,
+                    0,
+                ));
+            }
+        })();
+        let _ = cancel_task(&deadline);
+        result
+    })
+}
+
 pub(super) fn cancel_task(data: &Rc<TaskData>) -> Result<(), SoplangError> {
     STATE.with(|state| {
         validate(state, data)?;
@@ -657,4 +746,22 @@ pub(super) fn builtin_hurdada(args: Vec<Value>) -> Result<Value, SoplangError> {
         ));
     }
     timer(*millis as u64)
+}
+
+pub(super) fn builtin_sug_waqti(args: Vec<Value>) -> Result<Value, SoplangError> {
+    let [Value::Task(data), Value::Int(millis)] = args.as_slice() else {
+        return Err(runtime_error(
+            "sug_waqti() waxay u baahan tahay shaqo iyo millisekanno tiro dhan ah.",
+            0,
+            0,
+        ));
+    };
+    if !(0..=86_400_000).contains(millis) {
+        return Err(runtime_error(
+            "Waqtigu waa inuu u dhexeeyaa 0 iyo 86400000 millisekan.",
+            0,
+            0,
+        ));
+    }
+    await_with_timeout(data, *millis as u64)
 }

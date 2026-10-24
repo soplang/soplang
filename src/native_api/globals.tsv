@@ -13,6 +13,7 @@ baytyo	[il]	baytyo	Construct bytes from UTF-8 text, a byte list or another byte 
 qor	*qiimayaal	maran	Print positional values separated by spaces, followed by a newline.
 shaqo	hawl callback;*doodo	@native:task	Start a child task in the current runtime context.
 sug	@native:task shaqo	door	Wait for a task and return its result, or raise its error.
+sug_waqti	@native:task shaqo;abn millisekan	door	Wait until a task completes or its millisecond deadline expires; cancel and drain it on timeout.
 baaji	@native:task shaqo	maran	Request cooperative cancellation of a task.
 hurdada	abn millisekan	@native:task	Return a cancellable timer task that completes after the given milliseconds.
 marin	abn xad	@native:channel	Create a bounded channel; zero capacity requires a receiver for each send.

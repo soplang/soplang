@@ -17,6 +17,8 @@ before it suspends.
 
 `shaqo(callback, arg1, arg2)` starts a child task and returns a handle. `sug(task)`
 waits for its result or raises its error. `baaji(task)` requests cancellation.
+`sug_waqti(task, millisekan)` waits up to the given number of milliseconds;
+expiry cancels and drains the task before reporting a timeout error.
 `marin(xad)` creates a bounded channel; `dir` and `qaad` wait when full and empty,
 respectively, and `xidh` closes it. A zero-capacity channel is a rendezvous.
 `qaad` returns `{qiime, dhammaad}`. Closing a channel preserves buffered values;

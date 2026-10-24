@@ -40,6 +40,37 @@ fn cancelled_task_raises_a_catchable_error() {
 }
 
 #[test]
+fn task_deadlines_cancel_and_drain_with_cleanup() {
+    run_source(
+        r#"
+        hubi(sug_waqti(shaqo(hawl() { celi 7 }), 1000) == 7)
+
+        door cleaned = been
+        hawl slow() {
+            tijaabi { sug(hurdada(10000)) }
+            dhammee { cleaned = run }
+        }
+        door task = shaqo(slow)
+        door expired = been
+        tijaabi { sug_waqti(task, 10) }
+        qabo (e) { expired = e == "Waqtigii shaqada loo qabtay wuu dhammaaday." }
+        hubi(expired && cleaned)
+
+        door immediate = hurdada(10000)
+        door zero = been
+        tijaabi { sug_waqti(immediate, 0) }
+        qabo (e) { zero = run }
+        hubi(zero)
+        "#,
+        None,
+        false,
+        false,
+        false,
+    )
+    .unwrap();
+}
+
+#[test]
 fn cancellation_resumes_suspended_task_through_cleanup() {
     run_source(
         r#"

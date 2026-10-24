@@ -1366,6 +1366,11 @@ const BUILTINS: &[(&str, super::NativeFn, CallbackArity)] = &[
     ),
     ("sug", super::tasks::builtin_sug, CallbackArity::range(1, 1)),
     (
+        "sug_waqti",
+        super::tasks::builtin_sug_waqti,
+        CallbackArity::range(2, 2),
+    ),
+    (
         "baaji",
         super::tasks::builtin_baaji,
         CallbackArity::range(1, 1),

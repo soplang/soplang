@@ -187,6 +187,30 @@ fn llvm_timer_tasks_complete_and_cancel() {
 }
 
 #[test]
+fn llvm_task_deadlines_cancel_and_drain_with_cleanup() {
+    assert_eq!(
+        run_llvm(
+            "task_deadline",
+            r#"
+            hubi(sug_waqti(shaqo(hawl() { celi 3 }), 1000) == 3)
+            door cleaned = been
+            hawl slow() {
+                tijaabi { sug(hurdada(10000)) }
+                dhammee { cleaned = run }
+            }
+            door task = shaqo(slow)
+            door expired = been
+            tijaabi { sug_waqti(task, 10) }
+            qabo (e) { expired = e == "Waqtigii shaqada loo qabtay wuu dhammaaday." }
+            hubi(expired && cleaned)
+            qor("deadline ok")
+            "#,
+        ),
+        "deadline ok\n"
+    );
+}
+
+#[test]
 fn llvm_async_file_tasks_round_trip() {
     let file = std::env::temp_dir().join(format!(
         "soplang_llvm_async_file_{}_{}",
