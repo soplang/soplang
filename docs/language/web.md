@@ -86,10 +86,17 @@ last occurrence wins for repeated keys. Missing `=` means an empty value.
 | --- | --- |
 | `web.json(value, status?)` | JSON body. Status defaults to 200. |
 | `web.html(text, status?)` | HTML text. |
+| `web.socod(next, status?, content_type?)` | Chunked response from a zero-argument producer. The producer returns text or bytes, then `maran`. |
 | `web.leex(path, status?)` | Redirect. Status defaults to 302. |
 | `web.fayl(root, path)` | Bytes from a file inside `root`, 404 when it is missing, or 400 when the path escapes. |
 | `web.habee(template, data)` | HTML from `{{name}}` slots. `{{!name}}` is not escaped. |
 | `web.qayb(codsi)` | Multipart parts as `{magac, fayl, qoraal, baytyo}`. The body stays inside `cabbir`. |
+
+`web.socod` pulls one chunk only after the previous chunk has been written.
+Chunks must be 1 to 65536 bytes. It uses HTTP/1.1 chunked transfer encoding,
+and defaults to `application/octet-stream`. See [HTTP server](http-server.md)
+for framing, errors, and the in-memory test client limit. Request bodies are
+still buffered; streaming uploads remain 3.6 work.
 
 `app.shahaado(cert, key)` stores PEM paths. `app.fur(host, port)` then calls
 `server_fur` with those files. Without them, `fur` opens a plain listener.

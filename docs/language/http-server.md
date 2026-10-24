@@ -76,8 +76,18 @@ change them.
 ## Response
 
 The handler returns a `walax`. `heer` defaults to 200. Use one of `qoraal`,
-`baytyo`, or `json` for the body. `cinwaan` supplies extra headers. A redirect
+`baytyo`, `json`, or `socod` for the body. `cinwaan` supplies extra headers. A redirect
 is a 301 or 302 response with a `Location` header.
+
+For a streaming response, `socod` is a zero-argument function. Each call
+returns a nonempty `qoraal` or `baytyo` chunk of at most 65536 bytes, or
+`maran` to finish. The server sends HTTP/1.1 chunked transfer encoding and
+waits for each chunk to be written before calling the function again. This
+provides backpressure without retaining the whole response in memory.
+`socod` cannot be combined with another body type or used with status 204 or
+304. Once headers are sent, a producer error ends the connection; the server
+cannot replace a partial response with status 500. The in-memory test client
+decodes chunked responses up to its configured response limit.
 
 The sequential listener serves one request at a time. Other connections wait
 in the operating-system queue until the next `server_aqbal`. Starting multiple
@@ -109,6 +119,7 @@ cannot contain a body and omit `Content-Length`. A supplied text or byte body
 must have the matching Soplang type.
 
 The framing rules follow [RFC 9112, sections 3.2 and 6.3](https://www.rfc-editor.org/rfc/rfc9112#section-6.3).
-The server remains an HTTP subset. Keep-alive, chunked streaming, and upgrades
-need later server work. TLS is available through sequential `server_fur` and
+The server remains an HTTP subset. Request bodies still require
+`Content-Length` and are buffered; keep-alive and upgrades need later server
+work. TLS is available through sequential `server_fur` and
 `server_aqbal`; asynchronous TLS serving remains later work.

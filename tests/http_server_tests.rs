@@ -11,9 +11,20 @@ hawl create(c) { celi {heer: 201, json: c.json} }
 hawl boom(c) { tuur "xumo" }
 hawl injection(c) { celi {cinwaan: {"X-Test": e"ok\r\nX-Evil: yes"}} }
 hawl go(c) { celi {heer: 302, cinwaan: {Location: "/next"}} }
+hawl stream(c) {
+    door state = {i: 0}
+    hawl next() {
+        state.i = state.i + 1
+        haddii (state.i == 1) { celi "ab" }
+        haddii (state.i == 2) { celi "cd" }
+        celi maran
+    }
+    celi {socod: next, cinwaan: {"content-type": "text/plain"}}
+}
 door s = server_fur("127.0.0.1", 0)
 qor(s.deked)
-door routes = [["GET", "/users/:id", hello], ["POST", "/items", create], ["GET", "/fail", boom], ["GET", "/go", go], ["GET", "/injection", injection]]
+door routes = [["GET", "/users/:id", hello], ["POST", "/items", create], ["GET", "/fail", boom], ["GET", "/go", go], ["GET", "/injection", injection], ["GET", "/stream", stream]]
+server_aqbal(s, routes)
 server_aqbal(s, routes)
 server_aqbal(s, routes)
 server_aqbal(s, routes)
@@ -114,6 +125,17 @@ fn drive(command: &mut Command) {
     );
     assert_eq!(status, 302, "{headers}");
     assert!(headers.contains("location: /next"), "{headers}");
+    let (status, headers, body) = exchange(
+        port,
+        "GET /stream HTTP/1.1\r\nHost: localhost\r\nConnection: close\r\n\r\n",
+    );
+    assert_eq!(status, 200, "{body}");
+    assert!(headers.contains("transfer-encoding: chunked"), "{body}");
+    assert!(!headers.contains("content-length:"), "{body}");
+    assert!(
+        body.ends_with("\r\n\r\n2\r\nab\r\n2\r\ncd\r\n0\r\n\r\n"),
+        "{body}"
+    );
     let mut rest = String::new();
     stdout.read_to_string(&mut rest).unwrap();
     let output = child.wait_with_output().unwrap();

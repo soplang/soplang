@@ -16,6 +16,15 @@ app.hel("POST", "/validate", hawl(c) { celi web.json(web.hubi(c.json, ["name"]))
 app.hel("GET", "/conflict", hawl(c) { web.diid(409, "Isku dhac") })
 app.hel("GET", "/failure", hawl(c) { qor(1 / 0) })
 app.hel("GET", "/bad-response", hawl(c) { celi { "qoraal": "no", cinwaan: { "X-Bad": e"x\r\ny" } } })
+app.hel("GET", "/stream", hawl(c) {
+    door state = {index: 0}
+    celi web.socod(hawl() {
+        state.index = state.index + 1
+        haddii (state.index == 1) { celi "ab" }
+        haddii (state.index == 2) { celi baytyo([99, 100]) }
+        celi maran
+    }, 200, "text/plain")
+})
 door response = app.tijaabi("GET", "/hello/42?q=a+b")
 hubi(response.heer == 200 && response.json.id == "42" && response.json.q == "a b")
 hubi(order == ["before", "after"])
@@ -31,6 +40,8 @@ hubi(app.tijaabi("GET", "/missing").heer == 404)
 hubi(app.tijaabi("POST", "/hello/42").heer == 405)
 hubi(app.tijaabi("GET", "/failure").heer == 500)
 hubi(app.tijaabi("GET", "/bad-response").heer == 500)
+response = app.tijaabi("GET", "/stream")
+hubi(response.heer == 200 && response.qoraal == "abcd")
 hubi(app.tijaabi("POST", "/validate", { json: {} }).heer == 400)
 hubi(app.tijaabi("POST", "/json", { "qoraal": "bad json", cinwaan: { "content-type": "application/json" } }).heer == 400)
 hubi(app.tijaabi("POST", "/json", { baytyo: baytyo([255]), cinwaan: { "content-type": "application/json" } }).heer == 400)

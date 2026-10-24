@@ -1,4 +1,4 @@
-soosaar Web, json, html, leex, kuki, foom, hubi, cors, fayl, kuki_qoraal, habee, qayb, diid
+soosaar Web, json, html, leex, kuki, foom, hubi, cors, fayl, kuki_qoraal, habee, qayb, diid, socod
 
 hawl json(xog, heer=200) {
     celi { heer: heer, json: xog }
@@ -6,6 +6,10 @@ hawl json(xog, heer=200) {
 
 hawl html(nux, heer=200) {
     celi { heer: heer, "qoraal": nux, cinwaan: { "content-type": "text/html; charset=utf-8" } }
+}
+
+hawl socod(xiga, heer=200, nooc="application/octet-stream") {
+    celi { heer: heer, socod: xiga, cinwaan: { "content-type": nooc } }
 }
 
 hawl leex(jid, heer=302) {

@@ -20,6 +20,7 @@ const DEFAULT_TIMEOUT: Duration = Duration::from_secs(30);
 const DEFAULT_LIMIT: usize = 1024 * 1024;
 const MAX_LIMIT: usize = 16 * 1024 * 1024;
 const MAX_HEADERS: usize = 8 * 1024;
+const MAX_STREAM_CHUNK: usize = 64 * 1024;
 const DEFAULT_WORKERS: usize = 8;
 const MAX_WORKERS: usize = 32;
 
@@ -501,7 +502,14 @@ pub fn test(
             .map_err(|_| error("Cinwaanka jawaabtu ma aha UTF-8."))?;
         fields.insert(header.name.to_ascii_lowercase(), text.to_owned());
     }
-    let body = stream.output[offset..].to_vec();
+    let body = if fields
+        .get("transfer-encoding")
+        .is_some_and(|value| value.eq_ignore_ascii_case("chunked"))
+    {
+        decode_chunked_response(&stream.output[offset..], response_limit)?
+    } else {
+        stream.output[offset..].to_vec()
+    };
     if body.len() > response_limit {
         return Err(error("Jawaabta tijaabadu way ka weyn tahay xadka."));
     }
@@ -636,11 +644,18 @@ fn dispatch<S: Write>(
                 Err(message) => (
                     500,
                     Vec::new(),
-                    error_body(&message),
+                    ResponseBody::Fixed(error_body(&message)),
                     "application/json".to_string(),
                 ),
             };
-            let _ = write_response(stream, response.0, &response.1, &response.2, &response.3);
+            match response.2 {
+                ResponseBody::Fixed(body) => {
+                    let _ = write_response(stream, response.0, &response.1, &body, &response.3);
+                }
+                ResponseBody::Stream(next) => {
+                    write_streaming_response(stream, response.0, &response.1, &next, &response.3)?;
+                }
+            }
         }
         Err(failure) => {
             let status = failure
@@ -949,7 +964,14 @@ fn match_path(pattern: &[Part], path: &str) -> Option<HashMap<String, String>> {
     actual.next().is_none().then_some(params)
 }
 
-fn response_from(value: &Value) -> Result<(u16, Vec<(String, String)>, Vec<u8>, String), String> {
+enum ResponseBody {
+    Fixed(Vec<u8>),
+    Stream(Value),
+}
+
+fn response_from(
+    value: &Value,
+) -> Result<(u16, Vec<(String, String)>, ResponseBody, String), String> {
     let Value::Object(object) = value else {
         return Err("Jawaabtu waa inay noqotaa walax.".into());
     };
@@ -999,6 +1021,7 @@ fn response_from(value: &Value) -> Result<(u16, Vec<(String, String)>, Vec<u8>, 
     }
     let mut kinds = 0;
     let mut body = Vec::new();
+    let mut stream = None;
     let mut content_type = String::new();
     if let Some(Value::Str(text)) = object.get("qoraal") {
         kinds += 1;
@@ -1019,10 +1042,21 @@ fn response_from(value: &Value) -> Result<(u16, Vec<(String, String)>, Vec<u8>, 
             .into_bytes();
         content_type = "application/json".into();
     }
+    if let Some(value) = object.get("socod") {
+        if !matches!(
+            value,
+            Value::Function(_) | Value::Closure(_) | Value::NativeFunction(_)
+        ) {
+            return Err("Soo-saarka socodka jawaabtu waa inuu noqdaa hawl.".into());
+        }
+        kinds += 1;
+        stream = Some(value.clone());
+        content_type = "application/octet-stream".into();
+    }
     if kinds > 1 {
         return Err("Jawaabtu waxay qaadan kartaa hal nooc oo jidh ah.".into());
     }
-    if matches!(status, 204 | 304) && !body.is_empty() {
+    if matches!(status, 204 | 304) && (!body.is_empty() || stream.is_some()) {
         return Err("Heerkan jawaabtu ma qaadan karo jidh.".into());
     }
     if !headers
@@ -1032,7 +1066,12 @@ fn response_from(value: &Value) -> Result<(u16, Vec<(String, String)>, Vec<u8>, 
     {
         headers.push(("content-type".into(), content_type.clone()));
     }
-    Ok((status, headers, body, content_type))
+    Ok((
+        status,
+        headers,
+        stream.map_or(ResponseBody::Fixed(body), ResponseBody::Stream),
+        content_type,
+    ))
 }
 
 fn limits(options: Option<&Value>) -> Result<(Duration, usize), SoplangError> {
@@ -1086,12 +1125,27 @@ fn write_response<S: Write>(
     body: &[u8],
     content_type: &str,
 ) -> std::io::Result<()> {
+    write_response_head(stream, status, headers, content_type, Some(body.len()))?;
+    stream.write_all(body)?;
+    stream.flush()
+}
+
+fn write_response_head<S: Write>(
+    stream: &mut S,
+    status: u16,
+    headers: &[(String, String)],
+    content_type: &str,
+    length: Option<usize>,
+) -> std::io::Result<()> {
     let mut message = format!(
         "HTTP/1.1 {status} {}\r\nConnection: close\r\n",
         reason(status)
     );
     if !matches!(status, 204 | 304) {
-        message.push_str(&format!("Content-Length: {}\r\n", body.len()));
+        match length {
+            Some(length) => message.push_str(&format!("Content-Length: {length}\r\n")),
+            None => message.push_str("Transfer-Encoding: chunked\r\n"),
+        }
     }
     if !content_type.is_empty()
         && !headers
@@ -1107,9 +1161,93 @@ fn write_response<S: Write>(
         message.push_str("\r\n");
     }
     message.push_str("\r\n");
-    stream.write_all(message.as_bytes())?;
-    stream.write_all(body)?;
-    stream.flush()
+    stream.write_all(message.as_bytes())
+}
+
+fn write_streaming_response<S: Write>(
+    stream: &mut S,
+    status: u16,
+    headers: &[(String, String)],
+    next: &Value,
+    content_type: &str,
+) -> Result<(), SoplangError> {
+    write_response_head(stream, status, headers, content_type, None).map_err(|failure| {
+        error(format!(
+            "Cinwaanka jawaabta lama qorin. {}",
+            crate::error::io_reason(&failure)
+        ))
+    })?;
+    loop {
+        let chunk = super::abi::invoke(next, &[])?;
+        let bytes = match chunk {
+            Value::Null => break,
+            Value::Str(text) => text.into_bytes(),
+            Value::Bytes(bytes) => super::bytes::read(&bytes)?.clone(),
+            _ => {
+                return Err(error(
+                    "Qaybta socodka jawaabtu waa inay noqotaa qoraal, baytyo, ama maran.",
+                ))
+            }
+        };
+        if bytes.is_empty() || bytes.len() > MAX_STREAM_CHUNK {
+            return Err(error(
+                "Qaybta socodka jawaabtu waa inay u dhaxaysaa 1 iyo 65536 bayt.",
+            ));
+        }
+        stream
+            .write_all(format!("{:X}\r\n", bytes.len()).as_bytes())
+            .and_then(|_| stream.write_all(&bytes))
+            .and_then(|_| stream.write_all(b"\r\n"))
+            .map_err(|failure| {
+                error(format!(
+                    "Jidhka jawaabta lama qorin. {}",
+                    crate::error::io_reason(&failure)
+                ))
+            })?;
+    }
+    stream
+        .write_all(b"0\r\n\r\n")
+        .and_then(|_| stream.flush())
+        .map_err(|failure| {
+            error(format!(
+                "Jawaabta lama dhammaystirin. {}",
+                crate::error::io_reason(&failure)
+            ))
+        })
+}
+
+fn decode_chunked_response(body: &[u8], limit: usize) -> Result<Vec<u8>, SoplangError> {
+    let mut cursor = 0;
+    let mut decoded = Vec::new();
+    loop {
+        let end = body[cursor..]
+            .windows(2)
+            .position(|mark| mark == b"\r\n")
+            .map(|offset| cursor + offset)
+            .ok_or_else(|| error("Jawaabta socodku ma dhammaystirna."))?;
+        let length = std::str::from_utf8(&body[cursor..end])
+            .ok()
+            .and_then(|text| usize::from_str_radix(text, 16).ok())
+            .ok_or_else(|| error("Dhererka qaybta jawaabtu ma saxna."))?;
+        cursor = end + 2;
+        if length == 0 {
+            if body.get(cursor..) != Some(b"\r\n".as_slice()) {
+                return Err(error("Jawaabta socodku ma dhammaystirna."));
+            }
+            return Ok(decoded);
+        }
+        if decoded.len().saturating_add(length) > limit {
+            return Err(error("Jawaabta tijaabadu way ka weyn tahay xadka."));
+        }
+        let end = cursor
+            .checked_add(length)
+            .ok_or_else(|| error("Dhererka qaybta jawaabtu ma saxna."))?;
+        if body.get(end..end.saturating_add(2)) != Some(b"\r\n".as_slice()) {
+            return Err(error("Jawaabta socodku ma dhammaystirna."));
+        }
+        decoded.extend_from_slice(&body[cursor..end]);
+        cursor = end + 2;
+    }
 }
 
 fn reason(status: u16) -> &'static str {
@@ -1246,6 +1384,9 @@ mod protocol_tests {
 
     #[test]
     fn responses_cannot_inject_headers_or_override_framing() {
+        fn done(_: Vec<Value>) -> Result<Value, SoplangError> {
+            Ok(Value::Null)
+        }
         for (name, value) in [
             ("X-Test", "ok\r\nX-Evil: yes"),
             ("X-Test", "nul\0"),
@@ -1267,6 +1408,17 @@ mod protocol_tests {
         .is_ok());
         assert!(response_from(&object(&[("qoraal", Value::Int(1))])).is_err());
         assert!(response_from(&object(&[("baytyo", Value::Str("wrong".into()))])).is_err());
+        assert!(response_from(&object(&[("socod", Value::Str("wrong".into()))])).is_err());
+        assert!(response_from(&object(&[
+            ("socod", Value::NativeFunction(done)),
+            ("json", Value::Int(1)),
+        ]))
+        .is_err());
+        assert!(response_from(&object(&[
+            ("heer", Value::Int(204)),
+            ("socod", Value::NativeFunction(done)),
+        ]))
+        .is_err());
         assert!(response_from(&object(&[(
             "cinwaan",
             object(&[("X-Test", Value::Str("a".repeat(MAX_HEADERS)))])
