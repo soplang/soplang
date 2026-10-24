@@ -235,6 +235,13 @@ pub(super) fn accept_server(listener: &Value, timeout: Duration) -> Result<Value
     )
 }
 
+pub(super) fn listener_is_open(listener: &Value) -> bool {
+    let Ok(id) = net::endpoint_id(listener, "dhegeysi_async") else {
+        return false;
+    };
+    STATE.with(|state| state.async_tcp_listeners.borrow().contains_key(&id))
+}
+
 pub(super) fn read(args: Vec<Value>) -> Result<Value, SoplangError> {
     expect_arity(&args, "tcp_akhris_shaqo", 2)?;
     let id = net::endpoint_id(&args[0], "xidhiidh_async")?;

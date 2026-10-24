@@ -20,8 +20,25 @@ tcp_xidh(server)
 Each `aqbal_shaqo` call handles one connection. Multiple task handles allow
 handlers to overlap while Soplang callbacks still run on one owning thread.
 Each connection has the same absolute exchange deadline and request size limit
-as `app.aqbal`. This path currently uses plain TCP; TLS and long-running
-graceful serving are later 3.6 stages.
+as `app.aqbal`. This path currently uses plain TCP.
+
+For a long-running plain TCP server, `app.adeeg_shaqo(server, shaqaale?)`
+keeps a bounded set of workers accepting requests. The default is 8 workers;
+the supported range is 1 to 32. Closing the listener stops new accepts, then
+`sug(serving)` waits for active requests to finish:
+
+```soplang
+door server = sug(tcp_dhegeysi_shaqo("127.0.0.1", 8080))
+door serving = app.adeeg_shaqo(server, 8)
+sug(hurdada(60000))
+tcp_xidh(server)
+sug(serving)
+```
+
+Connection timeouts or client disconnects affect only those connections.
+Pending connections beyond the worker count wait in the operating-system
+queue. This serving path currently uses plain TCP; TLS serving remains a
+separate sequential operation.
 
 ```soplang
 keen "web" sida web

@@ -27,6 +27,15 @@ pending accepts. The options and route behavior match `server_aqbal`. The
 exchange timeout begins when a connection is accepted, and covers all reads
 and writes. This task-based path currently supports plain TCP.
 
+`server_adeeg_shaqo(server, routes, options?)` keeps accepting and serving
+connections until `tcp_xidh(server)` closes the asynchronous listener. It
+returns a task that completes after accepted requests finish. The optional
+`shaqaale` setting bounds simultaneous exchanges from 1 to 32; the default is
+8. Other accepted connections wait in the operating-system queue. A client
+disconnect or exchange timeout does not stop the listener. Closing the
+listener cancels pending accepts while active exchanges drain. Use `sug` on
+the serving task to wait for that drain.
+
 ## Routes
 
 Each route is a list of method, path, and handler:

@@ -271,4 +271,8 @@ qaab Web {
     hawl aqbal_shaqo(server) {
         celi server_aqbal_shaqo(server, nafta.waddo, { waqti: nafta.waqti, cabbir: nafta.cabbir })
     }
+
+    hawl adeeg_shaqo(server, shaqaale=8) {
+        celi server_adeeg_shaqo(server, nafta.waddo, { waqti: nafta.waqti, cabbir: nafta.cabbir, shaqaale: shaqaale })
+    }
 }

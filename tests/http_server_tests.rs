@@ -242,3 +242,111 @@ fn concurrent_http_requests_run_through_jit_and_llvm() {
     drive_concurrent(&mut Command::new(&binary));
     std::fs::remove_dir_all(dir).unwrap();
 }
+
+const SERVING_PROGRAM: &str = r#"
+keen "web" sida web
+door server = sug(tcp_dhegeysi_shaqo("127.0.0.1", 0))
+door app = cusub web.Web()
+door active = 0
+door peak = 0
+app.hel("GET", "/work", hawl(codsi) {
+    active = active + 1
+    haddii (active > peak) { peak = active }
+    haddii (codsi.weydiimo.phase == "shutdown") {
+        qor("draining")
+        sug(hurdada(600))
+    } kale {
+        sug(hurdada(150))
+    }
+    active = active - 1
+    celi web.json({ok: run})
+})
+app.hel("GET", "/stop", hawl(codsi) {
+    tcp_xidh(server)
+    celi web.json({stopped: run})
+})
+qor(server.deked)
+door serving = app.adeeg_shaqo(server, 2)
+sug(serving)
+qor("peak=" + qoraal(peak))
+"#;
+
+fn drive_serving(command: &mut Command) {
+    let mut child = command
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .unwrap();
+    let mut stdout = BufReader::new(child.stdout.take().unwrap());
+    let mut port = String::new();
+    stdout.read_line(&mut port).unwrap();
+    let port = port.trim();
+    assert!(!port.is_empty(), "server did not publish a port");
+
+    let connect = |path: &str| {
+        let mut stream = TcpStream::connect(format!("127.0.0.1:{port}")).unwrap();
+        stream
+            .set_read_timeout(Some(Duration::from_secs(3)))
+            .unwrap();
+        stream
+            .write_all(format!("GET {path} HTTP/1.1\r\nHost: localhost\r\n\r\n").as_bytes())
+            .unwrap();
+        stream
+    };
+    let mut work = (0..4).map(|_| connect("/work")).collect::<Vec<_>>();
+    for stream in &mut work {
+        let mut response = String::new();
+        stream.read_to_string(&mut response).unwrap();
+        assert!(response.starts_with("HTTP/1.1 200"), "{response}");
+        assert!(response.contains("\"ok\":true"), "{response}");
+    }
+
+    let mut draining = connect("/work?phase=shutdown");
+    let mut started = String::new();
+    stdout.read_line(&mut started).unwrap();
+    assert_eq!(started.trim(), "draining");
+    let mut stopping = connect("/stop");
+    stopping
+        .set_read_timeout(Some(Duration::from_millis(400)))
+        .unwrap();
+    let mut stopped = String::new();
+    stopping.read_to_string(&mut stopped).unwrap();
+    assert!(stopped.contains("\"stopped\":true"), "{stopped}");
+    let mut drained = String::new();
+    draining.read_to_string(&mut drained).unwrap();
+    assert!(drained.contains("\"ok\":true"), "{drained}");
+
+    let mut rest = String::new();
+    stdout.read_to_string(&mut rest).unwrap();
+    let output = child.wait_with_output().unwrap();
+    assert!(
+        output.status.success(),
+        "status {:?}\n{}\n{rest}",
+        output.status.code(),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(rest.contains("peak=2"), "{rest}");
+}
+
+#[test]
+fn bounded_http_serving_drains_active_requests_in_jit_and_llvm() {
+    let mut jit = Command::new(env!("CARGO_BIN_EXE_soplang"));
+    jit.arg("-c").arg(SERVING_PROGRAM);
+    drive_serving(&mut jit);
+
+    let dir = std::env::temp_dir().join(format!(
+        "soplang_bounded_http_{}_{}",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos()
+    ));
+    std::fs::create_dir_all(&dir).unwrap();
+    let source = dir.join("main.sop");
+    let binary = dir.join("server");
+    std::fs::write(&source, SERVING_PROGRAM).unwrap();
+    soplang::build_source(SERVING_PROGRAM, Some(&source), &binary, 2, false).unwrap();
+    drive_serving(&mut Command::new(&binary));
+    std::fs::remove_dir_all(dir).unwrap();
+}

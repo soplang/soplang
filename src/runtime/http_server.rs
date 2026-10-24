@@ -20,6 +20,8 @@ const DEFAULT_TIMEOUT: Duration = Duration::from_secs(30);
 const DEFAULT_LIMIT: usize = 1024 * 1024;
 const MAX_LIMIT: usize = 16 * 1024 * 1024;
 const MAX_HEADERS: usize = 8 * 1024;
+const DEFAULT_WORKERS: usize = 8;
+const MAX_WORKERS: usize = 32;
 
 pub(super) struct Listener {
     socket: TcpListener,
@@ -226,11 +228,24 @@ pub fn accept_async(
 fn serve_async_task(args: Vec<Value>) -> Result<Value, SoplangError> {
     let (timeout, limit) = limits(args.get(2).filter(|value| !matches!(value, Value::Null)))?;
     let routes = compile_routes(&args[1])?;
-    let accept = super::async_net::accept_server(&args[0], timeout)?;
+    let connection = accept_async_connection(&args[0], timeout)?;
+    serve_async_connection(&connection, &routes, timeout, limit)
+}
+
+fn accept_async_connection(server: &Value, timeout: Duration) -> Result<Value, SoplangError> {
+    let accept = super::async_net::accept_server(server, timeout)?;
     let Value::Task(accept) = accept else {
         unreachable!("asynchronous accept returns a task")
     };
-    let connection = super::tasks::await_task(&accept)?;
+    super::tasks::await_task(&accept)
+}
+
+fn serve_async_connection(
+    connection: &Value,
+    routes: &[Route],
+    timeout: Duration,
+    limit: usize,
+) -> Result<Value, SoplangError> {
     let expires = Instant::now()
         .checked_add(timeout)
         .ok_or_else(|| error("Waqtiga serverka aad buu u dheer yahay."))?;
@@ -239,12 +254,93 @@ fn serve_async_task(args: Vec<Value>) -> Result<Value, SoplangError> {
         expires,
         failure: None,
     };
-    let result = serve(&mut stream, &routes, limit);
+    let result = serve(&mut stream, routes, limit);
     let bridge_failure = stream.failure.take();
-    let _ = super::net::close(&connection);
+    let _ = super::net::close(connection);
     match bridge_failure {
         Some(failure) => Err(failure),
         None => result,
+    }
+}
+
+/// Serve until the asynchronous listener closes. A fixed number of workers
+/// bounds accepted connections and lets in-flight exchanges drain on close.
+pub fn serve_async(
+    server: &Value,
+    routes: &Value,
+    options: Option<&Value>,
+) -> Result<Value, SoplangError> {
+    super::net::endpoint_id(server, "dhegeysi_async")?;
+    super::tasks::spawn(
+        Value::NativeFunction(serve_async_loop),
+        vec![
+            server.clone(),
+            routes.clone(),
+            options.cloned().unwrap_or(Value::Null),
+        ],
+    )
+}
+
+fn serve_async_loop(args: Vec<Value>) -> Result<Value, SoplangError> {
+    let options = args.get(2).filter(|value| !matches!(value, Value::Null));
+    let _ = limits(options)?;
+    let _ = compile_routes(&args[1])?;
+    let workers = worker_count(options)?;
+    let mut pending = Vec::with_capacity(workers);
+    for _ in 0..workers {
+        let worker = super::tasks::spawn(Value::NativeFunction(serve_async_worker), args.clone())?;
+        let Value::Task(worker) = worker else {
+            unreachable!("server worker returns a task")
+        };
+        pending.push(worker);
+    }
+    let mut first_failure = None;
+    for worker in pending {
+        if let Err(failure) = super::tasks::await_task(&worker) {
+            first_failure.get_or_insert(failure);
+        }
+    }
+    match first_failure {
+        Some(failure) => Err(failure),
+        None => Ok(Value::Null),
+    }
+}
+
+fn serve_async_worker(args: Vec<Value>) -> Result<Value, SoplangError> {
+    let (timeout, limit) = limits(args.get(2).filter(|value| !matches!(value, Value::Null)))?;
+    let routes = compile_routes(&args[1])?;
+    let server = &args[0];
+    loop {
+        if !super::async_net::listener_is_open(server) {
+            return Ok(Value::Null);
+        }
+        let connection = match accept_async_connection(server, timeout) {
+            Ok(connection) => connection,
+            Err(_) if !super::async_net::listener_is_open(server) => return Ok(Value::Null),
+            Err(failure) => {
+                let _ = super::net::close(server);
+                return Err(failure);
+            }
+        };
+        // A client disconnect or exchange timeout affects only its connection.
+        let _ = serve_async_connection(&connection, &routes, timeout, limit);
+    }
+}
+
+fn worker_count(options: Option<&Value>) -> Result<usize, SoplangError> {
+    let Some(Value::Object(options)) = options else {
+        return Ok(DEFAULT_WORKERS);
+    };
+    let options = options
+        .try_borrow()
+        .map_err(|_| error("Walaxda hadda lama akhriyi karo."))?;
+    match options.get("shaqaale") {
+        None => Ok(DEFAULT_WORKERS),
+        Some(Value::Int(workers)) => usize::try_from(*workers)
+            .ok()
+            .filter(|workers| (1..=MAX_WORKERS).contains(workers))
+            .ok_or_else(|| error("Tirada shaqaalaha serverka waa inay u dhaxaysaa 1 iyo 32.")),
+        _ => Err(error("Tirada shaqaalaha serverka waa inay noqotaa abn.")),
     }
 }
 
