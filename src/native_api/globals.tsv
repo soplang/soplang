@@ -77,6 +77,7 @@ xog_tirtir	walax db;qoraal jadwal;walax shaandhe	abn	Delete matching records and
 xog_macaamil	walax db;hawl shaqo	maran	Run a callback on one pinned database connection; errors roll back the transaction.
 xog_awood	qoraal nooc	walax	Report connector capabilities.
 server_aqbal	walax server;waddooyin;[walax xulasho]	maran	Accept and dispatch sequential HTTP requests with bounded exchanges.
+server_aqbal_shaqo	walax server;waddooyin;[walax xulasho]	@native:task	Accept and dispatch one HTTP request on a context-owned asynchronous TCP listener.
 server_xidh	walax server	maran	Close an HTTP listener owned by this runtime.
 dns_raadi	qoraal marti	teed[qoraal]	Resolve a hostname to sorted IP addresses.
 tcp_fur	qoraal marti;abn deked;[walax xulasho]	walax	Open a TCP connection with the requested transport options.

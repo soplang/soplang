@@ -1,7 +1,7 @@
-//! One-request-at-a-time HTTP server for JSON APIs.
+//! HTTP server for JSON APIs, with sequential and task-based exchanges.
 
 use std::collections::HashMap;
-use std::io::{Read, Write};
+use std::io::{self, Read, Write};
 #[cfg_attr(not(test), allow(unused_imports))]
 use std::net::{TcpListener, TcpStream};
 use std::sync::atomic::{AtomicI64, Ordering};
@@ -203,6 +203,118 @@ pub fn accept(
             serve(&mut stream, &routes, limit)
         }
     })
+}
+
+/// Start one concurrently scheduled HTTP exchange on an asynchronous TCP
+/// listener. Parsing and user handlers stay on the owning runtime thread.
+pub fn accept_async(
+    server: &Value,
+    routes: &Value,
+    options: Option<&Value>,
+) -> Result<Value, SoplangError> {
+    super::net::endpoint_id(server, "dhegeysi_async")?;
+    super::tasks::spawn(
+        Value::NativeFunction(serve_async_task),
+        vec![
+            server.clone(),
+            routes.clone(),
+            options.cloned().unwrap_or(Value::Null),
+        ],
+    )
+}
+
+fn serve_async_task(args: Vec<Value>) -> Result<Value, SoplangError> {
+    let (timeout, limit) = limits(args.get(2).filter(|value| !matches!(value, Value::Null)))?;
+    let routes = compile_routes(&args[1])?;
+    let accept = super::async_net::accept_server(&args[0], timeout)?;
+    let Value::Task(accept) = accept else {
+        unreachable!("asynchronous accept returns a task")
+    };
+    let connection = super::tasks::await_task(&accept)?;
+    let expires = Instant::now()
+        .checked_add(timeout)
+        .ok_or_else(|| error("Waqtiga serverka aad buu u dheer yahay."))?;
+    let mut stream = TaskStream {
+        connection: connection.clone(),
+        expires,
+        failure: None,
+    };
+    let result = serve(&mut stream, &routes, limit);
+    let bridge_failure = stream.failure.take();
+    let _ = super::net::close(&connection);
+    match bridge_failure {
+        Some(failure) => Err(failure),
+        None => result,
+    }
+}
+
+struct TaskStream {
+    connection: Value,
+    expires: Instant,
+    failure: Option<SoplangError>,
+}
+
+impl TaskStream {
+    fn wait(&mut self, task: Result<Value, SoplangError>) -> io::Result<Value> {
+        if self.failure.is_some() {
+            return Err(io::Error::other("Hawsha shabakadda way fashilantay."));
+        }
+        let remaining = self
+            .expires
+            .checked_duration_since(Instant::now())
+            .filter(|time| !time.is_zero())
+            .ok_or_else(|| self.fail(error("Waqtigii codsiga wuu dhammaaday.")))?;
+        let task = task.map_err(|failure| self.fail(failure))?;
+        let Value::Task(task) = task else {
+            unreachable!("asynchronous TCP operation returns a task")
+        };
+        let millis = remaining.as_millis().min(u64::MAX as u128) as u64;
+        super::tasks::await_with_timeout(&task, millis).map_err(|failure| self.fail(failure))
+    }
+
+    fn fail(&mut self, failure: SoplangError) -> io::Error {
+        self.failure = Some(failure);
+        io::Error::other("Hawsha shabakadda way fashilantay.")
+    }
+}
+
+impl Read for TaskStream {
+    fn read(&mut self, buffer: &mut [u8]) -> io::Result<usize> {
+        if buffer.is_empty() {
+            return Ok(0);
+        }
+        let operation = super::async_net::read(vec![
+            self.connection.clone(),
+            Value::Int(buffer.len().min(64 * 1024) as i64),
+        ]);
+        let result = self.wait(operation)?;
+        let Value::Bytes(bytes) = result else {
+            unreachable!("TCP read returns bytes")
+        };
+        let bytes = bytes
+            .try_borrow()
+            .map_err(|_| self.fail(error("Baytyada la akhriyey lama heli karo.")))?;
+        buffer[..bytes.len()].copy_from_slice(&bytes);
+        Ok(bytes.len())
+    }
+}
+
+impl Write for TaskStream {
+    fn write(&mut self, buffer: &[u8]) -> io::Result<usize> {
+        if buffer.is_empty() {
+            return Ok(0);
+        }
+        let operation = super::async_net::write(vec![
+            self.connection.clone(),
+            super::bytes::from_raw_vec(buffer.to_vec()),
+        ]);
+        self.wait(operation)?;
+        Ok(buffer.len())
+    }
+
+    fn flush(&mut self) -> io::Result<()> {
+        Ok(())
+    }
 }
 
 /// Exercise the exact network parser, router, handler and response encoder,

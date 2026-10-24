@@ -678,6 +678,11 @@ pub fn builtin_server_aqbal(args: Vec<Value>) -> Result<Value, SoplangError> {
     super::http_server::accept(&args[0], &args[1], args.get(2))
 }
 
+pub fn builtin_server_aqbal_shaqo(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity_range(&args, "server_aqbal_shaqo", 2, 3)?;
+    super::http_server::accept_async(&args[0], &args[1], args.get(2))
+}
+
 pub fn builtin_server_xidh(args: Vec<Value>) -> Result<Value, SoplangError> {
     expect_arity(&args, "server_xidh", 1)?;
     super::http_server::close(&args[0])
@@ -1553,6 +1558,11 @@ const BUILTINS: &[(&str, super::NativeFn, CallbackArity)] = &[
     (
         "server_aqbal",
         builtin_server_aqbal,
+        CallbackArity::range(2, 3),
+    ),
+    (
+        "server_aqbal_shaqo",
+        builtin_server_aqbal_shaqo,
         CallbackArity::range(2, 3),
     ),
     (

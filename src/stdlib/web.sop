@@ -267,4 +267,8 @@ qaab Web {
     hawl aqbal(server) {
         server_aqbal(server, nafta.waddo, { waqti: nafta.waqti, cabbir: nafta.cabbir })
     }
+
+    hawl aqbal_shaqo(server) {
+        celi server_aqbal_shaqo(server, nafta.waddo, { waqti: nafta.waqti, cabbir: nafta.cabbir })
+    }
 }

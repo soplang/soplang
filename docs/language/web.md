@@ -1,9 +1,27 @@
 # Web framework
 
-`keen "web" sida web` loads the bundled sequential web framework. It builds on
-`server_fur`, `server_aqbal`, and `server_xidh`. The listener still handles one
-request at a time. Concurrent handlers, streaming, and WebSocket servers remain
-3.6 work.
+`keen "web" sida web` loads the bundled web framework. For sequential serving,
+it builds on `server_fur`, `server_aqbal`, and `server_xidh`. An asynchronous TCP
+listener can dispatch several requests at once through `app.aqbal_shaqo`.
+Streaming and WebSocket servers remain 3.6 work.
+
+```soplang
+keen "web" sida web
+door app = cusub web.Web()
+app.hel("GET", "/ping", hawl(codsi) { celi web.json({ n: 1 }) })
+door server = sug(tcp_dhegeysi_shaqo("127.0.0.1", 8080))
+door first = app.aqbal_shaqo(server)
+door second = app.aqbal_shaqo(server)
+sug(first)
+sug(second)
+tcp_xidh(server)
+```
+
+Each `aqbal_shaqo` call handles one connection. Multiple task handles allow
+handlers to overlap while Soplang callbacks still run on one owning thread.
+Each connection has the same absolute exchange deadline and request size limit
+as `app.aqbal`. This path currently uses plain TCP; TLS and long-running
+graceful serving are later 3.6 stages.
 
 ```soplang
 keen "web" sida web

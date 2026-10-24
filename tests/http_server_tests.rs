@@ -1,6 +1,6 @@
 //! JSON HTTP server (3.3 stage).
 
-use std::io::{Read, Write};
+use std::io::{BufRead, BufReader, Read, Write};
 use std::net::TcpStream;
 use std::process::{Command, Stdio};
 use std::time::Duration;
@@ -145,4 +145,100 @@ fn json_server_runs_through_llvm() {
     let mut command = Command::new(&path);
     drive(&mut command);
     let _ = std::fs::remove_file(path);
+}
+
+const CONCURRENT_PROGRAM: &str = r#"
+keen "web" sida web
+door app = cusub web.Web()
+app.hel("GET", "/slow", hawl(codsi) {
+    qor("slow-started")
+    sug(hurdada(1000))
+    celi web.json({kind: "slow"})
+})
+app.hel("GET", "/fast", hawl(codsi) { celi web.json({kind: "fast"}) })
+door server = sug(tcp_dhegeysi_shaqo("127.0.0.1", 0))
+qor(server.deked)
+door slow = app.aqbal_shaqo(server)
+door fast = app.aqbal_shaqo(server)
+sug(slow)
+sug(fast)
+tcp_xidh(server)
+qor("server done")
+"#;
+
+fn drive_concurrent(command: &mut Command) {
+    let mut child = command
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .unwrap();
+    let mut stdout = BufReader::new(child.stdout.take().unwrap());
+    let mut port = String::new();
+    stdout.read_line(&mut port).unwrap();
+    let port = port.trim();
+    assert!(!port.is_empty(), "server did not publish a port");
+
+    let mut slow = TcpStream::connect(format!("127.0.0.1:{port}")).unwrap();
+    slow.set_read_timeout(Some(Duration::from_secs(3))).unwrap();
+    slow.write_all(b"GET /slow HTTP/1.1\r\nHost: localhost\r\n\r\n")
+        .unwrap();
+    let mut started = String::new();
+    stdout.read_line(&mut started).unwrap();
+    assert_eq!(started.trim(), "slow-started");
+
+    let mut fast = TcpStream::connect(format!("127.0.0.1:{port}")).unwrap();
+    fast.set_read_timeout(Some(Duration::from_millis(500)))
+        .unwrap();
+    fast.write_all(b"GET /fast HTTP/1.1\r\nHost: localhost\r\n\r\n")
+        .unwrap();
+    let mut fast_response = String::new();
+    fast.read_to_string(&mut fast_response)
+        .expect("fast request should finish while slow handler waits");
+    assert!(fast_response.starts_with("HTTP/1.1 200"), "{fast_response}");
+    assert!(
+        fast_response.contains("\"kind\":\"fast\""),
+        "{fast_response}"
+    );
+
+    let mut slow_response = String::new();
+    slow.read_to_string(&mut slow_response).unwrap();
+    assert!(slow_response.starts_with("HTTP/1.1 200"), "{slow_response}");
+    assert!(
+        slow_response.contains("\"kind\":\"slow\""),
+        "{slow_response}"
+    );
+
+    let mut rest = String::new();
+    stdout.read_to_string(&mut rest).unwrap();
+    let output = child.wait_with_output().unwrap();
+    assert!(
+        output.status.success(),
+        "status {:?}\n{}\n{rest}",
+        output.status.code(),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(rest.contains("server done"), "{rest}");
+}
+
+#[test]
+fn concurrent_http_requests_run_through_jit_and_llvm() {
+    let mut jit = Command::new(env!("CARGO_BIN_EXE_soplang"));
+    jit.arg("-c").arg(CONCURRENT_PROGRAM);
+    drive_concurrent(&mut jit);
+
+    let dir = std::env::temp_dir().join(format!(
+        "soplang_concurrent_http_{}_{}",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos()
+    ));
+    std::fs::create_dir_all(&dir).unwrap();
+    let source = dir.join("main.sop");
+    let binary = dir.join("server");
+    std::fs::write(&source, CONCURRENT_PROGRAM).unwrap();
+    soplang::build_source(CONCURRENT_PROGRAM, Some(&source), &binary, 2, false).unwrap();
+    drive_concurrent(&mut Command::new(&binary));
+    std::fs::remove_dir_all(dir).unwrap();
 }

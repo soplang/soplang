@@ -15,7 +15,17 @@ matching handler, and returns `maran` after the response is sent. A handler
 failure becomes status 500 and does not stop the listener. An unknown path
 returns status 404. A known path with another method returns status 405.
 
-`server_xidh(server)` closes the listener. Another accept then fails.
+`server_xidh(server)` closes a listener opened with `server_fur`. Another accept
+then fails.
+
+`server_aqbal_shaqo(server, routes, options?)` accepts and serves one request
+on a listener from `sug(tcp_dhegeysi_shaqo(host, port))`. It returns a task;
+several such tasks can wait for connections and run handlers concurrently on
+the owning runtime thread. Use `sug` to collect each task result and
+`tcp_xidh(server)` to close the asynchronous listener. Closing it cancels
+pending accepts. The options and route behavior match `server_aqbal`. The
+exchange timeout begins when a connection is accepted, and covers all reads
+and writes. This task-based path currently supports plain TCP.
 
 ## Routes
 
@@ -60,8 +70,10 @@ The handler returns a `walax`. `heer` defaults to 200. Use one of `qoraal`,
 `baytyo`, or `json` for the body. `cinwaan` supplies extra headers. A redirect
 is a 301 or 302 response with a `Location` header.
 
-The listener serves one request at a time. Other connections wait in the
-operating-system queue until the next `server_aqbal`.
+The sequential listener serves one request at a time. Other connections wait
+in the operating-system queue until the next `server_aqbal`. Starting multiple
+`server_aqbal_shaqo` tasks permits overlapping exchanges on an asynchronous
+listener.
 
 Open listeners and connections belong to the current runtime context. Another
 session cannot use or close them. Destroying the context closes its remaining
@@ -88,5 +100,6 @@ cannot contain a body and omit `Content-Length`. A supplied text or byte body
 must have the matching Soplang type.
 
 The framing rules follow [RFC 9112, sections 3.2 and 6.3](https://www.rfc-editor.org/rfc/rfc9112#section-6.3).
-The current server remains a sequential HTTP subset; keep-alive, chunked
-streaming, upgrades, and TLS serving need the later server work.
+The server remains an HTTP subset. Keep-alive, chunked streaming, and upgrades
+need later server work. TLS is available through sequential `server_fur` and
+`server_aqbal`; asynchronous TLS serving remains later work.

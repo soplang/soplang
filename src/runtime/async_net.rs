@@ -210,6 +210,31 @@ pub(super) fn accept(args: Vec<Value>) -> Result<Value, SoplangError> {
     )
 }
 
+/// Server accepts wait indefinitely for a connection; the exchange deadline
+/// begins after accept. Closing the listener cancels this pending task.
+pub(super) fn accept_server(listener: &Value, timeout: Duration) -> Result<Value, SoplangError> {
+    let id = net::endpoint_id(listener, "dhegeysi_async")?;
+    let listener = STATE.with(|state| {
+        state
+            .async_tcp_listeners
+            .borrow()
+            .get(&id)
+            .cloned()
+            .ok_or_else(|| net::error("Dhegeysiga TCP waa la xidhay."))
+    })?;
+    tasks::spawn_external_on(
+        async move {
+            let (stream, _) = listener
+                .accept()
+                .await
+                .map_err(|error| failure("Xidhiidhka TCP lama aqbalin.", error))?;
+            Ok(OwnedResult::TcpConnection { stream, timeout })
+        },
+        ExternalKind::Tcp,
+        Some(id),
+    )
+}
+
 pub(super) fn read(args: Vec<Value>) -> Result<Value, SoplangError> {
     expect_arity(&args, "tcp_akhris_shaqo", 2)?;
     let id = net::endpoint_id(&args[0], "xidhiidh_async")?;
