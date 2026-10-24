@@ -59,6 +59,13 @@ The listener accepts one connection at a time.
 
 ## UDP
 
+`udp_fur_shaqo`, `udp_qor_shaqo`, and `udp_akhris_shaqo` are the task forms of
+the UDP operations below. `sug` returns the socket, `maran`, or packet object,
+respectively. Close asynchronous sockets with `udp_xidh`; closing one cancels
+its pending send and receive tasks. A send accepts one datagram of at most
+65507 bytes. A receive returns up to the requested limit, capped at 65536
+bytes.
+
 `udp_fur(host, port, options?)` binds a datagram socket. Port `0` chooses an
 open port. The result has `nooc` `"udp"`, `martigeliye`, and `deked`.
 

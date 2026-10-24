@@ -94,6 +94,9 @@ udp_fur	qoraal marti;abn deked;[walax xulasho]	walax	Bind a UDP socket with tran
 udp_qor	walax xiriir;xog;qoraal marti;abn deked	maran	Send one UDP datagram.
 udp_akhris	walax xiriir;abn cabbir	walax	Receive one bounded UDP datagram and its sender information.
 udp_xidh	walax xiriir	maran	Close a UDP socket.
+udp_fur_shaqo	qoraal marti;abn deked;[walax xulasho]	@native:task	Bind a context-owned asynchronous UDP socket.
+udp_qor_shaqo	walax xiriir;qoraal marti;abn deked;xog	@native:task	Send one UDP datagram without blocking the owning runtime thread.
+udp_akhris_shaqo	walax xiriir;abn cabbir	@native:task	Receive one UDP datagram without blocking the owning runtime thread.
 ws_fur	qoraal url;[walax xulasho]	walax	Connect to ws:// or verified wss:// with bounded upgrade and transport timeouts.
 ws_qor	walax xiriir;xog	maran	Send one text or binary WebSocket message.
 ws_akhris	walax xiriir	walax	Read the next WebSocket data message.

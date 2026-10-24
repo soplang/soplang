@@ -118,9 +118,47 @@ hubi(failed, "closed")
 qor("udp ok")
 "#;
 
+const ASYNC_UDP_PROGRAM: &str = r#"
+door a = sug(udp_fur_shaqo("127.0.0.1", 0, {waqti: 2}))
+door b = sug(udp_fur_shaqo("127.0.0.1", 0, {waqti: 2}))
+sug(udp_qor_shaqo(a, "127.0.0.1", b.deked, "salaan"))
+door packet = sug(udp_akhris_shaqo(b, 32))
+hubi(packet.baytyo.qoraal() == "salaan")
+hubi(packet.martigeliye == "127.0.0.1" && packet.deked == a.deked)
+door pending = udp_akhris_shaqo(b, 8)
+udp_xidh(b)
+door cancelled = been
+tijaabi { sug(pending) } qabo (e) { cancelled = run }
+hubi(cancelled)
+udp_xidh(a)
+qor("async udp ok")
+"#;
+
 #[test]
 fn udp_sockets_exchange_one_datagram() {
     assert_eq!(run(UDP_PROGRAM), "udp ok\n");
+}
+
+#[test]
+fn async_udp_sockets_exchange_and_cancel() {
+    assert_eq!(run(ASYNC_UDP_PROGRAM), "async udp ok\n");
+}
+
+#[test]
+fn async_udp_exchange_runs_through_llvm() {
+    let stmts = soplang::frontend::parse_source(ASYNC_UDP_PROGRAM, None).unwrap();
+    let symbols = soplang::analyze(&stmts).unwrap();
+    let hir = soplang::HirLowering::lower(&symbols, &stmts);
+    let ir = soplang::backend::llvm_ir::emit_llvm_ir(&hir, &symbols).unwrap();
+    let mut path = std::env::temp_dir();
+    path.push(format!("soplang_udp_async_{}", std::process::id()));
+    soplang::backend::llvm_ir::link_llvm_binary(&ir, &path).unwrap();
+    let out = Command::new(&path).output().unwrap();
+    let stdout = String::from_utf8(out.stdout).unwrap();
+    let stderr = String::from_utf8_lossy(&out.stderr);
+    let _ = std::fs::remove_file(path);
+    assert!(out.status.success(), "{stderr}\n{stdout}");
+    assert_eq!(stdout, "async udp ok\n");
 }
 
 #[test]

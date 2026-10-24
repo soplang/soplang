@@ -246,6 +246,9 @@ pub fn close(endpoint: &Value) -> Result<Value, SoplangError> {
             Some("dhegeysi_async") => {
                 super::async_net::close_listener(state, id);
             }
+            Some("udp_async") => {
+                super::async_net::close_udp(state, id);
+            }
             _ => return Err(error("Nooca soketka ma saxna.")),
         }
         Ok(Value::Null)
@@ -395,7 +398,7 @@ pub(super) fn endpoint(id: i64, kind: &str, host: &str, port: u16) -> Value {
     let mut fields = HashMap::new();
     fields.insert("aqoonsi".to_string(), Value::Int(id));
     fields.insert("nooc".to_string(), Value::Str(kind.to_string()));
-    if matches!(kind, "dhegeysi" | "udp" | "dhegeysi_async") {
+    if matches!(kind, "dhegeysi" | "udp" | "dhegeysi_async" | "udp_async") {
         fields.insert("martigeliye".to_string(), Value::Str(host.to_string()));
         fields.insert("deked".to_string(), Value::Int(i64::from(port)));
     }

@@ -23,6 +23,7 @@ const MAX_ACTIVE_TASKS: usize = 4096;
 const MAX_FILE_TASKS: usize = 16;
 const MAX_HTTP_TASKS: usize = 64;
 const MAX_TCP_TASKS: usize = 128;
+const MAX_UDP_TASKS: usize = 128;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub(super) enum ExternalKind {
@@ -30,6 +31,7 @@ pub(super) enum ExternalKind {
     File,
     Http,
     Tcp,
+    Udp,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -190,6 +192,15 @@ pub(super) enum OwnedResult {
         listener: tokio::net::TcpListener,
         host: String,
     },
+    UdpSocket {
+        socket: tokio::net::UdpSocket,
+        host: String,
+        timeout: Duration,
+    },
+    UdpPacket {
+        bytes: Vec<u8>,
+        source: std::net::SocketAddr,
+    },
 }
 
 pub(super) enum OwnedFailure {
@@ -309,6 +320,7 @@ where
             ExternalKind::File => (MAX_FILE_TASKS, "Faylal badan ayaa hal mar la adeegsanayaa."),
             ExternalKind::Http => (MAX_HTTP_TASKS, "Codsiyo HTTP badan ayaa hal mar socda."),
             ExternalKind::Tcp => (MAX_TCP_TASKS, "Hawlo TCP badan ayaa hal mar socda."),
+            ExternalKind::Udp => (MAX_UDP_TASKS, "Hawlo UDP badan ayaa hal mar socda."),
         };
         if scheduler
             .pending_io
@@ -408,6 +420,14 @@ fn finish_io(state: &RuntimeState, completion: Completion) {
             }
             OwnedResult::TcpListener { listener, host } => {
                 super::async_net::store_listener(state, listener, host)
+            }
+            OwnedResult::UdpSocket {
+                socket,
+                host,
+                timeout,
+            } => super::async_net::store_udp(state, socket, host, timeout),
+            OwnedResult::UdpPacket { bytes, source } => {
+                Ok(super::async_net::packet_value(bytes, source))
             }
         });
     pending.handle.finished_at.set(Some(completion.finished_at));
