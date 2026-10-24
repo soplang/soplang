@@ -14,13 +14,18 @@ use crate::package::{parse_manifest, MANIFEST_FILE};
 use crate::run_source;
 
 pub fn dispatch(command: &str) -> Result<i32, SoplangError> {
-    let args: Vec<String> = std::env::args_os()
+    let raw: Vec<String> = std::env::args_os()
         .skip(2)
         .map(|arg| {
             arg.into_string()
                 .map_err(|_| tool_error("Doodaha qalabku waa inay noqdaan qoraal UTF-8 ah."))
         })
         .collect::<Result<_, _>>()?;
+    dispatch_with_args(command, raw)
+}
+
+pub fn dispatch_with_args(command: &str, raw: Vec<String>) -> Result<i32, SoplangError> {
+    let args = normalize_options(command, raw);
     if args == ["--help"] || args == ["-h"] {
         if let Some(help) = command_help(command) {
             println!("{help}");
@@ -46,15 +51,69 @@ pub fn dispatch(command: &str) -> Result<i32, SoplangError> {
     }
 }
 
+fn normalize_options(command: &str, args: Vec<String>) -> Vec<String> {
+    let mut after_separator = false;
+    args.into_iter()
+        .filter_map(|arg| {
+            if arg == "--" {
+                after_separator = true;
+                return Some(arg);
+            }
+            if after_separator {
+                return Some(arg);
+            }
+            let translated = match arg.as_str() {
+                "--caawimo" => "--help",
+                "--kayd-keliya" => "--offline",
+                "--midab-dami" | "--no-color" => {
+                    std::env::set_var("NO_COLOR", "1");
+                    return None;
+                }
+                "--magac" if command == "build" => "--name",
+                "--heer-hagaajin" if command == "build" => "--opt-level",
+                "--aamus" if command == "build" => "--quiet",
+                "--natiijo" if command == "build" => "--output",
+                "--write" if command == "fmt" => "--qor",
+                "--output" | "--natiijo" if command == "doc" => "--qor",
+                "--private" if command == "doc" => "--gaar",
+                "--filter" if command == "test" => "--shaandhe",
+                "--index" if command == "test" => "--lambarka",
+                "--parallel" | "--barbar" if command == "test" => "--wada",
+                "--workers" if command == "test" => "--shaqaale",
+                "--coverage" if command == "test" => "--dabool",
+                "--report" if command == "test" => "--warbixin",
+                "--break" | "--hakad" if command == "debug" => "--jebi",
+                "--continue" if command == "debug" => "--soco",
+                "--strict" if command == "debug" => "--adag",
+                "--build" if command == "debug" => "--dhis",
+                "generate" if command == "xog" => "abuur",
+                "--output" | "--natiijo" if command == "xog" => "--qor",
+                "--check" if command == "xog" => "--hubi",
+                _ => return Some(arg),
+            };
+            Some(translated.to_owned())
+        })
+        .collect()
+}
+
 fn format_file(args: &[String]) -> Result<i32, SoplangError> {
     let options = Options::parse(args, &["--qor"], &[], false)?;
     let write = options.flag("--qor");
-    let path = options.one(true, "soplang fmt FAYLKA [--qor]")?.unwrap();
-    let target = fs::canonicalize(&path)
-        .map_err(|error| crate::error::file_read_error(Path::new(&path), &error))?;
-    let text = fs::read_to_string(&target)
-        .map_err(|error| crate::error::file_read_error(Path::new(&path), &error))?;
-    let formatted = format_source(&text, Path::new(&path))?;
+    if options.positional.is_empty() || (!write && options.positional.len() != 1) {
+        return Err(tool_error(command_help("fmt").unwrap()));
+    }
+    for path in &options.positional {
+        format_one(Path::new(path), write)?;
+    }
+    Ok(0)
+}
+
+fn format_one(path: &Path, write: bool) -> Result<(), SoplangError> {
+    let target =
+        fs::canonicalize(&path).map_err(|error| crate::error::file_read_error(path, &error))?;
+    let text =
+        fs::read_to_string(&target).map_err(|error| crate::error::file_read_error(path, &error))?;
+    let formatted = format_source(&text, path)?;
     if write {
         let permissions = fs::metadata(&target)
             .map_err(|error| crate::error::file_write_error(&target, &error))?
@@ -73,7 +132,7 @@ fn format_file(args: &[String]) -> Result<i32, SoplangError> {
         print!("{formatted}");
         let _ = std::io::stdout().flush();
     }
-    Ok(0)
+    Ok(())
 }
 
 pub fn format_source(text: &str, path: &Path) -> Result<String, SoplangError> {
@@ -89,16 +148,23 @@ fn check_file(args: &[String]) -> Result<i32, SoplangError> {
     if options.flag("--offline") {
         std::env::set_var("SOPLANG_OFFLINE", "1");
     }
-    let path = PathBuf::from(
-        options
-            .one(true, "soplang check FAYLKA [--adag] [--offline]")?
-            .unwrap(),
-    );
+    let paths: Vec<PathBuf> = if options.positional.is_empty() {
+        vec![project_entry(Path::new("."))?]
+    } else {
+        options.positional.iter().map(PathBuf::from).collect()
+    };
+    for path in paths {
+        check_one(&path, strict)?;
+    }
+    Ok(0)
+}
+
+fn check_one(path: &Path, strict: bool) -> Result<(), SoplangError> {
     let text = crate::analysis::overlay_loader(&Default::default(), &path).map_err(tool_error)?;
     if path.file_name().and_then(|name| name.to_str()) == Some("schema.sop") {
         parse_schema_file(&text, &path)?;
         println!("schema.sop waa sax.");
-        return Ok(0);
+        return Ok(());
     }
     let analysis = crate::analysis::check_source(
         &text,
@@ -130,7 +196,7 @@ fn check_file(args: &[String]) -> Result<i32, SoplangError> {
         )?;
     }
     println!("{} waa sax.", path.display());
-    Ok(0)
+    Ok(())
 }
 
 fn document_file(args: &[String]) -> Result<i32, SoplangError> {
@@ -207,7 +273,11 @@ fn run_project(args: &[String]) -> Result<i32, SoplangError> {
     if options.flag("--offline") {
         std::env::set_var("SOPLANG_OFFLINE", "1");
     }
-    let entry = project_entry(dir)?;
+    let entry = if dir.extension().is_some_and(|extension| extension == "sop") {
+        dir.to_path_buf()
+    } else {
+        project_entry(dir)?
+    };
     crate::runtime::set_program_arguments(options.trailing.clone());
     let text = fs::read_to_string(&entry)
         .map_err(|failure| crate::error::file_read_error(&entry, &failure))?;
@@ -225,17 +295,9 @@ fn build_project(args: &[String]) -> Result<i32, SoplangError> {
     let options = Options::parse(
         args,
         &["--adag", "--strict", "--offline", "--quiet", "-q"],
-        &["--qor", "--output", "-o", "--opt-level", "-O"],
+        &["--qor", "--output", "-o", "--name", "--opt-level", "-O"],
         false,
     )?;
-    let dir = Path::new(
-        options
-            .one(
-                false,
-                "soplang dhis [GALKA] [-o NATIIJO] [-O 0..3] [--adag] [--offline] [-q]",
-            )?
-            .unwrap_or("."),
-    );
     let output_values: Vec<_> = ["--qor", "--output", "-o"]
         .into_iter()
         .filter_map(|key| options.value(key))
@@ -263,30 +325,91 @@ fn build_project(args: &[String]) -> Result<i32, SoplangError> {
     if options.flag("--offline") {
         std::env::set_var("SOPLANG_OFFLINE", "1");
     }
-    let entry = project_entry(dir)?;
-    let root = project_root(dir)?;
-    let manifest = parse_manifest(
-        &fs::read_to_string(root.join(MANIFEST_FILE)).map_err(|failure| {
-            crate::error::file_read_error(&root.join(MANIFEST_FILE), &failure)
-        })?,
-    )?;
-    let out = output_values.first().map(PathBuf::from).unwrap_or_else(|| {
-        root.join("dhis")
-            .join(format!("{}{}", manifest.name, std::env::consts::EXE_SUFFIX))
-    });
-    let source = fs::read_to_string(&entry)
-        .map_err(|failure| crate::error::file_read_error(&entry, &failure))?;
-    crate::build_source(
-        &source,
-        Some(&entry),
-        &out,
-        opt,
-        options.flag("--adag") || options.flag("--strict"),
-    )?;
-    if !options.flag("--quiet") && !options.flag("-q") {
-        println!("Barnaamijka waa la dhisay: {}", out.display());
+    let name = options.value("--name");
+    if let Some(name) = name {
+        if name.is_empty()
+            || matches!(name, "." | "..")
+            || name.contains(['/', '\\'])
+            || name.contains('\0')
+        {
+            return Err(tool_error(
+                "Magaca barnaamijku waa inuu noqdaa magac fayl oo keliya.",
+            ));
+        }
+    }
+    let inputs = &options.positional;
+    if inputs.len() > 1 && (name.is_some() || !output_values.is_empty()) {
+        return Err(tool_error(
+            "--name iyo --output waxay u baahan yihiin hal fayl ama hal xirmo.",
+        ));
+    }
+    let project = inputs.is_empty() || (inputs.len() == 1 && !inputs[0].ends_with(".sop"));
+    let mut targets = Vec::new();
+    if project {
+        let dir = Path::new(inputs.first().map(String::as_str).unwrap_or("."));
+        let entry = project_entry(dir)?;
+        let root = project_root(dir)?;
+        let manifest = parse_manifest(&fs::read_to_string(root.join(MANIFEST_FILE)).map_err(
+            |failure| crate::error::file_read_error(&root.join(MANIFEST_FILE), &failure),
+        )?)?;
+        let out = output_values.first().map(PathBuf::from).unwrap_or_else(|| {
+            root.join("dhis")
+                .join(executable_name(name.unwrap_or(&manifest.name)))
+        });
+        targets.push((entry, out));
+    } else {
+        let mut names = std::collections::HashSet::new();
+        for input in inputs {
+            let path = PathBuf::from(input);
+            if path.extension().is_none_or(|ext| ext != "sop") {
+                return Err(tool_error(format!(
+                    "Faylka '{}' waa inuu ku dhammaadaa .sop.",
+                    path.display()
+                )));
+            }
+            let stem = path
+                .file_stem()
+                .and_then(|stem| stem.to_str())
+                .filter(|stem| !stem.is_empty())
+                .ok_or_else(|| tool_error("Magaca faylka .sop ma saxna."))?;
+            let out_name = executable_name(name.unwrap_or(stem));
+            if !names.insert(out_name.clone()) {
+                return Err(tool_error(format!(
+                    "Faylal badan ayaa soo saaraya isla magaca '{}'.",
+                    out_name
+                )));
+            }
+            let out = output_values
+                .first()
+                .map(PathBuf::from)
+                .unwrap_or_else(|| PathBuf::from("dhis").join(out_name));
+            targets.push((path, out));
+        }
+    }
+    for (entry, out) in targets {
+        let source = fs::read_to_string(&entry)
+            .map_err(|failure| crate::error::file_read_error(&entry, &failure))?;
+        crate::build_source(
+            &source,
+            Some(&entry),
+            &out,
+            opt,
+            options.flag("--adag") || options.flag("--strict"),
+        )?;
+        if !options.flag("--quiet") && !options.flag("-q") {
+            println!("Barnaamijka waa la dhisay: {}", out.display());
+        }
     }
     Ok(0)
+}
+
+fn executable_name(name: &str) -> String {
+    let suffix = std::env::consts::EXE_SUFFIX;
+    if suffix.is_empty() || name.ends_with(suffix) {
+        name.to_owned()
+    } else {
+        format!("{name}{suffix}")
+    }
 }
 
 fn package_command(command: &str, args: &[String]) -> Result<i32, SoplangError> {
@@ -320,17 +443,20 @@ fn package_command(command: &str, args: &[String]) -> Result<i32, SoplangError> 
     Ok(0)
 }
 
-fn command_help(command: &str) -> Option<&'static str> {
+pub fn command_help(command: &str) -> Option<&'static str> {
     Some(match command {
-        "fmt"=>"Adeegsiga: soplang fmt FAYLKA [--qor]\nHabee koodhka; --qor waxay si ammaan ah u beddeshaa faylka.",
-        "check"=>"Adeegsiga: soplang check FAYLKA [--adag] [--offline]\nHubi koodhka iyo schema.sop adigoon fulin.",
-        "doc"=>"Adeegsiga: soplang doc FAYLKA [--qor NATIIJO] [--gaar]\nSoo saar dukumenti Markdown ah oo leh noocyada, doodaha iyo faallooyinka ///. --gaar waxay ku dartaa magacyada gaarka ah.",
-        "run"=>"Adeegsiga: soplang run [GALKA] [--adag] [--offline] [-- DOODO]\nFuli main.sop ama lib.sop ee gelidda xirmada.",
-        "dhis"|"build"=>"Adeegsiga: soplang dhis [GALKA] [-o NATIIJO] [-O 0..3] [--adag] [--offline] [-q]\nDhis barnaamij LLVM ah; haddii aan jid la sheegin, qor dhis/MAGAC.",
+        "fmt"=>"Adeegsiga: soplang fmt FAYLKA... [--write|--qor]\nHabee koodhka; dhowr fayl waxaa lagu habayn karaa --qor keliya.",
+        "check"=>"Adeegsiga: soplang check [FAYLKA...] [--strict|--adag] [--offline|--kayd-keliya]\nHubi koodhka iyo schema.sop adigoon fulin; fayl la'aan hubi xirmada hadda.",
+        "doc"=>"Adeegsiga: soplang doc FAYLKA [--output NATIIJO] [--private|--gaar]\nSoo saar dukumenti Markdown ah oo leh noocyada, doodaha iyo faallooyinka ///.",
+        "run"=>"Adeegsiga: soplang run [FAYLKA|GALKA] [--strict|--adag] [--offline|--kayd-keliya] [-- DOODO]\nFuli faylka ama gelidda xirmada hadda.",
+        "build"=>"Adeegsiga: soplang build [FAYLKA.sop ...|GALKA] [--name MAGAC] [-O 0..3] [--strict|--adag] [--offline|--kayd-keliya] [-q]\nDhis fayl kasta barnaamij u gaar ah; fayl la'aan dhis xirmada hadda. Natiijooyinku waxay galaan dhis/.",
         "profile"=>"Adeegsiga: soplang profile FAYLKA\nCabbir wicitaannada iyo wakhtiga hawlaha.",
+        "test"=>"Adeegsiga: soplang test [FAYLKA|GALKA] [--filter MAGAC] [--parallel|--barbar] [--workers 1..32] [--coverage] [--report FAYLKA]\nFuli tijaabooyinka Soplang.",
+        "debug"=>"Adeegsiga: soplang debug FAYLKA [--break|--hakad [FAYL:]SAF] [--continue|--soco] [--strict|--adag] [--build|--dhis NATIIJO]\nBaar barnaamijka adigoo adeegsanaya meelaha hakadka.",
         "add"=>"Adeegsiga: soplang add MAGAC IL [GALKA] [--offline]\nKu dar ku-tiirsi Git ah ama il kale oo la taageero, dabadeed cusbooneysii qufulka.",
         "remove"=>"Adeegsiga: soplang remove MAGAC [GALKA] [--offline]\nKa saar ku-tiirsiga, dabadeed cusbooneysii qufulka.",
         "update"=>"Adeegsiga: soplang update [GALKA] [--offline]\nDib u xalli ku-tiirsiyada oo cusbooneysii qufulka.",
+        "xog"=>"Adeegsiga: soplang data generate [SCHEMA] [--output MACMIILKA | --check MACMIILKA]\nSoo saar ama hubi macmiilka xogta ee schema.sop.",
         "lsp"=>"Adeegsiga: soplang lsp\nKu wada xidhiidh hab-maamuuska adeegaha luuqadda adigoo adeegsanaya gelinta iyo soo-saarka caadiga ah.",
         _=>return None,
     })

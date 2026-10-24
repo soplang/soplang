@@ -23,7 +23,8 @@ builds resolve their runtime artifacts beside that executable, including custom
 ./program
 ```
 
-Run Soplang with no arguments for the REPL. See the [example catalog](../examples/README.md)
+Run Soplang with no arguments in a terminal for the command browser. Use
+`soplang repl` for the REPL. See the [example catalog](../examples/README.md)
 and [test methodology](testing/TEST_METHODOLOGY.md).
 
 ## Packages

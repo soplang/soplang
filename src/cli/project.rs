@@ -28,16 +28,18 @@ pub struct InitOptions {
     pub directory: PathBuf,
     #[arg(
         long = "lib",
+        alias = "maktabad",
         help = "Abuur maktabad leh lib.sop halkii laga abuuri lahaa main.sop."
     )]
     pub library: bool,
     #[arg(
         long,
+        alias = "magac",
         value_name = "MAGAC",
         help = "Magaca xirmada; haddii aan la sheegin, ka soo qaad magaca galka."
     )]
     pub name: Option<String>,
-    #[arg(short = 'h', long, action = clap::ArgAction::Help, help = "Muuji caawimada.")]
+    #[arg(short = 'h', long, alias = "caawimo", action = clap::ArgAction::Help, help = "Muuji caawimada.")]
     help: Option<bool>,
 }
 

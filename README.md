@@ -82,6 +82,8 @@ Build and run:
 cargo build --release --locked
 
 ./target/release/soplang examples/01_hello.sop     # JIT run
+./target/release/soplang       # interactive command browser
+./target/release/soplang repl  # Soplang REPL
 ./target/release/soplang -i    # REPL
 ./target/release/soplang -c 'qor("Salaan!")'
 ./target/release/soplang --build examples/01_hello.sop -o hello_aot
@@ -107,14 +109,18 @@ executables.
 
 ### CLI notes
 
-Soplang 3.0.1 localizes help and system-error explanations.
-See [CLI help and diagnostics](docs/language/cli.md) for the unchanged flags,
+Soplang accepts English and Somali command names. Each top-level action also
+accepts a `--` prefix, and existing flag forms remain supported. See
+[CLI commands and diagnostics](docs/language/cli.md) for the full command list,
 exit statuses, source locations, and `SOPLANG_ERROR_DETAILS=1` troubleshooting
 setting.
 
 - `soplang <file.sop>`: run via Cranelift JIT.
-- `soplang --build <file.sop> -o <out>`: build a standalone native binary.
-- `soplang --build ... --opt-level 0..3`: tune AOT optimization level.
+- `soplang build <file.sop>` or `soplang dhis <file.sop>`: build a standalone
+  native binary in `dhis/`, named after the source file.
+- `soplang build`: build the current project using its manifest name.
+- `soplang build a.sop b.sop`: build one executable per file.
+- `soplang build ... --opt-level 0..3`: tune AOT optimization level.
 - `soplang --strict`: enable stricter static typing checks.
 
 ### How a program runs

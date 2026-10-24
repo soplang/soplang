@@ -3141,6 +3141,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2 0.11.1",
+ "shlex",
  "thiserror 1.0.69",
  "tiberius",
  "tokio",

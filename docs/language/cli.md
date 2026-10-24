@@ -1,27 +1,97 @@
-# CLI help and diagnostics
+# CLI commands and diagnostics
 
-Soplang 3.0.1 localizes CLI help and argument errors as well as compiler and
-runtime explanations. Help, invalid arguments, file access, and tool failures
-use Somali explanations while retaining the existing command interface.
+The current development CLI accepts English and Somali names for the same
+actions. Each top-level name also accepts a `--` prefix: `build`, `--build`,
+`dhis`, and `--dhis` all use one build path. These command aliases do not
+change Soplang source-language keywords.
 
 ## Commands
 
-Run `soplang --help` for Somali descriptions of the supported options.
-Option spellings remain unchanged:
+| English | Somali | Action |
+| --- | --- | --- |
+| `init` | `abuur` | Create a project. |
+| `run` | `fuli` | Run one source file or a project. |
+| `build` | `dhis` | Build executable programs. |
+| `check` | `hubi` | Check source without running it. |
+| `fmt` | `habee` | Format source. |
+| `test` | `tijaabi` | Run tests. |
+| `doc` | `duk` | Generate Markdown API documentation. |
+| `debug` | `baar` | Debug one program. |
+| `profile` | `cabbir` | Measure execution. |
+| `add` | `kudar` | Add a dependency. |
+| `remove` | `saar` | Remove a dependency. |
+| `update` | `cusboonaysii` | Update locked dependencies. |
+| `publish` | `daabac` | Publish the current package. |
+| `data generate` | `xog abuur` | Generate or check a schema client. |
+| `repl` | `isdhexgal` | Open the interactive shell. |
+| `eval` | `qiimee` | Run a supplied source snippet. |
+| `example` | `tusaale` | Run a numbered bundled example. |
+| `inspect` | `eeg` | Display AST or HIR without executing. |
+| `help` | `caawimo` | Show general or command-specific help. |
+| `version` | `nooc` | Show the Soplang software version. |
+| `lsp` | `lsp` | Start the editor protocol server. |
+
+Only `doc` and `duk` name the documentation command; `docs` is not an alias.
+The `--` prefix applies to a **top-level action**, not to ordinary arguments:
+`soplang --dhis hello.sop` builds just like `soplang dhis hello.sop`.
+The separate `--` token before arguments passes them to a running program:
+`soplang fuli app.sop -- first second`.
 
 ```sh
-soplang program.sop
-soplang -c 'qor("Salaan!")'
-soplang --build program.sop -o program
-soplang --strict program.sop
-soplang --hir program.sop
-soplang --version
+soplang                         # interactive command browser in a terminal
+soplang repl                    # interactive Soplang shell
+soplang program.sop             # quick file execution
+soplang fuli program.sop        # equivalent explicit action
+soplang qiimee 'qor("Salaan!")'
+soplang dhis program.sop        # writes dhis/program (program.exe on Windows)
+soplang hubi program.sop
+soplang eeg program.sop --hir
+soplang caawimo dhis
 ```
 
-With no arguments, Soplang opens the REPL. `-i` continues in the REPL after
-running a file or example. Use `/caawi` for commands and `/bixi` to exit.
-AST and HIR dumps retain compiler instruction notation; their surrounding
-help and section headings use Somali.
+`build` with no path builds the current project. One or more `.sop` paths build
+one executable per file in `dhis/`; each output takes its source stem. If two
+input files have the same stem, the command fails before building. A project
+build uses the `magac` in `soplang.toml`. Use `--name` or `--magac` for a single
+build's executable name. `-o`/`--output` remains available when an exact output
+path is needed. `keen` imports combine several source files into **one**
+program; passing several files to `build` makes separate programs.
+
+With no arguments in a terminal, Soplang opens a command browser. Up and Down
+browse commands or options, Tab completes them, and the current choice shows
+its description. Select a command to see its arguments and options, then press
+Enter to run it. `soplang repl` or `soplang isdhexgal` starts the Soplang shell
+directly. When input is piped, bare `soplang` keeps opening the REPL.
+`-i`/`--interactive`/`--isdhexgal` continues in the REPL after running a file
+or example. Use `/caawi` for REPL commands and `/bixi` to exit. AST and HIR
+dumps retain compiler notation.
+
+### Options
+
+| English | Somali | Applies to |
+| --- | --- | --- |
+| `--help`, `-h` | `--caawimo` | General and command help. |
+| `--version`, `-V` | `--nooc` | Software version. |
+| `--strict` | `--adag` | Run, build, check, debug and source evaluation. |
+| `--offline` | `--kayd-keliya` | Locked, verified cached **package dependencies** only; does not disable network APIs in a running program. |
+| `--no-color` | `--midab-dami` | Diagnostic color. |
+| `--name` | `--magac` | Project creation and a single build's executable name. |
+| `--opt-level`, `-O` | `--heer-hagaajin` | Build optimization level `0..3`. |
+| `--quiet`, `-q` | `--aamus` | Build success messages. |
+| `--output`, `-o` | `--natiijo` | Exact build output path; documentation and data generation also accept an output path. |
+| `--lib` | `--maktabad` | Create a library project. |
+| `--write` | `--qor` | Format files in place. |
+| `--private` | `--gaar` | Include private names in generated documentation. |
+| `--break` | `--hakad` | Debugger breakpoint at `[FILE:]LINE`; existing `--jebi` remains. |
+| `--continue` | `--soco` | Continue to a breakpoint when debugging. |
+| `--parallel` | `--barbar` | Run tests with an automatic worker count; existing `--wada` remains. |
+| `--filter`, `--index` | `--shaandhe`, `--lambarka` | Select tests by name or zero-based index. |
+| `--workers`, `--coverage`, `--report` | `--shaqaale`, `--dabool`, `--warbixin` | Set test workers, coverage, and report path. |
+
+`init`, `debug`, and `data generate` have further options under their own
+`--help` screens. Existing invocations such as `soplang -c CODE`, `-f FILE`,
+`-e NUMBER`, `--ast FILE`, `--hir FILE`, `--ku-dar ... --qeexid ...`,
+`--ka-saar`, `--cusbooneysii`, and `--daabac` remain supported.
 
 Help and version output go to stdout and exit successfully. Invalid CLI
 arguments go to stderr with exit status 2. Compilation and unhandled runtime

@@ -4,6 +4,7 @@ mod data;
 mod debug;
 mod document;
 pub mod lsp;
+pub mod launcher;
 mod options;
 pub mod project;
 pub mod session;
