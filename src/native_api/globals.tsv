@@ -79,6 +79,8 @@ xog_awood	qoraal nooc	walax	Report connector capabilities.
 server_aqbal	walax server;waddooyin;[walax xulasho]	maran	Accept and dispatch sequential HTTP requests with bounded exchanges.
 server_aqbal_shaqo	walax server;waddooyin;[walax xulasho]	@native:task	Accept and dispatch one HTTP request on a context-owned asynchronous TCP listener.
 server_adeeg_shaqo	walax server;waddooyin;[walax xulasho]	@native:task	Serve HTTP requests with bounded concurrency until the asynchronous listener closes.
+ws_aqbal_shaqo	walax dhegeysi;hawl qabte;[walax xulasho]	@native:task	Accept one WebSocket upgrade and invoke the owning-context handler.
+ws_adeeg_shaqo	walax dhegeysi;hawl qabte;[walax xulasho]	@native:task	Serve WebSocket peers with bounded concurrency until the listener closes.
 server_xidh	walax server	maran	Close an HTTP listener owned by this runtime.
 dns_raadi	qoraal marti	teed[qoraal]	Resolve a hostname to sorted IP addresses.
 tcp_fur	qoraal marti;abn deked;[walax xulasho]	walax	Open a TCP connection with the requested transport options.

@@ -1,20 +1,35 @@
-//! WebSocket client.
+//! WebSocket client and context-owned asynchronous server connections.
 
+use std::cell::RefCell;
 use std::collections::HashMap;
 use std::net::{TcpStream, ToSocketAddrs};
+use std::rc::Rc;
 use std::sync::atomic::{AtomicI64, Ordering};
 use std::time::Duration;
 
+use tungstenite::protocol::WebSocketConfig;
 use tungstenite::stream::MaybeTlsStream;
 use tungstenite::{client::IntoClientRequest, HandshakeError, Message, WebSocket};
 
 use super::context::{RuntimeLocal, RuntimeState};
+use super::http_server::TaskStream;
 use super::value::Value;
 use crate::error::{codes, runtime_error_ex, ErrorMeta, SoplangError};
 
 const STATE: RuntimeLocal<RuntimeState> = RuntimeLocal::new(|state| state);
 
 pub(super) type Socket = WebSocket<MaybeTlsStream<TcpStream>>;
+pub(super) type ServerSocket = WebSocket<TaskStream>;
+
+const MAX_SERVER_MESSAGE: usize = 1024 * 1024;
+const MAX_SERVER_SOCKETS: usize = 64;
+const DEFAULT_SERVER_WORKERS: usize = 8;
+const MAX_SERVER_WORKERS: usize = 32;
+
+pub(super) struct ServerConnection {
+    socket: RefCell<ServerSocket>,
+    endpoint_id: i64,
+}
 
 static NEXT_ID: AtomicI64 = AtomicI64::new(1);
 
@@ -142,6 +157,9 @@ fn connect_with_timeout(url: &str, timeout: Duration) -> Result<Socket, SoplangE
 }
 
 pub fn send(socket: &Value, data: &[u8], text: bool) -> Result<Value, SoplangError> {
+    if let Some(id) = server_socket_id(socket) {
+        return send_server(id, data, text);
+    }
     STATE.with(|state| {
         let id = socket_id(socket)?;
         let mut sockets = state.websockets.borrow_mut();
@@ -164,6 +182,9 @@ pub fn send(socket: &Value, data: &[u8], text: bool) -> Result<Value, SoplangErr
 }
 
 pub fn receive(socket: &Value) -> Result<Value, SoplangError> {
+    if let Some(id) = server_socket_id(socket) {
+        return receive_server(id);
+    }
     STATE.with(|state| {
         let id = socket_id(socket)?;
         let mut sockets = state.websockets.borrow_mut();
@@ -186,12 +207,277 @@ pub fn receive(socket: &Value) -> Result<Value, SoplangError> {
 }
 
 pub fn close(socket: &Value) -> Result<Value, SoplangError> {
+    if let Some(id) = server_socket_id(socket) {
+        return close_server(id);
+    }
     STATE.with(|state| {
         let id = socket_id(socket)?;
         let mut sockets = state.websockets.borrow_mut();
         if let Some(mut socket) = sockets.get_or_insert_with(HashMap::new).remove(&id) {
             let _ = socket.close(None);
             let _ = socket.read();
+        }
+        Ok(Value::Null)
+    })
+}
+
+/// Accept one WebSocket connection on an asynchronous TCP listener and invoke
+/// its handler on the owning runtime thread.
+pub fn accept_async(
+    listener: &Value,
+    handler: &Value,
+    options: Option<&Value>,
+) -> Result<Value, SoplangError> {
+    super::net::endpoint_id(listener, "dhegeysi_async")?;
+    if !matches!(
+        handler,
+        Value::Function(_) | Value::Closure(_) | Value::NativeFunction(_)
+    ) {
+        return Err(error("Qabtaha WebSocket waa inuu noqdaa hawl."));
+    }
+    super::tasks::spawn(
+        Value::NativeFunction(accept_async_task),
+        vec![
+            listener.clone(),
+            handler.clone(),
+            options.cloned().unwrap_or(Value::Null),
+        ],
+    )
+}
+
+fn accept_async_task(args: Vec<Value>) -> Result<Value, SoplangError> {
+    let timeout = super::net::timeout(args.get(2).filter(|value| !matches!(value, Value::Null)))?;
+    let connection = accept_connection(&args[0], timeout)?;
+    handle_connection(&connection, &args[1], timeout)
+}
+
+fn accept_connection(listener: &Value, timeout: Duration) -> Result<Value, SoplangError> {
+    let accept = super::async_net::accept_server(listener, timeout)?;
+    let Value::Task(accept) = accept else {
+        unreachable!("asynchronous accept returns a task")
+    };
+    super::tasks::await_task(&accept)
+}
+
+fn handle_connection(
+    connection: &Value,
+    handler: &Value,
+    timeout: Duration,
+) -> Result<Value, SoplangError> {
+    let stream = TaskStream::for_websocket(connection.clone(), timeout);
+    let config = WebSocketConfig::default()
+        .read_buffer_size(4096)
+        .write_buffer_size(0)
+        .max_write_buffer_size(MAX_SERVER_MESSAGE + 1024)
+        .max_message_size(Some(MAX_SERVER_MESSAGE))
+        .max_frame_size(Some(MAX_SERVER_MESSAGE));
+    let websocket = match tungstenite::accept_with_config(stream, Some(config)) {
+        Ok(websocket) => websocket,
+        Err(HandshakeError::Failure(failure)) => {
+            let _ = super::net::close(&connection);
+            return Err(error_with_details(explain(&failure), failure));
+        }
+        Err(HandshakeError::Interrupted(_)) => {
+            let _ = super::net::close(&connection);
+            return Err(error("Waqtigii WebSocket wuu dhammaaday."));
+        }
+    };
+    let handle = match store_server_socket(websocket, &connection) {
+        Ok(handle) => handle,
+        Err(failure) => {
+            let _ = super::net::close(&connection);
+            return Err(failure);
+        }
+    };
+    let result = super::abi::invoke(handler, &[handle.clone()]);
+    let _ = close(&handle);
+    result
+}
+
+/// Keep a bounded number of WebSocket handlers alive until the listener closes.
+pub fn serve_async(
+    listener: &Value,
+    handler: &Value,
+    options: Option<&Value>,
+) -> Result<Value, SoplangError> {
+    super::net::endpoint_id(listener, "dhegeysi_async")?;
+    if !matches!(
+        handler,
+        Value::Function(_) | Value::Closure(_) | Value::NativeFunction(_)
+    ) {
+        return Err(error("Qabtaha WebSocket waa inuu noqdaa hawl."));
+    }
+    super::tasks::spawn(
+        Value::NativeFunction(serve_async_task),
+        vec![
+            listener.clone(),
+            handler.clone(),
+            options.cloned().unwrap_or(Value::Null),
+        ],
+    )
+}
+
+fn serve_async_task(args: Vec<Value>) -> Result<Value, SoplangError> {
+    let options = args.get(2).filter(|value| !matches!(value, Value::Null));
+    let _ = super::net::timeout(options)?;
+    let workers = worker_count(options)?;
+    let mut pending = Vec::with_capacity(workers);
+    for _ in 0..workers {
+        let worker = super::tasks::spawn(Value::NativeFunction(serve_worker), args.clone())?;
+        let Value::Task(worker) = worker else {
+            unreachable!("WebSocket worker returns a task")
+        };
+        pending.push(worker);
+    }
+    let mut first_failure = None;
+    for worker in pending {
+        if let Err(failure) = super::tasks::await_task(&worker) {
+            first_failure.get_or_insert(failure);
+        }
+    }
+    match first_failure {
+        Some(failure) => Err(failure),
+        None => Ok(Value::Null),
+    }
+}
+
+fn serve_worker(args: Vec<Value>) -> Result<Value, SoplangError> {
+    let timeout = super::net::timeout(args.get(2).filter(|value| !matches!(value, Value::Null)))?;
+    let listener = &args[0];
+    loop {
+        if !super::async_net::listener_is_open(listener) {
+            return Ok(Value::Null);
+        }
+        let connection = match accept_connection(listener, timeout) {
+            Ok(connection) => connection,
+            Err(_) if !super::async_net::listener_is_open(listener) => return Ok(Value::Null),
+            Err(failure) => {
+                let _ = super::net::close(listener);
+                return Err(failure);
+            }
+        };
+        // Invalid upgrades, disconnects, and callback failures stay local to a peer.
+        let _ = handle_connection(&connection, &args[1], timeout);
+    }
+}
+
+fn worker_count(options: Option<&Value>) -> Result<usize, SoplangError> {
+    let Some(Value::Object(options)) = options else {
+        return Ok(DEFAULT_SERVER_WORKERS);
+    };
+    let options = options
+        .try_borrow()
+        .map_err(|_| error("Walaxda hadda lama akhriyi karo."))?;
+    match options.get("shaqaale") {
+        None => Ok(DEFAULT_SERVER_WORKERS),
+        Some(Value::Int(workers)) => usize::try_from(*workers)
+            .ok()
+            .filter(|workers| (1..=MAX_SERVER_WORKERS).contains(workers))
+            .ok_or_else(|| error("Tirada shaqaalaha WebSocket waa inay u dhaxaysaa 1 iyo 32.")),
+        _ => Err(error("Tirada shaqaalaha WebSocket waa inay noqotaa abn.")),
+    }
+}
+
+fn store_server_socket(socket: ServerSocket, connection: &Value) -> Result<Value, SoplangError> {
+    STATE.with(|state| {
+        let mut sockets = state.server_websockets.borrow_mut();
+        if sockets.len() >= MAX_SERVER_SOCKETS {
+            return Err(error("Xidhiidhyo WebSocket badan ayaa furan."));
+        }
+        let endpoint_id = super::net::endpoint_id(connection, "xidhiidh_async")?;
+        let id = NEXT_ID.fetch_add(1, Ordering::Relaxed);
+        sockets.insert(
+            id,
+            Rc::new(ServerConnection {
+                socket: RefCell::new(socket),
+                endpoint_id,
+            }),
+        );
+        let mut fields = HashMap::new();
+        fields.insert("aqoonsi".to_string(), Value::Int(id));
+        fields.insert(
+            "nooc".to_string(),
+            Value::Str("websocket_server".to_string()),
+        );
+        Ok(Value::Object(Rc::new(RefCell::new(fields))))
+    })
+}
+
+fn server_socket_id(value: &Value) -> Option<i64> {
+    let Value::Object(object) = value else {
+        return None;
+    };
+    let object = object.try_borrow().ok()?;
+    match (object.get("nooc"), object.get("aqoonsi")) {
+        (Some(Value::Str(kind)), Some(Value::Int(id))) if kind == "websocket_server" => Some(*id),
+        _ => None,
+    }
+}
+
+fn server_socket(id: i64) -> Result<Rc<ServerConnection>, SoplangError> {
+    STATE.with(|state| {
+        state
+            .server_websockets
+            .borrow()
+            .get(&id)
+            .cloned()
+            .ok_or_else(|| error("Xidhiidhka WebSocket waa la xidhay."))
+    })
+}
+
+fn send_server(id: i64, data: &[u8], text: bool) -> Result<Value, SoplangError> {
+    if data.len() > MAX_SERVER_MESSAGE {
+        return Err(error("Fariinta WebSocket way ka weyn tahay 1 MiB."));
+    }
+    let socket = server_socket(id)?;
+    let mut socket = socket
+        .socket
+        .try_borrow_mut()
+        .map_err(|_| error("Xidhiidhka WebSocket hadda waa la adeegsanayaa."))?;
+    let message = if text {
+        Message::text(
+            std::str::from_utf8(data).map_err(|_| error("Fariinta qoraalka ma aha UTF-8."))?,
+        )
+    } else {
+        Message::binary(data.to_vec())
+    };
+    let result = socket
+        .send(message)
+        .map_err(|failure| error_with_details(explain(&failure), failure));
+    if let Some(failure) = socket.get_mut().take_failure() {
+        return Err(failure);
+    }
+    result.map(|_| Value::Null)
+}
+
+fn receive_server(id: i64) -> Result<Value, SoplangError> {
+    let socket = server_socket(id)?;
+    let mut socket = socket
+        .socket
+        .try_borrow_mut()
+        .map_err(|_| error("Xidhiidhka WebSocket hadda waa la adeegsanayaa."))?;
+    loop {
+        let result = socket.read();
+        if let Some(failure) = socket.get_mut().take_failure() {
+            return Err(failure);
+        }
+        match result.map_err(|failure| error_with_details(explain(&failure), failure))? {
+            Message::Text(text) => return Ok(Value::Str(text.to_string())),
+            Message::Binary(bytes) => return Ok(super::bytes::from_raw_vec(bytes.to_vec())),
+            Message::Ping(_) | Message::Pong(_) | Message::Frame(_) => continue,
+            Message::Close(_) => return Err(error("Xidhiidhka WebSocket waa la xidhay.")),
+        }
+    }
+}
+
+fn close_server(id: i64) -> Result<Value, SoplangError> {
+    STATE.with(|state| {
+        let socket = state.server_websockets.borrow_mut().remove(&id);
+        if let Some(socket) = socket {
+            if let Ok(mut owned) = socket.socket.try_borrow_mut() {
+                let _ = owned.close(None);
+            }
+            super::async_net::close_connection(state, socket.endpoint_id);
         }
         Ok(Value::Null)
     })

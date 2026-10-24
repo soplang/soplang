@@ -25,6 +25,7 @@ pub(super) struct RuntimeState {
     pub udp_sockets: RefCell<Option<HashMap<i64, std::net::UdpSocket>>>,
     pub http_listeners: RefCell<Option<HashMap<i64, super::http_server::Listener>>>,
     pub websockets: RefCell<Option<HashMap<i64, super::websocket::Socket>>>,
+    pub server_websockets: RefCell<HashMap<i64, Rc<super::websocket::ServerConnection>>>,
     pub pending_error: RefCell<Option<crate::error::SoplangError>>,
     pub call_stack: RefCell<Vec<crate::error::StackFrame>>,
     pub errors: RefCell<HandleArena<Rc<crate::error::SoplangError>>>,

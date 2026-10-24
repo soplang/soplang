@@ -1,9 +1,11 @@
-//! WebSocket client against a local server (3.3 stage).
+//! WebSocket client and server integration tests.
 
-use std::net::TcpListener;
-use std::process::Command;
+use std::io::{BufRead, BufReader, Read, Write};
+use std::net::{TcpListener, TcpStream};
+use std::process::{Command, Stdio};
 use std::thread;
-use tungstenite::{accept, Message};
+use std::time::Duration;
+use tungstenite::{accept, client, Message};
 
 fn serve() -> u16 {
     let listener = TcpListener::bind("127.0.0.1:0").unwrap();
@@ -100,4 +102,188 @@ qor("ws errors ok")
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(output.status.success(), "{stderr}\n{stdout}");
     assert_eq!(stdout, "ws errors ok\n");
+}
+
+const SERVER_PROGRAM: &str = r#"
+hawl echo(socket) {
+    door first = ws_akhris(socket)
+    ws_qor(socket, first)
+    door second = ws_akhris(socket)
+    ws_qor(socket, second)
+}
+door listener = sug(tcp_dhegeysi_shaqo("127.0.0.1", 0))
+qor(listener.deked)
+sug(ws_aqbal_shaqo(listener, echo, {waqti: 3}))
+tcp_xidh(listener)
+qor("ws server done")
+"#;
+
+fn drive_server(command: &mut Command) {
+    let mut child = command
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .unwrap();
+    let mut stdout = BufReader::new(child.stdout.take().unwrap());
+    let mut port = String::new();
+    stdout.read_line(&mut port).unwrap();
+    let port = port.trim();
+    assert!(!port.is_empty(), "WebSocket server did not publish a port");
+    let stream = TcpStream::connect(format!("127.0.0.1:{port}")).unwrap();
+    stream
+        .set_read_timeout(Some(Duration::from_secs(3)))
+        .unwrap();
+    stream
+        .set_write_timeout(Some(Duration::from_secs(3)))
+        .unwrap();
+    let (mut socket, _) = client(format!("ws://127.0.0.1:{port}/"), stream).unwrap();
+    socket.send(Message::text("salaan")).unwrap();
+    assert_eq!(socket.read().unwrap().to_text().unwrap(), "salaan");
+    socket.send(Message::binary(vec![9, 8, 7])).unwrap();
+    assert_eq!(socket.read().unwrap().into_data(), vec![9, 8, 7]);
+    let _ = socket.close(None);
+    let mut rest = String::new();
+    stdout.read_to_string(&mut rest).unwrap();
+    let output = child.wait_with_output().unwrap();
+    assert!(
+        output.status.success(),
+        "status {:?}\n{}\n{rest}",
+        output.status.code(),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(rest.contains("ws server done"), "{rest}");
+}
+
+#[test]
+fn websocket_server_exchanges_text_and_bytes_in_jit_and_llvm() {
+    let mut jit = Command::new(env!("CARGO_BIN_EXE_soplang"));
+    jit.arg("-c").arg(SERVER_PROGRAM);
+    drive_server(&mut jit);
+
+    let stmts = soplang::frontend::parse_source(SERVER_PROGRAM, None).unwrap();
+    let symbols = soplang::analyze(&stmts).unwrap();
+    let hir = soplang::HirLowering::lower(&symbols, &stmts);
+    let ir = soplang::backend::llvm_ir::emit_llvm_ir(&hir, &symbols).unwrap();
+    let path = std::env::temp_dir().join(format!(
+        "soplang_ws_server_{}_{}",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos()
+    ));
+    soplang::backend::llvm_ir::link_llvm_binary(&ir, &path).unwrap();
+    drive_server(&mut Command::new(&path));
+    std::fs::remove_file(path).unwrap();
+}
+
+const SERVING_PROGRAM: &str = r#"
+door listener = sug(tcp_dhegeysi_shaqo("127.0.0.1", 0))
+door active = 0
+door peak = 0
+hawl handle(socket) {
+    active = active + 1
+    haddii (active > peak) { peak = active }
+    door message = ws_akhris(socket)
+    haddii (message == "stop") {
+        tcp_xidh(listener)
+        ws_qor(socket, "stopped")
+    } kale {
+        haddii (message == "drain") {
+            qor("draining")
+            sug(hurdada(600))
+        } kale {
+            sug(hurdada(150))
+        }
+        ws_qor(socket, message)
+    }
+    active = active - 1
+}
+qor(listener.deked)
+sug(ws_adeeg_shaqo(listener, handle, {shaqaale: 2, waqti: 3}))
+qor("peak=" + qoraal(peak))
+"#;
+
+fn drive_bounded_server(command: &mut Command) {
+    let mut child = command
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .unwrap();
+    let mut stdout = BufReader::new(child.stdout.take().unwrap());
+    let mut port = String::new();
+    stdout.read_line(&mut port).unwrap();
+    let port = port.trim();
+    assert!(!port.is_empty(), "WebSocket server did not publish a port");
+    let connect = || {
+        let stream = TcpStream::connect(format!("127.0.0.1:{port}")).unwrap();
+        stream
+            .set_read_timeout(Some(Duration::from_secs(3)))
+            .unwrap();
+        stream
+            .set_write_timeout(Some(Duration::from_secs(3)))
+            .unwrap();
+        client(format!("ws://127.0.0.1:{port}/"), stream).unwrap().0
+    };
+    let mut malformed = TcpStream::connect(format!("127.0.0.1:{port}")).unwrap();
+    malformed
+        .write_all(b"GET / HTTP/1.1\r\nHost: localhost\r\n\r\n")
+        .unwrap();
+    drop(malformed);
+    let mut clients = Vec::new();
+    for _ in 0..4 {
+        let mut socket = connect();
+        socket.send(Message::text("wait")).unwrap();
+        clients.push(socket);
+    }
+    for socket in &mut clients {
+        assert_eq!(socket.read().unwrap().to_text().unwrap(), "wait");
+        let _ = socket.close(None);
+    }
+
+    let mut draining = connect();
+    draining.send(Message::text("drain")).unwrap();
+    let mut started = String::new();
+    stdout.read_line(&mut started).unwrap();
+    assert_eq!(started.trim(), "draining");
+    let mut stopping = connect();
+    stopping.send(Message::text("stop")).unwrap();
+    assert_eq!(stopping.read().unwrap().to_text().unwrap(), "stopped");
+    assert_eq!(draining.read().unwrap().to_text().unwrap(), "drain");
+    let _ = stopping.close(None);
+    let _ = draining.close(None);
+
+    let mut rest = String::new();
+    stdout.read_to_string(&mut rest).unwrap();
+    let output = child.wait_with_output().unwrap();
+    assert!(
+        output.status.success(),
+        "status {:?}\n{}\n{rest}",
+        output.status.code(),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(rest.contains("peak=2"), "{rest}");
+}
+
+#[test]
+fn bounded_websocket_server_drains_peers_in_jit_and_llvm() {
+    let mut jit = Command::new(env!("CARGO_BIN_EXE_soplang"));
+    jit.arg("-c").arg(SERVING_PROGRAM);
+    drive_bounded_server(&mut jit);
+
+    let stmts = soplang::frontend::parse_source(SERVING_PROGRAM, None).unwrap();
+    let symbols = soplang::analyze(&stmts).unwrap();
+    let hir = soplang::HirLowering::lower(&symbols, &stmts);
+    let ir = soplang::backend::llvm_ir::emit_llvm_ir(&hir, &symbols).unwrap();
+    let path = std::env::temp_dir().join(format!(
+        "soplang_ws_bounded_{}_{}",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos()
+    ));
+    soplang::backend::llvm_ir::link_llvm_binary(&ir, &path).unwrap();
+    drive_bounded_server(&mut Command::new(&path));
+    std::fs::remove_file(path).unwrap();
 }

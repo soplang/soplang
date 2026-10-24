@@ -809,6 +809,16 @@ pub fn builtin_ws_fur(args: Vec<Value>) -> Result<Value, SoplangError> {
     super::websocket::connect(url, timeout)
 }
 
+pub fn builtin_ws_aqbal_shaqo(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity_range(&args, "ws_aqbal_shaqo", 2, 3)?;
+    super::websocket::accept_async(&args[0], &args[1], args.get(2))
+}
+
+pub fn builtin_ws_adeeg_shaqo(args: Vec<Value>) -> Result<Value, SoplangError> {
+    expect_arity_range(&args, "ws_adeeg_shaqo", 2, 3)?;
+    super::websocket::serve_async(&args[0], &args[1], args.get(2))
+}
+
 pub fn builtin_ws_qor(args: Vec<Value>) -> Result<Value, SoplangError> {
     expect_arity(&args, "ws_qor", 2)?;
     match &args[1] {
@@ -1604,6 +1614,8 @@ const BUILTINS: &[(&str, super::NativeFn, CallbackArity)] = &[
     ("udp_qor_shaqo", super::async_net::send_udp, CallbackArity::range(4, 4)),
     ("udp_akhris_shaqo", super::async_net::receive_udp, CallbackArity::range(2, 2)),
     ("ws_fur", builtin_ws_fur, CallbackArity::range(1, 2)),
+    ("ws_aqbal_shaqo", builtin_ws_aqbal_shaqo, CallbackArity::range(2, 3)),
+    ("ws_adeeg_shaqo", builtin_ws_adeeg_shaqo, CallbackArity::range(2, 3)),
     ("ws_qor", builtin_ws_qor, CallbackArity::range(2, 2)),
     ("ws_akhris", builtin_ws_akhris, CallbackArity::range(1, 1)),
     ("ws_xidh", builtin_ws_xidh, CallbackArity::range(1, 1)),

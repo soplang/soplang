@@ -289,6 +289,8 @@ these explanations do not establish a historical abbreviation or SLS approval.
 | `udp_akhris` | Receive one UDP datagram          | `recvfrom`           | `udp_akhris(sock, 1024)`                   |
 | `udp_xidh` | Close a UDP socket                  | (UDP close)          | `udp_xidh(sock)`                           |
 | `ws_fur` | Connect a WebSocket client           | `WebSocket`          | `ws_fur("ws://127.0.0.1:9000")`            |
+| `ws_aqbal_shaqo` | Accept one WebSocket peer | (WebSocket accept task) | `ws_aqbal_shaqo(listener, handler)` |
+| `ws_adeeg_shaqo` | Serve WebSocket peers | (WebSocket serve task) | `ws_adeeg_shaqo(listener, handler)` |
 | `ws_qor` | Send a WebSocket frame               | `send`               | `ws_qor(socket, "salaan")`                 |
 | `ws_akhris` | Read the next WebSocket frame     | `recv`               | `ws_akhris(socket)`                        |
 | `ws_xidh` | Close a WebSocket                   | `close`              | `ws_xidh(socket)`                          |

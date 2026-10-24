@@ -249,13 +249,9 @@ fn serve_async_connection(
     let expires = Instant::now()
         .checked_add(timeout)
         .ok_or_else(|| error("Waqtiga serverka aad buu u dheer yahay."))?;
-    let mut stream = TaskStream {
-        connection: connection.clone(),
-        expires,
-        failure: None,
-    };
+    let mut stream = TaskStream::for_http(connection.clone(), expires);
     let result = serve(&mut stream, routes, limit);
-    let bridge_failure = stream.failure.take();
+    let bridge_failure = stream.take_failure();
     let _ = super::net::close(connection);
     match bridge_failure {
         Some(failure) => Err(failure),
@@ -344,22 +340,50 @@ fn worker_count(options: Option<&Value>) -> Result<usize, SoplangError> {
     }
 }
 
-struct TaskStream {
+pub(super) struct TaskStream {
     connection: Value,
-    expires: Instant,
+    timeout: StreamTimeout,
     failure: Option<SoplangError>,
 }
 
+#[derive(Clone, Copy)]
+enum StreamTimeout {
+    Absolute(Instant),
+    PerOperation(Duration),
+}
+
 impl TaskStream {
+    fn for_http(connection: Value, expires: Instant) -> Self {
+        Self {
+            connection,
+            timeout: StreamTimeout::Absolute(expires),
+            failure: None,
+        }
+    }
+
+    pub(super) fn for_websocket(connection: Value, timeout: Duration) -> Self {
+        Self {
+            connection,
+            timeout: StreamTimeout::PerOperation(timeout),
+            failure: None,
+        }
+    }
+
+    pub(super) fn take_failure(&mut self) -> Option<SoplangError> {
+        self.failure.take()
+    }
+
     fn wait(&mut self, task: Result<Value, SoplangError>) -> io::Result<Value> {
         if self.failure.is_some() {
             return Err(io::Error::other("Hawsha shabakadda way fashilantay."));
         }
-        let remaining = self
-            .expires
-            .checked_duration_since(Instant::now())
-            .filter(|time| !time.is_zero())
-            .ok_or_else(|| self.fail(error("Waqtigii codsiga wuu dhammaaday.")))?;
+        let remaining = match self.timeout {
+            StreamTimeout::Absolute(expires) => expires
+                .checked_duration_since(Instant::now())
+                .filter(|time| !time.is_zero())
+                .ok_or_else(|| self.fail(error("Waqtigii codsiga wuu dhammaaday.")))?,
+            StreamTimeout::PerOperation(timeout) => timeout,
+        };
         let task = task.map_err(|failure| self.fail(failure))?;
         let Value::Task(task) = task else {
             unreachable!("asynchronous TCP operation returns a task")

@@ -92,6 +92,32 @@ uses the operating system resolver; `waqti` is not an overall DNS or multi-I/O
 deadline. Up to three redirects are followed. A secure `wss` connection cannot
 redirect to an unencrypted `ws` connection.
 
+`ws_aqbal_shaqo(listener, handler, options?)` accepts one WebSocket upgrade on
+an asynchronous TCP listener. `sug` waits for its handler to finish.
+`ws_adeeg_shaqo(listener, handler, options?)` keeps accepting connections with
+8 workers by default; `shaqaale` selects 1 to 32 workers. Each handler runs
+on the owning runtime thread and receives one WebSocket handle. Closing the
+listener with `tcp_xidh` cancels pending accepts; `sug` on the serving task
+waits for active handlers to finish. Invalid upgrades and client disconnects
+affect only their connection. These server functions currently use plain TCP
+listeners and do not share an HTTP listener or route WebSocket upgrades through
+the bundled `web` module.
+
+```soplang
+door listener = sug(tcp_dhegeysi_shaqo("127.0.0.1", 9000))
+hawl echo(socket) {
+    door message = ws_akhris(socket)
+    ws_qor(socket, message)
+}
+door serving = ws_adeeg_shaqo(listener, echo, {shaqaale: 8, waqti: 30})
+sug(serving)
+```
+
+Server messages and frames are limited to 1 MiB; at most 64 server WebSocket
+handles may be open in one runtime context. The `waqti` option applies to each
+handshake, read, and write operation. The handle closes when its handler
+returns, even if the handler raises an error. `ws_xidh` closes it early.
+
 `ws_qor(socket, data)` sends a text frame for a `qoraal` and a binary frame for
 a `baytyo`. `ws_akhris(socket)` returns the next data frame as `qoraal` or
 `baytyo`. Ping frames are answered automatically. `ws_xidh` closes the socket.
