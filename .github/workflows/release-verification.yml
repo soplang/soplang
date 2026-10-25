@@ -109,6 +109,7 @@ jobs:
         with:
           python-version: '3.12'
       - uses: dtolnay/rust-toolchain@1.94.0
+      - uses: ilammy/msvc-dev-cmd@v1
       - name: Install LLVM and Zig build SDKs
         shell: pwsh
         env:

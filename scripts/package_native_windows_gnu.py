@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build a Windows x64 Soplang package with embedded LLVM and a bundled Zig linker."""
+"""Build a Windows x64 compiler with a gnullvm runtime and bundled Zig linker."""
 
 import argparse
 import os
@@ -36,26 +36,22 @@ def main():
         env = dict(os.environ)
         env["SOPLANG_LLVM_LIB_DIR"] = str(imports)
         env["PATH"] = str(llvm / "bin") + os.pathsep + env["PATH"]
-        linker = temp / "zig-link.cmd"
-        linker.write_text(
-            f'@echo off\r\n"{zig / "zig.exe"}" cc -target x86_64-windows-gnu %*\r\n',
-            encoding="utf-8",
-        )
-        env["CARGO_TARGET_X86_64_PC_WINDOWS_GNULLVM_LINKER"] = str(linker)
         subprocess.run(["rustup", "target", "add", TARGET], cwd=ROOT, env=env, check=True)
         mode = ["cargo", "build", "--release", "--locked", "--target", TARGET]
         subprocess.run([*mode, "--lib"], cwd=ROOT, env=env, check=True)
         release = ROOT / "target" / TARGET / "release"
         archive = temp / "libsoplang.a"
         shutil.copy2(release / archive.name, archive)
-        subprocess.run([*mode, "--features", "embedded-llvm", "--bin", "soplang"],
-                       cwd=ROOT, env=env, check=True)
+        host_env = dict(env, SOPLANG_LLVM_LIB_DIR=str(llvm / "lib"))
+        subprocess.run(["cargo", "build", "--release", "--locked", "--features",
+                        "embedded-llvm", "--bin", "soplang"], cwd=ROOT,
+                       env=host_env, check=True)
 
         stage = temp / "package"
         runtime = stage / "lib/soplang"
         tools = runtime / "tools"
         tools.mkdir(parents=True)
-        shutil.copy2(release / "soplang.exe", stage / "soplang.exe")
+        shutil.copy2(ROOT / "target/release/soplang.exe", stage / "soplang.exe")
         shutil.copy2(archive, runtime / archive.name)
         shutil.copy2(llvm / "bin/LLVM-C.dll", stage / "LLVM-C.dll")
         shutil.copy2(zig / "zig.exe", tools / "zig.exe")

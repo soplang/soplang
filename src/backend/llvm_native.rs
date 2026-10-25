@@ -165,7 +165,9 @@ pub fn link_macho(
     for framework in ["CoreFoundation", "Security", "SystemConfiguration"] {
         command.arg("-framework").arg(framework);
     }
-    command.args(["-lz.1", "-liconv.2", "-lobjc.A"]);
+    for stub in ["libz.1.tbd", "libiconv.2.tbd", "libobjc.A.tbd"] {
+        command.arg(dir.join("sdk/usr/lib").join(stub));
+    }
     let result = command
         .output()
         .map_err(|e| tool_start_error("ld64.lld", &e))?;
