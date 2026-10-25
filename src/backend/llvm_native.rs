@@ -165,7 +165,12 @@ pub fn link_macho(
     if !result.status.success() {
         return Err(external_error(
             "LLD ma dhammaystiri karin isku xidhka barnaamijka macOS.",
-            String::from_utf8_lossy(&result.stderr).into_owned(),
+            format!(
+                "ld64.lld: {}\n{}{}",
+                result.status,
+                String::from_utf8_lossy(&result.stdout),
+                String::from_utf8_lossy(&result.stderr)
+            ),
         ));
     }
     Ok(())
@@ -224,7 +229,12 @@ pub fn link_coff(
     if !result.status.success() {
         return Err(external_error(
             "LLD ma dhammaystiri karin isku xidhka barnaamijka Windows.",
-            String::from_utf8_lossy(&result.stderr).into_owned(),
+            format!(
+                "lld-link: {}\n{}{}",
+                result.status,
+                String::from_utf8_lossy(&result.stdout),
+                String::from_utf8_lossy(&result.stderr)
+            ),
         ));
     }
     Ok(())

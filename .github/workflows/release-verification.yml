@@ -57,6 +57,7 @@ jobs:
       - name: Build and verify native package
         run: |
           python3 scripts/package_native_macos.py --output target/native-package
+          SOPLANG_ERROR_DETAILS=1 target/native-package/soplang --no-color --build examples/01_hello.sop -o target/native-smoke
           python3 scripts/verify_package.py target/native-package/soplang
 
   native-windows:
@@ -92,6 +93,10 @@ jobs:
         run: |
           python scripts/package_native_windows.py --output target/native-package
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $env:SOPLANG_ERROR_DETAILS = '1'
+          & target/native-package/soplang.exe --no-color --build examples/01_hello.sop -o target/native-smoke.exe
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Remove-Item Env:SOPLANG_ERROR_DETAILS
           python scripts/verify_package.py target/native-package/soplang.exe
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 

@@ -36,6 +36,9 @@ def main():
         install.mkdir()
         exe = install / original.name
         shutil.copy2(original, exe)
+        if os.name == "nt":
+            for dll in original.parent.glob("*.dll"):
+                shutil.copy2(dll, install / dll.name)
         shutil.copytree(runtime, install / "lib/soplang")
         shutil.copytree(ROOT / "examples", work / "examples")
         (work / "outputs").mkdir()
@@ -139,6 +142,9 @@ def main():
         bin_dir.mkdir()
         moved = bin_dir / original.name
         exe.rename(moved)
+        if os.name == "nt":
+            for dll in install.glob("*.dll"):
+                shutil.copy2(dll, bin_dir / dll.name)
         exe = moved
         sample = Path("examples/27_inheritance.sop")
         _, result = build(sample)
