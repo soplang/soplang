@@ -1,60 +1,55 @@
-# Installing Soplang 3
+# Installing Soplang 3.6.0
 
-[Soplang 3.0.1](https://github.com/soplang/soplang/releases/tag/v3.0.1) is available
-for Linux x86_64, Windows x64, and macOS Apple Silicon. A Linux amd64 Docker
-image includes the compiler and its native build toolchain.
+[Soplang 3.6.0](https://github.com/soplang/soplang/releases/tag/v3.6.0) provides
+packages for Linux x86_64, Windows x64, and macOS Apple Silicon. A Linux amd64
+Docker image is also available.
 
 ## Release packages
 
-Download the package for your platform and the release's combined `SHA256SUMS`.
+Download your platform's package and the release's combined `SHA256SUMS`.
 
 | Platform | Package | Requirements |
 | --- | --- | --- |
-| Linux x86_64 | `soplang_3.0.1_amd64.deb` or `soplang-3.0.1-linux-x86_64.tar.gz` | glibc 2.39 or later; libgcc |
-| Windows x64 | `soplang-setup.exe` or `soplang-3.0.1-windows-AMD64.zip` | Native Windows x64 environment |
-| macOS Apple Silicon | `soplang-3.0.1-macos-arm64.tar.gz` | The app bundle declares macOS 14.8.9 or later |
+| Linux x86_64 | `soplang_3.6.0_amd64.deb` or `soplang-3.6.0-linux-x86_64.tar.gz` | glibc 2.39 or later; libgcc |
+| Windows x64 | `soplang-setup.exe` or `soplang-3.6.0-windows-AMD64.zip` | Windows 10 or later on x64 |
+| macOS Apple Silicon | `soplang-3.6.0-macos-arm64.tar.gz` | See the bundle's declared minimum macOS version |
 
-The Windows installer is unsigned; the macOS archive is not notarized.
-This release provides archives and a Debian package; RPM and DMG assets are
-not attached to v3.0.1. The macOS builder can optionally generate a DMG locally.
+The Windows installer is unsigned and the macOS archive is not notarized.
+The release includes archives and a Debian package. The macOS builder may
+produce a DMG when `create-dmg` is available.
 
-Native package verification is recorded in the [release verification gates](testing/LOCALIZATION_3_0_1.md).
+### Verify a download
 
-### Verify downloads
-
-Keep `SHA256SUMS` next to your downloads. On Linux/macOS, check a selected
-file against its entry, or use the full manifest after downloading all assets:
+Keep `SHA256SUMS` beside your downloads. On Linux or macOS, check the selected
+file against its entry, or check the full manifest after downloading all assets:
 
 ```sh
-# Linux, when all listed assets are present:
-sha256sum -c SHA256SUMS
-
-# macOS, when all listed assets are present:
-shasum -a 256 -c SHA256SUMS
+sha256sum -c SHA256SUMS   # Linux
+shasum -a 256 -c SHA256SUMS   # macOS
 ```
 
 On Windows, compare `Get-FileHash <download> -Algorithm SHA256` with the matching
-line in `SHA256SUMS`. The manifest covers packages for all platforms.
+line in `SHA256SUMS`.
 
 ## Linux
 
 Install the Debian package:
 
 ```sh
-sudo dpkg -i soplang_3.0.1_amd64.deb
-soplang --version
+sudo dpkg -i soplang_3.6.0_amd64.deb
+soplang nooc
 ```
 
 Or extract the archive:
 
 ```sh
-tar -xzf soplang-3.0.1-linux-x86_64.tar.gz
-./soplang/soplang --version
+tar -xzf soplang-3.6.0-linux-x86_64.tar.gz
+./soplang/soplang nooc
 ```
 
-Keep the archive's executable and `lib/soplang` together. Add the extracted
-`soplang` directory to PATH if desired. Debian installs the executable at
-`/usr/bin/soplang` and runtime libraries at `/usr/lib/soplang`.
+Keep the archive's executable and `lib/soplang` directory together. Debian
+installs the executable at `/usr/bin/soplang` and its runtime files at
+`/usr/lib/soplang`.
 
 ## Windows
 
@@ -62,54 +57,53 @@ Run `soplang-setup.exe`. Its optional tasks add Soplang to PATH and associate
 `.sop` and `.so` source files. Open a new terminal after installation:
 
 ```powershell
-soplang --version
+soplang nooc
 soplang -c 'qor("Salaan!")'
 ```
 
-Alternatively, extract the ZIP and run `soplang.exe` inside the extracted
-`soplang` directory. Keep its `lib` directory beside the executable.
+Alternatively, extract the ZIP and run `soplang.exe` inside its `soplang`
+directory. Keep the `lib` directory beside the executable.
 
 ## macOS
 
 Extract the Apple Silicon archive:
 
 ```sh
-tar -xzf soplang-3.0.1-macos-arm64.tar.gz
-./Soplang.app/Contents/MacOS/soplang --version
+tar -xzf soplang-3.6.0-macos-arm64.tar.gz
+./Soplang.app/Contents/MacOS/soplang nooc
 ```
 
 This is a command-line application. Keep the complete app bundle and add its
 `Contents/MacOS` directory to PATH if desired. Intel Mac packages are not part
-of this release; [build from source](BUILD_GUIDE.md) for other targets.
+of this release; follow the [source build guide](BUILD_GUIDE.md) for other
+targets.
 
 ## Docker
 
-The public image is available from Docker Hub:
-
 ```sh
-docker run --rm soplang/soplang:3.0.1 --version
-docker run --rm -v "$PWD:/scripts:ro" soplang/soplang:3.0.1 program.sop
-docker run -it --rm soplang/soplang:3.0.1
+docker run --platform linux/amd64 --rm soplang/soplang:3.6.0 nooc
+docker run --platform linux/amd64 --rm -v "$PWD:/scripts:ro" soplang/soplang:3.6.0 program.sop
+docker run --platform linux/amd64 --rm -it soplang/soplang:3.6.0
 ```
 
-See [Docker usage](docker.md) for native builds, writable mounts, and registry
-availability.
+See [Docker usage](docker.md) for writable mounts and building executables.
 
-## Run programs and build executables
+## Run and build programs
 
 ```sh
-soplang program.sop
+soplang fuli program.sop
 soplang -c 'qor("Salaan!")'
-soplang
-soplang --build program.sop -o program
+soplang isdhexgal
+soplang dhis program.sop
+soplang build program.sop -o program
 ```
 
-JIT execution and the REPL do not need Rust or clang. Native `--build` requires
-clang, a platform linker/SDK, and the exact Rust toolchain recorded in the
-package. Official v3.0.1 packages use Rust 1.94.0. See
-[installed build requirements](INSTALLING_PACKAGES.md) before building programs.
-The Docker image includes these tools.
+The 3.6 packages include the LLVM and linker components needed for native
+builds. Running Soplang and building a program need no separate Rust, Cargo,
+Clang, or system linker installation. A built program runs without Soplang or
+its source files beside it. It targets the operating system and architecture
+of the package that built it. See [installed package details](INSTALLING_PACKAGES.md).
 
 To build the compiler itself, follow the [source build guide](BUILD_GUIDE.md).
-For language examples and source diagnostics, start with the
-[example catalog](../examples/README.md) and [language reference](language/keywords.md).
+For language examples and diagnostics, see the [example catalog](../examples/README.md)
+and [keyword reference](language/keywords.md).

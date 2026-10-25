@@ -4,11 +4,9 @@
 
 Soplang is a programming language with Somali keywords. It supports static and dynamic typing, functions, closures, and classes.
 
-**Soplang 3.0.1 is available** for Linux x86_64, Windows x64, macOS Apple Silicon, and Docker. Get the [release packages](https://github.com/soplang/soplang/releases/tag/v3.0.1) or follow the [installation guide](docs/installation.md).
+**Soplang 3.6.0 is available** for Linux x86_64, Windows x64, macOS Apple Silicon, and Docker. Get the [release packages](https://github.com/soplang/soplang/releases/tag/v3.6.0) or follow the [installation guide](docs/installation.md).
 
-The development source contains the 3.1 through 3.6 implementation milestones.
-Their distribution and publication remain separate from the currently
-available 3.0.1 packages.
+The 3.6.0 release includes the 3.1 through 3.6 implementation milestones:
 
 - [3.1 runtime foundations](docs/releases/3.1.0.md): long-running contexts,
   structured errors, cleanup, strings, and callable expressions.
@@ -22,7 +20,7 @@ available 3.0.1 packages.
   tests, coverage, language server, VS Code extension, debugging, and profiling.
 - [3.6 concurrency and servers](docs/architecture/CONCURRENCY.md): tasks,
   channels, async I/O, streaming HTTP bodies, and bounded HTTP and WebSocket
-  servers. The 3.6 tag and release are pending.
+  servers.
 
 The [roadmap](ROADMAP.md) records the completed milestones and later 3.x work.
 
@@ -94,13 +92,13 @@ Or: `make build`, `make run FILE=examples/01_hello.sop`, `make shell`, `make tes
 
 ### Docker
 
-The Linux amd64 image includes the compiler and native build toolchain:
+The Linux amd64 image includes the compiler and its native build runtime:
 
 ```sh
-docker run --platform linux/amd64 --rm soplang/soplang:3.0.1 --version
-docker run --platform linux/amd64 --rm -it soplang/soplang:3.0.1
+docker run --platform linux/amd64 --rm soplang/soplang:3.6.0 --version
+docker run --platform linux/amd64 --rm -it soplang/soplang:3.6.0
 docker run --platform linux/amd64 --rm -v "$PWD:/scripts:ro" \
-  soplang/soplang:3.0.1 examples/01_hello.sop
+  soplang/soplang:3.6.0 examples/01_hello.sop
 ```
 
 The file example assumes you are in this repository. See the

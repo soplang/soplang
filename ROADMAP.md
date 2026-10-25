@@ -8,7 +8,7 @@ and tests are complete.
 ## Version policy
 
 Soplang is on the **version 3 product line**. The released baseline is
-`3.0.1`, and planned releases use `3.x.y` versions.
+`3.6.0`, and future releases use `3.x.y` versions.
 
 - `3.x.0` releases may add compatible language, runtime, library, and tooling
   capabilities.
@@ -78,9 +78,8 @@ Soplang 3.0 establishes the release baseline:
 
 ## Soplang 3.1 — runtime stability and diagnostics
 
-Implementation complete; publication pending. See the [milestone notes](docs/releases/3.1.0.md)
-and [local verification](docs/testing/RUNTIME_3_1.md). Later milestones below
-remain planned; their scope is not implied by the completed 3.1 foundation.
+Implemented and included in 3.6.0. See the [milestone notes](docs/releases/3.1.0.md)
+and [local verification](docs/testing/RUNTIME_3_1.md).
 
 Every later feature depends on a runtime that supports long-running programs
 and reports failures precisely.
@@ -148,7 +147,7 @@ now enforce shared element contracts through aliases and nested collections.
 Expanded [text](docs/language/text-methods.md), [list](docs/language/list-methods.md),
 [object](docs/language/object-methods.md), and [numeric](docs/language/numeric-functions.md)
 library operations are implemented in both backends. The 3.2 language scope is
-complete locally; a version tag and distribution builds remain pending.
+included in the 3.6.0 release.
 
 ### Iteration
 
@@ -403,8 +402,7 @@ Implemented in the development source; see the [3.5 milestone notes](docs/releas
 
 ## Soplang 3.6 — concurrency, asynchronous I/O, and servers
 
-Implemented in the development source. The 3.6 tag and release are pending
-separate approval. This work follows memory reclamation, resource cleanup, and
+Released in 3.6.0. This work follows memory reclamation, resource cleanup, and
 synchronous network APIs.
 
 ### Concurrency
