@@ -187,6 +187,31 @@ jobs:
           python3 scripts/verify_package.py target/deb-install/usr/bin/soplang
           (cd linux && sha256sum -c SHA256SUMS)
           python3 scripts/verify_installation.py debian linux/soplang_*.deb
+      - uses: ilammy/msvc-dev-cmd@v1
+        if: runner.os == 'Windows'
+      - name: Install Windows native build SDKs
+        if: runner.os == 'Windows'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          gh release download llvmorg-23.1.4 -R llvm/llvm-project -p 'clang+llvm-23.1.4-x86_64-pc-windows-msvc.tar.zst' --dir target/llvm-download
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $archive = (Get-ChildItem target/llvm-download -Filter '*.zst' | Select-Object -First 1).FullName
+          zstd --long=30 -d $archive -o target/llvm-sdk.tar
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          New-Item -ItemType Directory -Force target/llvm-sdk | Out-Null
+          tar -xf target/llvm-sdk.tar -C target/llvm-sdk
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $llvm = (Get-ChildItem target/llvm-sdk -Directory | Select-Object -First 1).FullName
+          "SOPLANG_LLVM_SDK=$llvm" >> $env:GITHUB_ENV
+          Invoke-WebRequest 'https://ziglang.org/download/0.15.2/zig-x86_64-windows-0.15.2.zip' -OutFile target/zig.zip
+          $hash = (Get-FileHash target/zig.zip -Algorithm SHA256).Hash.ToLower()
+          if ($hash -ne '3a0ed1e8799a2f8ce2a6e6290a9ff22e6906f8227865911fb7ddedc3cc14cb0c') { throw 'Zig archive checksum mismatch' }
+          Expand-Archive target/zig.zip target/zig-sdk
+          $zig = (Get-ChildItem target/zig-sdk -Directory | Select-Object -First 1).FullName
+          "SOPLANG_ZIG_SDK=$zig" >> $env:GITHUB_ENV
       - name: Build and verify Windows archive
         if: runner.os == 'Windows'
         shell: pwsh
@@ -208,6 +233,9 @@ jobs:
               throw "Checksum failed: $name"
             }
           }
+      - name: Install macOS native build libraries
+        if: runner.os == 'macOS'
+        run: brew install llvm@22 lld@22
       - name: Build and verify macOS archive
         if: runner.os == 'macOS'
         shell: bash

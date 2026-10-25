@@ -4,7 +4,7 @@
 
 ## Current status
 
-Phases 1–6 are done. Phase 5 emits textual LLVM IR and uses system `clang` plus `rustc` to link the runtime; `inkwell` is not a dependency.
+Phases 1–6 are done. Phase 5 emits textual LLVM IR. Installed 3.6 packages use embedded LLVM object generation and their packaged linker and runtime archive; source builds without `embedded-llvm` retain the system `clang` and `rustc` path. `inkwell` is not a dependency.
 
 | Path | What it does today |
 |------|--------------------|
@@ -43,7 +43,7 @@ Division and modulo by zero still call the runtime, including inside `fasax`.
 - **Compiled-only**: no tree-walking interpreter in the final product.
 - **Two backends** sharing the same front-end (Lexer, Parser, AST, Semantic, HIR):
   - **Cranelift JIT**: `soplang file.sop` → HIR → native machine code in memory → run. Near-native speed, fast compile, ~5 MB dep.
-  - **LLVM AOT:** `soplang --build file.sop` resolves `keen`, lowers HIR to textual LLVM IR, compiles an object with `clang`, and links a standalone binary with `rustc`.
+  - **LLVM AOT:** `soplang --build file.sop` resolves `keen`, lowers HIR to textual LLVM IR, compiles an object with LLVM, and links a standalone binary with the packaged runtime.
 - **Reuse**: Lexer, Parser, AST, `Value`, `SoplangError`, stdlib (wrapped by runtime for native backends).
 - **Remove interpreter**: `src/interpreter.rs` deleted in Phase 6.
 
@@ -235,7 +235,8 @@ Cranelift applies its own passes (constant propagation, dead code elimination, r
 ### Role
 
 - **Invocation:** `soplang --build file.sop [-o mybin] [--opt-level 0..3]`.
-- **Flow:** resolve `keen` → analyze → HIR → textual LLVM IR → `clang -O<level> -c` → object file → `rustc` links the Soplang runtime rlib and object file.
+- **Installed-package flow:** resolve `keen` → analyze → HIR → textual LLVM IR → embedded LLVM object generation → packaged linker combines the object and runtime archive.
+- **Source-build fallback:** builds without `embedded-llvm` use system `clang` and `rustc` with the matching runtime rlib.
 - **Standalone binary:** user gets an executable that runs without `soplang`.
 
 ### Value type in LLVM IR
@@ -254,7 +255,7 @@ Typed `abn` and `jajab` arithmetic, comparisons, and negation emit native LLVM i
 
 ### Structure
 
-`LlvmBackend::build_executable` calls `emit_llvm_ir(hir, sym)` and `link_llvm_binary_with_opt`. The IR defines one function per HIR function and a native `main`; it registers functions and classes with the shared runtime before running top-level instructions. `rustc` links a small `#![no_main]` wrapper that retains the runtime symbols needed by the LLVM object.
+`LlvmBackend::build_executable` calls `emit_llvm_ir(hir, sym)` and `link_llvm_binary_with_opt`. The IR defines one function per HIR function and a native `main`; it registers functions and classes with the shared runtime before running top-level instructions. Installed packages link a static runtime archive. The source-build fallback uses `rustc` and a small `#![no_main]` wrapper to retain the runtime symbols needed by the LLVM object.
 
 ---
 
@@ -422,8 +423,8 @@ pub fn run_source(source: &str, path: Option<&Path>) -> Result<(), SoplangError>
 ### Steps
 
 1. **HIR → LLVM IR:** Emit textual IR for all HIR instructions, including functions, classes, closures, and runtime calls.
-2. **Optimization:** Pass `--opt-level 0..3` to `clang` and `rustc`.
-3. **Emit .o:** Compile IR with system `clang`, then link the object with the Soplang rlib via `rustc`.
+2. **Optimization:** Pass `--opt-level 0..3` to LLVM object generation.
+3. **Emit .o:** Compile IR with embedded LLVM and link the object with the packaged Soplang runtime. Source builds without `embedded-llvm` use `clang` and `rustc`.
 4. **CLI:** `soplang --build <file.sop> [-o output]` → compile → link → output binary.
 
 ### Deliverable
@@ -501,6 +502,6 @@ src/
 | Backend | Command | Output | Dep |
 |---------|---------|--------|-----|
 | **Cranelift JIT** | `soplang file.sop` | Run in process; no standalone binary | cranelift-* ~5 MB |
-| **LLVM AOT** | `soplang --build file.sop` | Standalone binary from LLVM IR | system clang and rustc |
+| **LLVM AOT** | `soplang --build file.sop` | Standalone binary from LLVM IR | packaged LLVM, linker, and runtime on installed 3.6 packages |
 
 Future optimization work can unbox static values across slots and boundaries.

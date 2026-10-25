@@ -125,7 +125,7 @@ setting.
 
 `soplang file.sop` and the REPL share one pipeline: lex, parse, resolve `keen`, analyze, lower to HIR, then Cranelift. Numeric operations with known static types can use native integer and float instructions. Dynamic values and remaining validation/conversion steps go through the tagged runtime; a type annotation alone does not guarantee a faster program.
 
-`soplang --build file.sop` resolves `keen`, lowers the program to HIR, emits textual LLVM IR, and links a native binary with system `clang` (15+) and the matching `rustc`. Installed packages include the required runtime libraries; keep the package intact. See [package installation](docs/INSTALLING_PACKAGES.md). `--opt-level` selects optimization level 0 to 3. The binary runs without Soplang or the source files beside it.
+`soplang --build file.sop` resolves `keen`, lowers the program to HIR, and emits textual LLVM IR. The 3.6 packages generate object code with bundled LLVM and link it with the packaged runtime, without requiring Rust or Clang on the user's machine. Keep the complete package intact; see [package installation](docs/INSTALLING_PACKAGES.md). Source builds without the `embedded-llvm` feature retain the system Clang and matching Rust toolchain path. `--opt-level` selects optimization level 0 to 3. The resulting binary runs without Soplang or its source files beside it.
 
 ## Benchmark results
 

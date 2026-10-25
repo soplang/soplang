@@ -6,7 +6,7 @@ try {
     $cargoToml = Get-Content "Cargo.toml" -Raw
     if ($cargoToml -notmatch '(?m)^version = "([^"]+)"') { throw "Missing Cargo version" }
     $version = $Matches[1]
-    python scripts/package.py --output dist/soplang
+    python scripts/package_native_windows_gnu.py --output dist/soplang
     if ($LASTEXITCODE -ne 0) { throw "Package build failed" }
     $archive = "windows/soplang-$version-windows-$env:PROCESSOR_ARCHITECTURE.zip"
     if (Test-Path $archive) { Remove-Item $archive }
