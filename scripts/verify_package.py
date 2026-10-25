@@ -119,12 +119,7 @@ def main():
 
             def diagnostic(result):
                 assert result.returncode == 1 and not result.stdout, result
-                normalized = "".join(
-                    line.replace("\\", "/")
-                    if line.startswith(("     --> ", "     #"))
-                    else line
-                    for line in result.stderr.splitlines(keepends=True)
-                )
+                normalized = result.stderr.replace("examples\\errors\\", "examples/errors/")
                 assert normalized.rstrip() == expected, (path, result.stderr, expected)
                 assert f"safka {line}, tiirka {col}" in result.stderr
                 assert message in result.stderr

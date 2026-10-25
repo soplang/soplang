@@ -23,11 +23,19 @@ impl Drop for Tree {
     }
 }
 fn cli(tree: &Tree, args: &[&str]) -> Output {
-    Command::new(env!("CARGO_BIN_EXE_soplang"))
+    let output = Command::new(env!("CARGO_BIN_EXE_soplang"))
         .current_dir(&tree.0)
         .args(args)
         .output()
-        .unwrap()
+        .unwrap();
+    if !output.status.success() {
+        eprintln!(
+            "soplang {:?}: {}",
+            args,
+            String::from_utf8_lossy(&output.stderr)
+        );
+    }
+    output
 }
 fn ok(output: Output) -> String {
     assert!(

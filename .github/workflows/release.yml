@@ -102,14 +102,17 @@ jobs:
 
       - name: Generate PKGBUILD
         if: steps.aur.outputs.enabled == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           mkdir -p aur-workspace
           cp linux/aur/PKGBUILD.template aur-workspace/PKGBUILD
           
-          # Download the source tarball to calculate sha256
-          TARBALL_URL="https://github.com/${{ github.repository }}/archive/refs/tags/${{ github.event.release.tag_name }}.tar.gz"
-          curl --fail --show-error --location "$TARBALL_URL" -o source.tar.gz
-          SHA256=$(sha256sum source.tar.gz | awk '{print $1}')
+          # Use the same verified Linux archive attached to this release.
+          gh release download "${{ github.event.release.tag_name }}" \
+            -p "soplang-${VERSION_NUM}-linux-x86_64.tar.gz" \
+            -D aur-workspace
+          SHA256=$(sha256sum "aur-workspace/soplang-${VERSION_NUM}-linux-x86_64.tar.gz" | awk '{print $1}')
           
           # Replace placeholders
           sed -i "s/{{VERSION}}/${VERSION_NUM}/g" aur-workspace/PKGBUILD

@@ -71,7 +71,16 @@ def main():
         shutil.copy2(system_stub, sdk / "usr/lib/libSystem.B.tbd")
         generated = ROOT / "third_party/apple-sdk-gen"
         for stub in (generated / "usr/lib").glob("*.tbd"):
-            shutil.copy2(stub, sdk / "usr/lib" / stub.name)
+            extra = {
+                # The upstream generated stub merges several adjacent zlib
+                # exports into single names, so expose the real ABI symbols.
+                "libz.1.tbd": (
+                    "_zlibVersion", "_inflateReset2", "_deflateSetDictionary",
+                    "_deflateParams", "_crc32", "_deflateBound", "_deflateCopy",
+                    "_deflatePending", "_deflateSetHeader", "_inflateReset",
+                ),
+            }.get(stub.name, ())
+            copy_stub(stub, sdk / "usr/lib" / stub.name, extra)
         for stub in (generated / "Frameworks").glob("*.tbd"):
             destination = sdk / "System/Library/Frameworks" / (stub.stem + ".framework")
             destination.mkdir(parents=True, exist_ok=True)
