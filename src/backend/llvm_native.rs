@@ -2,13 +2,17 @@
 //! The FFI surface is deliberately limited to LLVM's C API.
 
 use std::ffi::{c_char, c_int, c_void, CStr, CString};
-#[cfg(target_os = "linux")]
+#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use std::path::{Path, PathBuf};
+#[cfg(any(target_os = "macos", target_os = "windows"))]
+use std::process::Command;
 use std::ptr;
 #[cfg(target_os = "linux")]
 use std::sync::Mutex;
 
 use crate::error::{external_error, SoplangError};
+#[cfg(any(target_os = "macos", target_os = "windows"))]
+use crate::error::{runtime_error, tool_start_error};
 
 type Handle = *mut c_void;
 
@@ -117,6 +121,110 @@ pub fn link_elf(
         return Err(external_error(
             "LLD ma dhammaystiri karin isku xidhka barnaamijka.",
             message.to_string_lossy().into_owned(),
+        ));
+    }
+    Ok(())
+}
+
+#[cfg(target_os = "macos")]
+pub fn link_macho(
+    object: &Path,
+    runtime: &Path,
+    output: &Path,
+    native_paths: &[PathBuf],
+) -> Result<(), SoplangError> {
+    let dir = runtime.parent().expect("runtime archive has no parent");
+    let linker = dir.join("tools/ld64.lld");
+    let system = dir.join("sdk/usr/lib/libSystem.tbd");
+    if !linker.is_file() || !system.is_file() {
+        return Err(runtime_error(
+            "Qaybaha isku xidhka macOS ee xirmada Soplang ma dhammaystirna.",
+            0,
+            0,
+        ));
+    }
+    let mut command = Command::new(&linker);
+    command.args([
+        "-arch",
+        "arm64",
+        "-platform_version",
+        "macos",
+        "14.0",
+        "14.0",
+    ]);
+    command.arg("-syslibroot").arg(dir.join("sdk"));
+    command.arg("-o").arg(output).arg(object).arg(runtime);
+    command.arg("-L").arg(dir.join("sdk/usr/lib"));
+    for path in native_paths {
+        command.arg("-L").arg(path);
+    }
+    command.arg("-lSystem");
+    let result = command
+        .output()
+        .map_err(|e| tool_start_error("ld64.lld", &e))?;
+    if !result.status.success() {
+        return Err(external_error(
+            "LLD ma dhammaystiri karin isku xidhka barnaamijka macOS.",
+            String::from_utf8_lossy(&result.stderr).into_owned(),
+        ));
+    }
+    Ok(())
+}
+
+#[cfg(target_os = "windows")]
+pub fn link_coff(
+    object: &Path,
+    runtime: &Path,
+    output: &Path,
+    native_paths: &[PathBuf],
+) -> Result<(), SoplangError> {
+    let dir = runtime.parent().expect("runtime archive has no parent");
+    let linker = dir.join("tools/lld-link.exe");
+    let imports = dir.join("native");
+    if !linker.is_file() || !imports.is_dir() {
+        return Err(runtime_error(
+            "Qaybaha isku xidhka Windows ee xirmada Soplang ma dhammaystirna.",
+            0,
+            0,
+        ));
+    }
+    let mut command = Command::new(&linker);
+    command.args(["/NOLOGO", "/SUBSYSTEM:CONSOLE"]);
+    command.arg(format!("/OUT:{}", output.display()));
+    command.arg(format!("/LIBPATH:{}", imports.display()));
+    for path in native_paths {
+        command.arg(format!("/LIBPATH:{}", path.display()));
+    }
+    command.arg(object).arg(runtime);
+    for name in [
+        "kernel32.lib",
+        "advapi32.lib",
+        "bcrypt.lib",
+        "userenv.lib",
+        "ws2_32.lib",
+        "ntdll.lib",
+        "ole32.lib",
+        "shell32.lib",
+        "secur32.lib",
+        "crypt32.lib",
+        "user32.lib",
+        "iphlpapi.lib",
+        "vcruntime.lib",
+        "ucrt.lib",
+        "msvcrt.lib",
+        "legacy_stdio_definitions.lib",
+    ] {
+        if imports.join(name).is_file() {
+            command.arg(name);
+        }
+    }
+    let result = command
+        .output()
+        .map_err(|e| tool_start_error("lld-link", &e))?;
+    if !result.status.success() {
+        return Err(external_error(
+            "LLD ma dhammaystiri karin isku xidhka barnaamijka Windows.",
+            String::from_utf8_lossy(&result.stderr).into_owned(),
         ));
     }
     Ok(())

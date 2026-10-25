@@ -294,28 +294,10 @@ pub fn link_llvm_binary_with_opt(ir: &str, out: &Path, opt_level: u8) -> Result<
         .map_err(|e| tool_start_error("rustc", &e))?;
     #[cfg(all(feature = "embedded-llvm", target_os = "linux"))]
     super::llvm_native::link_elf(&obj, &staticlib, &linked, &native_library_paths(&deps))?;
-    #[cfg(all(feature = "embedded-llvm", not(target_os = "linux")))]
-    let link_result = {
-        let mut linker = Command::new("clang");
-        linker.arg(&obj).arg(&staticlib);
-        for path in native_library_paths(&deps) {
-            linker.arg(format!("-L{}", path.display()));
-        }
-        linker
-            .args([
-                "-lz",
-                "-lgcc_s",
-                "-lutil",
-                "-lrt",
-                "-lpthread",
-                "-lm",
-                "-ldl",
-            ])
-            .arg("-o")
-            .arg(&linked)
-            .output()
-            .map_err(|e| tool_start_error("clang", &e))?
-    };
+    #[cfg(all(feature = "embedded-llvm", target_os = "macos"))]
+    super::llvm_native::link_macho(&obj, &staticlib, &linked, &native_library_paths(&deps))?;
+    #[cfg(all(feature = "embedded-llvm", target_os = "windows"))]
+    super::llvm_native::link_coff(&obj, &staticlib, &linked, &native_library_paths(&deps))?;
     let _ = fs::remove_file(&ll);
     let _ = fs::remove_file(&obj);
     let _ = fs::remove_file(&wrapper);
@@ -325,13 +307,6 @@ pub fn link_llvm_binary_with_opt(ir: &str, out: &Path, opt_level: u8) -> Result<
         return Err(external_error(
             "rustc ma dhammaystiri karin isku xidhka barnaamijka.",
             format!("rustc: {}\n{}", rustc.status, stderr.trim_end()),
-        ));
-    }
-    #[cfg(all(feature = "embedded-llvm", not(target_os = "linux")))]
-    if !link_result.status.success() {
-        return Err(external_error(
-            "Isku xidhka barnaamijka lama dhammaystirin.",
-            String::from_utf8_lossy(&link_result.stderr).into_owned(),
         ));
     }
     match fs::rename(&linked, out) {

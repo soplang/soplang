@@ -5,7 +5,19 @@ fn main() {
     if std::env::var_os("CARGO_FEATURE_EMBEDDED_LLVM").is_none() {
         return;
     }
-    let output = Command::new("llvm-config")
+    println!("cargo:rerun-if-env-changed=SOPLANG_LLVM_CONFIG");
+    println!("cargo:rerun-if-env-changed=SOPLANG_LLVM_LIB_DIR");
+    let target_os = env::var("CARGO_CFG_TARGET_OS").expect("Cargo did not set target OS");
+    if target_os == "windows" {
+        let dir = env::var_os("SOPLANG_LLVM_LIB_DIR")
+            .map(PathBuf::from)
+            .expect("Windows embedded LLVM builds need SOPLANG_LLVM_LIB_DIR");
+        println!("cargo:rustc-link-search=native={}", dir.display());
+        println!("cargo:rustc-link-lib=dylib=LLVM-C");
+        return;
+    }
+    let llvm_config = env::var_os("SOPLANG_LLVM_CONFIG").unwrap_or_else(|| "llvm-config".into());
+    let output = Command::new(llvm_config)
         .args([
             "--link-shared",
             "--libs",
@@ -33,7 +45,11 @@ fn main() {
         }
     }
 
-    if env::var("CARGO_CFG_TARGET_OS").as_deref() == Ok("linux") {
+    if target_os == "macos" {
+        println!("cargo:rustc-link-arg=-Wl,-rpath,@executable_path/lib/soplang/llvm");
+        println!("cargo:rustc-link-arg=-Wl,-rpath,@executable_path/../lib/soplang/llvm");
+    }
+    if target_os == "linux" {
         println!("cargo:rerun-if-env-changed=SOPLANG_LLD_SDK");
         println!("cargo:rerun-if-changed=src/backend/lld_bridge.cpp");
         let sdk = env::var_os("SOPLANG_LLD_SDK")
@@ -76,6 +92,9 @@ fn main() {
         };
         println!("cargo:rustc-link-lib={lld_kind}=lldELF");
         println!("cargo:rustc-link-lib={lld_kind}=lldCommon");
+        if lld_kind == "static" {
+            println!("cargo:rustc-link-lib=dylib=zstd");
+        }
         println!("cargo:rustc-link-lib=dylib=stdc++");
         println!("cargo:rustc-link-arg=-Wl,--disable-new-dtags");
         println!("cargo:rustc-link-arg=-Wl,-rpath,$ORIGIN/lib/soplang/llvm");
