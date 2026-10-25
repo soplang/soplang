@@ -10,7 +10,7 @@ import sys
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
-TARGET = "x86_64-pc-windows-gnu"
+TARGET = "x86_64-pc-windows-gnullvm"
 
 
 def main():
@@ -36,6 +36,12 @@ def main():
         env = dict(os.environ)
         env["SOPLANG_LLVM_LIB_DIR"] = str(imports)
         env["PATH"] = str(llvm / "bin") + os.pathsep + env["PATH"]
+        linker = temp / "zig-link.cmd"
+        linker.write_text(
+            f'@echo off\r\n"{zig / "zig.exe"}" cc -target x86_64-windows-gnu %*\r\n',
+            encoding="utf-8",
+        )
+        env["CARGO_TARGET_X86_64_PC_WINDOWS_GNULLVM_LINKER"] = str(linker)
         subprocess.run(["rustup", "target", "add", TARGET], cwd=ROOT, env=env, check=True)
         mode = ["cargo", "build", "--release", "--locked", "--target", TARGET]
         subprocess.run([*mode, "--lib"], cwd=ROOT, env=env, check=True)
@@ -62,6 +68,7 @@ def main():
             shutil.copy2(ROOT / name, stage / name)
         shutil.copy2(ROOT / "docs/INSTALLING_PACKAGES.md", stage / "INSTALLING.md")
         shutil.copytree(ROOT / "licenses", stage / "licenses")
+        shutil.copy2(ROOT / "third_party/llvm/LICENSE.TXT", stage / "licenses/LLVM.txt")
         shutil.copy2(zig / "LICENSE", stage / "licenses/ZIG.txt")
         shutil.copy2(zig / "lib/libc/mingw/COPYING", stage / "licenses/MINGW.txt")
         output = args.output.resolve()

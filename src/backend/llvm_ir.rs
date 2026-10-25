@@ -11,8 +11,8 @@ use std::process::Command;
 use std::sync::atomic::{AtomicU64, Ordering};
 
 #[cfg(not(feature = "embedded-llvm"))]
-use crate::error::{external_error, tool_start_error};
-use crate::error::{io_error, runtime_error, SoplangError};
+use crate::error::tool_start_error;
+use crate::error::{external_error, io_error, runtime_error, SoplangError};
 use crate::hir::{BinOpKind, HirConst, HirFunction, HirInstr, HirModule, SlotNum, UnOpKind};
 use crate::semantic::SymbolTable;
 
@@ -234,7 +234,7 @@ pub fn link_llvm_binary_with_opt(ir: &str, out: &Path, opt_level: u8) -> Result<
             &e,
         )
     })?;
-    if let Some(parent) = out.parent() {
+    if let Some(parent) = out.parent().filter(|parent| !parent.as_os_str().is_empty()) {
         if !parent.as_os_str().is_empty() {
             fs::create_dir_all(parent).map_err(|e| {
                 io_error(
@@ -327,6 +327,15 @@ pub fn link_llvm_binary_with_opt(ir: &str, out: &Path, opt_level: u8) -> Result<
             ),
         ));
     }
+    // Recheck a caller-provided output directory after external linking.
+    if let Some(parent) = out.parent().filter(|parent| !parent.as_os_str().is_empty()) {
+        fs::create_dir_all(parent).map_err(|e| {
+            io_error(
+                format!("Galka '{}' lama abuuri karin.", parent.display()),
+                &e,
+            )
+        })?;
+    }
     match fs::rename(&linked, out) {
         Ok(()) => {}
         // The system temp directory and requested output may be on different
@@ -343,12 +352,20 @@ pub fn link_llvm_binary_with_opt(ir: &str, out: &Path, opt_level: u8) -> Result<
             })?;
         }
         Err(error) => {
-            return Err(io_error(
+            return Err(external_error(
                 format!(
-                    "Barnaamijka la dhisay laguma kaydin karin '{}'.",
-                    out.display()
+                    "Barnaamijka la dhisay laguma kaydin karin '{}'. {}",
+                    out.display(),
+                    crate::error::io_reason(&error)
                 ),
-                &error,
+                format!(
+                    "rename {} -> {}: {}; source exists: {}; target parent exists: {}",
+                    linked.display(),
+                    out.display(),
+                    error,
+                    linked.is_file(),
+                    out.parent().is_some_and(Path::is_dir)
+                ),
             ))
         }
     }

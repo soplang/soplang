@@ -194,7 +194,7 @@ pub fn link_coff(
     let zig = dir.join("tools/zig.exe");
     if zig.is_file() {
         let result = Command::new(&zig)
-            .args(["cc", "-target", "x86_64-windows-gnu", "-o"])
+            .args(["cc", "-target", "x86_64-windows-gnu", "-lgdi32", "-o"])
             .arg(output)
             .arg(object)
             .arg(runtime)

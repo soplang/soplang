@@ -120,6 +120,7 @@ def main():
             shutil.copy2(ROOT / name, stage / name)
         shutil.copy2(ROOT / "docs/INSTALLING_PACKAGES.md", stage / "INSTALLING.md")
         shutil.copytree(ROOT / "licenses", stage / "licenses")
+        shutil.copy2(ROOT / "third_party/llvm/LICENSE.TXT", stage / "licenses/LLVM.txt")
         shutil.copy2(ROOT / "third_party/zig/LICENSE", stage / "licenses/ZIG.txt")
         shutil.copy2(generated / "LICENSE", stage / "licenses/APPLE-SDK-GEN.txt")
         output_path = args.output.resolve()

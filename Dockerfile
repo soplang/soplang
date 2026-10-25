@@ -15,6 +15,7 @@ COPY benches ./benches
 COPY scripts/package_native.py ./scripts/package_native.py
 COPY README.md LICENSE ./
 COPY licenses ./licenses
+COPY third_party/llvm/LICENSE.TXT ./third_party/llvm/LICENSE.TXT
 COPY docs/INSTALLING_PACKAGES.md ./docs/INSTALLING_PACKAGES.md
 RUN python3 scripts/package_native.py --output /package
 

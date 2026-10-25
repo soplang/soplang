@@ -119,6 +119,7 @@ def main():
             shutil.copy2(ROOT / name, stage / name)
         shutil.copy2(ROOT / "docs/INSTALLING_PACKAGES.md", stage / "INSTALLING.md")
         shutil.copytree(ROOT / "licenses", stage / "licenses")
+        shutil.copy2(ROOT / "third_party/llvm/LICENSE.TXT", stage / "licenses/LLVM.txt")
         # These licenses cover the LLVM and LLD binaries included in the archive.
         for source, name in (
             (Path("/usr/share/licenses/llvm-libs/LICENSE"), "LLVM.txt"),

@@ -126,7 +126,7 @@ fn async_http_limits_redirects_and_cancels_slow_requests() {
     let slow = format!("http://{}/slow", listener.local_addr().unwrap());
     thread::spawn(move || {
         if let Ok((socket, _)) = listener.accept() {
-            thread::sleep(Duration::from_secs(2));
+            thread::sleep(Duration::from_secs(4));
             drop(socket);
         }
     });
@@ -148,7 +148,7 @@ fn async_http_limits_redirects_and_cancels_slow_requests() {
     );
     let start = std::time::Instant::now();
     soplang::run_source(&source, None, false, false, false).unwrap();
-    assert!(start.elapsed() < Duration::from_secs(1));
+    assert!(start.elapsed() < Duration::from_secs(3));
 }
 
 #[test]

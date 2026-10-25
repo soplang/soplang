@@ -120,7 +120,9 @@ def main():
             def diagnostic(result):
                 assert result.returncode == 1 and not result.stdout, result
                 normalized = "".join(
-                    line.replace("\\", "/") if line.startswith("     --> ") else line
+                    line.replace("\\", "/")
+                    if line.startswith(("     --> ", "     #"))
+                    else line
                     for line in result.stderr.splitlines(keepends=True)
                 )
                 assert normalized.rstrip() == expected, (path, result.stderr, expected)
