@@ -1,0 +1,77 @@
+--- !tapi-tbd
+tbd-version:     4
+targets:         [x86_64-macos, arm64-macos, arm64e-macos]
+install-name:    '/usr/lib/libz.1.dylib'
+exports:
+  - targets:     [x86_64-macos, arm64-macos, arm64e-macos]
+    symbols:
+      - _adler32
+      - _adler32_combine
+      - _adler32_z
+      - _compress
+      - _compress2
+      - _compressBound
+      - _crc32_crc32_combine
+      - _crc32_combine_gen
+      - _crc32_combine_op
+      - _crc32_z
+      - _deflate
+      - _deflateBound_deflateCopy
+      - _deflateEnd
+      - _deflateGetDictionary
+      - _deflateInit2_
+      - _deflateInit_
+      - _deflateParams_deflatePending
+      - _deflatePrime
+      - _deflateReset
+      - _deflateResetKeep
+      - _deflateSetDictionary_deflateSetHeader
+      - _deflateTune
+      - _get_crc_table
+      - _gzbuffer
+      - _gzclearerr
+      - _gzclose
+      - _gzclose_r_gzclose_w
+      - _gzdirect
+      - _gzdopen
+      - _gzeof
+      - _gzerror
+      - _gzflush
+      - _gzfread
+      - _gzfwrite
+      - _gzgetc
+      - _gzgetc__gzgets
+      - _gzoffset
+      - _gzopen
+      - _gzprintf
+      - _gzputc
+      - _gzputs
+      - _gzread
+      - _gzrewind
+      - _gzseek
+      - _gzsetparams_gztell
+      - _gzungetc
+      - _gzvprintf
+      - _gzwrite
+      - _inflate
+      - _inflateBack
+      - _inflateBackEnd_inflateBackInit_
+      - _inflateCodesUsed
+      - _inflateCopy
+      - _inflateEnd
+      - _inflateGetDictionary_inflateGetHeader
+      - _inflateInit2_
+      - _inflateInit_
+      - _inflateMark
+      - _inflatePrime
+      - _inflateReset_inflateReset2
+      - _inflateResetKeep
+      - _inflateSetDictionary
+      - _inflateSync
+      - _inflateSyncPoint_inflateUndermine
+      - _inflateValidate
+      - _uncompress
+      - _uncompress2
+      - _zError
+      - _zlibCompileFlags_zlibVersion
+...

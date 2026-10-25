@@ -11,7 +11,7 @@ import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
 IMPORT_LIBRARIES = (
-    "kernel32.lib", "advapi32.lib", "bcrypt.lib", "userenv.lib", "ws2_32.lib",
+    "kernel32.lib", "advapi32.lib", "gdi32.lib", "bcrypt.lib", "userenv.lib", "ws2_32.lib",
     "ntdll.lib", "ole32.lib", "shell32.lib", "secur32.lib", "crypt32.lib",
     "user32.lib", "iphlpapi.lib", "vcruntime.lib", "libvcruntime.lib",
     "ucrt.lib", "libucrt.lib", "msvcrt.lib", "libcmt.lib", "oldnames.lib",

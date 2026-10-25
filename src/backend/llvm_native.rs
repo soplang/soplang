@@ -155,10 +155,17 @@ pub fn link_macho(
     command.arg("-syslibroot").arg(dir.join("sdk"));
     command.arg("-o").arg(output).arg(object).arg(runtime);
     command.arg("-L").arg(dir.join("sdk/usr/lib"));
+    command
+        .arg("-F")
+        .arg(dir.join("sdk/System/Library/Frameworks"));
     for path in native_paths {
         command.arg("-L").arg(path);
     }
     command.arg("-lSystem");
+    for framework in ["CoreFoundation", "Security", "SystemConfiguration"] {
+        command.arg("-framework").arg(framework);
+    }
+    command.args(["-lz", "-liconv", "-lobjc"]);
     let result = command
         .output()
         .map_err(|e| tool_start_error("ld64.lld", &e))?;
@@ -204,6 +211,7 @@ pub fn link_coff(
     for name in [
         "kernel32.lib",
         "advapi32.lib",
+        "gdi32.lib",
         "bcrypt.lib",
         "userenv.lib",
         "ws2_32.lib",

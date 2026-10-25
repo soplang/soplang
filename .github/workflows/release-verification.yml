@@ -34,7 +34,7 @@ jobs:
           python-version: '3.12'
       - uses: dtolnay/rust-toolchain@1.94.0
       - name: Install LLVM and LLD build libraries
-        run: sudo apt-get update && sudo apt-get install -y llvm-18-dev liblld-18-dev
+        run: sudo apt-get update && sudo apt-get install -y llvm-18-dev liblld-18-dev patchelf
       - name: Build and verify native package
         env:
           SOPLANG_LLD_SDK: /usr/lib/llvm-18
@@ -115,7 +115,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@1.94.0
       - name: Install Linux build tools
         if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y clang dpkg-dev llvm-18-dev liblld-18-dev
+        run: sudo apt-get update && sudo apt-get install -y clang dpkg-dev llvm-18-dev liblld-18-dev patchelf
       - name: Show toolchain
         run: |
           rustc -vV

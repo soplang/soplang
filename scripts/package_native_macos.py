@@ -42,15 +42,22 @@ def main():
         runtime = stage / "lib/soplang"
         libraries = runtime / "llvm"
         tools = runtime / "tools"
-        sdk = runtime / "sdk/usr/lib"
-        for directory in (libraries, tools, sdk):
+        sdk = runtime / "sdk"
+        for directory in (libraries, tools, sdk / "usr/lib"):
             directory.mkdir(parents=True)
         binary = stage / "soplang"
         linker = tools / "ld64.lld"
         shutil.copy2(ROOT / "target/release/soplang", binary)
         shutil.copy2(lld / "bin/ld64.lld", linker)
         shutil.copy2(archive, runtime / archive.name)
-        shutil.copy2(ROOT / "third_party/zig/libSystem.tbd", sdk / "libSystem.tbd")
+        shutil.copy2(ROOT / "third_party/zig/libSystem.tbd", sdk / "usr/lib/libSystem.tbd")
+        generated = ROOT / "third_party/apple-sdk-gen"
+        for stub in (generated / "usr/lib").glob("*.tbd"):
+            shutil.copy2(stub, sdk / "usr/lib" / stub.name)
+        for stub in (generated / "Frameworks").glob("*.tbd"):
+            destination = sdk / "System/Library/Frameworks" / (stub.stem + ".framework")
+            destination.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(stub, destination / stub.name)
 
         search = [llvm / "lib", lld / "lib", Path("/opt/homebrew/lib")]
         pending = [binary, linker]
@@ -92,6 +99,7 @@ def main():
         shutil.copy2(ROOT / "docs/INSTALLING_PACKAGES.md", stage / "INSTALLING.md")
         shutil.copytree(ROOT / "licenses", stage / "licenses")
         shutil.copy2(ROOT / "third_party/zig/LICENSE", stage / "licenses/ZIG.txt")
+        shutil.copy2(generated / "LICENSE", stage / "licenses/APPLE-SDK-GEN.txt")
         output_path = args.output.resolve()
         output_path.parent.mkdir(parents=True, exist_ok=True)
         if output_path.exists():

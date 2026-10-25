@@ -55,6 +55,8 @@ def main():
     args = parser.parse_args()
     if sys.platform != "linux" or os.uname().machine != "x86_64":
         parser.error("this package builder currently supports Linux x86_64 only")
+    if shutil.which("patchelf") is None:
+        parser.error("patchelf is required to make packaged LLVM dependencies relocatable")
     output = args.output.resolve()
     if output == ROOT or output in ROOT.parents:
         parser.error("output must be a separate package directory")
@@ -105,6 +107,10 @@ def main():
                 continue
             shutil.copy2(source, destination)
             copied[name] = Path(source)
+            # The executable's RPATH does not reliably cover dependencies of
+            # Homebrew or distro LLVM shared libraries. Give each copied ELF
+            # library a relative RPATH for the rest of the packaged closure.
+            run("patchelf", "--force-rpath", "--set-rpath", "$ORIGIN", str(destination))
         if not any(libraries.glob("libLLVM*.so*")):
             raise RuntimeError("LLVM was not found in the compiler dependencies")
         if (sdk / "lib/liblldELF.so").is_file() and not any(libraries.glob("liblldELF*.so*")):

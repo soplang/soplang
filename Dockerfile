@@ -2,7 +2,7 @@ FROM ubuntu:24.04 AS builder
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential ca-certificates cmake curl liblld-18-dev llvm-18-dev \
-    libssl-dev libzstd-dev pkg-config python3 && \
+    libssl-dev libzstd-dev patchelf pkg-config python3 && \
     rm -rf /var/lib/apt/lists/*
 RUN curl --proto '=https' --tlsv1.2 --fail --silent --show-error https://sh.rustup.rs | \
     sh -s -- -y --default-toolchain 1.94.0 --profile minimal
