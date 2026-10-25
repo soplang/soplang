@@ -309,6 +309,24 @@ pub fn link_llvm_binary_with_opt(ir: &str, out: &Path, opt_level: u8) -> Result<
             format!("rustc: {}\n{}", rustc.status, stderr.trim_end()),
         ));
     }
+    if !linked.is_file() {
+        let contents = fs::read_dir(&temp.0)
+            .ok()
+            .into_iter()
+            .flatten()
+            .filter_map(|entry| entry.ok())
+            .map(|entry| entry.file_name().to_string_lossy().into_owned())
+            .collect::<Vec<_>>()
+            .join(", ");
+        return Err(external_error(
+            "Barnaamijka la dhisay lama helin.",
+            format!(
+                "Expected {}; temporary files: {}",
+                linked.display(),
+                contents
+            ),
+        ));
+    }
     match fs::rename(&linked, out) {
         Ok(()) => {}
         // The system temp directory and requested output may be on different

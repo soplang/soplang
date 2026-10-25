@@ -149,8 +149,8 @@ pub fn link_macho(
         "arm64",
         "-platform_version",
         "macos",
-        "14.0",
-        "14.0",
+        "15.5",
+        "15.5",
     ]);
     command.arg("-syslibroot").arg(dir.join("sdk"));
     command.arg("-o").arg(output).arg(object).arg(runtime);
@@ -165,7 +165,7 @@ pub fn link_macho(
     for framework in ["CoreFoundation", "Security", "SystemConfiguration"] {
         command.arg("-framework").arg(framework);
     }
-    command.args(["-lz", "-liconv", "-lobjc"]);
+    command.args(["-lz.1", "-liconv.2", "-lobjc.A"]);
     let result = command
         .output()
         .map_err(|e| tool_start_error("ld64.lld", &e))?;

@@ -164,8 +164,12 @@ jobs:
           rustc -vV
           clang --version
       - name: Test compiler
+        env:
+          SOPLANG_ERROR_DETAILS: '1'
         run: cargo test --locked
       - name: Test optimized compiler
+        env:
+          SOPLANG_ERROR_DETAILS: '1'
         run: cargo test --release --locked
       - name: Build Linux archive and Debian package
         if: runner.os == 'Linux'

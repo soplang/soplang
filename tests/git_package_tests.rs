@@ -292,7 +292,13 @@ fn changed_lock_sources_are_rejected_before_trying_another_remote() {
     let origin = repo(&tree.root, "xisaab", 1, "");
     let app = tree.app(&declaration("xisaab", &origin, "main"));
     assert_eq!(tree.run(&app), "1\n");
-    fs::write(app.join("soplang.toml"),format!("magac='app'\nnusxa='0.1.0'\nsoplang='3'\n[ku-tiirsan]\nxisaab={{git='file:///missing-repository',rev='main'}}\n")).unwrap();
+    let missing = url::Url::from_file_path(tree.root.join("missing-repository"))
+        .expect("temporary path must be an absolute file URL");
+    fs::write(
+        app.join("soplang.toml"),
+        format!("magac='app'\nnusxa='0.1.0'\nsoplang='3'\n[ku-tiirsan]\nxisaab={{git='{missing}',rev='main'}}\n"),
+    )
+    .unwrap();
     let output = tree
         .command(&app)
         .env("PATH", tree.root.join("no-git"))

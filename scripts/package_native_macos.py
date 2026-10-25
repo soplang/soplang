@@ -12,6 +12,21 @@ import tempfile
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def copy_stub(source, destination, extra_symbols=()):
+    """Add public runtime symbols missing from the generated link interface."""
+    text = source.read_text(encoding="utf-8")
+    if extra_symbols:
+        end = text.rfind("\n...\n")
+        if end < 0 or "exports:" not in text[:end]:
+            raise RuntimeError(f"invalid macOS link stub: {source}")
+        additions = (
+            "\n  - targets: [ arm64-macos ]\n"
+            f"    symbols: [ {', '.join(extra_symbols)} ]"
+        )
+        text = text[:end] + additions + text[end:]
+    destination.write_text(text, encoding="utf-8")
+
+
 def output(*argv, env=None):
     return subprocess.check_output(argv, text=True, cwd=ROOT, env=env).strip()
 
@@ -50,14 +65,21 @@ def main():
         shutil.copy2(ROOT / "target/release/soplang", binary)
         shutil.copy2(lld / "bin/ld64.lld", linker)
         shutil.copy2(archive, runtime / archive.name)
-        shutil.copy2(ROOT / "third_party/zig/libSystem.tbd", sdk / "usr/lib/libSystem.tbd")
+        system_stub = ROOT / "third_party/zig/libSystem.tbd"
+        shutil.copy2(system_stub, sdk / "usr/lib/libSystem.tbd")
+        # Framework stubs re-export this install name, not libSystem.dylib.
+        shutil.copy2(system_stub, sdk / "usr/lib/libSystem.B.tbd")
         generated = ROOT / "third_party/apple-sdk-gen"
         for stub in (generated / "usr/lib").glob("*.tbd"):
             shutil.copy2(stub, sdk / "usr/lib" / stub.name)
         for stub in (generated / "Frameworks").glob("*.tbd"):
             destination = sdk / "System/Library/Frameworks" / (stub.stem + ".framework")
             destination.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(stub, destination / stub.name)
+            extra = {
+                "CoreFoundation": ("_CFRelease", "_CFRetain"),
+                "Security": ("_AuthorizationExecuteWithPrivileges",),
+            }.get(stub.stem, ())
+            copy_stub(stub, destination / stub.name, extra)
 
         search = [llvm / "lib", lld / "lib", Path("/opt/homebrew/lib")]
         pending = [binary, linker]
