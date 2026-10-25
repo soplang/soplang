@@ -191,6 +191,28 @@ pub fn link_coff(
     native_paths: &[PathBuf],
 ) -> Result<(), SoplangError> {
     let dir = runtime.parent().expect("runtime archive has no parent");
+    let zig = dir.join("tools/zig.exe");
+    if zig.is_file() {
+        let result = Command::new(&zig)
+            .args(["cc", "-target", "x86_64-windows-gnu", "-o"])
+            .arg(output)
+            .arg(object)
+            .arg(runtime)
+            .output()
+            .map_err(|e| tool_start_error("zig", &e))?;
+        if !result.status.success() {
+            return Err(external_error(
+                "LLD ma dhammaystiri karin isku xidhka barnaamijka Windows.",
+                format!(
+                    "zig cc: {}\n{}{}",
+                    result.status,
+                    String::from_utf8_lossy(&result.stdout),
+                    String::from_utf8_lossy(&result.stderr)
+                ),
+            ));
+        }
+        return Ok(());
+    }
     let linker = dir.join("tools/lld-link.exe");
     let imports = dir.join("native");
     if !linker.is_file() || !imports.is_dir() {

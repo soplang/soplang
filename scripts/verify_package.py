@@ -23,7 +23,10 @@ def main():
         runtime = original.parent.parent / "lib/soplang"
     if not runtime.is_dir():
         parser.error("the supplied executable has no packaged runtime")
-    archive_name = "soplang.lib" if os.name == "nt" else "libsoplang.a"
+    archive_name = next(
+        (name for name in ("libsoplang.a", "soplang.lib") if (runtime / name).is_file()),
+        "libsoplang.a",
+    )
     native = (runtime / archive_name).is_file()
     env = dict(os.environ, NO_COLOR="1", CARGO_TARGET_DIR="/nonexistent-soplang-target")
     env.pop("SOPLANG_RUNTIME_DIR", None)

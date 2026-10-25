@@ -641,10 +641,10 @@ fn soplang_rlib() -> Result<(PathBuf, PathBuf), SoplangError> {
 
 #[cfg(feature = "embedded-llvm")]
 fn soplang_staticlib() -> Result<(PathBuf, PathBuf), SoplangError> {
-    let name = if cfg!(target_os = "windows") {
-        "soplang.lib"
+    let names: &[&str] = if cfg!(target_os = "windows") {
+        &["libsoplang.a", "soplang.lib"]
     } else {
-        "libsoplang.a"
+        &["libsoplang.a"]
     };
     let exe = std::env::current_exe().map_err(|e| {
         io_error(
@@ -670,8 +670,11 @@ fn soplang_staticlib() -> Result<(PathBuf, PathBuf), SoplangError> {
         }
     }
     for dir in dirs {
-        let archive = dir.join(name);
-        if archive.is_file() {
+        for name in names {
+            let archive = dir.join(name);
+            if !archive.is_file() {
+                continue;
+            }
             let deps = if dir.join("deps").is_dir() {
                 dir.join("deps")
             } else if dir.file_name().is_some_and(|name| name == "deps") {
