@@ -6,10 +6,13 @@
 use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
+#[cfg(any(not(feature = "embedded-llvm"), not(target_os = "linux")))]
 use std::process::Command;
 use std::sync::atomic::{AtomicU64, Ordering};
 
-use crate::error::{external_error, io_error, runtime_error, tool_start_error, SoplangError};
+#[cfg(any(not(feature = "embedded-llvm"), not(target_os = "linux")))]
+use crate::error::{external_error, tool_start_error};
+use crate::error::{io_error, runtime_error, SoplangError};
 use crate::hir::{BinOpKind, HirConst, HirFunction, HirInstr, HirModule, SlotNum, UnOpKind};
 use crate::semantic::SymbolTable;
 
@@ -207,7 +210,10 @@ pub fn link_llvm_binary(ir: &str, out: &Path) -> Result<(), SoplangError> {
 
 /// Compile and link LLVM IR with the requested optimization level (0..3).
 pub fn link_llvm_binary_with_opt(ir: &str, out: &Path, opt_level: u8) -> Result<(), SoplangError> {
+    #[cfg(not(feature = "embedded-llvm"))]
     let (rlib, deps) = soplang_rlib()?;
+    #[cfg(feature = "embedded-llvm")]
+    let (staticlib, deps) = soplang_staticlib()?;
     let temp = LinkTemp::new()?;
     let ll = temp.0.join("program.ll");
     let obj = temp.0.join("program.o");
@@ -218,8 +224,10 @@ pub fn link_llvm_binary_with_opt(ir: &str, out: &Path, opt_level: u8) -> Result<
         .0
         .join("program")
         .with_extension(std::env::consts::EXE_EXTENSION);
+    #[cfg(not(feature = "embedded-llvm"))]
     fs::write(&ll, ir)
         .map_err(|e| io_error(format!("Faylka '{}' lama qori karin.", ll.display()), &e))?;
+    #[cfg(not(feature = "embedded-llvm"))]
     fs::write(&wrapper, LINK_WRAPPER).map_err(|e| {
         io_error(
             format!("Faylka '{}' lama qori karin.", wrapper.display()),
@@ -236,6 +244,10 @@ pub fn link_llvm_binary_with_opt(ir: &str, out: &Path, opt_level: u8) -> Result<
             })?;
         }
     }
+    #[cfg(feature = "embedded-llvm")]
+    fs::write(&obj, super::llvm_native::emit_object(ir, opt_level)?)
+        .map_err(|e| io_error(format!("Faylka '{}' lama qori karin.", obj.display()), &e))?;
+    #[cfg(not(feature = "embedded-llvm"))]
     let clang = Command::new("clang")
         .arg(format!("-O{}", opt_level.min(3)))
         .arg("-c")
@@ -244,6 +256,7 @@ pub fn link_llvm_binary_with_opt(ir: &str, out: &Path, opt_level: u8) -> Result<
         .arg(&obj)
         .output()
         .map_err(|e| tool_start_error("clang", &e))?;
+    #[cfg(not(feature = "embedded-llvm"))]
     if !clang.status.success() {
         let stderr = String::from_utf8_lossy(&clang.stderr);
         let _ = fs::remove_file(&ll);
@@ -252,10 +265,13 @@ pub fn link_llvm_binary_with_opt(ir: &str, out: &Path, opt_level: u8) -> Result<
             format!("clang: {}\n{}", clang.status, stderr.trim_end()),
         ));
     }
+    #[cfg(not(feature = "embedded-llvm"))]
     let mut linker = Command::new("rustc");
+    #[cfg(not(feature = "embedded-llvm"))]
     for path in native_library_paths(&deps) {
         linker.arg("-L").arg(format!("native={}", path.display()));
     }
+    #[cfg(not(feature = "embedded-llvm"))]
     let rustc = linker
         .arg("--edition")
         .arg("2021")
@@ -276,14 +292,46 @@ pub fn link_llvm_binary_with_opt(ir: &str, out: &Path, opt_level: u8) -> Result<
         .arg(format!("link-arg={}", obj.display()))
         .output()
         .map_err(|e| tool_start_error("rustc", &e))?;
+    #[cfg(all(feature = "embedded-llvm", target_os = "linux"))]
+    super::llvm_native::link_elf(&obj, &staticlib, &linked, &native_library_paths(&deps))?;
+    #[cfg(all(feature = "embedded-llvm", not(target_os = "linux")))]
+    let link_result = {
+        let mut linker = Command::new("clang");
+        linker.arg(&obj).arg(&staticlib);
+        for path in native_library_paths(&deps) {
+            linker.arg(format!("-L{}", path.display()));
+        }
+        linker
+            .args([
+                "-lz",
+                "-lgcc_s",
+                "-lutil",
+                "-lrt",
+                "-lpthread",
+                "-lm",
+                "-ldl",
+            ])
+            .arg("-o")
+            .arg(&linked)
+            .output()
+            .map_err(|e| tool_start_error("clang", &e))?
+    };
     let _ = fs::remove_file(&ll);
     let _ = fs::remove_file(&obj);
     let _ = fs::remove_file(&wrapper);
+    #[cfg(not(feature = "embedded-llvm"))]
     if !rustc.status.success() {
         let stderr = String::from_utf8_lossy(&rustc.stderr);
         return Err(external_error(
             "rustc ma dhammaystiri karin isku xidhka barnaamijka.",
             format!("rustc: {}\n{}", rustc.status, stderr.trim_end()),
+        ));
+    }
+    #[cfg(all(feature = "embedded-llvm", not(target_os = "linux")))]
+    if !link_result.status.success() {
+        return Err(external_error(
+            "Isku xidhka barnaamijka lama dhammaystirin.",
+            String::from_utf8_lossy(&link_result.stderr).into_owned(),
         ));
     }
     match fs::rename(&linked, out) {
@@ -314,6 +362,7 @@ pub fn link_llvm_binary_with_opt(ir: &str, out: &Path, opt_level: u8) -> Result<
     Ok(())
 }
 
+#[cfg(not(feature = "embedded-llvm"))]
 const LINK_WRAPPER: &str = r#"
 #![no_main]
 extern crate soplang;
@@ -468,6 +517,7 @@ impl Drop for LinkTemp {
     }
 }
 
+#[cfg(not(feature = "embedded-llvm"))]
 fn toolchain_summary(metadata: &str) -> String {
     let version = metadata
         .lines()
@@ -509,6 +559,7 @@ fn toolchain_summary(metadata: &str) -> String {
     }
 }
 
+#[cfg(not(feature = "embedded-llvm"))]
 fn packaged_runtime(dir: &Path) -> Result<(PathBuf, PathBuf), SoplangError> {
     let expected = fs::read_to_string(dir.join("rustc-version.txt")).map_err(|e| {
         io_error(
@@ -562,6 +613,7 @@ fn packaged_runtime(dir: &Path) -> Result<(PathBuf, PathBuf), SoplangError> {
     Ok((rlib, deps))
 }
 
+#[cfg(not(feature = "embedded-llvm"))]
 fn soplang_rlib() -> Result<(PathBuf, PathBuf), SoplangError> {
     if let Some(dir) = std::env::var_os("SOPLANG_RUNTIME_DIR") {
         return packaged_runtime(Path::new(&dir));
@@ -610,6 +662,56 @@ fn soplang_rlib() -> Result<(PathBuf, PathBuf), SoplangError> {
     }
     Err(runtime_error(
         "Maktabadaha fulinta Soplang lama helin. Rakib xirmada oo dhammaystiran ama SOPLANG_RUNTIME_DIR u deji galkeeda lib/soplang.", 0, 0))
+}
+
+#[cfg(feature = "embedded-llvm")]
+fn soplang_staticlib() -> Result<(PathBuf, PathBuf), SoplangError> {
+    let name = if cfg!(target_os = "windows") {
+        "soplang.lib"
+    } else {
+        "libsoplang.a"
+    };
+    let exe = std::env::current_exe().map_err(|e| {
+        io_error(
+            "Meesha uu ku jiro barnaamijka Soplang lama ogaan karin.",
+            &e,
+        )
+    })?;
+    let parent = exe.parent().ok_or_else(|| {
+        runtime_error(
+            "Meesha uu ku jiro barnaamijka Soplang lama ogaan karin.",
+            0,
+            0,
+        )
+    })?;
+    let mut dirs = Vec::new();
+    if let Some(override_dir) = std::env::var_os("SOPLANG_RUNTIME_DIR") {
+        dirs.push(PathBuf::from(override_dir));
+    } else {
+        dirs.extend([parent.join("lib/soplang"), parent.join("../lib/soplang")]);
+        dirs.push(parent.to_path_buf());
+        if let Some(profile) = parent.parent() {
+            dirs.push(profile.to_path_buf());
+        }
+    }
+    for dir in dirs {
+        let archive = dir.join(name);
+        if archive.is_file() {
+            let deps = if dir.join("deps").is_dir() {
+                dir.join("deps")
+            } else if dir.file_name().is_some_and(|name| name == "deps") {
+                dir.clone()
+            } else {
+                dir.join("deps")
+            };
+            return Ok((archive, deps));
+        }
+    }
+    Err(runtime_error(
+        "Maktabadda fulinta Soplang lama helin. Rakib xirmada oo dhammaystiran ama SOPLANG_RUNTIME_DIR u deji galkeeda lib/soplang.",
+        0,
+        0,
+    ))
 }
 
 fn emit_function(
@@ -688,7 +790,8 @@ fn emit_main(
     sym: &SymbolTable,
 ) -> Result<(), SoplangError> {
     let nslots = slots_needed(&hir.top_level, 0);
-    m.body.push_str("define i32 @main(i32 %argc, ptr %argv) {\nentry:\n");
+    m.body
+        .push_str("define i32 @main(i32 %argc, ptr %argv) {\nentry:\n");
     let allocation_point = m.body.len();
     let mut emit = FnEmit {
         m,
@@ -956,8 +1059,12 @@ impl<'a> FnEmit<'a> {
     fn instr(&mut self, instr: &HirInstr) -> Result<bool, SoplangError> {
         match instr {
             HirInstr::DebugStart(metadata) | HirInstr::DebugPoint(metadata) => {
-                let (ptr,len) = self.str_ptr(metadata);
-                let name = if matches!(instr, HirInstr::DebugStart(_)) { "soplang_debug_begin" } else { "soplang_debug_point" };
+                let (ptr, len) = self.str_ptr(metadata);
+                let name = if matches!(instr, HirInstr::DebugStart(_)) {
+                    "soplang_debug_begin"
+                } else {
+                    "soplang_debug_point"
+                };
                 self.line(format!("  call void @{name}(ptr {ptr}, i64 {len})"));
                 Ok(false)
             }

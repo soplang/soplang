@@ -24,6 +24,25 @@ permissions:
   contents: read
 
 jobs:
+  native-linux:
+    name: Toolchain-free Linux package
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - uses: dtolnay/rust-toolchain@1.94.0
+      - name: Install LLVM and LLD build libraries
+        run: sudo apt-get update && sudo apt-get install -y llvm-18-dev liblld-18-dev
+      - name: Build and verify native package
+        env:
+          SOPLANG_LLD_SDK: /usr/lib/llvm-18
+        run: |
+          export PATH="/usr/lib/llvm-18/bin:$PATH"
+          python3 scripts/package_native.py --output target/native-package
+          python3 scripts/verify_package.py target/native-package/soplang
+
   native:
     name: Native package (${{ matrix.os }})
     strategy:

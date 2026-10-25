@@ -21,6 +21,12 @@ interactive shell. These operations do not need Rust, Cargo, or clang.
 
 ## Building standalone programs
 
+The Linux native-toolchain work is available for source builds through
+`scripts/package_native.py`. It packages LLVM, LLD, the Soplang runtime archive,
+and the Linux startup object. Its installed `--build` does not start rustc,
+clang, or an external linker. The release packages described below still use
+the earlier build path until the native package passes all supported platforms.
+
 `--build` requires clang 15 or newer (with opaque pointer support) and the **exact Rust compiler used to build the package**,
 including its host target. Native Windows import libraries are bundled under
 `lib/soplang/native` and selected automatically by the linker. Read `lib/soplang/rustc-version.txt` for the compiler

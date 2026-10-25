@@ -2,6 +2,10 @@
 
 - `package.py --output dist/soplang`: locked release build and relocatable
   distribution. Uses Cargo's JSON artifact list, not every old rlib in target.
+- `package_native.py --output dist/soplang-native`: Linux x86_64 build with
+  LLVM object generation and LLD linking inside the compiler. The build machine
+  needs LLVM and LLD development libraries. The installed package builds
+  programs without Rust, clang, or another linker on `PATH`.
 - `verify_package.py /path/to/soplang`: relocates a distribution away from the
   checkout and checks all public examples, error snapshots, REPL, concurrent
   native builds, runtime lookup, toolchain validation, and standalone outputs.
