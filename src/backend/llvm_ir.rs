@@ -6,11 +6,11 @@
 use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
-#[cfg(any(not(feature = "embedded-llvm"), not(target_os = "linux")))]
+#[cfg(not(feature = "embedded-llvm"))]
 use std::process::Command;
 use std::sync::atomic::{AtomicU64, Ordering};
 
-#[cfg(any(not(feature = "embedded-llvm"), not(target_os = "linux")))]
+#[cfg(not(feature = "embedded-llvm"))]
 use crate::error::{external_error, tool_start_error};
 use crate::error::{io_error, runtime_error, SoplangError};
 use crate::hir::{BinOpKind, HirConst, HirFunction, HirInstr, HirModule, SlotNum, UnOpKind};

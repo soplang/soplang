@@ -13,7 +13,7 @@ case "$ARCH" in
     aarch64) DEB_ARCH=arm64 ;;
     *) DEB_ARCH="$ARCH" ;;
 esac
-python3 scripts/package.py --output dist/soplang
+python3 scripts/package_native.py --output dist/soplang
 TARBALL="linux/soplang-${VERSION}-linux-${ARCH}.tar.gz"
 tar -czf "$TARBALL" -C dist soplang
 ASSETS=("$TARBALL")
@@ -39,10 +39,9 @@ Priority: optional
 Architecture: $DEB_ARCH
 Maintainer: Soplang Software Foundation <info@soplang.org>
 Depends: libc6 (>= $GLIBC_VERSION), libgcc-s1
-Suggests: clang, rustc
 Description: The Somali programming language
  Somali syntax, Cranelift JIT, and LLVM native builds.
- Native builds require clang and the matching Rust toolchain.
+ Native builds use the LLVM and LLD components in this package.
 Homepage: https://www.soplang.org/
 CONTROL
     DEB="linux/soplang_${DEB_VERSION}_${DEB_ARCH}.deb"

@@ -110,7 +110,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@1.94.0
       - name: Install Linux build tools
         if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y clang dpkg-dev
+        run: sudo apt-get update && sudo apt-get install -y clang dpkg-dev llvm-18-dev liblld-18-dev
       - name: Show toolchain
         run: |
           rustc -vV
@@ -121,7 +121,11 @@ jobs:
         run: cargo test --release --locked
       - name: Build Linux archive and Debian package
         if: runner.os == 'Linux'
-        run: bash linux/build_linux.sh
+        env:
+          SOPLANG_LLD_SDK: /usr/lib/llvm-18
+        run: |
+          export PATH="/usr/lib/llvm-18/bin:$PATH"
+          bash linux/build_linux.sh
       - name: Verify extracted Linux packages
         if: runner.os == 'Linux'
         shell: bash

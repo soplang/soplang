@@ -1,21 +1,27 @@
-# Keep the runtime rlibs and installed rustc on the same exact toolchain.
-FROM rust:1.94.0-bookworm AS toolchain
+FROM ubuntu:24.04 AS builder
+ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    clang-16 python3 ca-certificates && \
-    ln -s /usr/bin/clang-16 /usr/local/bin/clang && rm -rf /var/lib/apt/lists/*
-
-FROM toolchain AS builder
+    build-essential ca-certificates cmake curl liblld-18-dev llvm-18-dev \
+    libssl-dev libzstd-dev pkg-config python3 && \
+    rm -rf /var/lib/apt/lists/*
+RUN curl --proto '=https' --tlsv1.2 --fail --silent --show-error https://sh.rustup.rs | \
+    sh -s -- -y --default-toolchain 1.94.0 --profile minimal
+ENV PATH="/root/.cargo/bin:/usr/lib/llvm-18/bin:${PATH}"
+ENV SOPLANG_LLD_SDK=/usr/lib/llvm-18
 WORKDIR /app
-COPY Cargo.toml Cargo.lock rust-toolchain.toml ./
+COPY Cargo.toml Cargo.lock rust-toolchain.toml build.rs ./
 COPY src ./src
 COPY benches ./benches
-COPY scripts/package.py ./scripts/package.py
+COPY scripts/package_native.py ./scripts/package_native.py
 COPY README.md LICENSE ./
 COPY licenses ./licenses
 COPY docs/INSTALLING_PACKAGES.md ./docs/INSTALLING_PACKAGES.md
-RUN python3 scripts/package.py --output /package
+RUN python3 scripts/package_native.py --output /package
 
-FROM toolchain AS runtime
+FROM ubuntu:24.04 AS runtime
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates libgcc-s1 python3 && rm -rf /var/lib/apt/lists/*
 ARG VERSION=dev
 ARG BUILD_DATE=unknown
 ARG VCS_REF=unknown

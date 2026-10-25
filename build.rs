@@ -17,7 +17,21 @@ fn main() {
         return;
     }
     let llvm_config = env::var_os("SOPLANG_LLVM_CONFIG").unwrap_or_else(|| "llvm-config".into());
-    let output = Command::new(llvm_config)
+    let libdir = Command::new(&llvm_config)
+        .arg("--libdir")
+        .output()
+        .expect("embedded LLVM builds need llvm-config during compilation");
+    assert!(
+        libdir.status.success(),
+        "llvm-config could not report its library directory"
+    );
+    println!(
+        "cargo:rustc-link-search=native={}",
+        String::from_utf8(libdir.stdout)
+            .expect("invalid llvm-config library directory")
+            .trim()
+    );
+    let output = Command::new(&llvm_config)
         .args([
             "--link-shared",
             "--libs",

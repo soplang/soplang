@@ -1,6 +1,7 @@
 *
 !Cargo.toml
 !Cargo.lock
+!build.rs
 !rust-toolchain.toml
 !README.md
 !LICENSE
@@ -11,6 +12,6 @@
 !benches/
 !benches/**
 !scripts/
-!scripts/package.py
+!scripts/package_native.py
 !docs/
 !docs/INSTALLING_PACKAGES.md
