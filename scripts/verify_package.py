@@ -23,7 +23,8 @@ def main():
         runtime = original.parent.parent / "lib/soplang"
     if not runtime.is_dir():
         parser.error("the supplied executable has no packaged runtime")
-    native = (runtime / "libsoplang.a").is_file()
+    archive_name = "soplang.lib" if os.name == "nt" else "libsoplang.a"
+    native = (runtime / archive_name).is_file()
     env = dict(os.environ, NO_COLOR="1", CARGO_TARGET_DIR="/nonexistent-soplang-target")
     env.pop("SOPLANG_RUNTIME_DIR", None)
     env.pop("SOPLANG_ERROR_DETAILS", None)
@@ -147,7 +148,7 @@ def main():
         )
         if native:
             assert missing.returncode != 0 and "Maktabadda fulinta Soplang lama helin" in missing.stderr
-            archive = install / "lib/soplang/libsoplang.a"
+            archive = install / "lib/soplang" / archive_name
             archive.rename(archive.with_suffix(".hidden"))
             _, missing_archive = build(sample)
             assert missing_archive.returncode != 0 and "Maktabadda fulinta Soplang lama helin" in missing_archive.stderr
