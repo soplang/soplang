@@ -26,12 +26,19 @@ pub(super) fn borrowed_error() -> SoplangError {
 
 thread_local! { static DEPTH: Cell<usize> = const { Cell::new(0) }; }
 
+// Windows host threads can have a 1 MiB stack. Protocol callbacks cross the
+// native/JIT ABI, so stop earlier there before the stack guard is exhausted.
+#[cfg(target_os = "windows")]
+const MAX_DEPTH: usize = 8;
+#[cfg(not(target_os = "windows"))]
+const MAX_DEPTH: usize = 32;
+
 struct DepthGuard(usize);
 impl DepthGuard {
     fn enter() -> Result<Self, SoplangError> {
         DEPTH.with(|depth| {
             let previous = depth.get();
-            if previous >= 32 {
+            if previous >= MAX_DEPTH {
                 return Err(error("Wareegyada aad bay isugu dhex jiraan."));
             }
             depth.set(previous + 1);

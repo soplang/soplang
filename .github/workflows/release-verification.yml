@@ -127,6 +127,9 @@ jobs:
       - name: Check Windows asynchronous listener
         if: runner.os == 'Windows'
         run: cargo test --locked --test http_server_tests concurrent_http_requests_run_through_jit_and_llvm -- --nocapture
+      - name: Check Windows iterator recursion
+        if: runner.os == 'Windows'
+        run: cargo test --locked --test iteration_tests protocol_recursion_is_contained_on_a_small_native_stack -- --nocapture
       - name: Test compiler
         run: cargo test --locked
       - name: Test optimized compiler
