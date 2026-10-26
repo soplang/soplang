@@ -2,7 +2,7 @@
 
 use std::io::{BufRead, BufReader, Read, Write};
 use std::net::TcpStream;
-use std::process::{Command, Stdio};
+use std::process::{Child, Command, Stdio};
 use std::thread;
 use std::time::{Duration, Instant};
 
@@ -39,6 +39,24 @@ tijaabi { server_aqbal(s, routes) } qabo (e) { failed = run }
 haddii (!failed) { tuur "closed" }
 qor("server done")
 "#;
+
+fn published_port<R: BufRead>(stdout: &mut R, child: &mut Child) -> String {
+    let mut port = String::new();
+    stdout.read_line(&mut port).unwrap();
+    let port = port.trim();
+    if port.is_empty() {
+        let status = child.wait().unwrap();
+        let mut stderr = String::new();
+        child
+            .stderr
+            .take()
+            .unwrap()
+            .read_to_string(&mut stderr)
+            .unwrap();
+        panic!("server did not publish a port; status {status}: {stderr}");
+    }
+    port.to_owned()
+}
 
 fn exchange(port: &str, request: &str) -> (u16, String, String) {
     let mut stream = TcpStream::connect(format!("127.0.0.1:{port}")).expect("connect");
@@ -196,10 +214,7 @@ fn drive_concurrent(command: &mut Command) {
         .spawn()
         .unwrap();
     let mut stdout = BufReader::new(child.stdout.take().unwrap());
-    let mut port = String::new();
-    stdout.read_line(&mut port).unwrap();
-    let port = port.trim();
-    assert!(!port.is_empty(), "server did not publish a port");
+    let port = published_port(&mut stdout, &mut child);
 
     let mut slow = TcpStream::connect(format!("127.0.0.1:{port}")).unwrap();
     slow.set_read_timeout(Some(Duration::from_secs(3))).unwrap();
@@ -301,10 +316,7 @@ fn drive_serving(command: &mut Command) {
         .spawn()
         .unwrap();
     let mut stdout = BufReader::new(child.stdout.take().unwrap());
-    let mut port = String::new();
-    stdout.read_line(&mut port).unwrap();
-    let port = port.trim();
-    assert!(!port.is_empty(), "server did not publish a port");
+    let port = published_port(&mut stdout, &mut child);
 
     let connect = |path: &str| {
         let mut stream = TcpStream::connect(format!("127.0.0.1:{port}")).unwrap();
@@ -412,9 +424,8 @@ fn drive_streaming_request(command: &mut Command) {
         .spawn()
         .unwrap();
     let mut stdout = BufReader::new(child.stdout.take().unwrap());
-    let mut port = String::new();
-    stdout.read_line(&mut port).unwrap();
-    let mut stream = TcpStream::connect(format!("127.0.0.1:{}", port.trim())).unwrap();
+    let port = published_port(&mut stdout, &mut child);
+    let mut stream = TcpStream::connect(format!("127.0.0.1:{port}")).unwrap();
     stream
         .set_read_timeout(Some(Duration::from_secs(10)))
         .unwrap();
@@ -524,9 +535,8 @@ fn drive_chunked_request(command: &mut Command) {
         .spawn()
         .unwrap();
     let mut stdout = BufReader::new(child.stdout.take().unwrap());
-    let mut port = String::new();
-    stdout.read_line(&mut port).unwrap();
-    let address = format!("127.0.0.1:{}", port.trim());
+    let port = published_port(&mut stdout, &mut child);
+    let address = format!("127.0.0.1:{port}");
     let mut stream = TcpStream::connect(&address).unwrap();
     stream
         .set_read_timeout(Some(Duration::from_secs(10)))
@@ -635,9 +645,8 @@ fn drive_http_load(command: &mut Command) {
         .spawn()
         .unwrap();
     let mut stdout = BufReader::new(child.stdout.take().unwrap());
-    let mut port = String::new();
-    stdout.read_line(&mut port).unwrap();
-    let address = format!("127.0.0.1:{}", port.trim());
+    let port = published_port(&mut stdout, &mut child);
+    let address = format!("127.0.0.1:{port}");
     let connect = || {
         let stream = TcpStream::connect(&address).unwrap();
         stream
@@ -816,9 +825,8 @@ fn drive_handler_deadline(command: &mut Command) {
         .spawn()
         .unwrap();
     let mut stdout = BufReader::new(child.stdout.take().unwrap());
-    let mut port = String::new();
-    stdout.read_line(&mut port).unwrap();
-    let address = format!("127.0.0.1:{}", port.trim());
+    let port = published_port(&mut stdout, &mut child);
+    let address = format!("127.0.0.1:{port}");
     let mut slow = TcpStream::connect(&address).unwrap();
     slow.set_read_timeout(Some(Duration::from_secs(3))).unwrap();
     slow.write_all(b"GET /slow HTTP/1.1\r\nHost: localhost\r\n\r\n")

@@ -164,6 +164,9 @@ jobs:
         run: |
           rustc -vV
           clang --version
+      - name: Check Windows asynchronous listener
+        if: runner.os == 'Windows'
+        run: cargo test --locked --test http_server_tests concurrent_http_requests_run_through_jit_and_llvm -- --nocapture
       - name: Test compiler
         run: cargo test --locked
       - name: Test optimized compiler
