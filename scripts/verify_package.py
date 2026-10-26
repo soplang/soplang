@@ -60,10 +60,13 @@ def main():
             if expected is not None:
                 assert result.stdout == expected, (result.stdout, expected)
 
-        def build(path, flags=()):
+        def build(path, flags=(), details=False):
             binary = work / "outputs" / (path.stem + suffix)
             no_tools = {"PATH": str(work / "no tools")} if native else None
-            result = run(["--no-color", "--build", "--quiet", *flags, path, "-o", binary], extra_env=no_tools)
+            extra_env = no_tools or {}
+            if details:
+                extra_env = extra_env | {"SOPLANG_ERROR_DETAILS": "1"}
+            result = run(["--no-color", "--build", "--quiet", *flags, path, "-o", binary], extra_env=extra_env)
             return binary, result
 
         version = run(["--version"])
@@ -90,7 +93,9 @@ def main():
             expected = (work / path.with_suffix(".expected")).read_text(encoding="utf-8")
             success(run(["--no-color", *flags, path], input=stdin), expected)
             binary, result = build(path, flags)
-            assert result.returncode == 0, (path, result.returncode, result.stderr)
+            if result.returncode != 0:
+                _, detailed = build(path, flags, details=True)
+                raise AssertionError((path, result.returncode, result.stderr, detailed.stderr))
             success(result)
             success(run([], input=stdin, executable=binary), expected)
             if path.stem != "18_closures":
