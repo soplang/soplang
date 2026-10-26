@@ -304,8 +304,12 @@ fn discovery_and_parallel_coverage_preserve_file_identity() {
     );
     assert_eq!(serial.stdout, parallel.stdout);
     assert!(serial_text.contains("2 waa, 0 fashil"));
+    let canonical_helper = helper.canonicalize().unwrap();
     assert!(
-        serial_text.contains(&format!("{}: 1/2 (50.0%) maqan: 5", helper.display())),
+        serial_text.contains(&format!(
+            "{}: 1/2 (50.0%) maqan: 5",
+            canonical_helper.display()
+        )),
         "{serial_text}"
     );
     assert!(serial_text.contains("a_test.sop:"));
