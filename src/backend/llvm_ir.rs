@@ -244,9 +244,19 @@ pub fn link_llvm_binary_with_opt(ir: &str, out: &Path, opt_level: u8) -> Result<
             })?;
         }
     }
+    #[cfg(all(feature = "embedded-llvm", target_os = "windows"))]
+    let target_triple = staticlib
+        .parent()
+        .is_some_and(|dir| dir.join("tools/zig.exe").is_file())
+        .then_some(c"x86_64-pc-windows-gnu");
+    #[cfg(all(feature = "embedded-llvm", not(target_os = "windows")))]
+    let target_triple = None;
     #[cfg(feature = "embedded-llvm")]
-    fs::write(&obj, super::llvm_native::emit_object(ir, opt_level)?)
-        .map_err(|e| io_error(format!("Faylka '{}' lama qori karin.", obj.display()), &e))?;
+    fs::write(
+        &obj,
+        super::llvm_native::emit_object(ir, opt_level, target_triple)?,
+    )
+    .map_err(|e| io_error(format!("Faylka '{}' lama qori karin.", obj.display()), &e))?;
     #[cfg(not(feature = "embedded-llvm"))]
     let clang = Command::new("clang")
         .arg(format!("-O{}", opt_level.min(3)))

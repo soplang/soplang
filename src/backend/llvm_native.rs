@@ -401,7 +401,11 @@ unsafe fn initialize_target() {
 
 /// Returns a native object file. The returned bytes do not depend on LLVM's
 /// buffers and can be passed to a linker after this function returns.
-pub fn emit_object(ir: &str, opt_level: u8) -> Result<Vec<u8>, SoplangError> {
+pub fn emit_object(
+    ir: &str,
+    opt_level: u8,
+    target_triple: Option<&CStr>,
+) -> Result<Vec<u8>, SoplangError> {
     if opt_level > 3 {
         return Err(error(
             "hagaajinta",
@@ -448,8 +452,9 @@ pub fn emit_object(ir: &str, opt_level: u8) -> Result<Vec<u8>, SoplangError> {
                 "LLVM target triple ma jiro.",
             ));
         }
-        let triple = CStr::from_ptr(triple_ptr).to_owned();
+        let default_triple = CStr::from_ptr(triple_ptr).to_owned();
         LLVMDisposeMessage(triple_ptr);
+        let triple = target_triple.unwrap_or(default_triple.as_c_str());
         let mut target = ptr::null_mut();
         diagnostic = ptr::null_mut();
         if LLVMGetTargetFromTriple(triple.as_ptr(), &mut target, &mut diagnostic) != 0 {
@@ -511,7 +516,7 @@ mod tests {
 
     #[test]
     fn emits_an_elf_object_without_clang() {
-        let object = emit_object("define i32 @main() { ret i32 0 }", 2).unwrap();
+        let object = emit_object("define i32 @main() { ret i32 0 }", 2, None).unwrap();
         #[cfg(target_os = "linux")]
         assert!(object.starts_with(b"\x7fELF"));
         #[cfg(target_os = "macos")]
