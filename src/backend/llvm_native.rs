@@ -196,7 +196,13 @@ pub fn link_coff(
     let zig = dir.join("tools/zig.exe");
     if zig.is_file() {
         let result = Command::new(&zig)
-            .args(["cc", "-target", "x86_64-windows-gnu", "-o"])
+            .args([
+                "cc",
+                "-target",
+                "x86_64-windows-gnu",
+                "-Wl,--stack,8388608",
+                "-o",
+            ])
             .arg(output)
             .arg(object)
             .arg(runtime)
@@ -226,7 +232,7 @@ pub fn link_coff(
         ));
     }
     let mut command = Command::new(&linker);
-    command.args(["/NOLOGO", "/SUBSYSTEM:CONSOLE"]);
+    command.args(["/NOLOGO", "/SUBSYSTEM:CONSOLE", "/STACK:8388608"]);
     command.arg(format!("/OUT:{}", output.display()));
     command.arg(format!("/LIBPATH:{}", imports.display()));
     for path in native_paths {

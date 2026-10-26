@@ -2,12 +2,22 @@ use std::process::Command;
 use std::{env, path::PathBuf};
 
 fn main() {
+    let target_os = env::var("CARGO_CFG_TARGET_OS").expect("Cargo did not set target OS");
+    if target_os == "windows" {
+        // Parsing and JIT-compiling a complete web module can use more than
+        // the PE image's default 1 MiB main-thread stack.
+        let argument = if env::var("CARGO_CFG_TARGET_ENV").as_deref() == Ok("msvc") {
+            "/STACK:8388608"
+        } else {
+            "-Wl,--stack,8388608"
+        };
+        println!("cargo:rustc-link-arg-bin=soplang={argument}");
+    }
     if std::env::var_os("CARGO_FEATURE_EMBEDDED_LLVM").is_none() {
         return;
     }
     println!("cargo:rerun-if-env-changed=SOPLANG_LLVM_CONFIG");
     println!("cargo:rerun-if-env-changed=SOPLANG_LLVM_LIB_DIR");
-    let target_os = env::var("CARGO_CFG_TARGET_OS").expect("Cargo did not set target OS");
     if target_os == "windows" {
         let dir = env::var_os("SOPLANG_LLVM_LIB_DIR")
             .map(PathBuf::from)
