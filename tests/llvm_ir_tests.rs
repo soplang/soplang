@@ -97,7 +97,7 @@ fn run_llvm_with_opt(name: &str, source: &str, opt: u8) -> String {
 fn test_llvm_qor_multiple_arguments() {
     assert_eq!(
         run_llvm("qor_arguments", include_str!("../examples/29_output.sop")),
-        include_str!("../examples/29_output.expected")
+        include_str!("../examples/29_output.expected").replace("\r\n", "\n")
     );
 }
 
@@ -1219,11 +1219,13 @@ qor("llvm args ok")
 fn test_llvm_child_process() {
     let source = r#"
 hawl hubi(v, name) { haddii (!v) { tuur name } }
-door ok = fuli("/bin/echo", ["LLVM"])
-hubi(ok.koodh == 0 && ok.soosaar == e"LLVM\n", "child")
+door ok = fuli("__PROGRAM__", ["--version"])
+hubi(ok.koodh == 0 && ok.soosaar.leeyahay("soplang __VERSION__"), "child")
 qor("llvm child ok")
-"#;
-    let stmts = soplang::frontend::parse_source(source, None).expect("parse");
+"#
+    .replace("__PROGRAM__", env!("CARGO_BIN_EXE_soplang"))
+    .replace("__VERSION__", env!("CARGO_PKG_VERSION"));
+    let stmts = soplang::frontend::parse_source(&source, None).expect("parse");
     let sym = analyze(&stmts).expect("analyze");
     let hir = HirLowering::lower(&sym, &stmts);
     let ir = emit_llvm_ir(&hir, &sym).unwrap_or_else(|e| panic!("{e}"));
