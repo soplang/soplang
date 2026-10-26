@@ -20,7 +20,7 @@ docker run --platform linux/amd64 --rm soplang/soplang:3.6.0 --version
 Start the interactive shell:
 
 ```sh
-docker run --platform linux/amd64 --rm -it soplang/soplang:3.6.0
+docker run --platform linux/amd64 --rm -it soplang/soplang:3.6.0 isdhexgal
 ```
 
 Run a code snippet:

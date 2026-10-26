@@ -12,7 +12,7 @@ Download your platform's package and the release's combined `SHA256SUMS`.
 | --- | --- | --- |
 | Linux x86_64 | `soplang_3.6.0_amd64.deb` or `soplang-3.6.0-linux-x86_64.tar.gz` | glibc 2.39 or later; libgcc |
 | Windows x64 | `soplang-setup.exe` or `soplang-3.6.0-windows-AMD64.zip` | Windows 10 or later on x64 |
-| macOS Apple Silicon | `soplang-3.6.0-macos-arm64.tar.gz` | See the bundle's declared minimum macOS version |
+| macOS Apple Silicon | `soplang-3.6.0-macos-arm64.tar.gz` | macOS 15.7.9 or later |
 
 The Windows installer is unsigned and the macOS archive is not notarized.
 The release includes archives and a Debian package. The macOS builder may
@@ -83,7 +83,7 @@ targets.
 ```sh
 docker run --platform linux/amd64 --rm soplang/soplang:3.6.0 nooc
 docker run --platform linux/amd64 --rm -v "$PWD:/scripts:ro" soplang/soplang:3.6.0 program.sop
-docker run --platform linux/amd64 --rm -it soplang/soplang:3.6.0
+docker run --platform linux/amd64 --rm -it soplang/soplang:3.6.0 isdhexgal
 ```
 
 See [Docker usage](docker.md) for writable mounts and building executables.

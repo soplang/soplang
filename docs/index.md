@@ -58,7 +58,7 @@ cargo build --release
 ./target/release/soplang examples/01_hello.sop
 
 # Start the interactive shell (REPL)
-./target/release/soplang -i
+./target/release/soplang isdhexgal
 ```
 
 Or use the Makefile: `make build`, `make run FILE=examples/01_hello.sop`, `make shell`.
