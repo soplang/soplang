@@ -312,8 +312,13 @@ fn discovery_and_parallel_coverage_preserve_file_identity() {
         )),
         "{serial_text}"
     );
-    assert!(serial_text.contains("a_test.sop:"));
-    assert!(serial_text.contains("tests/b.sop:"));
+    for file in [dir.join("a_test.sop"), dir.join("tests").join("b.sop")] {
+        let canonical_file = file.canonicalize().unwrap();
+        assert!(
+            serial_text.contains(&format!("{}:", canonical_file.display())),
+            "{serial_text}"
+        );
+    }
     let filtered = soplang(&["test", dir.to_str().unwrap(), "--shaandhe", "second"]);
     assert!(filtered.status.success());
     assert!(String::from_utf8_lossy(&filtered.stdout).contains("1 waa, 0 fashil"));
