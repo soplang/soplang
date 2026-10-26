@@ -25,8 +25,8 @@ Soplang is the Somali programming language, designed to make programming accessi
 
 ### Building and Performance
 
-- [Soplang 3.0.1 release](https://github.com/soplang/soplang/releases/tag/v3.0.1) - Native packages and checksums
-- [Release verification](testing/LOCALIZATION_3_0_1.md) - Completed native, installer, and container checks
+- [Soplang 3.6.0 release](https://github.com/soplang/soplang/releases/tag/v3.6.0) - Native packages and checksums
+- [3.0.1 verification record](testing/LOCALIZATION_3_0_1.md) - Earlier native, installer, and container checks
 - [Build Guide](BUILD_GUIDE.md) - How to build Soplang from source (Windows, macOS, Linux)
 - [Performance / benchmarks](../benchmarks/README.md) - [Python/v2/v3 results](../benchmarks/RESULTS.md) and internal Criterion benchmarks
 
@@ -44,11 +44,20 @@ Soplang is the Somali programming language, designed to make programming accessi
 To install Soplang, see the [Installation Guide](installation.md) which covers all platforms:
 - Windows installation (using installer or building from source)
 - Linux installation (using package manager or building from source)
-- macOS installation (using DMG or building from source)
+- macOS installation (using the app archive or building from source)
 
 ### Running Soplang
 
-The primary way to run Soplang is the **Rust binary** (from project root):
+With an installed 3.6 package on `PATH`:
+
+```sh
+soplang nooc
+printf 'qor("Salaan, Adduunka!")\n' > hello.sop
+soplang fuli hello.sop
+soplang isdhexgal
+```
+
+From a source checkout, build the compiler first:
 
 ```bash
 # Build
@@ -66,4 +75,4 @@ Or use the Makefile: `make build`, `make run FILE=examples/01_hello.sop`, `make 
 ## Further Resources
 
 - Website: [https://www.soplang.org/](https://www.soplang.org/)
-- GitHub Repository: [https://github.com/sharafdin/soplang](https://github.com/sharafdin/soplang)
+- GitHub Repository: [https://github.com/soplang/soplang](https://github.com/soplang/soplang)

@@ -11,7 +11,7 @@ Download your platform's package and the release's combined `SHA256SUMS`.
 | Platform | Package | Requirements |
 | --- | --- | --- |
 | Linux x86_64 | `soplang_3.6.0_amd64.deb` or `soplang-3.6.0-linux-x86_64.tar.gz` | glibc 2.39 or later; libgcc |
-| Windows x64 | `soplang-setup.exe` or `soplang-3.6.0-windows-AMD64.zip` | Windows 10 or later on x64 |
+| Windows x64 | `soplang-setup.exe` or `soplang-3.6.0-windows-AMD64.zip` | Windows x64 |
 | macOS Apple Silicon | `soplang-3.6.0-macos-arm64.tar.gz` | macOS 15.7.9 or later |
 
 The Windows installer is unsigned and the macOS archive is not notarized.
