@@ -300,6 +300,10 @@ impl<'a> Lexer<'a> {
                 if let Some(character) = self.read_escape()? {
                     value.push(character);
                 }
+            } else if character == '\r' && self.peek() == Some('\n') {
+                self.advance();
+                self.advance();
+                value.push('\n');
             } else {
                 value.push(character);
                 self.advance();
@@ -399,6 +403,10 @@ impl<'a> Lexer<'a> {
                 self.advance();
                 self.advance();
                 text.push('}');
+            } else if character == '\r' && self.peek() == Some('\n') {
+                self.advance();
+                self.advance();
+                text.push('\n');
             } else {
                 text.push(character);
                 self.advance();

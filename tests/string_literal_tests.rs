@@ -1,3 +1,4 @@
+use soplang::frontend::token::FormatPart;
 use soplang::frontend::trivia::{lossless_tokens, protected_ranges};
 use soplang::{Lexer, TokenType};
 
@@ -28,6 +29,21 @@ fn triple_quotes_preserve_content_and_track_following_locations() {
     );
     let tokens = Lexer::new("e'''a\\n\\u{e9}''' ").tokenize().unwrap();
     assert_eq!(tokens[0].lexeme, "a\né");
+}
+
+#[test]
+fn multiline_literals_have_the_same_value_with_crlf_source() {
+    let source = "r\"\"\"first\r\nsecond\"\"\"\r\nf'''top\r\n{1}\r\nbottom'''\r\nqor(1)";
+    let tokens = Lexer::new(source).tokenize().unwrap();
+    assert_eq!(tokens[0].lexeme, "first\nsecond");
+    assert_eq!(
+        &source[tokens[0].start..tokens[0].end],
+        "r\"\"\"first\r\nsecond\"\"\""
+    );
+    assert_eq!((tokens[1].line, tokens[1].col), (3, 1));
+    assert!(matches!(&tokens[1].format_parts[0], FormatPart::Text(text) if text == "top\n"));
+    assert!(matches!(&tokens[1].format_parts[2], FormatPart::Text(text) if text == "\nbottom"));
+    assert_eq!((tokens[2].line, tokens[2].col), (6, 1));
 }
 
 #[test]
