@@ -1,0 +1,4 @@
+Khalad nooc: 'xog' wuxuu u baahan yahay nooca xirmo[abn, qoraal], laakiin waxaa la helay xirmo. [E022] safka 1, tiirka 1
+     --> examples/errors/tuple_shape.sop:1:1
+   1 │   xirmo[abn,qoraal] xog = xirmo(1)
+     │   ^^^^^

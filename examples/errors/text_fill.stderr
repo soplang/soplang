@@ -1,0 +1,4 @@
+Khalad nooc: buuxi() buuxiyuhu waa inuu noqdaa hal xaraf. [E042] safka 2, tiirka 7
+     --> examples/errors/text_fill.sop:2:7
+   2 │     xog.buuxi(5, "ab")
+     │         ^^^^^

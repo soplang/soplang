@@ -1,10 +1,10 @@
 # Example programs
 
-[examples/README.md](../../examples/README.md) lists all 28 numbered programs.
+[examples/README.md](../../examples/README.md) lists the numbered programs.
 Each has expected stdout and runs through both Cranelift JIT and LLVM AOT.
 Tests require a successful exit and empty stderr as well as matching output.
 
-[examples/errors/README.md](../../examples/errors/README.md) describes 63
+[examples/errors/README.md](../../examples/errors/README.md) describes the
 intentional failures and their checked diagnostic snapshots. Coverage includes
 Somali messages, original filenames, exact lines/columns, and Unicode/tab caret
 alignment. Helpers are kept outside the numbered example list.

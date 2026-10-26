@@ -1,0 +1,4 @@
+Khalad fulin: Tallaabada kuceli ma beddelayso qiimaha hadda. safka 1, tiirka 1
+     --> examples/errors/range_stalled.sop:1:1
+   1 │   kuceli (i 100000000000000000000.0 ilaa 200000000000000000000.0 :: 1.0) {}
+     │   ^^^^^^

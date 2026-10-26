@@ -8,7 +8,7 @@ and tests are complete.
 ## Version policy
 
 Soplang is on the **version 3 product line**. The released baseline is
-`3.0.0`, and planned releases use `3.x.y` versions.
+`3.6.0`, and future releases use `3.x.y` versions.
 
 - `3.x.0` releases may add compatible language, runtime, library, and tooling
   capabilities.
@@ -78,6 +78,9 @@ Soplang 3.0 establishes the release baseline:
 
 ## Soplang 3.1 — runtime stability and diagnostics
 
+Implemented and included in 3.6.0. See the [milestone notes](docs/releases/3.1.0.md)
+and [local verification](docs/testing/RUNTIME_3_1.md).
+
 Every later feature depends on a runtime that supports long-running programs
 and reports failures precisely.
 
@@ -91,8 +94,9 @@ and reports failures precisely.
 6. Define ownership and cleanup for external resources such as file handles
    and network connections.
 
-The memory design must compare reference counting, reusable handle tables, and
-tracing collection before an implementation is selected.
+The [ownership design](docs/architecture/RUNTIME_CONTEXTS.md) compares reference
+counting, reusable handle tables, and tracing collection. The implementation
+combines them with explicit stack roots and context ownership.
 
 ### Diagnostics and errors
 
@@ -127,6 +131,24 @@ ownership design planned for 3.6.
 
 ## Soplang 3.2 — iteration, functions, and data types
 
+The iteration stage is implemented in both backends; see the
+[iteration contract](docs/language/iteration.md). [Default arguments](docs/language/function-arguments.md)
+and variadic positional parameters are also implemented, with callback signature
+validation for empty and nonempty collections. Named arguments and `**`
+keyword collectors are implemented too. Compact [byte arrays](docs/language/bytes.md)
+are implemented with checked mutation, strict UTF-8 conversion, type annotations,
+and snapshot iteration. [Optional and union annotations](docs/language/optional-union-types.md)
+are implemented too. [Typed lists and string-keyed objects](docs/language/typed-collections.md)
+now enforce shared element contracts through aliases and nested mutations.
+[Immutable tuples](docs/language/tuples.md) and positional annotations are also
+implemented. [Sets](docs/language/sets.md) support immutable keys, hashing,
+ordered iteration, and set algebra. [Typed sets](docs/language/typed-sets.md)
+now enforce shared element contracts through aliases and nested collections.
+Expanded [text](docs/language/text-methods.md), [list](docs/language/list-methods.md),
+[object](docs/language/object-methods.md), and [numeric](docs/language/numeric-functions.md)
+library operations are implemented in both backends. The 3.2 language scope is
+included in the 3.6.0 release.
+
 ### Iteration
 
 1. Iterate directly over lists and ranges.
@@ -135,8 +157,10 @@ ownership design planned for 3.6.
 4. Define an iterator protocol for future user-defined classes.
 5. Add enumerate and zip operations.
 
-The Somali syntax for “for each item in collection” must be designed before the
-parser and iterator protocol are implemented.
+Collection syntax is `kuceli (item ku source)`, with row bindings such as
+`kuceli (index, item ku tirso(source))`. `ku` remains contextual. Classes and
+objects can implement `wareeg()` and `xiga()`; native cursors share the same
+step representation.
 
 ### Function arguments
 
@@ -148,23 +172,27 @@ parser and iterator protocol are implemented.
 
 ### Data types
 
-1. Sets for unique values.
-2. Immutable tuples.
-3. Byte arrays.
-4. Explicit structured error values.
-5. Optional and union types.
-6. Typed lists, objects, sets, and tuples.
+1. Sets for unique immutable values: implemented as `urur`.
+2. Immutable tuples: implemented as `xirmo`, including positional annotations.
+3. Byte arrays: implemented as `baytyo`, with shared collection vocabulary.
+4. Explicit structured error values: implemented as immutable `khalad` values with
+   codes, causes, traces, and optional structured catches (see [3.1 errors](docs/releases/3.1.0.md#errors-and-cleanup)).
+5. Optional and union types: implemented for variables, parameters, and returns.
+6. Typed lists, objects, and positional tuples: implemented with shared nested
+   contracts. Typed sets are also implemented as `urur[T]`.
 
 ### Collection methods
 
 | Value | Planned operations |
 | --- | --- |
-| String | character classification, capitalization, title casing, padding, partitioning, lines, words, and formatting |
-| List | remove by value, extend in place, unique values, enumerate, zip, sum, and callback-based sorting |
-| Object | insert when absent, merge in place, map entries, filter entries, and nested-path lookup |
-| Number | logarithms, trigonometry, constants, clamping, and seeded random generation |
+| String | Implemented: character classification, capitalization, title casing, padding, partitioning, lines, words, and formatting; see [text methods](docs/language/text-methods.md). |
+| List | Implemented: remove by value, extend in place, unique values, enumerate, zip, sum, and callback-based sorting; see [list methods](docs/language/list-methods.md). |
+| Object | Implemented: insert when absent, merge in place, map entries, filter entries, and nested-path lookup; see [object methods](docs/language/object-methods.md). |
+| Number | Implemented: logarithms, trigonometry, constants, clamping, and context-local seeded random generation; see [numeric functions](docs/language/numeric-functions.md). |
 
 ## Soplang 3.3 — files, structured data, and networking
+
+Implemented in the development source; see the [3.3 milestone notes](docs/releases/3.3.0.md).
 
 This release grows the standard library after runtime resource handling is in
 place. Implement file and JSON foundations first, followed by the HTTP client
@@ -173,13 +201,16 @@ next depends on it.
 
 ### Initial text file access
 
-1. Read an entire UTF-8 text file into a string.
-2. Create or overwrite a text file with an explicit write operation.
-3. Append text with a separate operation that preserves existing content.
+Implemented locally as `akhrifayl`, `qor_fayl`, and `kudar_fayl`; see
+[text files](docs/language/text-files.md).
+
+1. Read an entire UTF-8 text file into a string — implemented.
+2. Create or overwrite a text file with an explicit write operation — implemented.
+3. Append text with a separate operation that preserves existing content — implemented.
 4. Open and close resources automatically for these convenience operations,
-   including when an operation fails.
+   including when an operation fails — implemented for these convenience calls.
 5. Report missing files, permission failures, invalid UTF-8, and other I/O
-   failures as catchable Somali errors with source locations.
+   failures as catchable Somali errors with source locations — implemented.
 
 Writing replaces existing content; appending is a distinct operation. Text
 operations must not silently replace invalid UTF-8. Relative filesystem paths
@@ -188,12 +219,18 @@ rule of resolving imports relative to the importing source file.
 
 ### File management, directories, and paths
 
-1. Query existence, file type, size, and modification time.
-2. Copy, move, rename, and delete files.
-3. Create directories, list their entries, and remove directories.
-4. Join paths and resolve relative paths across Linux, Windows, and macOS.
+Implemented locally; see [filesystem](docs/language/filesystem.md).
+
+1. Query existence, file type, size, and modification time — `fayl_jiraa`, `fayl_xog`.
+2. Copy, move, rename, and delete files — `nuqul_fayl`, `wareeji_fayl`, `tirtir_fayl`.
+3. Create directories, list their entries, and remove directories — `abuur_gal`, `tir_gal`, `tirtir_gal`.
+4. Join paths and resolve relative paths across Linux, Windows, and macOS — `isku_xidh`, `baabi_jid`.
 5. Specify overwrite behavior, recursive directory operations, symbolic-link
-   handling, and cross-filesystem moves before publishing the API.
+   handling, and cross-filesystem moves before publishing the API — optional
+   overwrite on copy and optional recursive directory removal are implemented.
+   Copy and delete act on a symlink itself. `wareeji_fayl` copies a file or
+   symlink across filesystems and then removes the source. A directory move
+   across filesystems is rejected.
 
 Filesystem APIs should live in a dedicated standard-library module with short,
 consistent Somali names. Where operations match existing collection APIs,
@@ -204,178 +241,176 @@ names remain design decisions until the terminology review is complete.
 
 After the initial text API and byte-array type are available, add:
 
-1. Whole-file byte reads and writes.
-2. Explicit open handles, access modes, flush, and close operations.
-3. Line-by-line reading, bounded chunks, and streaming large files.
-4. File positions and seeking.
-5. Atomic replacement where supported, with documented platform guarantees.
+1. Whole-file byte reads and writes — implemented as `akhrif_baytyo`, `qor_baytyo`, and `kudar_baytyo`; see [binary files](docs/language/binary-files.md).
+2. Explicit open handles, access modes, flush, and close operations — implemented as `fayl_fur`, `fayl_qor`, `fayl_nadiifi`, and `fayl_xidh`; see [file handles](docs/language/file-handles.md).
+3. Line-by-line reading and bounded chunks — implemented as `fayl_xariiq` and `fayl_akhris`. Unbounded streaming of request bodies remains with 3.6.
+4. File positions and seeking — implemented as `fayl_raad` and `fayl_meel`.
+5. Atomic replacement — implemented as `fayl_beddel`. POSIX rename replaces a file in the same directory atomically. Windows uses `MoveFileExW` with replace-existing and write-through.
 
-Handles require guaranteed cleanup on success and failure, including early
-returns. File watching is a later 3.x extension. Basic text access does not
-wait for handles, streaming, or file watching.
+`fayl_xidh` closes the handle. Process exit closes any handle still open. File
+watching is a later 3.x extension.
 
 ### Structured data and utilities
 
-1. JSON parsing and generation, available before JSON HTTP handlers.
-2. CSV reading and writing.
-3. URL encoding and decoding.
-4. Base64 encoding and decoding.
-5. Regular expressions.
-6. Date, time, duration, parsing, and formatting APIs.
-7. Program arguments and environment variables.
-8. Child processes, exit codes, and captured command output.
+1. JSON parsing and generation, available before JSON HTTP handlers — implemented as `json_akhris` and `json_qor`; see [JSON](docs/language/json.md).
+2. CSV reading and writing — implemented as `csv_akhris` and `csv_qor`; see [CSV](docs/language/csv.md).
+3. URL encoding and decoding — implemented as `url_qor` and `url_akhris`; see [URL encoding](docs/language/url.md).
+4. Base64 encoding and decoding — implemented as `b64_qor` and `b64_akhris`; see [Base64](docs/language/base64.md).
+5. Regular expressions — implemented as `regex_raadi`, `regex_dhammaan`, and `regex_beddel`; see [regular expressions](docs/language/regular-expressions.md).
+6. Date, time, duration, parsing, and formatting APIs — implemented for UTC seconds as `waqti`, `waqti_akhris`, `waqti_qor`, `waqti_qayb`, `waqti_ka_qayb`, and `waqti_kudar`; see [date and time](docs/language/time.md). Time zones other than `Z` remain later work.
+7. Program arguments and environment variables — implemented as `amarro`, `deegaan`, `deegaan_qor`, and `deegaan_tirtir`; see [program arguments](docs/language/process.md).
+8. Child processes, exit codes, and captured command output — implemented as `fuli`; see [program arguments](docs/language/process.md#child-processes). The command is not passed through a shell.
 
 JSON conversion must define how Soplang values map to JSON, how malformed
 input is reported, and which values cannot be serialized. JSON parse and
-serialization failures must be catchable. Program arguments and environment
+serialization failures must be catchable. Parsed maps must preserve arbitrary
+string keys, including `__class__`, without acquiring class identity from input
+fields. Program arguments and environment
 variables provide configuration for file-based tools and server applications.
 
 ### Synchronous HTTP client
 
-The first network API should provide:
+Implemented locally as `http_codso`; see [HTTP client](docs/language/http.md).
 
-1. GET, POST, PUT, PATCH, and DELETE requests.
-2. Request headers and text, byte, and JSON bodies.
-3. Response status, headers, text, bytes, and JSON.
-4. Configurable connection and total timeouts.
-5. Bounded redirects and response sizes.
-6. TLS using trusted system certificates.
-7. Clear DNS, connection, TLS, timeout, and protocol errors.
+1. GET, POST, PUT, PATCH, and DELETE requests — implemented.
+2. Request headers and text, byte, and JSON bodies — implemented.
+3. Response status, headers, text, bytes, and JSON — implemented.
+4. Configurable connection and total timeouts — implemented as `waqti`.
+5. Bounded redirects and response sizes — implemented as `leexasho` and `cabbir`.
+6. TLS using trusted system certificates — implemented for `https`.
+7. Clear DNS, connection, TLS, timeout, and protocol errors — catchable as `E053`.
 8. Test support through local servers so the suite does not depend on public
-   network availability.
-
-The HTTP API should use a dedicated module. Its Somali module and method names
-must be decided before becoming public. This milestone must supply the minimum
-standard-library module access needed by file, JSON, and HTTP APIs; the complete
-user-defined namespace and package system remains planned for 3.4.
+   network availability — covered by the local HTTP tests.
 
 ### Initial HTTP server for JSON APIs
 
 The first server should provide a small application API backed by a maintained
-Rust HTTP implementation:
+Rust HTTP implementation. Implemented locally as `server_fur`, `server_aqbal`,
+and `server_xidh`; see [HTTP server](docs/language/http-server.md). It handles
+one request at a time.
 
-1. Register handlers for GET, POST, PUT, PATCH, and DELETE routes.
-2. Match fixed paths and named path parameters such as `/users/:id`.
+1. Register handlers for GET, POST, PUT, PATCH, and DELETE routes — implemented.
+2. Match fixed paths and named path parameters such as `/users/:id` — implemented.
 3. Expose request method, path, query parameters, headers, and bounded text or
-   JSON request bodies.
-4. Construct responses with status codes, headers, text, JSON, and redirects.
+   JSON request bodies — implemented.
+4. Construct responses with status codes, headers, text, JSON, and redirects — implemented.
 5. Return predictable 404 responses and contain handler failures as 500
-   responses while keeping the server running.
+   responses while keeping the server running — implemented.
 6. Configure host and port, request-body limits, connection limits, and read
-   and write timeouts.
-7. Stop accepting requests and release server resources on graceful shutdown.
+   and write timeouts — host, port, body limit, and timeouts are implemented.
+   The server accepts one connection at a time.
+7. Stop accepting requests and release server resources on graceful shutdown — `server_xidh`.
 8. Run the same application through JIT during development and as an LLVM-built
-   native executable for deployment.
+   native executable for deployment — covered by the server tests.
 
-The initial execution model may handle one request at a time. Document that
-limitation and verify that repeated requests do not leak runtime values or
-resources. Public async/await syntax is not a prerequisite for this milestone.
-Production readiness requires memory, failure-isolation, resource-limit, and
-shutdown tests; accepting an HTTP request alone is not sufficient.
-
-Route registration, handler signatures, request/response lifetimes, and error
-propagation require an API proposal. Request/response values need a supported
-way to call retained Soplang functions and closures through both backends.
-Express-like ergonomics and Go-like server configuration guide the design;
-the final Somali API and internal Rust library have not been selected.
+The initial execution model handles one request at a time. Public async/await
+syntax is not part of this milestone.
 
 ### Lower-level networking
 
 After the HTTP client is stable, 3.3 may add:
 
-- DNS lookup.
-- TCP client and server sockets.
-- UDP sockets.
-- A WebSocket client.
+- DNS lookup — implemented as `dns_raadi`; see [DNS and TCP](docs/language/networking.md).
+- TCP client and server sockets — implemented as `tcp_fur`, `tcp_dhegeysi`, `tcp_aqbal`, `tcp_qor`, `tcp_akhris`, and `tcp_xidh`. One connection is accepted at a time.
+- UDP sockets — implemented as `udp_fur`, `udp_qor`, `udp_akhris`, and `udp_xidh`.
+- A WebSocket client — implemented as `ws_fur`, `ws_qor`, `ws_akhris`, and `ws_xidh`; see [DNS and TCP](docs/language/networking.md).
 
 Advanced concurrent servers, streaming bodies, and WebSocket servers follow
 the concurrency and asynchronous I/O work in 3.6.
 
 ## Soplang 3.4 — modules and packages
 
+Implemented in the development source; see the [3.4 milestone notes](docs/releases/3.4.0.md).
+
 ### Module system
 
-1. Give imported files their own namespaces.
-2. Add explicit public exports.
-3. Add selective imports and import aliases.
-4. Define relative and package imports.
-5. Detect conflicting names and cycles with clear diagnostics.
-6. Specify module initialization and caching rules.
+1. Give imported files their own namespaces — implemented as `keen "file.sop" sida name`; see [modules](docs/language/modules.md). Flat `keen` imports stay unchanged.
+2. Add explicit public exports — implemented as `soosaar name, ...` inside a namespaced file, including classes. Callers construct and type-check an exported class through its namespace or a selective import. Without `soosaar`, names that start with `_` stay private.
+3. Add selective imports and import aliases — implemented as `keen "file.sop" ka name` and `name sida local`. A namespace `sida` and `ka` cannot share one import.
+4. Define relative and package imports — relative `keen` resolves from the importing file. `keen "xisaab"` and `keen "xisaab/util.sop"` load a dependency from the nearest manifest; see [packages](docs/language/packages.md).
+5. Detect conflicting names and cycles with clear diagnostics — implemented. Cycles are errors; repeated namespaced imports share one initializer.
+6. Specify module initialization and caching rules — implemented. A namespaced file is initialized when the import runs, and only once.
 
 ### Package system
 
-1. Define a project and package manifest.
-2. Record package names, versions, and supported Soplang versions.
-3. Add dependency declarations and local path dependencies.
-4. Create a deterministic lockfile.
-5. Add a package cache and integrity hashes.
-6. Add install, update, remove, and publish commands.
-7. Make dependency resolution and builds reproducible.
+Project creation is implemented as `soplang init [directory] [--lib] [--name name]`,
+with `soplang.toml` and a root `main.sop` or `lib.sop` starter. Existing files
+are preserved. See [packages](docs/language/packages.md#create-a-project).
 
-Package downloads will use the HTTP and archive foundations from 3.3. Whether
-the first package source is Git repositories or a dedicated registry remains a
-design decision.
+1. Define a project and package manifest: implemented with TOML syntax and schema validation; see [packages](docs/language/packages.md).
+2. Record names, versions, and supported Soplang versions: `magac`, `nusxa`, and `soplang`.
+3. Resolve Git repository URLs, hosting-service short forms, and local paths: implemented. Revisions accept branches, tags, and full commits.
+4. Keep one version per package: implemented as one repository/commit selection for each name, with conflicts rejected across the full graph.
+5. Pin exact commits and content hashes in a deterministic root lock: implemented. Dependency-owned locks cannot override the root selection.
+6. Verify a package cache and support offline builds: implemented as immutable staged trees, checksum verification, concurrent publication, and `--offline`.
+7. Add, remove and explicitly update dependencies: implemented through the `add`, `remove`, and `update` commands. Git publication uses the repository's own commit/tag workflow; no central package host is required.
+
+The directory-registry and `.sopkg` providers remain compatibility sources.
+Standard command forms are implemented in 3.5. Public class exports, the
+sequential web framework, TLS, multipart uploads, templates, and the ORM are
+implemented. Concurrent serving remains 3.6.
 
 ### Web application facilities
 
-After the initial JSON server and module interfaces are stable, develop these
-as standard-library or package additions across 3.4 and later 3.x releases:
+Build a bundled, importable web framework on the server and module foundations.
+The minimal sequential JSON server alone does not complete this requirement.
 
-1. Composable routers and middleware with a defined execution order and error
-   propagation contract.
-2. Static file responses with a configured document root and path containment.
-3. HTML responses, template rendering, and form parsing.
-4. Bounded multipart uploads and downloads, with streaming dependent on 3.6.
-5. Cookies and sessions, with documented storage and expiration behavior.
-6. Database drivers, beginning with a separately selected database and covering
-   parameterized queries, transactions, connection lifetimes, and cleanup.
+1. Routers, method/path matching, route groups, middleware order and error propagation — implemented by `keen "web"`; see [web](docs/language/web.md). An uncaught handler or middleware error is still status 500.
+2. Path/query/header/cookie access, JSON and form parsing, validation, response status and JSON/HTML/redirect/file helpers — implemented. URL-encoded forms use `foom`. Multipart bodies use `qayb`.
+3. Static-file containment and CORS — implemented. `fayl_gudaha` rejects paths that leave the root. `habee` renders HTML templates. Ranged downloads remain later web work.
+4. Sessions with expiration, authentication hooks, logging, request limits and timeouts — implemented on the `Web` value. Limits and timeouts use the existing `waqti` and `cabbir` options.
+5. TLS and a test client — implemented. `server_fur(host, port, {shahaado, fure})` serves one TLS connection at a time, and `Web.tijaabi` is an in-memory client using the same HTTP codec and route pipeline. Graceful concurrent shutdown, streaming, and WebSocket servers remain 3.6.
+6. A Prisma-style ORM with required `schema.sop`, schema validation, typed query/editor support, migrations, pools and transactions — implemented. See [data](docs/language/data.md). `check` and the language server validate `schema.sop`.
+7. Real connector implementations and tests for SQLite, PostgreSQL, MySQL, MariaDB, MongoDB, SQL Server and CockroachDB, with a documented capability matrix — implemented. SQLite runs in the default suite. The other six run when `SOPLANG_POSTGRES`, `SOPLANG_COCKROACH`, `SOPLANG_MYSQL`, `SOPLANG_MARIADB`, `SOPLANG_SQLSERVER`, or `SOPLANG_MONGO` is set. SQL Server uses TDS with TLS.
 
-Database support is a separate deliverable from serving JSON APIs. Database
-selection, session storage, and template engines need their own proposals;
-the initial server does not commit the language to a particular framework or
-database abstraction.
+The ORM is required before the final release. These are implementation
+requirements; database selection and a decision about whether to include an ORM
+are already settled. Document each connector's supported operations explicitly.
 
 ## Soplang 3.5 — developer tooling
 
+Implemented in the development source; see the [3.5 milestone notes](docs/releases/3.5.0.md).
+
 ### Command-line tools
 
-1. `soplang fmt` for deterministic formatting.
-2. `soplang check` for analysis without execution.
-3. `soplang test` for native test discovery and execution.
-4. `soplang doc` for API documentation generation.
-5. Package add, remove, and update commands.
-6. Consistent run and build commands for package projects.
+1. `soplang fmt` for deterministic formatting — implemented. `--qor` writes the file. A second format leaves the text unchanged.
+2. `soplang check` for analysis without execution — implemented. `--adag` is strict mode, and a sibling `schema.sop` is validated.
+3. `soplang test` for native test discovery and execution — implemented.
+4. `soplang doc` for API documentation generation — implemented with public signatures, types/defaults, documentation comments and atomic Markdown output. `--gaar` includes private declarations.
+5. Package add, remove, and update commands — implemented as `add`, `remove` and `update`, with the earlier flags retained. Project directories and offline resolution are supported.
+6. Consistent run and build commands for package projects — implemented as `run`, `dhis` and its `build` alias, with strict/offline options, application arguments, output/optimization settings and nested project discovery.
 
 ### Testing
 
-1. Test declaration conventions or syntax.
-2. Assertions and expected-error assertions.
-3. Test discovery and filtering.
-4. Setup and cleanup support.
-5. Parallel execution.
-6. Coverage reporting.
+1. Test declaration conventions or syntax — implemented as top-level `tijaabo "name" { }` and `tijaabo "name" qalad { }`. Ordinary execution skips them.
+2. Assertions and expected-error assertions — implemented. `hubi(value)` requires `run`, and `hubi(left, right)` requires equality. `qalad` passes only for a runtime failure in the body; `qalad("CODE")` additionally checks the error code. Compiler and fixture errors fail the test.
+3. Test discovery and filtering — implemented. `--shaandhe` keeps names that contain the text. `--lambarka` selects one test. Directory discovery recognizes `*_test.sop`, `*.test.sop`, and `.sop` under `tests`.
+4. Setup and cleanup support — implemented as top-level `diyaar { }` and `nadiifi { }`. Cleanup runs after the test body, including when the body fails.
+5. Parallel execution — implemented as `--wada`. Each test owns a runtime; parallel runs use a bounded pool of isolated child processes (`--shaqaale` selects the limit).
+6. Coverage reporting — implemented as `--dabool`. It reports reached/executable counts, percentages, and missed lines separately for each file, including uncalled functions, with bounded hit storage and equivalent parallel aggregation.
 
 ### Editor and debugging support
 
-1. Editor syntax packages.
-2. A Language Server Protocol implementation.
-3. Live diagnostics, completion, hover help, and semantic highlighting.
-4. Go to definition, find references, and rename.
-5. Formatting and code actions.
-6. Source-level debugger information and breakpoints.
-7. Stack and local-variable inspection.
-8. Profiler integration.
+1. Editor syntax packages — implemented in `editors/vscode` for `.sop` files.
+2. A Language Server Protocol implementation — implemented as `soplang lsp` over stdio.
+3. Live diagnostics, completion, hover help, and semantic highlighting — implemented.
+4. Go to definition, find references, and rename — implemented.
+5. Formatting and code actions — implemented. The code action is `Hagaaji qaabka`.
+6. Source-level debugger information and breakpoints — implemented in JIT and instrumented LLVM executables. `soplang debug` supports file/line breakpoints, statement stepping, step-over and return; ordinary builds omit instrumentation.
+7. Stack and local inspection — implemented. The source console selects caller frames and reads initialized local and captured values from rooted compiled storage without evaluating source. Inspection depth and output are bounded.
+8. Profiler integration — implemented as `soplang profile file.sop`. It reports per-function calls and inclusive/exclusive time, with compilation timed separately from execution.
 
 ## Soplang 3.6 — concurrency, asynchronous I/O, and servers
 
-This work follows memory reclamation, resource cleanup, and synchronous network
-APIs.
+Released in 3.6.0. This work follows memory reclamation, resource cleanup, and
+synchronous network APIs.
 
 ### Concurrency
 
 1. Lightweight tasks.
 2. Channels for communication.
-3. Thread-safe shared runtime values.
+3. Race-free shared runtime values inside an owning context. Tagged values do
+   not cross I/O worker threads; owned byte buffers do.
 4. Cancellation and timeouts.
 5. Structured task lifetimes.
 6. Protection against data races.
@@ -388,8 +423,9 @@ APIs.
 4. Timers and event-loop integration.
 5. Streaming request and response bodies.
 
-The project must decide whether Soplang exposes explicit async/await syntax or
-uses another task model before this work begins.
+The public model uses task handles and `sug(task)` rather than new async/await
+keywords. The execution and ownership contract is in
+[the concurrency design](docs/architecture/CONCURRENCY.md).
 
 ### Advanced server capabilities
 
@@ -404,6 +440,19 @@ Build on the sequential JSON server and request/response API from 3.3:
 6. Bounded queues and limits on concurrent requests and retained resources.
 7. Stress and load tests covering slow clients, disconnects, failures, and
    sustained memory use.
+
+The execution contract is documented in
+[the concurrency design](docs/architecture/CONCURRENCY.md). The APIs and
+limits are documented in [asynchronous files](docs/language/async-files.md),
+[networking](docs/language/networking.md), and
+[HTTP servers](docs/language/http-server.md). Tests cover both JIT and LLVM
+server paths, including bounded request and response streams, handler
+deadlines, shutdown draining, and repeated client load. On Linux, the HTTP
+load test also checks resident memory growth.
+
+Asynchronous HTTP and WebSocket listeners currently use plain TCP. Sequential
+HTTP serving supports TLS. HTTP keep-alive and routing WebSocket upgrades
+through the bundled `web` module remain later 3.x work.
 
 ## Later Soplang 3.x — advanced ecosystem
 
@@ -433,9 +482,8 @@ their implementation release begins:
 4. Modules: namespace, export, selective import, and alias syntax.
 5. Networking: the HTTP module API and lower-level socket abstractions.
 6. Concurrency: tasks and channels, async/await, or another model.
-7. Packages: Git-based sources, a dedicated registry, or a staged combination.
-8. Filesystem: Somali vocabulary, access modes, cleanup, overwrite behavior,
-   directory recursion, path rules, and platform-specific guarantees.
+7. Packages: Git repositories and local paths, one version per package, an exact commit/content lock, verified caching, offline builds, and explicit updates. A central registry is not required.
+8. Filesystem: decided for this stage. See [filesystem](docs/language/filesystem.md) and [file handles](docs/language/file-handles.md) for symlink, cross-filesystem, and atomic-replace behavior.
 9. Web APIs: route registration, handler callbacks, request/response types,
    middleware, error containment, and the Rust HTTP implementation.
 10. Web application integrations: database drivers, templates, and session

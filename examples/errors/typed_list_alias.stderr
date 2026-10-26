@@ -1,0 +1,4 @@
+Khalad nooc: Beddelkani ma waafaqsana nooca ururka teed[abn]. [E039] safka 3, tiirka 7
+     --> examples/errors/typed_list_alias.sop:3:7
+   3 │   alias.geli("x")
+     │         ^^^^

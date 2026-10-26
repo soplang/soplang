@@ -1,0 +1,136 @@
+{
+  "name": "soplang",
+  "displayName": "Soplang",
+  "description": "Soplang language support with diagnostics, navigation, formatting, and semantic highlighting.",
+  "version": "3.5.0",
+  "publisher": "soplang",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "soplang",
+        "aliases": [
+          "Soplang",
+          "soplang"
+        ],
+        "extensions": [
+          ".sop"
+        ],
+        "configuration": "./language-configuration.json"
+      },
+      {
+        "id": "soplang-schema",
+        "aliases": [
+          "Soplang Schema"
+        ],
+        "filenames": [
+          "schema.sop"
+        ],
+        "configuration": "./schema-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "soplang",
+        "scopeName": "source.soplang",
+        "path": "./syntaxes/soplang.tmLanguage.json"
+      },
+      {
+        "language": "soplang-schema",
+        "scopeName": "source.soplang-schema",
+        "path": "./syntaxes/schema.tmLanguage.json"
+      }
+    ],
+    "configuration": {
+      "title": "Soplang",
+      "properties": {
+        "soplang.server.path": {
+          "type": "string",
+          "default": "soplang",
+          "scope": "window",
+          "description": "Path to the Soplang executable. A command name is resolved on PATH; a relative path is resolved from the first workspace folder."
+        },
+        "soplang.server.enabled": {
+          "type": "boolean",
+          "default": true,
+          "scope": "window",
+          "description": "Start the Soplang language server in trusted workspaces."
+        },
+        "soplang.trace.server": {
+          "type": "string",
+          "enum": [
+            "off",
+            "messages",
+            "verbose"
+          ],
+          "default": "off",
+          "description": "Trace language-server communication in the Soplang output channel."
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "soplang.restartServer",
+        "title": "Soplang: Restart Language Server"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "soplang",
+        "path": "./snippets/soplang.json"
+      },
+      {
+        "language": "soplang-schema",
+        "path": "./snippets/schema.json"
+      }
+    ]
+  },
+  "main": "./extension.js",
+  "activationEvents": [
+    "onLanguage:soplang",
+    "onLanguage:soplang-schema"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/soplang/soplang.git",
+    "directory": "editors/vscode"
+  },
+  "homepage": "https://www.soplang.org",
+  "bugs": {
+    "url": "https://github.com/soplang/soplang/issues"
+  },
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": "limited",
+      "description": "Syntax highlighting is available. The language server starts only in trusted workspaces.",
+      "restrictedConfigurations": [
+        "soplang.server.path"
+      ]
+    },
+    "virtualWorkspaces": false
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "check": "node --check extension.js && npm test",
+    "package": "vsce package --out soplang.vsix",
+    "test:integration": "node test/run-integration.js"
+  },
+  "dependencies": {
+    "vscode-languageclient": "9.0.1"
+  },
+  "devDependencies": {
+    "@vscode/test-electron": "3.1.0",
+    "@vscode/vsce": "4.0.0",
+    "vscode-oniguruma": "2.0.1",
+    "vscode-textmate": "9.3.2"
+  },
+  "extensionKind": [
+    "workspace"
+  ]
+}

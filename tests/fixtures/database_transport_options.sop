@@ -1,0 +1,15 @@
+keen "xog" sida x
+abn caught = 0
+tijaabi { xog_fur("sqlite", ":memory:", { tssl: run }) } qabo (e) { caught = caught + 1 }
+tijaabi { xog_fur("postgres", "host=127.0.0.1 port=1", { tls: 1 }) } qabo (e) { caught = caught + 1 }
+tijaabi { xog_fur("postgres", "host=127.0.0.1 port=1", { shahaado_ca: "" }) } qabo (e) { caught = caught + 1 }
+tijaabi { xog_fur("postgres", "host=127.0.0.1 port=1 sslmode=disable", { tls: run }) } qabo (e, details) {
+ hubi(details.summad, "E059") caught = caught + 1
+}
+tijaabi { x.fur("sqlite", ":memory:", tls: run) } qabo (e, details) {
+ hubi(details.summad, "E059") caught = caught + 1
+}
+door db = x.fur("sqlite", ":memory:", tls: been, shahaado_ca: maran)
+x.xidh(db)
+hubi(caught, 5)
+qor("database transport ok")

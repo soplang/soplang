@@ -1,0 +1,2 @@
+door xog = [1, "x"]
+  xog.wadar()

@@ -10,7 +10,7 @@ matching branch. Choose that version before creating the release branch.
 ## Verification before drafting
 
 1. Review the [verification record](testing/RELEASE_VERIFICATION.md) and
-   [version-specific release notes](releases/3.0.1.md). Finish pending platform gates.
+   [version-specific release notes](releases/3.6.0.md). Finish pending platform gates.
 2. Run `cargo test --locked` and `cargo test --release --locked`, including AOT.
 3. Build packages on their native systems:
    - Linux: `bash linux/build_linux.sh` (install dpkg-dev for a Debian package).
@@ -73,11 +73,12 @@ the workflow result and the public repository description after an update.
 
 ## Installed build requirements
 
-See [Installing packages](INSTALLING_PACKAGES.md). Native builds require clang,
-a system linker, and the exact Rust toolchain recorded inside the package.
-The image includes these tools. Built programs retain ordinary system-library
-requirements; build Linux assets against the oldest supported distribution and
-test them there before advertising compatibility.
+See [Installing packages](INSTALLING_PACKAGES.md). Soplang 3.6 packages bundle
+the LLVM and linker components needed for installed native builds. Building
+Soplang itself still requires Rust and native build dependencies. Built programs
+retain ordinary system-library requirements; build Linux assets against the
+oldest supported distribution and test them there before advertising
+compatibility.
 
 ## Performance documentation
 

@@ -16,6 +16,7 @@ statement        = declaration
                  | for_stmt
                  | while_stmt
                  | try_catch
+                 | throw_stmt
                  | return_stmt
                  | import_stmt
                  | "jooji"
@@ -50,10 +51,14 @@ switch_stmt      = "dooro" "(" expression ")" "{"
                    [ ( "kale" | "ugudambeyn" ) "{" block "}" ]
                    "}" .
 for_stmt         = "kuceli" "(" identifier expression "ilaa" expression
-                   [ "::" expression ] ")" "{" block "}" .
+                   [ "::" expression ] ")" "{" block "}"
+                 | "kuceli" "(" identifier { "," identifier } "ku" expression
+                   ")" "{" block "}" .
 while_stmt       = "intay" "(" expression ")" "{" block "}" .
-try_catch        = ( "tijaabi" | "fasax" ) "{" block "}" "qabo" "(" identifier ")"
-                   "{" block "}" .
+try_catch        = ( "tijaabi" | "fasax" ) "{" block "}" ( catch [ cleanup ] | cleanup ) .
+catch            = "qabo" "(" identifier [ "," identifier ] ")" "{" block "}" .
+cleanup          = "dhammee" "{" block "}" .
+throw_stmt       = "tuur" expression .
 return_stmt      = "celi" [ expression ] .
 ```
 
@@ -64,7 +69,9 @@ function_def     = "hawl" identifier function_tail .
 function_expr    = "hawl" function_tail .
 function_tail    = "(" [ parameters ] ")" [ ":" type ] "{" block "}" .
 parameters       = parameter { "," parameter } .
-parameter        = [ type ] identifier .
+parameter        = [ type ] identifier [ "=" expression ]
+                 | [ "teed" ] "*" identifier
+                 | [ "walax" ] "**" identifier .
 class_def        = "qaab" identifier [ "dhaxal" identifier ] "{"
                    { function_def }
                    "}" .
@@ -82,7 +89,7 @@ comparison       = additive { ( "==" | "!=" | ">" | "<" | ">=" | "<=" ) additive
 additive         = multiplicative { ( "+" | "-" ) multiplicative } .
 multiplicative   = unary { ( "*" | "/" | "%" ) unary } .
 unary            = [ "!" | "+" | "-" ] postfix .
-postfix          = primary { member | method_call | subscript } .
+postfix          = primary { member | method_call | subscript | call_suffix } .
 primary          = literal
                  | identifier
                  | call
@@ -92,14 +99,16 @@ primary          = literal
                  | function_expr
                  | "(" expression ")" .
 call             = identifier "(" [ arguments ] ")" .
+call_suffix      = "(" [ arguments ] ")" .
 method_call      = member "(" [ arguments ] ")" .
 member           = "." ( identifier | "kuceli" ) .
 subscript        = "[" expression "]" .
-arguments        = expression { "," expression } .
-list_literal     = "[" [ arguments ] "]" .
+arguments        = argument { "," argument } .
+argument         = [ identifier ":" ] expression .
+list_literal     = "[" [ expression { "," expression } ] "]" .
 object_literal   = "{" [ object_entry { "," object_entry } ] "}" .
 object_entry     = ( identifier | string ) ":" expression .
-literal          = number | string | "run" | "been" | "maran" .
+literal          = number | string | interpolated_string | "run" | "been" | "maran" .
 ```
 
 `tijaabi` is contextual: only `tijaabi {` starts a try block. It remains an
@@ -113,3 +122,30 @@ identifier. `haddii_kale` and `ugudambeyn` remain compatibility spellings.
 `kuceli` remains the numeric loop keyword. After a dot it is also a member
 name, so `text.kuceli(3)` repeats a string. This exception does not reserve
 other method names or change user-defined identifiers.
+
+String literals use single, double, triple-single, or triple-double quotes.
+An adjacent `e` prefix enables escapes; `r` explicitly preserves raw text.
+An `f` prefix enables escapes and expression interpolation: `{expression}` or
+`{expression:format}`. Double literal braces as `{{` and `}}`. Expressions use
+the normal grammar, including nested strings and anonymous functions. Format
+descriptors are static text; dynamic nested descriptors are not supported.
+Unprefixed strings preserve literal backslashes for compatibility. Triple
+quotes preserve line breaks and indentation. Unicode escapes use `\u{HEX}`.
+
+Numeric loops compare integer bounds without converting them to floating point.
+`kuceli` includes its endpoint, while `baaxad` excludes it. A step beyond the
+representable integer range ends either sequence instead of wrapping. A float
+step too small to change the current value raises a catchable error when an
+endpoint remains ahead; an already-reached endpoint finishes normally.
+
+Collection loops use contextual `ku`, single values or exact-length row bindings,
+and the [iterator protocol](iteration.md). Numeric headers retain precedence
+when an existing expression beginning with a variable/call named `ku` forms a
+complete numeric loop header. Parenthesized collection expressions disambiguate
+that case.
+
+Required parameters precede parameters with defaults, and parameter names are
+unique. A variadic `*` parameter may be followed only by a final `**` collector.
+Neither collector has a default. Positional call arguments precede named arguments.
+Defaults are evaluated at call time, from left to right; see
+[function arguments](function-arguments.md).

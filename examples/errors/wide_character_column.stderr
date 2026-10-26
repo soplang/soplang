@@ -1,4 +1,4 @@
-Khalad fulin: Tiro looma qaybin karo eber. safka 1, tiirka 24
+Khalad fulin: Tiro looma qaybin karo eber. [E030] safka 1, tiirka 24
      --> examples/errors/wide_character_column.sop:1:24
    1 │   door 中 = 1; door n = 1 / 0
      │                           ^

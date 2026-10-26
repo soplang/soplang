@@ -1,0 +1,6 @@
+Khalad nooc: 'celi' wuxuu u baahan yahay nooca urur[abn], laakiin waxaa la helay urur. [E022] safka 2, tiirka 27
+     --> examples/errors/typed_set_return.sop:2:27
+   2 │   hawl aqbal(): urur[abn] { celi keenxog() }
+     │                             ^^^^
+Raadka wicitaannada:
+     aqbal (examples/errors/typed_set_return.sop:3:1)

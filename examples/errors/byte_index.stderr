@@ -1,0 +1,4 @@
+Khalad fulin: Tusmada baytyadu waa inay noqotaa abn. [E038] safka 2, tiirka 4
+     --> examples/errors/byte_index.sop:2:4
+   2 │   xog["a"]
+     │      ^

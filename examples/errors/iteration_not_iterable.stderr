@@ -1,0 +1,4 @@
+Khalad fulin: Nooca 'abn' laguma wareegi karo. [E037] safka 1, tiirka 1
+     --> examples/errors/iteration_not_iterable.sop:1:1
+   1 │   kuceli (qiime ku 7) {}
+     │   ^^^^^^

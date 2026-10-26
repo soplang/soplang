@@ -1,0 +1,4 @@
+Khalad fulin: Qiimaha baytku waa inuu noqdaa abn u dhexeeya 0 iyo 255. [E038] safka 2, tiirka 1
+     --> examples/errors/byte_write.sop:2:1
+   2 │   xog[0] = 256
+     │   ^^^

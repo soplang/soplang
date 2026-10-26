@@ -1,0 +1,10 @@
+// Xirmadu waxay leedahay meelo aan la beddeli karin.
+xirmo[abn, qoraal] qof = xirmo(25, "Ayaan")
+qor(qof)
+qor(qof[0], qof[-1])
+qor(qof.jar(1).teed())
+kuceli (da, magac ku [qof]) { qor(da, magac) }
+door tirooyin = [1]
+xirmo[teed[abn]] xog = xirmo(tirooyin)
+tijaabi { tirooyin.geli("x") } qabo (fariin) { qor(fariin) }
+tijaabi { qof[0] = 26 } qabo (fariin) { qor(fariin) }

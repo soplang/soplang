@@ -1,0 +1,129 @@
+hawl hubi(shuruud, magac) { haddii (!shuruud) { tuur magac } }
+hawl fashil(hawlgal) {
+    door dhacay=been
+    tijaabi { hawlgal() } qabo (fariin, xog) {
+        dhacay=run
+        hubi(xog.summad=="E038", "byte error code")
+        hubi(xog.saf!=maran && xog.tiir!=maran, "byte error location")
+    }
+    hubi(dhacay,"expected byte failure")
+}
+door empty=baytyo()
+hubi(nooc(empty)=="baytyo" && empty.dherer()==0 && dherer(empty)==0,"empty constructor")
+hubi(!empty && !bool(empty) && empty.hore()==maran && empty.dambe()==maran,"empty truthiness and ends")
+door text=e"A\0é😀"
+baytyo encoded=baytyo(text)
+hubi(encoded.teed()==[65,0,195,169,240,159,152,128],"UTF-8 encoding")
+hubi(encoded.qoraal()==text && qoraal(encoded)==text,"strict UTF-8 roundtrip")
+hubi(dherer(encoded)==8 && encoded.dherer()==8 && bool(encoded),"length counts bytes")
+hubi(encoded[0]==65 && encoded[-1]==128 && encoded[-8]==65,"negative indexing")
+hubi(encoded[8]==maran && encoded[-9]==maran,"missing index is null")
+hubi(encoded[9223372036854775807]==maran && encoded[-9223372036854775807-1]==maran,"extreme indices")
+hubi(encoded.hel(8,99)==99 && encoded.hel(-1)==128 && encoded.hel(9)==maran,"safe lookup")
+hubi(encoded.hore()==65 && encoded.dambe()==128,"ends")
+hubi(encoded.jar(2,4).qoraal()=="é" && encoded.jar(-4).qoraal()=="😀","byte slices")
+hubi(encoded.jar(-100,100)==encoded && encoded.jar(6,2)==empty,"clamped slices")
+hubi(encoded.jar(3,3)==empty && encoded.jar()==encoded,"empty and full slices")
+hubi(qaabee(baytyo([0,255]))=="baytyo([0, 255])","byte display")
+hubi(f"{baytyo([65])}"=="baytyo([65])","interpolation keeps byte display")
+hubi(baytyo([1,2])!=[1,2] && baytyo([1,2])==baytyo([1,2]),"distinct type and content equality")
+hubi(baytyo([1])!=baytyo([2]),"unequal content")
+door copied=baytyo(encoded)
+copied[0]=66
+hubi(encoded[0]==65 && copied[0]==66,"constructor copies")
+door list=[0,255]
+door bytes=baytyo(list)
+list[0]=7
+hubi(bytes[0]==0,"list conversion copies")
+door alias=bytes
+hubi(bytes.dhig(-1,4)==bytes && alias[-1]==4,"mutation shares aliases")
+bytes.geli(9).geli(1,3).geli(0,8).geli(5,10)
+hubi(bytes.teed()==[8,0,3,4,9,10],"append and insert")
+hubi(bytes.saar()==10 && bytes.saar(-2)==4 && bytes.saar(0)==8,"removal")
+hubi(bytes.teed()==[0,3,9],"removal result")
+hubi(bytes.leeyahay(3) && !bytes.leeyahay(4),"membership")
+hubi(bytes.raadi(3)==1 && bytes.raadi(4)==maran && bytes.tiri(3)==1,"search and count")
+door clone=bytes.nuqul()
+clone.rog()
+hubi(clone.teed()==[9,3,0] && bytes.teed()==[0,3,9],"copy and reverse")
+hubi(bytes.midee(bytes).teed()==[0,3,9,0,3,9] && bytes.teed()==[0,3,9],"merge copies including self")
+door values=bytes.teed()
+values[0]=77
+hubi(bytes[0]==0,"list conversion copies")
+clone.nadiifi()
+hubi(!clone && alias==bytes,"clear")
+door iterator=wareeg(bytes)
+bytes[0]=44
+bytes.nadiifi()
+door got=[]
+kuceli (item ku iterator) { got.geli(item) }
+hubi(got==[0,3,9],"iteration snapshots original bytes")
+hubi(xiga(iterator).dhammaad && iterator.xiga().dhammaad,"exhaustion latches")
+door indexed=[]
+kuceli (i,v ku tirso(baytyo([8,9]),5)) { indexed.geli([i,v]) }
+hubi(indexed==[[5,8],[6,9]],"enumerate bytes")
+door rows=[]
+kuceli (a,b ku lamaane(baytyo([1,2]),baytyo([3,4]))) { rows.geli([a,b]) }
+hubi(rows==[[1,3],[2,4]],"zip bytes")
+hawl identity(baytyo data):baytyo { celi data }
+hubi(identity(baytyo([7]))[0]==7,"typed parameters and return")
+hawl fresh(baytyo data=baytyo()){data.geli(1) celi data}
+hubi(fresh().teed()==[1] && fresh().teed()==[1],"fresh defaults")
+madoor baytyo constant=baytyo([2])
+constant[0]=3
+hubi(constant[0]==3,"constant binding keeps mutable contents")
+baytyo typed=baytyo([5])
+hawl wrong(){celi [1]}
+door failed=been
+tijaabi { typed=wrong() } qabo (e) { failed=run }
+hubi(failed && typed[0]==5,"typed assignment preserves previous value")
+door callable=identity
+failed=been
+tijaabi { callable([1]) } qabo (e) { failed=run }
+hubi(failed,"dynamic parameter check")
+hawl wrong_return():baytyo { celi wrong() }
+failed=been
+tijaabi { wrong_return() } qabo (e) { failed=run }
+hubi(failed,"dynamic return check")
+fashil(hawl(){baytyo([256])})
+fashil(hawl(){baytyo([-1])})
+fashil(hawl(){baytyo([1.0])})
+fashil(hawl(){baytyo([run])})
+fashil(hawl(){baytyo([maran])})
+fashil(hawl(){baytyo(3)})
+fashil(hawl(){baytyo([255]).qoraal()})
+fashil(hawl(){qoraal(baytyo([195]))})
+fashil(hawl(){baytyo([192,128]).qoraal()})
+fashil(hawl(){baytyo([237,160,128]).qoraal()})
+fashil(hawl(){baytyo([244,144,128,128]).qoraal()})
+fashil(hawl(){encoded["0"]})
+fashil(hawl(){encoded[1.0]})
+fashil(hawl(){encoded[8]=1})
+fashil(hawl(){encoded[-9]=1})
+fashil(hawl(){encoded[0]=256})
+fashil(hawl(){encoded[0]=1.0})
+fashil(hawl(){encoded.geli(3,300)})
+fashil(hawl(){encoded.geli(9,1)})
+fashil(hawl(){encoded.dhig(99,1)})
+fashil(hawl(){encoded.dhig(0,run)})
+fashil(hawl(){encoded.hel("x")})
+fashil(hawl(){encoded.midee([1])})
+fashil(hawl(){encoded.leeyahay(256)})
+fashil(hawl(){encoded.unknown()})
+fashil(hawl(){empty.saar()})
+hubi(encoded.qoraal()==text,"failed mutations are atomic")
+// Keep roots through allocations, captured closures, nested collections and cursors.
+hawl capture(data){celi hawl(){celi data}}
+door captured=capture(baytyo([6]))
+door nested=[{data:baytyo([7])}]
+door held=wareeg([baytyo([8])])
+door byte_cursor=wareeg(baytyo([9,10]))
+kuceli (i 1 ilaa 2500) { door garbage=baytyo("temporary") }
+hubi(captured()[0]==6 && nested[0].data[0]==7,"closure and nested GC roots")
+hubi(xiga(held).qiime[0]==8 && xiga(byte_cursor).qiime==9,"iterator GC roots")
+hubi(typed[0]==5 && encoded.qoraal()==text,"live generated roots")
+hubi([].aaddin(baytyo)==[],"native byte constructor signature")
+failed=been
+tijaabi { [].ururi(baytyo,0) } qabo (e) { failed=run }
+hubi(failed,"byte constructor rejects binary callback contract")
+qor("bytes ok")

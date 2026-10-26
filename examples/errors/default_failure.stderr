@@ -1,0 +1,6 @@
+Khalad fulin: Tiro looma qaybin karo eber. [E030] safka 1, tiirka 20
+     --> examples/errors/default_failure.sop:1:20
+   1 │   hawl tijaabo(a = 1 / 0) { celi a }
+     │                      ^
+Raadka wicitaannada:
+     tijaabo (examples/errors/default_failure.sop:2:1)

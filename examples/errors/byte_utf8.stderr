@@ -1,0 +1,4 @@
+Khalad fulin: Baytyadu ma aha qoraal UTF-8 ah oo sax ah. [E038] safka 2, tiirka 1
+     --> examples/errors/byte_utf8.sop:2:1
+   2 │   qoraal(xog)
+     │   ^^^^^^

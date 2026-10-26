@@ -10,10 +10,99 @@ pub enum TypeAnnotation {
     Qoraal,
     Bool,
     Teed,
+    Tuple,
+    Set,
+    SetOf(Box<TypeAnnotation>),
+    TupleOf(Vec<TypeAnnotation>),
+    ListOf(Box<TypeAnnotation>),
+    ObjectOf(Box<TypeAnnotation>),
+    Bytes,
+    Function,
     Walax,
     Dynamic,
+    Null,
+    Union(Vec<TypeAnnotation>),
     /// Instance of this class, or of a class that extends it.
     Class(String),
+}
+
+impl TypeAnnotation {
+    pub(crate) fn same_contract(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::ListOf(a), Self::ListOf(b))
+            | (Self::ObjectOf(a), Self::ObjectOf(b))
+            | (Self::SetOf(a), Self::SetOf(b)) => a.same_contract(b),
+            (Self::TupleOf(a), Self::TupleOf(b)) => {
+                a.len() == b.len() && a.iter().zip(b).all(|(a, b)| a.same_contract(b))
+            }
+            (Self::Union(a), Self::Union(b)) => {
+                a.len() == b.len()
+                    && a.iter()
+                        .all(|ty| b.iter().any(|other| ty.same_contract(other)))
+            }
+            _ => self == other,
+        }
+    }
+    pub(crate) fn union(types: Vec<Self>) -> Self {
+        let mut result = Vec::new();
+        for ty in types {
+            if ty == Self::Dynamic {
+                return Self::Dynamic;
+            }
+            let alternatives = match ty {
+                Self::Union(types) => types,
+                ty => vec![ty],
+            };
+            for ty in alternatives {
+                if !result
+                    .iter()
+                    .any(|existing: &Self| existing.same_contract(&ty))
+                {
+                    result.push(ty);
+                }
+            }
+        }
+        if result.len() == 1 {
+            result.remove(0)
+        } else {
+            Self::Union(result)
+        }
+    }
+
+    pub(crate) fn runtime_contract(&self) -> String {
+        match self {
+            Self::Class(name) => format!("@{name}"),
+            Self::TupleOf(types) => format!(
+                "xirmo[{}]",
+                types
+                    .iter()
+                    .map(Self::runtime_contract)
+                    .collect::<Vec<_>>()
+                    .join(",")
+            ),
+            Self::SetOf(inner) => format!("urur[{}]", inner.runtime_contract()),
+            Self::ListOf(inner) => format!("teed[{}]", inner.runtime_contract()),
+            Self::ObjectOf(inner) => format!("walax[qoraal,{}]", inner.runtime_contract()),
+            Self::Union(types) => types
+                .iter()
+                .map(Self::runtime_contract)
+                .collect::<Vec<_>>()
+                .join("|"),
+            ty => ty.to_string(),
+        }
+    }
+
+    pub(crate) fn named(name: String) -> Self {
+        if name == "urur" {
+            Self::Set
+        } else if name == "xirmo" {
+            Self::Tuple
+        } else if name == "baytyo" {
+            Self::Bytes
+        } else {
+            Self::Class(name)
+        }
+    }
 }
 
 /// Literal values at parse time.
@@ -38,6 +127,16 @@ impl fmt::Display for Literal {
     }
 }
 
+#[derive(Debug, Clone)]
+pub enum InterpolationPart {
+    Text(String),
+    Value {
+        expression: Expr,
+        format: String,
+        span: Option<crate::error::SourceSpan>,
+    },
+}
+
 /// Expressions (produce values).
 #[derive(Debug, Clone)]
 pub enum Expr {
@@ -46,7 +145,14 @@ pub enum Expr {
         expr: Box<Expr>,
     },
     Literal(Literal),
+    Interpolated {
+        parts: Vec<InterpolationPart>,
+    },
     Identifier(String),
+    NamedArgument {
+        name: String,
+        value: Box<Expr>,
+    },
     BinaryOp {
         op: String,
         left: Box<Expr>,
@@ -59,6 +165,11 @@ pub enum Expr {
     /// Function call: name(args)
     Call {
         name: String,
+        args: Vec<Expr>,
+    },
+    /// Invoke any callable expression, including a returned closure.
+    Invoke {
+        callee: Box<Expr>,
         args: Vec<Expr>,
     },
     /// Anonymous function expression: hawl(params) { body }
@@ -107,6 +218,7 @@ impl fmt::Display for Expr {
             Expr::Located { expr, .. } => write!(f, "{}", expr),
             Expr::Literal(l) => write!(f, "{}", l),
             Expr::Identifier(s) => write!(f, "{}", s),
+            Expr::NamedArgument { name, value } => write!(f, "{}: {}", name, value),
             Expr::BinaryOp { op, left, right } => {
                 write!(f, "({} {} {})", left, op, right)
             }
@@ -121,6 +233,41 @@ impl fmt::Display for Expr {
                 }
                 write!(f, ")")
             }
+            Expr::Interpolated { parts } => {
+                write!(f, "f\"")?;
+                for part in parts {
+                    match part {
+                        InterpolationPart::Text(text) => write!(
+                            f,
+                            "{}",
+                            text.escape_debug()
+                                .to_string()
+                                .replace('{', "{{")
+                                .replace('}', "}}")
+                        )?,
+                        InterpolationPart::Value {
+                            expression, format, ..
+                        } => {
+                            write!(f, "{{{}", expression)?;
+                            if !format.is_empty() {
+                                write!(f, ":{}", format)?;
+                            }
+                            write!(f, "}}")?;
+                        }
+                    }
+                }
+                write!(f, "\"")
+            }
+            Expr::Invoke { callee, args } => {
+                write!(f, "({})(", callee)?;
+                for (index, arg) in args.iter().enumerate() {
+                    if index > 0 {
+                        write!(f, ", ")?;
+                    }
+                    write!(f, "{}", arg)?;
+                }
+                write!(f, ")")
+            }
             Expr::AnonymousFunc {
                 params, return_ann, ..
             } => {
@@ -129,7 +276,13 @@ impl fmt::Display for Expr {
                     if i > 0 {
                         write!(f, ", ")?;
                     }
+                    if p.variadic || p.keyword_rest {
+                        write!(f, "{}", if p.keyword_rest { "**" } else { "*" })?;
+                    }
                     write!(f, "{}", p.name)?;
+                    if let Some(default) = &p.default {
+                        write!(f, " = {}", default)?;
+                    }
                 }
                 if return_ann != &TypeAnnotation::Dynamic {
                     write!(f, ") : {} {{ ... }}", type_annotation_name(return_ann))
@@ -183,27 +336,82 @@ impl fmt::Display for Expr {
     }
 }
 
-fn type_annotation_name(ann: &TypeAnnotation) -> &str {
-    match ann {
-        TypeAnnotation::Abn => "abn",
-        TypeAnnotation::Jajab => "jajab",
-        TypeAnnotation::Qoraal => "qoraal",
-        TypeAnnotation::Bool => "bool",
-        TypeAnnotation::Teed => "teed",
-        TypeAnnotation::Walax => "walax",
-        TypeAnnotation::Dynamic => "door",
-        TypeAnnotation::Class(name) => name,
+impl fmt::Display for TypeAnnotation {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Abn => f.write_str("abn"),
+            Self::Jajab => f.write_str("jajab"),
+            Self::Qoraal => f.write_str("qoraal"),
+            Self::Bool => f.write_str("bool"),
+            Self::Teed => f.write_str("teed"),
+            Self::Tuple => f.write_str("xirmo"),
+            Self::Set => f.write_str("urur"),
+            Self::TupleOf(types) => {
+                f.write_str("xirmo[")?;
+                for (i, ty) in types.iter().enumerate() {
+                    if i > 0 {
+                        f.write_str(", ")?;
+                    }
+                    write!(f, "{ty}")?;
+                }
+                f.write_str("]")
+            }
+            Self::SetOf(inner) => write!(f, "urur[{inner}]"),
+            Self::ListOf(inner) => write!(f, "teed[{inner}]"),
+            Self::ObjectOf(inner) => write!(f, "walax[qoraal, {inner}]"),
+            Self::Walax => f.write_str("walax"),
+            Self::Bytes => f.write_str("baytyo"),
+            Self::Function => f.write_str("hawl"),
+            Self::Dynamic => f.write_str("door"),
+            Self::Null => f.write_str("maran"),
+            Self::Class(name) => f.write_str(name),
+            Self::Union(types) => {
+                if types.len() == 2 && types.contains(&Self::Null) {
+                    let value = types.iter().find(|ty| **ty != Self::Null).unwrap();
+                    write!(f, "{value}?")
+                } else {
+                    for (index, ty) in types.iter().enumerate() {
+                        if index > 0 {
+                            f.write_str(" | ")?;
+                        }
+                        write!(f, "{ty}")?;
+                    }
+                    Ok(())
+                }
+            }
+        }
     }
 }
 
-/// Function parameter (name only for now).
+fn type_annotation_name(ann: &TypeAnnotation) -> String {
+    ann.to_string()
+}
+
+/// A required parameter or a value evaluated when the argument is omitted.
 #[derive(Debug, Clone)]
 pub struct Param {
     pub name: String,
     pub type_ann: TypeAnnotation,
+    pub default: Option<Expr>,
+    pub variadic: bool,
+    pub keyword_rest: bool,
 }
 
-/// Statements (side effects; optional line for errors).
+/// One name brought into the caller from a namespaced file.
+#[derive(Debug, Clone)]
+pub struct SelectedImport {
+    pub name: String,
+    pub alias: Option<String>,
+}
+
+/// A file import. `alias` keeps the file's public names on one value.
+/// `selected` binds individual public names in the caller.
+#[derive(Debug, Clone)]
+pub struct ImportSpec {
+    pub path: String,
+    pub alias: Option<String>,
+    pub selected: Vec<SelectedImport>,
+}
 #[derive(Debug, Clone)]
 pub enum Stmt {
     Located {
@@ -239,6 +447,16 @@ pub enum Stmt {
         parent: Option<String>,
         body: Vec<Stmt>,
     },
+    /// Namespace alias whose properties name exported classes.
+    UseModule {
+        alias: String,
+        classes: Vec<(String, String)>,
+    },
+    /// Local name for a class defined in another module.
+    UseClass {
+        name: String,
+        class_name: String,
+    },
     If {
         cond: Expr,
         then_body: Vec<Stmt>,
@@ -257,19 +475,42 @@ pub enum Stmt {
         step: Option<Expr>,
         body: Vec<Stmt>,
     },
+    ForEach {
+        vars: Vec<String>,
+        iterable: Expr,
+        body: Vec<Stmt>,
+    },
     While {
         cond: Expr,
         body: Vec<Stmt>,
     },
     Return(Option<Expr>),
+    Throw(Expr),
     Break,
     Continue,
     TryCatch {
         try_body: Vec<Stmt>,
-        err_var: String,
+        err_var: Option<String>,
+        err_details: Option<String>,
         catch_body: Vec<Stmt>,
+        finally_body: Vec<Stmt>,
     },
-    Import(String),
+    Import(ImportSpec),
+    /// Names listed by `soosaar` in a namespaced file.
+    Export(Vec<String>),
+    /// Top-level `tijaabo "name" { }` or `tijaabo "name" qalad { }`.
+    /// Ordinary execution skips it. `soplang test` runs the body.
+    Test {
+        name: String,
+        expect_error: bool,
+        expected_code: Option<String>,
+        body: Vec<Stmt>,
+    },
+    /// Top-level `diyaar { }` or `nadiifi { }`.
+    Fixture {
+        setup: bool,
+        body: Vec<Stmt>,
+    },
     Block(Vec<Stmt>),
     Expr(Expr),
 }
@@ -296,17 +537,10 @@ impl Stmt {
                 value,
                 ..
             } => {
-                let ty = match type_ann {
-                    TypeAnnotation::Dynamic => {
-                        if *is_const { "madoor" } else { "door" }.to_string()
-                    }
-                    TypeAnnotation::Abn => "abn".to_string(),
-                    TypeAnnotation::Jajab => "jajab".to_string(),
-                    TypeAnnotation::Qoraal => "qoraal".to_string(),
-                    TypeAnnotation::Bool => "bool".to_string(),
-                    TypeAnnotation::Teed => "teed".to_string(),
-                    TypeAnnotation::Walax => "walax".to_string(),
-                    TypeAnnotation::Class(class) => class.clone(),
+                let ty = if *type_ann == TypeAnnotation::Dynamic && *is_const {
+                    "madoor".to_owned()
+                } else {
+                    type_ann.to_string()
                 };
                 writeln!(f, "{}{} {} = {};", pad, ty, name, value)
             }
@@ -322,28 +556,25 @@ impl Stmt {
                     if i > 0 {
                         write!(f, ", ")?;
                     }
-                    let param_ty = match &p.type_ann {
-                        TypeAnnotation::Dynamic => "door".to_string(),
-                        TypeAnnotation::Abn => "abn".to_string(),
-                        TypeAnnotation::Jajab => "jajab".to_string(),
-                        TypeAnnotation::Qoraal => "qoraal".to_string(),
-                        TypeAnnotation::Bool => "bool".to_string(),
-                        TypeAnnotation::Teed => "teed".to_string(),
-                        TypeAnnotation::Walax => "walax".to_string(),
-                        TypeAnnotation::Class(class) => class.clone(),
-                    };
-                    write!(f, "{} {}", param_ty, p.name)?;
+                    let param_ty = p.type_ann.to_string();
+                    write!(
+                        f,
+                        "{} {}{}",
+                        param_ty,
+                        if p.keyword_rest {
+                            "**"
+                        } else if p.variadic {
+                            "*"
+                        } else {
+                            ""
+                        },
+                        p.name
+                    )?;
+                    if let Some(default) = &p.default {
+                        write!(f, " = {}", default)?;
+                    }
                 }
-                let ret_ty = match return_ann {
-                    TypeAnnotation::Dynamic => "door".to_string(),
-                    TypeAnnotation::Abn => "abn".to_string(),
-                    TypeAnnotation::Jajab => "jajab".to_string(),
-                    TypeAnnotation::Qoraal => "qoraal".to_string(),
-                    TypeAnnotation::Bool => "bool".to_string(),
-                    TypeAnnotation::Teed => "teed".to_string(),
-                    TypeAnnotation::Walax => "walax".to_string(),
-                    TypeAnnotation::Class(class) => class.clone(),
-                };
+                let ret_ty = return_ann.to_string();
                 writeln!(f, ") : {} {{", ret_ty)?;
                 for s in body {
                     s.fmt_with_depth(f, depth + 1)?;
@@ -426,6 +657,17 @@ impl Stmt {
                 }
                 writeln!(f, "{}}}", pad)
             }
+            Stmt::ForEach {
+                vars,
+                iterable,
+                body,
+            } => {
+                writeln!(f, "{}kuceli ({} ku {}) {{", pad, vars.join(", "), iterable)?;
+                for stmt in body {
+                    stmt.fmt_with_depth(f, depth + 1)?;
+                }
+                writeln!(f, "{}}}", pad)
+            }
             Stmt::While { cond, body } => {
                 writeln!(f, "{}intay ({}) {{", pad, cond)?;
                 for s in body {
@@ -433,6 +675,7 @@ impl Stmt {
                 }
                 writeln!(f, "{}}}", pad)
             }
+            Stmt::Throw(e) => writeln!(f, "{}tuur {};", pad, e),
             Stmt::Return(Some(e)) => writeln!(f, "{}celi {};", pad, e),
             Stmt::Return(None) => writeln!(f, "{}celi;", pad),
             Stmt::Break => writeln!(f, "{}jooji;", pad),
@@ -440,19 +683,84 @@ impl Stmt {
             Stmt::TryCatch {
                 try_body,
                 err_var,
+                err_details,
                 catch_body,
+                finally_body,
             } => {
-                writeln!(f, "{}fasax {{", pad)?;
-                for s in try_body {
-                    s.fmt_with_depth(f, depth + 1)?;
+                writeln!(f, "{}tijaabi {{", pad)?;
+                for stmt in try_body {
+                    stmt.fmt_with_depth(f, depth + 1)?;
                 }
-                writeln!(f, "{}}} qabo ({}) {{", pad, err_var)?;
-                for s in catch_body {
-                    s.fmt_with_depth(f, depth + 1)?;
+                writeln!(f, "{}}}", pad)?;
+                if let Some(name) = err_var {
+                    if let Some(details) = err_details {
+                        writeln!(f, "{}qabo ({}, {}) {{", pad, name, details)?;
+                    } else {
+                        writeln!(f, "{}qabo ({}) {{", pad, name)?;
+                    }
+                    for stmt in catch_body {
+                        stmt.fmt_with_depth(f, depth + 1)?;
+                    }
+                    writeln!(f, "{}}}", pad)?;
                 }
-                writeln!(f, "{}}}", pad)
+                if !finally_body.is_empty() || err_var.is_none() {
+                    writeln!(f, "{}dhammee {{", pad)?;
+                    for stmt in finally_body {
+                        stmt.fmt_with_depth(f, depth + 1)?;
+                    }
+                    writeln!(f, "{}}}", pad)?;
+                }
+                Ok(())
             }
-            Stmt::Import(path) => writeln!(f, "{}keen {:?};", pad, path),
+            Stmt::Import(import) => {
+                write!(f, "{pad}keen {:?}", import.path)?;
+                if let Some(alias) = &import.alias {
+                    write!(f, " sida {alias}")?;
+                }
+                if !import.selected.is_empty() {
+                    write!(f, " ka ")?;
+                    for (index, item) in import.selected.iter().enumerate() {
+                        if index > 0 {
+                            write!(f, ", ")?;
+                        }
+                        write!(f, "{}", item.name)?;
+                        if let Some(alias) = &item.alias {
+                            write!(f, " sida {alias}")?;
+                        }
+                    }
+                }
+                writeln!(f, ";")
+            }
+            Stmt::Export(names) => writeln!(f, "{}soosaar {};", pad, names.join(", ")),
+            Stmt::Test {
+                name,
+                expect_error,
+                expected_code,
+                body,
+            } => {
+                if *expect_error {
+                    if let Some(code) = expected_code {
+                        writeln!(f, "{pad}tijaabo {name:?} qalad({code:?}) {{")?;
+                    } else {
+                        writeln!(f, "{pad}tijaabo {name:?} qalad {{")?;
+                    }
+                } else {
+                    writeln!(f, "{pad}tijaabo {name:?} {{")?;
+                }
+                for stmt in body {
+                    stmt.fmt_with_depth(f, depth + 1)?;
+                }
+                writeln!(f, "{pad}}}")
+            }
+            Stmt::Fixture { setup, body } => {
+                writeln!(f, "{pad}{} {{", if *setup { "diyaar" } else { "nadiifi" })?;
+                for stmt in body {
+                    stmt.fmt_with_depth(f, depth + 1)?;
+                }
+                writeln!(f, "{pad}}}")
+            }
+            Stmt::UseModule { alias, .. } => writeln!(f, "{pad}keen qaab {alias};"),
+            Stmt::UseClass { name, class_name } => writeln!(f, "{pad}qaab {name} = {class_name};"),
             Stmt::Block(stmts) => {
                 writeln!(f, "{} {{", pad)?;
                 for s in stmts {

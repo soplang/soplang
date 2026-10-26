@@ -1,0 +1,5 @@
+Khalad nooc: Qaab 'Missing' lama aqoonsan [E021] safka 1, tiirka 1
+     --> examples/errors/typed_set_unknown_class.sop:1:1
+   1 │   urur[xirmo[Missing]] xog = urur()
+     │   ^^^^
+     └─ Qeex qaabka ka hor intaadan u isticmaalin nooc ahaan.

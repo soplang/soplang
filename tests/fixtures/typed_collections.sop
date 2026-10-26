@@ -1,0 +1,133 @@
+hawl hubi(v,name){haddii(!v){tuur name}}
+hawl fails(cb,code="E039") {door failed=been tijaabi{cb()}qabo(e,x){failed=run hubi(x.summad==code,"error code")} hubi(failed,"expected failure")}
+teed[abn] ints=[1,2]
+door alias=ints
+fails(hawl(){alias.geli("x")})
+fails(hawl(){alias.geli(0,"x")})
+fails(hawl(){alias.dhig(0,"x")})
+fails(hawl(){alias[0]="x"})
+fails(hawl(){alias.kudar("x")})
+hubi(ints==[1,2],"all writes are atomic")
+ints.geli(3).geli(0,4).dhig(-1,5)
+ints.rog().habee()
+hubi(ints==[1,2,4,5],"valid mutation and sorting")
+hubi(ints.saar()==5 && ints.ka_saar(0)==1 && ints.kasaar()==4,"removal aliases")
+ints.nadiifi()
+hubi(ints==[],"clear")
+ints.geli(9)
+door copied=ints.nuqul()
+copied.geli("x")
+hubi(copied==[9,"x"] && ints==[9],"fresh outer copies have independent contracts")
+teed[abn | qoraal?] mixed=[1,"x",maran]
+mixed.geli(2)
+fails(hawl(){mixed.geli(run)})
+teed[jajab] floats=[1.0]
+fails(hawl(){floats.geli(2)})
+floats.geli(jajab(2))
+hubi(nooc(floats[1])=="jajab","element numeric kinds are exact")
+walax[qoraal,abn] scores={a:1}
+door score_alias=scores
+fails(hawl(){score_alias.a="x"})
+fails(hawl(){score_alias["a"]="x"})
+fails(hawl(){score_alias.dhig("a","x")})
+score_alias.dhig("b",2)
+hubi(scores=={a:1,b:2},"valid object write")
+hubi(scores.saar("b")==2,"object removal")
+scores.tir("a")
+scores.dhig("c",3).nadiifi()
+hubi(scores=={},"object clear")
+walax[abn] short={a:1}
+hubi(short.a==1,"implicit string key annotation")
+// Parent guards constrain nested aliases, including values extracted beforehand.
+door child=[1]
+teed[teed[abn]] matrix=[child]
+fails(hawl(){child.geli("x")})
+child.geli(2)
+hubi(matrix==[[1,2]],"nested alias mutation")
+door other=[3]
+matrix[0]=other
+child.geli("detached")
+fails(hawl(){other[0]="x"})
+hubi(matrix==[[3]],"dependencies follow replacement and detach old children")
+door copied_matrix=matrix.nuqul()
+fails(hawl(){copied_matrix[0].geli("x")})
+// A whole-container union must stay true for all siblings together.
+door left=[] door right=[]
+teed[teed[abn]] | teed[teed[qoraal]] rows=[left,right]
+left.geli(1)
+fails(hawl(){right.geli("x")})
+right.geli(2)
+left.nadiifi() right.nadiifi()
+left.geli("x") right.geli("y")
+hubi(rows==[["x"],["y"]],"union switches only while every sibling remains valid")
+rows[0]=[]
+fails(hawl(){rows[0].geli(1)})
+rows.nadiifi()
+left.geli(3)
+hubi(left==["x",3],"removed children stop inheriting parent-only constraints")
+walax[qoraal,teed[abn]] groups={a:[1]}
+door member=groups.a
+fails(hawl(){member.geli("x")})
+groups.dhig("b",[2])
+fails(hawl(){groups.b.geli("x")})
+groups.saar("a") member.geli("detached")
+// Failed registration installs no partial child guards.
+door loose=[] door bad=[loose,["wrong"]]
+fails(hawl(){hawl validate(teed[teed[abn]] v){} validate(bad)},"E022")
+loose.geli("still free")
+// One mutation validates every parent; a failure publishes neither data nor dependencies.
+door shared=[1]
+teed[teed[abn|qoraal]] broad=[shared]
+walax[qoraal,teed[abn]] narrow={a:shared}
+fails(hawl(){shared.geli("bad")})
+hubi(shared==[1],"all-parent mutation is atomic")
+narrow.saar("a")
+shared.geli("ok")
+fails(hawl(){shared.geli(run)})
+// Independent annotations intersect on the same shared identity.
+door empty=[]
+hawl integer(teed[abn] v){}
+hawl string(teed[qoraal] v){}
+integer(empty) string(empty)
+fails(hawl(){empty.geli(1)})
+fails(hawl(){empty.geli("x")})
+// Concrete class contracts also observe changes through instance aliases.
+qaab Base {hawl dhis(){nafta.n=1}}
+qaab Child dhaxal Base {}
+teed[Base] instances=[cusub Child()]
+instances[0].n=2
+fails(hawl(){instances[0]["__class__"]="Other"})
+hubi(instances[0].n==2,"class mutation preserves class contract")
+// Parameters, returns, named calls, defaults, and both rest collectors.
+hawl identity(teed[abn] v):teed[abn]{celi v}
+hubi(identity(v:[7])==[7],"named generic argument")
+hawl fresh(teed[abn] v=[]):teed[abn]{v.geli(1) celi v}
+hubi(fresh()==[1] && fresh()==[1],"fresh typed defaults")
+hawl gather(teed[abn] *values,walax[qoraal,abn] **options):teed[abn]{values.geli(9) celi values}
+hubi(gather(1,2,key:3)==[1,2,9],"typed collectors")
+fails(hawl(){gather(1,"bad")},"E022")
+fails(hawl(){gather(1,key:"bad")},"E022")
+hawl factory(){celi hawl(teed[abn] v):teed[abn]{celi v}}
+hubi(factory()([8])==[8],"returned generic closure")
+teed[abn]? optional=maran
+optional=[5]
+fails(hawl(){optional.geli("bad")})
+// Function return validation attaches a shared contract to returned storage.
+hawl result():teed[abn]{celi [4]}
+door output=result()
+fails(hawl(){output[0]="bad"})
+teed[abn | qoraal] order=[1]
+teed[qoraal | abn] same=order
+same.geli("ok")
+// Finite type trees work with cyclic values and shared subgraphs.
+door cycle=[]
+cycle.geli(cycle)
+teed[teed] recursive=cycle
+fails(hawl(){cycle.geli(1)})
+hubi(cycle.saar()==cycle,"cyclic membership removal")
+teed[walax[teed[abn]]] nested=[{x:[1]}]
+kuceli(i 1 ilaa 2400){door garbage=[i]}
+fails(hawl(){nested[0].x.geli("bad")})
+fails(hawl(){ints.geli("bad")})
+hubi(groups.b==[2] && output==[4],"GC preserves live contracts")
+qor("typed collections ok")

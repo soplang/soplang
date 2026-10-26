@@ -1,0 +1,4 @@
+Khalad nooc: Beddelkani ma waafaqsana nooca ururka walax[qoraal, abn]. [E039] safka 2, tiirka 1
+     --> examples/errors/typed_object_write.sop:2:1
+   2 │   xog.a = "x"
+     │   ^^^

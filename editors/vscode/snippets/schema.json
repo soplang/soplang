@@ -1,0 +1,13 @@
+{
+  "Table": {
+    "prefix": "jadwal",
+    "body": [
+      "jadwal ${1:qof} {",
+      "    id abn furaha",
+      "    ${2:magac} qoraal",
+      "    ${3:da} abn?",
+      "}"
+    ],
+    "description": "Database table with an integer key and optional field."
+  }
+}

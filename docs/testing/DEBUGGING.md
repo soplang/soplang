@@ -9,7 +9,7 @@ JIT and LLVM native executables, including code loaded with `keen`.
 For `examples/errors/division_zero.sop`:
 
 ```text
-Khalad fulin: Tiro looma qaybin karo eber. safka 2, tiirka 14
+Khalad fulin: Tiro looma qaybin karo eber. [E030] safka 2, tiirka 14
      --> examples/errors/division_zero.sop:2:14
    2 │       qor(tiro / 0)
      │                ^

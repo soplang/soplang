@@ -14,6 +14,8 @@ Tests check user-visible behavior of the Rust compiler:
 
 ## Pages
 
+- [3.1 runtime verification](RUNTIME_3_1.md): local implementation checks and remaining distribution gates
+
 - [Release verification](RELEASE_VERIFICATION.md) — completed v3.0.0 platform/package checks and distribution limits
 - [Test methodology](TEST_METHODOLOGY.md) — what the suites cover and how to run them
 - [Example programs](EXAMPLES.md) — the programs under `examples/`

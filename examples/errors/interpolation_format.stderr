@@ -1,0 +1,4 @@
+Khalad nooc: Qaabka qoraalka 'invalid' lama aqoonsan. [E036] safka 1, tiirka 13
+     --> examples/errors/interpolation_format.sop:1:13
+   1 │   qor(f"é: {1:invalid}")
+     │               ^^^^^^^

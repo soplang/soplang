@@ -1,0 +1,5 @@
+Khalad nooc: 'a' waa abn laakin qiimaheeda 'qoraal' ma ahan abn [E022] safka 1, tiirka 22
+     --> examples/errors/default_type.sop:1:22
+   1 │   hawl tijaabo(abn a = "qoraal") {}
+     │                        ^^^^^^^^
+     └─ Hubi in nooca qiimaha uu la mid yahay nooca lagu qeexay doorsamaha.

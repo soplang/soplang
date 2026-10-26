@@ -1,0 +1,8 @@
+teed[abn] tirooyin = [3, 1, 3]
+tirooyin.ballaadhi(xirmo(2, 1))
+qor(tirooyin.keli())
+qor(tirooyin.wadar())
+qor(tirooyin.saar(3, "qiime"))
+tirooyin.habee(maran, run)
+qor(tirooyin)
+kuceli (tusmo, qiime ku tirooyin.tirso()) { qor(tusmo, qiime) }

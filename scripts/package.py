@@ -49,7 +49,7 @@ def main():
             binary = Path(message["executable"])
         for name in message["filenames"]:
             path = Path(name)
-            if path.suffix == ".rlib":
+            if path.suffix in (".rlib", ".so", ".dylib", ".dll"):
                 if target["name"] == "soplang":
                     runtime = path
                 else:
@@ -80,6 +80,7 @@ def main():
         for name in ("LICENSE", "README.md"):
             shutil.copy2(ROOT / name, stage / name)
         shutil.copy2(ROOT / "docs/INSTALLING_PACKAGES.md", stage / "INSTALLING.md")
+        shutil.copytree(ROOT / "licenses", stage / "licenses")
         if output.exists():
             shutil.rmtree(output)
         shutil.move(str(stage), output)

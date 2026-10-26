@@ -1,0 +1,4 @@
+Khalad nooc: Hawsha la siiyay 'habee()' ma aqbasho 1 dood; waxay u baahan tahay 2 dood. [E022] safka 2, tiirka 5
+     --> examples/errors/list_sort_signature.sop:2:5
+   2 │   xog.habee(hawl(a, b) { celi a })
+     │       ^^^^^

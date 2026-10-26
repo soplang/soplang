@@ -1,0 +1,46 @@
+hawl hubi(shuruud, magac) { haddii (!shuruud) { tuur magac } }
+hawl ururi(*items) { celi items }
+hubi(ururi() == [] && ururi(1) == [1] && ururi(1,2,3) == [1,2,3], "zero, one and many arguments")
+hubi(ururi(0,1,2,3,4,5,6,7,8,9,10,11) == [0,1,2,3,4,5,6,7,8,9,10,11], "wide variadic calls")
+hubi(ururi(maran,been,0,"",[]) == [maran,been,0,"",[]], "values preserve their types")
+hawl first(a, *items) { celi [a,items] }
+hubi(first(7) == [7,[]] && first(7,8) == [7,[8]] && first(7,8,9) == [7,[8,9]], "required prefix")
+hawl optional(a=2, b=a+1, *items) { celi [a,b,items] }
+hubi(optional() == [2,3,[]] && optional(8) == [8,9,[]], "defaults before variadic")
+hubi(optional(8,9,10,11) == [8,9,[10,11]], "supplied defaults and remaining arguments")
+door dynamic = ururi
+hubi(dynamic() == [] && dynamic(1,2) == [1,2], "dynamic callable")
+hawl make(seed) { celi hawl(a=seed, *rest) { celi [a,rest,seed] } }
+door closure=make(4)
+hubi(closure() == [4,[],4] && closure(8,1,2) == [8,[1,2],4], "captured environment is not a rest argument")
+qaab Parent {
+    hawl dhis(a=5,*rest) { nafta.a=a nafta.rest=rest }
+    hawl values(*rest) { celi [nafta.a,nafta.rest,rest] }
+}
+qaab Child dhaxal Parent {}
+qaab More dhaxal Parent { hawl values(*rest) { celi waalid.values(rest) } }
+hubi(cusub Child().values() == [5,[],[]], "empty inherited constructor and method")
+hubi(cusub Child(1,2,3).values(4,5) == [1,[2,3],[4,5]], "constructor and method rest")
+hubi(cusub More(1).values(2,3) == [1,[],[[2,3]]], "parent rest")
+door object={fn:hawl(*items){celi items}}
+hubi(object.fn(1,2) == [1,2], "object-held variadic function")
+hubi([1,2].aaddin(hawl(*items){celi items}) == [[1],[2]], "variadic map callback")
+hubi([1,2,3].ururi(hawl(a,*items){celi a+items[0]},0) == 6, "variadic reducer callback")
+door events=[]
+hawl note(x){events.geli(x) celi x}
+hubi(first(note(1),note(2),note(3)) == [1,[2,3]] && events == [1,2,3], "argument order")
+door original=[1]
+door packed=ururi(original)
+original.geli(2)
+hubi(packed == [[1,2]], "shallow packing preserves argument identity")
+packed.geli(9)
+hubi(ururi(original) == [[1,2]], "each call creates a fresh rest list")
+hawl typed(teed *items):teed { celi items }
+hubi(typed(1,"x") == [1,"x"], "rest container type annotation")
+hawl burn(){kuceli(i 1 ilaa 1300){door cycle=[] cycle.geli(cycle)}}
+hawl retained(*items){burn() celi items}
+hubi(retained({n:42},[7]) == [{n:42},[7]], "rest list survives collection")
+door bad=first
+tijaabi { bad() hubi(been,"expected arity failure") } qabo(message) { hubi(message.leeyahay("1 ama ka badan"),"minimum argument count") }
+hubi(ururi(9) == [9], "recovery")
+qor("variadic arguments ok")

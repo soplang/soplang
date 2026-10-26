@@ -1,0 +1,42 @@
+soosaar fur, xidh, schema, guuri, ku_geli, raadi, beddel, tirtir, macaamil, awood
+
+hawl xidh(db) { celi xog_xidh(db) }
+
+hawl fur(nooc, jid, wadar = maran, tls = been, shahaado_ca = maran) {
+    door xulasho = { tls: tls, shahaado_ca: shahaado_ca }
+    haddii (wadar != maran) { xulasho.wadarta = wadar }
+    celi xog_fur(nooc, jid, xulasho)
+}
+
+hawl schema(db, qoraalka) {
+    celi xog_schema(db, qoraalka)
+}
+
+hawl guuri(db) {
+    celi xog_guuri(db)
+}
+
+hawl ku_geli(db, jadwal, xog) {
+    celi xog_geli(db, jadwal, xog)
+}
+
+hawl raadi(db, jadwal, shaandhe = maran) {
+    haddii (shaandhe == maran) { celi xog_raadi(db, jadwal) }
+    celi xog_raadi(db, jadwal, shaandhe)
+}
+
+hawl beddel(db, jadwal, shaandhe, xog) {
+    celi xog_beddel(db, jadwal, shaandhe, xog)
+}
+
+hawl tirtir(db, jadwal, shaandhe) {
+    celi xog_tirtir(db, jadwal, shaandhe)
+}
+
+hawl macaamil(db, shaqo) {
+    celi xog_macaamil(db, shaqo)
+}
+
+hawl awood(nooc) {
+    celi xog_awood(nooc)
+}

@@ -1,0 +1,4 @@
+Khalad ereyayn: Qaybta qiimaha lagu gelinayo qoraalka lama xidhin. [E005] safka 1, tiirka 14
+     --> examples/errors/interpolation_unclosed.sop:1:14
+   1 │   qor(f"Salaan {magac")
+     │                ^

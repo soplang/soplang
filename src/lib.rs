@@ -1,10 +1,14 @@
 //! Soplang library for use by the binary and integration tests.
 
+pub mod analysis;
 pub mod backend;
 pub mod cli;
+pub mod data;
 pub mod error;
 pub mod frontend;
 pub mod hir;
+pub mod native_api;
+pub mod package;
 pub mod runtime;
 pub mod semantic;
 
@@ -15,6 +19,7 @@ pub use frontend::{
     TypeAnnotation,
 };
 pub use hir::{BinOpKind, HirFunction, HirInstr, HirLowering, HirModule, UnOpKind};
+pub use runtime::set_program_arguments;
 pub use runtime::Value;
 pub use semantic::{
     analyze, analyze_with_options, AnalyzeOptions, ClassMeta, FunctionMeta, Scope, SymbolTable,
@@ -31,6 +36,9 @@ pub fn run_source(
     dump_hir: bool,
     strict: bool,
 ) -> Result<(), SoplangError> {
+    if let Some(path) = path {
+        package::load_beside_source(path)?;
+    }
     let parsed = if path.is_none() {
         frontend::parse_snippet(source)?
     } else {
@@ -69,6 +77,54 @@ pub fn run_source(
     backend.run_main()
 }
 
+/// Run statements that were already parsed and import-resolved.
+pub fn run_statements(stmts: &[frontend::ast::Stmt], strict: bool) -> Result<(), SoplangError> {
+    let outcome = run_statements_report(stmts, strict, ExecutionOptions::default())?;
+    outcome.error.map_or(Ok(()), Err)
+}
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct ExecutionOptions {
+    pub coverage: bool,
+    pub profile: bool,
+}
+
+#[derive(Debug)]
+pub struct ExecutionOutcome {
+    /// An uncaught execution error. Compilation errors are returned separately.
+    pub error: Option<SoplangError>,
+    pub report: runtime::ExecutionReport,
+}
+
+/// Compile and execute with context-owned instrumentation. The report remains
+/// valid after the JIT and all runtime allocations have been released.
+pub fn run_statements_report(
+    stmts: &[frontend::ast::Stmt],
+    strict: bool,
+    options: ExecutionOptions,
+) -> Result<ExecutionOutcome, SoplangError> {
+    let started = std::time::Instant::now();
+    let sym = semantic::analyze_with_options(
+        stmts,
+        semantic::AnalyzeOptions {
+            strict,
+            repl: false,
+        },
+    )?;
+    let hir = HirLowering::lower_with_coverage(&sym, stmts, options.coverage);
+    let mut backend = backend::cranelift::CraneliftBackend::new()?;
+    backend.compile_module(&hir, &sym)?;
+    backend.configure_reporting(hir.coverage, options.profile);
+    let compile_time = started.elapsed();
+    let started = std::time::Instant::now();
+    let error = backend.run_main().err();
+    let execution_time = started.elapsed();
+    let mut report = backend.execution_report();
+    report.compile_time = compile_time;
+    report.execution_time = execution_time;
+    Ok(ExecutionOutcome { error, report })
+}
+
 /// For REPL and -c: if source is a single expression (not already qor(...)), wrap in qor(...) so the value is printed.
 pub fn maybe_wrap_for_repl(source: &str) -> String {
     let tokens = match Lexer::new(source).tokenize() {
@@ -97,6 +153,9 @@ pub fn build_source(
     opt_level: u8,
     strict: bool,
 ) -> Result<(), SoplangError> {
+    if let Some(path) = source_path {
+        package::load_beside_source(path)?;
+    }
     let parsed = frontend::parse_source(source, source_path)?;
     let stmts = frontend::imports::resolve_imports(parsed, source_path)?;
     let sym = semantic::analyze_with_options(

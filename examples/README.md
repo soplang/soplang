@@ -49,10 +49,25 @@ You can also run an example by its position in the sorted file list:
 | `26_loop_control.sop` | Descending loops, break, continue, and short circuiting |
 | `27_inheritance.sop` | Typed base instances, constructors, and `waalid` |
 | `28_null_defaults.sop` | Stored nulls, defaults, empty endpoints, and search misses |
+| `29_output.sop` | Empty and multiple-argument output, mixed values, return text, and evaluation order |
+| `30_iteration.sop` | Collection loops, Unicode characters, lazy ranges, enumerate, and zip |
+| `31_iterator_protocol.sop` | Class iterators, inherited methods, explicit cursor steps, and exhaustion |
+| `32_default_arguments.sop` | Call-time defaults, earlier parameters, fresh collections, and typed defaults |
+| `33_variadic_arguments.sop` | Variadic positional parameters, empty rest lists, and default prefixes |
+| `34_named_arguments.sop` | Named arguments, omitted defaults, and keyword collectors |
+| `35_bytes.sop` | Byte arrays, strict UTF-8 conversion, indexing, slices, and iteration |
+| `36_optional_union_types.sop` | Nullable values, union annotations, defaults, and return contracts |
+| `37_typed_collections.sop` | Shared list/object element types, nested aliases, and typed rest parameters |
+| `38_tuples.sop` | Immutable tuples, positional types, row iteration, and nested guards |
+| `39_sets.sop` | Unique immutable keys, ordered iteration, membership, and union |
+| `40_typed_sets.sop` | Typed set keys, alias validation, tuple rows, and intersection |
+| `41_text_methods.sop` | Unicode casing, classification, padding, partitioning, words, and lines |
+| `42_list_operations.sop` | Extension, uniqueness, sums, value removal, sorting, and enumeration |
+| `43_object_operations.sop` | Insert-if-absent, in-place merge, entry callbacks, and nested paths |
 
 `_math_lib.sop` is imported by `16_import.sop`; it is not a standalone demo.
 
-All 28 numbered examples are checked. The random example prints type and range
+All numbered examples are checked. The random example prints type and range
 invariants rather than a random value, so its expected output is deterministic.
 The input example receives `TestUser` through stdin. Helpers beginning with `_`
 and programs inside `errors/` are excluded from `--example N`.

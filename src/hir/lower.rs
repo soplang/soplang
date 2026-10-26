@@ -3,8 +3,10 @@
 
 use std::fmt;
 
-use crate::frontend::ast::{Expr, Literal, Stmt, TypeAnnotation};
-use crate::semantic::{resolve_name, resolve_parent_method, SymbolTable, VarInfo};
+use crate::frontend::ast::{Expr, InterpolationPart, Literal, Param, Stmt, TypeAnnotation};
+use crate::semantic::{
+    canonical_class_name, resolve_name, resolve_parent_method, SymbolTable, VarInfo,
+};
 
 pub type Slot = usize;
 pub type LabelId = usize;
@@ -52,7 +54,23 @@ pub enum SlotNum {
 
 #[derive(Debug, Clone)]
 pub enum HirInstr {
+    CallNamed {
+        dst: Slot,
+        callee: Slot,
+        kind: u8,
+        name: String,
+        args: Vec<Slot>,
+        labels: String,
+    },
+    /// Whether a positional parameter was supplied before default evaluation.
+    ParamProvided {
+        dst: Slot,
+        index: usize,
+    },
     SetLocation(Box<crate::error::SourceSpan>),
+    DebugStart(String),
+    DebugPoint(String),
+    DebugInit(Slot),
     Const {
         dst: Slot,
         val: HirConst,
@@ -60,6 +78,15 @@ pub enum HirInstr {
     Copy {
         dst: Slot,
         src: Slot,
+    },
+    FormatValue {
+        dst: Slot,
+        src: Slot,
+        format: String,
+    },
+    BuildString {
+        dst: Slot,
+        parts: Vec<Slot>,
     },
     Load {
         dst: Slot,
@@ -110,6 +137,7 @@ pub enum HirInstr {
         val: Slot,
     },
     Label(LabelId),
+    Poll,
     Jump(LabelId),
     JumpIf {
         cond: Slot,
@@ -121,6 +149,22 @@ pub enum HirInstr {
         current: Slot,
         end: Slot,
         step: Slot,
+    },
+    /// Next range value, or null when stepping leaves the numeric domain.
+    RangeAdvance {
+        dst: Slot,
+        current: Slot,
+        end: Slot,
+        step: Slot,
+    },
+    IterBegin {
+        dst: Slot,
+        src: Slot,
+    },
+    IterNext {
+        dst: Slot,
+        iterator: Slot,
+        bindings: usize,
     },
     Call {
         dst: Slot,
@@ -142,11 +186,20 @@ pub enum HirInstr {
         catch: LabelId,
     },
     TryEnd,
+    Raise {
+        src: Slot,
+    },
+    SuspendError,
+    RestoreError,
+    DiscardError,
     BindError {
         dst: Slot,
     },
+    BindErrorValue {
+        dst: Slot,
+    },
     CheckThrow {
-        catch: LabelId,
+        catch: Option<LabelId>,
     },
     Pop {
         dst: Slot,
@@ -154,6 +207,12 @@ pub enum HirInstr {
     CheckType {
         src: Slot,
         type_tag: u8,
+        name: String,
+    },
+    /// Validate and normalize a nullable or union value in place.
+    CheckContract {
+        src: Slot,
+        contract: String,
         name: String,
     },
     /// Value must be an instance of `class_name` or a subclass.
@@ -178,10 +237,71 @@ pub enum HirInstr {
     },
 }
 
+impl HirInstr {
+    pub(crate) fn may_allocate(&self) -> bool {
+        matches!(
+            self,
+            Self::CallNamed { .. }
+                | Self::IterBegin { .. }
+                | Self::IterNext { .. }
+                | Self::FormatValue { .. }
+                | Self::BuildString { .. }
+                | Self::Const {
+                    val: HirConst::Str(_),
+                    ..
+                }
+                | Self::BinOp { typed: false, .. }
+                | Self::BuildList { .. }
+                | Self::BuildObject { .. }
+                | Self::GetIndex { .. }
+                | Self::GetProp { .. }
+                | Self::Call { .. }
+                | Self::CallMethod { .. }
+                | Self::NewInstance { .. }
+                | Self::MakeClosure { .. }
+                | Self::BindError { .. }
+                | Self::BindErrorValue { .. }
+        )
+    }
+
+    pub(crate) fn destination(&self) -> Option<Slot> {
+        match self {
+            Self::CallNamed { dst, .. }
+            | Self::ParamProvided { dst, .. }
+            | Self::IterBegin { dst, .. }
+            | Self::IterNext { dst, .. }
+            | Self::FormatValue { dst, .. }
+            | Self::BuildString { dst, .. }
+            | Self::Const { dst, .. }
+            | Self::Copy { dst, .. }
+            | Self::Load { dst, .. }
+            | Self::BinOp { dst, .. }
+            | Self::UnOp { dst, .. }
+            | Self::BuildList { dst, .. }
+            | Self::BuildObject { dst, .. }
+            | Self::GetIndex { dst, .. }
+            | Self::GetProp { dst, .. }
+            | Self::RangeContinue { dst, .. }
+            | Self::RangeAdvance { dst, .. }
+            | Self::Call { dst, .. }
+            | Self::CallMethod { dst, .. }
+            | Self::BindError { dst }
+            | Self::BindErrorValue { dst }
+            | Self::NewInstance { dst, .. }
+            | Self::MakeClosure { dst, .. } => Some(*dst),
+            _ => None,
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct HirFunction {
     pub name: String,
     pub params: Vec<Slot>,
+    pub required_params: usize,
+    pub variadic: bool,
+    pub keyword_rest: bool,
+    pub param_names: Vec<String>,
     pub local_count: usize,
     pub body: Vec<HirInstr>,
     pub is_static: bool,
@@ -197,14 +317,42 @@ pub struct HirModule {
     pub top_level: Vec<HirInstr>,
     /// Numeric kind of top-level variable slots, indexed by slot.
     pub top_nums: Vec<SlotNum>,
+    /// Executable source lines when coverage instrumentation is requested.
+    pub coverage: crate::runtime::CoverageMap,
 }
 
 impl fmt::Display for HirInstr {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
+            HirInstr::CallNamed {
+                dst,
+                callee,
+                kind,
+                name,
+                args,
+                labels,
+            } => write!(
+                f,
+                "  %{} = named {} %{} {} {:?} {:?}",
+                dst, kind, callee, name, args, labels
+            ),
+            HirInstr::ParamProvided { dst, index } => write!(f, "  %{} = provided {}", dst, index),
+            HirInstr::DebugStart(_) => write!(f, "  debug_start"),
+            HirInstr::DebugPoint(_) => write!(f, "  debug_point"),
+            HirInstr::DebugInit(slot) => write!(f, "  debug_init %{slot}"),
             HirInstr::SetLocation(span) => write!(f, "  location {}:{}", span.line, span.col),
             HirInstr::Const { dst, val } => write!(f, "  %{} = const {:?}", dst, val),
             HirInstr::Copy { dst, src } => write!(f, "  %{} = copy %{}", dst, src),
+            HirInstr::IterBegin { dst, src } => write!(f, "  %{} = iter %{}", dst, src),
+            HirInstr::IterNext {
+                dst,
+                iterator,
+                bindings,
+            } => write!(f, "  %{} = next %{} bind {}", dst, iterator, bindings),
+            HirInstr::FormatValue { dst, src, format } => {
+                write!(f, "  %{} = format %{} {:?}", dst, src, format)
+            }
+            HirInstr::BuildString { dst, parts } => write!(f, "  %{} = text {:?}", dst, parts),
             HirInstr::Load { dst, name } => write!(f, "  %{} = load {}", dst, name),
             HirInstr::Store { name, src } => write!(f, "  store {} %{}", name, src),
             HirInstr::BinOp {
@@ -238,6 +386,7 @@ impl fmt::Display for HirInstr {
             HirInstr::GetProp { dst, obj, prop } => write!(f, "  %{} = %{}.{}", dst, obj, prop),
             HirInstr::SetProp { obj, prop, val } => write!(f, "  %{}.{} = %{}", obj, prop, val),
             HirInstr::Label(id) => write!(f, "L{}:", id),
+            HirInstr::Poll => write!(f, "  poll"),
             HirInstr::Jump(id) => write!(f, "  jump L{}", id),
             HirInstr::JumpIf {
                 cond,
@@ -246,6 +395,16 @@ impl fmt::Display for HirInstr {
             } => {
                 write!(f, "  jump_if %{} L{} L{}", cond, on_true, on_false)
             }
+            HirInstr::RangeAdvance {
+                dst,
+                current,
+                end,
+                step,
+            } => write!(
+                f,
+                "  %{} = range_next %{}, %{}, %{}",
+                dst, current, end, step
+            ),
             HirInstr::RangeContinue {
                 dst,
                 current,
@@ -286,14 +445,25 @@ impl fmt::Display for HirInstr {
             HirInstr::Continue(id) => write!(f, "  continue L{}", id),
             HirInstr::TryBegin { catch } => write!(f, "  try_begin L{}", catch),
             HirInstr::TryEnd => write!(f, "  try_end"),
-            HirInstr::CheckThrow { catch } => write!(f, "  check_throw L{}", catch),
+            HirInstr::Raise { src } => write!(f, "  raise %{}", src),
+            HirInstr::SuspendError => write!(f, "  suspend_error"),
+            HirInstr::RestoreError => write!(f, "  restore_error"),
+            HirInstr::DiscardError => write!(f, "  discard_error"),
+            HirInstr::CheckThrow { catch: Some(catch) } => write!(f, "  check_throw L{}", catch),
+            HirInstr::CheckThrow { catch: None } => write!(f, "  propagate_error"),
             HirInstr::BindError { dst } => write!(f, "  bind_error %{}", dst),
+            HirInstr::BindErrorValue { dst } => write!(f, "  bind_error_value %{}", dst),
             HirInstr::Pop { dst } => write!(f, "  pop %{}", dst),
             HirInstr::CheckType {
                 src,
                 type_tag,
                 name,
             } => write!(f, "  check_type %{} {} {}", src, type_tag, name),
+            HirInstr::CheckContract {
+                src,
+                contract,
+                name,
+            } => write!(f, "  check_contract %{} {} {}", src, contract, name),
             HirInstr::CheckClass {
                 src,
                 class_name,
@@ -361,6 +531,21 @@ fn un_op_from_str(op: &str) -> Option<UnOpKind> {
     }
 }
 
+#[derive(Clone)]
+enum CleanupAction<'a> {
+    Body(&'a [Stmt]),
+    DiscardError,
+    EndTry,
+}
+
+#[derive(Clone)]
+struct CleanupFrame<'a> {
+    action: CleanupAction<'a>,
+    loop_depth: usize,
+    catches: Vec<LabelId>,
+    catch_vars: Vec<(String, Slot)>,
+}
+
 /// Lowers AST to HIR using the symbol table.
 pub struct HirLowering<'a> {
     sym: &'a SymbolTable,
@@ -369,7 +554,9 @@ pub struct HirLowering<'a> {
     next_label: LabelId,
     loop_stack: Vec<(LabelId, LabelId)>, // (break_label, continue_label)
     func_scope: Option<&'a std::collections::HashMap<String, crate::semantic::VarInfo>>,
-    catch_var: Option<(String, Slot)>,
+    catch_vars: Vec<(String, Slot)>,
+    catch_stack: Vec<LabelId>,
+    cleanups: Vec<CleanupFrame<'a>>,
     /// Class whose method is being lowered. `waalid` starts lookup at its parent.
     enclosing_class: Option<&'a str>,
     /// Function being lowered. Nested `hawl` names are `parent::name`.
@@ -379,10 +566,34 @@ pub struct HirLowering<'a> {
     /// Variable slots keep the kind from their type annotation.
     fixed: Vec<bool>,
     current_span: Option<crate::error::SourceSpan>,
+    cover: bool,
+    debug: bool,
+    coverage: crate::runtime::CoverageMap,
 }
 
 impl<'a> HirLowering<'a> {
-    pub fn lower(sym: &'a SymbolTable, stmts: &[Stmt]) -> HirModule {
+    pub fn lower(sym: &'a SymbolTable, stmts: &'a [Stmt]) -> HirModule {
+        Self::lower_with_coverage(sym, stmts, false)
+    }
+
+    pub fn lower_with_coverage(sym: &'a SymbolTable, stmts: &'a [Stmt], cover: bool) -> HirModule {
+        Self::lower_instrumented(sym, stmts, cover, None)
+    }
+
+    pub fn lower_with_debug(
+        sym: &'a SymbolTable,
+        stmts: &'a [Stmt],
+        config: crate::runtime::DebugConfig,
+    ) -> HirModule {
+        Self::lower_instrumented(sym, stmts, false, Some(config))
+    }
+
+    fn lower_instrumented(
+        sym: &'a SymbolTable,
+        stmts: &'a [Stmt],
+        cover: bool,
+        debug: Option<crate::runtime::DebugConfig>,
+    ) -> HirModule {
         let mut lower = HirLowering {
             sym,
             body: Vec::new(),
@@ -390,16 +601,26 @@ impl<'a> HirLowering<'a> {
             next_label: 0,
             loop_stack: Vec::new(),
             func_scope: None,
-            catch_var: None,
+            catch_vars: Vec::new(),
+            catch_stack: Vec::new(),
+            cleanups: Vec::new(),
             enclosing_class: None,
             enclosing_fn: None,
             return_ann: None,
             nums: Vec::new(),
             fixed: Vec::new(),
             current_span: None,
+            cover,
+            debug: debug.is_some(),
+            coverage: Default::default(),
         };
         if let Some(scope) = sym.scopes.first() {
             lower.prepare_vars(&scope.vars);
+        }
+        if let Some(config) = debug {
+            lower.body.push(HirInstr::DebugStart(
+                serde_json::to_string(&config).expect("debug config serialization"),
+            ));
         }
         let top_nums = lower.nums.clone();
         let func_bodies = collect_func_bodies(stmts);
@@ -420,7 +641,7 @@ impl<'a> HirLowering<'a> {
             .functions
             .iter()
             .zip(func_bodies.into_iter())
-            .map(|(fm, body_stmts)| {
+            .map(|(fm, (params, body_stmts))| {
                 let mut inner = HirLowering {
                     sym,
                     body: Vec::new(),
@@ -428,15 +649,30 @@ impl<'a> HirLowering<'a> {
                     next_label: 0,
                     loop_stack: Vec::new(),
                     func_scope: Some(&fm.scope_vars),
-                    catch_var: None,
+                    catch_vars: Vec::new(),
+                    catch_stack: Vec::new(),
+                    cleanups: Vec::new(),
                     enclosing_class: fm.class_name.as_deref(),
                     enclosing_fn: Some(fm.name.as_str()),
                     return_ann: Some(fm.return_ann.clone()),
                     nums: Vec::new(),
                     fixed: Vec::new(),
                     current_span: None,
+                    cover: lower.cover,
+                    debug: lower.debug,
+                    coverage: Default::default(),
                 };
                 inner.prepare_vars(&fm.scope_vars);
+                if inner.debug {
+                    for name in &fm.captures {
+                        if let Some(info) = fm.scope_vars.get(name) {
+                            inner.body.push(HirInstr::DebugInit(info.slot));
+                        }
+                    }
+                    for slot in &fm.param_slots {
+                        inner.body.push(HirInstr::DebugInit(*slot));
+                    }
+                }
                 let local_nums = inner.nums.clone();
                 let capture_slots: Vec<Slot> = fm
                     .captures
@@ -444,15 +680,57 @@ impl<'a> HirLowering<'a> {
                     .filter_map(|name| fm.scope_vars.get(name).map(|info| info.slot))
                     .collect();
                 let implicit = usize::from(fm.is_method);
-                for (slot, ann) in fm.param_slots[implicit..].iter().zip(&fm.param_types) {
-                    inner.emit_type_check(*slot, ann, "dood");
+                for (index, (slot, param)) in
+                    fm.param_slots[implicit..].iter().zip(params).enumerate()
+                {
+                    if let Some(default) = &param.default {
+                        let provided = inner.alloc_slot();
+                        let fill = inner.new_label();
+                        let ready = inner.new_label();
+                        inner.emit(HirInstr::ParamProvided {
+                            dst: provided,
+                            index: index + implicit + usize::from(!capture_slots.is_empty()),
+                        });
+                        inner.emit(HirInstr::JumpIf {
+                            cond: provided,
+                            on_true: ready,
+                            on_false: fill,
+                        });
+                        inner.emit(HirInstr::Label(fill));
+                        let value = inner.lower_expr(default);
+                        inner.emit_copy(*slot, value);
+                        inner.emit(HirInstr::Jump(ready));
+                        inner.emit(HirInstr::Label(ready));
+                        // An explicit argument can have a different numeric kind
+                        // from the default of a dynamically typed parameter.
+                        inner.nums[*slot] = num_of_ann(&param.type_ann);
+                    }
+                    inner.emit_type_check(*slot, &param.type_ann, "dood");
                 }
+                inner.emit(HirInstr::Poll);
                 for s in body_stmts {
                     inner.lower_stmt(s);
+                }
+                // Falling through returns null, subject to the declared contract.
+                if fm.return_ann != TypeAnnotation::Dynamic {
+                    let result = inner.alloc_slot();
+                    inner.emit_const(result, HirConst::Null);
+                    inner.emit_type_check(result, &fm.return_ann, "celi");
+                    inner.emit(HirInstr::Return { val: result });
+                }
+                for (file, lines) in inner.coverage {
+                    lower.coverage.entry(file).or_default().extend(lines);
                 }
                 HirFunction {
                     name: fm.name.clone(),
                     params: fm.param_slots.clone(),
+                    required_params: fm.required_params + implicit,
+                    variadic: fm.variadic,
+                    keyword_rest: fm.keyword_rest,
+                    param_names: std::iter::repeat(String::new())
+                        .take(implicit)
+                        .chain(params.iter().map(|param| param.name.clone()))
+                        .collect(),
                     local_count: fm.local_count,
                     body: inner.body,
                     is_static: false,
@@ -465,6 +743,7 @@ impl<'a> HirLowering<'a> {
             functions,
             top_level,
             top_nums,
+            coverage: lower.coverage,
         }
     }
 
@@ -587,9 +866,15 @@ impl<'a> HirLowering<'a> {
     }
 
     fn emit(&mut self, instr: HirInstr) {
-        if matches!(
+        let fallible = matches!(
             instr,
-            HirInstr::Load { .. }
+            HirInstr::CallNamed { .. }
+                | HirInstr::Poll
+                | HirInstr::IterBegin { .. }
+                | HirInstr::IterNext { .. }
+                | HirInstr::FormatValue { .. }
+                | HirInstr::BuildString { .. }
+                | HirInstr::Load { .. }
                 | HirInstr::Store { .. }
                 | HirInstr::BinOp { .. }
                 | HirInstr::UnOp { .. }
@@ -604,14 +889,34 @@ impl<'a> HirLowering<'a> {
                 | HirInstr::NewInstance { .. }
                 | HirInstr::CheckType { .. }
                 | HirInstr::CheckClass { .. }
+                | HirInstr::CheckContract { .. }
                 | HirInstr::RangeContinue { .. }
-        ) {
+                | HirInstr::RangeAdvance { .. }
+                | HirInstr::MakeClosure { .. }
+                | HirInstr::Raise { .. }
+                | HirInstr::RestoreError
+        );
+        if fallible {
             if let Some(span) = &self.current_span {
                 self.body
                     .push(HirInstr::SetLocation(Box::new(span.clone())));
             }
         }
+        // Statically numeric operations other than division/modulo cannot fail.
+        let infallible_numeric = matches!(instr, HirInstr::BinOp { typed: true, op, .. }
+            if !matches!(op, BinOpKind::Div | BinOpKind::Mod));
+        let destination = instr.destination();
         self.body.push(instr);
+        if self.debug {
+            if let Some(slot) = destination {
+                self.body.push(HirInstr::DebugInit(slot));
+            }
+        }
+        if fallible && !infallible_numeric {
+            self.body.push(HirInstr::CheckThrow {
+                catch: self.catch_stack.last().copied(),
+            });
+        }
     }
 
     /// Direct call of an ancestor method, with `nafta` as the instance.
@@ -627,19 +932,28 @@ impl<'a> HirLowering<'a> {
             name: mangled,
         });
         let dst = self.alloc_slot();
-        self.emit(HirInstr::Call {
-            dst,
-            callee,
-            args: arg_slots,
-        });
+        if let Some(labels) = argument_labels(args) {
+            self.emit(HirInstr::CallNamed {
+                dst,
+                callee,
+                kind: 0,
+                name: String::new(),
+                args: arg_slots,
+                labels: format!("\0{}", labels),
+            });
+        } else {
+            self.emit(HirInstr::Call {
+                dst,
+                callee,
+                args: arg_slots,
+            });
+        }
         Some(dst)
     }
 
     fn var_ann(&self, name: &str) -> Option<TypeAnnotation> {
-        if let Some((catch_name, _)) = &self.catch_var {
-            if catch_name == name {
-                return Some(TypeAnnotation::Dynamic);
-            }
+        if self.catch_vars.iter().any(|(binding, _)| binding == name) {
+            return Some(TypeAnnotation::Dynamic);
         }
         resolve_name(self.sym, name, self.func_scope).map(|v| v.type_ann)
     }
@@ -647,9 +961,25 @@ impl<'a> HirLowering<'a> {
     fn emit_type_check(&mut self, src: Slot, ann: &TypeAnnotation, name: &str) {
         match ann {
             TypeAnnotation::Dynamic => {}
+            TypeAnnotation::Function
+            | TypeAnnotation::Union(_)
+            | TypeAnnotation::Null
+            | TypeAnnotation::ListOf(_)
+            | TypeAnnotation::ObjectOf(_)
+            | TypeAnnotation::Tuple
+            | TypeAnnotation::Set
+            | TypeAnnotation::SetOf(_)
+            | TypeAnnotation::TupleOf(_) => {
+                self.emit(HirInstr::CheckContract {
+                    src,
+                    contract: ann.runtime_contract(),
+                    name: name.to_owned(),
+                });
+                self.set_temp_num(src, SlotNum::Dyn);
+            }
             TypeAnnotation::Class(class) => self.emit(HirInstr::CheckClass {
                 src,
-                class_name: class.clone(),
+                class_name: canonical_class_name(self.sym, class),
                 var_name: name.to_string(),
             }),
             other => self.emit(HirInstr::CheckType {
@@ -679,10 +1009,13 @@ impl<'a> HirLowering<'a> {
     }
 
     fn resolve_slot(&self, name: &str) -> Option<Slot> {
-        if let Some((catch_name, slot)) = &self.catch_var {
-            if catch_name == name {
-                return Some(*slot);
-            }
+        if let Some((_, slot)) = self
+            .catch_vars
+            .iter()
+            .rev()
+            .find(|(binding, _)| binding == name)
+        {
+            return Some(*slot);
         }
         if self.func_scope.is_some() {
             // Inside a function: only resolve local variables, not globals
@@ -695,8 +1028,7 @@ impl<'a> HirLowering<'a> {
     }
 
     fn is_global(&self, name: &str) -> bool {
-        self.func_scope.is_none()
-            && self.catch_var.as_ref().map(|(name, _)| name.as_str()) != Some(name)
+        self.func_scope.is_none() && !self.catch_vars.iter().any(|(binding, _)| binding == name)
     }
 
     /// Functions and callbacks can replace globals. Refresh top-level slots on
@@ -718,9 +1050,106 @@ impl<'a> HirLowering<'a> {
         }
     }
 
-    fn lower_stmt(&mut self, stmt: &Stmt) {
+    fn cover_line(&mut self, span: &crate::error::SourceSpan) {
+        if span.line == 0 {
+            return;
+        }
+        let file = span.file.clone().unwrap_or_else(|| "<snippet>".into());
+        self.coverage
+            .entry(file.clone())
+            .or_default()
+            .insert(span.line);
+        let file_slot = self.alloc_slot();
+        self.emit_const(
+            file_slot,
+            HirConst::Str(file.to_string_lossy().into_owned()),
+        );
+        let line_slot = self.alloc_slot();
+        self.emit_const(line_slot, HirConst::Int(span.line as i64));
+        let callee = self.alloc_slot();
+        self.load_name(callee, "#coverage_hit");
+        let dst = self.alloc_slot();
+        self.emit(HirInstr::Call {
+            dst,
+            callee,
+            args: vec![file_slot, line_slot],
+        });
+    }
+
+    fn debug_point(&mut self, span: &crate::error::SourceSpan) {
+        if !self.debug {
+            return;
+        }
+        let vars = self
+            .func_scope
+            .or_else(|| self.sym.scopes.first().map(|scope| &scope.vars));
+        let mut locals: Vec<_> = vars
+            .into_iter()
+            .flat_map(|vars| vars.iter())
+            .map(|(name, info)| (name.clone(), info.slot))
+            .collect();
+        for (name, slot) in &self.catch_vars {
+            locals.retain(|(local, _)| local != name);
+            locals.push((name.clone(), *slot));
+        }
+        locals.sort();
+        let location = crate::runtime::debugger::Location {
+            file: span
+                .file
+                .as_ref()
+                .map(|file| std::fs::canonicalize(file).unwrap_or_else(|_| file.clone()))
+                .unwrap_or_else(|| "<command>".into()),
+            line: span.line,
+            col: span.col,
+            source: span.source_line.clone(),
+            locals,
+        };
+        self.body
+            .push(HirInstr::SetLocation(Box::new(span.clone())));
+        self.body.push(HirInstr::DebugPoint(
+            serde_json::to_string(&location).expect("debug location serialization"),
+        ));
+        self.body.push(HirInstr::CheckThrow {
+            catch: self.catch_stack.last().copied(),
+        });
+    }
+
+    fn lower_stmt(&mut self, stmt: &'a Stmt) {
         match stmt {
             Stmt::Located { span, stmt } => {
+                if self.cover
+                    && !matches!(
+                        stmt.unlocated(),
+                        Stmt::Import(_)
+                            | Stmt::Export(_)
+                            | Stmt::UseModule { .. }
+                            | Stmt::UseClass { .. }
+                            | Stmt::Test { .. }
+                            | Stmt::Fixture { .. }
+                            | Stmt::FuncDef { .. }
+                            | Stmt::ClassDef { .. }
+                            | Stmt::Block(_)
+                    )
+                {
+                    self.cover_line(span);
+                }
+                if !matches!(
+                    stmt.unlocated(),
+                    Stmt::Import(_)
+                        | Stmt::Export(_)
+                        | Stmt::UseModule { .. }
+                        | Stmt::UseClass { .. }
+                        | Stmt::Test { .. }
+                        | Stmt::Fixture { .. }
+                        | Stmt::FuncDef { .. }
+                        | Stmt::ClassDef { .. }
+                        | Stmt::Block(_)
+                        | Stmt::While { .. }
+                        | Stmt::For { .. }
+                        | Stmt::ForEach { .. }
+                ) {
+                    self.debug_point(span);
+                }
                 let previous = self.current_span.replace(span.clone());
                 self.lower_stmt(stmt);
                 self.current_span = previous;
@@ -794,7 +1223,44 @@ impl<'a> HirLowering<'a> {
                     _ => {}
                 }
             }
-            Stmt::ClassDef { .. } => {}
+            Stmt::ClassDef { name, body, .. } => {
+                for method in body {
+                    let Stmt::FuncDef { name: method, .. } = method.unlocated() else {
+                        continue;
+                    };
+                    let mangled = crate::semantic::mangle_method(name, method);
+                    let Some(function) = self
+                        .sym
+                        .functions
+                        .iter()
+                        .find(|function| function.name == mangled)
+                    else {
+                        continue;
+                    };
+                    if function.captures.is_empty() {
+                        continue;
+                    }
+                    let captures = function
+                        .captures
+                        .iter()
+                        .map(|capture| {
+                            let slot = self.alloc_slot();
+                            self.load_name(slot, capture);
+                            slot
+                        })
+                        .collect();
+                    let dst = self.alloc_slot();
+                    self.emit(HirInstr::MakeClosure {
+                        dst,
+                        fn_name: mangled.clone(),
+                        captures,
+                    });
+                    self.emit(HirInstr::Store {
+                        name: mangled,
+                        src: dst,
+                    });
+                }
+            }
             Stmt::FuncDef { name, .. } => {
                 let Some(parent) = self.enclosing_fn else {
                     return;
@@ -927,6 +1393,10 @@ impl<'a> HirLowering<'a> {
                     });
                 }
                 self.emit(HirInstr::Label(cond_lbl));
+                self.emit(HirInstr::Poll);
+                if let Some(span) = self.current_span.clone() {
+                    self.debug_point(&span);
+                }
                 if self.is_global(var) {
                     self.emit(HirInstr::Load {
                         dst: var_slot,
@@ -958,7 +1428,23 @@ impl<'a> HirLowering<'a> {
                     });
                 }
                 let new_var = self.alloc_slot();
-                self.emit_binop(new_var, BinOpKind::Add, var_slot, step_slot);
+                self.emit(HirInstr::RangeAdvance {
+                    dst: new_var,
+                    current: var_slot,
+                    end: end_slot,
+                    step: step_slot,
+                });
+                let null = self.alloc_slot();
+                self.emit_const(null, HirConst::Null);
+                let finished = self.alloc_slot();
+                self.emit_binop(finished, BinOpKind::Eq, new_var, null);
+                let advanced = self.new_label();
+                self.emit(HirInstr::JumpIf {
+                    cond: finished,
+                    on_true: break_lbl,
+                    on_false: advanced,
+                });
+                self.emit(HirInstr::Label(advanced));
                 self.emit_copy(var_slot, new_var);
                 if self.is_global(var) {
                     self.emit(HirInstr::Store {
@@ -970,11 +1456,97 @@ impl<'a> HirLowering<'a> {
                 self.emit(HirInstr::Label(break_lbl));
                 self.loop_stack.pop();
             }
+            Stmt::ForEach {
+                vars,
+                iterable,
+                body,
+            } => {
+                let source = self.lower_expr(iterable);
+                let iterator = self.alloc_slot();
+                self.emit(HirInstr::IterBegin {
+                    dst: iterator,
+                    src: source,
+                });
+                let next = self.new_label();
+                let enter = self.new_label();
+                let end = self.new_label();
+                self.loop_stack.push((end, next));
+                self.emit(HirInstr::Label(next));
+                self.emit(HirInstr::Poll);
+                if let Some(span) = self.current_span.clone() {
+                    self.debug_point(&span);
+                }
+                let step = self.alloc_slot();
+                self.emit(HirInstr::IterNext {
+                    dst: step,
+                    iterator,
+                    bindings: vars.len(),
+                });
+                let done = self.alloc_slot();
+                self.emit(HirInstr::GetProp {
+                    dst: done,
+                    obj: step,
+                    prop: "dhammaad".into(),
+                });
+                self.emit(HirInstr::JumpIf {
+                    cond: done,
+                    on_true: end,
+                    on_false: enter,
+                });
+                self.emit(HirInstr::Label(enter));
+                let value = self.alloc_slot();
+                self.emit(HirInstr::GetProp {
+                    dst: value,
+                    obj: step,
+                    prop: "qiime".into(),
+                });
+                let mut values = Vec::new();
+                for (index, name) in vars.iter().enumerate() {
+                    let item = if vars.len() == 1 {
+                        value
+                    } else {
+                        let offset = self.alloc_slot();
+                        self.emit_const(offset, HirConst::Int(index as i64));
+                        let item = self.alloc_slot();
+                        self.emit(HirInstr::GetIndex {
+                            dst: item,
+                            obj: value,
+                            idx: offset,
+                        });
+                        item
+                    };
+                    if let Some(ann) = self.var_ann(name) {
+                        self.emit_type_check(item, &ann, name);
+                    }
+                    values.push(item);
+                }
+                for (name, item) in vars.iter().zip(values) {
+                    if let Some(slot) = self.resolve_slot(name) {
+                        self.emit_copy(slot, item);
+                    }
+                    if self.is_global(name) || self.resolve_slot(name).is_none() {
+                        self.emit(HirInstr::Store {
+                            name: name.clone(),
+                            src: item,
+                        });
+                    }
+                }
+                for stmt in body {
+                    self.lower_stmt(stmt);
+                }
+                self.emit(HirInstr::Jump(next));
+                self.emit(HirInstr::Label(end));
+                self.loop_stack.pop();
+            }
             Stmt::While { cond, body } => {
                 let break_lbl = self.new_label();
                 let cont_lbl = self.new_label();
                 self.loop_stack.push((break_lbl, cont_lbl));
                 self.emit(HirInstr::Label(cont_lbl));
+                self.emit(HirInstr::Poll);
+                if let Some(span) = self.current_span.clone() {
+                    self.debug_point(&span);
+                }
                 let cond_slot = self.lower_expr(cond);
                 let body_lbl = self.new_label();
                 self.emit(HirInstr::JumpIf {
@@ -1002,44 +1574,49 @@ impl<'a> HirLowering<'a> {
                 if let Some(ann) = self.return_ann.clone() {
                     self.emit_type_check(slot, &ann, "celi");
                 }
-                self.emit(HirInstr::Return { val: slot });
+                // Cleanup may change the variable that supplied the result.
+                let result = self.alloc_slot();
+                self.emit_copy(result, slot);
+                self.lower_exit_cleanups(true);
+                self.emit(HirInstr::Return { val: result });
+            }
+            Stmt::Throw(value) => {
+                let src = self.lower_expr(value);
+                self.emit(HirInstr::Raise { src });
             }
             Stmt::Break => {
-                if let Some((lbl, _)) = self.loop_stack.last() {
-                    self.emit(HirInstr::Break(*lbl));
+                if let Some(&(label, _)) = self.loop_stack.last() {
+                    self.lower_exit_cleanups(false);
+                    self.emit(HirInstr::Break(label));
                 }
             }
             Stmt::Continue => {
-                if let Some((_, lbl)) = self.loop_stack.last() {
-                    self.emit(HirInstr::Continue(*lbl));
+                if let Some(&(_, label)) = self.loop_stack.last() {
+                    self.lower_exit_cleanups(false);
+                    self.emit(HirInstr::Continue(label));
                 }
             }
             Stmt::TryCatch {
                 try_body,
                 err_var,
+                err_details,
                 catch_body,
+                finally_body,
             } => {
-                let catch_label = self.new_label();
-                self.emit(HirInstr::TryBegin { catch: catch_label });
-                for s in try_body {
-                    self.lower_stmt(s);
-                    self.emit(HirInstr::CheckThrow { catch: catch_label });
-                }
-                self.emit(HirInstr::TryEnd);
-                let end_try = self.new_label();
-                self.emit(HirInstr::Jump(end_try));
-                self.emit(HirInstr::Label(catch_label));
-                let err_slot = self.alloc_slot();
-                self.catch_var = Some((err_var.clone(), err_slot));
-                self.emit(HirInstr::BindError { dst: err_slot });
-                self.emit(HirInstr::TryEnd);
-                for s in catch_body {
-                    self.lower_stmt(s);
-                }
-                self.catch_var = None;
-                self.emit(HirInstr::Label(end_try));
+                self.lower_try(
+                    try_body,
+                    err_var.as_deref(),
+                    err_details.as_deref(),
+                    catch_body,
+                    finally_body,
+                );
             }
-            Stmt::Import(_) => {}
+            Stmt::Import(_)
+            | Stmt::Export(_)
+            | Stmt::UseModule { .. }
+            | Stmt::UseClass { .. }
+            | Stmt::Test { .. }
+            | Stmt::Fixture { .. } => {}
             Stmt::Block(stmts) => {
                 for s in stmts {
                     self.lower_stmt(s);
@@ -1050,6 +1627,124 @@ impl<'a> HirLowering<'a> {
                 self.emit(HirInstr::Pop { dst: slot });
             }
         }
+    }
+
+    fn lower_try(
+        &mut self,
+        body: &'a [Stmt],
+        error_name: Option<&str>,
+        error_details: Option<&str>,
+        handler: &'a [Stmt],
+        cleanup: &'a [Stmt],
+    ) {
+        let end = self.new_label();
+        let cleanup_error = self.new_label();
+        let has_cleanup = !cleanup.is_empty() || error_name.is_none();
+        if has_cleanup {
+            self.cleanups.push(CleanupFrame {
+                action: CleanupAction::Body(cleanup),
+                loop_depth: self.loop_stack.len(),
+                catches: self.catch_stack.clone(),
+                catch_vars: self.catch_vars.clone(),
+            });
+            self.catch_stack.push(cleanup_error);
+        }
+        if let Some(name) = error_name {
+            let catch = self.new_label();
+            let after_catch = self.new_label();
+            self.emit(HirInstr::TryBegin { catch });
+            self.cleanups.push(CleanupFrame {
+                action: CleanupAction::EndTry,
+                loop_depth: self.loop_stack.len(),
+                catches: self.catch_stack.clone(),
+                catch_vars: self.catch_vars.clone(),
+            });
+            self.catch_stack.push(catch);
+            for stmt in body {
+                self.lower_stmt(stmt);
+            }
+            self.catch_stack.pop();
+            self.cleanups.pop();
+            self.emit(HirInstr::TryEnd);
+            self.emit(HirInstr::Jump(after_catch));
+            self.emit(HirInstr::Label(catch));
+            let slot = self.alloc_slot();
+            self.emit(HirInstr::BindError { dst: slot });
+            let previous = self.catch_vars.len();
+            self.catch_vars.push((name.to_owned(), slot));
+            if let Some(details) = error_details {
+                let slot = self.alloc_slot();
+                self.emit(HirInstr::BindErrorValue { dst: slot });
+                self.catch_vars.push((details.to_owned(), slot));
+            }
+            self.emit(HirInstr::TryEnd);
+            for stmt in handler {
+                self.lower_stmt(stmt);
+            }
+            self.catch_vars.truncate(previous);
+            self.emit(HirInstr::Label(after_catch));
+        } else {
+            for stmt in body {
+                self.lower_stmt(stmt);
+            }
+        }
+        if has_cleanup {
+            self.catch_stack.pop();
+            self.cleanups.pop();
+            self.lower_cleanup(cleanup);
+            self.emit(HirInstr::Jump(end));
+            self.emit(HirInstr::Label(cleanup_error));
+            self.lower_cleanup(cleanup);
+        }
+        self.emit(HirInstr::Label(end));
+    }
+
+    fn lower_cleanup(&mut self, body: &'a [Stmt]) {
+        let failed = self.new_label();
+        let end = self.new_label();
+        self.emit(HirInstr::SuspendError);
+        self.cleanups.push(CleanupFrame {
+            action: CleanupAction::DiscardError,
+            loop_depth: self.loop_stack.len(),
+            catches: self.catch_stack.clone(),
+            catch_vars: self.catch_vars.clone(),
+        });
+        self.catch_stack.push(failed);
+        for stmt in body {
+            self.lower_stmt(stmt);
+        }
+        self.catch_stack.pop();
+        self.cleanups.pop();
+        self.emit(HirInstr::RestoreError);
+        self.emit(HirInstr::Jump(end));
+        self.emit(HirInstr::Label(failed));
+        self.emit(HirInstr::DiscardError);
+        self.emit(HirInstr::CheckThrow {
+            catch: self.catch_stack.last().copied(),
+        });
+        self.emit(HirInstr::Label(end));
+    }
+
+    fn lower_exit_cleanups(&mut self, returning: bool) {
+        let frames = self.cleanups.clone();
+        let catches = self.catch_stack.clone();
+        let catch_var = self.catch_vars.clone();
+        for (index, frame) in frames.iter().enumerate().rev() {
+            if !returning && frame.loop_depth < self.loop_stack.len() {
+                break;
+            }
+            self.cleanups = frames[..index].to_vec();
+            self.catch_stack = frame.catches.clone();
+            self.catch_vars = frame.catch_vars.clone();
+            match &frame.action {
+                CleanupAction::Body(body) => self.lower_cleanup(body),
+                CleanupAction::DiscardError => self.emit(HirInstr::DiscardError),
+                CleanupAction::EndTry => self.emit(HirInstr::TryEnd),
+            }
+        }
+        self.cleanups = frames;
+        self.catch_stack = catches;
+        self.catch_vars = catch_var;
     }
 
     fn lower_expr(&mut self, expr: &Expr) -> Slot {
@@ -1072,6 +1767,7 @@ impl<'a> HirLowering<'a> {
                 self.emit_const(slot, val);
                 slot
             }
+            Expr::NamedArgument { value, .. } => self.lower_expr(value),
             Expr::Identifier(name) => {
                 let slot = self.alloc_slot();
                 self.load_name(slot, name);
@@ -1123,11 +1819,76 @@ impl<'a> HirLowering<'a> {
                 self.load_name(callee, name);
                 let arg_slots: Vec<Slot> = args.iter().map(|a| self.lower_expr(a)).collect();
                 let dst = self.alloc_slot();
-                self.emit(HirInstr::Call {
-                    dst,
-                    callee,
-                    args: arg_slots,
-                });
+                if let Some(labels) = argument_labels(args) {
+                    self.emit(HirInstr::CallNamed {
+                        dst,
+                        callee,
+                        kind: 0,
+                        name: String::new(),
+                        args: arg_slots,
+                        labels,
+                    });
+                } else {
+                    self.emit(HirInstr::Call {
+                        dst,
+                        callee,
+                        args: arg_slots,
+                    });
+                }
+                dst
+            }
+            Expr::Interpolated { parts } => {
+                let mut slots = Vec::new();
+                for part in parts {
+                    let slot = self.alloc_slot();
+                    match part {
+                        InterpolationPart::Text(text) => {
+                            self.emit_const(slot, HirConst::Str(text.clone()))
+                        }
+                        InterpolationPart::Value {
+                            expression,
+                            format,
+                            span,
+                        } => {
+                            let src = self.lower_expr(expression);
+                            let previous = self.current_span.clone();
+                            if let Some(span) = span {
+                                self.current_span = Some(span.clone());
+                            }
+                            self.emit(HirInstr::FormatValue {
+                                dst: slot,
+                                src,
+                                format: format.clone(),
+                            });
+                            self.current_span = previous;
+                        }
+                    }
+                    slots.push(slot);
+                }
+                if slots.len() == 1 {
+                    return slots[0];
+                }
+                let dst = self.alloc_slot();
+                self.emit(HirInstr::BuildString { dst, parts: slots });
+                dst
+            }
+            Expr::Invoke { callee, args } => {
+                let callee = self.lower_expr(callee);
+                let labels = argument_labels(args);
+                let args = args.iter().map(|arg| self.lower_expr(arg)).collect();
+                let dst = self.alloc_slot();
+                if let Some(labels) = labels {
+                    self.emit(HirInstr::CallNamed {
+                        dst,
+                        callee,
+                        kind: 0,
+                        name: String::new(),
+                        args,
+                        labels,
+                    });
+                } else {
+                    self.emit(HirInstr::Call { dst, callee, args });
+                }
                 dst
             }
             Expr::AnonymousFunc { .. } => {
@@ -1175,12 +1936,23 @@ impl<'a> HirLowering<'a> {
                 let obj_slot = self.lower_expr(obj);
                 let arg_slots: Vec<Slot> = args.iter().map(|a| self.lower_expr(a)).collect();
                 let dst = self.alloc_slot();
-                self.emit(HirInstr::CallMethod {
-                    dst,
-                    obj: obj_slot,
-                    method: method.clone(),
-                    args: arg_slots,
-                });
+                if let Some(labels) = argument_labels(args) {
+                    self.emit(HirInstr::CallNamed {
+                        dst,
+                        callee: obj_slot,
+                        kind: 1,
+                        name: method.clone(),
+                        args: arg_slots,
+                        labels,
+                    });
+                } else {
+                    self.emit(HirInstr::CallMethod {
+                        dst,
+                        obj: obj_slot,
+                        method: method.clone(),
+                        args: arg_slots,
+                    });
+                }
                 dst
             }
             Expr::Index { obj, idx } => {
@@ -1223,13 +1995,27 @@ impl<'a> HirLowering<'a> {
                 dst
             }
             Expr::New { class_name, args } => {
+                let class_name = canonical_class_name(self.sym, class_name);
                 let arg_slots: Vec<Slot> = args.iter().map(|a| self.lower_expr(a)).collect();
                 let dst = self.alloc_slot();
-                self.emit(HirInstr::NewInstance {
-                    dst,
-                    class_name: class_name.clone(),
-                    args: arg_slots,
-                });
+                if let Some(labels) = argument_labels(args) {
+                    let callee = self.alloc_slot();
+                    self.emit_const(callee, HirConst::Null);
+                    self.emit(HirInstr::CallNamed {
+                        dst,
+                        callee,
+                        kind: 2,
+                        name: class_name.clone(),
+                        args: arg_slots,
+                        labels,
+                    });
+                } else {
+                    self.emit(HirInstr::NewInstance {
+                        dst,
+                        class_name: class_name.clone(),
+                        args: arg_slots,
+                    });
+                }
                 dst
             }
         }
@@ -1251,31 +2037,43 @@ fn type_ann_to_tag(ann: &TypeAnnotation) -> u8 {
         TypeAnnotation::Qoraal => 3,
         TypeAnnotation::Bool => 4,
         TypeAnnotation::Teed => 5,
+        TypeAnnotation::Bytes => 7,
         TypeAnnotation::Walax => 6,
-        TypeAnnotation::Dynamic | TypeAnnotation::Class(_) => 0,
+        TypeAnnotation::Dynamic
+        | TypeAnnotation::Function
+        | TypeAnnotation::Class(_)
+        | TypeAnnotation::Null
+        | TypeAnnotation::Union(_)
+        | TypeAnnotation::ListOf(_)
+        | TypeAnnotation::ObjectOf(_)
+        | TypeAnnotation::Tuple
+        | TypeAnnotation::Set
+        | TypeAnnotation::SetOf(_)
+        | TypeAnnotation::TupleOf(_) => 0,
     }
 }
 
 /// Collect function bodies in the same order as `sym.functions`.
 /// Nested functions are pushed before the function that contains them.
-fn collect_func_bodies(stmts: &[Stmt]) -> Vec<&[Stmt]> {
+fn collect_func_bodies(stmts: &[Stmt]) -> Vec<(&[Param], &[Stmt])> {
     let mut out = Vec::new();
     collect_funcs(stmts, &mut out);
     out
 }
 
-fn collect_funcs<'a>(stmts: &'a [Stmt], out: &mut Vec<&'a [Stmt]>) {
+fn collect_funcs<'a>(stmts: &'a [Stmt], out: &mut Vec<(&'a [Param], &'a [Stmt])>) {
     for s in stmts {
         collect_funcs_stmt(s, out);
     }
 }
 
-fn collect_funcs_stmt<'a>(stmt: &'a Stmt, out: &mut Vec<&'a [Stmt]>) {
+fn collect_funcs_stmt<'a>(stmt: &'a Stmt, out: &mut Vec<(&'a [Param], &'a [Stmt])>) {
     match stmt {
         Stmt::Located { stmt, .. } => collect_funcs_stmt(stmt, out),
-        Stmt::FuncDef { body, .. } => {
+        Stmt::FuncDef { params, body, .. } => {
+            collect_parameter_funcs(params, out);
             collect_funcs(body, out);
-            out.push(body);
+            out.push((params, body));
         }
         Stmt::ClassDef { body, .. } => collect_funcs(body, out),
         Stmt::VarDecl { value, .. } => collect_funcs_expr(value, out),
@@ -1327,6 +2125,10 @@ fn collect_funcs_stmt<'a>(stmt: &'a Stmt, out: &mut Vec<&'a [Stmt]>) {
             }
             collect_funcs(body, out);
         }
+        Stmt::ForEach { iterable, body, .. } => {
+            collect_funcs_expr(iterable, out);
+            collect_funcs(body, out);
+        }
         Stmt::While { cond, body } => {
             collect_funcs_expr(cond, out);
             collect_funcs(body, out);
@@ -1334,18 +2136,30 @@ fn collect_funcs_stmt<'a>(stmt: &'a Stmt, out: &mut Vec<&'a [Stmt]>) {
         Stmt::TryCatch {
             try_body,
             catch_body,
+            finally_body,
             ..
         } => {
             collect_funcs(try_body, out);
             collect_funcs(catch_body, out);
+            collect_funcs(finally_body, out);
         }
         Stmt::Block(body) => collect_funcs(body, out),
-        Stmt::Return(Some(expr)) | Stmt::Expr(expr) => collect_funcs_expr(expr, out),
-        Stmt::Return(None) | Stmt::Break | Stmt::Continue | Stmt::Import(_) => {}
+        Stmt::Return(Some(expr)) | Stmt::Expr(expr) | Stmt::Throw(expr) => {
+            collect_funcs_expr(expr, out)
+        }
+        Stmt::Return(None)
+        | Stmt::Break
+        | Stmt::Continue
+        | Stmt::Import(_)
+        | Stmt::Export(_)
+        | Stmt::UseModule { .. }
+        | Stmt::UseClass { .. }
+        | Stmt::Test { .. }
+        | Stmt::Fixture { .. } => {}
     }
 }
 
-fn collect_funcs_expr<'a>(expr: &'a Expr, out: &mut Vec<&'a [Stmt]>) {
+fn collect_funcs_expr<'a>(expr: &'a Expr, out: &mut Vec<(&'a [Param], &'a [Stmt])>) {
     match expr {
         Expr::Located { expr, .. } => collect_funcs_expr(expr, out),
         Expr::Literal(_) | Expr::Identifier(_) => {}
@@ -1353,17 +2167,27 @@ fn collect_funcs_expr<'a>(expr: &'a Expr, out: &mut Vec<&'a [Stmt]>) {
             collect_funcs_expr(left, out);
             collect_funcs_expr(right, out);
         }
-        Expr::UnaryOp { expr, .. } => collect_funcs_expr(expr, out),
+        Expr::NamedArgument { value: expr, .. } | Expr::UnaryOp { expr, .. } => {
+            collect_funcs_expr(expr, out)
+        }
+        Expr::Interpolated { parts } => {
+            for part in parts {
+                if let InterpolationPart::Value { expression, .. } = part {
+                    collect_funcs_expr(expression, out);
+                }
+            }
+        }
         Expr::Call { args, .. } => {
             for arg in args {
                 collect_funcs_expr(arg, out);
             }
         }
-        Expr::AnonymousFunc { body, .. } => {
+        Expr::AnonymousFunc { params, body, .. } => {
+            collect_parameter_funcs(params, out);
             collect_funcs(body, out);
-            out.push(body);
+            out.push((params, body));
         }
-        Expr::MethodCall { obj, args, .. } => {
+        Expr::MethodCall { obj, args, .. } | Expr::Invoke { callee: obj, args } => {
             collect_funcs_expr(obj, out);
             for arg in args {
                 collect_funcs_expr(arg, out);
@@ -1390,4 +2214,30 @@ fn collect_funcs_expr<'a>(expr: &'a Expr, out: &mut Vec<&'a [Stmt]>) {
             }
         }
     }
+}
+
+fn collect_parameter_funcs<'a>(params: &'a [Param], out: &mut Vec<(&'a [Param], &'a [Stmt])>) {
+    for param in params {
+        if let Some(default) = &param.default {
+            collect_funcs_expr(default, out);
+        }
+    }
+}
+
+fn argument_labels(args: &[Expr]) -> Option<String> {
+    if !args
+        .iter()
+        .any(|arg| matches!(arg.unlocated(), Expr::NamedArgument { .. }))
+    {
+        return None;
+    }
+    Some(
+        args.iter()
+            .map(|arg| match arg.unlocated() {
+                Expr::NamedArgument { name, .. } => name.as_str(),
+                _ => "",
+            })
+            .collect::<Vec<_>>()
+            .join("\0"),
+    )
 }

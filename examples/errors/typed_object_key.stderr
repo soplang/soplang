@@ -1,0 +1,4 @@
+Khalad naxwe: Furaha walaxda noocaysan waa inuu noqdaa qoraal. safka 1, tiirka 7
+     --> examples/errors/typed_object_key.sop:1:7
+   1 │   walax[abn,abn] xog = {}
+     │         ^

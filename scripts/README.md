@@ -2,6 +2,10 @@
 
 - `package.py --output dist/soplang`: locked release build and relocatable
   distribution. Uses Cargo's JSON artifact list, not every old rlib in target.
+- `package_native.py --output dist/soplang-native`: Linux x86_64 build with
+  LLVM object generation and LLD linking inside the compiler. The build machine
+  needs LLVM and LLD development libraries. The installed package builds
+  programs without Rust, clang, or another linker on `PATH`.
 - `verify_package.py /path/to/soplang`: relocates a distribution away from the
   checkout and checks all public examples, error snapshots, REPL, concurrent
   native builds, runtime lookup, toolchain validation, and standalone outputs.
@@ -22,3 +26,19 @@ The [benchmark comparison tooling](../benchmarks/comparison/README.md) is separa
 from packaging. It requires Python 3.12+ and exports the original v2 interpreter
 for comparison with Python and the v3 compiler. Current results are in
 [benchmarks/RESULTS.md](../benchmarks/RESULTS.md).
+
+## Unicode titlecase data
+
+`generate_unicode_case.py` reads the official Unicode 17.0.0 `UnicodeData.txt`
+and `SpecialCasing.txt` files and writes the sparse titlecase exceptions used
+by text methods. It requires Python 3.9+ and `rustfmt`; ordinary Soplang builds
+use the checked-in table and require neither input downloads nor Python.
+
+```sh
+python3 scripts/generate_unicode_case.py /path/to/UnicodeData.txt /path/to/SpecialCasing.txt src/runtime/unicode_case.rs
+```
+
+Input links and the Unicode license are recorded in the script and
+[licenses/UNICODE.txt](../licenses/UNICODE.txt). Regenerate the table and review
+casing conformance when the toolchain's Unicode version changes. Tests keep
+casing data and word segmentation on the same Unicode version.

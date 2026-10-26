@@ -1,0 +1,8 @@
+urur magacyo = urur("Ayaan", "Cali", "Ayaan")
+qor(magacyo.teed())
+qor(magacyo.leeyahay("Ayaan"))
+magacyo.saar("Cali")
+magacyo.geli("Hodan")
+qor(magacyo)
+qor(urur(1, 2).midee(urur(2, 3)).teed())
+kuceli (magac ku magacyo) { qor(magac) }

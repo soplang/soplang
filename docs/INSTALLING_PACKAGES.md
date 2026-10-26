@@ -1,72 +1,62 @@
-# Installing Soplang 3 packages
+# Installing Soplang packages
 
-Keep the whole extracted package together. The executable discovers its runtime
-at `lib/soplang` beside itself, or at `../lib/soplang` for a Unix `bin` directory.
-Moving only the executable supports JIT execution but cannot support `--build`.
-`SOPLANG_RUNTIME_DIR` can override the runtime location; an invalid override is
-an error and never silently selects another installation.
+Keep the complete package together. The `soplang` executable discovers its
+runtime at `lib/soplang` beside itself, or at `../lib/soplang` when installed in
+a Unix `bin` directory. Moving only the executable breaks native builds.
+`SOPLANG_RUNTIME_DIR` can select another runtime directory; an invalid value is
+an error.
 
-## Published v3.0.1 packages
+## Soplang 3.6 native builds
 
-See the [installation guide](installation.md) for actual downloads. Linux x86_64
-packages require glibc 2.39 or later; the macOS Apple Silicon bundle declares
-macOS 14.8.9 or later. Windows packages target x64. Completed checks are in the
-[verification record](testing/LOCALIZATION_3_0_1.md).
-
-## Running programs
-
-Add the directory containing `soplang` (`soplang.exe` on Windows) to PATH, or use
-its full path. Run `soplang --version`, `soplang program.sop`, or `soplang` for the
-interactive shell. These operations do not need Rust, Cargo, or clang.
-
-## Building standalone programs
-
-`--build` requires clang 15 or newer (with opaque pointer support) and the **exact Rust compiler used to build the package**,
-including its host target. Native Windows import libraries are bundled under
-`lib/soplang/native` and selected automatically by the linker. Read `lib/soplang/rustc-version.txt` for the compiler
-version, commit, and target. For official packages the toolchain is Rust 1.94.0;
-install it through rustup, then select it in the shell where you run Soplang:
+The 3.6 packages include LLVM object generation, a linker, and the Soplang
+runtime archive. An installed package can build a program without Rust, Cargo,
+Clang, or an external linker on `PATH`:
 
 ```sh
-rustup toolchain install 1.94.0 --profile minimal
-rustup default 1.94.0
+soplang dhis program.sop
+# English command and flag forms also work:
+soplang build program.sop
 soplang --build program.sop -o program
 ```
 
-A directory-specific `rustup override set 1.94.0` or `RUSTUP_TOOLCHAIN=1.94.0`
-can be used instead of changing your default. Rebuild a source package with
-`scripts/package.py` if you need another compiler. Cargo is needed to build a
-package from source; installed `--build` never invokes Cargo.
+The output is a standalone executable for the same operating system and
+architecture as the compiler package. It does not need Soplang or the source
+files to run, but it uses ordinary system libraries on its target platform.
+Database servers, network services, and certificates remain external resources
+for programs that use them.
 
-- Linux: install clang and a C linker / development toolchain (for example,
-  `clang-16 build-essential`; ensure `clang` selects that version on Debian/Ubuntu).
-- macOS: install Xcode Command Line Tools, including Apple clang and the linker.
-- Windows: install LLVM clang and Visual Studio C++ Build Tools / Windows SDK;
-  use a developer shell with the linker on PATH. Native Windows validation
-  is required for every release; see the [verification record](testing/LOCALIZATION_3_0_1.md).
+The Linux x86_64 package includes LLVM, LLD, a startup object, and its required
+shared libraries. The macOS Apple Silicon package includes LLVM, LLD, and link
+stubs for system frameworks. The Windows x64 package includes LLVM and Zig's
+MinGW runtime and linker. Build the compiler itself from source using Rust and
+the native dependencies in the [build guide](BUILD_GUIDE.md).
 
-The Docker image includes the matching Rust compiler, clang, and runtime files.
-A built executable needs neither Soplang nor the original source files, but
-retains its target platform's ordinary system-library requirements. It is not a
-cross-platform executable.
+## Run and inspect an installed package
 
-## Verifying an extracted package
+Add the directory containing `soplang` (`soplang.exe` on Windows) to `PATH`, or
+use its full path. Try `soplang nooc`, `soplang program.sop`, or `soplang` for
+the interactive command browser. Use `soplang isdhexgal` for the REPL.
 
-From the source checkout, with Python 3 and the build toolchain available:
+Verify an extracted package from a source checkout with Python 3:
 
 ```sh
 python3 scripts/verify_package.py /absolute/path/to/soplang
 ```
 
-The checker copies the executable and runtime into a temporary directory with
-spaces, changes away from the checkout, runs all public examples through JIT
-and LLVM, checks every diagnostic snapshot, and exercises imports and the REPL.
-It also checks missing runtime files, mismatched Rust metadata, and standalone
-execution after removing the source and installed runtime.
+The verifier relocates the executable and runtime to a path with spaces. It
+runs the public examples through JIT and LLVM, checks diagnostic snapshots,
+tests imports and the REPL, and builds with no compiler tools on `PATH`. It
+also checks that the built executable runs after the source and Soplang runtime
+are removed.
 
-## Diagnostic language in 3.0.1
+## Earlier 3.0.1 packages
 
-Soplang 3.0.1 explains runtime discovery, missing tools, toolchain
-mismatches, and file failures in Somali. Set `SOPLANG_ERROR_DETAILS=1` to
-include original tool/OS details for troubleshooting. Paths, tool names, and
-version identifiers remain literal. See [CLI diagnostics](language/cli.md).
+Published v3.0.1 packages use the earlier Rust and Clang build path. Their
+installed `--build` needs Clang 15 or newer, a platform linker/SDK, and the
+exact Rust compiler recorded in `lib/soplang/rustc-version.txt`. JIT execution
+and the REPL do not need those tools. See the
+[v3.0.1 installation guide](https://github.com/soplang/soplang/blob/v3.0.1/docs/INSTALLING_PACKAGES.md)
+when using an earlier package.
+
+Set `SOPLANG_ERROR_DETAILS=1` to include original tool and operating-system
+details with Somali diagnostics when troubleshooting a build.

@@ -1,4 +1,6 @@
-Khalad fulin: Tiro looma qaybin karo eber. safka 2, tiirka 49
+Khalad fulin: Tiro looma qaybin karo eber. [E030] safka 2, tiirka 49
      --> examples/errors/callback_failure.sop:2:49
    2 │   door natiijo = tirooyin.aaddin(hawl(x) { celi x / 0 })
      │                                                   ^
+Raadka wicitaannada:
+     #anonymous0 (examples/errors/callback_failure.sop:2:25)

@@ -1,0 +1,100 @@
+hawl hubi(v,name){haddii(!v){tuur name}}
+hawl fails(cb,code="E040"){door failed=been tijaabi{cb()}qabo(e,x){failed=run hubi(x.summad==code,"error code")}hubi(failed,"expected failure")}
+xirmo empty=xirmo()
+hubi(nooc(empty)=="xirmo" && empty.dherer()==0 && dherer(empty)==0,"empty tuple")
+hubi(!empty && !bool(empty) && bool(xirmo(been)),"tuple truthiness")
+hubi(qaabee(empty)=="xirmo()" && qaabee(xirmo(1))=="xirmo(1)","tuple display")
+xirmo[abn,qoraal,bool?] row=xirmo(7,"Ayaan",maran)
+hubi(row[0]==7 && row[-2]=="Ayaan" && row[-3]==7,"negative indexing")
+hubi(row[3]==maran && row[-4]==maran && row[-9223372036854775807-1]==maran,"out of bounds")
+hubi(row.hel(0)==7 && row.hel(9,"missing")=="missing" && row.hel(9)==maran,"lookup defaults")
+hubi(row.hore()==7 && row.dambe()==maran && empty.hore()==maran && empty.dambe()==maran,"endpoints")
+hubi(row.jar(0,2)==xirmo(7,"Ayaan") && row.jar(-1)==xirmo(maran),"slice")
+hubi(row.jar(2,1)==empty && row.jar(-100,100)==row,"clamped slice")
+hubi(row.nuqul()==row && row.midee(empty)==row,"copy and concatenation")
+hubi(row.midee(xirmo(9)).teed()==[7,"Ayaan",maran,9],"tuple concatenation")
+hubi(xirmo(1,1,2).tiri(1)==2 && row.leeyahay("Ayaan") && row.raadi("Ayaan")==1 && row.raadi("missing")==maran,"search")
+hubi(row!=[7,"Ayaan",maran] && xirmo(1)!=xirmo(1.0) && row==xirmo(7,"Ayaan",maran),"tuple equality")
+hubi(teed(row)==[row] && xirmo(row)[0]==row,"constructors keep arguments as elements")
+door values=[1,2]
+door copied=values.xirmo()
+values.geli(3)
+hubi(copied==xirmo(1,2),"list conversion snapshots outer contents")
+door list=row.teed()
+list[0]=99
+hubi(row[0]==7,"list copy is independent")
+fails(hawl(){row[0]=9})
+fails(hawl(){row["x"]=9})
+fails(hawl(){row.a=9})
+fails(hawl(){row.geli(9)})
+fails(hawl(){row.saar()})
+fails(hawl(){row.dhig(0,9)})
+fails(hawl(){row.nadiifi()})
+fails(hawl(){row.rog()})
+fails(hawl(){row.habee()})
+fails(hawl(){row.kudar(9)})
+fails(hawl(){row["x"]})
+fails(hawl(){row[1.0]})
+fails(hawl(){row.hel("x")})
+fails(hawl(){row.midee([1])})
+fails(hawl(){row.unknown()})
+hubi(row==xirmo(7,"Ayaan",maran),"failed writes preserve the tuple")
+door seen=[]
+kuceli(item ku row){seen.geli(item)}
+hubi(seen==row.teed(),"tuple iteration")
+door paired=[]
+kuceli(a,b ku [xirmo(1,2),xirmo(3,4)]){paired.geli(a+b)}
+hubi(paired==[3,7],"tuple row bindings")
+door iterator=row.wareeg()
+hubi(xiga(iterator).qiime==7 && xiga(iterator).qiime=="Ayaan" && xiga(iterator).qiime==maran && xiga(iterator).dhammaad,"tuple cursor")
+hubi(iterator.xiga().dhammaad,"exhaustion")
+door zipped=[]
+kuceli(a,b ku lamaane(xirmo(1,2),[3,4])){zipped.geli(xirmo(a,b))}
+hubi(zipped==[xirmo(1,3),xirmo(2,4)],"tuple zip")
+xirmo[] zero=xirmo()
+xirmo[abn|qoraal] one=xirmo("x")
+xirmo[abn]? optional=maran
+optional=xirmo(1)
+hubi(zero==empty && one[0]=="x" && optional[0]==1,"tuple annotations")
+hawl f(xirmo[abn,qoraal] value=xirmo(1,"x")):xirmo[abn,qoraal]{celi value}
+hubi(f()==xirmo(1,"x") && f(value:xirmo(2,"y"))==xirmo(2,"y"),"typed defaults and names")
+hawl factory(seed){celi hawl(xirmo[abn] value=xirmo(seed)):xirmo[abn]{celi value}}
+hubi(factory(3)()==xirmo(3),"returned typed closure")
+door dynamic=f
+fails(hawl(){dynamic([1,"x"])},"E022")
+fails(hawl(){dynamic(xirmo(1))},"E022")
+fails(hawl(){dynamic(xirmo(1.0,"x"))},"E022")
+hawl bad(){celi xirmo("x")}
+hawl badreturn():xirmo[abn]{celi bad()}
+fails(hawl(){badreturn()},"E022")
+xirmo[abn] prior=xirmo(8)
+fails(hawl(){prior=bad()},"E022")
+hubi(prior[0]==8,"failed typed assignment")
+qaab Base{}
+qaab Child dhaxal Base{}
+xirmo[Base] instance=xirmo(cusub Child())
+hubi(instance[0]!=maran,"nominal tuple elements")
+// Typed tuples constrain mutable children, including pre-existing aliases.
+door child=[1]
+xirmo[teed[abn]] holder=xirmo(child)
+fails(hawl(){child.geli("x")},"E039")
+child.geli(2)
+hubi(holder[0]==[1,2],"shared nested members")
+door shallow=holder.nuqul()
+fails(hawl(){shallow[0].geli("x")},"E039")
+teed[xirmo[abn,qoraal]] table=[xirmo(1,"x")]
+fails(hawl(){table.geli(xirmo(1,2))},"E039")
+// Cycles through mutable children remain valid values.
+door cycle_left=[] door cycle_right=[]
+door ta=xirmo(cycle_left) door tb=xirmo(cycle_right)
+cycle_left.geli(ta) cycle_right.geli(tb)
+hubi(ta==tb,"cyclic structural equality")
+hubi(qaabee(ta)=="xirmo([xirmo(...)])","cyclic display")
+// Constructors remain shadowable outside type positions.
+hawl shadow(){door xirmo=[9] xirmo[0]=8 celi xirmo[0]}
+hubi(shadow()==8,"contextual annotation spelling")
+door kept=wareeg(xirmo([9]))
+kuceli(i 1 ilaa 2200){door garbage=xirmo(i)}
+hubi(xiga(kept).qiime==[9] && row[1]=="Ayaan","tuple GC roots")
+fails(hawl(){child.geli("bad")},"E039")
+qor("tuples ok")

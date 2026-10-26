@@ -1,0 +1,4 @@
+Khalad nooc: Beddelkani ma waafaqsana nooca ururka walax[qoraal, abn]. [E039] safka 2, tiirka 7
+     --> examples/errors/object_extend_contract.sop:2:7
+   2 │     xog.ballaadhi({b: 2, c: "x"})
+     │         ^^^^^^^^^

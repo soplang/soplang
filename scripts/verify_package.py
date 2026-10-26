@@ -23,6 +23,11 @@ def main():
         runtime = original.parent.parent / "lib/soplang"
     if not runtime.is_dir():
         parser.error("the supplied executable has no packaged runtime")
+    archive_name = next(
+        (name for name in ("libsoplang.a", "soplang.lib") if (runtime / name).is_file()),
+        "libsoplang.a",
+    )
+    native = (runtime / archive_name).is_file()
     env = dict(os.environ, NO_COLOR="1", CARGO_TARGET_DIR="/nonexistent-soplang-target")
     env.pop("SOPLANG_RUNTIME_DIR", None)
     env.pop("SOPLANG_ERROR_DETAILS", None)
@@ -34,6 +39,9 @@ def main():
         install.mkdir()
         exe = install / original.name
         shutil.copy2(original, exe)
+        if os.name == "nt":
+            for dll in original.parent.glob("*.dll"):
+                shutil.copy2(dll, install / dll.name)
         shutil.copytree(runtime, install / "lib/soplang")
         shutil.copytree(ROOT / "examples", work / "examples")
         (work / "outputs").mkdir()
@@ -52,9 +60,13 @@ def main():
             if expected is not None:
                 assert result.stdout == expected, (result.stdout, expected)
 
-        def build(path, flags=()):
+        def build(path, flags=(), details=False):
             binary = work / "outputs" / (path.stem + suffix)
-            result = run(["--no-color", "--build", "--quiet", *flags, path, "-o", binary])
+            no_tools = {"PATH": str(work / "no tools")} if native else None
+            extra_env = no_tools or {}
+            if details:
+                extra_env = extra_env | {"SOPLANG_ERROR_DETAILS": "1"}
+            result = run(["--no-color", "--build", "--quiet", *flags, path, "-o", binary], extra_env=extra_env)
             return binary, result
 
         version = run(["--version"])
@@ -81,8 +93,13 @@ def main():
             expected = (work / path.with_suffix(".expected")).read_text(encoding="utf-8")
             success(run(["--no-color", *flags, path], input=stdin), expected)
             binary, result = build(path, flags)
+            if result.returncode != 0:
+                _, detailed = build(path, flags, details=True)
+                raise AssertionError((path, result.returncode, result.stderr, detailed.stderr))
             success(result)
             success(run([], input=stdin, executable=binary), expected)
+            if path.stem != "18_closures":
+                binary.unlink()
 
         # Both compilers receive identical output basenames concurrently. Their
         # intermediate .ll/.o/wrapper files must be isolated as well.
@@ -107,10 +124,7 @@ def main():
 
             def diagnostic(result):
                 assert result.returncode == 1 and not result.stdout, result
-                normalized = "".join(
-                    line.replace("\\", "/") if line.startswith("     --> ") else line
-                    for line in result.stderr.splitlines(keepends=True)
-                )
+                normalized = result.stderr.replace("examples\\errors\\", "examples/errors/")
                 assert normalized.rstrip() == expected, (path, result.stderr, expected)
                 assert f"safka {line}, tiirka {col}" in result.stderr
                 assert message in result.stderr
@@ -118,8 +132,10 @@ def main():
             diagnostic(run(["--no-color", *flags, path]))
             binary, result = build(path, flags)
             if phase == "runtime":
+                assert result.returncode == 0, (path, result.returncode, result.stderr)
                 success(result)
                 diagnostic(run([], executable=binary))
+                binary.unlink()
             else:
                 diagnostic(result)
                 assert not binary.exists(), binary
@@ -131,6 +147,9 @@ def main():
         bin_dir.mkdir()
         moved = bin_dir / original.name
         exe.rename(moved)
+        if os.name == "nt":
+            for dll in install.glob("*.dll"):
+                shutil.copy2(dll, bin_dir / dll.name)
         exe = moved
         sample = Path("examples/27_inheritance.sop")
         _, result = build(sample)
@@ -138,29 +157,38 @@ def main():
         missing = run(
             ["--build", sample], extra_env={"SOPLANG_RUNTIME_DIR": str(work / "missing runtime")}
         )
-        assert missing.returncode != 0 and "Xogta nooca Rust" in missing.stderr
-        version_path = install / "lib/soplang/rustc-version.txt"
-        recorded = version_path.read_text(encoding="utf-8")
-        version_path.write_text("rustc incompatible-test-version\n", encoding="utf-8")
-        _, mismatch = build(sample)
-        assert mismatch.returncode != 0 and "Nooca Rust ee rakiban kuma habboona" in mismatch.stderr
-        version_path.write_text(recorded, encoding="utf-8")
+        if native:
+            assert missing.returncode != 0 and "Maktabadda fulinta Soplang lama helin" in missing.stderr
+            archive = install / "lib/soplang" / archive_name
+            archive.rename(archive.with_suffix(".hidden"))
+            _, missing_archive = build(sample)
+            assert missing_archive.returncode != 0 and "Maktabadda fulinta Soplang lama helin" in missing_archive.stderr
+            archive.with_suffix(".hidden").rename(archive)
+        else:
+            assert missing.returncode != 0 and "Xogta nooca Rust" in missing.stderr
+            version_path = install / "lib/soplang/rustc-version.txt"
+            recorded = version_path.read_text(encoding="utf-8")
+            version_path.write_text("rustc incompatible-test-version\n", encoding="utf-8")
+            _, mismatch = build(sample)
+            assert mismatch.returncode != 0 and "Nooca Rust ee rakiban kuma habboona" in mismatch.stderr
+            version_path.write_text(recorded, encoding="utf-8")
 
         # A native output must continue to work without source or runtime files.
         retained = work / "outputs" / ("18_closures" + suffix)
         expected = (work / "examples/18_closures.expected").read_text(encoding="utf-8")
+        success(run(["-c", "1 + 2"], extra_env={"PATH": str(work / "no tools")}), "3\n")
         shutil.rmtree(work / "examples")
         shutil.rmtree(install / "lib")
         success(run([], executable=retained), expected)
-        failure = run(["--build", "does-not-exist.sop"])
-        assert failure.returncode != 0
-        # Parse a valid source so this checks discovery, rather than file I/O.
-        (work / "simple.sop").write_text('qor(1)\n', encoding="utf-8")
-        missing = run(["--build", "simple.sop"])
-        assert missing.returncode != 0 and "Maktabadaha fulinta Soplang lama helin" in missing.stderr
-        success(run(["-c", "1 + 2"], extra_env={"PATH": str(work / "no tools")}), "3\n")
+        if not native:
+            failure = run(["--build", "does-not-exist.sop"])
+            assert failure.returncode != 0
+            # Parse a valid source so this checks discovery, rather than file I/O.
+            (work / "simple.sop").write_text('qor(1)\n', encoding="utf-8")
+            missing = run(["--build", "simple.sop"])
+            assert missing.returncode != 0 and "Maktabadaha fulinta Soplang lama helin" in missing.stderr
 
-    print(f"Installed package verified: version, REPL, {len(examples)} examples and {count} diagnostics in JIT/LLVM; runtime discovery, toolchain mismatch, and standalone execution.")
+    print(f"Installed package verified: version, REPL, {len(examples)} examples and {count} diagnostics in JIT/LLVM; runtime discovery and standalone execution.")
 
 
 if __name__ == "__main__":

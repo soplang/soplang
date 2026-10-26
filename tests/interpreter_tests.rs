@@ -71,6 +71,20 @@ fn test_qor_number() {
 }
 
 #[test]
+fn test_repl_qor_multiple_arguments() {
+    let mut session = soplang::ReplSession::new(false).expect("session");
+    session
+        .eval(r#"door magac1 = "Ayaan"; door magac2 = "Cali""#, None)
+        .unwrap();
+    session.eval("qor(magac1, magac2)", None).unwrap();
+    session.eval("qor()", None).unwrap();
+    session
+        .eval("door output = qor(magac1, magac2, 3)", None)
+        .unwrap();
+    assert_eq!(global_string(&session, "output"), "Ayaan Cali 3");
+}
+
+#[test]
 fn test_maran_literal() {
     let output = run_program("door value = maran qor(value) qor(nooc(value))");
     assert_eq!(output, "maran\nmaran\n");
@@ -509,29 +523,29 @@ fn test_repl_global_updates_across_snippets() {
             None,
         )
         .unwrap();
-    assert_eq!(global_int("total"), 1);
-    assert_eq!(global_int("observed"), 1);
+    assert_eq!(global_int(&session, "total"), 1);
+    assert_eq!(global_int(&session, "observed"), 1);
     session
         .eval("increment() total = total + 1 observed = total", None)
         .unwrap();
-    assert_eq!(global_int("total"), 3);
-    assert_eq!(global_int("observed"), 3);
+    assert_eq!(global_int(&session, "total"), 3);
+    assert_eq!(global_int(&session, "observed"), 3);
     session
         .eval(
             "kuceli (index 1 ilaa 3) { observed = observed + index }",
             None,
         )
         .unwrap();
-    assert_eq!(global_int("observed"), 9);
-    assert_eq!(global_int("index"), 4);
+    assert_eq!(global_int(&session, "observed"), 9);
+    assert_eq!(global_int(&session, "index"), 4);
     session
         .eval(
             "kuceli (index 1 ilaa 2) { observed = observed + index }",
             None,
         )
         .unwrap();
-    assert_eq!(global_int("observed"), 12);
-    assert_eq!(global_int("index"), 3);
+    assert_eq!(global_int(&session, "observed"), 12);
+    assert_eq!(global_int(&session, "index"), 3);
 }
 
 #[test]
@@ -550,30 +564,28 @@ fn test_repl_session_keeps_names() {
         .unwrap();
     session.eval(r#"door b = cusub Bisad()"#, None).unwrap();
     session.eval(r#"b.salaam()"#, None).unwrap();
-    assert_eq!(global_string("natiijo"), "Mia");
+    assert_eq!(global_string(&session, "natiijo"), "Mia");
 
     session.eval("door x = 1", None).unwrap();
     session.eval("x = x + 4", None).unwrap();
-    assert_eq!(global_int("x"), 5);
+    assert_eq!(global_int(&session, "x"), 5);
 
     session
         .eval(r#"hawl foo() { natiijo = "fn" }"#, None)
         .unwrap();
     session.eval("foo()", None).unwrap();
-    assert_eq!(global_string("natiijo"), "fn");
+    assert_eq!(global_string(&session, "natiijo"), "fn");
 }
 
-fn global_string(name: &str) -> String {
-    let sv = soplang::runtime::soplang_get_builtin(name.as_ptr(), name.len());
-    match soplang::runtime::soplang_to_value(sv).unwrap() {
+fn global_string(session: &soplang::ReplSession, name: &str) -> String {
+    match session.get_global(name).expect("global exists") {
         soplang::Value::Str(s) => s,
         other => panic!("expected string for {name}, got {other:?}"),
     }
 }
 
-fn global_int(name: &str) -> i64 {
-    let sv = soplang::runtime::soplang_get_builtin(name.as_ptr(), name.len());
-    match soplang::runtime::soplang_to_value(sv).unwrap() {
+fn global_int(session: &soplang::ReplSession, name: &str) -> i64 {
+    match session.get_global(name).expect("global exists") {
         soplang::Value::Int(n) => n,
         other => panic!("expected int for {name}, got {other:?}"),
     }
@@ -588,4 +600,186 @@ fn test_import_via_file() {
         .expect("run import example");
     let stdout = String::from_utf8(out.stdout).unwrap();
     assert_eq!(stdout, "6\n");
+}
+
+#[test]
+fn test_error_boundaries_stop_failed_expressions() {
+    assert_eq!(
+        run_program(include_str!("fixtures/error_boundaries.sop")),
+        "error boundaries ok\n"
+    );
+}
+
+#[test]
+fn test_raising_and_guaranteed_cleanup() {
+    assert_eq!(
+        run_program(include_str!("fixtures/raise_cleanup.sop")),
+        "raise and cleanup ok\n"
+    );
+}
+
+#[test]
+fn test_structured_errors_and_causes() {
+    assert_eq!(
+        run_program(include_str!("fixtures/structured_errors.sop")),
+        "structured errors ok\n"
+    );
+}
+
+#[test]
+fn test_wide_calls_and_callable_expressions() {
+    assert_eq!(
+        run_program(include_str!("fixtures/callable_expressions.sop")),
+        "callable expressions ok\n"
+    );
+}
+
+#[test]
+fn test_garbage_collection_preserves_active_values() {
+    assert_eq!(
+        run_program(include_str!("fixtures/garbage_collection.sop")),
+        "garbage collection ok\n"
+    );
+}
+
+#[test]
+fn test_escaped_raw_and_multiline_literals() {
+    assert_eq!(
+        run_program(include_str!("fixtures/string_literals.sop")),
+        "string literals ok\n"
+    );
+}
+
+#[test]
+fn test_value_and_template_formatting() {
+    assert_eq!(
+        run_program(include_str!("fixtures/formatting.sop")),
+        "formatting ok\n"
+    );
+}
+
+#[test]
+fn test_interpolated_strings() {
+    assert_eq!(
+        run_program(include_str!("fixtures/interpolation.sop")),
+        "interpolation ok\n"
+    );
+}
+
+#[test]
+fn test_numeric_boundaries() {
+    assert_eq!(
+        run_program(include_str!("fixtures/numeric_edges.sop")),
+        "numeric edges ok\n"
+    );
+}
+
+#[test]
+fn test_collection_iteration_and_protocol() {
+    assert_eq!(
+        run_program(include_str!("fixtures/iteration.sop")),
+        "iteration ok\n"
+    );
+}
+
+#[test]
+fn test_iteration_gc_and_reentrant_callbacks() {
+    assert_eq!(
+        run_program(include_str!("fixtures/iteration_gc.sop")),
+        "iteration gc ok\n"
+    );
+}
+
+#[test]
+fn test_default_arguments() {
+    assert_eq!(
+        run_program(include_str!("fixtures/default_arguments.sop")),
+        "default arguments ok\n"
+    );
+}
+
+#[test]
+fn test_variadic_arguments() {
+    assert_eq!(
+        run_program(include_str!("fixtures/variadic_arguments.sop")),
+        "variadic arguments ok\n"
+    );
+}
+
+#[test]
+fn test_callback_signatures() {
+    assert_eq!(
+        run_program(include_str!("fixtures/callback_signatures.sop")),
+        "callback signatures ok\n"
+    );
+}
+
+#[test]
+fn test_named_arguments() {
+    assert_eq!(
+        run_program(include_str!("fixtures/named_arguments.sop")),
+        "named arguments ok\n"
+    );
+}
+
+#[test]
+fn test_bytes() {
+    assert_eq!(
+        run_program(include_str!("fixtures/bytes.sop")),
+        "bytes ok\n"
+    );
+}
+
+#[test]
+fn test_union_types() {
+    assert_eq!(
+        run_program(include_str!("fixtures/union_types.sop")),
+        "union types ok\n"
+    );
+}
+
+#[test]
+fn test_typed_collections() {
+    assert_eq!(
+        run_program(include_str!("fixtures/typed_collections.sop")),
+        "typed collections ok\n"
+    );
+}
+
+#[test]
+fn test_tuples() {
+    assert_eq!(
+        run_program(include_str!("fixtures/tuples.sop")),
+        "tuples ok\n"
+    );
+}
+
+#[test]
+fn test_sets() {
+    assert_eq!(run_program(include_str!("fixtures/sets.sop")), "sets ok\n");
+}
+
+#[test]
+fn test_typed_sets() {
+    assert_eq!(run_program(include_str!("fixtures/typed_sets.sop")), "typed sets ok\n");
+}
+
+#[test]
+fn test_text_methods() {
+    assert_eq!(run_program(include_str!("fixtures/text_methods.sop")), "text methods ok\n");
+}
+
+#[test]
+fn test_list_operations() {
+    assert_eq!(run_program(include_str!("fixtures/list_operations.sop")), "list operations ok\n");
+}
+
+#[test]
+fn test_object_operations() {
+    assert_eq!(run_program(include_str!("fixtures/object_operations.sop")), "object operations ok\n");
+}
+
+#[test]
+fn test_numeric_library() {
+    assert_eq!(run_program(include_str!("fixtures/numeric_library.sop")), "numeric library ok\n");
 }

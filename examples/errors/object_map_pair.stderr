@@ -1,0 +1,4 @@
+Khalad nooc: aaddin() hawshu waa inay celisaa teed ama xirmo laba xubnood leh marka habku yahay 'lamaane'. [E043] safka 2, tiirka 5
+     --> examples/errors/object_map_pair.sop:2:5
+   2 │   xog.aaddin(hawl(fure, qiime) { celi qiime }, "lamaane")
+     │       ^^^^^^

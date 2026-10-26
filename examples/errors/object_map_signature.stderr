@@ -1,0 +1,4 @@
+Khalad nooc: Hawsha la siiyay 'aaddin()' ma aqbasho 2 dood; waxay u baahan tahay 1 dood. [E022] safka 2, tiirka 5
+     --> examples/errors/object_map_signature.sop:2:5
+   2 │   xog.aaddin(hawl(qiime) { celi qiime })
+     │       ^^^^^^

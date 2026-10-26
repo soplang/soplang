@@ -1,0 +1,4 @@
+Khalad naxwe: Waxaa la filayay nooc. safka 1, tiirka 7
+     --> examples/errors/union_missing_type.sop:1:7
+   1 │   abn | ? qiime = 1
+     │         ^

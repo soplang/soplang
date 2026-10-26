@@ -1,0 +1,4 @@
+Khalad naxwe: Doodda '*' ma yeelan karto qiime hordhac ah. safka 1, tiirka 15
+     --> examples/errors/variadic_default.sop:1:15
+   1 │   hawl tijaabo(*items = []) {}
+     │                 ^

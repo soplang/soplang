@@ -1,0 +1,4 @@
+Khalad nooc: Beddelkani ma waafaqsana nooca ururka xirmo[teed[abn]]. [E039] safka 2, tiirka 8
+     --> examples/errors/tuple_child.sop:2:8
+   2 │   xog[0].geli("x")
+     │          ^^^^

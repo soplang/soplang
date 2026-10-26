@@ -1,0 +1,4 @@
+Khalad nooc: Hawshani waxay aqbashaa doodaha boosaska leh oo keliya. [E022] safka 1, tiirka 1
+     --> examples/errors/named_builtin.sop:1:1
+   1 │   qor(value: 1)
+     │   ^^^

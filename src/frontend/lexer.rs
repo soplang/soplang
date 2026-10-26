@@ -7,7 +7,6 @@ use super::token::{Token, TokenType};
 use crate::error::{codes, lexer_error_ex, ErrorMeta, SoplangError};
 
 pub struct Lexer<'a> {
-    #[allow(dead_code)]
     source: &'a str,
     chars: Peekable<Chars<'a>>,
     line: usize,
@@ -15,6 +14,7 @@ pub struct Lexer<'a> {
     /// Byte offset of `current` in `source`.
     index: usize,
     current: Option<char>,
+    format_depth: usize,
 }
 
 impl<'a> Lexer<'a> {
@@ -28,6 +28,7 @@ impl<'a> Lexer<'a> {
             col: 1,
             index: 0,
             current,
+            format_depth: 0,
         }
     }
 
@@ -44,7 +45,29 @@ impl<'a> Lexer<'a> {
         Ok(tokens)
     }
 
-    fn next_token(&mut self) -> Result<Token, SoplangError> {
+    /// Editor-only prefix tokens. Keep valid earlier tokens when the current
+    /// string/comment is unfinished, and stop before the editor token budget.
+    /// Compiler tokenization continues to return the original lexical error.
+    pub(crate) fn tokenize_prefix(&mut self) -> Vec<Token> {
+        let mut tokens = Vec::new();
+        loop {
+            match self.next_token() {
+                Ok(token) => {
+                    let eof = token.kind == TokenType::Eof;
+                    tokens.push(token);
+                    if eof { return tokens; }
+                }
+                Err(_) => break,
+            }
+            if tokens.len() > 100_000 { break; }
+        }
+        let mut eof = Token::new(TokenType::Eof, "", self.line, self.col, self.index);
+        eof.end = eof.start;
+        tokens.push(eof);
+        tokens
+    }
+
+    pub(super) fn next_token(&mut self) -> Result<Token, SoplangError> {
         while let Some(c) = self.current {
             if c.is_whitespace() {
                 self.skip_whitespace();
@@ -58,6 +81,14 @@ impl<'a> Lexer<'a> {
             let line = self.line;
             let col = self.col;
             let start = self.index;
+            if matches!(c, 'e' | 'r' | 'f') && matches!(self.peek(), Some('"' | '\'')) {
+                let escaped = c == 'e';
+                self.advance();
+                if c == 'f' {
+                    return self.read_formatted_string(self.current.unwrap(), line, col, start);
+                }
+                return self.read_string(self.current.unwrap(), escaped, line, col, start);
+            }
             if c.is_alphabetic() || c == '_' {
                 return Ok(self.read_identifier(line, col, start));
             }
@@ -65,7 +96,7 @@ impl<'a> Lexer<'a> {
                 return Ok(self.read_number(line, col, start));
             }
             if c == '"' || c == '\'' {
-                return self.read_string(c, line, col, start);
+                return self.read_string(c, false, line, col, start);
             }
             if c == '=' {
                 self.advance();
@@ -118,14 +149,10 @@ impl<'a> Lexer<'a> {
                     self.advance();
                     return Ok(Token::new(TokenType::Or, "||", line, col, start));
                 }
-                return Err(lexer_error_ex(
-                    format!("Xaraf aan la filayn: {}", c),
-                    line,
-                    col,
-                    ErrorMeta::default().with_code(codes::E001_UNEXPECTED_CHAR),
-                ));
+                return Ok(Token::new(TokenType::Union, "|", line, col, start));
             }
             let (kind, lexeme) = match c {
+                '?' => (TokenType::Optional, "?"),
                 '+' => (TokenType::Plus, "+"),
                 '-' => (TokenType::Minus, "-"),
                 '*' => (TokenType::Star, "*"),
@@ -247,35 +274,356 @@ impl<'a> Lexer<'a> {
     fn read_string(
         &mut self,
         quote: char,
+        escaped: bool,
         start_line: usize,
         start_col: usize,
         start: usize,
     ) -> Result<Token, SoplangError> {
-        self.advance();
-        let mut s = String::new();
-        while self.current.is_some() && self.current != Some(quote) {
-            if let Some(c) = self.current {
-                s.push(c);
+        let delimiter: String = std::iter::repeat_n(quote, 3).collect();
+        let triple = self.source[self.index..].starts_with(&delimiter);
+        let width = if triple { 3 } else { 1 };
+        for _ in 0..width {
+            self.advance();
+        }
+        let mut value = String::new();
+        while let Some(character) = self.current {
+            if character == quote && (!triple || self.source[self.index..].starts_with(&delimiter))
+            {
+                for _ in 0..width {
+                    self.advance();
+                }
+                let mut token = Token::new(TokenType::String, value, start_line, start_col, start);
+                token.end = self.index;
+                return Ok(token);
+            }
+            if escaped && character == '\\' {
+                if let Some(character) = self.read_escape()? {
+                    value.push(character);
+                }
+            } else if character == '\r' && self.peek() == Some('\n') {
+                self.advance();
+                self.advance();
+                value.push('\n');
+            } else {
+                value.push(character);
                 self.advance();
             }
         }
-        if self.current == Some(quote) {
-            self.advance();
-            Ok(Token::new(
-                TokenType::String,
-                s,
-                start_line,
-                start_col,
-                start,
-            ))
-        } else {
-            Err(lexer_error_ex(
-                "Qoraal aan la xidhin",
-                start_line,
-                start_col,
-                ErrorMeta::default().with_code(codes::E002_UNTERMINATED_STRING),
-            ))
+        Err(lexer_error_ex(
+            "Qoraal aan la xidhin",
+            start_line,
+            start_col,
+            ErrorMeta::default().with_code(codes::E002_UNTERMINATED_STRING),
+        ))
+    }
+
+    fn read_formatted_string(
+        &mut self,
+        quote: char,
+        line: usize,
+        col: usize,
+        start: usize,
+    ) -> Result<Token, SoplangError> {
+        if self.format_depth >= 64 {
+            return Err(lexer_error_ex(
+                "Qaybaha qoraalka aad bay isugu dhex jiraan.",
+                line,
+                col,
+                ErrorMeta::default().with_code(codes::E005_INVALID_INTERPOLATION),
+            ));
         }
+        self.format_depth += 1;
+        let result = self.read_formatted_inner(quote, line, col, start);
+        self.format_depth -= 1;
+        result
+    }
+
+    fn read_formatted_inner(
+        &mut self,
+        quote: char,
+        line: usize,
+        col: usize,
+        start: usize,
+    ) -> Result<Token, SoplangError> {
+        use super::token::FormatPart;
+        let delimiter: String = std::iter::repeat_n(quote, 3).collect();
+        let triple = self.source[self.index..].starts_with(&delimiter);
+        let width = if triple { 3 } else { 1 };
+        for _ in 0..width {
+            self.advance();
+        }
+        let content_start = self.index;
+        let mut parts = Vec::new();
+        let mut text = String::new();
+        while let Some(character) = self.current {
+            if character == quote && (!triple || self.source[self.index..].starts_with(&delimiter))
+            {
+                let content_end = self.index;
+                for _ in 0..width {
+                    self.advance();
+                }
+                if !text.is_empty() {
+                    parts.push(FormatPart::Text(text));
+                }
+                let mut token = Token::new(
+                    TokenType::FormattedString,
+                    &self.source[content_start..content_end],
+                    line,
+                    col,
+                    start,
+                );
+                token.end = self.index;
+                token.format_parts = parts;
+                return Ok(token);
+            }
+            if character == '\\' {
+                if let Some(character) = self.read_escape()? {
+                    text.push(character);
+                }
+            } else if character == '{' {
+                if self.peek() == Some('{') {
+                    self.advance();
+                    self.advance();
+                    text.push('{');
+                } else {
+                    if !text.is_empty() {
+                        parts.push(FormatPart::Text(std::mem::take(&mut text)));
+                    }
+                    parts.push(self.read_format_field(quote, triple)?);
+                }
+            } else if character == '}' {
+                if self.peek() != Some('}') {
+                    return Err(lexer_error_ex(
+                        "Calaamadda '}' ee qoraalka ma laha '{' u dhiganta.",
+                        self.line,
+                        self.col,
+                        ErrorMeta::default().with_code(codes::E005_INVALID_INTERPOLATION),
+                    ));
+                }
+                self.advance();
+                self.advance();
+                text.push('}');
+            } else if character == '\r' && self.peek() == Some('\n') {
+                self.advance();
+                self.advance();
+                text.push('\n');
+            } else {
+                text.push(character);
+                self.advance();
+            }
+        }
+        Err(lexer_error_ex(
+            "Qoraal aan la xidhin",
+            line,
+            col,
+            ErrorMeta::default().with_code(codes::E002_UNTERMINATED_STRING),
+        ))
+    }
+
+    fn read_format_field(
+        &mut self,
+        outer_quote: char,
+        triple: bool,
+    ) -> Result<super::token::FormatPart, SoplangError> {
+        use super::token::FormatPart;
+        let (line, col) = (self.line, self.col);
+        let unclosed = || {
+            lexer_error_ex(
+                "Qaybta qiimaha lagu gelinayo qoraalka lama xidhin.",
+                line,
+                col,
+                ErrorMeta::default().with_code(codes::E005_INVALID_INTERPOLATION),
+            )
+        };
+        self.advance(); // {
+        let mut tokens: Vec<Token> = Vec::new();
+        let mut braces = 0usize;
+        let mut parens = 0usize;
+        let mut brackets = 0usize;
+        loop {
+            loop {
+                self.skip_whitespace();
+                if self.current == Some('/') && self.skip_comment()? {
+                    continue;
+                }
+                break;
+            }
+            if self.current.is_none() {
+                return Err(unclosed());
+            }
+            // A closing outer quote after a complete atom indicates a missing }.
+            let atom = tokens.last().is_some_and(|token| {
+                matches!(
+                    token.kind,
+                    TokenType::Identifier
+                        | TokenType::Number
+                        | TokenType::String
+                        | TokenType::FormattedString
+                        | TokenType::True
+                        | TokenType::False
+                        | TokenType::Null
+                        | TokenType::RParen
+                        | TokenType::RBracket
+                        | TokenType::RBrace
+                )
+            });
+            let delimiter: String =
+                std::iter::repeat_n(outer_quote, if triple { 3 } else { 1 }).collect();
+            if braces == 0
+                && parens == 0
+                && brackets == 0
+                && atom
+                && self.source[self.index..].starts_with(&delimiter)
+            {
+                return Err(unclosed());
+            }
+            let token = self.next_token()?;
+            let close = token.kind == TokenType::RBrace && braces == 0;
+            let spec =
+                token.kind == TokenType::Colon && braces == 0 && parens == 0 && brackets == 0;
+            if close || spec {
+                if tokens.is_empty() {
+                    return Err(lexer_error_ex(
+                        "Waxaa loo baahan yahay weedh gudaha '{...}' ee qoraalka.",
+                        line,
+                        col,
+                        ErrorMeta::default().with_code(codes::E005_INVALID_INTERPOLATION),
+                    ));
+                }
+                let mut eof = Token::new(TokenType::Eof, "", token.line, token.col, token.start);
+                eof.end = token.start;
+                tokens.push(eof);
+                let mut format = String::new();
+                let mut format_token = None;
+                if spec {
+                    let (format_start, format_line, format_col) = (self.index, self.line, self.col);
+                    while let Some(character) = self.current {
+                        if character == '}' {
+                            break;
+                        }
+                        if character == '{' {
+                            return Err(lexer_error_ex(
+                                "Qaabka qoraalku ma aqbalo '{' gudaha meel qiime lagu gelinayo.",
+                                self.line,
+                                self.col,
+                                ErrorMeta::default().with_code(codes::E005_INVALID_INTERPOLATION),
+                            ));
+                        }
+                        format.push(character);
+                        self.advance();
+                    }
+                    if self.current != Some('}') {
+                        return Err(unclosed());
+                    }
+                    let mut position = Token::new(
+                        TokenType::Identifier,
+                        &format,
+                        format_line,
+                        format_col,
+                        format_start,
+                    );
+                    position.end = self.index;
+                    format_token = Some(position);
+                    self.advance();
+                }
+                return Ok(FormatPart::Field {
+                    tokens,
+                    format,
+                    format_token,
+                });
+            }
+            match token.kind {
+                TokenType::LBrace => braces += 1,
+                TokenType::RBrace => braces = braces.saturating_sub(1),
+                TokenType::LParen => parens += 1,
+                TokenType::RParen => parens = parens.saturating_sub(1),
+                TokenType::LBracket => brackets += 1,
+                TokenType::RBracket => brackets = brackets.saturating_sub(1),
+                TokenType::Eof => return Err(unclosed()),
+                _ => (),
+            }
+            tokens.push(token);
+        }
+    }
+
+    fn read_escape(&mut self) -> Result<Option<char>, SoplangError> {
+        let (line, col) = (self.line, self.col);
+        self.advance();
+        let escaped = match self.current {
+            Some('n') => '\n',
+            Some('r') => '\r',
+            Some('t') => '\t',
+            Some('0') => '\0',
+            Some('\\') => '\\',
+            Some('\'') => '\'',
+            Some('"') => '"',
+            Some('\n') => {
+                self.advance();
+                return Ok(None);
+            }
+            Some('\r') => {
+                self.advance();
+                if self.current == Some('\n') {
+                    self.advance();
+                }
+                return Ok(None);
+            }
+            Some('u') => return self.read_unicode_escape(line, col).map(Some),
+            Some(character) => {
+                return Err(lexer_error_ex(
+                    format!("Xarafka ka dambeeya '\\' lama aqoonsan: {}.", character),
+                    line,
+                    col,
+                    ErrorMeta::default().with_code(codes::E004_INVALID_ESCAPE),
+                ))
+            }
+            None => {
+                return Err(lexer_error_ex(
+                    "Xaraf waa inuu ka dambeeyaa calaamadda '\\'.",
+                    line,
+                    col,
+                    ErrorMeta::default().with_code(codes::E004_INVALID_ESCAPE),
+                ))
+            }
+        };
+        self.advance();
+        Ok(Some(escaped))
+    }
+
+    fn read_unicode_escape(&mut self, line: usize, col: usize) -> Result<char, SoplangError> {
+        let invalid = || {
+            lexer_error_ex(
+                "Koodhka Unicode ee qoraalku ma saxna.",
+                line,
+                col,
+                ErrorMeta::default().with_code(codes::E004_INVALID_ESCAPE),
+            )
+        };
+        self.advance(); // u
+        if self.current != Some('{') {
+            return Err(invalid());
+        }
+        self.advance();
+        let mut digits = String::new();
+        while self
+            .current
+            .is_some_and(|character| character.is_ascii_hexdigit())
+        {
+            digits.push(self.current.unwrap());
+            if digits.len() > 6 {
+                return Err(invalid());
+            }
+            self.advance();
+        }
+        if self.current != Some('}') || digits.is_empty() {
+            return Err(invalid());
+        }
+        let character = u32::from_str_radix(&digits, 16)
+            .ok()
+            .and_then(char::from_u32)
+            .ok_or_else(invalid)?;
+        self.advance();
+        Ok(character)
     }
 }
 

@@ -1,0 +1,4 @@
+Khalad nooc: Hawsha la siiyay 'aaddin()' ma aqbasho 1 dood; waxay u baahan tahay tiro dhaban ah oo doodo ah. [E022] safka 1, tiirka 4
+     --> examples/errors/empty_pair_callback.sop:1:4
+   1 │   [].aaddin(walax)
+     │      ^^^^^^

@@ -1,0 +1,292 @@
+soosaar Web, json, html, leex, kuki, foom, hubi, cors, fayl, kuki_qoraal, habee, qayb, diid, socod, jidh_akhris
+
+hawl json(xog, heer=200) {
+    celi { heer: heer, json: xog }
+}
+
+hawl html(nux, heer=200) {
+    celi { heer: heer, "qoraal": nux, cinwaan: { "content-type": "text/html; charset=utf-8" } }
+}
+
+hawl socod(xiga, heer=200, nooc="application/octet-stream") {
+    celi { heer: heer, socod: xiga, cinwaan: { "content-type": nooc } }
+}
+
+hawl jidh_akhris(codsi, cabbir=65536) {
+    celi server_jidh_akhris(codsi.jidh, cabbir)
+}
+
+hawl leex(jid, heer=302) {
+    celi { heer: heer, cinwaan: { location: jid } }
+}
+
+hawl kuki(codsi, magac) {
+    door raw = codsi.cinwaan.cookie
+    haddii (raw == maran) { celi maran }
+    kuceli (qayb ku raw.qeybi(";")) {
+        door labo = qayb.masax().kalaqaad("=")
+        haddii (labo[1] == "=" && labo[0].masax() == magac) {
+            celi labo[2].masax()
+        }
+    }
+    celi maran
+}
+
+hawl kuki_qoraal(id, doorasho={}) {
+    celi kuki_habee(id, doorasho)
+}
+
+hawl diid(heer, fariin) {
+    haddii (nooc(heer) != "abn" || heer < 400 || heer > 599) {
+        tuur "Heerka diidmada waa inuu u dhexeeyaa 400 iyo 599."
+    }
+    tuur khalad(fariin, "HTTP" + qoraal(heer))
+}
+
+hawl foom(codsi) {
+    door natiijo = {}
+    haddii (codsi.qoraal == maran) {
+        haddii (codsi.baytyo != maran && dherer(codsi.baytyo) > 0) { diid(400, "Foomku ma aha qoraal UTF-8 ah.") }
+        celi natiijo
+    }
+    tijaabi {
+        kuceli (qayb ku codsi.qoraal.qeybi("&")) {
+            haddii (qayb != "") {
+                door labo = qayb.kalaqaad("=")
+                door magac = url_akhris(labo[0], "foom")
+                door qiime = ""
+                haddii (labo[1] == "=") { qiime = url_akhris(labo[2], "foom") }
+                natiijo[magac] = qiime
+            }
+        }
+    } qabo (e, xog) {
+        tuur khalad(e, "HTTP400", xog)
+    }
+    celi natiijo
+}
+
+hawl hubi(xog, magacyo) {
+    kuceli (magac ku magacyo) {
+        haddii (xog[magac] == maran || xog[magac] == "") { diid(400, "Goobta '" + magac + "' waa loo baahan yahay.") }
+    }
+    celi xog
+}
+
+hawl nooc_fayl(jid) {
+    haddii (jid.dhammaad(".html")) { celi "text/html; charset=utf-8" }
+    haddii (jid.dhammaad(".json")) { celi "application/json" }
+    haddii (jid.dhammaad(".txt")) { celi "text/plain; charset=utf-8" }
+    celi "application/octet-stream"
+}
+
+hawl fayl(xidid, jid) {
+    tijaabi {
+        door baytyo = fayl_gudaha(xidid, jid)
+        haddii (baytyo == maran) { celi { heer: 404, "qoraal": "Lama helin" } }
+        celi { baytyo: baytyo, cinwaan: { "content-type": nooc_fayl(jid) } }
+    } qabo (e) {
+        celi { heer: 400, "qoraal": "Jidka faylka ma saxna" }
+    }
+}
+
+hawl habee(naqshad, xog) {
+    celi html(habee_qoraal(naqshad, xog))
+}
+
+hawl qayb(codsi) {
+    door nooc = ""
+    haddii (codsi.cinwaan["content-type"] != maran) { nooc = codsi.cinwaan["content-type"] }
+    tijaabi {
+        celi qayb_foom(nooc, codsi.baytyo)
+    } qabo (e, xog) {
+        tuur khalad(e, "HTTP400", xog)
+    }
+}
+
+hawl cors(asal) {
+    hawl dhex(codsi, xiga) {
+        haddii (codsi.hab == "OPTIONS") {
+            celi {
+                heer: 204,
+                cinwaan: {
+                    "access-control-allow-origin": asal,
+                    "access-control-allow-methods": "GET, POST, PUT, PATCH, DELETE",
+                    "access-control-allow-headers": "content-type"
+                }
+            }
+        }
+        door jawaab = xiga(codsi)
+        haddii (jawaab.cinwaan == maran) { jawaab.cinwaan = {} }
+        jawaab.cinwaan["access-control-allow-origin"] = asal
+        celi jawaab
+    }
+    celi dhex
+}
+
+qaab Web {
+    hawl dhis() {
+        nafta.waddo = []
+        nafta.dhex = []
+        nafta.asal = ""
+        nafta.diiwaan = []
+        nafta.xad_diiwaan = 1024
+        nafta.kayd = {}
+        nafta.xad_kalfadhi = 1024
+        nafta.qabasho = maran
+        nafta.waqti = 30
+        nafta.cabbir = 1048576
+        nafta.dherer_kalfadhi = 3600
+        nafta.fayl_shahaado = maran
+        nafta.fayl_fure = maran
+    }
+
+    hawl shahaado(fayl, fure) {
+        nafta.fayl_shahaado = fayl
+        nafta.fayl_fure = fure
+    }
+
+    hawl fur(host, deked) {
+        haddii (nafta.fayl_shahaado == maran) { celi server_fur(host, deked) }
+        celi server_fur(host, deked, { shahaado: nafta.fayl_shahaado, fure: nafta.fayl_fure })
+    }
+
+    hawl dhexdhexa(shaqo) {
+        nafta.dhex.geli(shaqo)
+    }
+
+    hawl orod(dhex, i, ugu_dambeeya, codsi) {
+        haddii (i >= dherer(dhex)) { celi ugu_dambeeya(codsi) }
+        door app = nafta
+        celi dhex[i](codsi, hawl(codsi2) { celi app.orod(dhex, i + 1, ugu_dambeeya, codsi2) })
+    }
+
+    hawl isku_duub(dhex, ugu_dambeeya) {
+        door app = nafta
+        hawl mid(codsi) {
+            tijaabi {
+                celi app.orod(dhex, 0, ugu_dambeeya, codsi)
+            } qabo (e, xog) {
+                haddii (app.qabasho != maran) { celi app.qabasho(codsi, xog) }
+                tuur xog
+            }
+        }
+        celi mid
+    }
+
+    hawl khalad_qabta(shaqo) {
+        nafta.qabasho = shaqo
+    }
+
+    hawl tijaabi(hab, jid, doorasho={}) {
+        celi server_tijaabi(nafta.waddo, hab, jid, doorasho, { waqti: nafta.waqti, cabbir: nafta.cabbir })
+    }
+
+    hawl hel(hab, jid, shaqo) {
+        door buuxa = nafta.asal + jid
+        nafta.waddo.geli([hab, buuxa, nafta.isku_duub(nafta.dhex.nuqul(), shaqo)])
+        nafta.waddo.geli(["OPTIONS", buuxa, nafta.isku_duub(nafta.dhex.nuqul(), hawl(codsi) { celi { heer: 204 } })])
+    }
+
+    hawl hel_socod(hab, jid, shaqo) {
+        door buuxa = nafta.asal + jid
+        nafta.waddo.geli([hab, buuxa, nafta.isku_duub(nafta.dhex.nuqul(), shaqo), "socod"])
+        nafta.waddo.geli(["OPTIONS", buuxa, nafta.isku_duub(nafta.dhex.nuqul(), hawl(codsi) { celi { heer: 204 } })])
+    }
+
+    hawl koox(hor, dhis_koox) {
+        door hore = nafta.asal
+        door dhex_hore = nafta.dhex.nuqul()
+        nafta.asal = hore + hor
+        tijaabi {
+            dhis_koox(nafta)
+        } dhammee {
+            nafta.asal = hore
+            nafta.dhex = dhex_hore
+        }
+    }
+
+    hawl ilaali(hubiye) {
+        nafta.dhexdhexa(hawl(codsi, xiga) {
+            door user = hubiye(codsi)
+            haddii (user == maran) { celi { heer: 401, json: { khalad: "lama oggola" } } }
+            codsi.isticmaale = user
+            celi xiga(codsi)
+        })
+    }
+
+    hawl diiwaan_gelin(codsi, jawaab) {
+        haddii (nooc(nafta.xad_diiwaan) != "abn" || nafta.xad_diiwaan < 1 || nafta.xad_diiwaan > 65536) {
+            tuur "Xadka diiwaanku waa inuu u dhexeeyaa 1 iyo 65536."
+        }
+        nafta.diiwaan.geli(codsi.hab + " " + codsi.jid)
+        intay (dherer(nafta.diiwaan) > nafta.xad_diiwaan) { nafta.diiwaan.saar(0) }
+        celi jawaab
+    }
+
+    hawl nadiifi_kalfadhi() {
+        haddii (nooc(nafta.xad_kalfadhi) != "abn" || nafta.xad_kalfadhi < 1 || nafta.xad_kalfadhi > 65536) {
+            tuur "Xadka kalfadhigu waa inuu u dhexeeyaa 1 iyo 65536."
+        }
+        haddii (nooc(nafta.dherer_kalfadhi) != "abn" || nafta.dherer_kalfadhi <= 0) { tuur "Cimriga kalfadhigu waa inuu noqdaa tiro togan." }
+        door hadda = waqti()
+        kuceli (id ku nafta.kayd.furayaal()) {
+            door da = hadda - nafta.kayd[id].waqti
+            haddii (da < 0 || da >= nafta.dherer_kalfadhi) { nafta.kayd.saar(id) }
+        }
+        intay (dherer(nafta.kayd) > nafta.xad_kalfadhi) { nafta.saar_kalfadhi_hore() }
+    }
+
+    hawl saar_kalfadhi_hore() {
+        door hore = maran
+        kuceli (id ku nafta.kayd.furayaal()) {
+            haddii (hore == maran || nafta.kayd[id].waqti < nafta.kayd[hore].waqti) { hore = id }
+        }
+        haddii (hore != maran) { nafta.kayd.saar(hore) }
+    }
+
+    hawl kalfadhi_cusub(xog) {
+        nafta.nadiifi_kalfadhi()
+        intay (dherer(nafta.kayd) >= nafta.xad_kalfadhi) { nafta.saar_kalfadhi_hore() }
+        door id = aqoonsi_sugan()
+        intay (nafta.kayd[id] != maran) { id = aqoonsi_sugan() }
+        nafta.kayd[id] = { waqti: waqti(), xog: xog }
+        celi { id: id, xog: xog, cusub_ah: run }
+    }
+
+    hawl fur_kalfadhi(codsi) {
+        nafta.nadiifi_kalfadhi()
+        door id = nafta.akhris_kuki(codsi, "kalfadhi")
+        haddii (id != maran && nafta.kayd[id] != maran) {
+            celi { id: id, xog: nafta.kayd[id].xog, cusub_ah: been }
+        }
+        celi nafta.kalfadhi_cusub({})
+    }
+
+    hawl beddel_kalfadhi(codsi) {
+        door hore = nafta.fur_kalfadhi(codsi)
+        nafta.kayd.saar(hore.id)
+        celi nafta.kalfadhi_cusub(hore.xog)
+    }
+
+    hawl xidh_kalfadhi(codsi) {
+        nafta.nadiifi_kalfadhi()
+        door id = nafta.akhris_kuki(codsi, "kalfadhi")
+        haddii (id != maran && nafta.kayd[id] != maran) { nafta.kayd.saar(id) }
+    }
+
+    hawl akhris_kuki(codsi, magac) {
+        celi kuki(codsi, magac)
+    }
+
+    hawl aqbal(server) {
+        server_aqbal(server, nafta.waddo, { waqti: nafta.waqti, cabbir: nafta.cabbir })
+    }
+
+    hawl aqbal_shaqo(server) {
+        celi server_aqbal_shaqo(server, nafta.waddo, { waqti: nafta.waqti, cabbir: nafta.cabbir })
+    }
+
+    hawl adeeg_shaqo(server, shaqaale=8) {
+        celi server_adeeg_shaqo(server, nafta.waddo, { waqti: nafta.waqti, cabbir: nafta.cabbir, shaqaale: shaqaale })
+    }
+}

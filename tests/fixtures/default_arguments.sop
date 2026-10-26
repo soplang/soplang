@@ -1,0 +1,72 @@
+hawl hubi(shuruud, magac) { haddii (!shuruud) { tuur magac } }
+hawl isku(a, b = 2, c = a + b) { celi [a,b,c] }
+hubi(isku(3) == [3,2,5], "defaults reference earlier parameters")
+hubi(isku(3,8) == [3,8,11] && isku(3,8,1) == [3,8,1], "provided values override defaults")
+hawl dynamic(value=2) { celi value + 1 }
+hubi(dynamic() == 3 && dynamic("a") == "a1" && dynamic(1.5) == 2.5, "dynamic defaults do not specialize supplied values")
+door invoked = isku
+hubi(invoked(7) == [7,2,9], "dynamic calls")
+hawl madhan(a = maran, b = been, c = 0) { celi [a,b,c] }
+hubi(madhan() == [maran,been,0] && madhan(4,run,9) == [4,run,9], "falsy defaults")
+hubi(madhan(maran) == [maran,been,0], "explicit null is supplied")
+hawl cusubteed(items = []) { items.geli(1) celi items }
+hubi(cusubteed() == [1] && cusubteed() == [1], "fresh mutable list defaults")
+hawl cusubwalax(item = {n:0}) { item.n = item.n + 1 celi item.n }
+hubi(cusubwalax() == 1 && cusubwalax() == 1, "fresh mutable object defaults")
+door events = []
+hawl note(value) { events.geli(value) celi value }
+hawl order(a = note(1), b = note(a + 1), c = note(b + 1)) { celi c }
+hubi(order() == 3 && events == [1,2,3], "defaults evaluate left to right")
+events.nadiifi()
+hubi(order(note(7), note(8)) == 9 && events == [7,8,9], "arguments precede defaults")
+events.nadiifi()
+order(2,3,4)
+hubi(events == [], "supplied values skip defaults")
+hawl close(seed) {
+    hawl inner(a = seed, b = a + seed) { celi a + b }
+    celi inner
+}
+door closure = close(10)
+hubi(closure() == 30 && closure(2) == 14, "default-only lexical captures")
+hawl outer(seed) { celi hawl(a = seed) { celi a } }
+hubi(outer(4)() == 4, "anonymous defaults capture")
+hawl callback(a = hawl(value = 9) { celi value + 1 }) { celi a() }
+hubi(callback() == 10, "anonymous function inside default")
+hawl nested(seed) {
+    celi hawl(callback = hawl(value = seed) { celi value }) { celi callback() }
+}
+hubi(nested(15)() == 15, "nested default closures forward captures")
+hawl floatparam(jajab value = 3, next = nooc(value)) { celi [value,next] }
+hubi(floatparam() == [3.0,"jajab"] && floatparam(4) == [4.0,"jajab"], "earlier type conversion precedes defaults")
+hawl recurse(abn n = 4): abn { haddii (n == 0) { celi 1 } celi n * recurse(n - 1) }
+hubi(recurse() == 24, "recursive defaults")
+qaab Parent {
+    hawl dhis(value = 6) { nafta.value = value }
+    hawl get(offset = nafta.value) { celi nafta.value + offset }
+}
+qaab Child dhaxal Parent {}
+qaab Override dhaxal Parent { hawl get(offset = 3) { celi waalid.get() + offset } }
+door parent = cusub Child()
+hubi(parent.get() == 12 && parent.get(1) == 7, "inherited constructor and method defaults")
+hubi(cusub Override().get() == 15, "parent method default")
+door object = { fn: hawl(value = 8) { celi value } }
+hubi(object.fn() == 8, "object-held callable defaults")
+hubi([1,2,3].aaddin(hawl(value, factor = 2) { celi value * factor }) == [2,4,6], "callback default")
+hubi([1,2,3].shaandhee(hawl(value, limit = 2) { celi value >= limit }) == [2,3], "predicate callback default")
+door global = 10
+hawl fromglobal(value = global) { celi value }
+global = 20
+hubi(fromglobal() == 20, "globals read at call time")
+hawl bad(value = khalad("default error", "DEFAULT")) { tuur value }
+tijaabi { bad() hubi(been, "expected error") } qabo (message, detail) { hubi(detail.summad == "DEFAULT", "structured error") }
+hawl fail(value = 1 / 0) { celi value }
+tijaabi { fail() hubi(been, "expected division failure") } qabo (message, detail) { hubi(detail.saf > 0 && detail.raad.dherer() > 0, "default error location and trace") }
+hubi(isku(1) == [1,2,3], "execution recovers after default failure")
+hawl burn() { kuceli (i 1 ilaa 1300) { door cycle=[] cycle.geli(cycle) } celi 0 }
+hawl collectdefaults(value=[{n:42}], trigger=burn()) { celi value[0].n }
+hubi(collectdefaults() == 42, "early defaults survive later collection")
+hawl captureddefault(seed=[7], value=hawl(){celi seed}, trigger=burn()) { celi value }
+door retained = captureddefault()
+burn()
+hubi(retained() == [7], "default closures survive collection")
+qor("default arguments ok")

@@ -18,6 +18,7 @@ compatibility names are listed below. The collection design record explains shar
 | `bool`   | Boolean type                  | `bool`             | `bool waaRun = run`                    |
 | `walax`  | Object type                   | `object`           | `walax person = { name: "Sharafdin" }` |
 | `teed`   | List/array type               | `array`            | `teed numbers = [1, 2, 3]`             |
+| `baytyo` | Byte array type and constructor (contextual) | `bytes` | `baytyo data = baytyo([0, 255])` |
 | `maran`  | Null value                    | `null`             | `door a = maran`                       |
 
 ## Control Flow Keywords
@@ -59,6 +60,32 @@ haddii (da < 18) {
 | `hawl`  | Function declaration | `function`          | `hawl isuGee(a, b) { celi a + b }` |
 | `celi`  | Return statement     | `return`            | `celi x * 2`                       |
 
+Functions have fixed argument counts, checked before invocation. Compiled
+functions, methods, constructors, and captured closures support signatures
+with more than eight arguments. Implicit instance and capture values do not
+reduce the number of user arguments available.
+
+Any expression that produces a function or closure can be called:
+
+```soplang
+hawl samee(bilow) { celi hawl(x) { celi bilow + x } }
+door hawlo = [samee(2)]
+qor(samee(1)(2))
+qor(hawlo[0](3))
+qor((hawl(x) { celi x * 2 })(4))
+```
+
+The callee is evaluated before its arguments, which are evaluated from left
+to right. A failed callee or argument stops the call. A chained call suffix
+starts on the same line as the expression it invokes; its argument list may
+span lines. This keeps a parenthesized statement on the next line independent.
+
+Objects and instances can hold callable fields. `object.callback(args)` calls
+such a field when no built-in object method or declared class method has that
+name. Indexed calls such as `object["callback"](args)` invoke the stored value
+directly. Stored functions receive the explicitly supplied arguments; only
+declared class methods receive an implicit instance.
+
 ## Special Values
 
 | Somali Value | English Equivalent | Description         | Example                  |
@@ -80,9 +107,112 @@ haddii (da < 18) {
 | `teed`      | `list`/`array`        | List of items       | `teed numbers = [1, 2, 3]`         |
 | `walax`     | `object`              | Key-value pairs     | `walax person = { name: "Ali" }`   |
 
-`abn` uses signed 64-bit integers. `jajab` uses 64-bit binary floating-point
-values; it does not provide exact decimal arithmetic. `qoraal` is a string,
+`abn` uses signed 64-bit integers. Addition, subtraction, multiplication, and
+negation wrap in two's-complement arithmetic in both static and dynamic code.
+Integer `%` keeps the dividend's sign; the minimum integer modulo `-1` is zero.
+Division produces a `jajab`. Division and modulo by zero remain catchable errors.
+`jajab` uses 64-bit binary floating-point values; it does not provide exact
+decimal arithmetic. `qoraal` is a string,
 `teed` is a mutable list, and `walax` stores string keys and values.
+
+### Collection loops
+
+`kuceli (item ku source)` iterates collections and lazy ranges. Multiple names
+bind row elements, as in `kuceli (index, item ku tirso(source))`. `ku` is
+contextual inside the header. See [iteration.md](iteration.md) for snapshots,
+Unicode characters, object entries, `wareeg`/`xiga`, `taxane`, `tirso`, `lamaane`,
+and user-defined class iterators.
+
+### String literals
+
+Unprefixed single and double quotes keep their existing literal-backslash
+behavior. `r` explicitly selects the same raw behavior. Use `e` to decode escapes:
+
+```soplang
+door jid = r"C:\temp\new"
+door fariin = e"Salaan\nSadar cusub\t!"
+door xarfo = e"\u{e9}\u{1F600}"
+door tuduc = """First line with "quotes"
+Second line"""
+```
+
+Escaped strings accept `\n`, `\r`, `\t`, `\0`, `\\`, `\'`, `\"`, and
+`\u{HEX}` with one to six hexadecimal digits naming a valid Unicode scalar.
+Surrogates, values above U+10FFFF, incomplete escapes, and unknown escapes
+report Somali lexer errors at the backslash. A backslash followed by an actual
+LF or CRLF continues an escaped literal without adding a line break.
+
+Triple single or double quotes allow multiline content and ordinary quote
+characters inside the string. They work with `e` and `r`, preserve indentation
+and line breaks, and close at the matching three-character delimiter. String
+prefixes attach directly to the opening quote. `e` and `r` remain ordinary
+identifiers elsewhere. Existing path strings require no migration.
+
+### Interpolated strings
+
+Attach `f` directly to single, double, or triple quotes to insert expressions.
+These literals decode the same escapes as `e` strings. Use `{{` and `}}` for
+literal braces; plain and raw strings do not interpolate.
+
+```soplang
+door magac = "Ayaan"
+qor(f"Salaan, {magac}!")
+qor(f"Wadarta: {2 + 3}; qiimaha: {3.14159:.2f}")
+qor(f"{{{magac}}}")
+qor(f"{ {magac: magac}.magac }: {[10,20][1]}")
+```
+
+Every field contains an ordinary expression and an optional static format
+descriptor after `:`. The descriptors are the same ones accepted by `qaabee`.
+Put expressions with a top-level colon, such as typed anonymous functions,
+inside parentheses. Nested literals may use the same quote character as the
+outer string. Nesting is limited to 64 interpolated literals.
+
+Fields evaluate once, from left to right. A failed expression or format stops
+the remaining fields. The result is always `qoraal`, including a literal with
+only one field. Rebinding `qaabee` does not change interpolation. Runtime errors
+retain the original expression location; invalid descriptors point at their
+own source span. `f` remains an ordinary identifier when it is not followed
+immediately by a quote.
+
+### Value and template formatting
+
+`qaabee(value, format?)` returns a string. Omitting the descriptor uses the
+same cycle-safe conversion as `qoraal(value)`.
+
+```soplang
+qor(qaabee(3.14159, ".2f"))
+qor(qaabee(42, "#08x"))
+qor("{magac}: {da:03d}".qaabee({ magac: "Ayaan", da: 7 }))
+qor("{} + {}".qaabee(2, 3))
+```
+
+Descriptors follow `[fill][alignment][sign][#][0][width][.precision][type]`.
+Alignment is `<`, `>`, or `^`; an optional preceding character supplies the
+fill. Width and string precision count Unicode characters. Numbers default to
+right alignment and other values to left alignment. Signs `+`, `-`, and space
+apply to numbers. Zero padding without explicit alignment follows the sign and
+any base prefix.
+
+| Type | Meaning |
+| --- | --- |
+| `s` | String, optionally truncated to precision |
+| `d` | Signed decimal integer |
+| `x`, `X`, `b`, `o` | Hexadecimal, binary, or octal integer; `#` includes a base prefix |
+| `f` | Fixed decimal; default six fractional digits |
+| `e`, `E` | Scientific notation; default six fractional digits |
+| `%` | Multiply a number by 100 and append `%` |
+
+Without a type, string precision truncates characters and float precision
+selects fractional digits. Integer precision is rejected. Width and precision
+are each limited to 1,000,000 to bound a single formatting operation.
+
+String templates use `{}` for automatic positional slots, `{0}` for explicit
+indexes, and `{name}` for keys in the first object argument. A colon introduces
+a descriptor, as in `{0:.2f}`. Automatic and numbered slots cannot be mixed.
+`{{` and `}}` produce literal braces. Missing values and invalid descriptors
+report catchable errors with code `E036`. Template descriptors are static;
+nested replacement fields are not supported.
 
 `door`, `madoor`, and `abn` are Soplang short identifiers. The terminology
 review relates them to *doorsoome*, *madoorsoome*, and *abyoone*, respectively;
@@ -113,8 +243,86 @@ these explanations do not establish a historical abbreviation or SLS approval.
 
 | Function | Meaning                                    | English Equivalent | Example                                  |
 | -------- | -------------------------------------------- | -------------------- | ------------------------------------------ |
-| `qor`    | Print to console                             | `print`              | `qor("Salaan, Adduunka!")`                |
+| `qor`    | Print zero or more values separated by spaces | `print`              | `qor("Salaan", "Adduunka!", 3)`          |
 | `gelin`  | Read input from user                         | `input`              | `door magac = gelin("Magacaaga geli: ")`  |
+| `akhrifayl` | Read an entire UTF-8 text file          | (read file)          | `door text = akhrifayl("magac.txt")`      |
+| `qor_fayl` | Create or overwrite a text file           | (write file)         | `qor_fayl("magac.txt", "Salaan")`          |
+| `kudar_fayl` | Append text to a file                   | (append file)        | `kudar_fayl("magac.txt", "\n")`            |
+| `akhrif_baytyo` | Read an entire file as `baytyo`        | (read bytes)         | `door data = akhrif_baytyo("raw.bin")`     |
+| `qor_baytyo` | Overwrite a file with `baytyo`           | (write bytes)        | `qor_baytyo("raw.bin", data)`              |
+| `kudar_baytyo` | Append `baytyo` to a file              | (append bytes)       | `kudar_baytyo("raw.bin", chunk)`           |
+| `json_akhris` | Parse JSON text into a value           | `JSON.parse`         | `json_akhris("{\"a\":1}")`                 |
+| `json_qor` | Generate JSON text                      | `JSON.stringify`     | `json_qor({a: 1})`                         |
+| `csv_akhris` | Parse CSV text into rows of fields    | (CSV parse)          | `csv_akhris("a,b")`                        |
+| `csv_qor` | Generate CSV text from rows             | (CSV write)          | `csv_qor([["a", 1]])`                      |
+| `url_qor` | Percent-encode text                     | `encodeURIComponent` | `url_qor("Ayaan Cali", "foom")`            |
+| `url_akhris` | Percent-decode text                  | `decodeURIComponent` | `url_akhris("Ayaan%20Cali")`               |
+| `b64_qor` | Encode text or bytes as Base64          | `btoa`               | `b64_qor("Man")`                           |
+| `b64_akhris` | Decode Base64 into `baytyo`          | `atob`               | `b64_akhris("TWFu")`                       |
+| `regex_raadi` | First regular-expression match       | `search`             | `regex_raadi("a+", "baa")`                 |
+| `regex_dhammaan` | Every non-overlapping match       | `findall`            | `regex_dhammaan(e"\\d+", "a1")`            |
+| `regex_beddel` | Replace every match                 | `replace`            | `regex_beddel("(a)", "a", "$1!")`          |
+| `waqti` | Current UTC time in seconds             | (unix time)          | `door hadda = waqti()`                     |
+| `waqti_akhris` | Parse a UTC date or timestamp     | (parse time)         | `waqti_akhris("2026-10-21T08:12:00Z")`     |
+| `waqti_qor` | Format UTC seconds                   | (format time)        | `waqti_qor(0)`                             |
+| `waqti_qayb` | Split seconds into calendar fields  | (time parts)         | `waqti_qayb(0).sanad`                      |
+| `waqti_ka_qayb` | Build seconds from calendar fields | (from parts)       | `waqti_ka_qayb(qayb)`                      |
+| `waqti_kudar` | Add a duration in seconds           | (add duration)       | `waqti_kudar(0, 86400)`                    |
+| `amarro` | Program arguments after the source      | `argv`               | `door args = amarro()`                     |
+| `deegaan` | Read an environment variable          | `getenv`             | `deegaan("HOME")`                          |
+| `deegaan_qor` | Set an environment variable        | `setenv`             | `deegaan_qor("MODE", "test")`              |
+| `deegaan_tirtir` | Remove an environment variable   | `unsetenv`           | `deegaan_tirtir("MODE")`                   |
+| `fuli` | Run a program and capture its result   | `subprocess`         | `fuli("/bin/echo", ["Salaan"])`            |
+| `http_codso` | Send an HTTP request                | `fetch`              | `http_codso("GET", url)`                   |
+| `server_fur` | Bind an HTTP server, optionally with TLS | (listen)        | `server_fur("127.0.0.1", 8080, { shahaado: "cert.pem", fure: "key.pem" })` |
+| `server_aqbal` | Handle one HTTP request           | (accept)             | `server_aqbal(server, routes)`             |
+| `server_aqbal_shaqo` | Handle one HTTP request in a task | (async accept) | `server_aqbal_shaqo(listener, routes)` |
+| `server_adeeg_shaqo` | Serve bounded concurrent HTTP requests | (async serve) | `server_adeeg_shaqo(listener, routes)` |
+| `server_jidh_akhris` | Read a streaming request chunk | (body read) | `server_jidh_akhris(codsi.jidh, 65536)` |
+| `server_xidh` | Close an HTTP server               | (close)              | `server_xidh(server)`                      |
+| `dns_raadi` | Look up IP addresses                | `getaddrinfo`        | `dns_raadi("localhost")`                   |
+| `tcp_fur` | Connect a TCP socket                 | `connect`            | `tcp_fur("127.0.0.1", 8080)`               |
+| `tcp_dhegeysi` | Bind a TCP listener              | `listen`             | `tcp_dhegeysi("127.0.0.1", 0)`             |
+| `tcp_aqbal` | Accept one TCP connection          | `accept`             | `tcp_aqbal(listener)`                      |
+| `tcp_qor` | Write bytes to a TCP connection      | `send`               | `tcp_qor(conn, "nabad")`                   |
+| `tcp_akhris` | Read the next TCP bytes           | `recv`               | `tcp_akhris(conn, 1024)`                   |
+| `tcp_xidh` | Close a TCP connection or listener   | `close`              | `tcp_xidh(conn)`                           |
+| `udp_fur` | Bind a UDP socket                    | (UDP bind)           | `udp_fur("127.0.0.1", 0)`                  |
+| `udp_qor` | Send one UDP datagram                | `sendto`             | `udp_qor(sock, "127.0.0.1", 9000, "salaan")` |
+| `udp_akhris` | Receive one UDP datagram          | `recvfrom`           | `udp_akhris(sock, 1024)`                   |
+| `udp_xidh` | Close a UDP socket                  | (UDP close)          | `udp_xidh(sock)`                           |
+| `ws_fur` | Connect a WebSocket client           | `WebSocket`          | `ws_fur("ws://127.0.0.1:9000")`            |
+| `ws_aqbal_shaqo` | Accept one WebSocket peer | (WebSocket accept task) | `ws_aqbal_shaqo(listener, handler)` |
+| `ws_adeeg_shaqo` | Serve WebSocket peers | (WebSocket serve task) | `ws_adeeg_shaqo(listener, handler)` |
+| `ws_qor` | Send a WebSocket frame               | `send`               | `ws_qor(socket, "salaan")`                 |
+| `ws_akhris` | Read the next WebSocket frame     | `recv`               | `ws_akhris(socket)`                        |
+| `ws_xidh` | Close a WebSocket                   | `close`              | `ws_xidh(socket)`                          |
+| `fayl_jiraa` | Test whether a path exists              | (path exists)        | `haddii (fayl_jiraa("magac.txt")) {...}`   |
+| `fayl_xog` | Query path metadata                     | (path stat)          | `door x = fayl_xog("magac.txt")`           |
+| `isku_xidh` | Join path segments                     | (path join)          | `isku_xidh("data", "magac.txt")`           |
+| `baabi_jid` | Resolve an absolute path                | (absolute path)      | `baabi_jid("magac.txt")`                   |
+| `nuqul_fayl` | Copy a file                            | (copy file)          | `nuqul_fayl("a.txt", "b.txt")`             |
+| `wareeji_fayl` | Move or rename a path                | (move file)          | `wareeji_fayl("a.txt", "b.txt")`           |
+| `tirtir_fayl` | Delete a file                         | (delete file)        | `tirtir_fayl("magac.txt")`                 |
+| `abuur_gal` | Create a directory tree                 | (mkdir)              | `abuur_gal("data/pkg")`                    |
+| `tir_gal` | List directory entry names                | (list dir)           | `door names = tir_gal("data")`             |
+| `tirtir_gal` | Remove a directory                     | (rmdir)              | `tirtir_gal("data", run)`                  |
+| `fayl_fur` | Open a file handle                     | (open)               | `fayl_fur("magac.txt", "akhris")`          |
+| `fayl_akhris` | Read a bounded chunk                 | (read)               | `fayl_akhris(fayl, 64)`                    |
+| `fayl_xariiq` | Read one line                        | (read line)          | `fayl_xariiq(fayl)`                        |
+| `fayl_qor` | Write text or bytes                    | (write)              | `fayl_qor(fayl, "salaan")`                 |
+| `fayl_nadiifi` | Flush a file handle                 | (flush)              | `fayl_nadiifi(fayl)`                       |
+| `fayl_xidh` | Close a file handle                   | (close)              | `fayl_xidh(fayl)`                          |
+| `fayl_raad` | Seek to a file position               | (seek)               | `fayl_raad(fayl, 0, "bilow")`              |
+| `fayl_meel` | Return the file position              | (tell)               | `fayl_meel(fayl)`                          |
+| `fayl_beddel` | Atomically replace a file           | (replace)            | `fayl_beddel("magac.txt", "cusub")`        |
+| `fayl_gudaha` | Read a file that stays inside a root | (safe file)        | `fayl_gudaha("public", "note.txt")`       |
+| `habee_qoraal` | Render an HTML template            | (template)           | `habee_qoraal("<p>{{ magac }}</p>", xog)`  |
+| `qayb_foom` | Parse multipart form data            | (multipart)          | `qayb_foom(nooca, baytyo)`                 |
+| `hubi` | Assert a boolean or two equal values | `assert`             | `hubi(n, 1)`                               |
+| `jebi` | Pause at the source debugger        | (breakpoint)         | `jebi()`                                   |
+| `xog_fur` | Open a database pool                 | (connect)            | `xog_fur("sqlite", "app.db", { wadarta: 2 })` |
+| `xog_awood` | Report connector capabilities        | (capabilities)       | `xog_awood("postgres")`                    |
 | `nooc`   | Get type of variable                         | `typeof`             | `qor(nooc(magac))`                        |
 | `abn`    | Convert value to an integer (also the `int` type keyword above) | `int` | `door n = abn("5")`                 |
 | `jajab`  | Convert a number or numeric string to floating point | `float` | `door n = jajab("3.5")`             |
@@ -126,6 +334,14 @@ these explanations do not establish a historical abbreviation or SLS approval.
 | `kor`    | Round up to integer                          | `Math.ceil()`        | `door n = kor(4.2)`                       |
 | `dherer` | Count list items, object keys, or string characters | `len()`/`.length` | `door n = dherer(qoraal)`             |
 | `xul`    | Get random value                             | `random()`           | `door n = xul(1, 6)`                      |
+| `abuur`  | Seed the context random stream               | (seed PRNG)          | `abuur(42)`                               |
+| `loog`   | Natural or base logarithm                    | `log()`              | `door n = loog(100, 10)`                  |
+| `sin`    | Sine or inverse sine                         | `sin()` / `asin()`   | `door n = sin(1, "rogan")`                |
+| `cos`    | Cosine or inverse cosine                     | `cos()` / `acos()`   | `door n = cos(0)`                         |
+| `tan`    | Tangent or inverse tangent                   | `tan()` / `atan()`   | `door n = tan(1)`                         |
+| `xagal`  | Angle from `y` and `x`                       | `atan2()`            | `door n = xagal(1, -1)`                   |
+| `joogto` | Named math constant                          | (constants)          | `door pi = joogto("pi")`                  |
+| `xadid`  | Clamp a value between bounds                 | `clamp()`            | `door n = xadid(5, 0, 10)`                |
 | `baaxad` | Create an integer range                      | `range()`            | `door n = baaxad(1, 5)`                   |
 | `duub` | Round to the nearest integer            | `round()`            | `door n = duub(4.6)`               |
 | `sugan`  | Get the absolute value                       | `abs()`              | `door n = sugan(-5)`                      |
@@ -134,11 +350,38 @@ these explanations do not establish a historical abbreviation or SLS approval.
 | `jibbaar`  | Raise a number to a power                    | `pow()`              | `door n = jibbaar(2, 3)`                    |
 | `xidid`  | Calculate a square root                      | `sqrt()`             | `door n = xidid(9)`                       |
 
+`qor()` accepts zero or more positional arguments, converts each value using
+the normal Soplang string representation, separates them with one space, and
+adds a newline. With no arguments it prints an empty line. It returns the
+printed text without the final newline, including an empty string for `qor()`.
+Arguments are evaluated from left to right before output; an argument error
+prevents that call from printing. Functions called while evaluating arguments
+may produce their own output. Existing one-argument calls keep their behavior.
+
+```soplang
+qor("Ayaan", "Cali")
+qor("Da:", 25, "Firfircoon:", run)
+qor()
+```
+
 `daji()` rounds toward negative infinity and `kor()` toward positive infinity.
 `duub()` rounds to the nearest integer, with halfway values rounded away
 from zero. `xidid()` computes only a square root, not an arbitrary root.
 
-`xul()` returns a floating-point number in `[0, 1)`. `xul(a, b)` returns a floating-point number in `[a, b)`. `xul(teed)` returns one item and reports an error for an empty list.
+`abuur(seed)` resets the context-local random stream used by `xul`. Each runtime
+context keeps its own stream; reusing the same seed reproduces the same draws.
+
+`xul()` returns a floating-point number in `[0, 1)`. `xul(a, b)` returns a
+floating-point number in `[a, b)` and excludes the upper endpoint. `xul(teed)`
+returns one item and reports an error for an empty list. Failed calls do not
+advance the stream.
+
+`loog(x)` and `loog(x, base)` require positive finite inputs with a base other
+than `1`. Trigonometric builtins use radians; pass `"rogan"` as the second
+argument for inverse sine, cosine, or tangent. `joogto("pi")`, `joogto("e")`,
+`joogto("tau")`, `joogto("inf")`, and `joogto("nan")` return named constants.
+`xadid(value, low, high)` clamps using the same numeric ordering as comparisons.
+Domain and type failures for these builtins use error code `E044`.
 
 > **Note:** `abn`, `qoraal`, `bool`, `teed`, and `walax` are used both as static **type keywords** (see Variable Declaration Keywords / Data Types above) and as **built-in conversion/constructor functions** here. The meaning depends on context: e.g. `abn age = 25` declares a typed variable, while `abn("5")` converts a string to a number.
 
@@ -410,9 +653,12 @@ Notes:
 
 | Keyword | Meaning | English | Example |
 | --------- | ---------- | ---------- | ---------- |
-| `keen`  | Import another `.sop` file       | `import` | `keen "lib.sop"`                          |
+| `keen`  | Import another `.sop` file       | `import` | `keen "lib.sop" ka wad sida add` |
+| `soosaar` | List public names of a namespaced file | `export` | `soosaar wad, base` |
 | `tijaabi` | Start a protected try block      | `try`    | `tijaabi { ... } qabo (e) { ... }`          |
 | `qabo`  | Catch block with error variable  | `catch`  | `qabo (khalad) { qor(khalad) }`           |
+| `tuur` | Raise an error message | `raise` / `throw` | `tuur "Faylka lama helin"` |
+| `dhammee` | Run guaranteed cleanup | `finally` | `tijaabi { ... } dhammee { ... }` |
 
 **Import example:**
 
@@ -434,6 +680,76 @@ tijaabi {
 ```
 
 Runtime errors inside the `tijaabi` block are caught; the error message is bound to the variable in `qabo (...)`.
+
+**Raising errors and guaranteed cleanup:**
+
+```soplang
+tijaabi {
+    tuur "Xogtu ma dhammaystirna"
+} qabo (fariin) {
+    qor(fariin)
+} dhammee {
+    qor("Hawshii waa dhammaatay")
+}
+```
+
+`tuur` raises a string message or a structured `khalad` value. Other values
+report a catchable type error. The value starts on the same line as `tuur`.
+Calls such as `tuur(value)` remain ordinary function calls for compatibility;
+to raise a computed message, use `tuur make_message()` or `tuur message`.
+
+`dhammee` runs once when its protected block finishes, including after a
+handler and on errors, `celi`, `jooji`, and `soco`. It can follow either a
+`tijaabi` body alone or a `tijaabi`/`qabo` pair. A try block must have a handler,
+cleanup, or both. Nested cleanup runs from the innermost block outward.
+
+The return value is evaluated before cleanup. If cleanup completes normally,
+the original return or error continues. A return or error from cleanup takes
+precedence. Breaking out of a loop inside a protected body does not run that
+body's cleanup until execution actually leaves the protected block.
+
+`tuur` and `dhammee` are contextual forms. Existing variables, functions, and
+properties with those names remain supported outside these statement contexts.
+
+### Structured errors
+
+`khalad(fariin, summad?, sabab?)` constructs an immutable error without raising
+it. The message must be a string. The code is a string or `maran`; the cause
+is another error or `maran`. The two optional arguments default to `maran`.
+
+```soplang
+tijaabi {
+    tuur khalad("Xogtu ma dhammaystirna", "XOG001")
+} qabo (fariin, xog) {
+    qor(fariin, xog.summad)
+    tuur khalad("Hawshu ma dhammaan", "HAWL001", xog)
+}
+```
+
+The first catch binding remains message text. An optional second binding
+receives the structured error. The two binding names must differ. Rethrowing
+that error preserves its original location, trace, and cause. Raising a string
+creates a new error at the `tuur` statement. If cleanup fails while another
+error is pending, the new error retains that earlier error as its cause unless
+an explicit cause is already present.
+
+| Property | Value |
+| --- | --- |
+| `fariin` | Message string |
+| `summad` | Error-code string, or `maran` |
+| `sabab` | Original structured error, or `maran` |
+| `fayl` | Source filename, or `maran` |
+| `saf`, `tiir` | One-based source line and column, or `maran` |
+| `raad` | Compiled function trace, innermost call first |
+
+Trace entries are objects with `magac`, `fayl`, `saf`, and `tiir`. Their
+positions identify call sites; the error's own position identifies the failing
+operation. Trace entries are detached snapshots. Property assignment on an
+error is rejected. String-key indexing supports the same properties.
+`nooc(xog)` returns `"khalad"`, and `qoraal(xog)` returns its message.
+
+Uncaught diagnostics show the original source caret, `Raadka wicitaannada`,
+and any `Sababta` chain. Cause rendering is bounded to avoid unbounded output.
 
 ## Compatibility spellings
 
@@ -506,3 +822,56 @@ An accepted integral float is converted to `abn` for an integer annotation, and
 an accepted integer is converted to `jajab` for a floating-point annotation,
 keeping the representation consistent with native arithmetic. Fractional floats
 are rejected for `abn` annotations; use `abn(value)` for explicit truncation.
+
+## Byte arrays
+
+The [byte-array reference](bytes.md) defines construction, strict UTF-8 conversion,
+indexing, checked writes, collection methods, type annotations, and iteration.
+
+## Optional and union annotations
+
+`T?` permits a value of type `T` or `maran`. `A | B` permits either type.
+The [optional and union reference](optional-union-types.md) defines argument
+requirements, conversions, class alternatives, and return validation.
+
+## Typed collections
+
+`teed[T]` constrains list elements; `walax[qoraal, T]` constrains string-keyed
+object values. See the [shared collection contracts](typed-collections.md) for
+aliases, nesting, numeric kinds, mutation, rest collectors, and lifetime.
+
+## Tuples
+
+`xirmo(...)` constructs an immutable sequence. `xirmo[T1, T2, ...]` annotates
+its positions. The [tuple reference](tuples.md) defines indexing, slicing,
+iteration, nested mutation contracts, conversions, and lifetime.
+
+## Sets
+
+`urur(...)` constructs a mutable set of unique immutable keys.
+The [set reference](sets.md) defines numeric key equality, insertion order,
+conversion, snapshot iteration, and set algebra.
+
+`urur[T]` constrains set elements. See the [typed set reference](typed-sets.md)
+for immutable key types, shared contracts, nested aliases, and diagnostics.
+
+## Unicode text methods
+
+`hubi`, optional `weynee` modes, `buuxi`, `kalaqaad`, `sadarro`, and
+zero-argument `qeybi()` extend the string library. The [text reference](text-methods.md)
+defines classification, word boundaries, scalar widths, Unicode line endings,
+and compatibility with earlier spellings.
+
+## Expanded list methods
+
+`saar(value, "qiime")`, `ballaadhi`, `keli`, `wadar`, `tirso`, `lamaane`, and
+optional `habee` key/reverse arguments extend the list library. The
+[list reference](list-methods.md) defines snapshots, atomic publication,
+structural equality, consistent sorting, and callback side effects.
+
+## Expanded object methods
+
+Object `geli`, `ballaadhi`, `aaddin`, `shaandhee`, and explicit paths in `hel`
+reuse collection vocabulary. The [object reference](object-methods.md) defines
+insert-if-absent, atomic merges, sorted snapshot callbacks, renamed entries,
+and path semantics without changing literal string keys.

@@ -1,0 +1,4 @@
+Khalad nooc: habee() hawsha furaha ayaa beddeshay teedka. [E043] safka 2, tiirka 5
+     --> examples/errors/list_sort_mutation.sop:2:5
+   2 │   xog.habee(hawl(qiime) { xog.geli(3) celi qiime })
+     │       ^^^^^

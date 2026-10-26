@@ -1,0 +1,51 @@
+hawl hubi(shuruud, magac) { haddii (!shuruud) { tuur magac } }
+door magac = "Ayaan"
+hubi(f"Salaan, {magac}!" == "Salaan, Ayaan!", "identifier")
+hubi(f"{2 + 3} {3.14159:.2f} {42:#08x}" == "5 3.14 0x00002a", "expressions and specs")
+hubi(f"{'é😀':*^4s}" == "*é😀*", "Unicode alignment")
+hubi(f"" == "" && f"abc" == "abc" && f"{maran}" == "maran", "empty and single parts")
+hubi(f"{{{magac}}}" == "{Ayaan}", "literal braces")
+hubi(f"a\n\u{e9}\t{1}" == e"a\né\t1", "escaped literal content")
+hubi(f"{ {magac: magac}.magac }:{[10,20][1]}" == "Ayaan:20", "object and index")
+hubi(f"{"inside"}" == "inside", "same-quote nested literal")
+hubi(f"nested {f"value={1 + 2}"}" == "nested value=3", "nested interpolation")
+hubi(f'''first {magac}
+second {2}
+''' == e"first Ayaan\nsecond 2\n", "multiline interpolation")
+hubi(f"{1 /* } ignored */ + 2}" == "3", "comments inside fields")
+hubi(f"{(hawl(): abn { celi 9 })()}" == "9", "anonymous callable")
+hawl samee(abn number) {
+    celi hawl() { celi f"captured={number}" }
+}
+hubi(samee(7)() == "captured=7", "closure captures interpolated variables")
+door order = []
+hawl mark(number) { order.geli(number) celi number }
+hubi(f"{mark(1)}{mark(2)}{mark(3)}" == "123", "field output")
+hubi(order == [1,2,3], "left-to-right evaluation")
+tijaabi { door failed = f"{1 / 0}{mark(4)}" } qabo (e, xog) {
+    hubi(xog.fariin == e, "structured expression error")
+}
+hubi(order == [1,2,3], "failed expression stops remaining fields")
+tijaabi { door invalid = f"{mark(5):invalid}{mark(6)}" } qabo (e, xog) {
+    hubi(xog.summad == "E036", "format error code")
+}
+hubi(order == [1,2,3,5], "failed format stops remaining fields")
+door cleaned = []
+hawl protected() {
+    tijaabi { celi f"{(hawl() { celi magac })()}" }
+    dhammee { cleaned.geli(f"cleaned={magac}") }
+}
+hubi(protected() == magac && cleaned == ["cleaned=Ayaan"], "cleanup and closures")
+qoraal typed = f"{magac}"
+hubi(nooc(typed) == "qoraal", "inferred text")
+door qaabee = hawl(value) { celi "shadowed" }
+hubi(f"{7:03d}" == "007", "formatting is independent of user bindings")
+abn count = 0
+door saved = []
+intay (count < 3000) {
+    door text = f"{count:04d}:{f"({magac})"}:{[count][0]}"
+    haddii (count % 1000 == 0) { saved.geli(text) }
+    count = count + 1
+}
+hubi(saved == ["0000:(Ayaan):0", "1000:(Ayaan):1000", "2000:(Ayaan):2000"], "collection roots")
+qor("interpolation ok")

@@ -1,11 +1,11 @@
 //! LLVM IR linked to the runtime. The binary does not call `run_source`.
 
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use soplang::backend::llvm_ir::{emit_llvm_ir, link_llvm_binary};
+use soplang::backend::llvm_ir::{emit_llvm_ir, link_llvm_binary, link_llvm_binary_with_opt};
 use soplang::{analyze, HirLowering, Lexer, Parser};
 
 fn temp_bin(name: &str) -> PathBuf {
@@ -47,7 +47,7 @@ fn test_llvm_ir_prints_without_run_source() {
     let sym = analyze(&stmts).expect("analyze");
     let hir = HirLowering::lower(&sym, &stmts);
     let ir = emit_llvm_ir(&hir, &sym).unwrap_or_else(|e| panic!("{e}"));
-    assert!(ir.contains("define i32 @main()"), "IR has no LLVM main");
+    assert!(ir.contains("define i32 @main(i32 %argc, ptr %argv)"), "IR has no LLVM main");
     assert!(
         ir.contains(runtime_add_call()),
         "arithmetic does not call the runtime"
@@ -71,14 +71,17 @@ fn test_llvm_ir_prints_without_run_source() {
 }
 
 fn run_llvm(name: &str, source: &str) -> String {
-    let tokens = Lexer::new(source).tokenize().expect("lex");
-    let stmts = Parser::new(tokens).parse().expect("parse");
+    run_llvm_with_opt(name, source, 2)
+}
+
+fn run_llvm_with_opt(name: &str, source: &str, opt: u8) -> String {
+    let stmts = soplang::frontend::parse_source(source, None).expect("parse");
     let sym = analyze(&stmts).expect("analyze");
     let hir = HirLowering::lower(&sym, &stmts);
     let ir = emit_llvm_ir(&hir, &sym).unwrap_or_else(|e| panic!("{e}"));
     assert!(!ir.contains("run_source"));
     let bin = temp_bin(name);
-    link_llvm_binary(&ir, &bin).unwrap_or_else(|e| panic!("{e}"));
+    link_llvm_binary_with_opt(&ir, &bin, opt).unwrap_or_else(|e| panic!("{e:?}"));
     let out = Command::new(&bin).output().expect("run llvm binary");
     let stdout = String::from_utf8(out.stdout).expect("utf8");
     let stderr = String::from_utf8_lossy(&out.stderr);
@@ -88,6 +91,192 @@ fn run_llvm(name: &str, source: &str) -> String {
         "{name} failed: {stderr}\nstdout: {stdout}"
     );
     stdout
+}
+
+#[test]
+fn test_llvm_qor_multiple_arguments() {
+    assert_eq!(
+        run_llvm("qor_arguments", include_str!("../examples/29_output.sop")),
+        include_str!("../examples/29_output.expected").replace("\r\n", "\n")
+    );
+}
+
+#[test]
+fn llvm_tasks_wait_for_compiled_callbacks() {
+    assert_eq!(
+        run_llvm(
+            "tasks",
+            r#"
+            hawl labalaab(abn n) { celi n * 2 }
+            hawl parent(abn n) { celi sug(shaqo(labalaab, n)) + 1 }
+            qor(sug(shaqo(parent, 20)))
+            "#,
+        ),
+        "41\n"
+    );
+}
+
+#[test]
+fn llvm_channels_exchange_values_between_tasks() {
+    assert_eq!(
+        run_llvm(
+            "channels",
+            r#"
+            door channel = marin(0)
+            hawl producer() { dir(channel, 42) xidh(channel) }
+            door task = shaqo(producer)
+            qor(qaad(channel).qiime)
+            qor(qaad(channel).dhammaad)
+            sug(task)
+            "#,
+        ),
+        "42\nrun\n"
+    );
+}
+
+#[test]
+fn llvm_loop_polls_run_other_tasks_and_deliver_cancellation() {
+    assert_eq!(
+        run_llvm(
+            "task_poll",
+            r#"
+            door ready = been
+            hawl mark() { ready = run }
+            door marker = shaqo(mark)
+            abn attempts = 0
+            intay (!ready && attempts < 100) { attempts = attempts + 1 }
+            hubi(ready && attempts < 100)
+            sug(marker)
+
+            door cleaned = been
+            hawl spin() {
+                tijaabi {
+                    abn i = 0
+                    intay (i < 1000000) { i = i + 1 }
+                } dhammee { cleaned = run }
+            }
+            hawl stop(task) { baaji(task) }
+            door worker = shaqo(spin)
+            door stopper = shaqo(stop, worker)
+            door caught = been
+            tijaabi { sug(worker) } qabo (e) { caught = run }
+            hubi(caught && cleaned)
+            sug(stopper)
+            qor("task polls ok")
+            "#,
+        ),
+        "task polls ok\n"
+    );
+}
+
+#[test]
+fn llvm_timer_tasks_complete_and_cancel() {
+    assert_eq!(
+        run_llvm(
+            "timers",
+            r#"
+            hawl wait() { sug(hurdada(10)) celi 8 }
+            qor(sug(shaqo(wait)))
+            door timer = hurdada(10000)
+            baaji(timer)
+            tijaabi { sug(timer) } qabo (e) { qor("cancelled") }
+            "#,
+        ),
+        "8\ncancelled\n"
+    );
+}
+
+#[test]
+fn llvm_task_deadlines_cancel_and_drain_with_cleanup() {
+    assert_eq!(
+        run_llvm(
+            "task_deadline",
+            r#"
+            hubi(sug_waqti(shaqo(hawl() { celi 3 }), 1000) == 3)
+            door cleaned = been
+            hawl slow() {
+                tijaabi { sug(hurdada(10000)) }
+                dhammee { cleaned = run }
+            }
+            door task = shaqo(slow)
+            door expired = been
+            tijaabi { sug_waqti(task, 10) }
+            qabo (e) { expired = e == "Waqtigii shaqada loo qabtay wuu dhammaaday." }
+            hubi(expired && cleaned)
+            qor("deadline ok")
+            "#,
+        ),
+        "deadline ok\n"
+    );
+}
+
+#[test]
+fn llvm_async_file_tasks_round_trip() {
+    let file = std::env::temp_dir().join(format!(
+        "soplang_llvm_async_file_{}_{}",
+        std::process::id(),
+        SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_nanos()
+    ));
+    let path = file.display().to_string().replace('\\', "/");
+    let source = format!(
+        r#"
+        sug(qor_fayl_shaqo("{path}", "one"))
+        sug(kudar_fayl_shaqo("{path}", "-two"))
+        hubi(sug(akhrifayl_shaqo("{path}")) == "one-two")
+        sug(qor_baytyo_shaqo("{path}", baytyo([65])))
+        sug(kudar_baytyo_shaqo("{path}", baytyo([66])))
+        hubi(sug(akhrifayl_shaqo("{path}")) == "AB")
+        qor("async files ok")
+        "#
+    );
+    assert_eq!(run_llvm("async_file_tasks", &source), "async files ok\n");
+    let _ = fs::remove_file(file);
+}
+
+#[test]
+fn llvm_async_http_request_returns_the_standard_response() {
+    use std::io::{Read, Write};
+    use std::net::TcpListener;
+    let listener = TcpListener::bind("127.0.0.1:0").expect("bind");
+    let url = format!("http://{}/item", listener.local_addr().expect("address"));
+    let server = std::thread::spawn(move || {
+        let (mut stream, _) = listener.accept().expect("accept");
+        stream
+            .set_read_timeout(Some(std::time::Duration::from_secs(2)))
+            .expect("timeout");
+        let mut request = [0u8; 4096];
+        let size = stream.read(&mut request).expect("read request");
+        assert!(String::from_utf8_lossy(&request[..size]).starts_with("GET "));
+        stream
+            .write_all(b"HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 4\r\nConnection: close\r\n\r\nLLVM")
+            .expect("response");
+    });
+    let source = format!(
+        r#"
+        door got = sug(http_codso_shaqo("GET", "{url}"))
+        hubi(got.heer == 200 && got.qoraal == "LLVM")
+        qor("async http ok")
+        "#
+    );
+    assert_eq!(run_llvm("async_http", &source), "async http ok\n");
+    server.join().expect("server");
+}
+
+#[test]
+fn llvm_callable_annotations_preserve_values_and_validate_callbacks() {
+    for opt in [0, 2] {
+        assert_eq!(
+            run_llvm_with_opt(
+                "callable_types",
+                include_str!("fixtures/callable_types.sop"),
+                opt
+            ),
+            "callable types ok\n"
+        );
+    }
 }
 
 #[test]
@@ -512,4 +701,588 @@ fn test_llvm_runtime_names_inside_strings_are_preserved() {
         run_llvm("runtime_symbol_string", r#"qor(" = call @soplang_add")"#),
         " = call @soplang_add\n"
     );
+}
+
+#[test]
+fn test_llvm_error_boundaries_stop_failed_expressions() {
+    assert_eq!(
+        run_llvm(
+            "error_boundaries",
+            include_str!("fixtures/error_boundaries.sop")
+        ),
+        "error boundaries ok\n"
+    );
+}
+
+#[test]
+fn test_llvm_raising_and_guaranteed_cleanup() {
+    assert_eq!(
+        run_llvm("raise_cleanup", include_str!("fixtures/raise_cleanup.sop")),
+        "raise and cleanup ok\n"
+    );
+}
+
+#[test]
+fn test_llvm_structured_errors_and_causes() {
+    assert_eq!(
+        run_llvm(
+            "structured_errors",
+            include_str!("fixtures/structured_errors.sop")
+        ),
+        "structured errors ok\n"
+    );
+}
+
+#[test]
+fn test_llvm_wide_calls_and_callable_expressions() {
+    assert_eq!(
+        run_llvm(
+            "callable_expressions",
+            include_str!("fixtures/callable_expressions.sop")
+        ),
+        "callable expressions ok\n"
+    );
+}
+
+#[test]
+fn test_llvm_argument_buffers_stay_bounded_in_loops() {
+    let source = r#"
+        hawl last(a,b,c,d,e,f,g,h,i,j,k,l) { celi l }
+        abn index = 0
+        intay (index < 100000) {
+            last(1,2,3,4,5,6,7,8,9,10,11,12)
+            index = index + 1
+        }
+        qor(index)
+    "#;
+    // Disable LLVM optimizations: fixed argument buffers must remain bounded
+    // through code generation itself, including in debug native executables.
+    assert_eq!(
+        run_llvm_with_opt("bounded_call_buffers", source, 0),
+        "100000\n"
+    );
+}
+
+#[test]
+fn test_llvm_garbage_collection_preserves_active_values() {
+    assert_eq!(
+        run_llvm(
+            "garbage_collection",
+            include_str!("fixtures/garbage_collection.sop")
+        ),
+        "garbage collection ok\n"
+    );
+}
+
+#[test]
+fn test_llvm_escaped_raw_and_multiline_literals() {
+    assert_eq!(
+        run_llvm(
+            "string_literals",
+            include_str!("fixtures/string_literals.sop")
+        ),
+        "string literals ok\n"
+    );
+}
+
+#[test]
+fn test_llvm_value_and_template_formatting() {
+    assert_eq!(
+        run_llvm("formatting", include_str!("fixtures/formatting.sop")),
+        "formatting ok\n"
+    );
+}
+
+#[test]
+fn test_llvm_interpolated_strings() {
+    assert_eq!(
+        run_llvm("interpolation", include_str!("fixtures/interpolation.sop")),
+        "interpolation ok\n"
+    );
+}
+
+#[test]
+fn test_llvm_numeric_boundaries() {
+    for opt in [0, 2] {
+        assert_eq!(
+            run_llvm_with_opt(
+                &format!("numeric_edges_{opt}"),
+                include_str!("fixtures/numeric_edges.sop"),
+                opt
+            ),
+            "numeric edges ok\n"
+        );
+    }
+}
+
+#[test]
+fn test_llvm_collection_iteration_and_protocol() {
+    assert_eq!(
+        run_llvm("iteration", include_str!("fixtures/iteration.sop")),
+        "iteration ok\n"
+    );
+}
+
+#[test]
+fn test_llvm_iteration_gc_and_reentrant_callbacks() {
+    assert_eq!(
+        run_llvm("iteration_gc", include_str!("fixtures/iteration_gc.sop")),
+        "iteration gc ok\n"
+    );
+}
+
+#[test]
+fn test_llvm_default_arguments() {
+    for opt in [0, 2] {
+        assert_eq!(
+            run_llvm_with_opt(
+                &format!("llvm_defaults_{opt}"),
+                include_str!("fixtures/default_arguments.sop"),
+                opt
+            ),
+            "default arguments ok\n"
+        );
+    }
+}
+
+#[test]
+fn test_llvm_variadic_arguments() {
+    for opt in [0, 2] {
+        assert_eq!(
+            run_llvm_with_opt(
+                &format!("llvm_variadic_{opt}"),
+                include_str!("fixtures/variadic_arguments.sop"),
+                opt
+            ),
+            "variadic arguments ok\n"
+        );
+    }
+}
+
+#[test]
+fn test_llvm_callback_signatures() {
+    assert_eq!(
+        run_llvm(
+            "llvm_callback_signatures",
+            include_str!("fixtures/callback_signatures.sop")
+        ),
+        "callback signatures ok\n"
+    );
+}
+
+#[test]
+fn test_llvm_named_arguments() {
+    for opt in [0, 2] {
+        assert_eq!(
+            run_llvm_with_opt(
+                &format!("llvm_named_{opt}"),
+                include_str!("fixtures/named_arguments.sop"),
+                opt
+            ),
+            "named arguments ok\n"
+        );
+    }
+}
+
+#[test]
+fn test_llvm_bytes() {
+    for opt in [0, 2] {
+        assert_eq!(
+            run_llvm_with_opt(
+                &format!("llvm_bytes_{opt}"),
+                include_str!("fixtures/bytes.sop"),
+                opt
+            ),
+            "bytes ok\n"
+        );
+    }
+}
+
+#[test]
+fn test_llvm_union_types() {
+    for opt in [0, 2] {
+        assert_eq!(
+            run_llvm_with_opt(
+                &format!("llvm_union_{opt}"),
+                include_str!("fixtures/union_types.sop"),
+                opt
+            ),
+            "union types ok\n"
+        );
+    }
+}
+
+#[test]
+fn test_llvm_typed_collections() {
+    for opt in [0, 2] {
+        assert_eq!(
+            run_llvm_with_opt(
+                &format!("llvm_typed_{opt}"),
+                include_str!("fixtures/typed_collections.sop"),
+                opt
+            ),
+            "typed collections ok\n"
+        );
+    }
+}
+
+#[test]
+fn test_llvm_tuples() {
+    for opt in [0, 2] {
+        assert_eq!(
+            run_llvm_with_opt(
+                &format!("llvm_tuples_{opt}"),
+                include_str!("fixtures/tuples.sop"),
+                opt
+            ),
+            "tuples ok\n"
+        );
+    }
+}
+
+#[test]
+fn test_llvm_sets() {
+    for opt in [0, 2] {
+        assert_eq!(
+            run_llvm_with_opt(
+                &format!("llvm_sets_{opt}"),
+                include_str!("fixtures/sets.sop"),
+                opt
+            ),
+            "sets ok\n"
+        );
+    }
+}
+
+#[test]
+fn test_llvm_typed_sets() {
+    for opt in [0, 2] {
+        assert_eq!(run_llvm_with_opt(&format!("llvm_typed_sets_{opt}"), include_str!("fixtures/typed_sets.sop"), opt), "typed sets ok\n");
+    }
+}
+
+#[test]
+fn test_llvm_text_methods() {
+    for opt in [0, 2] {
+        assert_eq!(run_llvm_with_opt(&format!("llvm_text_methods_{opt}"), include_str!("fixtures/text_methods.sop"), opt), "text methods ok\n");
+    }
+}
+
+#[test]
+fn test_llvm_list_operations() {
+    for opt in [0, 2] {
+        assert_eq!(run_llvm_with_opt(&format!("llvm_list_operations_{opt}"), include_str!("fixtures/list_operations.sop"), opt), "list operations ok\n");
+    }
+}
+
+#[test]
+fn test_llvm_object_operations() {
+    for opt in [0, 2] {
+        assert_eq!(run_llvm_with_opt(&format!("llvm_object_operations_{opt}"), include_str!("fixtures/object_operations.sop"), opt), "object operations ok\n");
+    }
+}
+
+#[test]
+fn test_llvm_numeric_library() {
+    for opt in [0, 2] {
+        assert_eq!(run_llvm_with_opt(&format!("llvm_numeric_library_{opt}"), include_str!("fixtures/numeric_library.sop"), opt), "numeric library ok\n");
+    }
+}
+
+#[test]
+fn test_llvm_text_files() {
+    let dir = std::env::temp_dir().join(format!(
+        "soplang_llvm_text_{}_{}",
+        std::process::id(),
+        SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_nanos()
+    ));
+    let _ = fs::remove_dir_all(&dir);
+    fs::create_dir_all(&dir).expect("temp dir");
+    let file = dir.join("llvm-note.txt");
+    let path = file.display().to_string().replace('\\', "/");
+    let source = format!(
+        r#"
+hawl hubi(v, name) {{ haddii (!v) {{ tuur name }} }}
+qor_fayl("{path}", "jit")
+hubi(akhrifayl("{path}") == "jit", "read")
+kudar_fayl("{path}", "-llvm")
+hubi(akhrifayl("{path}") == "jit-llvm", "append")
+qor("llvm text ok")
+"#
+    );
+    for opt in [0, 2] {
+        let _ = fs::remove_file(&file);
+        assert_eq!(
+            run_llvm_with_opt_in_dir(
+                &format!("llvm_text_files_{opt}"),
+                &source,
+                opt,
+                &dir,
+            ),
+            "llvm text ok\n"
+        );
+    }
+    let _ = fs::remove_dir_all(&dir);
+}
+
+#[test]
+fn test_llvm_filesystem() {
+    let dir = std::env::temp_dir().join(format!(
+        "soplang_llvm_fs_{}_{}",
+        std::process::id(),
+        SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_nanos()
+    ));
+    let _ = fs::remove_dir_all(&dir);
+    fs::create_dir_all(&dir).expect("temp dir");
+    let nested = dir.join("pkg");
+    let file = nested.join("item.txt");
+    let nested_path = nested.display().to_string().replace('\\', "/");
+    let file_path = file.display().to_string().replace('\\', "/");
+    let source = format!(
+        r#"
+hawl hubi(v, name) {{ haddii (!v) {{ tuur name }} }}
+abuur_gal("{nested_path}")
+qor_fayl("{file_path}", "llvm-fs")
+hubi(fayl_jiraa("{file_path}"), "exists")
+door info = fayl_xog("{file_path}")
+hubi(info.nooc == "fayl", "kind")
+qor("llvm fs ok")
+"#
+    );
+    for opt in [0, 2] {
+        let _ = fs::remove_dir_all(&nested);
+        assert_eq!(
+            run_llvm_with_opt_in_dir(&format!("llvm_filesystem_{opt}"), &source, opt, &dir),
+            "llvm fs ok\n"
+        );
+    }
+    let _ = fs::remove_dir_all(&dir);
+}
+
+#[test]
+fn test_llvm_binary_files() {
+    let dir = std::env::temp_dir().join(format!(
+        "soplang_llvm_bin_{}_{}",
+        std::process::id(),
+        SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_nanos()
+    ));
+    let _ = fs::remove_dir_all(&dir);
+    fs::create_dir_all(&dir).expect("temp dir");
+    let file = dir.join("payload.bin");
+    let path = file.display().to_string().replace('\\', "/");
+    let source = format!(
+        r#"
+hawl hubi(v, name) {{ haddii (!v) {{ tuur name }} }}
+door data = baytyo([9, 8, 7])
+qor_baytyo("{path}", data)
+hubi(dherer(akhrif_baytyo("{path}")) == 3, "size")
+qor("llvm binary ok")
+"#
+    );
+    for opt in [0, 2] {
+        let _ = fs::remove_file(&file);
+        assert_eq!(
+            run_llvm_with_opt_in_dir(&format!("llvm_binary_{opt}"), &source, opt, &dir),
+            "llvm binary ok\n"
+        );
+    }
+    let _ = fs::remove_dir_all(&dir);
+}
+
+#[test]
+fn test_llvm_json() {
+    let source = r#"
+hawl hubi(v, name) { haddii (!v) { tuur name } }
+door value = json_akhris(e"{\"a\":1}")
+hubi(value.a == 1 && json_qor(value) == e"{\"a\":1}", "json")
+qor("llvm json ok")
+"#;
+    for opt in [0, 2] {
+        assert_eq!(
+            run_llvm_with_opt(&format!("llvm_json_{opt}"), source, opt),
+            "llvm json ok\n"
+        );
+    }
+}
+
+#[test]
+fn test_llvm_csv() {
+    let source = r#"
+hawl hubi(v, name) { haddii (!v) { tuur name } }
+door rows = csv_akhris("a,b")
+hubi(rows[0][0] == "a" && csv_qor(rows) == "a,b", "csv")
+qor("llvm csv ok")
+"#;
+    for opt in [0, 2] {
+        assert_eq!(
+            run_llvm_with_opt(&format!("llvm_csv_{opt}"), source, opt),
+            "llvm csv ok\n"
+        );
+    }
+}
+
+#[test]
+fn test_llvm_url() {
+    let source = r#"
+hawl hubi(v, name) { haddii (!v) { tuur name } }
+hubi(url_qor("a b") == "a%20b" && url_akhris("a%20b") == "a b", "url")
+qor("llvm url ok")
+"#;
+    for opt in [0, 2] {
+        assert_eq!(
+            run_llvm_with_opt(&format!("llvm_url_{opt}"), source, opt),
+            "llvm url ok\n"
+        );
+    }
+}
+
+#[test]
+fn test_llvm_base64() {
+    let source = r#"
+hawl hubi(v, name) { haddii (!v) { tuur name } }
+hubi(b64_qor("Man") == "TWFu" && qoraal(b64_akhris("TWFu")) == "Man", "base64")
+qor("llvm base64 ok")
+"#;
+    for opt in [0, 2] {
+        assert_eq!(
+            run_llvm_with_opt(&format!("llvm_base64_{opt}"), source, opt),
+            "llvm base64 ok\n"
+        );
+    }
+}
+
+#[test]
+fn test_llvm_regex() {
+    let source = r#"
+hawl hubi(v, name) { haddii (!v) { tuur name } }
+hubi(regex_raadi("a+", "baa") == "aa", "regex")
+qor("llvm regex ok")
+"#;
+    for opt in [0, 2] {
+        assert_eq!(
+            run_llvm_with_opt(&format!("llvm_regex_{opt}"), source, opt),
+            "llvm regex ok\n"
+        );
+    }
+}
+
+#[test]
+fn test_llvm_time() {
+    let source = r#"
+hawl hubi(v, name) { haddii (!v) { tuur name } }
+hubi(waqti_qor(0) == "1970-01-01T00:00:00Z", "time")
+qor("llvm time ok")
+"#;
+    for opt in [0, 2] {
+        assert_eq!(
+            run_llvm_with_opt(&format!("llvm_time_{opt}"), source, opt),
+            "llvm time ok\n"
+        );
+    }
+}
+
+#[test]
+fn test_llvm_program_arguments() {
+    let source = r#"
+hawl hubi(v, name) { haddii (!v) { tuur name } }
+door args = amarro()
+hubi(dherer(args) == 1 && args[0] == "llvm-arg", "args")
+qor("llvm args ok")
+"#;
+    let stmts = soplang::frontend::parse_source(source, None).expect("parse");
+    let sym = analyze(&stmts).expect("analyze");
+    let hir = HirLowering::lower(&sym, &stmts);
+    let ir = emit_llvm_ir(&hir, &sym).unwrap_or_else(|e| panic!("{e}"));
+    let bin = temp_bin("llvm_program_arguments");
+    link_llvm_binary_with_opt(&ir, &bin, 2).unwrap_or_else(|e| panic!("{e:?}"));
+    let out = Command::new(&bin)
+        .arg("llvm-arg")
+        .output()
+        .expect("run llvm binary");
+    let stdout = String::from_utf8(out.stdout).expect("utf8");
+    let stderr = String::from_utf8_lossy(&out.stderr);
+    let _ = fs::remove_file(&bin);
+    assert!(out.status.success(), "failed: {stderr}\nstdout: {stdout}");
+    assert_eq!(stdout, "llvm args ok\n");
+}
+
+#[test]
+fn test_llvm_child_process() {
+    let source = r#"
+hawl hubi(v, name) { haddii (!v) { tuur name } }
+door ok = fuli("__PROGRAM__", ["--version"])
+hubi(ok.koodh == 0 && ok.soosaar.leeyahay("soplang __VERSION__"), "child")
+qor("llvm child ok")
+"#
+    .replace("__PROGRAM__", env!("CARGO_BIN_EXE_soplang"))
+    .replace("__VERSION__", env!("CARGO_PKG_VERSION"));
+    let stmts = soplang::frontend::parse_source(&source, None).expect("parse");
+    let sym = analyze(&stmts).expect("analyze");
+    let hir = HirLowering::lower(&sym, &stmts);
+    let ir = emit_llvm_ir(&hir, &sym).unwrap_or_else(|e| panic!("{e}"));
+    let bin = temp_bin("llvm_child_process");
+    link_llvm_binary_with_opt(&ir, &bin, 2).unwrap_or_else(|e| panic!("{e:?}"));
+    let out = Command::new(&bin).output().expect("run llvm binary");
+    let stdout = String::from_utf8(out.stdout).expect("utf8");
+    let stderr = String::from_utf8_lossy(&out.stderr);
+    let _ = fs::remove_file(&bin);
+    assert!(out.status.success(), "failed: {stderr}\nstdout: {stdout}");
+    assert_eq!(stdout, "llvm child ok\n");
+}
+
+fn run_llvm_with_opt_in_dir(name: &str, source: &str, opt: u8, dir: &Path) -> String {
+    let stmts = soplang::frontend::parse_source(source, None).expect("parse");
+    let sym = analyze(&stmts).expect("analyze");
+    let hir = HirLowering::lower(&sym, &stmts);
+    let ir = emit_llvm_ir(&hir, &sym).unwrap_or_else(|e| panic!("{e}"));
+    let bin = temp_bin(name);
+    link_llvm_binary_with_opt(&ir, &bin, opt).unwrap_or_else(|e| panic!("{e}"));
+    let out = Command::new(&bin).current_dir(dir).output().expect("run");
+    let stdout = String::from_utf8(out.stdout).expect("utf8");
+    let stderr = String::from_utf8_lossy(&out.stderr);
+    let _ = fs::remove_file(&bin);
+    assert!(out.status.success(), "binary failed: {stderr}\nstdout: {stdout}");
+    stdout
+}
+
+#[test]
+fn test_llvm_json_class_identity() {
+    for opt in [0, 2] {
+        assert_eq!(
+            run_llvm_with_opt(
+                &format!("json_identity_{opt}"),
+                include_str!("fixtures/json_class_identity.sop"),
+                opt,
+            ),
+            "json identity ok\n"
+        );
+    }
+}
+
+#[test]
+fn llvm_database_transport_options_preserve_errors_and_bundled_defaults() {
+    let source = include_str!("fixtures/database_transport_options.sop");
+    let path =
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/database_transport_options.sop");
+    for opt in [0, 2] {
+        let binary = temp_bin(&format!("database_transport_{opt}"));
+        soplang::build_source(source, Some(&path), &binary, opt, false).unwrap();
+        let output = Command::new(&binary).output().unwrap();
+        let _ = fs::remove_file(&binary);
+        assert!(
+            output.status.success(),
+            "{}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        assert_eq!(output.stdout, b"database transport ok\n");
+    }
 }

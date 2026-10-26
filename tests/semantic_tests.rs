@@ -140,14 +140,14 @@ fn test_semantic_rejects_invalid_control_flow() {
 }
 
 #[test]
-fn test_semantic_rejects_functions_beyond_compiled_call_abi() {
+fn test_semantic_accepts_wide_function_signatures() {
     let nine_params = "hawl f(a,b,c,d,e,f,g,h,i) { celi a }";
-    assert!(analyze_source(nine_params).is_err());
+    assert!(analyze_source(nine_params).is_ok());
 
     let method_with_eight_args = r#"
         qaab A { hawl f(a,b,c,d,e,f,g,h) { celi a } }
     "#;
-    assert!(analyze_source(method_with_eight_args).is_err());
+    assert!(analyze_source(method_with_eight_args).is_ok());
 
     let captured_closure_with_eight_args = r#"
         hawl outer() {
@@ -156,7 +156,7 @@ fn test_semantic_rejects_functions_beyond_compiled_call_abi() {
             celi callback
         }
     "#;
-    assert!(analyze_source(captured_closure_with_eight_args).is_err());
+    assert!(analyze_source(captured_closure_with_eight_args).is_ok());
 
     assert!(analyze_source("hawl f(a,b,c,d,e,f,g,h) { celi a }").is_ok());
 }

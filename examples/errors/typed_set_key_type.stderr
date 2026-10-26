@@ -1,0 +1,4 @@
+Khalad nooc: Nooca 'xirmo[teed]' looma adeegsan karo xubin urur. [E022] safka 1, tiirka 1
+     --> examples/errors/typed_set_key_type.sop:1:1
+   1 │   urur[xirmo[teed]] xog = urur()
+     │   ^^^^

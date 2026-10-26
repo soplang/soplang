@@ -1,0 +1,41 @@
+hawl hubi(shuruud, magac) { haddii (!shuruud) { tuur magac } }
+hawl dynamic(value) { celi value }
+abn maximum = 9223372036854775807
+abn minimum = -9223372036854775807 - 1
+abn one = 1
+abn negative = -1
+hubi(maximum + one == minimum, "native addition wraps")
+hubi(dynamic(maximum) + dynamic(one) == minimum, "dynamic addition wraps")
+hubi(minimum - one == maximum, "native subtraction wraps")
+hubi(dynamic(minimum) - dynamic(one) == maximum, "dynamic subtraction wraps")
+hubi(maximum * 2 == -2, "native multiplication wraps")
+hubi(dynamic(maximum) * dynamic(2) == -2, "dynamic multiplication wraps")
+hubi(-minimum == minimum, "native negation wraps")
+hubi(-dynamic(minimum) == minimum, "dynamic negation wraps")
+hubi(minimum % negative == 0, "native minimum remainder")
+hubi(dynamic(minimum) % dynamic(negative) == 0, "dynamic minimum remainder")
+hubi(minimum / negative == 9223372036854775808.0, "division remains floating point")
+hubi(-7 % 3 == -1 && 7 % -3 == 1, "signed remainder truncates toward zero")
+jajab big = jajab("1e308")
+jajab three = 3.0
+hubi(big % three == 2.0, "large finite floating remainder")
+hubi(dynamic(big) % three == 2.0, "dynamic floating remainder")
+hubi(1.0 % jajab("1e-308") == jajab("3.198766609527795e-309"), "small finite divisor")
+hubi(qoraal(-0.0 % three) == "-0", "floating remainder preserves signed zero")
+hubi(baaxad(maximum - 1, maximum, 2) == [maximum - 1], "positive range overflow stops")
+hubi(baaxad(minimum + 1, minimum, -2) == [minimum + 1], "negative range overflow stops")
+door forwards = []
+kuceli (up maximum - 2 ilaa maximum) { forwards.geli(up) }
+hubi(forwards == [maximum - 2, maximum - 1, maximum], "inclusive maximum and exact comparisons")
+door backwards = []
+kuceli (down minimum + 2 ilaa minimum :: -1) { backwards.geli(down) }
+hubi(backwards == [minimum + 2, minimum + 1, minimum], "inclusive minimum")
+door far = []
+kuceli (skip maximum - 1 ilaa maximum :: 3) { far.geli(skip) }
+hubi(far == [maximum - 1], "loop overshoot cannot wrap")
+door unchanging = 0
+tijaabi { kuceli (stuck 100000000000000000000.0 ilaa 200000000000000000000.0 :: 1.0) { unchanging = unchanging + 1 } }
+qabo (e) { hubi(e == "Tallaabada kuceli ma beddelayso qiimaha hadda.", "non-advancing float step is recoverable") }
+hubi(unchanging == 1, "float loop does not hang")
+kuceli (endpoint 100000000000000000000.0 ilaa 100000000000000000000.0 :: 1.0) { hubi(endpoint == 100000000000000000000.0, "float endpoint") }
+qor("numeric edges ok")

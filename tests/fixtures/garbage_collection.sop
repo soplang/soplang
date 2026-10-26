@@ -1,0 +1,35 @@
+hawl hubi(shuruud, magac) { haddii (!shuruud) { tuur magac } }
+hawl garbage(index) {
+    door items = []
+    door record = { index: index }
+    record.self = record
+    door callback = hawl() { celi items }
+    items.geli(items)
+    items.geli(record)
+    items.geli(callback)
+    celi "value " + qoraal(index)
+}
+hawl captured(value) { celi hawl() { celi value } }
+door keep = captured({ text: "kept", data: [4, 5, 6] })
+abn index = 0
+intay (index < 6000) {
+    door last = garbage(index)
+    haddii (index % 17 == 0) {
+        tijaabi { tuur khalad(last, "TEST") } qabo (e, xog) {
+            hubi(e == xog.fariin && xog.summad == "TEST", "caught error roots")
+        } dhammee { keep() }
+    }
+    index = index + 1
+}
+hubi(last == "value 5999", "last result")
+hubi(keep().text == "kept" && keep().data == [4, 5, 6], "captured roots")
+// Native callback snapshots must keep unvisited values after source mutation.
+door source = [[1], [2], [3]]
+door mapped = source.aaddin(hawl(item) {
+    source.nadiifi()
+    abn count = 0
+    intay (count < 1300) { garbage(count) count = count + 1 }
+    celi item.hore()
+})
+hubi(mapped == [1, 2, 3], "native temporary roots")
+qor("garbage collection ok")

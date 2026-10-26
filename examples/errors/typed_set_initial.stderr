@@ -1,0 +1,4 @@
+Khalad nooc: 'xog' wuxuu u baahan yahay nooca urur[abn], laakiin waxaa la helay urur. [E022] safka 1, tiirka 1
+     --> examples/errors/typed_set_initial.sop:1:1
+   1 │   urur[abn] xog = urur("x")
+     │   ^^^^

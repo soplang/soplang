@@ -1,0 +1,141 @@
+hawl hubi(shuruud, magac) { haddii (!shuruud) { tuur magac } }
+hawl ururi(source) { door result = [] kuceli (item ku source) { result.geli(item) } celi result }
+hubi(ururi([1,maran,run]) == [1,maran,run], "list values include null and booleans")
+hubi(ururi([1,2].wareeg()) == [1,2] && ururi("ab".wareeg()) == ["a","b"], "shared iterator method")
+hubi(ururi({b:2,a:1}.wareeg()) == ["a","b"], "object iterator method")
+hubi(ururi(e"e\u{301}") == ["e",e"\u{301}"], "Unicode scalar values")
+hubi(ururi("é😀a") == ["é","😀","a"], "Unicode characters")
+hubi(ururi("") == [] && ururi([]) == [], "empty collections")
+hubi(ururi({ b: 2, a: 1 }) == ["a","b"], "deterministic object keys")
+door object = { a: 1, b: 2 }
+hubi(ururi(object.qiime()).habee() == [1,2], "object values")
+door entries = []
+kuceli (key, value ku object.lamaane()) { entries.geli(f"{key}={value}") }
+hubi(entries.habee() == ["a=1","b=2"], "object entries")
+hubi(ururi(taxane(5)) == [0,1,2,3,4], "lazy range")
+hubi(ururi(taxane(5, -1, -2)) == [5,3,1], "descending range")
+hubi(ururi(taxane(5, 0)) == [] && ururi(taxane(1, 5, -1)) == [], "empty ranges")
+hubi(ururi(taxane(9223372036854775806, 9223372036854775807, 2)) == [9223372036854775806], "positive range overflow")
+hubi(ururi(taxane(-9223372036854775807, -9223372036854775807 - 1, -2)) == [-9223372036854775807], "negative range overflow")
+door huge = taxane(9223372036854775807)
+hubi(xiga(huge) == { dhammaad: been, qiime: 0 }, "range begins without allocating all values")
+door counter = 0
+kuceli (number ku huge) { counter = counter + 1 haddii (counter == 3) { jooji } }
+hubi(xiga(huge).qiime == 4, "breaking preserves iterator cursor")
+door iterator = wareeg([maran])
+hubi(nooc(iterator) == "wareeg" && wareeg(iterator) == iterator, "iterator identity and type")
+hubi(iterator.xiga() == {dhammaad: been, qiime: maran}, "null is distinct from exhaustion")
+hubi(iterator.xiga() == {dhammaad: run, qiime: maran}, "exhaustion")
+hubi(xiga(iterator).dhammaad && xiga(iterator).dhammaad, "exhaustion stays latched")
+door snapshots = [1,2,3]
+door cursor = wareeg(snapshots)
+snapshots.nadiifi()
+snapshots.geli(99)
+hubi(ururi(cursor) == [1,2,3], "snapshot survives source mutation")
+hubi(ururi(tirso("ab", -2)) == [[-2,"a"],[-1,"b"]], "enumeration")
+hubi(ururi(lamaane([1,2], "ab", taxane(9,11))) == [[1,"a",9],[2,"b",10]], "zip multiple sources")
+hubi(ururi(lamaane()) == [] && ururi(lamaane([],[1])) == [], "empty zip")
+door shared = wareeg([1,2,3,4])
+hubi(ururi(lamaane(shared, shared)) == [[1,2],[3,4]], "shared cursor in zip")
+door uneven = wareeg([1,2,3])
+hubi(ururi(lamaane(uneven, [9])) == [[1,9]] && xiga(uneven).qiime == 3, "zip stops at shortest with left-to-right consumption")
+door calls = []
+kuceli (index, letter ku tirso("abc")) { haddii (index == 1) { soco } calls.geli(f"{index}:{letter}") }
+hubi(calls == ["0:a","2:c"], "continue and destructuring")
+hawl samee() {
+    door saved = []
+    kuceli (captured ku [10,20,30]) { saved.geli(hawl() { celi captured }) }
+    celi saved
+}
+door closures = samee()
+hubi(closures[0]() == 10 && closures[2]() == 30, "local closure captures")
+door outer = []
+kuceli (row ku [1,2]) { kuceli (column ku [3,4]) { outer.geli(row + column) } }
+hubi(outer == [4,5,5,6], "nested iteration")
+abn typed = 7
+kuceli (typed ku []) {}
+hubi(typed == 7, "empty source leaves previous binding unchanged")
+tijaabi { kuceli (typed ku ["wrong"]) {} } qabo (e) {}
+hubi(typed == 7, "typed binding rejects wrong type before assignment")
+jajab ratio = 0.0
+kuceli (ratio ku [1,2]) { hubi(nooc(ratio) == "jajab", "typed float binding conversion") }
+jajab oldFirst = 7.0
+abn oldSecond = 8
+tijaabi { kuceli (oldFirst, oldSecond ku [[3,"wrong"]]) {} } qabo (e) {}
+hubi(oldFirst == 7.0 && oldSecond == 8, "typed destructuring validates all bindings first")
+door exits = []
+kuceli (exitValue ku [1,2,3]) {
+    tijaabi { haddii (exitValue == 1) { soco } jooji }
+    dhammee { exits.geli(exitValue) }
+}
+hubi(exits == [1,2], "break and continue run cleanup")
+door a = 10
+door b = 20
+tijaabi { kuceli (a,b ku [[1]]) {} } qabo (e, xog) { hubi(xog.summad == "E037", "destructure error") }
+hubi(a == 10 && b == 20, "bad row does not assign partial bindings")
+door clean = []
+hawl first(source) {
+    kuceli (item ku source) {
+        tijaabi { celi item }
+        dhammee { clean.geli(item) }
+    }
+    celi maran
+}
+hubi(first([5,6]) == 5 && clean == [5], "return and guaranteed cleanup")
+qaab Tiriye {
+    hawl dhis(stop) { nafta.index = 0 nafta.stop = stop }
+    hawl wareeg() { celi nafta }
+    hawl xiga() {
+        haddii (nafta.index >= nafta.stop) { celi {dhammaad: run} }
+        door number = nafta.index
+        nafta.index = number + 1
+        celi {dhammaad: been, qiime: number}
+    }
+}
+hubi(ururi(cusub Tiriye(3)) == [0,1,2], "class protocol")
+qaab Child dhaxal Tiriye {}
+hubi(ururi(cusub Child(2)) == [0,1], "inherited protocol")
+door state = [0]
+door custom = { xiga: hawl() {
+    door n = state[0]
+    state[0] = n + 1
+    celi {dhammaad: n == 2, qiime: n}
+} }
+hubi(ururi(custom) == [0,1], "object callback protocol")
+door bad = wareeg({xiga: hawl() { tuur khalad("failure", "ITER") }})
+tijaabi { xiga(bad) } qabo (e, xog) { hubi(e == "failure" && xog.summad == "ITER", "original callback error") }
+hubi(xiga(bad).dhammaad, "error closes iterator wrapper")
+door invalids = 0
+tijaabi { wareeg(1) } qabo (e) { invalids = invalids + 1 }
+tijaabi { taxane(1,2,0) } qabo (e) { invalids = invalids + 1 }
+tijaabi { taxane(2.5) } qabo (e) { invalids = invalids + 1 }
+tijaabi { xiga([1]) } qabo (e) { invalids = invalids + 1 }
+tijaabi { ururi({xiga: hawl() { celi run }}) } qabo (e) { invalids = invalids + 1 }
+tijaabi { ururi({xiga: hawl() { celi {dhammaad: 1} }}) } qabo (e) { invalids = invalids + 1 }
+tijaabi { ururi({xiga: hawl() { celi {dhammaad: been} }}) } qabo (e) { invalids = invalids + 1 }
+tijaabi { ururi({wareeg: hawl() { celi [] }}) } qabo (e) { invalids = invalids + 1 }
+tijaabi { ururi(tirso([1,2], 9223372036854775807)) } qabo (e) { invalids = invalids + 1 }
+hubi(invalids == 9, "invalid iteration is recoverable")
+door ku = 2
+door legacy = []
+kuceli (n ku ilaa 3) { legacy.geli(n) }
+hubi(legacy == [2,3], "legacy numeric header with variable named ku")
+door groupedLegacy = []
+kuceli (grouped ku ilaa (3)) { groupedLegacy.geli(grouped) }
+hubi(groupedLegacy == [2,3], "legacy grouped range bound")
+hawl ku(value) { celi value }
+hubi(ku(3) == 3 && {ku: 4}.ku == 4, "ku remains contextual")
+door calledLegacy = []
+kuceli (called ku(2) ilaa 3) { calledLegacy.geli(called) }
+hubi(calledLegacy == [2,3], "legacy callable range start")
+door rows = wareeg([[1],[2,3]])
+tijaabi { kuceli (left,right ku rows) {} } qabo (e) {}
+door resumed = []
+kuceli (left,right ku rows) { resumed.geli(left + right) }
+hubi(resumed == [5], "bad binding consumes its row and permits source reuse")
+door wareeg = hawl(value) { celi "shadowed" }
+door xiga = hawl(value) { celi "shadowed" }
+door intrinsic = []
+kuceli (actual ku [1,2]) { intrinsic.geli(actual) }
+hubi(intrinsic == [1,2], "loop operations are independent of user bindings")
+qor("iteration ok")

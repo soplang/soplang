@@ -8,7 +8,7 @@ VERSION="$(sed -n 's/^version = "\([^"]*\)"/\1/p' Cargo.toml | head -n 1)"
 [[ -n "$VERSION" ]] || { echo 'Missing Cargo version' >&2; exit 1; }
 # Keep the DMG staging directory separate from other platform outputs.
 APP_DIR=dist/macos/Soplang.app
-python3 scripts/package.py --output "$APP_DIR/Contents/MacOS"
+python3 scripts/package_native_macos.py --output "$APP_DIR/Contents/MacOS"
 # Derive the declared minimum from this build; do not advertise an untested 10.13.
 MIN_MACOS="$(sw_vers -productVersion)"
 NUMERIC_VERSION="${VERSION%%-*}"

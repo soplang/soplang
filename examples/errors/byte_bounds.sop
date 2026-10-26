@@ -1,0 +1,2 @@
+door xog = baytyo([1])
+xog[1] = 2

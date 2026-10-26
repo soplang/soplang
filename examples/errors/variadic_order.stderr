@@ -1,0 +1,4 @@
+Khalad naxwe: Doodda '*' waa inay noqotaa doodda ugu dambaysa. safka 1, tiirka 22
+     --> examples/errors/variadic_order.sop:1:22
+   1 │   hawl tijaabo(*items, next) {}
+     │                        ^

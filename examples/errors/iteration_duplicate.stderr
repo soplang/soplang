@@ -1,0 +1,4 @@
+Khalad naxwe: Magacyada wareeggu waa inay kala duwanaadaan. safka 1, tiirka 12
+     --> examples/errors/iteration_duplicate.sop:1:12
+   1 │   kuceli (a, a ku [[1,2]]) {}
+     │              ^

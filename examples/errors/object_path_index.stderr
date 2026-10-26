@@ -1,0 +1,4 @@
+Khalad nooc: Tusmada jidku waa inay noqotaa abn. [E043] safka 2, tiirka 7
+     --> examples/errors/object_path_index.sop:2:7
+   2 │     xog.hel(["row", "x"])
+     │         ^^^

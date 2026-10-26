@@ -2,3 +2,5 @@ Khalad nooc: 'tiro' waa abn laakin qiimaheeda 'qoraal' ma ahan abn safka 3, tiir
      --> examples/errors/typed_global_write.sop:3:17
    3 │   hawl beddel() { tiro = qoraalkayga() }
      │                   ^^^^
+Raadka wicitaannada:
+     beddel (examples/errors/typed_global_write.sop:4:1)

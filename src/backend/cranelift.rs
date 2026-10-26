@@ -1,6 +1,7 @@
 //! Cranelift JIT backend – compiles HIR to native code via Cranelift.
 
 use std::collections::HashMap;
+use std::rc::Rc;
 
 use cranelift::codegen::ir::{
     AbiParam, Block, InstBuilder, MemFlags, Signature, StackSlotData, StackSlotKind,
@@ -27,11 +28,16 @@ fn compilation_error(error: impl std::fmt::Display) -> SoplangError {
 struct CompiledFnInfo {
     name: String,
     n_params: usize,
+    required_params: usize,
+    variadic: bool,
+    keyword_rest: bool,
+    signature_names: String,
     func_id: FuncId,
 }
 
 pub struct CraneliftBackend {
-    module: cranelift_jit::JITModule,
+    runtime: runtime::RuntimeContext,
+    module: OwnedJitModule,
     ctx: cranelift::codegen::Context,
     fn_ctx: FunctionBuilderContext,
     main_func_id: Option<FuncId>,
@@ -40,6 +46,34 @@ pub struct CraneliftBackend {
     registered_fns: usize,
     /// Unique suffix for Cranelift function declarations in this module.
     fn_seq: u32,
+    /// Generated code embeds pointers into these immutable, owned buffers.
+    retained_hirs: Vec<Rc<HirModule>>,
+}
+
+struct OwnedJitModule(Option<cranelift_jit::JITModule>);
+
+impl std::ops::Deref for OwnedJitModule {
+    type Target = cranelift_jit::JITModule;
+
+    fn deref(&self) -> &Self::Target {
+        self.0.as_ref().expect("JIT module is alive")
+    }
+}
+
+impl std::ops::DerefMut for OwnedJitModule {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        self.0.as_mut().expect("JIT module is alive")
+    }
+}
+
+impl Drop for OwnedJitModule {
+    fn drop(&mut self) {
+        if let Some(module) = self.0.take() {
+            // The backend owns its function registry and exposes no code pointers.
+            // Its runtime is dropped first, and synchronous execution has returned.
+            unsafe { module.free_memory() };
+        }
+    }
 }
 
 fn register_runtime_symbols(builder: &mut JITBuilder) {
@@ -52,9 +86,18 @@ fn register_runtime_symbols(builder: &mut JITBuilder) {
         };
     }
     sym!(builder, soplang_set_location);
+    sym!(builder, soplang_debug_begin);
+    sym!(builder, soplang_debug_point);
+    sym!(builder, soplang_debug_init);
+    sym!(builder, soplang_enter_roots);
+    sym!(builder, soplang_gc_safepoint);
+    sym!(builder, soplang_task_poll);
+    sym!(builder, soplang_leave_roots);
     sym!(builder, soplang_int);
     sym!(builder, soplang_float);
     sym!(builder, soplang_str);
+    sym!(builder, soplang_format_value);
+    sym!(builder, soplang_join_text);
     sym!(builder, soplang_bool);
     sym!(builder, soplang_null);
     sym!(builder, soplang_add);
@@ -74,6 +117,9 @@ fn register_runtime_symbols(builder: &mut JITBuilder) {
     sym!(builder, soplang_or);
     sym!(builder, soplang_truthy);
     sym!(builder, soplang_range_continue);
+    sym!(builder, soplang_range_advance);
+    sym!(builder, soplang_iter_begin);
+    sym!(builder, soplang_iter_next);
     sym!(builder, soplang_qor);
     sym!(builder, soplang_gelin);
     sym!(builder, soplang_nooc);
@@ -85,20 +131,29 @@ fn register_runtime_symbols(builder: &mut JITBuilder) {
     sym!(builder, soplang_get_prop);
     sym!(builder, soplang_set_prop);
     sym!(builder, soplang_call);
+    sym!(builder, soplang_call_named);
     sym!(builder, soplang_get_builtin);
     sym!(builder, soplang_store_global);
     sym!(builder, soplang_call_method);
     sym!(builder, soplang_check_type);
     sym!(builder, soplang_check_class);
+    sym!(builder, soplang_check_contract);
     sym!(builder, soplang_mark_const);
     sym!(builder, soplang_new_instance);
     sym!(builder, soplang_make_closure);
     sym!(builder, soplang_capture_get);
     sym!(builder, soplang_register_class);
+    sym!(builder, soplang_raise);
+    sym!(builder, soplang_suspend_error);
+    sym!(builder, soplang_restore_error);
+    sym!(builder, soplang_discard_error);
     sym!(builder, soplang_try_begin);
     sym!(builder, soplang_try_end);
     sym!(builder, soplang_has_pending_error);
     sym!(builder, soplang_get_caught_error);
+    sym!(builder, soplang_get_caught_error_value);
+    sym!(builder, soplang_enter_function);
+    sym!(builder, soplang_leave_function);
 }
 
 // JIT allocations can be farther apart than AArch64's direct branch range,
@@ -128,13 +183,18 @@ fn max_slot_in_body(body: &[HirInstr]) -> usize {
     let mut mx = 0usize;
     for instr in body {
         match instr {
-            HirInstr::Const { dst, .. }
+            HirInstr::ParamProvided { dst, .. }
+            | HirInstr::Const { dst, .. }
             | HirInstr::Load { dst, .. }
             | HirInstr::Pop { dst }
-            | HirInstr::BindError { dst } => {
+            | HirInstr::BindError { dst }
+            | HirInstr::BindErrorValue { dst } => {
                 mx = mx.max(*dst + 1);
             }
-            HirInstr::Copy { dst, src } => {
+            HirInstr::IterBegin { dst, src }
+            | HirInstr::IterNext { dst, iterator: src, .. }
+            | HirInstr::Copy { dst, src }
+            | HirInstr::FormatValue { dst, src, .. } => {
                 mx = mx.max(*dst + 1).max(*src + 1);
             }
             HirInstr::Store { src, .. } => {
@@ -146,7 +206,7 @@ fn max_slot_in_body(body: &[HirInstr]) -> usize {
             HirInstr::UnOp { dst, src, .. } => {
                 mx = mx.max(*dst + 1).max(*src + 1);
             }
-            HirInstr::BuildList { dst, items } => {
+            HirInstr::BuildList { dst, items } | HirInstr::BuildString { dst, parts: items } => {
                 mx = mx.max(*dst + 1);
                 for s in items {
                     mx = mx.max(*s + 1);
@@ -170,7 +230,10 @@ fn max_slot_in_body(body: &[HirInstr]) -> usize {
             HirInstr::SetProp { obj, val, .. } => {
                 mx = mx.max(*obj + 1).max(*val + 1);
             }
-            HirInstr::Call { dst, callee, args } => {
+            HirInstr::Call { dst, callee, args }
+            | HirInstr::CallNamed {
+                dst, callee, args, ..
+            } => {
                 mx = mx.max(*dst + 1).max(*callee + 1);
                 for s in args {
                     mx = mx.max(*s + 1);
@@ -182,7 +245,7 @@ fn max_slot_in_body(body: &[HirInstr]) -> usize {
                     mx = mx.max(*s + 1);
                 }
             }
-            HirInstr::Return { val } => {
+            HirInstr::Return { val } | HirInstr::Raise { src: val } => {
                 mx = mx.max(*val + 1);
             }
             HirInstr::JumpIf { cond, .. } => {
@@ -193,14 +256,17 @@ fn max_slot_in_body(body: &[HirInstr]) -> usize {
                 current,
                 end,
                 step,
-            } => {
+            }
+            | HirInstr::RangeAdvance { dst, current, end, step } => {
                 mx = mx
                     .max(*dst + 1)
                     .max(*current + 1)
                     .max(*end + 1)
                     .max(*step + 1);
             }
-            HirInstr::CheckType { src, .. } | HirInstr::CheckClass { src, .. } => {
+            HirInstr::CheckType { src, .. }
+            | HirInstr::CheckClass { src, .. }
+            | HirInstr::CheckContract { src, .. } => {
                 mx = mx.max(*src + 1);
             }
             HirInstr::NewInstance { dst, args, .. } => {
@@ -236,10 +302,11 @@ impl CraneliftBackend {
         let mut jit_builder = JITBuilder::with_isa(isa, cranelift_module::default_libcall_names());
         register_runtime_symbols(&mut jit_builder);
 
-        let module = cranelift_jit::JITModule::new(jit_builder);
+        let module = OwnedJitModule(Some(cranelift_jit::JITModule::new(jit_builder)));
         let ctx = module.make_context();
 
         Ok(Self {
+            runtime: runtime::RuntimeContext::new(),
             module,
             ctx,
             fn_ctx: FunctionBuilderContext::new(),
@@ -247,6 +314,7 @@ impl CraneliftBackend {
             compiled_fns: Vec::new(),
             registered_fns: 0,
             fn_seq: 0,
+            retained_hirs: Vec::new(),
         })
     }
 
@@ -255,8 +323,9 @@ impl CraneliftBackend {
         hir: &HirModule,
         sym: &SymbolTable,
     ) -> Result<(), SoplangError> {
+        let _scope = self.runtime.activate();
         runtime::clear_class_registry();
-        self.compile_new(hir)?;
+        self.compile_new(hir.clone())?;
         runtime::register_classes_from_sym(&sym.classes);
         Ok(())
     }
@@ -267,12 +336,29 @@ impl CraneliftBackend {
         hir: &HirModule,
         sym: &SymbolTable,
     ) -> Result<(), SoplangError> {
+        self.compile_incremental_owned(hir.clone(), sym)
+    }
+
+    pub(crate) fn compile_incremental_owned(
+        &mut self,
+        hir: HirModule,
+        sym: &SymbolTable,
+    ) -> Result<(), SoplangError> {
+        let _scope = self.runtime.activate();
         self.compile_new(hir)?;
         runtime::merge_classes_from_sym(&sym.classes);
         Ok(())
     }
 
-    fn compile_new(&mut self, hir: &HirModule) -> Result<(), SoplangError> {
+    fn compile_new(&mut self, hir: HirModule) -> Result<(), SoplangError> {
+        let hir = Rc::new(hir);
+        // Retain before compiling: even a partial failure or Rust unwind may
+        // leave an earlier function with pointers into this input.
+        self.retained_hirs.push(Rc::clone(&hir));
+        self.compile_retained(&hir)
+    }
+
+    fn compile_retained(&mut self, hir: &HirModule) -> Result<(), SoplangError> {
         for f in hir.functions.iter() {
             self.compile_function(f)?;
         }
@@ -285,6 +371,7 @@ impl CraneliftBackend {
     }
 
     pub fn run_main(&self) -> Result<(), SoplangError> {
+        let _scope = self.runtime.activate();
         let func_id = self
             .main_func_id
             .ok_or_else(|| runtime_error("Hawsha 'main' weli lama ururin.", 0, 0))?;
@@ -296,8 +383,28 @@ impl CraneliftBackend {
         let main_fn: extern "sysv64" fn() = unsafe { std::mem::transmute(code) };
         #[cfg(not(all(target_os = "windows", target_arch = "x86_64")))]
         let main_fn: extern "C" fn() = unsafe { std::mem::transmute(code) };
-        main_fn();
-        Ok(())
+        self.runtime.execute(|| main_fn())
+    }
+
+    pub fn configure_reporting(&self, coverage: runtime::CoverageMap, profile: bool) {
+        self.runtime.configure_reporting(coverage, profile);
+    }
+
+    pub fn execution_report(&self) -> runtime::ExecutionReport {
+        self.runtime.execution_report()
+    }
+
+    /// Inspect a global in this backend's execution environment.
+    pub fn get_global(&self, name: &str) -> Option<runtime::Value> {
+        self.runtime.get_global(name)
+    }
+
+    pub fn collect(&self) -> runtime::CollectionReport {
+        self.runtime.collect()
+    }
+
+    pub fn memory_stats(&self) -> runtime::MemoryStats {
+        self.runtime.memory_stats()
     }
 
     fn register_compiled_fns(&mut self) {
@@ -305,7 +412,20 @@ impl CraneliftBackend {
         for fi in &self.compiled_fns[start..] {
             let ptr = self.module.get_finalized_function(fi.func_id);
             if !ptr.is_null() {
-                let idx = runtime::register_compiled_fn(ptr, fi.n_params);
+                let idx = runtime::register_compiled_fn_with_defaults(
+                    ptr,
+                    fi.n_params,
+                    fi.required_params,
+                );
+                if fi.variadic {
+                    runtime::soplang_set_fn_variadic(idx);
+                }
+                runtime::soplang_set_fn_signature(
+                    idx,
+                    fi.signature_names.as_ptr(),
+                    fi.signature_names.len(),
+                    i64::from(fi.keyword_rest),
+                );
                 let sv = runtime::SoplangValue {
                     tag: runtime::TAG_FUNC,
                     _pad: [0; 7],
@@ -354,6 +474,7 @@ impl CraneliftBackend {
             &fn_name_map,
             false,
             slot_nums,
+            None,
         )?;
 
         builder.seal_all_blocks();
@@ -381,10 +502,8 @@ impl CraneliftBackend {
         let has_env = !f.capture_slots.is_empty();
         let env_params = if has_env { 1 } else { 0 };
         let mut sig = Signature::new(CallConv::SystemV);
-        for _ in 0..(f.params.len() + env_params) {
-            sig.params.push(AbiParam::new(types::I64));
-            sig.params.push(AbiParam::new(types::I64));
-        }
+        sig.params.push(AbiParam::new(types::I64)); // tagged argument vector
+        sig.params.push(AbiParam::new(types::I64)); // number of values
         sig.returns.push(AbiParam::new(types::I64));
         sig.returns.push(AbiParam::new(types::I64));
 
@@ -408,9 +527,12 @@ impl CraneliftBackend {
 
         let (var_tags, var_pays) = declare_slot_vars(&mut builder, num_slots);
 
-        let params = builder.block_params(entry).to_vec();
+        let name_ptr = builder.ins().iconst(types::I64, f.name.as_ptr() as i64);
+        let name_len = builder.ins().iconst(types::I64, f.name.len() as i64);
+        call_rt_void(&mut builder, &mut self.module, "soplang_enter_function", &[name_ptr, name_len])?;
+        let arguments = builder.block_params(entry)[0];
         if has_env {
-            let env_ptr = params[1];
+            let env_ptr = builder.ins().load(types::I64, MemFlags::trusted(), arguments, 8);
             for (i, &slot) in f.capture_slots.iter().enumerate() {
                 let idx = builder.ins().iconst(types::I64, i as i64);
                 let (t, p) = call_rt(
@@ -424,9 +546,12 @@ impl CraneliftBackend {
             }
         }
         for (i, &slot) in f.params.iter().enumerate() {
-            let base = (env_params + i) * 2;
-            builder.def_var(var_tags[slot], params[base]);
-            builder.def_var(var_pays[slot], params[base + 1]);
+            let offset = ((env_params + i) * 16) as i32;
+            let tag = builder.ins().load(types::I8, MemFlags::trusted(), arguments, offset);
+            let tag = builder.ins().uextend(types::I64, tag);
+            let payload = builder.ins().load(types::I64, MemFlags::trusted(), arguments, offset + 8);
+            builder.def_var(var_tags[slot], tag);
+            builder.def_var(var_pays[slot], payload);
         }
 
         compile_body(
@@ -439,6 +564,7 @@ impl CraneliftBackend {
             &fn_name_map,
             true,
             &f.local_nums,
+            Some(arguments),
         )?;
 
         builder.seal_all_blocks();
@@ -452,6 +578,14 @@ impl CraneliftBackend {
         self.compiled_fns.push(CompiledFnInfo {
             name: f.name.clone(),
             n_params: f.params.len() + env_params,
+            required_params: f.required_params + env_params,
+            variadic: f.variadic,
+            keyword_rest: f.keyword_rest,
+            signature_names: std::iter::repeat(String::new())
+                .take(env_params)
+                .chain(f.param_names.iter().cloned())
+                .collect::<Vec<_>>()
+                .join("\0"),
             func_id: id,
         });
         self.module
@@ -490,7 +624,24 @@ fn compile_body(
     fn_name_map: &HashMap<String, usize>,
     is_function: bool,
     seed: &[SlotNum],
+    argument_values: Option<Value>,
 ) -> Result<(), SoplangError> {
+    // Keep a tagged shadow of SSA slots visible to collection safepoints.
+    let root_slot = builder.func.create_sized_stack_slot(StackSlotData::new(
+        StackSlotKind::ExplicitSlot, (var_tags.len().max(1) * 16) as u32, 3,
+    ));
+    let root_base = builder.ins().stack_addr(types::I64, root_slot, 0);
+    for slot in 0..var_tags.len() {
+        let tag = builder.use_var(var_tags[slot]);
+        let payload = builder.use_var(var_pays[slot]);
+        let offset = (slot * 16) as i32;
+        builder.ins().store(MemFlags::trusted(), tag, root_base, offset);
+        builder.ins().store(MemFlags::trusted(), payload, root_base, offset + 8);
+    }
+    let payload_base = builder.ins().iadd_imm(root_base, 8);
+    let root_count = builder.ins().iconst(types::I64, var_tags.len() as i64);
+    let stride = builder.ins().iconst(types::I64, 2);
+    call_rt_void(builder, module, "soplang_enter_roots", &[root_base, payload_base, root_count, stride])?;
     let mut block_map: HashMap<usize, Block> = HashMap::new();
     for instr in body {
         if let HirInstr::Label(id) = instr {
@@ -512,6 +663,18 @@ fn compile_body(
 
     for instr in body {
         match instr {
+            HirInstr::DebugStart(metadata) | HirInstr::DebugPoint(metadata) => {
+                if terminated { continue; }
+                let ptr = builder.ins().iconst(types::I64, metadata.as_ptr() as i64);
+                let len = builder.ins().iconst(types::I64, metadata.len() as i64);
+                let name = if matches!(instr, HirInstr::DebugStart(_)) { "soplang_debug_begin" } else { "soplang_debug_point" };
+                call_rt_void(builder, module, name, &[ptr,len])?;
+            }
+            HirInstr::DebugInit(slot) => {
+                if terminated { continue; }
+                let slot = builder.ins().iconst(types::I64, *slot as i64);
+                call_rt_void(builder, module, "soplang_debug_init", &[slot])?;
+            }
             HirInstr::SetLocation(span) => {
                 if terminated {
                     continue;
@@ -539,6 +702,7 @@ fn compile_body(
             }
 
             HirInstr::Label(id) => {
+                slot_compiled_fn.clear();
                 let blk = block_map[id];
                 if !terminated {
                     builder.ins().jump(blk, &[]);
@@ -547,6 +711,24 @@ fn compile_body(
                 terminated = false;
             }
 
+            HirInstr::ParamProvided { dst, index } => {
+                if terminated { continue; }
+                let arguments = argument_values.expect("parameter presence outside a function");
+                let tag = builder.ins().load(
+                    types::I8,
+                    MemFlags::trusted(),
+                    arguments,
+                    (*index * 16) as i32,
+                );
+                let present =
+                    builder
+                        .ins()
+                        .icmp_imm(IntCC::NotEqual, tag, runtime::TAG_MISSING as i64);
+                let payload = builder.ins().uextend(types::I64, present);
+                let tag = builder.ins().iconst(types::I64, runtime::TAG_BOOL as i64);
+                builder.def_var(var_tags[*dst], tag);
+                builder.def_var(var_pays[*dst], payload);
+            }
             HirInstr::Const { dst, val } => {
                 if terminated {
                     continue;
@@ -579,6 +761,64 @@ fn compile_body(
                 } else {
                     slot_compiled_fn.remove(dst);
                 }
+            }
+
+            HirInstr::IterBegin { dst, src } => {
+                if terminated {
+                    continue;
+                }
+                let t = builder.use_var(var_tags[*src]);
+                let p = builder.use_var(var_pays[*src]);
+                let (t, p) = call_rt(builder, module, "soplang_iter_begin", &[t, p])?;
+                builder.def_var(var_tags[*dst], t);
+                builder.def_var(var_pays[*dst], p);
+            }
+            HirInstr::IterNext {
+                dst,
+                iterator,
+                bindings,
+            } => {
+                if terminated {
+                    continue;
+                }
+                let t = builder.use_var(var_tags[*iterator]);
+                let p = builder.use_var(var_pays[*iterator]);
+                let n = builder.ins().iconst(types::I64, *bindings as i64);
+                let (t, p) = call_rt(builder, module, "soplang_iter_next", &[t, p, n])?;
+                builder.def_var(var_tags[*dst], t);
+                builder.def_var(var_pays[*dst], p);
+            }
+
+            HirInstr::FormatValue { dst, src, format } => {
+                if terminated {
+                    continue;
+                }
+                let t = builder.use_var(var_tags[*src]);
+                let p = builder.use_var(var_pays[*src]);
+                let spec = builder.ins().iconst(types::I64, format.as_ptr() as i64);
+                let len = builder.ins().iconst(types::I64, format.len() as i64);
+                let (t, p) = call_rt(builder, module, "soplang_format_value", &[t, p, spec, len])?;
+                builder.def_var(var_tags[*dst], t);
+                builder.def_var(var_pays[*dst], p);
+            }
+            HirInstr::BuildString { dst, parts } => {
+                if terminated {
+                    continue;
+                }
+                let values: Vec<_> = parts
+                    .iter()
+                    .map(|slot| {
+                        (
+                            builder.use_var(var_tags[*slot]),
+                            builder.use_var(var_pays[*slot]),
+                        )
+                    })
+                    .collect();
+                let pointer = emit_arg_vector(builder, &values);
+                let count = builder.ins().iconst(types::I64, values.len() as i64);
+                let (t, p) = call_rt(builder, module, "soplang_join_text", &[pointer, count])?;
+                builder.def_var(var_tags[*dst], t);
+                builder.def_var(var_pays[*dst], p);
             }
 
             HirInstr::Load { dst, name } => {
@@ -791,23 +1031,61 @@ fn compile_body(
                 )?;
             }
 
+            HirInstr::CallNamed {
+                dst,
+                callee,
+                kind,
+                name,
+                args,
+                labels,
+            } => {
+                if terminated {
+                    continue;
+                }
+                let ct = builder.use_var(var_tags[*callee]);
+                let cp = builder.use_var(var_pays[*callee]);
+                let values: Vec<_> = args
+                    .iter()
+                    .map(|slot| {
+                        (
+                            builder.use_var(var_tags[*slot]),
+                            builder.use_var(var_pays[*slot]),
+                        )
+                    })
+                    .collect();
+                let buffer = emit_arg_vector(builder, &values);
+                let kind = builder.ins().iconst(types::I64, i64::from(*kind));
+                let name_ptr = builder.ins().iconst(types::I64, name.as_ptr() as i64);
+                let name_len = builder.ins().iconst(types::I64, name.len() as i64);
+                let count = builder.ins().iconst(types::I64, args.len() as i64);
+                let labels_ptr = builder.ins().iconst(types::I64, labels.as_ptr() as i64);
+                let labels_len = builder.ins().iconst(types::I64, labels.len() as i64);
+                let (tag, payload) = call_rt(
+                    builder,
+                    module,
+                    "soplang_call_named",
+                    &[
+                        ct, cp, kind, name_ptr, name_len, buffer, count, labels_ptr, labels_len,
+                    ],
+                )?;
+                builder.def_var(var_tags[*dst], tag);
+                builder.def_var(var_pays[*dst], payload);
+            }
             HirInstr::Call { dst, callee, args } => {
                 if terminated {
                     continue;
                 }
-                let direct_fn = slot_compiled_fn
-                    .get(callee)
-                    .copied()
-                    .filter(|&idx| args.len() == compiled_fns[idx].n_params);
+                let direct_fn = slot_compiled_fn.get(callee).copied().filter(|&idx| {
+                    !compiled_fns[idx].variadic
+                        && !compiled_fns[idx].keyword_rest
+                        && args.len() == compiled_fns[idx].n_params
+                });
                 if let Some(fn_idx) = direct_fn {
                     let fi = &compiled_fns[fn_idx];
-                    let mut call_args = Vec::new();
-                    for a in args {
-                        call_args.push(builder.use_var(var_tags[*a]));
-                        call_args.push(builder.use_var(var_pays[*a]));
-                    }
-                    let (dt, dp) =
-                        emit_direct_call(builder, module, &fi.func_id, fi.n_params, &call_args)?;
+                    let args: Vec<(Value, Value)> = args.iter()
+                        .map(|slot| (builder.use_var(var_tags[*slot]), builder.use_var(var_pays[*slot])))
+                        .collect();
+                    let (dt, dp) = emit_direct_call(builder, module, &fi.func_id, &args)?;
                     builder.def_var(var_tags[*dst], dt);
                     builder.def_var(var_pays[*dst], dp);
                 } else {
@@ -851,6 +1129,13 @@ fn compile_body(
                 terminated = true;
             }
 
+            HirInstr::Poll => {
+                if terminated {
+                    continue;
+                }
+                call_rt_void(builder, module, "soplang_task_poll", &[])?;
+            }
+
             HirInstr::JumpIf {
                 cond,
                 on_true,
@@ -875,7 +1160,8 @@ fn compile_body(
                 current,
                 end,
                 step,
-            } => {
+            }
+            | HirInstr::RangeAdvance { dst, current, end, step } => {
                 if terminated {
                     continue;
                 }
@@ -887,7 +1173,12 @@ fn compile_body(
                     builder.use_var(var_tags[*step]),
                     builder.use_var(var_pays[*step]),
                 ];
-                let (t, p) = call_rt(builder, module, "soplang_range_continue", &args)?;
+                let function = if matches!(instr, HirInstr::RangeAdvance { .. }) {
+                    "soplang_range_advance"
+                } else {
+                    "soplang_range_continue"
+                };
+                let (t, p) = call_rt(builder, module, function, &args)?;
                 builder.def_var(var_tags[*dst], t);
                 builder.def_var(var_pays[*dst], p);
             }
@@ -898,6 +1189,8 @@ fn compile_body(
                 }
                 let t = builder.use_var(var_tags[*val]);
                 let p = builder.use_var(var_pays[*val]);
+                call_rt_void(builder, module, "soplang_leave_function", &[])?;
+                call_rt_void(builder, module, "soplang_leave_roots", &[])?;
                 builder.ins().return_(&[t, p]);
                 terminated = true;
             }
@@ -931,6 +1224,29 @@ fn compile_body(
                 builder.ins().call(fref, &[st, sp, et, nptr, nlen]);
             }
 
+            HirInstr::CheckContract {
+                src,
+                contract,
+                name,
+            } => {
+                if terminated {
+                    continue;
+                }
+                let st = builder.use_var(var_tags[*src]);
+                let sp = builder.use_var(var_pays[*src]);
+                let cptr = builder.ins().iconst(types::I64, contract.as_ptr() as i64);
+                let clen = builder.ins().iconst(types::I64, contract.len() as i64);
+                let nptr = builder.ins().iconst(types::I64, name.as_ptr() as i64);
+                let nlen = builder.ins().iconst(types::I64, name.len() as i64);
+                let (dt, dp) = call_rt(
+                    builder,
+                    module,
+                    "soplang_check_contract",
+                    &[st, sp, cptr, clen, nptr, nlen],
+                )?;
+                builder.def_var(var_tags[*src], dt);
+                builder.def_var(var_pays[*src], dp);
+            }
             HirInstr::CheckClass {
                 src,
                 class_name,
@@ -986,6 +1302,22 @@ fn compile_body(
 
             HirInstr::Pop { .. } => {}
 
+            HirInstr::Raise { src } => {
+                if terminated { continue; }
+                let tag = builder.use_var(var_tags[*src]);
+                let pay = builder.use_var(var_pays[*src]);
+                call_rt(builder, module, "soplang_raise", &[tag, pay])?;
+            }
+            HirInstr::SuspendError | HirInstr::RestoreError | HirInstr::DiscardError => {
+                if terminated { continue; }
+                let name = match instr {
+                    HirInstr::SuspendError => "soplang_suspend_error",
+                    HirInstr::RestoreError => "soplang_restore_error",
+                    _ => "soplang_discard_error",
+                };
+                call_rt_void(builder, module, name, &[])?;
+            }
+
             HirInstr::TryBegin { catch: _ } => {
                 if terminated {
                     continue;
@@ -1004,7 +1336,7 @@ fn compile_body(
                 if terminated {
                     continue;
                 }
-                let catch_block = block_map[catch];
+                let catch_block = catch.map(|label| block_map[&label]).unwrap_or_else(|| builder.create_block());
                 let continue_block = builder.create_block();
                 let pending = call_rt_i64(builder, module, "soplang_has_pending_error", &[])?;
                 let zero = builder.ins().iconst(types::I64, 0);
@@ -1012,14 +1344,29 @@ fn compile_body(
                 builder
                     .ins()
                     .brif(test, catch_block, &[], continue_block, &[]);
+                if catch.is_none() {
+                    builder.switch_to_block(catch_block);
+                    call_rt_void(builder, module, "soplang_leave_roots", &[])?;
+                    if is_function {
+                        let tag = builder.ins().iconst(types::I64, 8);
+                        let payload = builder.ins().iconst(types::I64, 0);
+                        call_rt_void(builder, module, "soplang_leave_function", &[])?;
+                        builder.ins().return_(&[tag, payload]);
+                    } else {
+                        builder.ins().return_(&[]);
+                    }
+                }
                 builder.switch_to_block(continue_block);
             }
 
-            HirInstr::BindError { dst } => {
+            HirInstr::BindError { dst } | HirInstr::BindErrorValue { dst } => {
                 if terminated {
                     continue;
                 }
-                let (t, p) = call_rt(builder, module, "soplang_get_caught_error", &[])?;
+                let name = if matches!(instr, HirInstr::BindErrorValue { .. }) {
+                    "soplang_get_caught_error_value"
+                } else { "soplang_get_caught_error" };
+                let (t, p) = call_rt(builder, module, name, &[])?;
                 builder.def_var(var_tags[*dst], t);
                 builder.def_var(var_pays[*dst], p);
             }
@@ -1041,12 +1388,24 @@ fn compile_body(
                 builder.def_var(var_pays[*dst], p);
             }
         }
+        if !terminated {
+            if let Some(slot) = instr.destination() {
+                let tag = builder.use_var(var_tags[slot]);
+                let payload = builder.use_var(var_pays[slot]);
+                let offset = (slot * 16) as i32;
+                builder.ins().store(MemFlags::trusted(), tag, root_base, offset);
+                builder.ins().store(MemFlags::trusted(), payload, root_base, offset + 8);
+            }
+            if instr.may_allocate() { call_rt_void(builder, module, "soplang_gc_safepoint", &[])?; }
+        }
     }
 
     if !terminated {
+        call_rt_void(builder, module, "soplang_leave_roots", &[])?;
         if is_function {
             let nt = builder.ins().iconst(types::I64, 0);
             let np = builder.ins().iconst(types::I64, 0);
+            call_rt_void(builder, module, "soplang_leave_function", &[])?;
             builder.ins().return_(&[nt, np]);
         } else {
             builder.ins().return_(&[]);
@@ -1168,6 +1527,11 @@ fn emit_native_binop(
     rp: Value,
 ) -> Result<Option<(Value, Value, SlotNum)>, SoplangError> {
     let use_float = matches!(op, BinOpKind::Div) || lk == SlotNum::Float || rk == SlotNum::Float;
+    // A quotient/truncation/subtraction expansion loses the remainder for
+    // extreme magnitudes and the sign of zero. Use the runtime's fmod path.
+    if op == BinOpKind::Mod && use_float {
+        return Ok(None);
+    }
     let result_kind = match op {
         BinOpKind::Div => SlotNum::Float,
         BinOpKind::Add | BinOpKind::Sub | BinOpKind::Mul | BinOpKind::Mod if use_float => {
@@ -1201,20 +1565,15 @@ fn emit_native_binop(
                     float_to_bits(builder, f),
                 )
             }
-            BinOpKind::Mod if !use_float => (
-                builder.ins().iconst(types::I64, 1),
-                builder.ins().srem(lp, rp),
-            ),
             BinOpKind::Mod => {
-                let l = payload_as_float(builder, lk, lp);
-                let r = payload_as_float(builder, rk, rp);
-                let quot = builder.ins().fdiv(l, r);
-                let whole = builder.ins().trunc(quot);
-                let scaled = builder.ins().fmul(whole, r);
-                let rem = builder.ins().fsub(l, scaled);
+                // MIN % -1 is zero; replacing -1 with 1 avoids a trapping
+                // integer divide while preserving every other remainder.
+                let negative_one = builder.ins().icmp_imm(IntCC::Equal, rp, -1);
+                let one = builder.ins().iconst(types::I64, 1);
+                let divisor = builder.ins().select(negative_one, one, rp);
                 (
-                    builder.ins().iconst(types::I64, 2),
-                    float_to_bits(builder, rem),
+                    builder.ins().iconst(types::I64, 1),
+                    builder.ins().srem(lp, divisor),
                 )
             }
             BinOpKind::Eq
@@ -1338,20 +1697,34 @@ fn emit_direct_call(
     builder: &mut FunctionBuilder,
     module: &mut cranelift_jit::JITModule,
     func_id: &FuncId,
-    n_params: usize,
-    args: &[Value],
+    args: &[(Value, Value)],
 ) -> Result<(Value, Value), SoplangError> {
-    let mut sig = Signature::new(CallConv::SystemV);
-    for _ in 0..n_params {
-        sig.params.push(AbiParam::new(types::I64));
-        sig.params.push(AbiParam::new(types::I64));
-    }
-    sig.returns.push(AbiParam::new(types::I64));
-    sig.returns.push(AbiParam::new(types::I64));
+    let pointer = emit_arg_vector(builder, args);
+    let count = builder.ins().iconst(types::I64, args.len() as i64);
     let fref = declare_jit_function(module, *func_id, builder.func);
-    let call = builder.ins().call(fref, args);
-    let r = builder.inst_results(call);
-    Ok((r[0], r[1]))
+    let call = builder.ins().call(fref, &[pointer, count]);
+    let result = builder.inst_results(call);
+    Ok((result[0], result[1]))
+}
+
+fn emit_arg_vector(builder: &mut FunctionBuilder, args: &[(Value, Value)]) -> Value {
+    if args.is_empty() {
+        return builder.ins().iconst(types::I64, 0);
+    }
+    let slot = builder.func.create_sized_stack_slot(StackSlotData::new(
+        StackSlotKind::ExplicitSlot,
+        (args.len() * 16) as u32,
+        3,
+    ));
+    let base = builder.ins().stack_addr(types::I64, slot, 0);
+    for (index, (tag, payload)) in args.iter().enumerate() {
+        let offset = (index * 16) as i32;
+        builder.ins().store(MemFlags::trusted(), *tag, base, offset);
+        builder
+            .ins()
+            .store(MemFlags::trusted(), *payload, base, offset + 8);
+    }
+    base
 }
 
 fn emit_make_closure(

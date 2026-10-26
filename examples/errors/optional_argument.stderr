@@ -1,0 +1,5 @@
+Khalad nooc: doodda 1 ee 'tijaabo' waa 'qoraal?', laakiin 'abn' ayaa la helay [E022] safka 2, tiirka 1
+     --> examples/errors/optional_argument.sop:2:1
+   2 │   tijaabo(1)
+     │   ^^^^^^^
+     └─ La jaanqaad noocyada doodaha ee qeexidda hawsha.

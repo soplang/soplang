@@ -6,19 +6,32 @@
 use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
+#[cfg(not(feature = "embedded-llvm"))]
 use std::process::Command;
 use std::sync::atomic::{AtomicU64, Ordering};
 
-use crate::error::{external_error, io_error, runtime_error, tool_start_error, SoplangError};
+#[cfg(not(feature = "embedded-llvm"))]
+use crate::error::tool_start_error;
+use crate::error::{external_error, io_error, runtime_error, SoplangError};
 use crate::hir::{BinOpKind, HirConst, HirFunction, HirInstr, HirModule, SlotNum, UnOpKind};
 use crate::semantic::SymbolTable;
 
 const DECLS: &str = r#"%SoplangValue = type { i8, i64 }
 
+declare void @soplang_gc_safepoint()
+declare void @soplang_task_poll()
+declare void @soplang_set_program_args(i32, ptr)
+declare void @soplang_enter_roots(ptr, ptr, i64, i64)
+declare void @soplang_leave_roots()
+declare void @soplang_debug_begin(ptr, i64)
+declare void @soplang_debug_point(ptr, i64)
+declare void @soplang_debug_init(i64)
 declare void @soplang_set_location(ptr, i64, i64, i64, i64, ptr, i64)
 declare %SoplangValue @soplang_int(i64)
 declare %SoplangValue @soplang_float(double)
 declare %SoplangValue @soplang_str(ptr, i64)
+declare %SoplangValue @soplang_format_value(%SoplangValue, ptr, i64)
+declare %SoplangValue @soplang_join_text(ptr, i64)
 declare %SoplangValue @soplang_bool(i8)
 declare %SoplangValue @soplang_null()
 declare %SoplangValue @soplang_add(%SoplangValue, %SoplangValue)
@@ -38,10 +51,14 @@ declare %SoplangValue @soplang_and(%SoplangValue, %SoplangValue)
 declare %SoplangValue @soplang_or(%SoplangValue, %SoplangValue)
 declare %SoplangValue @soplang_truthy(%SoplangValue)
 declare %SoplangValue @soplang_range_continue(%SoplangValue, %SoplangValue, %SoplangValue)
+declare %SoplangValue @soplang_range_advance(%SoplangValue, %SoplangValue, %SoplangValue)
+declare %SoplangValue @soplang_iter_begin(%SoplangValue)
+declare %SoplangValue @soplang_iter_next(%SoplangValue, i64)
 declare %SoplangValue @soplang_get_builtin(ptr, i64)
 declare void @soplang_store_global(ptr, i64, i64, i64)
 declare %SoplangValue @soplang_call(%SoplangValue, ptr, i32)
 declare void @soplang_check_type(i64, i64, i64, ptr, i64)
+declare %SoplangValue @soplang_check_contract(i64, i64, ptr, i64, ptr, i64)
 declare %SoplangValue @soplang_list_new()
 declare %SoplangValue @soplang_list_push(%SoplangValue, %SoplangValue)
 declare %SoplangValue @soplang_object_new()
@@ -53,10 +70,22 @@ declare %SoplangValue @soplang_call_method(%SoplangValue, ptr, i64, ptr, i32)
 declare %SoplangValue @soplang_new_instance(ptr, i64, ptr, i32)
 declare void @soplang_register_class(ptr, i64, ptr, i64, ptr, i64, i64)
 declare i64 @soplang_register_user_fn(ptr, i64, ptr, i64)
+declare void @soplang_set_fn_required(i64, i64)
+declare void @soplang_set_fn_variadic(i64)
+declare void @soplang_set_fn_signature(i64, ptr, i64, i64)
+declare %SoplangValue @soplang_call_named(%SoplangValue, i64, ptr, i64, ptr, i32, ptr, i64)
+declare %SoplangValue @soplang_raise(%SoplangValue)
+declare void @soplang_suspend_error()
+declare void @soplang_restore_error()
+declare void @soplang_discard_error()
 declare i32 @soplang_try_begin()
 declare void @soplang_try_end()
 declare i32 @soplang_has_pending_error()
+declare i32 @soplang_finish_execution()
 declare %SoplangValue @soplang_get_caught_error()
+declare %SoplangValue @soplang_get_caught_error_value()
+declare void @soplang_enter_function(ptr, i64)
+declare void @soplang_leave_function()
 declare void @soplang_check_class(i64, i64, ptr, i64, ptr, i64)
 declare void @soplang_mark_const(ptr, i64)
 declare %SoplangValue @soplang_make_closure(ptr, i64, i64, ptr)
@@ -68,6 +97,8 @@ struct FnInfo {
     /// ABI values, including the leading closure environment when present.
     n_params: usize,
     has_env: bool,
+    variadic: bool,
+    keyword_rest: bool,
 }
 
 struct ModuleOut {
@@ -105,6 +136,8 @@ struct FnEmit<'a> {
     slot_fn: HashMap<usize, usize>,
     is_main: bool,
     cont: usize,
+    allocation_point: usize,
+    entry_allocas: String,
 }
 
 pub fn emit_llvm_ir(hir: &HirModule, sym: &SymbolTable) -> Result<String, SoplangError> {
@@ -117,6 +150,8 @@ pub fn emit_llvm_ir(hir: &HirModule, sym: &SymbolTable) -> Result<String, Soplan
             llvm_name: format!("sfn{i}"),
             n_params: f.params.len() + usize::from(has_env),
             has_env,
+            variadic: f.variadic,
+            keyword_rest: f.keyword_rest,
         });
     }
 
@@ -175,7 +210,10 @@ pub fn link_llvm_binary(ir: &str, out: &Path) -> Result<(), SoplangError> {
 
 /// Compile and link LLVM IR with the requested optimization level (0..3).
 pub fn link_llvm_binary_with_opt(ir: &str, out: &Path, opt_level: u8) -> Result<(), SoplangError> {
+    #[cfg(not(feature = "embedded-llvm"))]
     let (rlib, deps) = soplang_rlib()?;
+    #[cfg(feature = "embedded-llvm")]
+    let (staticlib, deps) = soplang_staticlib()?;
     let temp = LinkTemp::new()?;
     let ll = temp.0.join("program.ll");
     let obj = temp.0.join("program.o");
@@ -186,15 +224,17 @@ pub fn link_llvm_binary_with_opt(ir: &str, out: &Path, opt_level: u8) -> Result<
         .0
         .join("program")
         .with_extension(std::env::consts::EXE_EXTENSION);
+    #[cfg(not(feature = "embedded-llvm"))]
     fs::write(&ll, ir)
         .map_err(|e| io_error(format!("Faylka '{}' lama qori karin.", ll.display()), &e))?;
+    #[cfg(not(feature = "embedded-llvm"))]
     fs::write(&wrapper, LINK_WRAPPER).map_err(|e| {
         io_error(
             format!("Faylka '{}' lama qori karin.", wrapper.display()),
             &e,
         )
     })?;
-    if let Some(parent) = out.parent() {
+    if let Some(parent) = out.parent().filter(|parent| !parent.as_os_str().is_empty()) {
         if !parent.as_os_str().is_empty() {
             fs::create_dir_all(parent).map_err(|e| {
                 io_error(
@@ -204,6 +244,20 @@ pub fn link_llvm_binary_with_opt(ir: &str, out: &Path, opt_level: u8) -> Result<
             })?;
         }
     }
+    #[cfg(all(feature = "embedded-llvm", target_os = "windows"))]
+    let target_triple = staticlib
+        .parent()
+        .is_some_and(|dir| dir.join("tools/zig.exe").is_file())
+        .then_some(c"x86_64-pc-windows-gnu");
+    #[cfg(all(feature = "embedded-llvm", not(target_os = "windows")))]
+    let target_triple = None;
+    #[cfg(feature = "embedded-llvm")]
+    fs::write(
+        &obj,
+        super::llvm_native::emit_object(ir, opt_level, target_triple)?,
+    )
+    .map_err(|e| io_error(format!("Faylka '{}' lama qori karin.", obj.display()), &e))?;
+    #[cfg(not(feature = "embedded-llvm"))]
     let clang = Command::new("clang")
         .arg(format!("-O{}", opt_level.min(3)))
         .arg("-c")
@@ -212,6 +266,7 @@ pub fn link_llvm_binary_with_opt(ir: &str, out: &Path, opt_level: u8) -> Result<
         .arg(&obj)
         .output()
         .map_err(|e| tool_start_error("clang", &e))?;
+    #[cfg(not(feature = "embedded-llvm"))]
     if !clang.status.success() {
         let stderr = String::from_utf8_lossy(&clang.stderr);
         let _ = fs::remove_file(&ll);
@@ -220,10 +275,13 @@ pub fn link_llvm_binary_with_opt(ir: &str, out: &Path, opt_level: u8) -> Result<
             format!("clang: {}\n{}", clang.status, stderr.trim_end()),
         ));
     }
+    #[cfg(not(feature = "embedded-llvm"))]
     let mut linker = Command::new("rustc");
+    #[cfg(not(feature = "embedded-llvm"))]
     for path in native_library_paths(&deps) {
         linker.arg("-L").arg(format!("native={}", path.display()));
     }
+    #[cfg(not(feature = "embedded-llvm"))]
     let rustc = linker
         .arg("--edition")
         .arg("2021")
@@ -244,15 +302,49 @@ pub fn link_llvm_binary_with_opt(ir: &str, out: &Path, opt_level: u8) -> Result<
         .arg(format!("link-arg={}", obj.display()))
         .output()
         .map_err(|e| tool_start_error("rustc", &e))?;
+    #[cfg(all(feature = "embedded-llvm", target_os = "linux"))]
+    super::llvm_native::link_elf(&obj, &staticlib, &linked, &native_library_paths(&deps))?;
+    #[cfg(all(feature = "embedded-llvm", target_os = "macos"))]
+    super::llvm_native::link_macho(&obj, &staticlib, &linked, &native_library_paths(&deps))?;
+    #[cfg(all(feature = "embedded-llvm", target_os = "windows"))]
+    super::llvm_native::link_coff(&obj, &staticlib, &linked, &native_library_paths(&deps))?;
     let _ = fs::remove_file(&ll);
     let _ = fs::remove_file(&obj);
     let _ = fs::remove_file(&wrapper);
+    #[cfg(not(feature = "embedded-llvm"))]
     if !rustc.status.success() {
         let stderr = String::from_utf8_lossy(&rustc.stderr);
         return Err(external_error(
             "rustc ma dhammaystiri karin isku xidhka barnaamijka.",
             format!("rustc: {}\n{}", rustc.status, stderr.trim_end()),
         ));
+    }
+    if !linked.is_file() {
+        let contents = fs::read_dir(&temp.0)
+            .ok()
+            .into_iter()
+            .flatten()
+            .filter_map(|entry| entry.ok())
+            .map(|entry| entry.file_name().to_string_lossy().into_owned())
+            .collect::<Vec<_>>()
+            .join(", ");
+        return Err(external_error(
+            "Barnaamijka la dhisay lama helin.",
+            format!(
+                "Expected {}; temporary files: {}",
+                linked.display(),
+                contents
+            ),
+        ));
+    }
+    // Recheck a caller-provided output directory after external linking.
+    if let Some(parent) = out.parent().filter(|parent| !parent.as_os_str().is_empty()) {
+        fs::create_dir_all(parent).map_err(|e| {
+            io_error(
+                format!("Galka '{}' lama abuuri karin.", parent.display()),
+                &e,
+            )
+        })?;
     }
     match fs::rename(&linked, out) {
         Ok(()) => {}
@@ -270,18 +362,27 @@ pub fn link_llvm_binary_with_opt(ir: &str, out: &Path, opt_level: u8) -> Result<
             })?;
         }
         Err(error) => {
-            return Err(io_error(
+            return Err(external_error(
                 format!(
-                    "Barnaamijka la dhisay laguma kaydin karin '{}'.",
-                    out.display()
+                    "Barnaamijka la dhisay laguma kaydin karin '{}'. {}",
+                    out.display(),
+                    crate::error::io_reason(&error)
                 ),
-                &error,
+                format!(
+                    "rename {} -> {}: {}; source exists: {}; target parent exists: {}",
+                    linked.display(),
+                    out.display(),
+                    error,
+                    linked.is_file(),
+                    out.parent().is_some_and(Path::is_dir)
+                ),
             ))
         }
     }
     Ok(())
 }
 
+#[cfg(not(feature = "embedded-llvm"))]
 const LINK_WRAPPER: &str = r#"
 #![no_main]
 extern crate soplang;
@@ -296,11 +397,21 @@ struct Keep(*const ());
 unsafe impl Sync for Keep {}
 
 #[used]
-static KEEP: [Keep; 46] = [
+static KEEP: [Keep; 72] = [
     Keep(runtime::soplang_set_location as *const ()),
+    Keep(runtime::soplang_debug_begin as *const ()),
+    Keep(runtime::soplang_debug_point as *const ()),
+    Keep(runtime::soplang_debug_init as *const ()),
+    Keep(runtime::soplang_enter_roots as *const ()),
+    Keep(runtime::soplang_gc_safepoint as *const ()),
+    Keep(runtime::soplang_task_poll as *const ()),
+    Keep(runtime::soplang_set_program_args as *const ()),
+    Keep(runtime::soplang_leave_roots as *const ()),
     Keep(runtime::soplang_int as *const ()),
     Keep(runtime::soplang_float as *const ()),
     Keep(runtime::soplang_str as *const ()),
+    Keep(runtime::soplang_format_value as *const ()),
+    Keep(runtime::soplang_join_text as *const ()),
     Keep(runtime::soplang_bool as *const ()),
     Keep(runtime::soplang_null as *const ()),
     Keep(runtime::soplang_add as *const ()),
@@ -320,6 +431,9 @@ static KEEP: [Keep; 46] = [
     Keep(runtime::soplang_or as *const ()),
     Keep(runtime::soplang_truthy as *const ()),
     Keep(runtime::soplang_range_continue as *const ()),
+    Keep(runtime::soplang_range_advance as *const ()),
+    Keep(runtime::soplang_iter_begin as *const ()),
+    Keep(runtime::soplang_iter_next as *const ()),
     Keep(runtime::soplang_get_builtin as *const ()),
     Keep(runtime::soplang_store_global as *const ()),
     Keep(runtime::soplang_call as *const ()),
@@ -335,11 +449,24 @@ static KEEP: [Keep; 46] = [
     Keep(runtime::soplang_new_instance as *const ()),
     Keep(runtime::soplang_register_class as *const ()),
     Keep(runtime::soplang_register_user_fn as *const ()),
+    Keep(runtime::soplang_set_fn_required as *const ()),
+    Keep(runtime::soplang_set_fn_variadic as *const ()),
+    Keep(runtime::soplang_set_fn_signature as *const ()),
+    Keep(runtime::soplang_call_named as *const ()),
+    Keep(runtime::soplang_raise as *const ()),
+    Keep(runtime::soplang_suspend_error as *const ()),
+    Keep(runtime::soplang_restore_error as *const ()),
+    Keep(runtime::soplang_discard_error as *const ()),
     Keep(runtime::soplang_try_begin as *const ()),
     Keep(runtime::soplang_try_end as *const ()),
     Keep(runtime::soplang_has_pending_error as *const ()),
+    Keep(runtime::soplang_finish_execution as *const ()),
     Keep(runtime::soplang_get_caught_error as *const ()),
+    Keep(runtime::soplang_get_caught_error_value as *const ()),
+    Keep(runtime::soplang_enter_function as *const ()),
+    Keep(runtime::soplang_leave_function as *const ()),
     Keep(runtime::soplang_check_class as *const ()),
+    Keep(runtime::soplang_check_contract as *const ()),
     Keep(runtime::soplang_mark_const as *const ()),
     Keep(runtime::soplang_make_closure as *const ()),
     Keep(runtime::soplang_capture_get as *const ()),
@@ -410,6 +537,7 @@ impl Drop for LinkTemp {
     }
 }
 
+#[cfg(not(feature = "embedded-llvm"))]
 fn toolchain_summary(metadata: &str) -> String {
     let version = metadata
         .lines()
@@ -451,6 +579,7 @@ fn toolchain_summary(metadata: &str) -> String {
     }
 }
 
+#[cfg(not(feature = "embedded-llvm"))]
 fn packaged_runtime(dir: &Path) -> Result<(PathBuf, PathBuf), SoplangError> {
     let expected = fs::read_to_string(dir.join("rustc-version.txt")).map_err(|e| {
         io_error(
@@ -504,6 +633,7 @@ fn packaged_runtime(dir: &Path) -> Result<(PathBuf, PathBuf), SoplangError> {
     Ok((rlib, deps))
 }
 
+#[cfg(not(feature = "embedded-llvm"))]
 fn soplang_rlib() -> Result<(PathBuf, PathBuf), SoplangError> {
     if let Some(dir) = std::env::var_os("SOPLANG_RUNTIME_DIR") {
         return packaged_runtime(Path::new(&dir));
@@ -554,6 +684,59 @@ fn soplang_rlib() -> Result<(PathBuf, PathBuf), SoplangError> {
         "Maktabadaha fulinta Soplang lama helin. Rakib xirmada oo dhammaystiran ama SOPLANG_RUNTIME_DIR u deji galkeeda lib/soplang.", 0, 0))
 }
 
+#[cfg(feature = "embedded-llvm")]
+fn soplang_staticlib() -> Result<(PathBuf, PathBuf), SoplangError> {
+    let names: &[&str] = if cfg!(target_os = "windows") {
+        &["libsoplang.a", "soplang.lib"]
+    } else {
+        &["libsoplang.a"]
+    };
+    let exe = std::env::current_exe().map_err(|e| {
+        io_error(
+            "Meesha uu ku jiro barnaamijka Soplang lama ogaan karin.",
+            &e,
+        )
+    })?;
+    let parent = exe.parent().ok_or_else(|| {
+        runtime_error(
+            "Meesha uu ku jiro barnaamijka Soplang lama ogaan karin.",
+            0,
+            0,
+        )
+    })?;
+    let mut dirs = Vec::new();
+    if let Some(override_dir) = std::env::var_os("SOPLANG_RUNTIME_DIR") {
+        dirs.push(PathBuf::from(override_dir));
+    } else {
+        dirs.extend([parent.join("lib/soplang"), parent.join("../lib/soplang")]);
+        dirs.push(parent.to_path_buf());
+        if let Some(profile) = parent.parent() {
+            dirs.push(profile.to_path_buf());
+        }
+    }
+    for dir in dirs {
+        for name in names {
+            let archive = dir.join(name);
+            if !archive.is_file() {
+                continue;
+            }
+            let deps = if dir.join("deps").is_dir() {
+                dir.join("deps")
+            } else if dir.file_name().is_some_and(|name| name == "deps") {
+                dir.clone()
+            } else {
+                dir.join("deps")
+            };
+            return Ok((archive, deps));
+        }
+    }
+    Err(runtime_error(
+        "Maktabadda fulinta Soplang lama helin. Rakib xirmada oo dhammaystiran ama SOPLANG_RUNTIME_DIR u deji galkeeda lib/soplang.",
+        0,
+        0,
+    ))
+}
+
 fn emit_function(
     m: &mut ModuleOut,
     fns: &[FnInfo],
@@ -563,7 +746,6 @@ fn emit_function(
     let info = &fns[by_name[&f.name]];
     let has_env = info.has_env;
     let llvm_name = info.llvm_name.clone();
-    let n_params = info.n_params;
     let cap = f
         .capture_slots
         .iter()
@@ -577,17 +759,11 @@ fn emit_function(
             .max(f.params.iter().copied().max().map(|s| s + 1).unwrap_or(0))
             .max(cap),
     );
-    let mut args = String::new();
-    for i in 0..n_params {
-        if i > 0 {
-            args.push_str(", ");
-        }
-        args.push_str(&format!("%SoplangValue %a{i}"));
-    }
     m.body.push_str(&format!(
-        "define %SoplangValue @{}({args}) {{\nentry:\n",
+        "define %SoplangValue @{}(ptr %args, i64 %nargs) {{\nentry:\n",
         llvm_name
     ));
+    let allocation_point = m.body.len();
     let mut emit = FnEmit {
         m,
         fns,
@@ -599,11 +775,17 @@ fn emit_function(
         slot_fn: HashMap::new(),
         is_main: false,
         cont: 0,
+        allocation_point,
+        entry_allocas: String::new(),
     };
     emit.alloc_slots();
+    let (name_ptr, name_len) = emit.str_ptr(&f.name);
+    emit.line(format!(
+        "  call void @soplang_enter_function(ptr {name_ptr}, i64 {name_len})"
+    ));
     let user_base = if has_env {
-        let env_pay = emit.fresh();
-        emit.line(format!("  {env_pay} = extractvalue %SoplangValue %a0, 1"));
+        let environment = emit.load_argument(0);
+        let (_, env_pay) = emit.unpack(&environment);
         for (i, &slot) in f.capture_slots.iter().enumerate() {
             let sv = emit.call_sv("soplang_capture_get", &format!("i64 {env_pay}, i64 {i}"));
             emit.unpack_store(&sv, slot);
@@ -613,9 +795,12 @@ fn emit_function(
         0
     };
     for (i, &slot) in f.params.iter().enumerate() {
-        emit.unpack_store(&format!("%a{}", user_base + i), slot);
+        let value = emit.load_argument(user_base + i);
+        emit.unpack_store(&value, slot);
     }
+    emit.enter_roots();
     emit.body(&f.body)?;
+    emit.flush_allocas();
     emit.m.body.push_str("}\n\n");
     Ok(())
 }
@@ -628,7 +813,9 @@ fn emit_main(
     sym: &SymbolTable,
 ) -> Result<(), SoplangError> {
     let nslots = slots_needed(&hir.top_level, 0);
-    m.body.push_str("define i32 @main() {\nentry:\n");
+    m.body
+        .push_str("define i32 @main(i32 %argc, ptr %argv) {\nentry:\n");
+    let allocation_point = m.body.len();
     let mut emit = FnEmit {
         m,
         fns,
@@ -640,10 +827,15 @@ fn emit_main(
         slot_fn: HashMap::new(),
         is_main: true,
         cont: 0,
+        allocation_point,
+        entry_allocas: String::new(),
     };
     emit.alloc_slots();
+    emit.line("call void @soplang_set_program_args(i32 %argc, ptr %argv)");
     emit.register_runtime(&hir.functions, sym);
+    emit.enter_roots();
     emit.body(&hir.top_level)?;
+    emit.flush_allocas();
     emit.m.body.push_str("}\n");
     Ok(())
 }
@@ -670,6 +862,31 @@ impl<'a> FnEmit<'a> {
         let n = self.tmp;
         self.tmp += 1;
         format!("%v{n}")
+    }
+
+    fn enter_roots(&mut self) {
+        let slots = self.nslots;
+        self.line(format!(
+            "  call void @soplang_enter_roots(ptr %tags, ptr %pays, i64 {slots}, i64 1)"
+        ));
+    }
+
+    fn flush_allocas(&mut self) {
+        self.m
+            .body
+            .insert_str(self.allocation_point, &self.entry_allocas);
+    }
+
+    fn load_argument(&mut self, index: usize) -> String {
+        let pointer = self.fresh();
+        let value = self.fresh();
+        self.line(format!(
+            "  {pointer} = getelementptr inbounds %SoplangValue, ptr %args, i64 {index}"
+        ));
+        self.line(format!(
+            "  {value} = load %SoplangValue, ptr {pointer}, align 8"
+        ));
+        value
     }
 
     fn alloc_slots(&mut self) {
@@ -745,7 +962,9 @@ impl<'a> FnEmit<'a> {
         }
         let n = slots.len();
         let buf = self.fresh();
-        self.line(format!("  {buf} = alloca [{n} x %SoplangValue], align 8"));
+        self.entry_allocas.push_str(&format!(
+            "  {buf} = alloca [{n} x %SoplangValue], align 8\n"
+        ));
         for (i, &slot) in slots.iter().enumerate() {
             let (t, p) = self.load_slot(slot);
             let sv = self.pack(&t, &p);
@@ -765,24 +984,43 @@ impl<'a> FnEmit<'a> {
             let llvm_name = info.llvm_name.clone();
             let n_params = info.n_params;
             let (p, n) = self.str_ptr(&f.name);
+            let required = f.required_params + usize::from(info.has_env);
+            let handle = self.fresh();
             self.line(format!(
-                "  call i64 @soplang_register_user_fn(ptr {p}, i64 {n}, ptr @{llvm_name}, i64 {n_params})"
+                "  {handle} = call i64 @soplang_register_user_fn(ptr {p}, i64 {n}, ptr @{llvm_name}, i64 {n_params})"
             ));
+            self.line(format!(
+                "  call void @soplang_set_fn_required(i64 {handle}, i64 {required})"
+            ));
+            if f.variadic {
+                self.line(format!(
+                    "  call void @soplang_set_fn_variadic(i64 {handle})"
+                ));
+            }
+            let names = std::iter::repeat(String::new())
+                .take(usize::from(info.has_env))
+                .chain(f.param_names.iter().cloned())
+                .collect::<Vec<_>>()
+                .join("\0");
+            let (pointer, length) = self.str_ptr(&names);
+            self.line(format!("  call void @soplang_set_fn_signature(i64 {handle}, ptr {pointer}, i64 {length}, i64 {})", u8::from(f.keyword_rest)));
         }
         for (name, meta) in &sym.classes {
+            let (cp, cl) = self.str_ptr(name);
+            let (pp, pl) = match &meta.parent {
+                Some(parent) => {
+                    let (p, n) = self.str_ptr(parent);
+                    (p, n.to_string())
+                }
+                None => ("null".to_string(), "0".to_string()),
+            };
+            // Empty subclasses still need their parent relationship registered.
+            self.line(format!("  call void @soplang_register_class(ptr {cp}, i64 {cl}, ptr {pp}, i64 {pl}, ptr null, i64 0, i64 0)"));
             for (method, mangled) in &meta.methods {
                 let (np, nl) = self.str_ptr(mangled);
                 let sv = self.call_sv("soplang_get_builtin", &format!("ptr {np}, i64 {nl}"));
                 let (_, pay) = self.unpack(&sv);
-                let (cp, cl) = self.str_ptr(name);
                 let (mp, ml) = self.str_ptr(method);
-                let (pp, pl) = match &meta.parent {
-                    Some(parent) => {
-                        let (p, n) = self.str_ptr(parent);
-                        (p, n.to_string())
-                    }
-                    None => ("null".to_string(), "0".to_string()),
-                };
                 self.line(format!(
                     "  call void @soplang_register_class(ptr {cp}, i64 {cl}, ptr {pp}, i64 {pl}, ptr {mp}, i64 {ml}, i64 {pay})"
                 ));
@@ -810,6 +1048,7 @@ impl<'a> FnEmit<'a> {
         let mut terminated = false;
         for instr in body {
             if let HirInstr::Label(id) = instr {
+                self.slot_fn.clear();
                 if !terminated {
                     self.line(format!("  br label %L{id}"));
                 }
@@ -821,11 +1060,19 @@ impl<'a> FnEmit<'a> {
                 continue;
             }
             terminated = self.instr(instr)?;
+            if !terminated && instr.may_allocate() {
+                self.line("  call void @soplang_gc_safepoint()");
+            }
         }
         if !terminated {
             if self.is_main {
-                self.line("  ret i32 0");
+                let status = self.fresh();
+                self.line(format!("  {status} = call i32 @soplang_finish_execution()"));
+                self.line("  call void @soplang_leave_roots()");
+                self.line(format!("  ret i32 {status}"));
             } else {
+                self.line("  call void @soplang_leave_function()");
+                self.line("  call void @soplang_leave_roots()");
                 self.line("  ret %SoplangValue zeroinitializer");
             }
         }
@@ -834,6 +1081,20 @@ impl<'a> FnEmit<'a> {
 
     fn instr(&mut self, instr: &HirInstr) -> Result<bool, SoplangError> {
         match instr {
+            HirInstr::DebugStart(metadata) | HirInstr::DebugPoint(metadata) => {
+                let (ptr, len) = self.str_ptr(metadata);
+                let name = if matches!(instr, HirInstr::DebugStart(_)) {
+                    "soplang_debug_begin"
+                } else {
+                    "soplang_debug_point"
+                };
+                self.line(format!("  call void @{name}(ptr {ptr}, i64 {len})"));
+                Ok(false)
+            }
+            HirInstr::DebugInit(slot) => {
+                self.line(format!("  call void @soplang_debug_init(i64 {slot})"));
+                Ok(false)
+            }
             HirInstr::SetLocation(span) => {
                 let file = span
                     .file
@@ -843,6 +1104,17 @@ impl<'a> FnEmit<'a> {
                 let (fp, fl) = self.str_ptr(file);
                 let (tp, tl) = self.str_ptr(&span.source_line);
                 self.line(format!("  call void @soplang_set_location(ptr {fp}, i64 {fl}, i64 {}, i64 {}, i64 {}, ptr {tp}, i64 {tl})", span.line, span.col, span.end_col));
+                Ok(false)
+            }
+
+            HirInstr::ParamProvided { dst, index } => {
+                let present = self.fresh();
+                let payload = self.fresh();
+                let argument = self.load_argument(*index);
+                let (tag, _) = self.unpack(&argument);
+                self.line(format!("  {present} = icmp ne i64 {tag}, 255"));
+                self.line(format!("  {payload} = zext i1 {present} to i64"));
+                self.store_slot(*dst, "3", &payload);
                 Ok(false)
             }
 
@@ -886,6 +1158,48 @@ impl<'a> FnEmit<'a> {
                 } else {
                     self.slot_fn.remove(dst);
                 }
+                Ok(false)
+            }
+            HirInstr::IterBegin { dst, src } => {
+                let value = self.pack_slot(*src);
+                let value = self.call_sv("soplang_iter_begin", &format!("%SoplangValue {value}"));
+                self.unpack_store(&value, *dst);
+                self.set_kind(*dst, SlotNum::Dyn);
+                Ok(false)
+            }
+            HirInstr::IterNext {
+                dst,
+                iterator,
+                bindings,
+            } => {
+                let value = self.pack_slot(*iterator);
+                let value = self.call_sv(
+                    "soplang_iter_next",
+                    &format!("%SoplangValue {value}, i64 {bindings}"),
+                );
+                self.unpack_store(&value, *dst);
+                self.set_kind(*dst, SlotNum::Dyn);
+                Ok(false)
+            }
+            HirInstr::FormatValue { dst, src, format } => {
+                let value = self.pack_slot(*src);
+                let (ptr, len) = self.str_ptr(format);
+                let value = self.call_sv(
+                    "soplang_format_value",
+                    &format!("%SoplangValue {value}, ptr {ptr}, i64 {len}"),
+                );
+                self.unpack_store(&value, *dst);
+                self.set_kind(*dst, SlotNum::Dyn);
+                Ok(false)
+            }
+            HirInstr::BuildString { dst, parts } => {
+                let ptr = self.value_buf(parts);
+                let value = self.call_sv(
+                    "soplang_join_text",
+                    &format!("ptr {ptr}, i64 {}", parts.len()),
+                );
+                self.unpack_store(&value, *dst);
+                self.set_kind(*dst, SlotNum::Dyn);
                 Ok(false)
             }
             HirInstr::Load { dst, name } => {
@@ -960,6 +1274,10 @@ impl<'a> FnEmit<'a> {
                 self.line(format!("L{id}:"));
                 Ok(false)
             }
+            HirInstr::Poll => {
+                self.line("  call void @soplang_task_poll()");
+                Ok(false)
+            }
             HirInstr::Jump(id) | HirInstr::Break(id) | HirInstr::Continue(id) => {
                 self.line(format!("  br label %L{id}"));
                 Ok(true)
@@ -983,41 +1301,50 @@ impl<'a> FnEmit<'a> {
                 current,
                 end,
                 step,
+            }
+            | HirInstr::RangeAdvance {
+                dst,
+                current,
+                end,
+                step,
             } => {
-                let sv = self.call_three("soplang_range_continue", *current, *end, *step);
+                let function = if matches!(instr, HirInstr::RangeAdvance { .. }) {
+                    "soplang_range_advance"
+                } else {
+                    "soplang_range_continue"
+                };
+                let sv = self.call_three(function, *current, *end, *step);
                 self.unpack_store(&sv, *dst);
                 Ok(false)
             }
+            HirInstr::CallNamed {
+                dst,
+                callee,
+                kind,
+                name,
+                args,
+                labels,
+            } => {
+                let (tag, payload) = self.load_slot(*callee);
+                let callee = self.pack(&tag, &payload);
+                let buffer = self.value_buf(args);
+                let (np, nl) = self.str_ptr(name);
+                let (lp, ll) = self.str_ptr(labels);
+                let value = self.call_sv("soplang_call_named", &format!("%SoplangValue {callee}, i64 {kind}, ptr {np}, i64 {nl}, ptr {buffer}, i32 {}, ptr {lp}, i64 {ll}", args.len()));
+                self.unpack_store(&value, *dst);
+                Ok(false)
+            }
             HirInstr::Call { dst, callee, args } => {
-                let direct_fn = self
-                    .slot_fn
-                    .get(callee)
-                    .copied()
-                    .filter(|&idx| args.len() == self.fns[idx].n_params);
+                let direct_fn = self.slot_fn.get(callee).copied().filter(|&idx| {
+                    !self.fns[idx].variadic
+                        && !self.fns[idx].keyword_rest
+                        && args.len() == self.fns[idx].n_params
+                });
                 if let Some(idx) = direct_fn {
                     let llvm_name = self.fns[idx].llvm_name.clone();
-                    let n_params = self.fns[idx].n_params;
-                    let mut parts = Vec::new();
-                    for i in 0..n_params {
-                        if i < args.len() {
-                            let (t, p) = self.load_slot(args[i]);
-                            parts.push(self.pack(&t, &p));
-                        } else {
-                            parts.push("zeroinitializer".to_string());
-                        }
-                    }
-                    let arg_s = parts
-                        .iter()
-                        .map(|p| {
-                            if p == "zeroinitializer" {
-                                "%SoplangValue zeroinitializer".to_string()
-                            } else {
-                                format!("%SoplangValue {p}")
-                            }
-                        })
-                        .collect::<Vec<_>>()
-                        .join(", ");
-                    let sv = self.call_sv(&llvm_name, &arg_s);
+                    let buffer = self.value_buf(args);
+                    let count = args.len();
+                    let sv = self.call_sv(&llvm_name, &format!("ptr {buffer}, i64 {count}"));
                     self.unpack_store(&sv, *dst);
                 } else {
                     let (ct, cp) = self.load_slot(*callee);
@@ -1029,10 +1356,15 @@ impl<'a> FnEmit<'a> {
             }
             HirInstr::Return { val } => {
                 if self.is_main {
-                    self.line("  ret i32 0");
+                    let status = self.fresh();
+                    self.line(format!("  {status} = call i32 @soplang_finish_execution()"));
+                    self.line("  call void @soplang_leave_roots()");
+                    self.line(format!("  ret i32 {status}"));
                 } else {
                     let (t, p) = self.load_slot(*val);
                     let sv = self.pack(&t, &p);
+                    self.line("  call void @soplang_leave_function()");
+                    self.line("  call void @soplang_leave_roots()");
                     self.line(format!("  ret %SoplangValue {sv}"));
                 }
                 Ok(true)
@@ -1142,6 +1474,21 @@ impl<'a> FnEmit<'a> {
                 self.unpack_store(&sv, *dst);
                 Ok(false)
             }
+            HirInstr::CheckContract {
+                src,
+                contract,
+                name,
+            } => {
+                let (t, p) = self.load_slot(*src);
+                let (cp, cl) = self.str_ptr(contract);
+                let (np, nl) = self.str_ptr(name);
+                let sv = self.call_sv(
+                    "soplang_check_contract",
+                    &format!("i64 {t}, i64 {p}, ptr {cp}, i64 {cl}, ptr {np}, i64 {nl}"),
+                );
+                self.unpack_store(&sv, *src);
+                Ok(false)
+            }
             HirInstr::CheckClass {
                 src,
                 class_name,
@@ -1162,6 +1509,20 @@ impl<'a> FnEmit<'a> {
                 ));
                 Ok(false)
             }
+            HirInstr::Raise { src } => {
+                let value = self.pack_slot(*src);
+                self.call_sv("soplang_raise", &format!("%SoplangValue {value}"));
+                Ok(false)
+            }
+            HirInstr::SuspendError | HirInstr::RestoreError | HirInstr::DiscardError => {
+                let name = match instr {
+                    HirInstr::SuspendError => "soplang_suspend_error",
+                    HirInstr::RestoreError => "soplang_restore_error",
+                    _ => "soplang_discard_error",
+                };
+                self.line(format!("  call void @{name}()"));
+                Ok(false)
+            }
             HirInstr::TryBegin { .. } => {
                 let v = self.fresh();
                 self.line(format!("  {v} = call i32 @soplang_try_begin()"));
@@ -1180,12 +1541,33 @@ impl<'a> FnEmit<'a> {
                     "  {pending} = call i32 @soplang_has_pending_error()"
                 ));
                 self.line(format!("  {cmp} = icmp ne i32 {pending}, 0"));
-                self.line(format!("  br i1 {cmp}, label %L{catch}, label %K{cont}"));
+                let target = catch
+                    .map(|label| format!("L{label}"))
+                    .unwrap_or_else(|| format!("E{cont}"));
+                self.line(format!("  br i1 {cmp}, label %{target}, label %K{cont}"));
+                if catch.is_none() {
+                    self.line(format!("E{cont}:"));
+                    if self.is_main {
+                        let status = self.fresh();
+                        self.line(format!("  {status} = call i32 @soplang_finish_execution()"));
+                        self.line("  call void @soplang_leave_roots()");
+                        self.line(format!("  ret i32 {status}"));
+                    } else {
+                        self.line("  call void @soplang_leave_function()");
+                        self.line("  call void @soplang_leave_roots()");
+                        self.line("  ret %SoplangValue { i8 8, i64 0 }");
+                    }
+                }
                 self.line(format!("K{cont}:"));
                 Ok(false)
             }
-            HirInstr::BindError { dst } => {
-                let sv = self.call_sv("soplang_get_caught_error", "");
+            HirInstr::BindError { dst } | HirInstr::BindErrorValue { dst } => {
+                let name = if matches!(instr, HirInstr::BindErrorValue { .. }) {
+                    "soplang_get_caught_error_value"
+                } else {
+                    "soplang_get_caught_error"
+                };
+                let sv = self.call_sv(name, "");
                 self.unpack_store(&sv, *dst);
                 Ok(false)
             }
@@ -1343,6 +1725,19 @@ impl<'a> FnEmit<'a> {
                 BinOpKind::Ge => "icmp sge",
                 _ => unreachable!(),
             };
+            let divisor;
+            let rp = if op == BinOpKind::Mod {
+                // LLVM srem MIN, -1 is poison. Both divisors have remainder 0.
+                let negative_one = self.fresh();
+                divisor = self.fresh();
+                self.line(format!("  {negative_one} = icmp eq i64 {rp}, -1"));
+                self.line(format!(
+                    "  {divisor} = select i1 {negative_one}, i64 1, i64 {rp}"
+                ));
+                &divisor
+            } else {
+                rp
+            };
             let value = self.fresh();
             self.line(format!("  {value} = {instruction} i64 {lp}, {rp}"));
             if matches!(
@@ -1430,7 +1825,9 @@ impl<'a> FnEmit<'a> {
             );
         }
         let buf = self.fresh();
-        self.line(format!("  {buf} = alloca [{n} x %SoplangValue], align 8"));
+        self.entry_allocas.push_str(&format!(
+            "  {buf} = alloca [{n} x %SoplangValue], align 8\n"
+        ));
         for (i, &slot) in args.iter().enumerate() {
             let (t, p) = self.load_slot(slot);
             let sv = self.pack(&t, &p);
@@ -1459,17 +1856,24 @@ fn slot_hi(body: &[HirInstr]) -> usize {
     let mut mx = 0usize;
     for instr in body {
         match instr {
-            HirInstr::Const { dst, .. }
+            HirInstr::ParamProvided { dst, .. }
+            | HirInstr::Const { dst, .. }
             | HirInstr::Load { dst, .. }
             | HirInstr::Pop { dst }
-            | HirInstr::BindError { dst } => mx = mx.max(*dst + 1),
-            HirInstr::Copy { dst, src } => mx = mx.max(*dst + 1).max(*src + 1),
+            | HirInstr::BindError { dst }
+            | HirInstr::BindErrorValue { dst } => mx = mx.max(*dst + 1),
+            HirInstr::IterBegin { dst, src }
+            | HirInstr::IterNext {
+                dst, iterator: src, ..
+            }
+            | HirInstr::Copy { dst, src }
+            | HirInstr::FormatValue { dst, src, .. } => mx = mx.max(*dst + 1).max(*src + 1),
             HirInstr::Store { src, .. } => mx = mx.max(*src + 1),
             HirInstr::BinOp { dst, lhs, rhs, .. } => {
                 mx = mx.max(*dst + 1).max(*lhs + 1).max(*rhs + 1)
             }
             HirInstr::UnOp { dst, src, .. } => mx = mx.max(*dst + 1).max(*src + 1),
-            HirInstr::BuildList { dst, items } => {
+            HirInstr::BuildList { dst, items } | HirInstr::BuildString { dst, parts: items } => {
                 mx = mx.max(*dst + 1);
                 for s in items {
                     mx = mx.max(*s + 1);
@@ -1489,7 +1893,10 @@ fn slot_hi(body: &[HirInstr]) -> usize {
             }
             HirInstr::GetProp { dst, obj, .. } => mx = mx.max(*dst + 1).max(*obj + 1),
             HirInstr::SetProp { obj, val, .. } => mx = mx.max(*obj + 1).max(*val + 1),
-            HirInstr::Call { dst, callee, args } => {
+            HirInstr::Call { dst, callee, args }
+            | HirInstr::CallNamed {
+                dst, callee, args, ..
+            } => {
                 mx = mx.max(*dst + 1).max(*callee + 1);
                 for s in args {
                     mx = mx.max(*s + 1);
@@ -1501,9 +1908,15 @@ fn slot_hi(body: &[HirInstr]) -> usize {
                     mx = mx.max(*s + 1);
                 }
             }
-            HirInstr::Return { val } => mx = mx.max(*val + 1),
+            HirInstr::Return { val } | HirInstr::Raise { src: val } => mx = mx.max(*val + 1),
             HirInstr::JumpIf { cond, .. } => mx = mx.max(*cond + 1),
             HirInstr::RangeContinue {
+                dst,
+                current,
+                end,
+                step,
+            }
+            | HirInstr::RangeAdvance {
                 dst,
                 current,
                 end,
@@ -1515,9 +1928,9 @@ fn slot_hi(body: &[HirInstr]) -> usize {
                     .max(*end + 1)
                     .max(*step + 1)
             }
-            HirInstr::CheckType { src, .. } | HirInstr::CheckClass { src, .. } => {
-                mx = mx.max(*src + 1)
-            }
+            HirInstr::CheckType { src, .. }
+            | HirInstr::CheckClass { src, .. }
+            | HirInstr::CheckContract { src, .. } => mx = mx.max(*src + 1),
             HirInstr::NewInstance { dst, args, .. } => {
                 mx = mx.max(*dst + 1);
                 for s in args {

@@ -1,10 +1,12 @@
 //! Frontend: source text → tokens → AST.
 
 pub mod ast;
+pub mod formatter;
 pub mod imports;
 pub mod lexer;
 pub mod parser;
 pub mod token;
+pub mod trivia;
 
 pub use ast::{Expr, Literal, Param, Stmt, TypeAnnotation};
 pub use lexer::Lexer;
@@ -69,6 +71,7 @@ pub fn parse_snippet(source: &str) -> Result<Vec<Stmt>, crate::error::SoplangErr
             token.kind,
             TokenType::Number
                 | TokenType::String
+                | TokenType::FormattedString
                 | TokenType::True
                 | TokenType::False
                 | TokenType::Null
@@ -87,4 +90,22 @@ pub fn parse_snippet(source: &str) -> Result<Vec<Stmt>, crate::error::SoplangErr
         .with_source(source, None)
         .parse()
         .map_err(|e| source_error(e, source, None))
+}
+
+/// Best-effort editor tree. Repair incomplete delimiters only for the editor tree;
+/// diagnostics and normal compilation always parse the original source.
+pub fn parse_partial(source: &str, path: Option<&std::path::Path>) -> Vec<Stmt> {
+    let Ok(tokens) = Lexer::new(source).tokenize() else { return Vec::new(); };
+    let mut closers = Vec::new();
+    for token in &tokens { match token.kind {
+        TokenType::LParen => closers.push(')'), TokenType::LBrace => closers.push('}'),
+        TokenType::LBracket => closers.push(']'), TokenType::RParen|TokenType::RBrace|TokenType::RBracket => {closers.pop();}, _=>()
+    } }
+    let tail: String = closers.iter().rev().collect();
+    let base = source.trim_end().trim_end_matches('.');
+    for middle in ["", " maran"] {
+        let repaired = format!("{base}{middle}{tail}");
+        if let Ok(tree) = parse_source(&repaired, path) { return tree; }
+    }
+    Parser::new(tokens).with_source(source, path).parse_partial()
 }

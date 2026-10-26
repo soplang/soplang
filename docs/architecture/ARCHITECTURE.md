@@ -2,6 +2,9 @@
 
 This document describes the full architecture of the Soplang compiler: pipeline, data structures, algorithms, and mechanisms. Soplang is a Somali-language scripting language implemented in Rust with a Cranelift JIT and a textual LLVM AOT backend. It describes the v3.0.0 implementation; see the [measured Python/v2/v3 comparison](../../benchmarks/RESULTS.md) for performance.
 
+Unreleased runtime ownership and session isolation are described in
+[Runtime ownership and execution contexts](RUNTIME_CONTEXTS.md).
+
 ---
 
 ## 1. High-Level Pipeline
@@ -219,11 +222,11 @@ flowchart LR
 
 ### 8.1 Value Representation
 
-**Internal (`Value`):** Rust enum — Int(i64), Float(f64), Str(String), Bool(bool), List(Rc<RefCell<Vec<Value>>>), Object(Rc<RefCell<HashMap<String, Value>>>), Function(FunctionId), NativeFunction(NativeFn), Closure(i64), Null. Used by stdlib and when converting to/from ABI.
+**Internal (`Value`):** Rust enum with integers, floats, strings, booleans, reference-counted lists and objects, function handles, closure handles, immutable structured errors, and null. Used by the standard library and when converting to and from the ABI.
 
-**C ABI (`SoplangValue`):** 16 bytes, `#[repr(C)]`: tag (u8), padding (7 bytes), payload (i64). Tags: null=0, int=1, float=2, bool=3, string=4, list=5, object=6, function=7, throw=8, closure=9. This value crosses the generated-code/runtime boundary in both backends.
+**C ABI (`SoplangValue`):** 16 bytes, `#[repr(C)]`: tag (u8), padding (7 bytes), payload (i64). Tags: null=0, int=1, float=2, bool=3, string=4, list=5, object=6, function=7, throw=8, closure=9, error=10, iterator=11. This value crosses the generated-code/runtime boundary in both backends.
 
-**Mechanism:** Heaps (thread_local): STR_HEAP, LIST_HEAP, OBJ_HEAP; NATIVE_FN_TABLE, BUILTIN_INDICES, GLOBAL_VARS, COMPILED_FN_TABLE, CONST_GLOBALS. `value_to_soplang` / `soplang_to_value` convert; heap indices and function indices stored in payload.
+**Mechanism:** Runtime contexts own reusable handle arenas, globals, function registrations, classes, and error state. The current thread selects an active context for native ABI calls. Heap values and functions carry opaque allocation identities; conversions validate them before lookup. Compiled user functions receive an argument-vector pointer and its length. See [runtime contexts](RUNTIME_CONTEXTS.md) for ownership, error boundaries, and the calling representation.
 
 ### 8.2 Builtins (Stdlib)
 

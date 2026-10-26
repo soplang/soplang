@@ -429,3 +429,22 @@ and LLVM. Errors show the relevant source line and a caret, including inside
 imported functions. Columns count Unicode scalar values, while caret spacing
 uses display width and four-column tab stops. The checked error corpus covers
 these details. Existing codes and caught-message string behavior remain intact.
+
+## Runtime error and cleanup forms
+
+| Form | Meaning | Compatibility |
+| --- | --- | --- |
+| `tuur fariin` | Raise an error; `tuur` uses the imperative sense of throwing. | Contextual before a same-line value. Ordinary calls, assignments, and property names remain valid. |
+| `dhammee { ... }` | Finish protected work with guaranteed cleanup. | Contextual after a try body or handler; ordinary identifier uses remain valid. |
+
+`dhammee` runs on success, errors, returns, and loop exits. It can follow a
+`tijaabi` body with or without `qabo`. Existing handler variables continue to
+receive error-message strings.
+
+Structured errors add `khalad`, `fariin`, `summad`, `sabab`, `fayl`, `saf`,
+`tiir`, and `raad`. Their contracts and exact diagnostic text are recorded in
+the [runtime error wording inventory](runtime-error-wording.md) for review
+alongside the earlier full wording inventory.
+
+`qaabee` is the shared formatting verb. The global function formats one value;
+the string method applies a template. Both use the same descriptor vocabulary.

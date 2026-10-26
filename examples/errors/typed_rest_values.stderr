@@ -1,0 +1,6 @@
+Khalad nooc: 'dood' wuxuu u baahan yahay nooca teed[abn], laakiin waxaa la helay teed. [E022] safka 2, tiirka 1
+     --> examples/errors/typed_rest_values.sop:2:1
+   2 │   tijaabo(1,"x")
+     │   ^^^^^^^
+Raadka wicitaannada:
+     tijaabo (examples/errors/typed_rest_values.sop:2:1)

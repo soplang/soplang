@@ -62,3 +62,115 @@ runtime	object_key_type.sop	2	11
 runtime	range_zero_step.sop	1	9	
 runtime	invalid_empty_callback.sop	2	18	
 runtime	native_argument_count.sop	1	9	
+compile	invalid_escape.sop	1	19	lama aqoonsan
+compile	invalid_unicode_escape.sop	1	16	Unicode
+compile	unterminated_triple_string.sop	1	14	Qoraal aan la xidhin
+runtime	invalid_format.sop	1	14	Qaabka qoraalka
+compile	interpolation_empty.sop	1	14	Waxaa loo baahan yahay weedh
+compile	interpolation_unclosed.sop	1	14	lama xidhin
+compile	interpolation_brace.sop	1	14	ma laha '{'
+runtime	interpolation_expression.sop	2	20	eber
+runtime	interpolation_format.sop	1	13	lama aqoonsan
+runtime	range_stalled.sop	1	1	ma beddelayso
+runtime	iteration_not_iterable.sop	1	1	laguma wareegi karo
+runtime	iteration_row_length.sop	1	1	ka kooban 2 qiime
+runtime	iteration_protocol_result.sop	2	1	walax leh dhammaad
+runtime	iteration_range_zero.sop	1	14	eber ma noqon karto
+compile	iteration_constant.sop	2	1	madoor
+compile	iteration_duplicate.sop	1	12	kala duwanaadaan
+runtime	iteration_callback.sop	1	38	eber
+compile	default_duplicate.sop	1	17	mar hore
+compile	default_order.sop	1	21	qiime hordhac
+compile	default_dependency.sop	1	18	ka hor
+compile	default_type.sop	1	22	abn
+compile	default_count.sop	2	1	1 ilaa 2
+runtime	default_dynamic_count.sop	2	1	1 ilaa 2
+runtime	default_failure.sop	1	20	eber
+compile	variadic_order.sop	1	22	ugu dambaysa
+compile	variadic_default.sop	1	15	qiime hordhac
+compile	variadic_type.sop	1	18	teed
+compile	variadic_count.sop	2	1	1 ama ka badan
+runtime	variadic_dynamic_count.sop	2	1	1 ama ka badan
+runtime	empty_callback.sop	1	4	ma aqbasho
+runtime	empty_native_callback.sop	1	4	ma aqbasho
+runtime	empty_pair_callback.sop	1	4	ma aqbasho
+compile	named_duplicate.sop	2	15	laba jeer
+compile	named_positional_order.sop	2	15	boos leh
+compile	keyword_rest_type.sop	1	19	walax
+compile	keyword_rest_default.sop	1	16	hordhac
+compile	keyword_rest_order.sop	1	25	ugu dambaysa
+compile	named_unknown.sop	2	9	ma aqbasho
+compile	named_missing.sop	2	1	ka maqan
+compile	named_collision.sop	2	12	laba jeer
+compile	named_type.sop	2	12	abn
+runtime	dynamic_named_unknown.sop	2	1	ma aqbasho
+runtime	dynamic_named_missing.sop	2	1	ka maqan
+runtime	dynamic_named_collision.sop	2	1	laba jeer
+runtime	named_builtin.sop	1	1	boosaska
+runtime	byte_value.sop	1	12	0 iyo 255
+runtime	byte_utf8.sop	2	1	UTF-8
+runtime	byte_index.sop	2	4	Tusmada baytyadu
+runtime	byte_write.sop	2	1	0 iyo 255
+runtime	byte_bounds.sop	2	1	ka baxsan
+runtime	byte_remove.sop	1	10	madhan
+compile	byte_type.sop	1	1	baytyo
+compile	byte_class.sop	1	1	nooc hore
+compile	union_initializer.sop	1	1	ma ahan
+compile	optional_argument.sop	2	1	doodda 1
+compile	optional_required.sop	2	1	dood
+compile	union_unknown_class.sop	1	1	lama aqoonsan
+compile	union_missing_type.sop	1	7	nooc
+runtime	optional_assignment.sop	3	1	qoraal | maran
+runtime	union_dynamic_argument.sop	3	1	abn | qoraal
+runtime	union_return.sop	2	32	abn | qoraal
+runtime	union_fallthrough.sop	2	1	maran
+runtime	typed_list_initial.sop	1	1	teed[abn]
+runtime	typed_list_alias.sop	3	7	Beddelkani
+runtime	typed_object_write.sop	2	1	walax[qoraal, abn]
+runtime	typed_nested_alias.sop	3	5	teed[teed[abn]]
+runtime	typed_rest_values.sop	2	1	teed[abn]
+compile	typed_object_key.sop	1	7	qoraal
+compile	typed_scalar_arguments.sop	1	1	noocyo xubno
+compile	typed_unknown_class.sop	1	1	Maqan
+runtime	tuple_write.sop	2	1	lama beddeli karo
+runtime	tuple_index.sop	2	4	Tusmada xirmadu
+runtime	tuple_shape.sop	1	1	xirmo[abn, qoraal]
+runtime	tuple_child.sop	2	8	xirmo[teed[abn]]
+runtime	tuple_row.sop	1	1	teed ama xirmo
+compile	tuple_outer_type.sop	1	1	xirmo
+compile	tuple_unknown_class.sop	1	1	Maqan
+compile	tuple_class.sop	1	1	nooc hore
+runtime	set_key.sop	2	7	Xubinta ururku
+runtime	set_index.sop	2	6	Ururku ma laha tusmo
+runtime	set_operand.sop	2	7	waxay u baahan tahay urur
+compile	set_outer_type.sop	1	1	
+compile	set_class.sop	1	1	nooc hore u jiray
+runtime	typed_set_initial.sop	1	1	wuxuu u baahan yahay nooca
+runtime	typed_set_alias.sop	3	8	Beddelkani ma waafaqsana
+compile	typed_set_key_type.sop	1	1	looma adeegsan karo xubin urur
+compile	typed_set_unknown_class.sop	1	1	lama aqoonsan
+runtime	typed_set_argument.sop	3	1	wuxuu u baahan yahay nooca
+runtime	typed_set_tuple.sop	2	7	Beddelkani ma waafaqsana
+runtime	typed_set_return.sop	2	27	wuxuu u baahan yahay nooca
+runtime	text_classification.sop	2	7	nooca baarista
+runtime	text_casing.sop	2	7	habku waa inuu
+runtime	text_width.sop	2	7	ballacu waa inuu noqdaa abn
+runtime	text_fill.sop	2	7	hal xaraf
+runtime	text_partition.sop	2	7	madhan ma noqon karo
+runtime	text_lines.sop	2	7	waa inay noqotaa bool
+runtime	list_value_mode.sop	2	7	doodda labaad
+runtime	list_sum_type.sop	2	7	xubnaha teedka
+runtime	list_sort_flag.sop	2	7	rogistu waa inay
+runtime	list_sort_mutation.sop	2	5	hawsha furaha ayaa beddeshay
+runtime	list_sort_signature.sop	2	5	ma aqbasho 1 dood
+runtime	list_extend_contract.sop	2	7	Beddelkani ma waafaqsana
+runtime	list_sort_key_error.sop	2	12	eber
+runtime	object_insert_key.sop	2	7	Furaha geli()
+runtime	object_extend_contract.sop	2	7	Beddelkani ma waafaqsana
+runtime	object_map_pair.sop	2	5	laba xubnood leh
+runtime	object_map_duplicate.sop	2	5	laba jeer ayaa
+runtime	object_map_key.sop	2	5	furaha lammaanuhu
+runtime	object_map_signature.sop	2	5	ma aqbasho 2 dood
+runtime	object_path_segment.sop	2	7	Qaybaha jidku
+runtime	object_path_index.sop	2	7	Tusmada jidku
+runtime	object_map_callback_error.sop	2	12	eber

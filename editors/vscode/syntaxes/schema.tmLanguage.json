@@ -1,0 +1,37 @@
+{
+  "name": "Soplang Schema",
+  "scopeName": "source.soplang-schema",
+  "patterns": [
+    {
+      "name": "comment.line.number-sign.soplang-schema",
+      "match": "#.*$"
+    },
+    {
+      "match": "\\b(jadwal)\\s+([a-z_][a-z0-9_]*)",
+      "captures": {
+        "1": {
+          "name": "keyword.declaration.soplang-schema"
+        },
+        "2": {
+          "name": "entity.name.type.soplang-schema"
+        }
+      }
+    },
+    {
+      "name": "storage.type.soplang-schema",
+      "match": "\\b(?:abn|jajab|qoraal|bool)\\b"
+    },
+    {
+      "name": "storage.modifier.soplang-schema",
+      "match": "\\bfuraha\\b"
+    },
+    {
+      "name": "entity.name.field.soplang-schema",
+      "match": "\\b[a-z_][a-z0-9_]*\\b"
+    },
+    {
+      "name": "punctuation.soplang-schema",
+      "match": "[{}?]"
+    }
+  ]
+}

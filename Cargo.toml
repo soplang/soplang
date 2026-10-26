@@ -1,22 +1,53 @@
 [package]
 name = "soplang"
-version = "3.0.1"
+version = "3.6.0"
 edition = "2021"
+
+[lib]
+crate-type = ["rlib", "staticlib"]
+
+[features]
+embedded-llvm = []
 
 [dependencies]
 clap = { version = "4", features = ["derive"] }
 colored = "2"
+corosensei = "0.3.4"
 cranelift = "0.125"
 cranelift-frontend = "0.125"
 cranelift-jit = "0.125"
 cranelift-module = "0.125"
 cranelift-native = "0.125"
 rustyline = "14"
+shlex = "2.0.1"
 thiserror = "1.0"
 unicode-width = "0.1.14"
+unicode-segmentation = "1.13.3"
+regex = "1.13.1"
+ureq = { version = "3.4.2", default-features = false, features = ["rustls", "platform-verifier"] }
+reqwest = { version = "0.12.28", default-features = false, features = ["rustls-tls-native-roots"] }
+httparse = "1.10.1"
+tungstenite = { version = "0.30.0", default-features = false, features = ["handshake", "rustls-tls-native-roots"] }
+sha2 = "0.11.1"
+toml = { version = "0.8.23", features = ["preserve_order"] }
+url = "2.5.8"
+rusqlite = { version = "0.40.2", features = ["bundled"] }
+postgres = "0.19.14"
+tokio-postgres-rustls = { version = "0.14.0", default-features = false, features = ["ring"] }
+rustls-platform-verifier = "0.7.1"
+mysql = { version = "28.0.4", features = ["rustls-tls-ring"] }
+rustls = { version = "0.23.46", default-features = false, features = ["ring", "std", "tls12", "logging"] }
+rustls-pemfile = "2.2.0"
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.154"
+tokio = { version = "1.54.0", features = ["fs", "io-util", "net", "rt", "rt-multi-thread", "sync", "time"] }
+mongodb = { version = "3.9.1", default-features = false, features = ["sync", "rustls-tls", "bson-3", "compat-3-3-0"] }
+tiberius = { version = "0.13.0", default-features = false, features = ["tds73", "rustls"] }
+tokio-util = { version = "0.7.20", features = ["compat"] }
 
 [dev-dependencies]
 criterion = { version = "0.5", features = ["html_reports"] }
+tungstenite = { version = "0.30.0", default-features = false, features = ["handshake"] }
 
 [[bench]]
 name = "soplang_bench"

@@ -1,0 +1,4 @@
+Khalad nooc: weynee() habku waa inuu noqdaa 'hore' ama 'eray'. [E042] safka 2, tiirka 7
+     --> examples/errors/text_casing.sop:2:7
+   2 │     xog.weynee("khaldan")
+     │         ^^^^^^

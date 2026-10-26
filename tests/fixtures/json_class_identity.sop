@@ -1,0 +1,33 @@
+hawl hubi(ok, label) { haddii (!ok) { tuur label } }
+hawl fails(f) { door caught=been tijaabi { f() } qabo(e) { caught=run } hubi(caught,"expected failure") }
+qaab Base { hawl cod() { celi "base" } }
+qaab Bisad dhaxal Base {
+    hawl dhis(abn n=1) { nafta.n=n }
+    hawl cod() { celi nafta.n }
+    hawl wareeg() { tuur "class iterator must not run" }
+}
+door data=json_akhris(e"{\"__class__\":\"Bisad\",\"n\":7}")
+hubi(data.__class__=="Bisad","preserved field")
+fails(hawl(){data.cod()})
+fails(hawl(){data.cod(n:1)})
+fails(hawl(){Bisad fake=data})
+fails(hawl(){teed[Base] fake=[data]})
+hubi(data.dherer()==2 && data.hel("n")==7,"plain methods")
+door count=0
+kuceli (key ku data) { count=count+1 }
+hubi(count==2,"plain object iteration")
+door instance=cusub Bisad()
+door named=cusub Bisad(n:9)
+Base parent=instance
+hubi(instance.cod()==1 && named.cod()==9,"real constructors")
+door copy=data.nuqul()
+fails(hawl(){copy.cod()})
+data.__class__="Base"
+fails(hawl(){data.cod()})
+door saved=json_qor(named)
+door decoded=json_akhris(saved)
+fails(hawl(){decoded.cod()})
+kuceli(i ku taxane(1500)){door waste=[i]}
+hubi(parent.cod()==1 && named.cod()==9,"identity survives collection")
+fails(hawl(){decoded.cod()})
+qor("json identity ok")

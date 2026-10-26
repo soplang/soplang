@@ -1,4 +1,4 @@
-Khalad fulin: Tiro looma qaybin karo eber. safka 1, tiirka 8
+Khalad fulin: Tiro looma qaybin karo eber. [E030] safka 1, tiirka 8
      --> examples/errors/tab_column.sop:1:8
    1 │       qor(1 / 0)
      │             ^

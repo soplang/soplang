@@ -1,0 +1,100 @@
+hawl hubi(v,name){haddii(!v){tuur name}}
+hawl fails(cb,code="E043"){door failed=been tijaabi{cb()}qabo(e,x){failed=run hubi(x.summad==code,"error code")}hubi(failed,"expected failure")}
+door object={a:1,empty:maran}
+hubi(object.geli("b",2)==object && object.b==2,"insert returns receiver")
+object.geli("a",9).geli("empty",9)
+hubi(object.a==1 && object.empty==maran,"existing keys including null are preserved")
+door calls=0
+hawl next(){calls=calls+1 celi 9}
+object.geli("a",next())
+hubi(calls==1 && object.a==1,"unused default still evaluates its argument")
+fails(hawl(){object.geli(1,2)})
+teed[walax[abn]] guarded=[{a:1}]
+guarded[0].geli("a","ignored")
+fails(hawl(){guarded[0].geli("b","bad")},"E039")
+hubi(guarded[0]=={a:1},"insert respects shared parent guard")
+door alias=object
+hubi(object.ballaadhi({a:3,c:4})==object && alias.a==3 && alias.c==4,"merge aliases and right wins")
+hubi(object.ballaadhi(object)==object,"self merge")
+door child=[1]
+door input={nested:child}
+object.ballaadhi(input)
+child.geli(2)
+hubi(object.nested==[1,2],"merge is shallow")
+fails(hawl(){object.ballaadhi([])})
+fails(hawl(){guarded[0].ballaadhi({b:2,c:"bad"})},"E039")
+hubi(guarded[0]=={a:1},"merge validates before publishing any key")
+door fresh=object.midee({a:99})
+hubi(object.a==3 && fresh.a==99,"copy merge remains unchanged")
+door empty={}
+walax[abn] onlyints=empty
+door dynamic=empty
+walax[qoraal] onlystrings=dynamic
+fails(hawl(){dynamic.geli("a",1)},"E039")
+fails(hawl(){dynamic.ballaadhi({a:"x"})},"E039")
+hubi(empty=={},"all accepted object contracts apply")
+door original={é:3,b:2,a:1}
+door visited=[]
+door mapped=original.aaddin(hawl(key,value){visited.geli(key) celi value*10})
+hubi(visited==["a","b","é"] && mapped=={a:10,b:20,é:30},"mapping key order and values")
+hubi(original=={a:1,b:2,é:3},"map returns independent outer object")
+hubi(original.aaddin(hawl(key,value){celi [key,value]}).a==["a",1],"default map does not reinterpret pairs")
+door renamed=original.aaddin(hawl(key,value){celi xirmo(key+"!",value+1)},"lamaane")
+hubi(renamed=={"a!":2,"b!":3,"é!":4},"entry mapping renames keys")
+hubi(original.aaddin(hawl(key,value){celi [key,value]},"lamaane")==original,"list pairs accepted")
+hubi(original.aaddin(hawl(key,value){celi value},"qiime")==original,"explicit value mode")
+fails(hawl(){original.aaddin(hawl(key,value){celi xirmo("same",value)},"lamaane")})
+fails(hawl(){original.aaddin(hawl(key,value){celi value},"lamaane")})
+fails(hawl(){original.aaddin(hawl(key,value){celi [key]},"lamaane")})
+fails(hawl(){original.aaddin(hawl(key,value){celi xirmo(1,value)},"lamaane")})
+fails(hawl(){original.aaddin(hawl(key,value){celi value},"bad")})
+hubi(original.shaandhee(hawl(key,value){celi value>1})=={b:2,é:3},"entry filter")
+hubi({a:0,b:2}.shaandhee(hawl(key,value){celi value})=={b:2},"filter uses truthiness")
+hubi({a:maran}.shaandhee(hawl(key,value){celi run})=={a:maran},"filter keeps null values")
+fails(hawl(){({}).aaddin(hawl(x){celi x})},"E022")
+fails(hawl(){({}).shaandhee(hawl(a,b,c){celi run})},"E022")
+fails(hawl(){({}).aaddin(1)},maran)
+hubi({}.aaddin(hawl(key,value){tuur "never"})=={} && {}.shaandhee(hawl(key,value){tuur "never"})=={},"empty callbacks are not invoked")
+door changing={a:1,b:2}
+visited=[]
+door transformed=changing.aaddin(hawl(key,value){changing.nadiifi() visited.geli(key) celi value})
+hubi(changing=={} && transformed=={a:1,b:2} && visited==["a","b"],"mapping snapshots outer entries")
+changing={a:1,b:2}
+door filtered=changing.shaandhee(hawl(key,value){changing.geli("c",3) celi run})
+hubi(filtered=={a:1,b:2} && changing.c==3,"filter ignores newly inserted keys")
+visited=[]
+fails(hawl(){original.aaddin(hawl(key,value){visited.geli(key) haddii(key=="b"){tuur khalad("stop","MAP")} celi value})},"MAP")
+hubi(visited==["a","b"],"callback failure stops iteration")
+door tree={user:{names:[{first:"Ayaan"}],row:xirmo(7,"Cali"),text:"é🙂",bytes:baytyo([1,255])},"a.b":3,zero:0,empty:maran}
+hubi(tree.hel(["user","names",0,"first"])=="Ayaan","object and list path")
+hubi(tree.hel(xirmo("user","row",-1))=="Cali","tuple path and tuple index")
+hubi(tree.hel(["user","text",-1])=="🙂" && tree.hel(["user","bytes",1])==255,"text and bytes path")
+hubi(tree.hel("a.b")==3 && tree.hel(["a.b"])==3 && tree.hel(["a","b"],9)==9,"string keys stay literal")
+hubi(tree.hel([],9)==tree && tree.hel(xirmo())==tree,"empty path returns receiver")
+hubi(tree.hel(["missing"],9)==9 && tree.hel(["user","names",99],9)==9 && tree.hel(["zero","field"],9)==9,"missing path fallback")
+hubi(tree.hel(["empty"],9)==maran && tree.hel(["empty","field"],9)==9,"stored null differs from missing descendant")
+hubi(tree.hel(["user","row",-9223372036854775807-1],9)==9,"extreme negative index")
+fails(hawl(){tree.hel(["missing",run],9)})
+fails(hawl(){tree.hel([1])})
+fails(hawl(){tree.hel(["user","names","x"])})
+fails(hawl(){tree.hel(["user","row",1.0])})
+door errors={error:khalad("outer","OUTER",khalad("inner"))}
+hubi(errors.hel(["error","summad"])=="OUTER" && errors.hel(["error","sabab","fariin"])=="inner","structured error path")
+hubi(errors.hel(["error","fayl"],9)==maran && errors.hel(["error","missing"],9)==9,"error null and missing properties")
+qaab Box{hawl dhis(){nafta.data={count:5}} hawl geli(){celi "custom"} hawl aaddin(){celi "mapped"}}
+door box=cusub Box()
+hubi(box.geli()=="custom" && box.aaddin()=="mapped","class methods retain precedence")
+hubi({box:box}.hel(["box","data","count"])==5,"path follows class fields without invoking methods")
+door pathchild=tree.hel(["user","names",0])
+pathchild.first="Hodan"
+hubi(tree.user.names[0].first=="Hodan","path lookup preserves aliases")
+walax[abn] typed={a:1}
+door untyped=typed.aaddin(hawl(key,value){celi qoraal(value)})
+untyped.geli("b","two")
+hubi(untyped=={a:"1",b:"two"} && typed=={a:1},"fresh map has independent outer contracts")
+door callbackgc={a:1,b:2,c:3}
+door retained=callbackgc.aaddin(hawl(key,value){kuceli(i ku taxane(1100)){door waste=[i]} celi xirmo(value)})
+hubi(retained=={a:xirmo(1),b:xirmo(2),c:xirmo(3)},"mapped managed values survive callback collection")
+hawl factory(factor){celi hawl(key,value){celi value*factor}}
+hubi(original.aaddin(factory(2))=={a:2,b:4,é:6},"captured callbacks")
+qor("object operations ok")

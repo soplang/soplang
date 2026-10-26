@@ -1,0 +1,61 @@
+hawl hubi(shuruud, magac) { haddii (!shuruud) { tuur magac } }
+door events = []
+tijaabi { events.geli("body") } dhammee { events.geli("success") }
+hubi(events == ["body", "success"], "successful cleanup")
+door message = ""
+tijaabi {
+    tijaabi { tuur "original" } dhammee { events.geli("failure") }
+} qabo (e) { message = e }
+hubi(message == "original" && events.dambe() == "failure", "exception preserved")
+tijaabi { tuur "caught" } qabo (e) { message = e } dhammee { events.geli("caught") }
+hubi(message == "caught" && events.dambe() == "caught", "handler before cleanup")
+tijaabi {
+    tijaabi { tuur "first" } qabo (e) { tuur "handler" } dhammee { events.geli("handler") }
+} qabo (e) { message = e }
+hubi(message == "handler" && events.dambe() == "handler", "handler failure cleanup")
+hawl returned() {
+    door result = 7
+    tijaabi { celi result } dhammee { result = 9 events.geli("return") }
+}
+hubi(returned() == 7 && events.dambe() == "return", "return snapshot")
+hawl replaced() { tijaabi { celi 1 } dhammee { celi 2 } }
+hawl suppressed() { tijaabi { tuur "ignored" } dhammee { celi 3 } }
+hubi(replaced() == 2 && suppressed() == 3, "cleanup return takes precedence")
+hawl failed_return() { tijaabi { celi 4 } dhammee { tuur "cleanup" } }
+tijaabi { failed_return() } qabo (e) { message = e }
+hubi(message == "cleanup", "cleanup failure overrides return")
+tijaabi { tijaabi { tuur "old" } dhammee { tuur "new" } } qabo (e) { message = e }
+hubi(message == "new", "cleanup failure overrides error")
+events.nadiifi()
+hawl nested() {
+    tijaabi {
+        tijaabi { celi 5 } dhammee { events.geli("inner") }
+    } dhammee { events.geli("outer") }
+}
+hubi(nested() == 5 && events == ["inner", "outer"], "nested return ordering")
+events.nadiifi()
+kuceli (i 1 ilaa 4) {
+    tijaabi {
+        haddii (i == 2) { soco }
+        haddii (i == 3) { jooji }
+        events.geli(i)
+    } dhammee { events.geli("exit") }
+}
+hubi(events == [1, "exit", "exit", "exit"], "break and continue cleanup")
+events.nadiifi()
+tijaabi {
+    kuceli (i 1 ilaa 3) { jooji }
+    events.geli("after inner loop")
+} dhammee {
+    kuceli (i 1 ilaa 3) { jooji }
+    events.geli("once")
+}
+hubi(events == ["after inner loop", "once"], "inner loop exits keep outer cleanup")
+// Both words remain usable as function, variable and property identifiers.
+hawl tuur(value) { celi value }
+hawl dhammee(value) { celi value + 1 }
+door record = { tuur: 8, dhammee: 9 }
+hubi(tuur(6) == 6 && dhammee(6) == 7 && record.tuur == 8 && record.dhammee == 9, "contextual identifiers")
+tijaabi { tuur 42 } qabo (e) { message = e }
+hubi(message == "Qiimaha 'tuur' waa inuu noqdaa qoraal ama khalad.", "invalid raised value")
+qor("raise and cleanup ok")

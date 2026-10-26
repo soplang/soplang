@@ -1,0 +1,4 @@
+Khalad naxwe: Dood boos leh ma raaci karto dood magac leh. safka 2, tiirka 15
+     --> examples/errors/named_positional_order.sop:2:15
+   2 │   tijaabo(a: 1, 2)
+     │                 ^

@@ -24,12 +24,92 @@ permissions:
   contents: read
 
 jobs:
+  native-linux:
+    name: Toolchain-free Linux package
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - uses: dtolnay/rust-toolchain@1.94.0
+      - name: Install LLVM and LLD build libraries
+        run: sudo apt-get update && sudo apt-get install -y llvm-18-dev liblld-18-dev patchelf
+      - name: Build and verify native package
+        env:
+          SOPLANG_LLD_SDK: /usr/lib/llvm-18
+        run: |
+          export PATH="/usr/lib/llvm-18/bin:$PATH"
+          python3 scripts/package_native.py --output target/native-package
+          python3 scripts/verify_package.py target/native-package/soplang
+
+  native-macos:
+    name: Toolchain-free macOS package
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - uses: dtolnay/rust-toolchain@1.94.0
+      - name: Install LLVM and LLD build libraries
+        run: brew install llvm@22 lld@22
+      - name: Build and verify native package
+        run: |
+          python3 scripts/package_native_macos.py --output target/native-package
+          SOPLANG_ERROR_DETAILS=1 target/native-package/soplang --no-color --build examples/01_hello.sop -o target/native-smoke
+          python3 scripts/verify_package.py target/native-package/soplang
+
+  native-windows-gnu:
+    name: Toolchain-free Windows GNU package
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - uses: dtolnay/rust-toolchain@1.94.0
+      - uses: ilammy/msvc-dev-cmd@v1
+      - name: Install LLVM and Zig build SDKs
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          gh release download llvmorg-23.1.4 -R llvm/llvm-project -p 'clang+llvm-23.1.4-x86_64-pc-windows-msvc.tar.zst' --dir target/llvm-download
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $archive = (Get-ChildItem target/llvm-download -Filter '*.zst' | Select-Object -First 1).FullName
+          zstd --long=30 -d $archive -o target/llvm-sdk.tar
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          New-Item -ItemType Directory -Force target/llvm-sdk | Out-Null
+          tar -xf target/llvm-sdk.tar -C target/llvm-sdk
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $llvm = (Get-ChildItem target/llvm-sdk -Directory | Select-Object -First 1).FullName
+          "SOPLANG_LLVM_SDK=$llvm" >> $env:GITHUB_ENV
+          Invoke-WebRequest 'https://ziglang.org/download/0.15.2/zig-x86_64-windows-0.15.2.zip' -OutFile target/zig.zip
+          $hash = (Get-FileHash target/zig.zip -Algorithm SHA256).Hash.ToLower()
+          if ($hash -ne '3a0ed1e8799a2f8ce2a6e6290a9ff22e6906f8227865911fb7ddedc3cc14cb0c') { throw 'Zig archive checksum mismatch' }
+          Expand-Archive target/zig.zip target/zig-sdk
+          $zig = (Get-ChildItem target/zig-sdk -Directory | Select-Object -First 1).FullName
+          "SOPLANG_ZIG_SDK=$zig" >> $env:GITHUB_ENV
+      - name: Build and verify GNU package
+        shell: pwsh
+        run: |
+          python scripts/package_native_windows_gnu.py --output target/native-gnu-package
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $env:SOPLANG_ERROR_DETAILS = '1'
+          & target/native-gnu-package/soplang.exe --no-color --build examples/01_hello.sop -o target/native-gnu-smoke.exe
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Remove-Item Env:SOPLANG_ERROR_DETAILS
+          python scripts/verify_package.py target/native-gnu-package/soplang.exe
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
   native:
     name: Native package (${{ matrix.os }})
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-14]
+        os: [ubuntu-latest, windows-latest, macos-15]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v7
@@ -39,18 +119,31 @@ jobs:
       - uses: dtolnay/rust-toolchain@1.94.0
       - name: Install Linux build tools
         if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y clang dpkg-dev
+        run: sudo apt-get update && sudo apt-get install -y clang dpkg-dev llvm-18-dev liblld-18-dev patchelf
       - name: Show toolchain
         run: |
           rustc -vV
           clang --version
+      - name: Check Windows asynchronous listener
+        if: runner.os == 'Windows'
+        run: cargo test --locked --test http_server_tests concurrent_http_requests_run_through_jit_and_llvm -- --nocapture
+      - name: Check Windows iterator recursion
+        if: runner.os == 'Windows'
+        run: cargo test --locked --test iteration_tests protocol_recursion_is_contained_on_a_small_native_stack -- --nocapture
+      - name: Check Windows coverage paths
+        if: runner.os == 'Windows'
+        run: cargo test --locked --test tool_tests discovery_and_parallel_coverage_preserve_file_identity -- --nocapture
       - name: Test compiler
         run: cargo test --locked
       - name: Test optimized compiler
         run: cargo test --release --locked
       - name: Build Linux archive and Debian package
         if: runner.os == 'Linux'
-        run: bash linux/build_linux.sh
+        env:
+          SOPLANG_LLD_SDK: /usr/lib/llvm-18
+        run: |
+          export PATH="/usr/lib/llvm-18/bin:$PATH"
+          bash linux/build_linux.sh
       - name: Verify extracted Linux packages
         if: runner.os == 'Linux'
         shell: bash
@@ -63,6 +156,31 @@ jobs:
           python3 scripts/verify_package.py target/deb-install/usr/bin/soplang
           (cd linux && sha256sum -c SHA256SUMS)
           python3 scripts/verify_installation.py debian linux/soplang_*.deb
+      - uses: ilammy/msvc-dev-cmd@v1
+        if: runner.os == 'Windows'
+      - name: Install Windows native build SDKs
+        if: runner.os == 'Windows'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          gh release download llvmorg-23.1.4 -R llvm/llvm-project -p 'clang+llvm-23.1.4-x86_64-pc-windows-msvc.tar.zst' --dir target/llvm-download
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $archive = (Get-ChildItem target/llvm-download -Filter '*.zst' | Select-Object -First 1).FullName
+          zstd --long=30 -d $archive -o target/llvm-sdk.tar
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          New-Item -ItemType Directory -Force target/llvm-sdk | Out-Null
+          tar -xf target/llvm-sdk.tar -C target/llvm-sdk
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $llvm = (Get-ChildItem target/llvm-sdk -Directory | Select-Object -First 1).FullName
+          "SOPLANG_LLVM_SDK=$llvm" >> $env:GITHUB_ENV
+          Invoke-WebRequest 'https://ziglang.org/download/0.15.2/zig-x86_64-windows-0.15.2.zip' -OutFile target/zig.zip
+          $hash = (Get-FileHash target/zig.zip -Algorithm SHA256).Hash.ToLower()
+          if ($hash -ne '3a0ed1e8799a2f8ce2a6e6290a9ff22e6906f8227865911fb7ddedc3cc14cb0c') { throw 'Zig archive checksum mismatch' }
+          Expand-Archive target/zig.zip target/zig-sdk
+          $zig = (Get-ChildItem target/zig-sdk -Directory | Select-Object -First 1).FullName
+          "SOPLANG_ZIG_SDK=$zig" >> $env:GITHUB_ENV
       - name: Build and verify Windows archive
         if: runner.os == 'Windows'
         shell: pwsh
@@ -84,6 +202,9 @@ jobs:
               throw "Checksum failed: $name"
             }
           }
+      - name: Install macOS native build libraries
+        if: runner.os == 'macOS'
+        run: brew install llvm@22 lld@22
       - name: Build and verify macOS archive
         if: runner.os == 'macOS'
         shell: bash

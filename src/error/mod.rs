@@ -4,7 +4,8 @@
 mod external;
 mod format;
 pub use external::{
-    external_error, file_read_error, input_error, io_error, io_reason, tool_start_error,
+    external_error, file_read_error, file_write_error, input_error, io_error, io_reason,
+    path_io_error, tool_start_error,
 };
 
 use std::fmt;
@@ -20,6 +21,8 @@ pub mod codes {
     pub const E001_UNEXPECTED_CHAR: &str = "E001";
     pub const E002_UNTERMINATED_STRING: &str = "E002";
     pub const E003_UNTERMINATED_COMMENT: &str = "E003";
+    pub const E004_INVALID_ESCAPE: &str = "E004";
+    pub const E005_INVALID_INTERPOLATION: &str = "E005";
     pub const E010_UNEXPECTED_TOKEN: &str = "E010";
     pub const E011_INVALID_NUMBER: &str = "E011";
     pub const E012_EXPECTED_NAME: &str = "E012";
@@ -31,12 +34,49 @@ pub mod codes {
     pub const E032_BREAK_OUTSIDE_LOOP: &str = "E032";
     pub const E033_NOT_A_FUNCTION: &str = "E033";
     pub const E034_UNKNOWN_METHOD: &str = "E034";
+    pub const E035_INVALID_HANDLE: &str = "E035";
+    pub const E036_INVALID_FORMAT: &str = "E036";
+    pub const E037_INVALID_ITERATION: &str = "E037";
+    pub const E038_INVALID_BYTES: &str = "E038";
+    pub const E039_COLLECTION_CONTRACT: &str = "E039";
+    pub const E040_TUPLE: &str = "E040";
+    pub const E041_SET: &str = "E041";
+    pub const E042_TEXT: &str = "E042";
+    pub const E043_COLLECTION_OPERATION: &str = "E043";
+    pub const E044_NUMERIC: &str = "E044";
+    pub const E045_JSON: &str = "E045";
+    pub const E046_CSV: &str = "E046";
+    pub const E047_URL: &str = "E047";
+    pub const E048_BASE64: &str = "E048";
+    pub const E049_REGEX: &str = "E049";
+    pub const E050_TIME: &str = "E050";
+    pub const E051_PROCESS: &str = "E051";
+    pub const E052_COMMAND: &str = "E052";
+    pub const E053_HTTP: &str = "E053";
+    pub const E054_HTTP_SERVER: &str = "E054";
+    pub const E055_NETWORK: &str = "E055";
+    pub const E056_WEBSOCKET: &str = "E056";
+    pub const E057_PACKAGE: &str = "E057";
+    pub const E058_FILE: &str = "E058";
+    pub const E059_DATA: &str = "E059";
+}
+
+/// A compiled function and its caller's source location.
+#[derive(Debug, Clone)]
+pub struct StackFrame {
+    pub function: String,
+    pub file: Option<PathBuf>,
+    pub line: usize,
+    pub col: usize,
 }
 
 /// Optional metadata for an error (code, span end, hint, file).
 #[derive(Debug, Clone, Default)]
 pub struct ErrorMeta {
     pub code: Option<&'static str>,
+    pub user_code: Option<String>,
+    pub cause: Option<Box<SoplangError>>,
+    pub trace: Vec<StackFrame>,
     pub end_line: Option<usize>,
     pub end_col: Option<usize>,
     pub hint: Option<String>,
@@ -117,7 +157,7 @@ impl SourceSpan {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum SoplangError {
     Lexer {
         msg: String,
@@ -159,31 +199,61 @@ impl fmt::Display for SoplangError {
                 line,
                 col,
                 meta,
-            } => ("ereyayn", msg, line, col, meta.code),
+            } => (
+                "ereyayn",
+                msg,
+                line,
+                col,
+                meta.user_code.as_deref().or(meta.code),
+            ),
             SoplangError::Parser {
                 msg,
                 line,
                 col,
                 meta,
-            } => ("naxwe", msg, line, col, meta.code),
+            } => (
+                "naxwe",
+                msg,
+                line,
+                col,
+                meta.user_code.as_deref().or(meta.code),
+            ),
             SoplangError::Runtime {
                 msg,
                 line,
                 col,
                 meta,
-            } => ("fulin", msg, line, col, meta.code),
+            } => (
+                "fulin",
+                msg,
+                line,
+                col,
+                meta.user_code.as_deref().or(meta.code),
+            ),
             SoplangError::Type {
                 msg,
                 line,
                 col,
                 meta,
-            } => ("nooc", msg, line, col, meta.code),
+            } => (
+                "nooc",
+                msg,
+                line,
+                col,
+                meta.user_code.as_deref().or(meta.code),
+            ),
             SoplangError::Import {
                 msg,
                 line,
                 col,
                 meta,
-            } => ("soo-dejin", msg, line, col, meta.code),
+            } => (
+                "soo-dejin",
+                msg,
+                line,
+                col,
+                meta.user_code.as_deref().or(meta.code),
+            ),
         };
         let code_str = code.map(|c| format!(" [{}]", c)).unwrap_or_default();
         write!(f, "Khalad {}: {}{}", kind, msg, code_str)?;
@@ -215,13 +285,13 @@ impl SoplangError {
             | SoplangError::Import { line, col, .. } => (*line, *col),
         }
     }
-    pub fn code(&self) -> Option<&'static str> {
+    pub fn code(&self) -> Option<&str> {
         match self {
             SoplangError::Lexer { meta, .. }
             | SoplangError::Parser { meta, .. }
             | SoplangError::Runtime { meta, .. }
             | SoplangError::Type { meta, .. }
-            | SoplangError::Import { meta, .. } => meta.code,
+            | SoplangError::Import { meta, .. } => meta.user_code.as_deref().or(meta.code),
         }
     }
     pub fn hint(&self) -> Option<&str> {
@@ -233,6 +303,16 @@ impl SoplangError {
             | SoplangError::Import { meta, .. } => meta.hint.as_deref(),
         }
     }
+    pub(crate) fn meta_mut(&mut self) -> &mut ErrorMeta {
+        match self {
+            Self::Lexer { meta, .. }
+            | Self::Parser { meta, .. }
+            | Self::Runtime { meta, .. }
+            | Self::Type { meta, .. }
+            | Self::Import { meta, .. } => meta,
+        }
+    }
+
     pub fn meta(&self) -> &ErrorMeta {
         match self {
             SoplangError::Lexer { meta, .. }
@@ -347,5 +427,16 @@ pub fn import_error_ex(
         line,
         col,
         meta,
+    }
+}
+
+/// Display a fixed arity or an inclusive positional-argument range.
+pub(crate) fn argument_count(required: usize, total: usize) -> String {
+    if total == usize::MAX {
+        format!("{} ama ka badan", required)
+    } else if required == total {
+        total.to_string()
+    } else {
+        format!("{} ilaa {}", required, total)
     }
 }

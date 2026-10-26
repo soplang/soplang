@@ -1,0 +1,5 @@
+Khalad nooc: 'xog' waa baytyo laakin qiimaheeda 'teed' ma ahan baytyo [E022] safka 1, tiirka 1
+     --> examples/errors/byte_type.sop:1:1
+   1 │   baytyo xog = [1]
+     │   ^^^^^^
+     └─ Hubi in nooca qiimaha uu la mid yahay nooca lagu qeexay doorsamaha.

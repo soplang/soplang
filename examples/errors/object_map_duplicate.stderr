@@ -1,0 +1,4 @@
+Khalad nooc: aaddin() furaha 'isku' laba jeer ayaa la soo celiyey. [E043] safka 2, tiirka 5
+     --> examples/errors/object_map_duplicate.sop:2:5
+   2 │   xog.aaddin(hawl(fure, qiime) { celi xirmo("isku", qiime) }, "lamaane")
+     │       ^^^^^^

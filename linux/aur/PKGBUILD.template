@@ -3,36 +3,22 @@
 pkgname=soplang
 pkgver={{VERSION}}
 pkgrel=1
-pkgdesc="The Somali Programming Language (Rust/Cranelift JIT implementation)"
-arch=('x86_64' 'aarch64')
+pkgdesc="The Somali programming language with JIT and native compilation"
+arch=('x86_64')
 url="https://github.com/soplang/soplang"
 license=('MIT')
 depends=('glibc' 'gcc-libs')
-optdepends=('clang: native builds' 'rustup: matching toolchain for native builds')
-makedepends=('cargo' 'rust' 'python')
 provides=('soplang')
 conflicts=('soplang-git' 'soplang-bin')
-source=("$pkgname-$pkgver.tar.gz::https://github.com/soplang/soplang/archive/refs/tags/v${pkgver}.tar.gz")
+source=("soplang-${pkgver}-linux-x86_64.tar.gz::https://github.com/soplang/soplang/releases/download/v${pkgver}/soplang-${pkgver}-linux-x86_64.tar.gz")
 sha256sums=('{{SHA256}}')
 
-build() {
-  cd "$pkgname-$pkgver"
-  python scripts/package.py --output dist/soplang
-}
-
-# check() {
-#   cd "$pkgname-$pkgver"
-#   cargo test --release --locked
-# }
-
 package() {
-  cd "$pkgname-$pkgver"
-  install -Dm755 "dist/soplang/soplang" "$pkgdir/usr/bin/soplang"
-  install -d "$pkgdir/usr/lib"
-  cp -R dist/soplang/lib/soplang "$pkgdir/usr/lib/"
-  
-  # Install license if it exists
-  if [ -f "LICENSE" ]; then
-    install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
-  fi
+  install -Dm755 "$srcdir/soplang/soplang" "$pkgdir/usr/bin/soplang"
+  install -d "$pkgdir/usr/lib/soplang"
+  cp -a "$srcdir/soplang/lib/soplang/." "$pkgdir/usr/lib/soplang/"
+  install -Dm644 "$srcdir/soplang/LICENSE" "$pkgdir/usr/share/licenses/soplang/LICENSE"
+  install -d "$pkgdir/usr/share/licenses/soplang/third-party"
+  cp -a "$srcdir/soplang/licenses/." "$pkgdir/usr/share/licenses/soplang/third-party/"
+  install -Dm644 "$srcdir/soplang/INSTALLING.md" "$pkgdir/usr/share/doc/soplang/INSTALLING.md"
 }

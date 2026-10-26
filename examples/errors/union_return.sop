@@ -1,0 +1,3 @@
+hawl qalad() { celi run }
+hawl tijaabo(): abn | qoraal { celi qalad() }
+tijaabo()

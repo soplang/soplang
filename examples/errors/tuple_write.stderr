@@ -1,0 +1,4 @@
+Khalad fulin: Xirmada lama beddeli karo. [E040] safka 2, tiirka 1
+     --> examples/errors/tuple_write.sop:2:1
+   2 │   xog[0] = 2
+     │   ^^^

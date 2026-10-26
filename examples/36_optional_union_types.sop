@@ -1,0 +1,15 @@
+// Maran iyo noocyo la isku daray.
+qoraal? magac = maran
+qor(magac)
+magac = "Ayaan"
+qor(magac)
+hawl aqoonso(qoraal? qiime = maran): qoraal? { celi qiime }
+qor(aqoonso(), aqoonso(qiime: "Cali"))
+abn | qoraal qiime = 7
+qor(qiime)
+qiime = "toddoba"
+qor(qiime)
+hawl jajabso(jajab? tiro): jajab? { celi tiro }
+qor(nooc(jajabso(3)))
+hawl madhan(): abn? {}
+qor(madhan())

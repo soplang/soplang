@@ -6,6 +6,189 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Require verified TLS for PostgreSQL, CockroachDB, MySQL and MariaDB when requested through `tls` or a PEM `shahaado_ca`; expose these options through native, bundled and generated database clients.
+
+- Support explicit SQL Server integer keys in a parameterized server batch that restores `IDENTITY_INSERT` on success and SQL errors. Verify explicit keys, duplicate recovery, generated inserts and rollback across connector pools.
+
+- Enforce schema projections and typed MongoDB reads, preserve declared `_id` keys, normalize BSON integers and missing nullable fields, validate stored documents before migrations, and reconcile generated key counters with existing records.
+
+- Record validated schema snapshots and preflight additive ORM migrations before application DDL. Reject incompatible or unmanaged changes, require empty tables for new required columns, validate legacy/corrupt migration metadata, and select explicit SQL columns for older clients during additive deployments.
+
+- Add native global and collection API completion, hover, readonly definitions and references to the language server. Preserve lexical shadows and type/value distinctions, follow known container return types, and provide overload-aware signature help for native and source calls.
+
+- Share precise `E059` schema diagnostics and comment-preserving schema formatting between CLI and editor tools. Add a dedicated VS Code schema language, grammar, snippets, contextual completion and hover help, including untitled buffers.
+
+- Isolate private classes declared in module factories and anonymous functions while preserving inheritance, captured methods and module export boundaries.
+
+- Preserve editor scopes and imports in incomplete functions and lexical prefixes while retaining compiler diagnostics and analysis limits. Keep aliased file buffers aligned with their own source and refuse ambiguous rename edits.
+
+- Add dependency command forms and consistent strict/offline project run/build options, reject ignored command arguments, and discover project roots from nested directories. Generate public API Markdown from original signatures and documentation comments with atomic output.
+
+- Add source breakpoints, stepping, caller-frame selection and bounded local inspection to JIT and instrumented LLVM executables. Keep debugger state in its execution context and ordinary builds free of source instrumentation.
+
+- Generate strict typed database clients from `schema.sop`, with record getters, input/filter/update classes, safe bulk mutations, transactions and editor signatures. Add atomic `xog abuur --qor` and read-only stale-client checks with `--hubi`. Preserve imported types during unfinished editor expressions.
+
+- Add `hawl` annotations for callable variables, parameters, returns and collection elements, including nullable callables and strict callback APIs. Preserve named/native functions and captured closures while enforcing callable contracts in JIT and LLVM execution.
+
+- Give editor symbols separate file scopes, resolve namespace/export aliases and class member identities, and include closed workspace importers in references and rename. Refuse incomplete or unsafe edits, bound source reads, and open bundled definitions as read-only source documents.
+
+- Connect the VS Code extension to the native language server with executable settings, restart/shutdown handling and workspace trust. Correct comments and string highlighting, add compiler-checked snippets, and verify the real extension host and VSIX packaging.
+
+- Secure and bound web sessions, add rotation/logout and cookie options, preserve form/upload contents, and enforce absolute TCP/TLS exchange deadlines. Add the bundled web test client and structured HTTP error handlers. Keep private function signatures from changing caller builtin contracts.
+
+- Require expected test errors to originate in the test body and optionally match an error code. Discover test suites, bound parallel workers, preserve structured failure diagnostics, and report per-file executable coverage. Own coverage and profiles per runtime, keep loop hit storage bounded, and separate compilation from per-function execution timing.
+
+- Use each file's unsaved text and UTF-16 coordinates for language-server edits. Group renames by URI, preserve untitled buffers, handle incremental updates and closed documents, include comments in semantic tokens, and bound stdio messages.
+
+- Share import expansion between compilation and source analysis. Support bundled modules, class namespaces and package imports in `check` and editor diagnostics while preserving unsaved overlays, cancellation and read-only verified caches.
+
+- Format source without reconstructing tokens or losing comments, closures, branches, keys or literal contents. Validate output before atomic replacement, preserve file permissions and symbolic links, and refuse to overwrite invalid or read-only source.
+
+- Resolve imported class types in their lexical module, support class reexports, and retain each instance's captured method environment across inheritance, named calls, garbage collection and REPL commands.
+
+- Bind SQL values as driver parameters, validate schema contracts, preserve MongoDB records during migrations, and own database connections per execution context. Add explicit pool cleanup, shared SQLite memory pools, SQL Server TLS, and live connector regressions for migrations and transactions.
+
+- Keep class identity separate from object fields so JSON input cannot invoke class methods or satisfy class contracts. Reject non-JSON whitespace.
+
+- Own file and socket resources per runtime context and close them on context teardown. Reserve unique temporary files for atomic replacement, preserving unrelated neighbors and symlink targets. Report dangling symlinks accurately.
+
+- Cache module namespaces across aliases, dependency paths, and REPL commands. Preserve lexical function bindings in defaults and interpolation, and support generated import bindings in strict mode.
+
+- Validate HTTP message framing and response headers, reject ambiguous request lengths and header injection, and enforce header limits and body-free response statuses.
+
+- Apply WebSocket transport timeouts before TCP/TLS upgrade handshakes and encrypted I/O, preserve bounded redirects, and reject redirects that drop encryption.
+
+- Parse manifests and lockfiles as TOML, validate lock metadata before resolution, and preserve escaped paths when rewriting package files.
+
+### Added
+
+* `keen "web"` provides a sequential web framework: route groups, middleware order, JSON, HTML, redirects, cookies, forms, sessions, authentication hooks, CORS, request logs, and static files that cannot escape their root. `server_fur` accepts `{shahaado, fure}` for one TLS connection at a time. `qayb_foom` parses a bounded multipart body, and `habee_qoraal` renders `{{name}}` with HTML escaping.
+
+* `schema.sop` and `keen "xog"` validate tables, migrate missing columns, and run queries through a pool of at most eight connections. SQLite is covered by the default tests. PostgreSQL and CockroachDB use the Postgres client, MySQL and MariaDB use the MySQL client, MongoDB uses its official client, and SQL Server uses the TDS client with TLS. Database failures use `E059`. See [data](docs/language/data.md).
+
+* `soplang fmt`, `check`, `test`, `doc`, `lsp`, `debug`, `profile`, `run`, and `dhis` cover formatting, analysis, tests, documentation, the editor, breakpoints, profiling, and package entry points. See [tools](docs/language/tools.md).
+
+* Namespaced modules export public classes. `cusub m.Qof(...)`, `m.Qof q = ...`, and `qaab Arday dhaxal m.Qof` use that class, and `ka Qof sida Student` binds the same identity. A class left out of `soosaar` stays private.
+
+* Git dependencies accept repository URLs, hosting-service short forms, and explicit revisions. Root locks pin commits and content hashes, transitive imports share one resolved graph, and `--offline` verifies cached snapshots without fetching. Cache publication supports concurrent installers.
+
+* `soplang init [directory] [--lib] [--name name]` creates a root application or library starter and `soplang.toml` without overwriting existing files. Bare package imports prefer `lib.sop` while retaining the older package-named layout.
+
+* [3.2.0 implementation milestone notes](docs/releases/3.2.0.md) record completed language foundations. A version tag and distribution builds remain pending.
+
+* Text file builtins `akhrifayl`, `qor_fayl`, and `kudar_fayl` read, overwrite, and append UTF-8 text using paths relative to the working directory. I/O failures remain catchable with Somali messages.
+
+* Filesystem builtins add `fayl_jiraa`, `fayl_xog`, `isku_xidh`, `baabi_jid`, `nuqul_fayl`, `wareeji_fayl`, `tirtir_fayl`, `abuur_gal`, `tir_gal`, and `tirtir_gal` for metadata, paths, files, and directories.
+
+* Binary file builtins `akhrif_baytyo`, `qor_baytyo`, and `kudar_baytyo` read and write whole files as `baytyo` values without UTF-8 conversion.
+
+* JSON builtins `json_akhris` and `json_qor` parse and generate JSON. Object keys, including `__class__`, stay plain fields, and conversion failures use `E045`.
+
+* CSV builtins `csv_akhris` and `csv_qor` read and write rows of text fields, including quoted commas and line breaks. Conversion failures use `E046`.
+
+* URL builtins `url_qor` and `url_akhris` percent-encode UTF-8 text. The `"foom"` mode uses `+` for spaces. Invalid sequences use `E047`.
+
+* Base64 builtins `b64_qor` and `b64_akhris` encode `qoraal` or `baytyo` and decode to `baytyo`. The `"url"` mode uses the URL-safe alphabet without padding. Invalid input uses `E048`.
+
+* Regular-expression builtins `regex_raadi`, `regex_dhammaan`, and `regex_beddel` search and replace text with the Rust `regex` dialect. Invalid patterns use `E049`.
+
+* UTC time builtins `waqti`, `waqti_akhris`, `waqti_qor`, `waqti_qayb`, `waqti_ka_qayb`, and `waqti_kudar` parse, format, split, and shift whole seconds. Invalid dates and non-`Z` offsets use `E050`.
+
+* Process builtins `amarro`, `deegaan`, `deegaan_qor`, and `deegaan_tirtir` expose program arguments and environment variables. Arguments exclude the Soplang executable and source filename. Invalid environment names use `E051`.
+
+* `fuli` runs a child program without a shell and returns its exit code, standard output, and standard error. Startup and non-UTF-8 output failures use `E052`.
+
+* `http_codso` sends GET, POST, PUT, PATCH, and DELETE requests and returns status, headers, text, bytes, and JSON. `https` uses the operating system's trusted certificates. Network and protocol failures use `E053`.
+
+* `server_fur`, `server_aqbal`, and `server_xidh` serve one HTTP request at a time, including path parameters, JSON bodies, 404 responses, and handler failures as status 500. Bind and shutdown failures use `E054`.
+
+* `dns_raadi` returns sorted IP addresses. `tcp_fur`, `tcp_dhegeysi`, `tcp_aqbal`, `tcp_qor`, `tcp_akhris`, and `tcp_xidh` connect, listen, and exchange bytes. Network failures use `E055`.
+
+* UDP sockets `udp_fur`, `udp_qor`, `udp_akhris`, and `udp_xidh` bind, send, and receive one datagram at a time. Closed sockets and timeouts use `E055`.
+
+* WebSocket builtins `ws_fur`, `ws_qor`, `ws_akhris`, and `ws_xidh` connect to `ws://` and `wss://`, send text or binary frames, and read the next data frame. Connection and protocol failures use `E056`.
+
+* `keen "file.sop" sida name` initializes that file as a namespace. Public top-level functions and variables are fields of `name`. Names that start with `_` stay private, and flat `keen` imports are unchanged.
+
+* `soosaar` lists the public names of a namespaced file. An unknown export name is an import error. Files without `soosaar` still export every top-level name that does not start with `_`.
+
+* `keen "file.sop" ka name` binds selected public names in the caller. `name sida local` renames one of them. A name that was not exported is an import error.
+
+* `soplang.toml` records a package name, version, supported Soplang version, and optional source directory. Running or building a file beside an invalid manifest fails with `E057`.
+
+* `[ku-tiirsan]` declares a local path dependency. The path must contain a package whose `magac` matches the dependency name, and dependency cycles are rejected.
+
+* `soplang.lock`, when present, must list each resolved dependency's name, version, and path in name order. A mismatch fails with `E057` before the program runs.
+
+* File handles `fayl_fur`, `fayl_akhris`, `fayl_xariiq`, `fayl_qor`, `fayl_nadiifi`, `fayl_xidh`, `fayl_raad`, and `fayl_meel` open, read, write, flush, close, and seek files. `fayl_beddel` replaces a file from a temporary file in the same directory. Handle failures use `E058`.
+
+* Symlink copy and delete operate on the link. A cross-filesystem `wareeji_fayl` copies a file or symlink and then removes the source. Directory moves across filesystems fail.
+
+* Package dependencies accept `kayd:` version constraints and `http` or `https` `.sopkg` archives. Resolved packages are cached and pinned in `soplang.lock` with a `sumad` hash. `--ku-dar`, `--cusbooneysii`, `--ka-saar`, and `--daabac` install, update, remove, and publish. `keen "xisaab"` loads that package.
+
+
+* Numeric builtins add logarithms, radian trigonometry with optional inverse mode, `atan2`-style angles, named constants, clamping, and context-local seeded random streams. Integer-only extrema keep exact 64-bit results; invalid random calls do not advance the generator.
+
+* Object methods add insert-if-absent, atomic in-place merging, sorted-snapshot value and entry mapping, entry filtering, and explicit nested paths. Mapping can rename keys through checked pair results; path lookup preserves mutable aliases and supports existing indexed value kinds.
+
+* List methods add explicit removal by value, atomic in-place iterable extension, stable generic uniqueness, numeric sums, enumerate/zip adapters, and stable callback-key sorting. Sorting preserves large-integer precision and rejects changed receiver slots without discarding callback writes.
+
+* Unicode text methods add classification, capitalization, title casing, scalar-width padding, tuple partitioning, Unicode line splitting, and default whitespace splitting. Unicode 17 titlecase mappings and word boundaries work through both compiler backends.
+
+* Typed sets (`urur[T]`) enforce immutable element contracts through aliases, nested collections, parameters, defaults, returns, and typed rest collectors. Every mutation validates all affected parent contracts before changing membership or insertion order.
+
+* Insertion-ordered `urur` hash sets support unique immutable keys, set algebra, conversion, snapshot iteration, and bare type annotations through both compiler backends. Tuple keys participate in context ownership and collection.
+
+* Immutable `xirmo` tuples support indexing, slicing, conversion, shared collection methods, iteration, row bindings, and positional annotations. Nested mutable members retain shared contracts. Tuple handles participate in ownership checks and tracing collection.
+* Typed lists (`teed[T]`) and string-keyed objects (`walax[qoraal, T]`) enforce shared element contracts through aliases, nested containers, parameters, returns, and typed rest collectors. Mutation validates all affected parents before publishing data. Weak guards participate in context collection and use a dependency index.
+* Optional (`T?`), union (`A | B`), and null-only (`maran`) annotations constrain variables, constants, parameters, and returns. Both backends preserve exact numeric alternatives, apply existing numeric conversions when needed, and report recoverable Somali contract errors.
+* Compact `baytyo` byte arrays support checked mutation, byte indexing and slicing, snapshot iteration, strict UTF-8 encoding/decoding, shared collection methods, and concrete type annotations. Both backends retain byte storage through tracing roots; stale handles and conflicting host borrows produce recoverable errors.
+* Named arguments (`name: value`) support reordered values and omitted defaults in user functions, closures, methods, constructors, and parent calls. `**options` collects extra named arguments into a fresh object. Known signatures receive static checks; dynamic binding errors remain catchable.
+* Collection callbacks are checked before iteration, including empty lists. User functions, closures, and builtins expose fixed, optional, variadic, or pairwise argument contracts without running the callback to inspect it.
+* Variadic positional parameters (`*items`) collect surplus arguments into a fresh list. Required and defaulted parameters can precede them; methods, closures, constructors, and callbacks share the same behavior.
+* User functions, closures, methods, constructors, and callbacks accept default parameters evaluated at call time. Defaults can refer to earlier parameters and lexical captures; mutable literals are fresh on each call, and both backends preserve type checks, errors, and collection roots.
+* Collection loops use `kuceli (item ku source)` and exact-length row bindings. Lists use shallow snapshots, strings yield Unicode scalars, and objects yield sorted keys. `wareeg`/`xiga`, lazy `taxane`, `tirso`, and `lamaane` support shared cursors and user-defined class/object protocols in both backends.
+* Iterator state participates in context ownership and tracing collection, including cyclic snapshots and native roots held across callbacks. Invalid protocols, reentrant advances, excessive native nesting, and conflicting snapshot borrows produce recoverable Somali errors.
+
+### Fixed
+
+* Object method dispatch reports conflicting native borrows as recoverable errors before probing class metadata.
+
+* List sorting uses consistent type ordering, preserves large integer precision, and hides opaque callable handles during comparisons. Collection validation after callbacks reports the outer call site while callback failures retain their inner locations and traces.
+
+* Structural collection equality uses an iterative graph walk, and display bounds active nesting to 64 containers. Unreachable tuple edges are cleared during collection so deep immutable chains and mixed cycles can be reclaimed without recursive destruction.
+* Functions that fall through validate their implicit null return against their annotation, closing a gap for primitive and class return types.
+* Callable parameters and variables shadow global function signatures during static call validation and return-type inference. Windows LLVM wrappers retain the argument-signature registration bridges.
+* Native Rust callbacks receive reusable context-owned handles when converted to Soplang values.
+* LLVM registers empty classes and subclasses, preserving inherited constructors and iterator methods even when the subclass declares no methods.
+
+## [3.1.0]
+
+Implementation milestone; distribution and publication are pending.
+
+### Added
+
+* `qor()` accepts zero or more values, separates them with spaces, and prints a newline. It returns the printed text without the newline. File execution, the REPL, and LLVM builds support the same calls, including more than eight built-in arguments.
+
+* Owned runtime contexts isolate JIT programs and REPL sessions, including their globals, classes, function registrations, source locations, and pending errors. Rust integrations can inspect globals through their owning session or backend.
+* Closure environments are released with their runtime context. Dropping a JIT backend also frees its generated code and data allocations.
+* Runtime strings, collections, functions, and closures use opaque allocation handles. Foreign, expired, and malformed handles are rejected with catchable Somali errors instead of indexing another allocation or dereferencing a closure address.
+* Recoverable execution boundaries return uncaught runtime errors to Rust callers and the REPL. Failed expressions stop before later arguments or side effects run, while standalone programs retain Somali diagnostics and unsuccessful exit status.
+* Contextual `tuur` raises error messages. `dhammee` guarantees cleanup after protected blocks, handlers, returns, and loop exits in both compiler backends.
+* Immutable `khalad` values retain error codes, causes, source locations, and compiled function traces. Optional `qabo (fariin, xog)` exposes these details while existing catches keep receiving text. Cleanup failures preserve the original error as their cause.
+* Compiled functions, closures, constructors, and methods accept more than eight arguments through a shared argument-vector ABI. Returned and indexed functions can be invoked directly, including callable object fields. LLVM reuses argument buffers inside loops.
+
+* Tracing collection reclaims unreachable strings, errors, collections, instances, and closure environments, including cycles. Both backends publish explicit stack roots. Rust integrations can pin tagged values and inspect collection reports; repeated collection conversion preserves identity.
+* Explicit `e` string prefixes decode control, quote, and Unicode escapes; `r` selects raw text. Triple quotes support multiline content. Existing unprefixed strings preserve literal backslashes. Editor ranges and diagnostics retain original source bytes.
+* `qaabee(value, format?)` formats values with alignment, padding, integer bases, and floating-point precision. String `qaabee(...)` fills automatic, indexed, or named template slots and reports invalid formats as catchable Somali errors.
+* Default float display preserves large values and negative zero instead of narrowing whole-valued floats to 64-bit integers.
+
+* `f` string literals interpolate expressions with optional format descriptors. Nested literals, escaped braces, multiline content, closures, and original source locations work in both compiler backends. Fields evaluate once in order, and failures stop later fields. Editor indexing resolves references inside interpolation.
+
+* Integer arithmetic wraps consistently in native and dynamic execution, including minimum-value negation and remainder. Floating remainder preserves extreme magnitudes and signed zero. Numeric ranges retain exact integer bounds, stop before overflow, and report non-advancing floating-point steps.
+
+* JIT backends own immutable copies of HIR strings and source spans referenced by generated code. Embedding callers can discard compiler input safely; REPL snippets transfer to the same owner without duplicate retention.
+
 ## [3.0.1] - 2026-10-18
 
 ### Fixed

@@ -1,0 +1,47 @@
+hawl increment(abn value): abn { celi value + 1 }
+hawl make(abn amount): hawl {
+    celi hawl(abn value): abn { celi value + amount }
+}
+hawl apply(hawl callback, abn value): abn { celi callback(value) }
+hawl measure(hawl callback, qoraal text): abn { celi callback(text) }
+hawl callback = make(2)
+madoor hawl fixed = increment
+hawl native = dherer
+hawl? optional = maran
+hubi(optional == maran)
+optional = callback
+hubi(apply(callback, 3) == 5 && apply(fixed, 3) == 4)
+hubi(optional(3) == 5 && measure(native, "abc") == 3)
+
+teed[hawl] callbacks = [callback, fixed]
+callbacks.geli(native)
+hubi(callbacks[0](4) == 6 && callbacks[2]("hello") == 5)
+walax[qoraal, hawl] named = { cb: callback }
+hubi(named.cb(1) == 3)
+hawl choose(teed[hawl] *values): hawl { celi values[0] }
+hubi(choose(fixed, callback)(7) == 8)
+
+abn errors = 0
+walax data = { bad: 1 }
+tijaabi { apply(data.bad, 1) } qabo (e, details) {
+    hubi(details.summad == "E022")
+    errors = errors + 1
+}
+tijaabi { callbacks.geli(1) } qabo (e, details) {
+    hubi(details.summad == "E039")
+    errors = errors + 1
+}
+tijaabi { named.cb = 1 } qabo (e, details) {
+    hubi(details.summad == "E039")
+    errors = errors + 1
+}
+hawl wrong(): hawl { walax value = { bad: 1 } celi value.bad }
+tijaabi { wrong() } qabo (e, details) {
+    hubi(details.summad == "E022")
+    errors = errors + 1
+}
+tijaabi { apply(hawl(abn a, abn b): abn { celi a + b }, 1) } qabo (e) {
+    errors = errors + 1
+}
+hubi(errors == 5)
+qor("callable types ok")

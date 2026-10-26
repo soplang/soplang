@@ -1,0 +1,2 @@
+door xog = {}
+  xog.geli(1, 2)

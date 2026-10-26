@@ -1,0 +1,159 @@
+# HTTP server
+
+`server_fur`, `server_aqbal`, and `server_xidh` serve HTTP requests one at a
+time. The server speaks HTTP and answers JSON APIs. TLS is optional and
+serves one connection at a time. Bind, route, and shutdown failures are
+catchable and use error code `E054`.
+
+`server_fur(host, port)` binds a listener. A third argument `{shahaado, fure}`
+loads a PEM certificate and private key and serves that listener with TLS.
+Port `0` chooses an open port. The result contains `aqoonsi`, `martigeliye`,
+and `deked`.
+
+`server_aqbal(server, routes, options?)` waits for one connection, calls the
+matching handler, and returns `maran` after the response is sent. A handler
+failure becomes status 500 and does not stop the listener. An unknown path
+returns status 404. A known path with another method returns status 405.
+
+`server_xidh(server)` closes a listener opened with `server_fur`. Another accept
+then fails.
+
+`server_aqbal_shaqo(server, routes, options?)` accepts and serves one request
+on a listener from `sug(tcp_dhegeysi_shaqo(host, port))`. It returns a task;
+several such tasks can wait for connections and run handlers concurrently on
+the owning runtime thread. Use `sug` to collect each task result and
+`tcp_xidh(server)` to close the asynchronous listener. Closing it cancels
+pending accepts. The options and route behavior match `server_aqbal`. The
+exchange timeout begins when a connection is accepted, and covers all reads
+and writes. Handlers and streaming response producers run as scoped tasks;
+their deadlines cancel suspended work and run `dhammee` cleanup before the
+connection closes. This task-based path currently supports plain TCP.
+
+`server_adeeg_shaqo(server, routes, options?)` keeps accepting and serving
+connections until `tcp_xidh(server)` closes the asynchronous listener. It
+returns a task that completes after accepted requests finish. The optional
+`shaqaale` setting bounds simultaneous exchanges from 1 to 32; the default is
+8. Other accepted connections wait in the operating-system queue. A client
+disconnect or exchange timeout does not stop the listener. Closing the
+listener cancels pending accepts while active exchanges drain. Use `sug` on
+the serving task to wait for that drain.
+
+## Routes
+
+Each route is a list of method, path, and handler:
+
+```soplang
+hawl user(codsi) {
+    celi {json: {id: codsi.qayb.id}}
+}
+door server = server_fur("127.0.0.1", 8080)
+server_aqbal(server, [
+    ["GET", "/users/:id", user]
+])
+```
+
+Methods are `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, and `OPTIONS`. A path segment that
+starts with `:` captures that part of the path.
+
+## Request
+
+The handler receives one `walax`:
+
+| Field | Meaning |
+| --- | --- |
+| `hab` | Method. |
+| `jid` | Path without the query string. |
+| `qayb` | Named path parameters. |
+| `weydiimo` | Query parameters. `+` is read as a space. |
+| `cinwaan` | Headers, with lowercase names. |
+| `qoraal` | Body text, or `maran` when it is not UTF-8. |
+| `baytyo` | Raw body. |
+| `json` | Parsed JSON when the content type contains `json`. Invalid JSON returns status 400 without calling the handler. |
+
+On an asynchronous listener, a route may use a fourth item `"socod"`. This
+calls its handler after the headers arrive, before the full body is read:
+
+```soplang
+hawl upload(codsi) {
+    door total = 0
+    intay (run) {
+        door chunk = server_jidh_akhris(codsi.jidh, 65536)
+        haddii (dherer(chunk) == 0) { jooji }
+        total = total + dherer(chunk)
+    }
+    celi {json: {baytyo: total}}
+}
+door server = sug(tcp_dhegeysi_shaqo("127.0.0.1", 8080))
+sug(server_aqbal_shaqo(server, [["POST", "/upload", upload, "socod"]], {cabbir: 1073741824}))
+tcp_xidh(server)
+```
+
+The request adds `jidh` (a scoped body handle) and `dherer_jidh` (the declared
+length for `Content-Length`, or `maran` for chunked uploads). Its `qoraal`,
+`baytyo`, and `json` fields are `maran`; parse chunks
+explicitly. `server_jidh_akhris(handle, size)` returns up to `size` bytes,
+with size from 1 to 65536, and an empty `baytyo` at the declared end. It
+suspends the owning task while waiting for TCP input, so the server can handle
+other connections. The handle becomes invalid when the handler returns.
+Early disconnects, malformed chunk framing, and timeouts are catchable errors.
+Use `Content-Length` or `Transfer-Encoding: chunked` for a nonempty upload;
+omitting both means an empty body.
+
+Buffered routes also accept chunked uploads and decode them before calling the
+handler. The default
+limit is 1048576 bytes and the default read and write timeout is 30 seconds.
+Pass `{cabbir: n, waqti: seconds}` as the third argument of `server_aqbal` to
+change them. Buffered routes never accept more than 16 MiB. Streaming routes
+may raise `cabbir` to 1 GiB while retaining at most one read chunk at a time.
+
+## Response
+
+The handler returns a `walax`. `heer` defaults to 200. Use one of `qoraal`,
+`baytyo`, `json`, or `socod` for the body. `cinwaan` supplies extra headers. A redirect
+is a 301 or 302 response with a `Location` header.
+
+For a streaming response, `socod` is a zero-argument function. Each call
+returns a nonempty `qoraal` or `baytyo` chunk of at most 65536 bytes, or
+`maran` to finish. The server sends HTTP/1.1 chunked transfer encoding and
+waits for each chunk to be written before calling the function again. This
+provides backpressure without retaining the whole response in memory.
+`socod` cannot be combined with another body type or used with status 204 or
+304. Once headers are sent, a producer error ends the connection; the server
+cannot replace a partial response with status 500. The in-memory test client
+decodes chunked responses up to its configured response limit.
+
+The sequential listener serves one request at a time. Other connections wait
+in the operating-system queue until the next `server_aqbal`. Starting multiple
+`server_aqbal_shaqo` tasks permits overlapping exchanges on an asynchronous
+listener.
+
+Open listeners and connections belong to the current runtime context. Another
+session cannot use or close them. Destroying the context closes its remaining
+TCP, UDP, HTTP, and WebSocket resources. Close them explicitly when finished
+to release resources during a long-running session.
+
+## Message validation
+
+HTTP/1.1 requests need one nonempty `Host` field. Duplicate `Host`,
+`Content-Length`, or `Transfer-Encoding` fields are rejected. A request that
+combines transfer encoding and content length receives 400. Lengths must be
+unsigned decimal digits. The 8192-byte header limit includes the terminating
+blank line. The only supported transfer encoding is `chunked`. Chunk sizes,
+chunk boundaries, and trailers are validated; decoded bytes count toward the
+body limit. Trailers are discarded and cannot change request headers.
+
+Response header names must be HTTP tokens. Values cannot contain carriage
+returns, newlines, NUL, or other control characters except tab. The server owns
+`Content-Length`, `Transfer-Encoding`, and `Connection`; handlers cannot supply
+them. Extra headers are limited to 64 fields and 8192 bytes. An invalid handler
+response becomes a 500 response, and the listener remains available.
+
+Final response statuses range from 200 to 599. Status 204 and 304 responses
+cannot contain a body and omit `Content-Length`. A supplied text or byte body
+must have the matching Soplang type.
+
+The framing rules follow [RFC 9112, sections 3.2 and 6.3](https://www.rfc-editor.org/rfc/rfc9112#section-6.3).
+The server remains an HTTP subset. Ordinary routes buffer request bodies;
+streaming routes pull bounded chunks on asynchronous listeners. Keep-alive and
+upgrades need later server work. TLS is available through sequential `server_fur` and
+`server_aqbal`; asynchronous TLS serving remains later work.

@@ -1,0 +1,5 @@
+Khalad nooc: 'xog' waa xirmo laakin qiimaheeda 'teed' ma ahan xirmo [E022] safka 1, tiirka 1
+     --> examples/errors/tuple_outer_type.sop:1:1
+   1 │   xirmo xog = []
+     │   ^^^^^
+     └─ Hubi in nooca qiimaha uu la mid yahay nooca lagu qeexay doorsamaha.
