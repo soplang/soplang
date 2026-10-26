@@ -10,7 +10,7 @@ use std::sync::mpsc::{self, Receiver, Sender, TryRecvError};
 use std::sync::OnceLock;
 use std::time::{Duration, Instant};
 
-use corosensei::{Coroutine, CoroutineResult, Yielder};
+use corosensei::{stack::DefaultStack, Coroutine, CoroutineResult, Yielder};
 
 use super::context::{RuntimeLocal, RuntimeState};
 use super::roots::RootFrame;
@@ -24,6 +24,13 @@ const MAX_FILE_TASKS: usize = 16;
 const MAX_HTTP_TASKS: usize = 64;
 const MAX_TCP_TASKS: usize = 128;
 const MAX_UDP_TASKS: usize = 128;
+// Windows JIT frames and async server callbacks can exceed corosensei's 1 MiB
+// default stack. VirtualAlloc reserves this address space and commits pages as
+// the task uses them.
+#[cfg(target_os = "windows")]
+const TASK_STACK_BYTES: usize = 8 * 1024 * 1024;
+#[cfg(not(target_os = "windows"))]
+const TASK_STACK_BYTES: usize = 1024 * 1024;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub(super) enum ExternalKind {
@@ -480,9 +487,12 @@ pub(super) fn spawn(callee: Value, args: Vec<Value>) -> Result<Value, SoplangErr
     }
     STATE.with(|state| {
         check_limit(state)?;
+        let stack = DefaultStack::new(TASK_STACK_BYTES).map_err(|error| {
+            crate::error::external_error("Xusuusta shaqada lama diyaarin karin.", error.to_string())
+        })?;
         let data = new_handle(state);
         let id = data.handle();
-        let fiber = Coroutine::new(move |yielder: &FiberYielder, signal| {
+        let fiber = Coroutine::with_stack(stack, move |yielder: &FiberYielder, signal| {
             if signal == Signal::Cancel {
                 return Err(cancelled());
             }
