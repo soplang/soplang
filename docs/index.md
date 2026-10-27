@@ -26,6 +26,7 @@ Soplang is the Somali programming language, designed to make programming accessi
 ### Building and Performance
 
 - [Soplang 3.6.0 release](https://github.com/soplang/soplang/releases/tag/v3.6.0) - Native packages and checksums
+- [Soplang 3.6 article](https://www.somast.so/en/blog/soplang-3-6-release) - Features, applications, release checks, and current limits
 - [3.6.0 verification record](testing/RELEASE_VERIFICATION_3_6.md) - Release gates, package checks, and distribution status
 - [3.0.1 verification record](testing/LOCALIZATION_3_0_1.md) - Earlier native, installer, and container checks
 - [Build Guide](BUILD_GUIDE.md) - How to build Soplang from source (Windows, macOS, Linux)

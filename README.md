@@ -5,6 +5,7 @@
 Soplang is a programming language with Somali keywords. It supports static and dynamic typing, functions, closures, and classes.
 
 **Soplang 3.6.0 is available** for Linux x86_64, Windows x64, macOS Apple Silicon, and Docker. Get the [release packages](https://github.com/soplang/soplang/releases/tag/v3.6.0) or follow the [installation guide](docs/installation.md).
+The [3.6 release article](https://www.somast.so/en/blog/soplang-3-6-release) introduces its features and current limits.
 
 The 3.6.0 release includes the 3.1 through 3.6 implementation milestones:
 
