@@ -130,6 +130,9 @@
     "vscode-oniguruma": "2.0.1",
     "vscode-textmate": "9.3.2"
   },
+  "overrides": {
+    "@azure/msal-node": "7.1.0"
+  },
   "extensionKind": [
     "workspace"
   ]
